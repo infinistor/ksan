@@ -1,0 +1,3 @@
+[submodule "ksantest"]
+	path = ksantest
+	url = https://github.com/infinistor/ksantest.git
