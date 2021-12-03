@@ -1,0 +1,39 @@
+<div class="page">
+	<kendo-card [width]="'100%'">
+		<kendo-card-header class="k-hbox">
+			<app-common-kendo-search
+					class="common-search-flex"
+					[displayGroupStart]="false"
+					[disabled]="inCommunication"
+					[enablePeriodSearch]="false"
+					[enableKeywordSearch]="true"
+					[displayTime]="true"
+					[days]="7"
+					[fields]="[
+						{ text: 'Name', value: 'Name'},
+						{ text: 'Description', value: 'Description'},
+						{ text: 'Disk Path', value: 'Path'},
+					]"
+					(searchEmitter)="search($event)"
+					#common_search>
+			</app-common-kendo-search>
+			<app-common-kendo-export-button
+					[grid]="grid"
+					[disabled]="inCommunication"
+					[enableExcelExport]="true"
+					[enablePdfExport]="false"
+					[fileName]="'Servers'"
+					(onExport)="onExport()">
+			</app-common-kendo-export-button>
+		</kendo-card-header>
+		<kendo-card-body>
+			<app-common-kendo-grid-paginate #kendo_grid
+											[grid]="grid"
+											[disabled]="inCommunication"
+											(dataLoaded)="onDataLoaded($event)"
+											(pageChange)="onPageChange($event)"
+											(selectedKeysChange)="onItemSelectChange($event)">
+			</app-common-kendo-grid-paginate>
+		</kendo-card-body>
+	</kendo-card>
+</div>

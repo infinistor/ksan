@@ -1,0 +1,51 @@
+<div class="page">
+	<kendo-card [width]="'100%'">
+		<kendo-card-header class="k-hbox">
+			<app-enum-multi-select
+					[disabled]="inCommunication"
+					[placeholder]="'UL_DISKS_DISK_STATE'"
+					[selectedValues]="[]"
+					[data]="diskStateList"
+					(onChange)="diskStatusSelected = $event">
+			</app-enum-multi-select>
+			<app-enum-multi-select
+					[disabled]="inCommunication"
+					[placeholder]="'UL_DISKS_READ_WRITE_MODE'"
+					[selectedValues]="[]"
+					[data]="diskRwModeList"
+					(onChange)="diskRwModeSelected = $event">
+			</app-enum-multi-select>
+			<app-common-kendo-search
+					class="common-search-flex"
+					[disabled]="inCommunication"
+					[enablePeriodSearch]="false"
+					[enableKeywordSearch]="true"
+					[displayTime]="true"
+					[days]="7"
+					[fields]="[
+						{ text: 'Disk No', value: 'DiskNo'},
+						{ text: 'Path', value: 'Path'}
+					]"
+					(searchEmitter)="search($event)"
+					#common_search>
+			</app-common-kendo-search>
+			<app-common-kendo-export-button
+					[grid]="grid"
+					[disabled]="inCommunication"
+					[enableExcelExport]="true"
+					[enablePdfExport]="false"
+					[fileName]="'Servers'"
+					(onExport)="onExport()">
+			</app-common-kendo-export-button>
+		</kendo-card-header>
+		<kendo-card-body>
+			<app-common-kendo-grid-paginate #kendo_grid
+											[grid]="grid"
+											[disabled]="inCommunication"
+											(dataLoaded)="onDataLoaded($event)"
+											(pageChange)="onPageChange($event)"
+											(selectedKeysChange)="onItemSelectChange($event)">
+			</app-common-kendo-grid-paginate>
+		</kendo-card-body>
+	</kendo-card>
+</div>

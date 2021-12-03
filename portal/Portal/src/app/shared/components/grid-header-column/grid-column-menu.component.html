@@ -1,0 +1,12 @@
+<kendo-popup
+    *ngIf="isShow | async"
+    [offset]="offset | async"
+    [popupClass]="'girdColumnMenuSet'"
+    [popupAlign]="gridPopupAlign"
+>
+    <button class="mb-5 k-button k-info" (click)="close()">Close</button>
+    <div *ngFor="let column of columns">
+        <input type="checkbox" [id]="groupName + '_forHidden_' + column.field" class="k-checkbox" [checked]="!column.isHidden" (change)="hiddenChanged($event)" [value]="column.field">
+        <label class="k-checkbox-label" [for]="groupName + '_forHidden_' + column.field">{{ column.title | translate }}</label>
+    </div>
+</kendo-popup>

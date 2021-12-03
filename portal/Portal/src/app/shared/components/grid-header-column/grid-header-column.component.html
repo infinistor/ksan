@@ -1,0 +1,6 @@
+<div #col class="grid-custom-header" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+    {{ title }}
+    <button #button *ngIf="isHovered" (click)="onClick($event)">
+        <i class="k-icon k-i-more-vertical"></i>
+    </button>
+</div>

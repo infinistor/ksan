@@ -1,0 +1,1533 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="UL_COMMON__HA_ACTION_INIT" xml:space="preserve">
+        <value>Initializing</value><comment>초기화 중</comment>
+    </data>
+    <data name="UL_COMMON__HA_ACTION_UNKNOWN" xml:space="preserve">
+        <value>Unknown</value><comment>알 수 없음</comment>
+    </data>
+    <data name="UL_COMMON__HA_ACTION_ACTIVE" xml:space="preserve">
+        <value>Active</value><comment>Active</comment>
+    </data>
+    <data name="UL_COMMON__HA_ACTION_SYNC" xml:space="preserve">
+        <value>Syncing</value><comment>동기화 중</comment>
+    </data>
+    <data name="UL_COMMON__HA_ACTION" xml:space="preserve">
+        <value>HA Status</value><comment>HA 상태</comment>
+    </data>
+    <data name="UL_COMMON__HA_ACTION_STANDBY" xml:space="preserve">
+        <value>Standby</value><comment>Standby</comment>
+    </data>
+    <data name="UL_COMMON__SERVER_GROUP_MODE" xml:space="preserve">
+        <value>Server Group Mode</value><comment>서버 그룹 모드</comment>
+    </data>
+    <data name="UL_COMMON__SERVER_GROUP_MODE_SINGLE" xml:space="preserve">
+        <value>Single</value><comment>단독</comment>
+    </data>
+    <data name="UL_COMMON__SERVER_GROUP_MODE_LOAD_BALANCE" xml:space="preserve">
+        <value>HA</value><comment>HA</comment>
+    </data>
+	<data name="UL_COMMON_ACCOUNT_USER_STATUS" xml:space="preserve">
+		<value>Account Status</value>
+		<comment>회원 상태</comment>
+	</data>
+	<data name="UL_COMMON_ACCOUNT_USER_STATUS_ACTIVED" xml:space="preserve">
+		<value>Activated</value>
+		<comment>활성화</comment>
+	</data>
+	<data name="UL_COMMON_ACCOUNT_USER_STATUS_LOCKED" xml:space="preserve">
+		<value>Locked</value>
+		<comment>잠김</comment>
+	</data>
+	<data name="UL_COMMON_ACCOUNT_USER_STATUS_VERIFYING_EMAIL" xml:space="preserve">
+		<value>Verifying Email</value>
+		<comment>이메일 확인 중</comment>
+	</data>
+    <data name="EM_COMMON_ACCOUNT_ALREADY_AUTH_EMAIL" xml:space="preserve">
+        <value>It's already confirmed.</value>
+        <comment>이미 인증된 메일입니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_ALREADY_EXIST" xml:space="preserve">
+        <value>It's duplicated id.</value>
+        <comment>중복된 아이디 입니다.</comment>
+    </data>
+    <data name="EM_COMMON_NAME_ALREADY_EXIST" xml:space="preserve">
+        <value>It's duplicated name.</value>
+        <comment>중복된 이름 입니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_CHANGING_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>The change password and confirmation password do not match.</value>
+        <comment>변경할 비밀번호와 확인 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_CURRENT_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>The current password does not match.</value>
+        <comment>현재 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME" xml:space="preserve">
+        <value>New password and confirm password should not be same as current password</value>
+        <comment>기존 비밀번호와 현재 비밀번호는 동일해선 안됩니다</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_ACTIVATED" xml:space="preserve">
+        <value>Your email has been verified.\nPlease log in and use the service.</value>
+        <comment>이메일이 확인 되었습니다.\n로그인 후 서비스를 이용해 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_ERROR" xml:space="preserve">
+        <value>Following error occurred while checking your email.\n"{{errorMessage}}"\nPlease contact site manager.</value>
+        <comment>이메일 확인 중 아래의 에러가 발생하였습니다.\n"{{errorMessage}}"\n관리자에게 문의해 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_PROCESSING" xml:space="preserve">
+        <value>Checking if email is valid.\nPlease wait a moment.</value>
+        <comment>이메일이 유효한지 확인 중 입니다.\n잠시만 기다려주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_REQUIRE_CODE" xml:space="preserve">
+        <value>There is no verification code for verifying your email.</value>
+        <comment>이메일 인증에 필요한 인증코드가 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_REQUIRE_EMAIL" xml:space="preserve">
+        <value>There is no email address information you want to verify.</value>
+        <comment>인증하려는 이메일 주소 정보가 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EXTERNAL_LOGIN_INFORMATION_INVALID" xml:space="preserve">
+        <value>Your social account information is not valid.</value>
+        <comment>소셜 계정 정보가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_EXTERNAL_LOGIN_NAVER_CANCEL_BY_USER" xml:space="preserve">
+        <value>Cancel by user</value>
+        <comment>로그인이 취소 되었습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_FAIL_TO_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Failed to change the password.</value>
+        <comment>비밀번호를 변경하는 데 실패했습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_FAIL_TO_REGIST" xml:space="preserve">
+        <value>Failed to regist account.</value>
+        <comment>계정을 등록하는데 실패했습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_FAIL_TO_RESET_PASSWORD" xml:space="preserve">
+        <value>Failed to reset the password.</value>
+        <comment>비밀번호를 재설정하는 데 실패했습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_FAIL_TO_UPDATE" xml:space="preserve">
+        <value>Failed to update account.</value>
+        <comment>계정을 수정하는데 실패했습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>The username or password do not match.</value>
+        <comment>아이디 혹은 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_INVALID_EMAIL" xml:space="preserve">
+        <value>Email is invalid</value>
+        <comment>에메일 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_INVALID_PASSWORD" xml:space="preserve">
+        <value>Password is invalid.</value>
+        <comment>비밀번호가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_INVALID_PHONE_NUMBER" xml:space="preserve">
+        <value>Invalid phone number.</value>
+        <comment>전화번호가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_INVALID_TOKEN" xml:space="preserve">
+        <value>Invalid token.</value>
+        <comment>잘못된 토큰입니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_INVALID_USERID" xml:space="preserve">
+        <value>User Id is invalid</value>
+        <comment>아이디가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_IS_LOCKED" xml:space="preserve">
+        <value>Account was locked.</value>
+        <comment>계정이 잠겼습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL" xml:space="preserve">
+        <value>This account is not authenticated e-mail address.</value>
+        <comment>이메일 인증이 되지 않은 계정입니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM" xml:space="preserve">
+        <value>Please login after email confirmation.</value>
+        <comment>이메일 인증 후에 로그인하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_NOT_ALLOWED_ACCESS_IP" xml:space="preserve">
+        <value>This IP addresse can not be accessed.</value>
+        <comment>이 IP 주소는 접근 불가능 합니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_NOT_FOUND" xml:space="preserve">
+        <value>Account is not found.</value>
+        <comment>사용자 정보를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_NOT_HAVE_PERMISSION_TO_LOGIN" xml:space="preserve">
+        <value>The user does not have permission to login to the Portal.</value>
+        <comment>해당 유저는 Portal에 로그인할 수 있는 권한이 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_PASSWORD_AND_CONFIRM_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>The password and confirmation password do not match.</value>
+        <comment>비밀번호와 확인 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_ACCESS_TOKEN" xml:space="preserve">
+        <value>The access token could not be found.</value>
+        <comment>액세스 토큰을 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_CHANGE_CONFIRM_PASSWORD" xml:space="preserve">
+        <value>Please enter the confirmation password of changing.</value>
+        <comment>변경할 확인 비밀번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Please enter a new password.</value>
+        <comment>변경할 비밀번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_CLAIM_VALUE" xml:space="preserve">
+        <value>Please enter a claim value.</value>
+        <comment>권한 값을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_CONFIRM_PASSWORD" xml:space="preserve">
+        <value>Please enter the confirmation password.</value>
+        <comment>확인 비밀번호를 입력하세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_CURRENT_PASSWORD" xml:space="preserve">
+        <value>Please enter your current password.</value>
+        <comment>현재 비밀번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_EMAIL" xml:space="preserve">
+        <value>Please enter your email address.</value>
+        <comment>이메일을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_EXTERNAL_LOGIN_PROVIDER" xml:space="preserve">
+        <value>No social account provider found.</value>
+        <comment>소셜 계정 연동 제공자를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_LOGIN_ID" xml:space="preserve">
+        <value>Please enter your id.</value>
+        <comment>아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter your name.</value>
+        <comment>이름을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_NEW_PASSWORD" xml:space="preserve">
+        <value>Please enter your password.</value>
+        <comment>6자이상, 영문, 숫자 한 자 이상 필수</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_PASSWORD" xml:space="preserve">
+        <value>Please enter your password.</value>
+        <comment>비밀번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_PHONE_NUMBER" xml:space="preserve">
+        <value>Please enter phone number.</value>
+        <comment>핸드폰 번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_ROLE_NAME" xml:space="preserve">
+        <value>Please enter role name.</value>
+        <comment>역할명을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_USER_IDENTIFIER" xml:space="preserve">
+        <value>Please enter user identifier.</value>
+        <comment>사용자 식별자를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_RESET_PASSWORD_REQUIRE_CODE" xml:space="preserve">
+        <value>There is no verification code to reset password.</value>
+        <comment>비밀번호 초기화에 필요한 인증코드가 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_RESET_PASSWORD_REQUIRE_EMAIL" xml:space="preserve">
+        <value>There is no email address information for the account you want to reset.</value>
+        <comment>비밀번호를 초기화 하려는 계정의 이메일 주소 정보가 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_ROLE_NOT_FOUND" xml:space="preserve">
+        <value>Role is not found.</value>
+        <comment>역할 정보를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE" xml:space="preserve">
+        <value>You can not delete predefined role.</value>
+        <comment>미리 정의된 역할은 삭제할 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE" xml:space="preserve">
+        <value>You can not rename predefined role.</value>
+        <comment>미리 정의된 역할은 수정할 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_VERIFICATION_NUMBER" xml:space="preserve">
+        <value>Please enter your verification number.</value>
+        <comment>인증 번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EC_COMMON__ACCESS_DENIED" xml:space="preserve">
+        <value>EC005</value>
+        <comment>접근 권한이 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__ALREADY_EXIST" xml:space="preserve">
+        <value>EC024</value>
+        <comment>해당 내용이 이미 존재합니다.</comment>
+    </data>
+    <data name="EC_COMMON__COMMUNICATION_ERROR_TO_API" xml:space="preserve">
+        <value>EC999</value>
+        <comment>서버에 연결할 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__DUPLICATED_DATA" xml:space="preserve">
+        <value>EC036</value>
+        <comment>중복된 데이터 입니다.</comment>
+    </data>
+    <data name="EC_COMMON__EXCEPTION" xml:space="preserve">
+        <value>EC001</value>
+        <comment>프로바이더 공통 익셉션</comment>
+    </data>
+    <data name="EC_COMMON__EXCEPTION_FAIL_TO_SERIALIZE" xml:space="preserve">
+        <value>EC002</value>
+        <comment>결과를 생성하는데 실패하였습니다. (객체를 JSON으로 변환하는데 실패)</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_DELETE" xml:space="preserve">
+        <value>EC034</value>
+        <comment>삭제에 실패하였습니다.</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_DELETE_MAY_BE_IN_USE" xml:space="preserve">
+        <value>EC035</value>
+        <comment>삭제에 실패하였습니다. (사용 중일 수 있습니다.)</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_GET" xml:space="preserve">
+        <value>EC031</value>
+        <comment>조회에 실패하였습니다.</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_REGIST" xml:space="preserve">
+        <value>EC032</value>
+        <comment>등록에 실패하였습니다.</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_UPDATE" xml:space="preserve">
+        <value>EC033</value>
+        <comment>수정에 실패하였습니다.</comment>
+    </data>
+    <data name="EC_COMMON__FILE_NOT_FOUND" xml:space="preserve">
+        <value>EC023</value>
+        <comment>해당 파일을 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__INVALID_INFORMATION" xml:space="preserve">
+        <value>EC011</value>
+        <comment>주어진 정보가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EC_COMMON__INVALID_IP_ADDRESS" xml:space="preserve">
+        <value>EC015</value>
+        <comment>아이피 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EC_COMMON__INVALID_REQUEST" xml:space="preserve">
+        <value>EC012</value>
+        <comment>유효하지 않은 요청 입니다.</comment>
+    </data>
+    <data name="EC_COMMON__MAIL_SEND_ERROR" xml:space="preserve">
+        <value>EC041</value>
+        <comment>메일 발송을 하지 못했습니다.</comment>
+    </data>
+    <data name="EC_COMMON__MULTIPLE_DATA_EXIST" xml:space="preserve">
+        <value>EC051</value>
+        <comment>여러 데이터가 존재합니다.</comment>
+    </data>
+    <data name="EC_COMMON__NEED_LOGIN" xml:space="preserve">
+        <value>EC003</value>
+        <comment>로그인 후 이용이 가능한 서비스지만 로그인이 되어 있지 않은 경우</comment>
+    </data>
+    <data name="EC_COMMON__NETWORK_IS_NOT_AVAILABLE" xml:space="preserve">
+        <value>EC998</value>
+        <comment>네트워크를 이용할 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__NOT_FOUND" xml:space="preserve">
+        <value>EC014</value>
+        <comment>해당 내용을 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__NOT_HAVE_PERMISSION" xml:space="preserve">
+        <value>EC004</value>
+        <comment>권한이 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__NO_SELECTION" xml:space="preserve">
+        <value>EC013</value>
+        <comment>선택된 항목이 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__TEMP_PATH_NOT_FOUND" xml:space="preserve">
+        <value>EC025</value>
+        <comment>임시 폴더를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__ACCESS_DENIED" xml:space="preserve">
+        <value>You do not have access.</value>
+        <comment>접근 권한이 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__ALREADY_EXIST" xml:space="preserve">
+        <value>The information is already exist.</value>
+        <comment>해당 내용이 이미 존재합니다.</comment>
+    </data>
+    <data name="EM_COMMON__COMMUNICATION_ERROR_TO_API" xml:space="preserve">
+        <value>Unable to connect to server.</value>
+        <comment>서버에 연결할 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__DUPLICATED_DATA" xml:space="preserve">
+        <value>The requested data is duplicate.</value>
+        <comment>요청한 데이터는 중복되었습니다.</comment>
+    </data>
+    <data name="EM_COMMON__EXCEL_EXPORT_MAX_EXPORT_LIMIT" xml:space="preserve">
+        <value>Up to {{MaxExportCount}} data can be exported to Excel.</value>
+        <comment>엑셀로 내보낼 수 있는 데이터는 최대 {{MaxExportCount}}건 입니다.</comment>
+    </data>
+    <data name="EM_COMMON__EXCEPTION" xml:space="preserve">
+        <value>An error has occurred during processing.</value>
+        <comment>처리 중 오류가 발생하였습니다.</comment>
+    </data>
+    <data name="EM_COMMON__EXCEPTION_FAIL_TO_SERIALIZE" xml:space="preserve">
+        <value>Fail to create response object.</value>
+        <comment>결과를 생성하는데 실패하였습니다. (객체를 JSON으로 변환하는데 실패)</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_DELETE" xml:space="preserve">
+        <value>Failed to delete data.</value>
+        <comment>삭제에 실패하였습니다.</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_DELETE_MAY_BE_IN_USE" xml:space="preserve">
+        <value>Failed to delete. (May be in use.)</value>
+        <comment>삭제에 실패하였습니다. (사용 중일 수 있습니다.)</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_GET" xml:space="preserve">
+        <value>Failed to get data.</value>
+        <comment>조회에 실패하였습니다.</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_REGIST" xml:space="preserve">
+        <value>Failed to regist data.</value>
+        <comment>등록에 실패하였습니다.</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_UPDATE" xml:space="preserve">
+        <value>Failed to update data.</value>
+        <comment>수정에 실패하였습니다.</comment>
+    </data>
+    <data name="EM_COMMON__FILE_NOT_FOUND" xml:space="preserve">
+        <value>The file can not be found.</value>
+        <comment>해당 파일을 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_INFORMATION" xml:space="preserve">
+        <value>Given information is not valid.</value>
+        <comment>주어진 정보가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_IP_ADDRESS" xml:space="preserve">
+        <value>Invalid IP address.</value>
+        <comment>아이피 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_REQUEST" xml:space="preserve">
+        <value>Invalid Request</value>
+        <comment>유효하지 않은 요청 입니다.</comment>
+    </data>
+    <data name="EM_COMMON__MAIL_SEND_ERROR" xml:space="preserve">
+        <value>The email could not be sent.</value>
+        <comment>메일 발송을 하지 못했습니다.</comment>
+    </data>
+    <data name="EM_COMMON__MULTIPLE_DATA_EXIST" xml:space="preserve">
+        <value>Multiple data exists.</value>
+        <comment>여러 데이터가 존재합니다.</comment>
+    </data>
+    <data name="EM_COMMON__NEED_LOGIN" xml:space="preserve">
+        <value>Please use after login.</value>
+        <comment>로그인 후 이용하여 주세요</comment>
+    </data>
+    <data name="EM_COMMON__NETWORK_IS_NOT_AVAILABLE" xml:space="preserve">
+        <value>You are not connected to the network.</value>
+        <comment>네트워크에 연결되지 않았습니다.</comment>
+    </data>
+    <data name="EM_COMMON__NOT_FOUND" xml:space="preserve">
+        <value>The information is not found.</value>
+        <comment>해당 내용을 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__NOT_HAVE_PERMISSION" xml:space="preserve">
+        <value>You do not have permission.</value>
+        <comment>권한이 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__NO_SELECTION" xml:space="preserve">
+        <value>There is no selections.</value>
+        <comment>선택된 항목이 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__TEMP_PATH_NOT_FOUND" xml:space="preserve">
+        <value>The temp foler can not be found.</value>
+        <comment>임시 폴더를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__UPLOAD_MAX_SIZE_LIMIT" xml:space="preserve">
+        <value>The maximum file size that can be uploaded is {{ maxUploadSize }}.</value>
+        <comment>업로드 할 수 있는 최대 파일 크기는 {{ maxUploadSize }} 입니다.</comment>
+    </data>
+    <data name="UL_COMMON__ACCOUNT_ROLE_CLAIM_UPDATE" xml:space="preserve">
+        <value>Update Role Claims</value>
+        <comment>역할 권한 수정</comment>
+    </data>
+    <data name="UL_COMMON__ALL" xml:space="preserve">
+        <value>All</value>
+        <comment>전체</comment>
+    </data>
+    <data name="UL_COMMON__ALL_HA_STATUS" xml:space="preserve">
+        <value>All HA Status</value>
+        <comment>전체 HA 상태</comment>
+    </data>
+    <data name="UL_COMMON__ALL_SERVER_STATUS" xml:space="preserve">
+        <value>All Server Status</value>
+        <comment>전체 서버 상태</comment>
+    </data>
+    <data name="UL_COMMON__DAYS" xml:space="preserve">
+        <value>Days</value>
+        <comment>일</comment>
+    </data>
+    <data name="UL_COMMON__ERROR" xml:space="preserve">
+        <value>Error</value>
+        <comment>에러</comment>
+    </data>
+    <data name="UL_COMMON__GENDER" xml:space="preserve">
+        <value>Gender</value>
+        <comment>성별</comment>
+    </data>
+    <data name="UL_COMMON__GENDER_FEMALE" xml:space="preserve">
+        <value>Female</value>
+        <comment>여성</comment>
+    </data>
+    <data name="UL_COMMON__GENDER_MALE" xml:space="preserve">
+        <value>Male</value>
+        <comment>남성</comment>
+    </data>
+    <data name="UL_COMMON__HOURS" xml:space="preserve">
+        <value>Hours</value>
+        <comment>시간</comment>
+    </data>
+    <data name="UL_COMMON__LOG_LEVEL" xml:space="preserve">
+        <value>Log Level</value>
+        <comment>로그레벨</comment>
+    </data>
+    <data name="UL_COMMON__LOG_LEVEL_DEBUG" xml:space="preserve">
+        <value>Debug</value>
+        <comment>디버그</comment>
+    </data>
+    <data name="UL_COMMON__LOG_LEVEL_ERROR" xml:space="preserve">
+        <value>Error</value>
+        <comment>에러</comment>
+    </data>
+    <data name="UL_COMMON__LOG_LEVEL_INFORMATION" xml:space="preserve">
+        <value>Information</value>
+        <comment>정보</comment>
+    </data>
+    <data name="UL_COMMON__LOG_LEVEL_WARNING" xml:space="preserve">
+        <value>Warning</value>
+        <comment>경고</comment>
+    </data>
+    <data name="UL_COMMON__MODIFY" xml:space="preserve">
+        <value>Modify</value>
+        <comment>수정</comment>
+    </data>
+    <data name="UL_COMMON__MOD_DATE" xml:space="preserve">
+        <value>Mod. Date</value>
+        <comment>수정일시</comment>
+    </data>
+    <data name="UL_COMMON__MOD_NAME" xml:space="preserve">
+        <value>Mod. Name</value>
+        <comment>수정자명</comment>
+    </data>
+    <data name="UL_COMMON__MONTH" xml:space="preserve">
+        <value>Month</value>
+        <comment>개월</comment>
+    </data>
+    <data name="UL_COMMON__NEXT" xml:space="preserve">
+        <value>Next</value>
+        <comment>다음</comment>
+    </data>
+    <data name="UL_COMMON__NO" xml:space="preserve">
+        <value>No</value>
+        <comment>아니오</comment>
+    </data>
+    <data name="UL_COMMON__NO_DATA" xml:space="preserve">
+        <value>No records available.</value>
+        <comment>데이터가 존재하지 않습니다.</comment>
+    </data>
+    <data name="UL_COMMON__NO_SERVER" xml:space="preserve">
+        <value>No servers available.</value>
+        <comment>서버가 존재하지 않습니다.</comment>
+    </data>
+    <data name="UL_COMMON__NUMBER" xml:space="preserve">
+        <value>No</value>
+        <comment>번호</comment>
+    </data>
+    <data name="UL_COMMON__OK" xml:space="preserve">
+        <value>OK</value>
+        <comment>확인</comment>
+    </data>
+    <data name="UL_COMMON__PERIOD" xml:space="preserve">
+        <value>Period</value>
+        <comment>기간</comment>
+    </data>
+    <data name="UL_COMMON__PREVIOUS" xml:space="preserve">
+        <value>Previous</value>
+        <comment>이전</comment>
+    </data>
+    <data name="UL_COMMON__REGIST" xml:space="preserve">
+        <value>Regist</value>
+        <comment>등록</comment>
+    </data>
+    <data name="UL_COMMON__REG_DATE" xml:space="preserve">
+        <value>Reg. Date</value>
+        <comment>등록일시</comment>
+    </data>
+    <data name="UL_COMMON__REG_NAME" xml:space="preserve">
+        <value>Reg. Name</value>
+        <comment>등록자명</comment>
+    </data>
+    <data name="UL_COMMON__RESULT" xml:space="preserve">
+        <value>Result</value>
+        <comment>성공여부</comment>
+    </data>
+    <data name="UL_COMMON__SAVE" xml:space="preserve">
+        <value>Save</value>
+        <comment>저장</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH" xml:space="preserve">
+        <value>Search</value>
+        <comment>검색</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DATE_END" xml:space="preserve">
+        <value>End Date</value>
+        <comment>검색종료일</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DATE_END_TIME" xml:space="preserve">
+        <value>End Time</value>
+        <comment>검색종료시간</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DATE_START" xml:space="preserve">
+        <value>Start Date</value>
+        <comment>검색시작일</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DATE_START_TIME" xml:space="preserve">
+        <value>Start Time</value>
+        <comment>검색시작시간</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DURATION_TYPE" xml:space="preserve">
+        <value>Statistics duration</value>
+        <comment>통계 기간</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DURATION_TYPE_12_MONTHS" xml:space="preserve">
+        <value>Recent 12 months</value>
+        <comment>최근 12개월</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DURATION_TYPE_30_DAYS" xml:space="preserve">
+        <value>Recent 30 days</value>
+        <comment>최근 30일</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DURATION_TYPE_3_MONTHS" xml:space="preserve">
+        <value>Recent 3 months</value>
+        <comment>최근 3개월</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_DURATION_TYPE_6_MONTHS" xml:space="preserve">
+        <value>Recent 6 months</value>
+        <comment>최근 6개월</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_FIELD" xml:space="preserve">
+        <value>Application request search field</value>
+        <comment>검색항목</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_KEYWORD" xml:space="preserve">
+        <value>Input Searching keyword...</value>
+        <comment>검색어를 입력하여 주세요.</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_KEYWORD_PLACEHOLDER" xml:space="preserve">
+        <value>Input Searching keyword...</value>
+        <comment>검색어를 입력하여 주세요.</comment>
+    </data>
+    <data name="UL_COMMON__SEARCH_KEYWORD_WITH_LENGTH" xml:space="preserve">
+        <value>Please enter at least {0} characters.</value>
+        <comment>검색어를 {0}자 이상 입력해주세요.</comment>
+    </data>
+    <data name="UL_COMMON__SELECT" xml:space="preserve">
+        <value>Select</value>
+        <comment>선택</comment>
+    </data>
+    <data name="UL_COMMON__SELECTED_COUNT" xml:space="preserve">
+        <value>Selected count</value>
+        <comment>선택된 건수</comment>
+    </data>
+    <data name="UL_COMMON__STATUS" xml:space="preserve">
+        <value>Status</value>
+        <comment>상태</comment>
+    </data>
+    <data name="UL_COMMON__STAT_GROUP_BY_TYPE" xml:space="preserve">
+        <value>Statistical data grouping type</value>
+        <comment>통계 데이터 그룹핑 타입</comment>
+    </data>
+    <data name="UL_COMMON__STAT_GROUP_BY_TYPE_DAILY" xml:space="preserve">
+        <value>Daily</value>
+        <comment>일별</comment>
+    </data>
+    <data name="UL_COMMON__STAT_GROUP_BY_TYPE_MONTHLY" xml:space="preserve">
+        <value>Monthly</value>
+        <comment>월별</comment>
+    </data>
+    <data name="UL_COMMON__STAT_GROUP_BY_TYPE_WEEKLY" xml:space="preserve">
+        <value>Weekly</value>
+        <comment>주별</comment>
+    </data>
+    <data name="UL_COMMON__STAT_GROUP_BY_TYPE_YEARLY" xml:space="preserve">
+        <value>Yearly</value>
+        <comment>년별</comment>
+    </data>
+    <data name="UL_COMMON__TABLE" xml:space="preserve">
+        <value>Table</value>
+        <comment>표</comment>
+    </data>
+    <data name="UL_COMMON__TIME_DAYS" xml:space="preserve">
+        <value>Days</value>
+        <comment>일</comment>
+    </data>
+    <data name="UL_COMMON__TIME_HOURS" xml:space="preserve">
+        <value>Hours</value>
+        <comment>시간</comment>
+    </data>
+    <data name="UL_COMMON__TIME_MINUTES" xml:space="preserve">
+        <value>Minutes</value>
+        <comment>분</comment>
+    </data>
+    <data name="UL_COMMON__TIME_SECONDS" xml:space="preserve">
+        <value>Seconds</value>
+        <comment>초</comment>
+    </data>
+    <data name="UL_COMMON__TOTAL_COUNT" xml:space="preserve">
+        <value>Total count</value>
+        <comment>총 건수</comment>
+    </data>
+    <data name="UL_COMMON__TYPE" xml:space="preserve">
+        <value>Type</value>
+        <comment>타입</comment>
+    </data>
+    <data name="UL_COMMON__UNAPPLIED" xml:space="preserve">
+        <value>Unapplied</value>
+        <comment>미적용</comment>
+    </data>
+    <data name="UL_COMMON__UNAPPLY" xml:space="preserve">
+        <value>Unapply</value>
+        <comment>해제</comment>
+    </data>
+    <data name="UL_COMMON__UPLOAD" xml:space="preserve">
+        <value>Upload</value>
+        <comment>업로드</comment>
+    </data>
+    <data name="UL_COMMON__UPLOAD_ACTION" xml:space="preserve">
+        <value>Actions</value>
+        <comment>작업</comment>
+    </data>
+    <data name="UL_COMMON__UPLOAD_STATUS" xml:space="preserve">
+        <value>Status</value>
+        <comment>상태</comment>
+    </data>
+    <data name="UL_COMMON__VIEW_ALL" xml:space="preserve">
+        <value>View All</value>
+        <comment>전체보기</comment>
+    </data>
+    <data name="UL_COMMON__VIEW_MORE" xml:space="preserve">
+        <value>View More..</value>
+        <comment>더보기</comment>
+    </data>
+    <data name="UL_COMMON__WARNING" xml:space="preserve">
+        <value>Warning</value>
+        <comment>에러</comment>
+    </data>
+    <data name="UL_COMMON__YES" xml:space="preserve">
+        <value>Yes</value>
+        <comment>예</comment>
+    </data>
+    <data name="UL_COMMON__YESTERDAY" xml:space="preserve">
+        <value>Yesterday</value>
+        <comment>어제</comment>
+    </data>
+    <data name="SC_COMMON__SUCCESS" xml:space="preserve">
+        <value>SC001</value><comment>처리되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_EMAIL_CONFIRM_SUCCESS" xml:space="preserve">
+        <value>Email verification succeeded. Please login.</value>
+        <comment>이메일 인증에 성공하였습니다. 로그인 하여 주세요.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_SUCCESS_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Your password has been changed.</value>
+        <comment>비밀번호가 변경되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_SUCCESS_CREATED" xml:space="preserve">
+        <value>Sign up is complete.</value>
+        <comment>회원 가입이 완료 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_SUCCESS_RESET_PASSWORD" xml:space="preserve">
+        <value>Your password has been reset.</value>
+        <comment>비밀번호가 재설정되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_SUCCESS_SEND_CONFIRM_MAIL" xml:space="preserve">
+        <value>Please check your account according to the content of the e-mail.</value>
+        <comment>메일 주소 확인 메일이 발송되었습니다.\n메일의 내용에 따라 계정을 확인하여 주세요.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_SUCCESS_SEND_RESET_MAIL" xml:space="preserve">
+        <value>Your password reset email has been sent. Please reset your password according to the contents of the message.</value>
+        <comment>비밀번호 재설정 메일이 발송되었습니다. 메일의 내용에 따라서 비밀번호를 재설정하여 주세요.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_ADD_CLAIM" xml:space="preserve">
+        <value>Permission '{1}' added to user account '{0}'.</value>
+        <comment>사용자 계정 '{0}'에 권한 '{1}'(이)가 추가되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_ADD_ROLE" xml:space="preserve">
+        <value>Role '{1}' added to user account '{0}'.</value>
+        <comment>사용자 계정 '{0}'에 권한그룹 '{1}'(이)가 추가되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_CREATED" xml:space="preserve">
+        <value>User account '{0} ({1}, {2})' has been created.</value>
+        <comment>사용자 계정 '{0} ({1}, {2})'(이)가 생성되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_DISABLED" xml:space="preserve">
+        <value>User account '{0} ({1}, {2})' has been disabled.</value>
+        <comment>사용자 계정 '{0} ({1}, {2})'(이)가 비활성화 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_REMOVE_CLAIM" xml:space="preserve">
+        <value>Permission '{1}' has been removed from user account '{0}'.</value>
+        <comment>사용자 계정 '{0}'에서 권한 '{1}'(을)를 제거 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_REMOVE_ROLE" xml:space="preserve">
+        <value>Role '{1}' has been removed from user account '{0}'.</value>
+        <comment>사용자 계정 '{0}'에서 권한그룹 '{1}'(을)를 제거 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ACCOUNT_USER_UPDATED" xml:space="preserve">
+        <value>The user account '{0} ({1})' has been modified to '{2}'.</value>
+        <comment>사용자 계정 '{0} ({1})'(이)가  '{2}'(으)로 변경 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ALLOWED_CONNECTION_IP_ADDED" xml:space="preserve">
+        <value>The connection permission IP '{0}' is registered.</value>
+        <comment>접속 허용 아이피 '{0}'가 등록 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_ALLOWED_CONNECTION_IP_REMOVED" xml:space="preserve">
+        <value>The connection permission IP '{0}' is deleted.</value>
+        <comment>접속 허용 아이피  '{0}'가 삭제 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON_USER_SUCCESS_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Password has been changed.</value>
+        <comment>비밀번호가 변경되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__ADDED" xml:space="preserve">
+        <value>It has been added.</value>
+        <comment>추가 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__APPROVED" xml:space="preserve">
+        <value>It has been approved.</value>
+        <comment>승인 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__CLONED" xml:space="preserve">
+        <value>It has been cloned.</value>
+        <comment>복제 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__COPIED_TO_CLIPBOARD" xml:space="preserve">
+        <value>It has been copied to the clipboard.</value>
+        <comment>클립보드로 복사 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__CREATED" xml:space="preserve">
+        <value>It has been registered.</value>
+        <comment>등록 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__DELETED" xml:space="preserve">
+        <value>It has been deleted.</value>
+        <comment>삭제 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__DISABLED" xml:space="preserve">
+        <value>It has been disabled.</value>
+        <comment>비활성화 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__ENABLED" xml:space="preserve">
+        <value>It has been enabled.</value>
+        <comment>활성화 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__IMPORTED" xml:space="preserve">
+        <value>{0} request(s) have been registered in total {1} request(s).</value>
+        <comment>{1} 건 중 {0} 건이 등록 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__MOVED" xml:space="preserve">
+        <value>It has been moved.</value>
+        <comment>이동 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__REMOVED" xml:space="preserve">
+        <value>It has been removed.</value>
+        <comment>제거 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__SAVED" xml:space="preserve">
+        <value>It has been saved.</value>
+        <comment>저장 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__SEND_MAIL" xml:space="preserve">
+        <value>Your email has been sent.</value>
+        <comment>이메일을 발송하였습니다.</comment>
+    </data>
+    <data name="SM_COMMON__UPDATED" xml:space="preserve">
+        <value>It has been updated.</value>
+        <comment>수정 되었습니다.</comment>
+    </data>
+    <data name="SM_COMMON__REQUESTED" xml:space="preserve">
+        <value>It has been requested.</value>
+        <comment>요청 되었습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_ALRECADY_AUTH_EMAIL" xml:space="preserve">
+        <value>ECA012</value>
+        <comment>이미 인증된 메일입니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_CURRENT_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>ECA031</value>
+        <comment>현재 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME" xml:space="preserve">
+        <value>ECA032</value>
+        <comment>기존 비밀번호와 현재 비밀번호는 동일해선 안됩니다</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_FAIL_TO_CHANGE_PASSWORD" xml:space="preserve">
+        <value>ECA033</value>
+        <comment>비밀번호를 변경하는 데 실패했습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_FAIL_TO_REGIST" xml:space="preserve">
+        <value>ECA011</value>
+        <comment>계정을 등록하는데 실패했습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_FAIL_TO_RESET_PASSWORD" xml:space="preserve">
+        <value>ECA041</value>
+        <comment>비밀번호를 재설정하는 데 실패했습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_FAIL_TO_UPDATE" xml:space="preserve">
+        <value>ECA051</value>
+        <comment>계정을 수정하는데 실패했습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH" xml:space="preserve">
+        <value>ECA021</value>
+        <comment>아이디 혹은 비밀번호가 일치하지 않습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_INVALID_TOKEN" xml:space="preserve">
+        <value>ECA003</value>
+        <comment>잘못된 토큰입니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_IS_LOCKED" xml:space="preserve">
+        <value>ECA023</value>
+        <comment>계정이 잠겼습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL" xml:space="preserve">
+        <value>ECA004</value>
+        <comment>이메일 인증이 되지 않은 계정입니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM" xml:space="preserve">
+        <value>ECA022</value>
+        <comment>이메일 인증 후에 로그인하여 주세요.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_NOT_ALLOWED_ACCESS_IP" xml:space="preserve">
+        <value>ECA001</value>
+        <comment>이 IP 주소 접근 불가능 합니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_NOT_FOUND" xml:space="preserve">
+        <value>ECA002</value>
+        <comment>사용자 정보를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_NOT_HAVE_PERMISSION_TO_LOGIN" xml:space="preserve">
+        <value>ECA101</value>
+        <comment>해당 유저는 Portal에 로그인할 수 있는 권한이 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_ROLE_NOT_FOUND" xml:space="preserve">
+        <value>ECA005</value>
+        <comment>역할 정보를 찾을 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE" xml:space="preserve">
+        <value>ECA061</value>
+        <comment>미리 정의된 역할은 삭제할 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE" xml:space="preserve">
+        <value>ECA062</value>
+        <comment>미리 정의된 역할은 수정할 수 없습니다.</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_ADD_ROLE" xml:space="preserve">
+        <value>Add Role</value>
+        <comment>역할 등록</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Change Password</value>
+        <comment>비밀번호 변경</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_CONFIRM_NEW_PASSWORD" xml:space="preserve">
+        <value>Confirm New Password</value>
+        <comment>신규 비밀번호 확인</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_CONFIRM_PASSWORD" xml:space="preserve">
+        <value>Confirm Password</value>
+        <comment>비밀번호 확인</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_CURRENT_PASSWORD" xml:space="preserve">
+        <value>Current Password</value>
+        <comment>현재 비밀번호</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_EMAIL" xml:space="preserve">
+        <value>E-mail</value>
+        <comment>이메일</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_FORGOT_PASSWORD" xml:space="preserve">
+        <value>Forgot Password</value>
+        <comment>비밀번호 찾기</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_LOGIN" xml:space="preserve">
+        <value>Login</value>
+        <comment>로그인</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_LOGOUT" xml:space="preserve">
+        <value>Logout</value>
+        <comment>로그아웃</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_MAIL_EMAIL_CONFIRM" xml:space="preserve">
+        <value>Mail confirmation</value>
+        <comment>이메일 확인</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_MAIL_PASSWORD_RESET" xml:space="preserve">
+        <value>Password reset</value>
+        <comment>비밀번호 재설정</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_NAME" xml:space="preserve">
+        <value>Name</value>
+        <comment>이름</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_NEW_PASSWORD" xml:space="preserve">
+        <value>New Password</value>
+        <comment>신규 비밀번호</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_PASSWORD" xml:space="preserve">
+        <value>Password</value>
+        <comment>비밀번호</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_REMEMBER_ME" xml:space="preserve">
+        <value>Remember User Id</value>
+        <comment>로그인 아이디 저장</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_REMOVE_ROLE" xml:space="preserve">
+        <value>Remove Role</value>
+        <comment>역할 삭제</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_RESEND_CONFIRM_MAIL" xml:space="preserve">
+        <value>Resend verification mail</value>
+        <comment>인증메일 재전송</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_RESET_PASSWORD" xml:space="preserve">
+        <value>Reset Password</value>
+        <comment>비밀번호 재설정</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_UPDATE_ROLE" xml:space="preserve">
+        <value>Update Role</value>
+        <comment>역할 수정</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_USER_ID" xml:space="preserve">
+        <value>ID</value>
+        <comment>아이디</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_USER_NAME" xml:space="preserve">
+        <value>Name</value>
+        <comment>이름</comment>
+    </data>
+    <data name="UL_COMMON_ACCOUNT_VERIFICATION_NUMBER" xml:space="preserve">
+        <value>Verification Number</value>
+        <comment>인증번호</comment>
+    </data>
+    <data name="EMAIL_COMMON_ACCOUNT_EMAIL_CONFIRMATION" xml:space="preserve">
+        <value>EmailMemberVerifyMailForm.en.html</value>
+        <comment>메일 주소 확인 메일 템플릿</comment>
+    </data>
+    <data name="EMAIL_COMMON_ACCOUNT_RESET_PASSWORD" xml:space="preserve">
+        <value>EmailMemberResetMailForm.en.html</value>
+        <comment>비밀번호 재설정 메일 템플릿</comment>
+    </data>
+    <data name="EM_COMMON_API_KEY_REQUIRE_KEY_NAME" xml:space="preserve">
+        <value>Please enter key name.</value><comment>키 명칭을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_SERVERS_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter server name.</value><comment>서버명을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_SERVER_ID" xml:space="preserve">
+        <value>Please select the server where the network interface is installed.</value><comment>네트워크 인터페이스가 설치된 서버를 선택하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter the network interface name.</value><comment>네트워크 인터페이스명을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_SERVERS_DUPLICATED_NAME" xml:space="preserve">
+        <value>A server with the same name exists.</value><comment>동일한 이름의 서버가 존재합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_DUPLICATED_NAME" xml:space="preserve">
+        <value>A network interface with the same name exists.</value><comment>동일한 이름의 네트워크 인터페이스가 존재합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_INVALID_SERVER_ID" xml:space="preserve">
+        <value>Invalid server id.</value><comment>유효하지 않은 서버 아이디 입니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_REQUIRE_INTERFACE_ID" xml:space="preserve">
+        <value>Select the network interface to set up the VLAN.</value><comment>VLAN을 설정할 네트워크 인터페이스를 선택하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_INVALID_INTERFACE_ID" xml:space="preserve">
+        <value>Invalid network interface id.</value><comment>유효하지 않은 네트워크 인터페이스 아이디 입니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_DUPLICATED_TAG" xml:space="preserve">
+        <value>The same VLAN tag exists.</value><comment>동일한 VLAN 태그가 존재합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_TAG_MUST_BETWEEN_2_4094" xml:space="preserve">
+        <value>VLAN tag should use a value within 2~4094.</value><comment>VLAN 태그는 2~4094 내의 값을 사용하여야 합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_REQUIRE_IP_ADDRESS" xml:space="preserve">
+        <value>Please enter your IP address.</value><comment>아이피 주소를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_REQUIRE_SUBNET_MASK" xml:space="preserve">
+        <value>Please enter the subnet mask.</value><comment>서브넷 마스크를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_REQUIRE_GATEWAY" xml:space="preserve">
+        <value>Please enter the gateway address.</value><comment>게이트웨이 주소를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_REQUIRE_SERVER_ID" xml:space="preserve">
+        <value>Please select the server where the network interface is installed.</value><comment>네트워크 인터페이스가 설치된 서버를 선택하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_INVALID_SERVER_ID" xml:space="preserve">
+        <value>Invalid server id.</value><comment>유효하지 않은 서버 아이디 입니다.</comment>
+    </data>
+    <data name="EM_SERVICES_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter service name.</value><comment>서비스명을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_SERVICES_DUPLICATED_NAME" xml:space="preserve">
+        <value>A service with the same name exists.</value><comment>동일한 이름의 서비스가 존재합니다.</comment>
+    </data>
+    <data name="EM_SERVICES_INVALID_GROUP_ID" xml:space="preserve">
+        <value>Invalid group id.</value><comment>유효하지 않은 그룹 아이디 입니다.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter service group name.</value><comment>서비스 그룹명을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_CONTAINS_DIFFERENT_SERVICE_GROUP_SERVICE" xml:space="preserve">
+        <value>It includes the services that belong to other groups.</value><comment>다른 그룹에 속한 서비스가 포함되어 있습니다.</comment>
+    </data>
+    <data name="EM_SERVICES_THERE_IS_NO_SERVICE_GROUP" xml:space="preserve">
+        <value>The group information does not exist.</value><comment>해당 그룹 정보가 존재하지 않습니다.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_INVALID_SERVICE_ID" xml:space="preserve">
+        <value>Invalid service id.</value><comment>유효하지 않은 서비스 아이디 입니다.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED" xml:space="preserve">
+        <value>A service id that cannot be used has been used. </value><comment>사용할 수 없는 서비스 아이디가 사용 되었습니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_VLAN_RESERVED_TAG_IS_READ_ONLY" xml:space="preserve">
+        <value>VLAN tag 1 cannot be modified/deleted.</value><comment>VLAN 태그 1은 수정/삭제할 수 없습니다.</comment>
+    </data>
+    <data name="EM_SERVICES_INVALID_VLAN_ID" xml:space="preserve">
+        <value>Invalid vlan id.</value><comment>유효하지 않은 VLAN 아이디 입니다.</comment>
+    </data>
+    <data name="EM_SERVICES_THERE_IS_NO_VLAN" xml:space="preserve">
+        <value>The vlan information does not exist.</value><comment>해당 VLAN 정보가 존재하지 않습니다.</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_STATE" xml:space="preserve">
+        <value>Server State</value><comment>서버 상태</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_STATE_TIMEOUT" xml:space="preserve">
+        <value>Timeout</value><comment>타임아웃</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_STATE_OFFLINE" xml:space="preserve">
+        <value>Offline</value><comment>오프라인</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_STATE_ONLINE" xml:space="preserve">
+        <value>Online</value><comment>온라인</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_STATE_UNKNOWN" xml:space="preserve">
+        <value>Unknown</value><comment>알 수 없음</comment>
+    </data>
+    <data name="EM_SERVICES_CANNOT_CREATE_CONFIG_OBJECT" xml:space="preserve">
+        <value>Cannot create config object.</value><comment>설정 객체를 생성할 수 없습니다.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_SERVICE_CONFIG_IS_DIFFERENT_FROM_OTHER_SERVICE" xml:space="preserve">
+        <value>Service config is different from other service.</value><comment>서비스 설정이 다른 서비스와 다릅니다.</comment>
+    </data>
+    <data name="EM_SERVERS_REQUIRE_ID" xml:space="preserve">
+        <value>Please enter the server id.</value><comment>서버 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EC_COMMON__CANNOT_CREATE_INSTANCE" xml:space="preserve">
+        <value>EC099</value><comment>객체를 생성할 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__CANNOT_CREATE_INSTANCE" xml:space="preserve">
+        <value>Object cannot be created.</value><comment>객체를 생성할 수 없습니다.</comment>
+    </data>
+    <data name="EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT" xml:space="preserve">
+        <value>EC081</value><comment>통신 객체를 생성할 수 없습니다.</comment>
+    </data>
+    <data name="EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT" xml:space="preserve">
+        <value>Could not create communication object.</value><comment>통신 객체를 생성할 수 없습니다.</comment>
+    </data>
+    <data name="UL_DISKS_READ_WRITE_MODE" xml:space="preserve">
+        <value>Disk R/W Model</value><comment>디스크 읽기/쓰기 모드</comment>
+    </data>
+    <data name="UL_DISKS_READ_WRITE_MODE_READ_ONLY" xml:space="preserve">
+        <value>Read Only</value><comment>읽기 전용</comment>
+    </data>
+    <data name="UL_DISKS_READ_WRITE_MODE_READ_WRITE" xml:space="preserve">
+        <value>Read/Write</value><comment>읽기/쓰기</comment>
+    </data>
+    <data name="UL_SERVICES_SERVICE_STATE" xml:space="preserve">
+        <value>Service State</value><comment>서비스 상태</comment>
+    </data>
+    <data name="UL_SERVICES_SERVICE_STATE_UNKNOWN" xml:space="preserve">
+        <value>Unknown</value><comment>알 수 없음</comment>
+    </data>
+    <data name="UL_SERVICES_SERVICE_STATE_TIMEOUT" xml:space="preserve">
+        <value>Timeout</value><comment>타임아웃</comment>
+    </data>
+    <data name="UL_SERVICES_SERVICE_STATE_OFFLINE" xml:space="preserve">
+        <value>Offline</value><comment>오프라인</comment>
+    </data>
+    <data name="UL_SERVICES_SERVICE_STATE_ONLINE" xml:space="preserve">
+        <value>Online</value><comment>온라인</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE" xml:space="preserve">
+        <value>Disk State</value><comment>디스크 상태</comment>
+    </data>
+    <data name="EM_DISKS_REQUIRE_DISK_ID" xml:space="preserve">
+        <value>Please enter disk id.</value><comment>디스크 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_REQUIRE_PATH" xml:space="preserve">
+        <value>Please enter disk path.</value><comment>디스크 경로를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_REQUIRE_SERVER_ID" xml:space="preserve">
+        <value>Please enter server id.</value><comment>서버 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_REQUIRE_DISK_NO" xml:space="preserve">
+        <value>Please enter disk no.</value><comment>디스크 식별번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_INVALID_SERVER_ID" xml:space="preserve">
+        <value>Invalid server id.</value><comment>서버 아이디가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_SERVICES_REQUIRE_ID" xml:space="preserve">
+        <value>Please enter the service id.</value><comment>서비스 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_INTERFACE_ID" xml:space="preserve">
+        <value>Invalid network interface id.</value><comment>네트워크 인터페이스 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_SUBNET_MASK" xml:space="preserve">
+        <value>Invalid subnet mask.</value><comment>서브넷 마스크가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_GATEWAY" xml:space="preserve">
+        <value>Invalid gateway address.</value><comment>게이트웨이 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_DNS_1" xml:space="preserve">
+        <value>Invalid dns 1 address.</value><comment>DNS 1 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_COMMON__INVALID_DNS_2" xml:space="preserve">
+        <value>Invalid dns 2 address.</value><comment>DNS 2 주소가 유효하지 않습니다.</comment>
+    </data>
+    <data name="EM_SERVERS_CPU_USAGE_SHOULD_BE_BETWEEN_0_TO_100" xml:space="preserve">
+        <value>CPU usage should be between 0 and 100.</value><comment>CPU 사용률은 0이상 100이하 이어야 합니다.</comment>
+    </data>
+    <data name="EM_SERVICES_CPU_USAGE_SHOULD_BE_BETWEEN_0_TO_100" xml:space="preserve">
+        <value>CPU usage should be between 0 and 100.</value><comment>CPU 사용률은 0이상 100이하 이어야 합니다.</comment>
+    </data>
+    <data name="EM_SERVERS_MEMORY_SIZE_MUST_BE_AT_LEAST_0" xml:space="preserve">
+        <value>Memory size must be at least 0.</value><comment>메모리 크기는 0 이상이어야 합니다.</comment>
+    </data>
+    <data name="EM_SERVICES_MEMORY_SIZE_MUST_BE_AT_LEAST_0" xml:space="preserve">
+        <value>Memory size must be at least 0.</value><comment>메모리 크기는 0 이상이어야 합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_RX_MUST_BE_AT_LEAST_0" xml:space="preserve">
+        <value>RX must be at least 0.</value><comment>RX는 0 이상이어야 합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_TX_MUST_BE_AT_LEAST_0" xml:space="preserve">
+        <value>TX must be at least 0.</value><comment>TX는 0 이상이어야 합니다.</comment>
+    </data>
+    <data name="EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_VLAN_ID" xml:space="preserve">
+        <value>Invalid network interface vlan id.</value><comment>네트워크 인터페이스 VLAN 아이디를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_COMMON__COMMUNICATION_TIMEOUT" xml:space="preserve">
+        <value>Processing is being delayed. Please try again later.</value><comment>처리가 지연되고 있습니다. 잠시 후에 다시 시도하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_INVALID_DISK_POOL_ID" xml:space="preserve">
+        <value>Invalid disk pool id.</value><comment>유효하지 않은 디스크 풀 아이디 입니다.</comment>
+    </data>
+    <data name="EM_DISKS_THERE_IS_NO_DISK_POOL" xml:space="preserve">
+        <value>The disk pool does not exist.</value><comment>해당 디스크 풀 정보가 존재하지 않습니다.</comment>
+    </data>
+    <data name="EM_DISK_POOLS_REQUIRE_NAME" xml:space="preserve">
+        <value>Please enter disk pool name.</value><comment>디스크 풀 이름을 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED" xml:space="preserve">
+        <value>The disk id that cannot be used has been used. </value><comment>사용할 수 없는 디스크 아이디가 사용 되었습니다.</comment>
+    </data>
+    <data name="EM_DISKS_REQUIRE_DISK_ID_OR_NO" xml:space="preserve">
+        <value>Please enter disk id or no.</value><comment>디스크 아이디 혹은 식별번호를 입력하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_INVALID_DISK_ID" xml:space="preserve">
+        <value>Invalid disk id.</value><comment>유효하지 않은 디스크 아이디 입니다.</comment>
+    </data>
+    <data name="EM_SERVERS_REMOVE_AFTER_REMOVING_DISK" xml:space="preserve">
+        <value>There is a disk attached to that server. Delete the server after deleting the attached disk.</value><comment>해당 서버에 연결된 디스크가 존재합니다. 연결된 디스크를 삭제 후에 서버를 삭제하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL" xml:space="preserve">
+        <value>A disk pool containing that disk exists. Remove the disk from the disk pool and delete it.</value><comment>해당 디스크가 포함된 디스크 풀이 존재합니다. 해당 디스크 풀에서 디스크를 제거한 후 삭제하여 주세요.</comment>
+    </data>
+    <data name="EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE" xml:space="preserve">
+        <value>There is a service that uses that disk. Remove the disk from the service and delete it.</value><comment>해당 디스크를 사용하는 서비스가 존재합니다. 해당 서비스에서 디스크를 제거한 후 삭제하여 주세요.</comment>
+    </data>
+    <data name="EM_SERVICES_THREAD_COUNT_MUST_BE_AT_LEAST_0" xml:space="preserve">
+        <value>Thread count must be at least 0.</value><comment>스레드 수는 0 이상이어야 합니다.</comment>
+    </data>
+    <data name="EM_DISK_POOLS_DUPLICATED_NAME" xml:space="preserve">
+        <value>A disk pool with the same name exists.</value><comment>동일한 이름의 디스크 풀이 존재합니다.</comment>
+    </data>
+    <data name="EM_SERVICE_GROUPS_DUPLICATED_NAME" xml:space="preserve">
+        <value>A service group with the same name exists.</value><comment>동일한 이름의 서비스 그룹이 존재합니다.</comment>
+    </data>
+    <data name="EM_DISK_POOLS_INVALID_DISK_ID" xml:space="preserve">
+        <value>Invalid disk id.</value><comment>디스크 아이디가 유효하지 않습니다.</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE_DISABLE" xml:space="preserve">
+        <value>Disabled</value><comment>사용할 수 없음</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE_BAD" xml:space="preserve">
+        <value>Bad</value><comment>불량</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE_STOP" xml:space="preserve">
+        <value>Stop</value><comment>중지</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE_WEAK" xml:space="preserve">
+        <value>Weak</value><comment>공간 부족</comment>
+    </data>
+    <data name="UL_DISKS_DISK_STATE_GOOD" xml:space="preserve">
+        <value>Good</value><comment>정상</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_ADD" xml:space="preserve">
+        <value>Add</value>
+        <comment>추가</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_ADD_LOWER_LEVEL" xml:space="preserve">
+        <value>Add lower level</value>
+        <comment>하위 레벨 추가</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_ADD_SAME_LEVEL" xml:space="preserve">
+        <value>Add same level</value>
+        <comment>동일 레벨 추가</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_ADD_SEARCH_CONDITION" xml:space="preserve">
+        <value>Add search condition</value>
+        <comment>검색조건 추가</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_APPLY" xml:space="preserve">
+        <value>Apply</value>
+        <comment>적용</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_BACK_TO_HOME" xml:space="preserve">
+        <value>Back to home</value>
+        <comment>홈으로 돌아가기</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_BATCH_APPLY" xml:space="preserve">
+        <value>Apply in batch</value>
+        <comment>일괄적용</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_BATCH_CANCEL" xml:space="preserve">
+        <value>Batch cancel</value>
+        <comment>일괄해제</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_CANCEL" xml:space="preserve">
+        <value>Cancel</value>
+        <comment>취소</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_CANCEL_ALL" xml:space="preserve">
+        <value>Cancel all</value>
+        <comment>전체 취소</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_CHECK_DUPLICATION" xml:space="preserve">
+        <value>Check Dup.</value>
+        <comment>중복검사</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_CLOSE" xml:space="preserve">
+        <value>Close</value>
+        <comment>닫기</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_CREATE" xml:space="preserve">
+        <value>Create</value>
+        <comment>생성</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_DELETE" xml:space="preserve">
+        <value>Delete</value>
+        <comment>삭제</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_DISABLE" xml:space="preserve">
+        <value>Disable</value>
+        <comment>비활성화</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_DOWNLOAD" xml:space="preserve">
+        <value>Download</value>
+        <comment>다운로드</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_ENABLE" xml:space="preserve">
+        <value>Enable</value>
+        <comment>활성화</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_EXPORT_TO_EXCEL" xml:space="preserve">
+        <value>Export to Excel</value>
+        <comment>Excel로 내보내기</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_FILE_DROP_ZONE" xml:space="preserve">
+        <value>Drop files here to upload</value>
+        <comment>업로드할 파일을 여기로 끌어다 놓으세요.</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_GOTO_PREVIOUS_PAGE" xml:space="preserve">
+        <value>Go to Previous Page</value>
+        <comment>이전화면으로 가기</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_LIST" xml:space="preserve">
+        <value>List</value>
+        <comment>목록</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_MODIFY" xml:space="preserve">
+        <value>Modify</value>
+        <comment>수정</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_NEXT" xml:space="preserve">
+        <value>Next</value>
+        <comment>다음</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_OK" xml:space="preserve">
+        <value>OK</value>
+        <comment>확인</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_PAUSE" xml:space="preserve">
+        <value>Pause</value>
+        <comment>일시정지</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_PREVIOUS" xml:space="preserve">
+        <value>Previous</value>
+        <comment>이전</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_REFRESH" xml:space="preserve">
+        <value>Refresh</value>
+        <comment>새로고침</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_REGISTER" xml:space="preserve">
+        <value>Regist</value>
+        <comment>등록</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_REMOVE" xml:space="preserve">
+        <value>Remove</value>
+        <comment>제거</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_REMOVE_ALL" xml:space="preserve">
+        <value>Remove all</value>
+        <comment>전체 제거</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_RESET" xml:space="preserve">
+        <value>Reset</value>
+        <comment>초기화</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_RESTORE" xml:space="preserve">
+        <value>Restore</value>
+    </data>
+    <data name="UL_BUTTON_COMMON_RESUME" xml:space="preserve">
+        <value>Resume</value>
+        <comment>다시시작</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_RETRY" xml:space="preserve">
+        <value>Retry</value>
+        <comment>재시도</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_RO_MODE" xml:space="preserve">
+        <value>R/O MODE</value>
+        <comment>R/O MODE</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_RW_MODE" xml:space="preserve">
+        <value>R/W MODE</value>
+        <comment>R/W MODE</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_SAVE" xml:space="preserve">
+        <value>Save</value>
+        <comment>저장</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_SEARCH" xml:space="preserve">
+        <value>Search</value>
+        <comment>검색</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_SELECT_FILE" xml:space="preserve">
+        <value>Select file</value>
+        <comment>파일선택</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_SELECT_FILES" xml:space="preserve">
+        <value>Select files</value>
+        <comment>여러파일선택</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_START" xml:space="preserve">
+        <value>Start</value>
+        <comment>시작</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_STOP" xml:space="preserve">
+        <value>Stop</value>
+        <comment>중지</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_TEMPLATE_REGIST" xml:space="preserve">
+        <value>Template registration</value>
+        <comment>템플릿 등록</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_TEMPLATE_REQUEST" xml:space="preserve">
+        <value>Template request</value>
+        <comment>템플릿 요청</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_UPDATE" xml:space="preserve">
+        <value>Update</value>
+        <comment>수정</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_UPLOAD" xml:space="preserve">
+        <value>Upload</value>
+        <comment>업로드</comment>
+    </data>
+    <data name="UL_BUTTON_COMMON_UPLOAD_ALL" xml:space="preserve">
+        <value>Upload all</value>
+        <comment>전체 업로드</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_CHANGE_PASSWORD" xml:space="preserve">
+        <value>Change Password</value>
+        <comment>비밀번호 변경</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_FORGOT_PASSWORD" xml:space="preserve">
+        <value>Forgot Password</value>
+        <comment>비밀번호 찾기</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_LOGIN" xml:space="preserve">
+        <value>Login</value>
+        <comment>로그인</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_LOGOUT" xml:space="preserve">
+        <value>Logout</value>
+        <comment>로그아웃</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_REGISTER" xml:space="preserve">
+        <value>Register Account by email</value>
+        <comment>이메일로 회원가입</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_RESET_PASSWORD" xml:space="preserve">
+        <value>Reset Password</value>
+        <comment>비밀번호 재설정</comment>
+    </data>
+    <data name="UL_BUTTON_ACCOUNT_SEND_CONFIRM_MAIL" xml:space="preserve">
+        <value>Send account verification email</value>
+        <comment>회원 확인 메일 발송</comment>
+    </data>
+    <data name="EM_COMMON_ACCOUNT_REQUIRE_MIN_6_LENGTH" xml:space="preserve">
+        <value>Please enter at least 6 characters.</value><comment>6자 이상 입력하여 주세요.</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_RACK" xml:space="preserve">
+        <value>RACK</value><comment>RACK</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_CLOCK" xml:space="preserve">
+        <value>Clock</value><comment>Clock</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_CPU_MODEL" xml:space="preserve">
+        <value>CPU Model</value><comment>CPU 모델</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_DESCRIPTION" xml:space="preserve">
+        <value>설명</value><comment>설명</comment>
+    </data>
+    <data name="UL_SERVERS_SERVER_NAME" xml:space="preserve">
+        <value>Name</value><comment>서버명</comment>
+    </data>
+    <data name="UL_SERVERS_CONFIRM_DELETE_SERVER" xml:space="preserve">
+        <value>Are you sure you want to delete server '{{Name}}'?</value><comment>서버 '{{Name}}'을(를) 삭제 하시겠습니까?</comment>
+    </data>
+    <data name="EC_COMMON__DATA_IN_USE_EXIST" xml:space="preserve">
+        <value>EC052</value><comment>사용 중인 데이터가 존재합니다.</comment>
+    </data>
+</root>

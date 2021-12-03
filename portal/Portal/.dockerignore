@@ -1,0 +1,13 @@
+﻿.dockerignore
+Dockerfile
+.git
+.firebase
+.editorconfig
+/e2e
+/docs
+.gitignore
+*.zip
+*.md
+.idea
+/node_modules
+package-lock.json

@@ -1,0 +1,115 @@
+# /etc/mail/access
+# Copyright (c) 1998,2004 Richard Nelson <cowboy@debian.org>.
+# Time-stamp: <1998/10/27 10:00:00 cowboy>
+# GPL'd config file, please feed any gripes, suggestions, etc. to me
+#
+# Function:
+#	 Access Control for this smtp server - determines:
+#		 * Who we accept mail from
+#		 * Who we accept relaying from
+#		 * Who we will not send to
+#
+# Usage:
+#	 FEATURE(access_db[, type [-o] /etc/mail/access])dnl
+#	 makemap hash access < access
+#
+# Format:
+#	 lhs:
+#		 email addr		 <user@[host.domain]>
+#		 domain name	 unless  FEATURE(relay_hosts_only) is used,
+#			 then this is a fqdn - and relay-domains ($=R)
+#			 must also be fqdns.
+#		 network number  must end on an octet boundary, or
+#			 you're stuck going the longwinded way ;-{
+#	 rhs:
+#		 OK				 accept mail even if other rules in the
+#						 running ruleset would reject it.
+#		 RELAY			 Allow domain to relay through your SMTP
+#						 server.  RELAY also serves an implicit
+#						 OK for the other checks.
+#		 REJECT			 reject the sender/recipient with a general
+#						 purpose message that can be customized.
+#						 confREJECT_MSG [550 Access denied] will be issued
+#		 DISCARD		 discard the message completely using
+#						 the $#discard mailer.
+#		 ### any text	 where ### is an RFC 821 compliant error code
+#				 and "any text" is a message to return for
+#			 the command
+# Examples:
+#	spammer@aol.com			REJECT
+#	FREE.STEALTH.MAILER@	550 Spam not accepted
+#
+# Notes:
+#	With FEATURE(blacklist_recipients) this is also possible:
+#	badlocaluser				 550 Mailbox disabled for this username
+#	host.mydomain.com			 550 That host does not accept mail
+#	user@otherhost.mydomain.com  550 Mailbox disabled for this recipient
+#
+# Related:
+#	 define(`confREJECT_MSG', `550 Access denied')dnl
+#	 define(`confCR_FILE', `-o /etc/mail/relay-domains')dnl <<- $=R
+#	 FEATURE(relay_hosts_only)dnl
+#	 FEATURE(relay_entire_domain)dnl <<- relays any host in the $=m class
+#	 FEATURE(relay_based_on_MX)dnl <<- relaying for boxes MX'd to you
+#	 FEATURE(blacklist_recipients)dnl
+#	 FEATURE(rbl[,alternate server])dnl
+#	 FEATURE(orbs[,alternate server])dnl   <<- Debian addition
+#	 FEATURE(orca[,alternate server])dnl   <<- Debian addition
+#	 FEATURE(accept_unqualified_senders)dnl
+#	 FEATURE(accept_unresolvable_domains)dnl
+#
+# Local addresses 10.x.x.x, 127.x.x.x, 172.16-31.x.x 192.168.x.x can relay
+# Note Well! You *must* make sure these address can't be spoofed externally
+# Note, outbound relaying is controlled by connection and/or auth
+#	If you're not firewalled, and you don't have a lan, comment these out
+#	If you're not firewalled, and you have a lan, get firewalled *NOW*
+# GreetPause - delay to check for spammers
+# Client Connection rate (and #) control
+Connect:localhost		RELAY
+GreetPause:localhost	0
+ClientRate:localhost	0
+ClientConn:localhost	0
+Connect:127				RELAY
+GreetPause:127			0
+ClientRate:127			0
+ClientConn:127			0
+Connect:IPv6:::1		RELAY
+GreetPause:IPv6:::1		0
+ClientRate:IPv6:::1		0
+ClientConn:IPv6:::1		0
+Connect:172.20			RELAY
+GreetPause:172.20		0
+ClientRate:172.20		0
+ClientConn:172.20		0
+# Defaults
+GreetPause:				5000
+ClientRate:				10
+ClientConn:				10
+#
+# Don't offer AUTH on local network
+#SRV_Features:192.168.1	A
+#
+# Hosts with to allow relaying
+#
+#
+# Hosts that validly forward to me
+#GreetPause:<ip>		0
+#ClientRate:<ip>		30
+#ClientConn:<ip>		0
+#
+# Whitelisted users
+#
+Spam:postmaster@	FRIEND
+Spam:abuse@		FRIEND
+Spam:spam@		FRIEND
+#
+# Blacklisted users
+#
+#Connect:rampellsoft.com 554 Email directly, not through didtheyreadit.com
+reject@			REJECT
+#cyberpromo.com	REJECT
+#From:MAILER-DAEMON@store2.netvisao.pt REJECT
+#
+# Block invalid IPs
+#
+#Connect:0      REJECT whilst invalid, this also blocks sendmail -bs -Am

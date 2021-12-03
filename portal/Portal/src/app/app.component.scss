@@ -1,0 +1,34 @@
+
+kendo-appbar {
+	.title {
+		font-size: 18px;
+		margin: 0;
+	}
+
+	::ng-deep {
+		.k-menu:not(.k-context-menu) {
+			border-color: #fff;
+			color: #212529;
+			background-color: #fff;
+			padding-top: 0;
+			padding-bottom: 0;
+		}
+		.k-menu-item {
+			height: 36px;
+		}
+	}
+
+	kendo-badge-container {
+		margin-right: 8px;
+	}
+
+
+	.actions .k-button {
+		padding: 0;
+	}
+}
+::ng-deep {
+	.main-menu-item {
+		height: 40px;
+	}
+}

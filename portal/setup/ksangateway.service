@@ -1,0 +1,12 @@
+[Unit]
+Description=KSAN Gateway Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a ksangateway
+ExecStop=/usr/bin/docker stop -t 2 ksangateway
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,102 @@
+<ng-template #template let-anchor>
+	<span>{{ anchor.nativeElement.innerText }}</span>
+</ng-template>
+<div kendoTooltip class="common-grid-wrapper"
+		 showOn="none"
+		 [tooltipTemplate]="template"
+		 filter=".k-grid td,th,td>span"
+		 (mouseover)="showTooltip($event)">
+	<kendo-grid #commonVirtualGrid
+							[ngClass]="{ 'k-state-disabled': disabled}"
+							[data]="grid.gridView"
+							[height]="grid.height"
+							[resizable]="grid.isUseResize"
+							[kendoGridSelectBy]="getSelectionKey"
+							[selectedKeys]="grid.selectedKeys"
+							[scrollable]="'virtual'"
+							[rowHeight]="33"
+							[selectable]="grid.selectableSettings"
+							[pageSize]="grid.pageSize"
+							[skip]="grid.skip"
+							[navigable]="false"
+							(selectedKeysChange)="onSelectedKeysChange($event)"
+							(selectionChange)="selectionChange($event)"
+							(pageChange)="pageChange($event)"
+							(cellClick)="cellClick($event)"
+							[reorderable]="true"
+							[columnMenu]="true"
+							[sortable]="grid.sortSettings"
+							[sort]="grid.sortColumns"
+							(sortChange)="sortChange($event)">
+
+		<kendo-grid-checkbox-column [headerClass]="{'p-l-0': true, 'p-r-0': true, 'text-center': true}" class="p-0 text-center" [width]="40" [showSelectAll]="grid.selectableSettings?.mode === 'multiple' && grid.isShowSelectAll" [columnMenu]="false" *ngIf="grid.isUseCheckboxSelect"></kendo-grid-checkbox-column>
+		<kendo-grid-column class="text-center" [width]="75" [title]="'UL_COMMON__NUMBER' | translate" *ngIf="grid.isUseSequence">
+			<ng-template kendoGridCellTemplate let-rowIndex="rowIndex">
+<!--				<span>{{ grid.gridView.total - rowIndex }}</span>-->
+				<span>{{ rowIndex + 1 }}</span>
+			</ng-template>
+		</kendo-grid-column>
+
+		<!-- 색상 컬럼 비활성화 -->
+		<kendo-grid-column *ngIf="grid.enableColor && displayMasterColor" width="42" title="M" field="colors" class="empty-height" [resizable]="false">
+			<ng-template kendoGridCellTemplate let-dataItem>
+				<app-master-color-cell [colorColumn]="colorColumn" [rowData]="dataItem" [ignoreDetail]="displayDetailColor"></app-master-color-cell>
+			</ng-template>
+		</kendo-grid-column>
+		<kendo-grid-column *ngIf="grid.enableColor && displayDetailColor" width="42" title="D" field="colors" class="empty-height" [resizable]="false">
+			<ng-template kendoGridCellTemplate let-dataItem>
+				<app-detail-color-cell [colorColumn]="colorColumn" [rowData]="dataItem"></app-detail-color-cell>
+			</ng-template>
+		</kendo-grid-column>
+
+		<kendo-grid-column [class]="column.class" *ngFor="let column of grid.columns" [width]="column.width" [title]="column.title | translate" [field]="column.field" [format]="column.format" [hidden]="column.isHidden" [locked]="column.locked" [sortable]="column.sortable === undefined || column.sortable">
+			<!-- <ng-template *ngIf='!isCellRendering && column.format === "" && (column.customTemplate == null || column.customTemplate === "")'   kendoGridCellTemplate let-dataItem>
+					<div [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+							[innerHTML]="dataItem | dynamicPipe : column.pipe : column.pipeExtra : column.field | safeHtml"></div>
+			</ng-template>
+			<ng-template *ngIf='!isCellRendering && column.format === "" && column.customTemplate !== ""' kendoGridCellTemplate let-dataItem>
+					<div [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+							[innerHTML]="dataItem[column.field] | dynamicPipe : column.pipe : column.customTemplate | safeHtml"></div>
+			</ng-template> -->
+
+			<ng-template *ngIf="!column.format" kendoGridCellTemplate let-dataItem>
+				<ng-container *ngIf="isCellRendering; then rendering; else cell"></ng-container>
+
+				<ng-template #rendering>
+					<div style="text-align: center;"><span class="k-icon k-i-loading"></span></div>
+				</ng-template>
+
+				<ng-template #cell>
+					<ng-container *ngIf="column.useTemplateOutlet"
+												[ngTemplateOutlet]="cellTemplate"
+												[ngTemplateOutletContext]="{
+														$implicit: dataItem,
+														column: column,
+														styleOpacity: grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1
+												}">
+					</ng-container>
+
+					<ng-container *ngIf="!column.useTemplateOutlet">
+						<ng-container *ngIf="!column.customTemplate">
+							<span [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+									 [innerHTML]="dataItem | dynamicPipe : column.pipe : column.pipeExtra : column.field | safeHtml"></span>
+						</ng-container>
+						<ng-container *ngIf="!!column.customTemplate">
+							<span [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+									 [innerHTML]="dataItem[column.field] | dynamicPipe : column.pipe : column.customTemplate | safeHtml"></span>
+						</ng-container>
+					</ng-container>
+				</ng-template>
+			</ng-template>
+
+			<!--<ng-template *ngIf="grid.location && grid.name" kendoGridHeaderTemplate let-column>
+					<app-grid-header-column [title]="column.title" [field]="column.field" [columMenu]="columnMenu"></grid-header-column>
+			</ng-template>-->
+		</kendo-grid-column>
+		<ng-template kendoGridNoRecordsTemplate>
+			{{ 'UL_COMMON__NO_DATA' | translate }}
+		</ng-template>
+	</kendo-grid>
+	<app-loading [isActivate]="isLoading"></app-loading>
+</div>
+<app-grid-column-menu #columnMenu *ngIf="grid.location" [for]="commonVirtualGrid" [groupName]="grid.name" [columns]="grid.columns" (hiddenChange)="hiddenChanged($event)"></app-grid-column-menu>

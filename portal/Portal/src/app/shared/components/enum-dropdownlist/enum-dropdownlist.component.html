@@ -1,0 +1,18 @@
+<kendo-dropdownlist
+				[class]="class"
+				[data]="dataItem"
+				[textField]="'text'"
+				[valueField]="'name'"
+				[valuePrimitive]="true"
+				[(value)]="selectedValue"
+				(valueChange)="onChange($event)"
+				[itemDisabled]="getItemDisabled"
+				[disabled]="disabled"
+>
+	<ng-template kendoDropDownListItemTemplate let-dataItem>
+		<span class="ft-12">{{ dataItem?.text | translate }}</span>
+	</ng-template>
+	<ng-template kendoDropDownListValueTemplate let-dataItem>
+		<span class="ft-12">{{ dataItem?.text | translate }}</span>
+	</ng-template>
+</kendo-dropdownlist>

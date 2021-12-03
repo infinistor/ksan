@@ -1,0 +1,111 @@
+<ng-template #template let-anchor>
+	<span>{{ anchor.nativeElement.innerText }}</span>
+</ng-template>
+<div kendoTooltip class="common-grid-wrapper"
+		 showOn="none"
+		 [tooltipTemplate]="template"
+		 filter=".k-grid td,th,td>span"
+		 (mouseover)="showTooltip($event)">
+	<kendo-grid #commonGrid [attr.grid]="grid"
+							[ngClass]="{ 'k-state-disabled': disabled}"
+							[data]="grid.gridView"
+							[height]="grid.height"
+							[resizable]="grid.isUseResize"
+							[kendoGridSelectBy]="getSelectionKey"
+							[selectedKeys]="grid.selectedKeys"
+							[selectable]="grid.selectableSettings"
+							[pageSize]="grid.pageSize"
+							[pageable]="grid.pageable"
+							[skip]="grid.skip"
+							[filterable]="grid.filterable"
+							(selectedKeysChange)="onSelectedKeysChange($event)"
+							(selectionChange)="selectionChange($event)"
+							(pageChange)="pageChange($event)"
+							(cellClick)="cellClick($event)"
+							[reorderable]="true"
+							[columnMenu]="true"
+							[sortable]="grid.sortSettings"
+							[sort]="grid.sortColumns"
+							(sortChange)="sortChange($event)"
+							(detailExpand)="detailExpand($event)"
+							(detailCollapse)="detailCollapse($event)"
+							class="custom-grid">
+
+		<kendo-grid-checkbox-column [headerClass]="{'p-l-0': true, 'p-r-0': true, 'text-center': true}" class="p-0 text-center" [width]="40" [showSelectAll]="grid.selectableSettings?.mode === 'multiple' && grid.isShowSelectAll" [columnMenu]="false" *ngIf="grid.isUseCheckboxSelect"></kendo-grid-checkbox-column>
+		<kendo-grid-column class="text-center" [width]="80" [title]="'UL_COMMON__NUMBER' | translate" *ngIf="grid.isUseSequence">
+			<ng-template kendoGridCellTemplate let-rowIndex="rowIndex">
+<!--				<span *ngIf="grid.gridView.total - rowIndex > 0">{{ grid.gridView.total - rowIndex }}</span>-->
+				<span *ngIf="rowIndex >= 0">{{ rowIndex + 1 }}</span>
+			</ng-template>
+		</kendo-grid-column>
+
+		<!-- 색상 컬럼 비활성화 -->
+		<kendo-grid-column *ngIf="grid.enableColor && displayMasterColor" width="42" title="M" field="colors" class="empty-height" [resizable]="false">
+			<ng-template kendoGridCellTemplate let-dataItem>
+				<app-master-color-cell [colorColumn]="colorColumn" [rowData]="dataItem" [ignoreDetail]="displayDetailColor"></app-master-color-cell>
+			</ng-template>
+		</kendo-grid-column>
+		<kendo-grid-column *ngIf="grid.enableColor && displayDetailColor" width="42" title="D" field="colors" class="empty-height" [resizable]="false">
+			<ng-template kendoGridCellTemplate let-dataItem>
+				<app-detail-color-cell [colorColumn]="colorColumn" [rowData]="dataItem"></app-detail-color-cell>
+			</ng-template>
+		</kendo-grid-column>
+
+		<kendo-grid-column [class]="column.class" *ngFor="let column of grid.columns" [width]="column.width" [title]="column.title | translate" [field]="column.field" [format]="column.format" [hidden]="column.isHidden" [locked]="column.locked" [sortable]="column.sortable === undefined || column.sortable">
+		<!-- 편집이 불가능한 경우 -->
+			<ng-template *ngIf="!column.editable && !column.format && !column.customTemplate" kendoGridCellTemplate let-dataItem>
+				<span [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+						 [innerHTML]="dataItem | dynamicPipe : column.pipe : column.pipeExtra : column.field | safeHtml"></span>
+			</ng-template>
+			<ng-template *ngIf="!column.editable && !column.format && !!column.customTemplate" kendoGridCellTemplate let-dataItem>
+				<span [style.opacity]="grid.isUseDisabledGrid && dataItem[grid.disabledGridProperty] ? 0.4 : 1"
+						 [innerHTML]="dataItem[column.field] | dynamicPipe : column.pipe : column.customTemplate | safeHtml"></span>
+			</ng-template>
+		<!-- end of 편집이 불가능한 경우 -->
+		<!-- 편집이 가능한 경우 -->
+			<!-- 타입이 지정되지 않거나 텍스트인 경우 -->
+			<ng-template *ngIf="column.editable && (!column.editType || column.editType === 'text')" kendoGridCellTemplate let-dataItem>
+				<input class="form-control" kendoGridFocusable [(ngModel)]="dataItem[column.field]" name="{{column.field}}" type="text" value="{{dataItem[column.field]}}"/>
+			</ng-template>
+			<!-- number인 경우 -->
+			<ng-template *ngIf="column.editable && (!column.editType || column.editType === 'numeric')" kendoGridCellTemplate let-dataItem>
+				<input class="form-control" kendoGridFocusable [(ngModel)]="dataItem[column.field]" name="{{column.field}}" type="number" value="{{dataItem[column.field]}}"/>
+			</ng-template>
+			<!-- 타입이 checkbox인 경우 -->
+			<ng-template *ngIf="column.editable && (column.editType && column.editType === 'checkbox')" kendoGridHeaderTemplate let-column let-columnIndex="columnIndex">
+				<input kendoGridFocusable (click)="onChangeColumnCheckAll(column.field, $event.target.checked)" type="checkbox" />
+				{{column.title}}
+			</ng-template>
+			<ng-template *ngIf="column.editable && (column.editType && column.editType === 'checkbox')" kendoGridCellTemplate let-dataItem>
+				<input kendoGridFocusable name="{{column.field}}" type="{{column.editType}}" [checked]="dataItem[column.field]" (click)="onChangeColumnCheck(dataItem, column.field, $event.target.checked)" />
+			</ng-template>
+		<!-- end of 편집이 가능한 경우 -->
+		</kendo-grid-column>
+
+		<!--디테일그리드를 사용할 경우-->
+		<div *ngIf="grid.isUseDetailGrid">
+			<div *kendoGridDetailTemplate="let dataItem">
+				<app-common-kendo-grid-paginate-detail
+					 [detailGrid]="grid.detailGrid"
+					 [items]="dataItem[grid.detailGridColumnName]"
+					 [detailToolbarTemplate]="detailToolbarTemplate"
+					 (dataLoaded)="onDetailDataLoaded($event)"
+					 (pageChange)="onDetailPageChange($event)"
+					 (selectionChange)="onDetailSelectionChange($event)"
+					 (selectedKeysChange)="onDetailSelectedKeysChange($event)"
+					 (cellClick)="onDetailCellClick($event)"
+					 (sortChange)="onDetailSortChange($event)"
+					 (error)="onDetailError($event)"
+					 (checkColumnAllChanged)="onDetailCheckColumnAllChanged($event)"
+					 (checkColumnChanged)="onDetailCheckColumnChanged($event)"
+				>
+				</app-common-kendo-grid-paginate-detail>
+			</div>
+		</div>
+		<ng-template kendoGridNoRecordsTemplate>
+			{{ noDataMessage | translate }}
+		</ng-template>
+	</kendo-grid>
+	<app-loading [isActivate]="isLoading"></app-loading>
+</div>
+<app-grid-column-menu #columnMenu [for]="commonGrid" [groupName]="grid.name" [columns]="grid.columns" (hiddenChange)="hiddenChanged($event)"></app-grid-column-menu>

@@ -1,0 +1,67 @@
+
+@media only screen and (max-width: 1540px) {
+	/* searchbar 내부 화면 축소 확대시 비/활성화 설정 */
+	.expand-search-date {
+		display: none;
+	}
+
+	.expand-search-date-flex {
+		display: none;
+		width: 120px;
+	}
+
+	.reduction-search-date {
+		display: inline-block;
+	}
+}
+
+@media only screen and (min-width: 1540px) {
+	.expand-search-date {
+		display: inline-block;
+	}
+
+	.expand-search-date-flex {
+		display: inline-flex;
+		width: 120px;
+	}
+
+	.reduction-search-date {
+		display: none;
+	}
+}
+
+.k-datepicker {
+	width: 140px;
+}
+
+kendo-datetimepicker {
+	width: 195px;
+}
+
+
+:host ::ng-deep {
+	.k-multiselect {
+
+		width: 220px;
+
+		.k-multiselect-wrap {
+			display: flex;
+			flex-direction: row;
+
+			kendo-taglist {
+				.k-button {
+					width: 145px;
+				}
+			}
+			.k-searchbar {
+				float: none;
+				width: 100%;
+				display: inline-flex;
+
+				.k-input {
+					width: 100%;
+				}
+			}
+		}
+	}
+}

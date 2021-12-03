@@ -1,0 +1,190 @@
+<div class="page">
+	<kendo-card [width]="'100%'">
+		<kendo-card-header class="k-hbox">
+			<app-enum-multi-select
+					[disabled]="inCommunication"
+					[placeholder]="'UL_SERVERS_SERVER_STATE'"
+					[selectedValues]="[]"
+					[data]="serverStateList"
+					(onChange)="serverStateSelected = $event">
+			</app-enum-multi-select>
+			<app-common-kendo-search
+					class="common-search-flex"
+					[disabled]="inCommunication"
+					[enablePeriodSearch]="false"
+					[displayTime]="true"
+					[days]="7"
+					[periodFields]="[]"
+					[enableKeywordSearch]="true"
+					[fields]="[
+						{ text: 'Name', value: 'Name'},
+						{ text: 'Description', value: 'Description'},
+						{ text: 'CpuModel', value: 'CpuModel'},
+						{ text: 'Clock', value: 'Clock'},
+					]"
+					(search)="search($event)">
+			</app-common-kendo-search>
+			<app-common-kendo-export-button
+					[grid]="grid"
+					[disabled]="inCommunication"
+					[enableExcelExport]="true"
+					[enablePdfExport]="false"
+					[fileName]="'Servers'"
+					(onExport)="onExport()">
+			</app-common-kendo-export-button>
+		</kendo-card-header>
+		<kendo-card-body>
+			<kendo-toolbar>
+				<kendo-toolbar-button [showIcon]="'both'" [showText]="'both'" look="outline" className="btn-primary" iconClass="m-r-5 fa-search fas"
+									  text="{{ 'UL_BUTTON_COMMON_REGISTER' | translate }}"
+									  [disabled]="inCommunication"
+									  (click)="showAdd(addServerDialogContent, addServerDialogActions)">
+				</kendo-toolbar-button>
+				<kendo-toolbar-button [showIcon]="'both'" [showText]="'both'" look="outline" className="btn-danger" iconClass="m-r-5 fa-search fas"
+									  text="{{ 'UL_BUTTON_COMMON_DELETE' | translate }}"
+									  [disabled]="inCommunication || grid.selectedItems.length <= 0"
+									  (click)="showDelete(deleteServerDialogContent, deleteServerDialogActions)">
+				</kendo-toolbar-button>
+			</kendo-toolbar>
+			<app-common-kendo-grid-paginate #kendo_grid
+											[grid]="grid"
+											[disabled]="inCommunication"
+											(dataLoaded)="onDataLoaded($event)"
+											(pageChange)="onPageChange($event)"
+											(cellClick)="onCellClick($event, viewServerDialogContent, viewServerDialogActions)"
+											(selectedKeysChange)="onItemSelectChange($event)">
+			</app-common-kendo-grid-paginate>
+		</kendo-card-body>
+	</kendo-card>
+</div>
+
+<ng-template #viewServerDialogContent>
+	<form class="k-form k-form-horizontal" autocomplete="off" [formGroup]="formGroupServer">
+		<fieldset class="k-form-fieldset">
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewName" text="{{ 'UL_SERVERS_SERVER_NAME' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Name" id="viewName" readonly="true" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewDescription" text="{{ 'UL_SERVERS_SERVER_DESCRIPTION' | translate }}"></kendo-label>
+				<textarea kendoTextArea formControlName="Description" id="viewDescription" autoSize="true" readonly="true"></textarea>
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewCpuModel" text="{{ 'UL_SERVERS_SERVER_CPU_MODEL' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="CpuModel" id="viewCpuModel" readonly="true" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewClock" text="{{ 'UL_SERVERS_SERVER_CLOCK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Clock" id="viewClock" readonly="true" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewState" text="{{ 'UL_SERVERS_SERVER_STATE' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="State" id="viewState" readonly="true" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="viewRack" text="{{ 'UL_SERVERS_SERVER_RACK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Rack" id="viewRack" readonly="true" />
+			</kendo-formfield>
+		</fieldset>
+	</form>
+</ng-template>
+<ng-template #viewServerDialogActions>
+	<button kendoButton (click)="showUpdate(formGroupServer.controls.Id.value, updateServerDialogContent, updateServerDialogActions)" primary="true" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_UPDATE' | translate }}</button>
+	<button kendoButton (click)="closeDialog()" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_CLOSE' | translate }}</button>
+</ng-template>
+
+<ng-template #updateServerDialogContent>
+	<form class="k-form k-form-horizontal" autocomplete="off" [formGroup]="formUpdateGroupServer">
+		<fieldset class="k-form-fieldset">
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateName" text="{{ 'UL_SERVERS_SERVER_NAME' | translate }}" class="required"></kendo-label>
+				<input kendoTextBox formControlName="Name" id="updateName" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateDescription" text="{{ 'UL_SERVERS_SERVER_DESCRIPTION' | translate }}"></kendo-label>
+				<textarea kendoTextArea formControlName="Description" id="updateDescription" autoSize="true" rows="3" [disableControl]="inCommunication"></textarea>
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateCpuModel" text="{{ 'UL_SERVERS_SERVER_CPU_MODEL' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="CpuModel" id="updateCpuModel" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateClock" text="{{ 'UL_SERVERS_SERVER_CLOCK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Clock" id="updateClock" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateState" text="{{ 'UL_SERVERS_SERVER_STATE' | translate }}" class="required"></kendo-label>
+				<kendo-dropdownlist id="updateState"
+						[formControlName]="'State'"
+						[data]="serverStateList"
+						[textField]="'text'"
+						[valueField]="'name'"
+						[valuePrimitive]="true"
+						[disableControl]="inCommunication"
+				>
+				</kendo-dropdownlist>
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="updateRack" text="{{ 'UL_SERVERS_SERVER_RACK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Rack" id="updateRack" [disableControl]="inCommunication" />
+			</kendo-formfield>
+		</fieldset>
+	</form>
+</ng-template>
+<ng-template #updateServerDialogActions>
+	<button kendoButton (click)="update(formUpdateGroupServer)" primary="true" [disabled]="formUpdateGroupServer.invalid || inCommunication">{{ 'UL_BUTTON_COMMON_SAVE' | translate }}</button>
+	<button kendoButton (click)="closeDialog()" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_CANCEL' | translate }}</button>
+</ng-template>
+
+<ng-template #addServerDialogContent>
+	<form class="k-form k-form-horizontal" autocomplete="off" [formGroup]="formAddGroupServer">
+		<fieldset class="k-form-fieldset">
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addName" text="{{ 'UL_SERVERS_SERVER_NAME' | translate }}" class="required"></kendo-label>
+				<input kendoTextBox formControlName="Name" id="addName" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addDescription" text="{{ 'UL_SERVERS_SERVER_DESCRIPTION' | translate }}"></kendo-label>
+				<textarea kendoTextArea formControlName="Description" id="addDescription" autoSize="true" rows="3" [disableControl]="inCommunication"></textarea>
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addCpuModel" text="{{ 'UL_SERVERS_SERVER_CPU_MODEL' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="CpuModel" id="addCpuModel" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addClock" text="{{ 'UL_SERVERS_SERVER_CLOCK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Clock" id="addClock" [disableControl]="inCommunication" />
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addState" text="{{ 'UL_SERVERS_SERVER_STATE' | translate }}" class="required"></kendo-label>
+				<kendo-dropdownlist id="addState"
+									[formControlName]="'State'"
+									[data]="serverStateList"
+									[textField]="'text'"
+									[valueField]="'name'"
+									[valuePrimitive]="true"
+									[disableControl]="inCommunication"
+				>
+				</kendo-dropdownlist>
+			</kendo-formfield>
+			<kendo-formfield [orientation]="'horizontal'">
+				<kendo-label for="addRack" text="{{ 'UL_SERVERS_SERVER_RACK' | translate }}"></kendo-label>
+				<input kendoTextBox formControlName="Rack" id="addRack" [disableControl]="inCommunication" />
+			</kendo-formfield>
+		</fieldset>
+	</form>
+</ng-template>
+<ng-template #addServerDialogActions>
+	<button kendoButton (click)="add(formAddGroupServer)" primary="true" [disabled]="formAddGroupServer.invalid || inCommunication">{{ 'UL_BUTTON_COMMON_SAVE' | translate }}</button>
+	<button kendoButton (click)="closeDialog()" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_CANCEL' | translate }}</button>
+</ng-template>
+
+<ng-template #deleteServerDialogContent>
+	<div class="m-t-20 m-b-20 f-16">
+		<span>{{ 'UL_SERVERS_CONFIRM_DELETE_SERVER' | translate : { Name: grid.selectedItems[0]?.Name } }}</span>
+	</div>
+</ng-template>
+<ng-template #deleteServerDialogActions>
+	<button kendoButton (click)="delete()" class="btn-danger" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_DELETE' | translate }}</button>
+	<button kendoButton (click)="closeDialog()" [disabled]="inCommunication">{{ 'UL_BUTTON_COMMON_CANCEL' | translate }}</button>
+</ng-template>
