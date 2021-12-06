@@ -18,7 +18,7 @@ namespace PortalProvider.Providers.RabbitMq
 	    {
 		    get
 		    {
-			    return "dsan.system";
+			    return "ksan.system";
 		    }
 	    }
 
