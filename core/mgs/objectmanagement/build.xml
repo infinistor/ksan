@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="DSAN ObJManager" basedir="." default="main">
+    <property name="dsan_src.dir" value="src/com/pspace/ifs/DSAN"/>
+    <property name="ObjManger_src.dir" value="${dsan_src.dir}/ObjManger"/>
+    <property name="MQ_src.dir" value="${dsan_src.dir}/MQ"/>
+    <property name="util_src.dir" value="${dsan_src.dir}/utility/"/>
+    <property name="s3gw_src.dir" value="${dsan_src.dir}/s3gw"/>
+    <property name="io_src.dir" value="${dsan_src.dir}/io"/>
+    <property name="build.dir" value="build"/>
+    <property name="ObjManger_classes.dir" value="${build.dir}/ObjManger_classes"/>
+    <property name="jar.dir" value="${build.dir}/jar"/>
+    <property name="lib.dir" value="lib"/>
+		
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="ObjManger_compile">
+        <mkdir dir="${ObjManger_classes.dir}"/>
+        <javac srcdir="${ObjManger_src.dir};${util_src.dir};${MQ_src.dir};${s3gw_src.dir}/exception;${s3gw_src.dir}/identity;${s3gw_src.dir}/multipart;${s3gw_src.dir}/utils;${s3gw_src.dir}/db" 
+        	   destdir="${ObjManger_classes.dir}" 
+        	   encoding="utf-8" 
+        	   debug="true" 
+        	   classpath="/usr/share/java/mysql-connector-java.jar;${lib.dir}/slf4j-api-1.7.26.jar;${lib.dir}/slf4j-simple-1.7.26.jar;${lib.dir}/amqp-client-5.7.1.jar;${lib.dir}/json-simple-1.1.1.jar;${lib.dir}/bson-3.12.8.jar;${lib.dir}/mongo-java-driver-3.12.8.jar;${lib.dir}/mongodb-driver-core-3.12.8.jar;/usr/share/java/args4j.jar;${lib.dir}/tomcat-coyote-9.0.41.jar;${lib.dir}/tomcat-jni-9.o.41.jar;${lib.dir}/tomcat-juli-9.0.41.jar;${lib.dir}/tomcat-servlet-api-9.0.41.jar;${lib.dir}/tomcat-util-9.0.41.jar;${lib.dir}/jackson-annotations-2.12.5.jar;${lib.dir}/jackson-core-2.12.5.jar;${lib.dir}/jackson-databind-2.12.5.jar;${lib.dir}/jackson-dataformat-xml-2.12.5.jar;${lib.dir}/jackson-module-jaxb-annotations-2.12.5.jar;${lib.dir}/javax.servlet-api-4.0.1.jar;${lib.dir}/guava-30.1-jre.jar;${lib.dir}/annotations-3.0.1.jar;${lib.dir}/junit-jupiter-api-5.7.1.jar;${lib.dir}/junit-jupiter-engine-5.7.1.jar" 
+        	   includeantruntime="false">
+    	</javac>
+        <copy todir="${ObjManger_classes.dir}">
+            <fileset dir="${ObjManger_src.dir}" excludes="**/*.java"/>
+        </copy>
+    </target>
+	
+	<target name="ObjManger_jar" depends="ObjManger_compile">
+		<mkdir dir="${jar.dir}"/>		
+		<jar destfile="${jar.dir}/ObjManger.jar">
+			<fileset dir="${ObjManger_classes.dir}">
+				<include name="com/pspace/ifs/DSAN/MQ/"/>
+				<include name="com/pspace/ifs/DSAN/ObjManger/"/>
+                                <exclude name="com/pspace/ifs/DSAN/ObjManger/test/"/>
+                                <exclude name="com/pspace/ifs/DSAN/MQ/testcode/"/>
+                                <exclude name="com/pspace/ifs/DSAN/io/"/>
+			</fileset>
+		</jar>
+        <copy file="${jar.dir}/ObjManger.jar" todir="lib"/>
+	</target>
+	
+	<target name="Objmanagertest">
+		<jar destfile="${jar.dir}/Objmanagertest.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.ObjManger.Objmanagertest"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+			
+		</jar>
+	</target>
+	
+	<target name="ksanFSCK">
+		<jar destfile="${jar.dir}/ksanFSCK.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.FSCK.FSCKMAIN"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}" includes="**/FSCK/templates/*.html">
+                        </fileset>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+		</jar>
+	</target>
+
+        <target name="ksanGetattr">
+		<jar destfile="${jar.dir}/ksanGetattr.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.GetAttr.GetAttr"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}" includes="**/GetAttr/templates/*.html"/>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+		</jar>
+	</target>
+     
+       <target name="ksanCbalance">
+		<jar destfile="${jar.dir}/ksanCbalance.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.CBalance.CBalanceMain"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}" includes="**/CBalance/templates/*.html"/>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+		</jar>
+	</target>
+
+       <target name="ksanRecovery">
+		<jar destfile="${jar.dir}/ksanRecovery.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.Recovery.RecoveryMain"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}" includes="**/Recovery/templates/*.html"/>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+		</jar>
+	</target>
+
+	<target name="DBPerformanceTest">
+		<jar destfile="${jar.dir}/DBPerformanceTest.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.ObjManger.test.DBPerformanceTest"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}/test" includes="**/DBPerformanceTest/templates/*.html"/>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+		</jar>
+	</target>
+
+        <target name="ksanOSDU">
+		<jar destfile="${jar.dir}/ksanOSDU.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+			<manifest>
+				<attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.OSD.OSDUtilMain"/>
+			</manifest>
+			<fileset dir="${ObjManger_src.dir}" includes="**/OSD/templates/*.html"/>
+        	        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+		</jar>
+	</target>
+
+        <target name="ksanDisk">
+                <jar destfile="${jar.dir}/ksanDisk.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+                        <manifest>
+                                <attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.disk.DiskUtilMain"/>
+                        </manifest>
+                        <fileset dir="${ObjManger_src.dir}" includes="**/disk/templates/*.html"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+                </jar>
+        </target>
+
+	<target name="ksanDiskPool">
+                <jar destfile="${jar.dir}/ksanDiskPool.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+                        <manifest>
+                                <attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.disk.DiskPoolUtilMain"/>
+                        </manifest>
+                        <fileset dir="${ObjManger_src.dir}" includes="**/disk/templates/*.html"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+                </jar>
+        </target>
+
+       <target name="ksanTestRecovery">
+                <jar destfile="${jar.dir}/ksanTestRecovery.jar" basedir="${ObjManger_classes.dir}" includes="**/*.class">
+                        <manifest>
+                                <attribute name="Main-Class" value="com.pspace.ifs.DSAN.util.Recovery.TestRecovery"/>
+                        </manifest>
+                        <fileset dir="${ObjManger_src.dir}" includes="**/disk/templates/*.html"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/ObjManger.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/mysql-connector-java.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-api-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/slf4j-simple-1.7.26.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/amqp-client-5.7.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/json-simple-1.1.1.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/bson-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongo-java-driver-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="${lib.dir}/mongodb-driver-core-3.12.8.jar"/>
+                        <zipfileset excludes="META-INF/*.SF" src="/usr/share/java/args4j.jar"/>
+                </jar>
+        </target>
+       <target name="makeExcutable">
+           <exec executable="/bin/bash">
+             <arg value="excutableName.sh"/>
+             <arg value="ksanFSCK ksanGetattr ksanCbalance ksanRecovery DBPerformanceTest ksanOSDU ksanDisk ksanDiskPool ksanTestRecovery"/>
+           </exec>
+       </target> 
+    <target name="main" depends="clean,ObjManger_jar,Objmanagertest,ksanFSCK,ksanGetattr,ksanCbalance,ksanRecovery,DBPerformanceTest, ksanOSDU, ksanDisk, ksanDiskPool, ksanTestRecovery, makeExcutable"/>
+</project>

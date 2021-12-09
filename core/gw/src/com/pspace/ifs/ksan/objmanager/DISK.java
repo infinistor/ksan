@@ -1,0 +1,114 @@
+/*
+* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+* the GNU General Public License as published by the Free Software Foundation, either version 
+* 3 of the License.  See LICENSE for details
+*
+* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
+* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
+* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
+*/
+package com.pspace.ifs.ksan.objmanager;
+
+import java.math.BigInteger;
+
+public class DISK{
+    private String path;
+    private String diskid;
+    private double totalSpace;
+    private double usedSpace;
+    private double reservedSpace;
+    private double totalInode;
+    private double usedInode;
+    private String osdIp;
+    private int role; // primary or replica
+    private DiskMode mode;
+    private DiskStatus status; // GOOD, STOPPED, BROKEN, UNKNOWN;
+    
+    public DISK(){
+        this.path = "";
+        this.diskid = "";
+        this.role = 0;
+        this.totalSpace = 0;
+        this.usedSpace = 0;
+        this.reservedSpace = 0;
+        this.totalInode = 0;
+        this.usedInode = 0;
+        this.mode = DiskMode.READWRITE;
+        this.status = DiskStatus.UNKNOWN;
+    }
+    
+    public String getId(){
+        return this.diskid;
+    }
+    
+    public int getRole(){
+        return this.role;
+    }
+    
+    public DiskStatus getStatus(){
+        return this.status;
+    }
+    
+    public String getOsdIp(){
+        return this.osdIp;
+    }
+    
+    public String getPath(){
+        return this.path;
+    }
+    
+    public DiskMode getMode(){
+        return this.mode;
+    }
+    
+    public double getFreeSpace(){
+        return (totalSpace - (usedSpace + reservedSpace));
+    }
+    
+    public double getFreeInode(){
+        return totalInode - usedInode;
+    }
+    
+    public void setId(String diskid){
+        this.diskid = diskid;
+    }
+    
+    public void setStatus(DiskStatus st){
+        this.status = st;
+    }
+    
+    public void setRole(int rol){
+        this.role = rol;
+    }
+    
+    public void setPath(String path){
+        this.path = path;
+    }
+    
+    public void setMode(DiskMode mode){
+        this.mode = mode;
+    }
+    
+    public void setSpace(double totalSpace, double usedSpace, double reserverdSpace){
+        this.totalSpace = totalSpace;
+        this.usedSpace = usedSpace;
+        this.reservedSpace = reserverdSpace;
+    }
+    
+    public void setInode(double totalInode, double usedInode){
+        this.totalInode = totalInode;
+        this.usedInode = usedInode;
+    }
+    
+    public void setOSDIP(String osdIP){
+        this.osdIp = osdIP;
+    }
+    
+    @Override
+    public String toString(){
+        return String.format(
+                "{ path : %s diskid : %s mode : %s  status : %s }", 
+                this.getPath(), this.getId(), this.getMode(), this.getStatus());
+    }
+}
