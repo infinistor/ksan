@@ -16,7 +16,7 @@
 * s3gw abort multipart 요청을 받아 저장되어 있는 parts를 삭제
 
 ### ksanOsd.conf (KSAN/etc/ksanOsd.conf)
-```json
+``` shell
 pool_size=30                // thread pool size
 local_ip=192.168.13.16      // local host ip
 port=8000                   // OSD server port
@@ -26,7 +26,7 @@ write_temp_dir=temp         // object 저장 시에 임시 저장 폴더 명
 ```
 
 ## 실행 예시(CLI)
-```json
+``` shell
 java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
 ```
 
@@ -45,15 +45,29 @@ java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.j
 ### Maven 설치
 * Maven이 설치되어 있는지 확인해야 합니다.
 
-* <kbd>mvn -v</kbd> 로 설치되어 있는지 확인하세요.
+``` shell
+mvn -v
+```
+* 위의 명령어로 확인하세요.
 
-* 설치가 되어 있지 않으면 다음 명령어로 설치를 해야 합니다. <br> 
-<kbd>sudo apt install maven</kbd>
+* 설치가 되어 있지 않으면 다음 명령어로 설치를 해야 합니다.
+``` shell
+sudo apt install maven
+```
 
 ### Build
 
-* pom.xml 파일이 있는 위치(KSAN/osd)에서 <kbd>mvn package</kbd> 명령어를 입력하시면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ksanOsd.jar가 생성됩니다.
-* <kbd>mvn install</kbd> 명령어를 실해하시면 local repository에 ksanOsd.jar가 저장됩니다. s3gw에서 참조합니다.
+* pom.xml 파일이 있는 위치(KSAN/osd)에서 
+``` shell
+mvn package
+```
+* 위의 명령어를 실행하면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ksanOsd.jar가 생성됩니다.
+
+``` shell
+mvn install
+```
+
+* 위의 명령어를 실해하면 local repository에 ksanOsd.jar가 저장됩니다. s3gw에서 참조합니다.
 
 ## How to Use (빌드한 경우)
 
@@ -68,7 +82,11 @@ java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.j
 
 * ksanOsd.jar의 실행 권한을 확인합니다.
  * ksanOsd.jar의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
- <kbd>chmod +x ksanOsd.jar</kbd>
- 
+``` shell
+chmod +x ksanOsd.jar
+```
+
 * ksanOsd.jar를 실행합니다. (/usr/local/ksan/bin)
-<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &</kbd>
+``` shell 
+java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
+```
