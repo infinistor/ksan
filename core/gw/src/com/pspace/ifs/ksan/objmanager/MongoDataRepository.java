@@ -630,4 +630,10 @@ public class MongoDataRepository implements DataRepository{
         // TODO Auto-generated method stub
         
     }
+
+    @Override
+    public void updateBucketUsed(String bucketName, long size) {
+        // TODO Auto-generated method stub
+        
+    }
 }

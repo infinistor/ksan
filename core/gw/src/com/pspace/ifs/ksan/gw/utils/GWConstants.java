@@ -1095,6 +1095,7 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_LOCAL_IP = "local ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP = "objMeta primary ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP = "objMeta replica ip : {}";
+	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
 
 	// S3Range
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";

@@ -35,6 +35,8 @@ public class Bucket {
     private String policy;
     private String userName;
     private String userId;
+    private long used;
+    private long fileCount;
     private Date createTime;
     
     public Bucket(){
@@ -47,6 +49,8 @@ public class Bucket {
         userName = "";
         userId = "";
         createTime = null;
+        used = 0L;
+        fileCount = 0L;
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -59,6 +63,8 @@ public class Bucket {
         userName = "";
         userId = "";
         createTime = null;
+        used = 0L;
+        fileCount = 0L;
     }
     
     /*public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete){
@@ -224,6 +230,22 @@ public class Bucket {
 
     public void setPolicy(String policy) {
         this.policy = policy;
+    }
+
+    public long getUsed() {
+        return used;
+    }
+
+    public void setUsed(long used) {
+        this.used = used;
+    }
+
+    public long getFileCount() {
+        return fileCount;
+    }
+
+    public void setFileCount(long fileCount) {
+        this.fileCount = fileCount;
     }
 
     @Override

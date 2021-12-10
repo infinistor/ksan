@@ -33,12 +33,14 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClient;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.osd.OSDData;
 
@@ -51,6 +53,7 @@ public class S3ObjectOperation {
     private S3Parameter s3Parameter;
     private String versionId;
     private S3ServerSideEncryption s3ServerSideEncryption;
+    private ObjManager objManager;
     private static final Logger logger = LoggerFactory.getLogger(S3ObjectOperation.class);
 
     public S3ObjectOperation(Metadata objMeta, S3Metadata s3Meta, S3Parameter s3Parameter, String versionId, S3ServerSideEncryption s3ServerSideEncryption) {
@@ -220,6 +223,10 @@ public class S3ObjectOperation {
         File trashReplica = null;
         OSDClient clientPrimary = null;
         OSDClient clientReplica = null;
+        long existFileSize = 0L;
+        long putSize = 0L;
+        long calSize = 0L;
+
         try {
             MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
             byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
@@ -227,8 +234,12 @@ public class S3ObjectOperation {
             long remainLength = length;
             int bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
             
+            existFileSize = objMeta.getSize();
+            putSize = length;
             if (GWConfig.getInstance().replicationCount() > 1) {
                 // check local / OSD server
+                existFileSize *= GWConfig.getInstance().replicationCount();
+                putSize *= GWConfig.getInstance().replicationCount();
                 logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_PRIMARY_IP, GWConfig.getInstance().localIP(), objMeta.getPrimaryDisk().getOsdIp());
                 logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_REPLICA_IP, GWConfig.getInstance().localIP(), objMeta.getReplicaDisk().getOsdIp());
                 if (GWConfig.getInstance().localIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
@@ -323,6 +334,9 @@ public class S3ObjectOperation {
             s3Object.setFileSize(length);
             s3Object.setVersionId(versionId);
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+
+            calSize = putSize - existFileSize;
+            updateBucketUsed(objMeta.getBucket(), calSize);
         } catch (NoSuchAlgorithmException | IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -384,10 +398,11 @@ public class S3ObjectOperation {
         return true;
     }
 
-    private void deleteObjectLocal(String path, String objId) throws IOException {
+    private void deleteObjectLocal(String path, String objId) throws IOException, GWException {
         File file = new File(makeObjPath(path, objId, versionId));
         File trashFile = new File(makeTrashPath(path, objId, versionId));
 
+        updateBucketUsed(objMeta.getBucket(), file.length() * -1);
         retryRenameTo(file, trashFile);
     }
 
@@ -399,6 +414,7 @@ public class S3ObjectOperation {
         FileOutputStream fosReplica = null;
         OSDClient clientPrimary = null;
         OSDClient clientReplica = null;
+        long oldFileSize = 0L;
 
         try {
             MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
@@ -410,6 +426,7 @@ public class S3ObjectOperation {
             if (GWConfig.getInstance().replicationCount() > 1) {
                 if (GWConfig.getInstance().localIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     tmpFilePrimary = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
+                    oldFileSize = tmpFilePrimary.length();
                     com.google.common.io.Files.createParentDirs(tmpFilePrimary);
                     fosPrimary = new FileOutputStream(tmpFilePrimary, false);
                 } else {
@@ -419,6 +436,7 @@ public class S3ObjectOperation {
 
                 if (GWConfig.getInstance().localIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                     tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
+                    oldFileSize += tmpFileReplica.length();
                     com.google.common.io.Files.createParentDirs(tmpFileReplica);
                     fosReplica = new FileOutputStream(tmpFileReplica, false);
                 } else {
@@ -461,6 +479,7 @@ public class S3ObjectOperation {
                 }
             } else {
                 File tmpFile = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
+                oldFileSize = tmpFile.length();
                 com.google.common.io.Files.createParentDirs(tmpFile);
                 try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
                     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, bufferSize)) > 0) {
@@ -483,6 +502,8 @@ public class S3ObjectOperation {
             s3Object.setLastModified(new Date());
             s3Object.setFileSize(length);
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+
+            // updateBucketUsed(objMeta.getBucket(), oldFileSize - length);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -681,7 +702,7 @@ public class S3ObjectOperation {
                     }
                 }
             }
-            logger.debug("copySourceRange : {}", copySourceRange);
+            logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE, copySourceRange);
             OSDData osdData = null;
             OSDData dataPrimary = null;
             OSDData dataReplica = null;
@@ -922,6 +943,31 @@ public class S3ObjectOperation {
 
         return new String(path);
     }
+
+    private void setObjManager() throws Exception {
+		objManager = ObjManagerHelper.getInstance().getObjManager();
+	}
+
+	private void releaseObjManager() throws Exception {
+		ObjManagerHelper.getInstance().returnObjManager(objManager);
+	}
+
+    private void updateBucketUsed(String bucketName, long size) throws GWException {
+		try {
+			setObjManager();
+			objManager.updateBucketUsed(bucketName, size);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+	}
 
     private String makeObjPath(String path, String objId, String versionId) {
         String fullPath = path + GWConstants.SLASH + GWConstants.OBJ_DIR + makeDirectoryName(objId) + GWConstants.SLASH + objId + GWConstants.LOW_LINE + versionId;

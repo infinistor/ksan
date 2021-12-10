@@ -718,6 +718,10 @@ public class ObjManager {
         return dbm.isBucketDelete(bucketName);
     }
 
+    public void updateBucketUsed(String bucketName, long size) {
+        dbm.updateBucketUsed(bucketName, size);
+    }
+
     public boolean isValid() {
 		if (this.dbm != null) {
 			try {

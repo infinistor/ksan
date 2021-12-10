@@ -87,4 +87,5 @@ public interface DataRepository {
     public void updateObjectAcl(Metadata meta) throws SQLException;
 
     public List<S3BucketSimpleInfo> listBuckets(String userName, String userId) throws SQLException;
+    public void updateBucketUsed(String bucketName, long size);
 }

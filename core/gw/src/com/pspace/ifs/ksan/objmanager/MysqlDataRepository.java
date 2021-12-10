@@ -107,7 +107,11 @@ public class MysqlDataRepository implements DataRepository{
 
     // Add 2021-11-22
     private PreparedStatement pstIsDeleteBucket;
-    private PreparedStatement pstSelectBuckets;
+    
+    // Add 2021-12-10
+    private PreparedStatement pstAddFilecount;
+    private PreparedStatement pstSubFilecount;
+    private PreparedStatement pstBucketUsed;
     
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname){
         this.obmCache = obmCache;
@@ -145,7 +149,7 @@ public class MysqlDataRepository implements DataRepository{
             
             // for bucket
             pstCreateBucket = con.prepareStatement("CREATE TABLE IF NOT EXISTS BUCKETS("
-                    + "name VARCHAR(256) NOT NULL, id VARCHAR(80) NOT NULL, diskPoolId CHAR(36) NOT NULL, userName VARCHAR(200), userId CHAR(32), acl VARCHAR(2048), web VARCHAR(2048), cors VARCHAR(2048), lifecycle VARCHAR(2048), access VARCHAR(2048), tagging VARCHAR(2048), encryption VARCHAR(2048), replication VARCHAR(2048), objectlock VARCHAR(2048), policy VARCHAR(2048), versioning VARCHAR(50), MfaDelete VARCHAR(50), createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                    + "name VARCHAR(256) NOT NULL, id VARCHAR(80) NOT NULL, filecount BIGINT(20) NOT NULL DEFAULT '0', used BIGINT(20) NOT NULL DEFAULT '0', diskPoolId CHAR(36) NOT NULL, userName VARCHAR(200), userId CHAR(32), acl VARCHAR(2048), web VARCHAR(2048), cors VARCHAR(2048), lifecycle VARCHAR(2048), access VARCHAR(2048), tagging VARCHAR(2048), encryption VARCHAR(2048), replication VARCHAR(2048), objectlock VARCHAR(2048), policy VARCHAR(2048), versioning VARCHAR(50), MfaDelete VARCHAR(50), createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
             pstInsertBucket = con.prepareStatement("INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
             pstDeleteBucket = con.prepareStatement("DELETE FROM BUCKETS WHERE id=?");
@@ -205,6 +209,10 @@ public class MysqlDataRepository implements DataRepository{
 
             // Add 2021-11-22
             pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
+
+            pstAddFilecount = con.prepareStatement("UPDATE BUCKETS SET filecount = filecount + 1 WHERE name=?");
+            pstSubFilecount = con.prepareStatement("UPDATE BUCKETS SET filecount = filecount - 1 WHERE name=?");
+            pstBucketUsed = con.prepareStatement("UPDATE BUCKETS SET used = used + ? WHERE name=?");
         } catch(SQLException ex){
             this.ex_message(ex);
         }
@@ -393,7 +401,10 @@ public class MysqlDataRepository implements DataRepository{
             //this.pstInsert.setBoolean(12, true);
             // if (md.getVersionId().isEmpty())
             //     updateVersion(md.getBucket(), md.getObjId());
-            this.pstInsert.executeUpdate();
+            if (this.pstInsert.executeUpdate() == 1) {
+                addFileCount(md.getBucket());
+            }
+
         } catch(SQLException ex){
             if (ex.getErrorCode() == 1062)
                 return updateMetadata(md);
@@ -702,7 +713,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
+    public synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
         pstInsertMultiPart.clearParameters();
         pstInsertMultiPart.setString(1, bucket);
         pstInsertMultiPart.setString(2, objkey);
@@ -825,7 +836,9 @@ public class MysqlDataRepository implements DataRepository{
             pstDelete.clearParameters();
             pstDelete.setString(1, objId);
             pstDelete.setString(2, versionId);
-            pstDelete.executeUpdate();
+            if (pstDelete.executeUpdate() == 1) {
+                subFileCount(bucketName);
+            }
             
             /*if (versionId != null){
                 if (!versionId.isEmpty())
@@ -2078,4 +2091,35 @@ public class MysqlDataRepository implements DataRepository{
         }
     }
     
+    private void addFileCount(String bucketName) {
+        try {
+            pstAddFilecount.clearParameters();
+            pstAddFilecount.setString(1, bucketName);
+            pstAddFilecount.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void subFileCount(String bucketName) {
+        try {
+            pstSubFilecount.clearParameters();
+            pstSubFilecount.setString(1, bucketName);
+            pstSubFilecount.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void updateBucketUsed(String bucketName, long size) {
+        try {
+            pstBucketUsed.clearParameters();
+            pstBucketUsed.setLong(1, size);
+            pstBucketUsed.setString(2, bucketName);
+            pstBucketUsed.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
