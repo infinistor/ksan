@@ -63,7 +63,7 @@ mvn package
  * KSAN/etc/watcher.conf - 설정 파일
  * KSAN/etc/ifs-watcher.xml - log파일 관련 설정
  
-* ifs-watcher.jar를 /usr/local/ksan/bin 에 복사합니다.
+* ifs-watcher를 /usr/local/ksan/bin 에 복사합니다.
 * watcher.conf, ifs-watcher.xml 를 /usr/local/ksan/etc 에 복사합니다.
 
 * ifs-watcher의 실행 권한을 확인합니다.
