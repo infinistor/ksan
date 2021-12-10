@@ -6,7 +6,7 @@
 * s3gw의 요청을 받아 object에 대한 put, get, delete 수행
 
 ### 주요 기능
-* s3gw put 요청을 받아 Local diisk에 object를 저장
+* s3gw put 요청을 받아 Local disk에 object를 저장
 * s3gw get 요청을 받아 Local disk에 있는 object를 전송
 * s3gw delete 요청을 받아 Local disk에 있는 object를 삭제
 * s3gw copy 요청을 받아 Local disk에 있는 object를 복사
@@ -19,11 +19,6 @@
 ``` shell
 java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
 ```
-
-## 로그 파일
-* 설정 파일 : ksanOsdLog.xml (KSAN/etc/ksanOsdLog.xml)
-* 위치
-  * /var/log/osd/osd.log
 
 ## 구동 환경
 
@@ -47,7 +42,7 @@ sudo apt install maven
 
 ### Build
 
-* pom.xml 파일이 있는 위치(KSAN/osd)에서 
+* pom.xml 파일이 있는 위치(KSAN/core/osd)에서 
 ``` shell
 mvn package
 ```
@@ -57,7 +52,7 @@ mvn package
 mvn install
 ```
 
-* 위의 명령어를 실해하면 local repository에 ksanOsd.jar가 저장됩니다. s3gw에서 참조합니다.
+* 위의 명령어를 실행하면 local repository에 ksanOsd.jar가 저장됩니다. gw에서 참조합니다.
 
 ## How to Use (빌드한 경우)
 
@@ -65,7 +60,7 @@ mvn install
 ``` shell
   KSAN/osd/target/ksanOsd.jar // 소스 빌드 후, 생성된 실행 파일	
   KSAN/etc/ksanOsd.conf       // 설정 파일
-  KSAN/etc/ksanOsdLog.xml     // log파일 관련 설정
+  KSAN/etc/ksanOsdLog.xml     // log 관련 설정
   KSAN/etc/diskpools.xml      // disk pool 관련 설정
 ```
  
