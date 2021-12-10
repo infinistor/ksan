@@ -32,6 +32,7 @@ public final class GWConstants {
     public static final String PROPERTY_DB_PORT = "dbport";
     public static final String PROPERTY_DB_USER = "dbuser";
     public static final String PROPERTY_DB_PASS = "dbpass";
+	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
 
 	public static final long MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
 	public static final long MAX_LIST_SIZE = 200000;
@@ -89,6 +90,14 @@ public final class GWConstants {
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	
 	public static final String MARIADB = "MariaDB";
+	public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:cp";
+	public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
+	public static final String CONNECTION_POOL = "cp";
+	public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
+	public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
+	public static final String MARIADB_URL = "jdbc:mariadb://";
+	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8";
+	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
@@ -229,7 +238,6 @@ public final class GWConstants {
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
 
-	// policy action
 	public static final String ACTION_PUT_OBJECT = "s3:PutObject";
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
@@ -244,6 +252,8 @@ public final class GWConstants {
 	public static final String SIGN_CREDENTIAL = " Credential=";
 	public static final String SIGN_REQEUEST_SIGNED_HEADERS = ", requestSignedHeaders=";
 	public static final String SIGN_SIGNATURE = ", Signature=";
+	public static final String AUTH_HEADER = "AuthHeader";
+	public static final String QUERY_STRING = "QueryString";
 
 	public static final String REQUEST_ROOT = "root";
 	public static final String REQUEST_BUCKET = "bucket";
@@ -261,6 +271,8 @@ public final class GWConstants {
 
 	public static final String SIGNEDHEADERS_EQUAL = "SignedHeaders=";
 	public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
+	public static final String X_AMZ_ID_2 = "x-amz-id-2";
+	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	public static final String AWS_ACCESS_KEY_ID = "AWS_AccessKeyId";
 	public static final String X_AMZ_DATE = "X-Amz-Date";
 	public static final String X_AMZ_DATE_LOWER = "x-amz-date";
@@ -375,6 +387,44 @@ public final class GWConstants {
 				+ "`access_secret` varchar(40) NOT NULL,"
 				+ "PRIMARY KEY (`user_id`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String CREATE_TABLE_S3LOGGING = 
+				"CREATE TABLE IF NOT EXISTS `s3logging` ("
+				+ "  `log_id` bigint NOT NULL AUTO_INCREMENT,"
+				+ "  `user_name` varchar(64),"
+				+ "  `bucket_name` varchar(64),"
+				+ "  `date_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),"
+				+ "  `remote_host` varchar(256),"
+				+ "  `request_user` varchar(64),"
+				+ "  `request_id` varchar(64),"
+				+ "  `operation` varchar(64),"
+				+ "  `object_name` varchar(2048),"
+				+ "  `request_uri` varchar(2048),"
+				+ "  `status_code` int,"
+				+ "  `error_code` varchar(256),"
+				+ "  `response_length` bigint,"
+				+ "  `object_length` int,"
+				+ "  `total_time` bigint,"
+				+ "  `request_length` bigint,"
+				+ "  `referer` varchar(64),"
+				+ "  `user_agent` varchar(256),"
+				+ "  `version_id` varchar(64),"
+				+ "  `host_id` varchar(256),"
+				+ "  `sign` varchar(32),"
+				+ "  `ssl_group` varchar(64),"
+				+ "  `sign_type` varchar(32),"
+				+ "  `endpoint` varchar(64),"
+				+ "  `tls_version` varchar(32),"
+				+ "  PRIMARY KEY (`log_id`, `user_name`, `bucket_name`, `date_time`, `request_id`)"
+				+ "  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String  INSERT_S3LOGGING = 
+		"insert into s3logging " +
+		"(user_name, bucket_name,     date_time,     remote_host,  request_user, " +
+		" request_id, operation,       object_name,   request_uri,  status_code, " + 
+	    " error_code, response_length, object_length, total_time,   request_length, " + 
+		" referer,    user_agent,      version_id,    host_id,      sign, " + 
+		" ssl_group,  sign_type,       endpoint,      tls_version) " +
+		" VALUES (?, ?, now(), ?, ?,    ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,      ?, ?, ?, ?);";
+
 	public static final String SELECT_USERS = "select user_id, user_name, access_key, access_secret from dsan.users;";
 	public static final String SELECT_USERS_ACCESS_KEY = "select user_id, user_name, access_secret from dsan.users where access_key = ?;";
 	public static final String SELECT_USERS_USER_ID = "select user_id, user_name, access_key, access_secret from dsan.users where user_id = ?;";
@@ -605,7 +655,7 @@ public final class GWConstants {
 
 	public static final String RANGE_CHECK_FORMET = "bytes %d-%d/%d";
 
-	public static final String CONFIG_MUST_CONTAIN = "Properties file must contain: ";
+	
 
 	public static final String LOG_ACCESS_DENIED_PUBLIC_ACLS = "access denied : block public acls";
 	public static final String LOG_ACCESS_CANNED_ACL = ", cannedAcl:{}";
@@ -638,6 +688,11 @@ public final class GWConstants {
 	public static final int TAG_MAX_SIZE = 10;
 	public static final int RANGE_OFFSET_INDEX = 0;
 	public static final int RANGE_LENGTH_INDEX = 1;
+
+	// GWConfig
+	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
+	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
+	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
 
 	// GWMain
 	public static final String LOG_GWMAIN_INIT = "GW Init.......";
@@ -950,6 +1005,7 @@ public final class GWConstants {
 	// UploadPart
 	public static final String LOG_UPLOAD_PART_START = "UploadPart ...";
 	public static final String LOG_UPLOAD_PART_WRONG_PART_NUMBER = " : Part number must be an integer between 1 and 10000, inclusive";
+	public static final int MAX_PARTS_SIZE = 10000;
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
@@ -1087,4 +1143,7 @@ public final class GWConstants {
 	public static final String LOG_S3SIGNING_URI = "URI - {}";
 	public static final String LOG_S3SIGNING_PATH_LENGTH = "path.length({})";
 	public static final String LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER = "fail to validate signature expect({}), authheader({})";
+
+	// MariaDB
+	public static final String LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER = "fail to load JDBC Driver";
 }

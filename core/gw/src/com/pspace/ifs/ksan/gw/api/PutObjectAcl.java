@@ -31,8 +31,8 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import org.slf4j.LoggerFactory;
 
 public class PutObjectAcl extends S3Request {
-    public PutObjectAcl(S3Parameter ip) {
-		super(ip);
+    public PutObjectAcl(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutObjectAcl.class);
 	}
 
@@ -65,7 +65,7 @@ public class PutObjectAcl extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
         checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
 
@@ -87,7 +87,8 @@ public class PutObjectAcl extends S3Request {
 										dataPutObjectAcl.getGrantWrite(), 
 										dataPutObjectAcl.getGrantFullControl(), 
 										dataPutObjectAcl.getGrantReadAcp(), 
-										dataPutObjectAcl.getGrantWriteAcp());
+										dataPutObjectAcl.getGrantWriteAcp(),
+										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, xml);
 		
 		objMeta.setAcl(xml);

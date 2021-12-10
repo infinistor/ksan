@@ -70,10 +70,10 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 			lcc = xmlMapper.readValue(lifecycleXml, LifecycleConfiguration.class);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		Map<String, String> id = new HashMap<String, String>(); 
@@ -82,7 +82,7 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 			for (Rule rl : lcc.rules) {
 				if (rl.id != null) { 
 					if (rl.id.length() > 255)
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 				
 					id.put(rl.id, rl.id);
 				} else {
@@ -93,7 +93,7 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 				}
 				
 				if (rl.status != null && rl.status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
-					throw new GWException(GWErrorCode.MALFORMED_X_M_L);
+					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 				}
 				
 				if (rl.expiration != null && rl.expiration.date != null) {
@@ -101,13 +101,13 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 					LocalDate date1 = LocalDate.parse(rl.expiration.date, formatter);
 					LocalDate date2 = LocalDate.now();
 					if(date2.isAfter(date1)) {
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 				}
 			}
 
 			if( lcc.rules.size() > id.size() ) {
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 		}
 

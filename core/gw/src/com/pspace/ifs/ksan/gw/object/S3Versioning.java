@@ -51,10 +51,10 @@ public class S3Versioning {
 			return ver.status;
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 
@@ -67,10 +67,10 @@ public class S3Versioning {
 			return ver.status;
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
     }
 

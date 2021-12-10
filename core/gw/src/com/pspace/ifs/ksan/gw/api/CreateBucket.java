@@ -76,7 +76,8 @@ public class CreateBucket extends S3Request {
 										dataCreateBucket.getGrantWrite(), 
 										dataCreateBucket.getGrantFullControl(), 
 										dataCreateBucket.getGrantReadAcp(), 
-										dataCreateBucket.getGrantWriteAcp());
+										dataCreateBucket.getGrantWriteAcp(),
+										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;
@@ -90,7 +91,7 @@ public class CreateBucket extends S3Request {
 		}
 
 		if (result != 0) {
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().addHeader(HttpHeaders.LOCATION, GWConstants.SLASH + bucket);
@@ -115,12 +116,12 @@ public class CreateBucket extends S3Request {
 	private void checkBucketName(String bucket) throws GWException {
 		if (Strings.isNullOrEmpty(bucket)) {
 			logger.error(GWConstants.LOG_BUCKET_IS_NULL);
-			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED);
+			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED, s3Parameter);
 		}
 		
 		if (!isValidBucketName(bucket)) {
 			logger.error(GWConstants.LOG_CREATE_BUCKET_INVALID, bucket);
-			throw new GWException(GWErrorCode.INVALID_BUCKET_NAME);
+			throw new GWException(GWErrorCode.INVALID_BUCKET_NAME, s3Parameter);
 		}
 	}
 }

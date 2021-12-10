@@ -23,8 +23,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class PutBucketPolicy extends S3Request {
-    public PutBucketPolicy(S3Parameter ip) {
-		super(ip);
+    public PutBucketPolicy(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutBucketPolicy.class);
 	}
 

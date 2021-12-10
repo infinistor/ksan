@@ -52,7 +52,7 @@ public class GetBucketCors extends S3Request {
 		String cors = getBucketInfo().getCors();
 		logger.debug(GWConstants.LOG_GET_BUCKET_CORS, cors);
 		if (Strings.isNullOrEmpty(cors)) {
-			throw new GWException(GWErrorCode.NO_SUCH_CORS_CONFIGURATION);
+			throw new GWException(GWErrorCode.NO_SUCH_CORS_CONFIGURATION, s3Parameter);
 		}
 		
 		try {
@@ -62,7 +62,7 @@ public class GetBucketCors extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

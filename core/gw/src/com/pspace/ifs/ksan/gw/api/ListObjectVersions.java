@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class ListObjectVersions extends S3Request {
 
-	public ListObjectVersions(S3Parameter ip) {
-		super(ip);
+	public ListObjectVersions(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(ListObjectVersions.class);
 	}
 
@@ -77,7 +77,7 @@ public class ListObjectVersions extends S3Request {
 		}
 		logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MAXKEYS, s3ObjectList.getMaxKeys());
 		if (Integer.valueOf(s3ObjectList.getMaxKeys()) < 0) {
-			throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 		}
 		s3ObjectList.setPrefix(prefix);
 		s3ObjectList.setVersionIdMarker(versionIdMarker);
@@ -174,10 +174,10 @@ public class ListObjectVersions extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 

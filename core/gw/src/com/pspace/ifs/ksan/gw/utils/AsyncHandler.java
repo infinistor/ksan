@@ -8,24 +8,31 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.api;
+package com.pspace.ifs.ksan.gw.utils;
 
-import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
+import java.util.concurrent.CompletableFuture;
+
+import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PutObjectRetention extends S3Request {
-    public PutObjectRetention(S3Parameter s3Parameter) {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutObjectRetention.class);
-	}
+public class AsyncHandler {
+    private final static Logger logger = LoggerFactory.getLogger(AsyncHandler.class);
 
-	@Override
-	public void process() throws GWException {
-		logger.info(GWConstants.LOG_PUT_OBJECT_RETENTION_START);
-		throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
-	}
+    public static CompletableFuture<Integer> s3logging(S3Parameter s3Parameter) {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+        new Thread( () -> {
+            GWDB gwDB = GWUtils.getDBInstance();
+            try {
+                gwDB.putS3logging(s3Parameter);
+            } catch (GWException e) {
+                PrintStack.logging(logger, e);
+            }
+        }).start();
+
+        return future;
+    }
 }

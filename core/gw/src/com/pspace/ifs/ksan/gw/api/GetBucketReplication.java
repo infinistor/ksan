@@ -53,7 +53,7 @@ public class GetBucketReplication extends S3Request {
         logger.debug(GWConstants.LOG_GET_BUCKET_REPLICATION, replication);
 
         if (Strings.isNullOrEmpty(replication)) {
-			throw new GWException(GWErrorCode.NO_SUCH_REPLICATION_CONFIGURATION);
+			throw new GWException(GWErrorCode.NO_SUCH_REPLICATION_CONFIGURATION, s3Parameter);
 		}
 
         try {
@@ -63,7 +63,7 @@ public class GetBucketReplication extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
         s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

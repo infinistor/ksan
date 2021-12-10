@@ -55,7 +55,7 @@ public class GetBucketObjectLock extends S3Request {
 		String objectLock = getBucketInfo().getObjectlock();
 		logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);
         if (Strings.isNullOrEmpty(objectLock)) {
-            throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR);
+            throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR, s3Parameter);
         }
 
 		try {
@@ -70,7 +70,7 @@ public class GetBucketObjectLock extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

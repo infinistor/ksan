@@ -36,7 +36,7 @@ public class DataCompleteMultipartUpload extends S3DataRequest {
 		uploadId = s3Parameter.getRequest().getParameter(GWConstants.UPLOAD_ID);
 		if (Strings.isNullOrEmpty(uploadId)) {
 			logger.error(GWConstants.LOG_DATA_UPLOAD_ID_NULL);
-			throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+			throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 		}
 		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
@@ -65,7 +65,7 @@ public class DataCompleteMultipartUpload extends S3DataRequest {
 			multipartXml = readXml();
 		} catch (GWException e) {
 			logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
-			throw new GWException(GWErrorCode.MALFORMED_X_M_L);
+			throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 		}
 	
 		return multipartXml;

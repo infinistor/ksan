@@ -64,7 +64,7 @@ public class GetBucketPolicyStatus extends S3Request {
             xmlStreamWriter.writeStartDocument();
             xmlStreamWriter.writeStartElement(GWConstants.POLICY_STATUS);
 
-            if (GWUtils.isPublicPolicyBucket(policy)) {
+            if (GWUtils.isPublicPolicyBucket(policy, s3Parameter)) {
                 writeSimpleElement(xmlStreamWriter, GWConstants.POLICY_IS_PUBLIC, GWConstants.STRING_TRUE);
             } else {
                 writeSimpleElement(xmlStreamWriter, GWConstants.POLICY_IS_PUBLIC, GWConstants.STRING_FALSE);
@@ -73,7 +73,7 @@ public class GetBucketPolicyStatus extends S3Request {
             xmlStreamWriter.flush();
 		} catch (IOException | XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

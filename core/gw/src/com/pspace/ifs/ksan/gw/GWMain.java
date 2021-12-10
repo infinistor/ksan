@@ -18,6 +18,7 @@ import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -40,6 +41,7 @@ import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.gw.utils.AsyncHandler;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -76,7 +78,7 @@ public class GWMain extends HttpServlet {
 
 		GWDB s3DB = GWUtils.getDBInstance();
 		try {
-			s3DB.init(s3Config.dbHost(), s3Config.dbPort(), s3Config.database(), s3Config.dbUser(), s3Config.dbPass());
+			s3DB.init(s3Config.dbHost(), s3Config.dbPort(), s3Config.database(), s3Config.dbUser(), s3Config.dbPass(), s3Config.dbPoolSize());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
@@ -179,12 +181,18 @@ public class GWMain extends HttpServlet {
 		logger.info(GWConstants.LOG_GWMAIN_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
 		S3Request s3Request = s3RequestFactory.createS3Request(s3Parameter);
 		s3Request.process();
+		s3Parameter.setStatusCode(response.getStatus());
+		AsyncHandler.s3logging(s3Parameter);
 	}
 
 	private S3Parameter s3Init(HttpServletRequest request, HttpServletResponse response) {
 		String method = request.getMethod();
 		String uri = request.getRequestURI();
 		long startTime = System.currentTimeMillis();
+		long requestSize = 0L;
+
+		requestSize += method.length();
+		requestSize += uri.length();
 
 		logger.info(GWConstants.LOG_GWMAIN_PREURI, uri);
 		uri = removeDuplicateRoot(uri);
@@ -196,11 +204,21 @@ public class GWMain extends HttpServlet {
 		for (String headerName : Collections.list(request.getHeaderNames())) {
 			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
 				logger.info(GWConstants.LOG_GWMAIN_HEADER, headerName, Strings.nullToEmpty(headerValue));
+
+				requestSize += headerName.length();
+				if (!Strings.isNullOrEmpty(headerValue)) {
+					requestSize += headerValue.length();
+				}
 			}
 		}
 
 		for (String parameter : Collections.list(request.getParameterNames())) {
 			logger.info(GWConstants.LOG_GWMAIN_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
+
+			requestSize += parameter.length();
+			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
+				requestSize += request.getParameter(parameter).length();
+			}
 		}
 
 		// select path category
@@ -229,7 +247,8 @@ public class GWMain extends HttpServlet {
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 		}
-
+		s3Parameter.setRequestSize(requestSize);
+		s3Parameter.setRequestID(UUID.randomUUID().toString().substring(24).toUpperCase());
 		s3Parameter.setRequest(request);
 		s3Parameter.setResponse(response);
 		if (!Strings.isNullOrEmpty(path[1])) {
@@ -241,7 +260,18 @@ public class GWMain extends HttpServlet {
 		s3Parameter.setMethod(method);
 		s3Parameter.setStartTime(startTime);
 		s3Parameter.setPathCategory(pathCategory);
+		s3Parameter.setMaxFileSize(s3Config.maxFileSize());
 		s3Parameter.setMaxTimeSkew(s3Config.maxTimeSkew());
+		s3Parameter.setRemoteHost(request.getRemoteHost());
+		s3Parameter.setRequestURI(request.getRequestURI());
+		s3Parameter.setReferer(request.getHeader(HttpHeaders.REFERER));
+		s3Parameter.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
+		s3Parameter.setAuthorization(request.getHeader(HttpHeaders.AUTHORIZATION));
+		s3Parameter.setxAmzAlgorithm(request.getParameter(GWConstants.X_AMZ_ALGORITHM));
+		s3Parameter.setHostName(request.getHeader(HttpHeaders.HOST));
+		s3Parameter.setHostID(request.getHeader(GWConstants.X_AMZ_ID_2));
+		s3Parameter.setRemoteHost(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
+
 		return s3Parameter;
 	}
 
@@ -271,7 +301,7 @@ public class GWMain extends HttpServlet {
 	protected final void sendSimpleErrorResponse(
 			HttpServletRequest request, HttpServletResponse response,
 			GWErrorCode code, String message,
-			Map<String, String> elements) throws IOException {
+			Map<String, String> elements, S3Parameter s3Parameter) throws IOException {
 
 		response.setStatus(code.getHttpStatusCode());
 
@@ -301,6 +331,8 @@ public class GWMain extends HttpServlet {
 		} catch (XMLStreamException xse) {
 			throw new IOException(xse);
 		}
+
+		AsyncHandler.s3logging(s3Parameter);
 	}
 
 	private void sendS3Exception(HttpServletRequest request, HttpServletResponse response, GWException se) throws IOException {
@@ -309,7 +341,8 @@ public class GWMain extends HttpServlet {
 			response,
 			se.getError(), 
 			se.getMessage(), 
-			se.getElements());
+			se.getElements(),
+			se.getS3Parameter());
 	}
 
 	private void writeSimpleElement(XMLStreamWriter xml, String elementName, String characters) throws XMLStreamException {

@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Range.Range;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
@@ -28,7 +29,7 @@ public class ResultRange {
     private long contentsLength;
     private long streamSize;
 
-    public ResultRange(String range, S3Metadata s3Metadata) throws GWException {
+    public ResultRange(String range, S3Metadata s3Metadata, S3Parameter s3Parameter) throws GWException {
         contentLengthHeaders = new ArrayList<String>();
         contentsLength = s3Metadata.getContentLength();
         streamSize = contentsLength;
@@ -36,7 +37,7 @@ public class ResultRange {
             status = HttpServletResponse.SC_OK;
         } else {
             status = HttpServletResponse.SC_PARTIAL_CONTENT;
-            s3Range = new S3Range();
+            s3Range = new S3Range(s3Parameter);
             s3Range.parseRange(range, s3Metadata.getSize(), false);
             checkRange();
         }

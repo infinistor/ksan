@@ -32,8 +32,8 @@ public class GWConfig {
 	private String servicePath;
 	private String keyStorePath;
 	private String keyStorePassword;
-	private long MaxFileSize = GWConstants.MAX_FILE_SIZE;
-	private long MaxListSize = GWConstants.MAX_LIST_SIZE;
+	private long maxFileSize = GWConstants.MAX_FILE_SIZE;
+	private long maxListSize = GWConstants.MAX_LIST_SIZE;
 	private boolean ignoreUnknownHeaders;
 	private int maxTimeSkew = GWConstants.MAX_TIME_SKEW;
 	private int replicationCount = GWConstants.DEFAULT_REPLICATION_VALUE;
@@ -48,6 +48,7 @@ public class GWConfig {
 	private String dbPort;
 	private String dbUser;
 	private String dbPass;
+	private int dbPoolSize;
 
 	public static GWConfig getInstance() {
         return LazyHolder.INSTANCE;
@@ -64,16 +65,16 @@ public class GWConfig {
 		try (InputStream myis = new FileInputStream(path)) {
 			properties.load(myis);
 		} catch (FileNotFoundException e) {
-			throw new GWException(GWErrorCode.SERVER_ERROR, e.getMessage());
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_NOT_EXIST);
 		} catch (IOException e) {
-			throw new GWException(GWErrorCode.SERVER_ERROR, e.getMessage());
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_FAILED_LOADING);
 		}
 
 		String endpoint = properties.getProperty(GWConstants.PROPERTY_ENDPOINT);
 		String secureEndpoint = properties.getProperty(GWConstants.PROPERTY_SECURE_ENDPOINT);
 		if (endpoint == null && secureEndpoint == null) {
 			throw new IllegalArgumentException(
-					GWConstants.CONFIG_MUST_CONTAIN +
+					GWConstants.LOG_CONFIG_MUST_CONTAIN +
 					GWConstants.PROPERTY_ENDPOINT + GWConstants.OR +
 					GWConstants.PROPERTY_SECURE_ENDPOINT);
 		}
@@ -89,78 +90,85 @@ public class GWConfig {
 		this.authorizationString = properties.getProperty(GWConstants.PROPERTY_AUTHORIZATION);
 		
 		if (this.authorizationString == null) {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_AUTHORIZATION);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_AUTHORIZATION);
 		}
 		
 		String maxTimeSkew = properties.getProperty(GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
 	    if (maxTimeSkew != null) {
 	        this.maxTimeSkew = Integer.parseInt(maxTimeSkew);
 	    } else {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
 		}
 
 		String replication = properties.getProperty(GWConstants.PROPERTY_REPLICATION);
 		if (replication != null) {
 			replicationCount = Integer.parseInt(replication);
 		} else {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_REPLICATION);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_REPLICATION);
 		}
 
 		String osdPort = properties.getProperty(GWConstants.PROPERTY_OSD_PORT);
 		if (osdPort != null) {
 			this.osdPort = Integer.parseInt(osdPort);
 		} else {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_PORT);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_PORT);
 		}
 
 		String osdClientCount = properties.getProperty(GWConstants.PROPERTY_OSD_CLIENT_COUNT);
 		if (osdClientCount != null) {
 			this.osdClientCount = Integer.parseInt(osdClientCount);
 		} else {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_CLIENT_COUNT);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_CLIENT_COUNT);
 		}
 
 		String objManagerCount = properties.getProperty(GWConstants.PROPERTY_OBJMANAGER_COUNT);
 		if (objManagerCount != null) {
 			this.objManagerCount = Integer.parseInt(objManagerCount);
 		} else {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OBJMANAGER_COUNT);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OBJMANAGER_COUNT);
 		}
 
 		localIP = properties.getProperty(GWConstants.PROPERTY_LOCAL_IP);
 		if (localIP == null) {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_LOCAL_IP);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_LOCAL_IP);
 		}
 	    
 		setDbRepository(properties.getProperty(GWConstants.PROPERTY_DB_REPOSITORY));
 		if (getDbRepository() == null || getDbRepository().isEmpty()) {
-			throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_REPOSITORY);
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_REPOSITORY);
 		}
 
 	    this.dbHost = properties.getProperty(GWConstants.PROPERTY_DB_HOST);
 	    if (this.dbHost == null) {
-	    	throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_HOST);
+	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_HOST);
 	    }
 	    
 	    this.database = properties.getProperty(GWConstants.PROPERTY_DB_NAME);
 	    if (this.database == null) {
-	    	throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_NAME);
+	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_NAME);
 	    }
 	    
 	    this.dbPort = properties.getProperty(GWConstants.PROPERTY_DB_PORT);
 	    if (this.dbPort == null) {
-	    	throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PORT);
+	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PORT);
 	    }
 	    
 	    this.dbUser = properties.getProperty(GWConstants.PROPERTY_DB_USER);
 	    if (this.dbUser == null) {
-	    	throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_USER);
+	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_USER);
 	    }
 	    
 	    this.dbPass = properties.getProperty(GWConstants.PROPERTY_DB_PASS);
 	    if (this.dbPass == null) {
-	    	throw new IllegalArgumentException(GWConstants.CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PASS);
+	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PASS);
 	    }
+
+		String dbPoolSize = properties.getProperty(GWConstants.PROPERTY_DB_POOL_SIZE);
+		if (dbPoolSize != null) {
+			this.dbPoolSize = Integer.parseInt(dbPoolSize);
+		} else {
+			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_POOL_SIZE);
+		}
 	}
 	
 	public URI endpoint() {
@@ -183,12 +191,12 @@ public class GWConfig {
 		return this.servicePath;
 	}
 	
-	public long MaxFileSize() {
-		return this.MaxFileSize;
+	public long maxFileSize() {
+		return this.maxFileSize;
 	}
 	
-	public long MaxListSize() {
-		return this.MaxListSize;
+	public long maxListSize() {
+		return this.maxListSize;
 	}
 	
 	public boolean ignoreUnknownHeaders() {
@@ -245,5 +253,9 @@ public class GWConfig {
 	
 	public String dbPass() {
 		return this.dbPass;
+	}
+
+	public int dbPoolSize() {
+		return this.dbPoolSize;
 	}
 }

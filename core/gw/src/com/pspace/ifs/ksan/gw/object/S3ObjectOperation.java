@@ -90,13 +90,16 @@ public class S3ObjectOperation {
             if (GWConfig.getInstance().replicationCount() > 1) {
                 if (GWConfig.getInstance().localIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     actualSize = getObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), sourceRange);
+                    s3Parameter.addResponseSize(actualSize);
                 } else if (GWConfig.getInstance().localIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                     actualSize = getObjectLocal(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), sourceRange);
+                    s3Parameter.addResponseSize(actualSize);
                 } else {
                     client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     client.getInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId(), fileSize, sourceRange, s3Parameter.getResponse().getOutputStream());
                     actualSize = client.get();
                     OSDClientManager.getInstance().returnOSDClient(client);
+                    s3Parameter.addResponseSize(actualSize);
                 }
             } else {
                 if (GWConfig.getInstance().localIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
@@ -106,6 +109,7 @@ public class S3ObjectOperation {
                     client.getInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId(), fileSize, sourceRange, s3Parameter.getResponse().getOutputStream());
                     actualSize = client.get();
                     OSDClientManager.getInstance().returnOSDClient(client);
+                    s3Parameter.addResponseSize(actualSize);
                 }
             }
         } catch (Exception e) {
@@ -115,9 +119,10 @@ public class S3ObjectOperation {
                     client.getInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId(), fileSize, sourceRange, s3Parameter.getResponse().getOutputStream());
                     actualSize = client.get();
                     OSDClientManager.getInstance().returnOSDClient(client);
+                    s3Parameter.addResponseSize(actualSize);
                 } catch (IOException | ResourceNotFoundException e1) {
                     PrintStack.logging(logger, e1);
-                    throw new GWException(GWErrorCode.SERVER_ERROR);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                 }
             }
         } 
@@ -196,6 +201,7 @@ public class S3ObjectOperation {
 		}
 
         s3Object = putObjectNormal(s3Meta.getContentLength(), s3Parameter.getInputStream());
+        s3Parameter.addRequestSize(s3Object.getFileSize());
         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ETAG_AND_VERSION_ID, s3Object.getEtag(), s3Object.getVersionId());
 
         return s3Object;
@@ -319,13 +325,13 @@ public class S3ObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (NoSuchAlgorithmException | IOException e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } catch (ResourceNotFoundException e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.NO_SUCH_KEY);
+            throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
             if (GWConfig.getInstance().replicationCount() > 1) {
                 if (fosPrimary != null) {
@@ -333,7 +339,7 @@ public class S3ObjectOperation {
                         fosPrimary.close();
                     } catch (IOException e) {
                         PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                     }
                 }
                 if (fosReplica != null) {
@@ -341,7 +347,7 @@ public class S3ObjectOperation {
                         fosReplica.close();
                     } catch (IOException e) {
                         PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                     }
                 }
             }
@@ -372,7 +378,7 @@ public class S3ObjectOperation {
             }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
         logger.info(GWConstants.LOG_S3OBJECT_OPERATION_DELETE, objMeta.getBucket(), objMeta.getPath(), versionId);
         return true;
@@ -479,7 +485,7 @@ public class S3ObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
             if (GWConfig.getInstance().replicationCount() > 1) {
                 if (fosPrimary != null) {
@@ -487,7 +493,7 @@ public class S3ObjectOperation {
                         fosPrimary.close();
                     } catch (IOException e) {
                         PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                     }
                 }
                 if (fosReplica != null) {
@@ -495,7 +501,7 @@ public class S3ObjectOperation {
                         fosReplica.close();
                     } catch (IOException e) {
                         PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                     }
                 }
             }
@@ -552,7 +558,7 @@ public class S3ObjectOperation {
                 s3Object.setFileSize(dataReplica.getFileSize());
             } else {
                 logger.error(GWConstants.LOG_S3OBJECT_OPERATION_OSD_ERROR);
-                throw new GWException(GWErrorCode.SERVER_ERROR);
+                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
             }
 
             s3Object.setVersionId(versionId);
@@ -560,7 +566,7 @@ public class S3ObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (IOException | ResourceNotFoundException e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } 
 
         return s3Object;
@@ -646,7 +652,7 @@ public class S3ObjectOperation {
             }
         } catch (Exception e) {
              PrintStack.logging(logger, e);
-             throw new GWException(GWErrorCode.SERVER_ERROR);
+             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
     }
 
@@ -710,14 +716,14 @@ public class S3ObjectOperation {
                 s3Object.setFileSize(dataReplica.getFileSize());
             } else {
                 logger.error(GWConstants.LOG_S3OBJECT_OPERATION_OSD_ERROR);
-                throw new GWException(GWErrorCode.SERVER_ERROR);
+                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
             }
 
             s3Object.setLastModified(new Date());
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
 
         return s3Object;
@@ -848,7 +854,7 @@ public class S3ObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
       
         return s3Object;
@@ -884,7 +890,7 @@ public class S3ObjectOperation {
             client.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, s3Meta.getContentLength());
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } 
 
         try (FileInputStream fis = new FileInputStream(srcFile)) {
@@ -897,7 +903,7 @@ public class S3ObjectOperation {
             OSDClientManager.getInstance().returnOSDClient(client);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
     }
 

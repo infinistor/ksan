@@ -69,15 +69,15 @@ public class AbortMultipartUpload extends S3Request {
 			objMultipart = new ObjMultipart(bucket);
 			if (!objMultipart.isUploadId(uploadId)) {
 				isUploadId = false;
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 			listPart = objMultipart.getParts(uploadId);
 		} catch (Exception e) {
 			if (!isUploadId) {
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} 
 
 		// get Paths

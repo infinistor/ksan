@@ -64,7 +64,7 @@ public class ListObject extends S3Request {
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {
 			if (Integer.valueOf(dataListBuckets.getMaxkeys()) < 0) {
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 			s3ObjectList.setMaxKeys(dataListBuckets.getMaxkeys());
 		} else {
@@ -148,7 +148,7 @@ public class ListObject extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (IOException | XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 }

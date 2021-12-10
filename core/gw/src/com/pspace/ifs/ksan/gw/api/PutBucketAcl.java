@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 
 public class PutBucketAcl extends S3Request {
 
-	public PutBucketAcl(S3Parameter ip) {
-		super(ip);
+	public PutBucketAcl(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutBucketAcl.class);
 	}
 
@@ -90,7 +90,8 @@ public class PutBucketAcl extends S3Request {
 										dataPutBucketAcl.getGrantWrite(), 
 										dataPutBucketAcl.getGrantFullControl(), 
 										dataPutBucketAcl.getGrantReadAcp(), 
-										dataPutBucketAcl.getGrantWriteAcp());
+										dataPutBucketAcl.getGrantWriteAcp(),
+										s3Parameter);
 
 		logger.debug(GWConstants.LOG_ACL, xml);
 

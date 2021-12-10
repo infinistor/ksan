@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 
 public class DeleteObject extends S3Request {
 
-	public DeleteObject(S3Parameter ip) {
-		super(ip);
+	public DeleteObject(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(DeleteObject.class);
 	}
 
@@ -130,7 +130,7 @@ public class DeleteObject extends S3Request {
 								logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 							} catch (ResourceNotFoundException | JsonProcessingException e) {
 								PrintStack.logging(logger, e);
-								throw new GWException(GWErrorCode.SERVER_ERROR);
+								throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 							}
 						}		
 					}
@@ -143,7 +143,7 @@ public class DeleteObject extends S3Request {
 							objectOperation.deleteObject();
 						} else {
 							logger.error(GWConstants.LOG_DELETE_OBJECT_DELETE_MARKER_WRONG, deleteMarker);
-							throw new GWException(GWErrorCode.SERVER_ERROR);
+							throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 						}
 					} else {	// request with versionId not currentVid
 						remove(bucket, object, versionId);
@@ -175,7 +175,7 @@ public class DeleteObject extends S3Request {
 								logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 							} catch (ResourceNotFoundException | JsonProcessingException e) {
 								PrintStack.logging(logger, e);
-								throw new GWException(GWErrorCode.SERVER_ERROR);
+								throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 							}
 						}
 					}
@@ -185,7 +185,7 @@ public class DeleteObject extends S3Request {
 				}
 			} else {
 				logger.error(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_WRONG, versioningStatus);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 				

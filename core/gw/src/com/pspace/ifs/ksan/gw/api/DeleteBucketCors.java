@@ -22,8 +22,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class DeleteBucketCors extends S3Request{
-    public DeleteBucketCors(S3Parameter ip) {
-		super(ip);
+    public DeleteBucketCors(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(DeleteBucketCors.class);
 	}
 

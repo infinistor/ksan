@@ -70,7 +70,7 @@ public class GetObjectRetention extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-        objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+        objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
         checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 

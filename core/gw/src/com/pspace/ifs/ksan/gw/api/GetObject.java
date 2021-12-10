@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
 
 public class GetObject extends S3Request implements S3AddResponse {
 
-	public GetObject(S3Parameter ip) {
-		super(ip);
+	public GetObject(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetObject.class);
 	}
 
@@ -84,7 +84,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
 		S3Metadata s3Metadata = null;
@@ -96,7 +96,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		// check customer-key
@@ -104,11 +104,11 @@ public class GetObject extends S3Request implements S3AddResponse {
 			if (!Strings.isNullOrEmpty(dataGetObject.getServerSideEncryptionCustomerKey())) {
 				if (!s3Metadata.getCustomerKey().equals(dataGetObject.getServerSideEncryptionCustomerKey())) {
 					logger.warn(GWConstants.LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH);
-					throw new GWException(GWErrorCode.KEY_DOES_NOT_MATCH);
+					throw new GWException(GWErrorCode.KEY_DOES_NOT_MATCH, s3Parameter);
 				}
 			} else {
 				logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_NULL);
-				throw new GWException(GWErrorCode.BAD_REQUEST);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 			}
 		}
 
@@ -117,7 +117,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 			logger.debug(GWConstants.LOG_GET_OBJECT_IF_MATCH_ETAG, s3Metadata.getETag(), ifMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
 			if (!s3Metadata.getETag().equals(ifMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				logger.error(GWConstants.LOG_GET_OBJECT_ETAG_DIFFERENT);
-				throw new GWException(GWErrorCode.PRECONDITION_FAILED);
+				throw new GWException(GWErrorCode.PRECONDITION_FAILED, s3Parameter);
 			}
 		}
 
@@ -125,25 +125,25 @@ public class GetObject extends S3Request implements S3AddResponse {
 			logger.debug(GWConstants.LOG_GET_OBJECT_IF_NONE_MATCH_ETAG, s3Metadata.getETag(), ifNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
 			if (s3Metadata.getETag().equals(ifNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				logger.error(GWConstants.LOG_GET_OBJECT_ETAG_SAME);
-				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH));
+				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH), s3Parameter);
 			}
 		}
 
 		if (!Strings.isNullOrEmpty(ifModifiedSince)) {
 			Date modifiedSince = new Date(ifModifiedSince);
 			if (s3Metadata.getLastModified().before(modifiedSince)) {
-				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince));
+				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince), s3Parameter);
 			}
 		}
 		
 		if (!Strings.isNullOrEmpty(ifUnmodifiedSince)) {
 			Date unmodifiedSince = new Date(ifUnmodifiedSince);
 			if (s3Metadata.getLastModified().after(unmodifiedSince)) {
-				throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince));
+				throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince), s3Parameter);
 			}
 		}
 
-		ResultRange resultRange = new ResultRange(range, s3Metadata);
+		ResultRange resultRange = new ResultRange(range, s3Metadata, s3Parameter);
 
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, resultRange.getContentLengthHeaders(), resultRange.getStreamSize()); 
 		
@@ -152,7 +152,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 			objectOperation.getObject(resultRange.getS3Range());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().setStatus(resultRange.getStatus());

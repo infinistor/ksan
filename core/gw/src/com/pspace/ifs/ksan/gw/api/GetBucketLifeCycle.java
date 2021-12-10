@@ -26,8 +26,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class GetBucketLifeCycle extends S3Request {
-    public GetBucketLifeCycle(S3Parameter ip) {
-		super(ip);
+    public GetBucketLifeCycle(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetBucketLifeCycle.class);
 	}
 
@@ -52,7 +52,7 @@ public class GetBucketLifeCycle extends S3Request {
 		String lifecycle = getBucketInfo().getLifecycle();
 		logger.debug(GWConstants.LOG_GET_BUCKET_LIFECYCLE, lifecycle);
 		if (Strings.isNullOrEmpty(lifecycle)) {
-			throw new GWException(GWErrorCode.NO_SUCH_LIFECYCLE_CONFIGURATION);
+			throw new GWException(GWErrorCode.NO_SUCH_LIFECYCLE_CONFIGURATION, s3Parameter);
 		}
 
 		try {
@@ -62,7 +62,7 @@ public class GetBucketLifeCycle extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

@@ -20,8 +20,8 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import org.slf4j.LoggerFactory;
 
 public class PutPublicAccessBlock extends S3Request {
-    public PutPublicAccessBlock(S3Parameter ip) {
-		super(ip);
+    public PutPublicAccessBlock(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutPublicAccessBlock.class);
 	}
 

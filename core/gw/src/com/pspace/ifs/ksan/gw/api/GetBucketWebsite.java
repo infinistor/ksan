@@ -26,8 +26,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class GetBucketWebsite extends S3Request {
-    public GetBucketWebsite(S3Parameter ip) {
-		super(ip);
+    public GetBucketWebsite(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetBucketWebsite.class);
 	}
 
@@ -52,7 +52,7 @@ public class GetBucketWebsite extends S3Request {
 		String web = getBucketInfo().getWeb();
 		logger.debug(GWConstants.LOG_GET_BUCKET_WEBSITE, web);
 		if (Strings.isNullOrEmpty(web)) {
-			throw new GWException(GWErrorCode.NO_SUCH_WEBSITE_CONFIGURATION);
+			throw new GWException(GWErrorCode.NO_SUCH_WEBSITE_CONFIGURATION, s3Parameter);
 		}
 
 		try {
@@ -60,7 +60,7 @@ public class GetBucketWebsite extends S3Request {
 			s3Parameter.getResponse().getOutputStream().write(web.getBytes());
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
