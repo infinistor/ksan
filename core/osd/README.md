@@ -15,16 +15,6 @@
 * s3gw complete multipart 요청을 받아 저장되어 있는 parts를 object로 저장
 * s3gw abort multipart 요청을 받아 저장되어 있는 parts를 삭제
 
-### ksanOsd.conf (KSAN/etc/ksanOsd.conf)
-``` shell
-pool_size=30                // thread pool size
-local_ip=192.168.13.16      // local host ip
-port=8000                   // OSD server port
-obj_dir=obj                 // object를 저장할 폴더 명
-trash_dir=trash             // object 삭제 시에 object를 옮겨 두는 폴더 명
-write_temp_dir=temp         // object 저장 시에 임시 저장 폴더 명
-```
-
 ## 실행 예시(CLI)
 ``` shell
 java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
@@ -72,16 +62,18 @@ mvn install
 ## How to Use (빌드한 경우)
 
 * OSD를 실행시키기 위하여 필요한 파일은 4개입니다.
- * KSAN/osd/target/ksanOsd.jar - 소스 빌드 후, 생성된 실행 파일	
- * KSAN/etc/ksanOsd.conf - 설정 파일
- * KSAN/etc/ksanOsdLog.xml - log파일 관련 설정
- * KSAN/etc/diskpools.xml - disk pool 관련 설정
+``` shell
+  KSAN/osd/target/ksanOsd.jar // 소스 빌드 후, 생성된 실행 파일	
+  KSAN/etc/ksanOsd.conf       // 설정 파일
+  KSAN/etc/ksanOsdLog.xml     // log파일 관련 설정
+  KSAN/etc/diskpools.xml      // disk pool 관련 설정
+```
  
 * ksanOsd.jar를 /usr/local/ksan/bin 에 복사합니다.
 * ksanOsd.conf, ksanOsdLog.xml, diskpools.xml 를 /usr/local/ksan/etc 에 복사합니다.
 
 * ksanOsd.jar의 실행 권한을 확인합니다.
- * ksanOsd.jar의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
+* ksanOsd.jar의 실행 권한이 없는 경우 실행권한을 부여합니다.
 ``` shell
 chmod +x ksanOsd.jar
 ```
