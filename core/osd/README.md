@@ -71,7 +71,7 @@ mvn install
 
 ## How to Use (빌드한 경우)
 
-* IfsMover를 실행시키기 위하여 필요한 파일은 4개입니다.
+* OSD를 실행시키기 위하여 필요한 파일은 4개입니다.
  * KSAN/osd/target/ksanOsd.jar - 소스 빌드 후, 생성된 실행 파일	
  * KSAN/etc/ksanOsd.conf - 설정 파일
  * KSAN/etc/ksanOsdLog.xml - log파일 관련 설정
