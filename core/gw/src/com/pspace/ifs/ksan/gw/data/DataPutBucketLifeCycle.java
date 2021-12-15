@@ -97,16 +97,6 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 					logger.error("rl.status : {}", rl.status);
 					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 				}
-				
-				if (rl.expiration != null && rl.expiration.date != null) {
-					DateTimeFormatter formatter = DateTimeFormatter.ofPattern(GWConstants.ISO_8601_TIME_FORMAT_MILI);
-					LocalDate date1 = LocalDate.parse(rl.expiration.date, formatter);
-					LocalDate date2 = LocalDate.now();
-					if(date2.isAfter(date1)) {
-						logger.error("rl.expiration.date : {}", date1.toString());
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
-				}
 			}
 
 			if( lcc.rules.size() > id.size() ) {

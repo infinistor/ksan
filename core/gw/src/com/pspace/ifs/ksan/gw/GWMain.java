@@ -52,10 +52,10 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet(GWConstants.SLASH)
 public class GWMain extends HttpServlet {
-	GWConfig s3Config;
-	S3RequestFactory s3RequestFactory;
+	private GWConfig s3Config;
+	private S3RequestFactory s3RequestFactory;
 	private final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-	static final Logger logger = LoggerFactory.getLogger(GWMain.class);
+	private final static Logger logger = LoggerFactory.getLogger(GWMain.class);
 
 	public GWMain() {
 		super();
