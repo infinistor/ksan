@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.util.Date;
+
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -110,7 +112,10 @@ public class DeleteObject extends S3Request {
 						try {
 							String versionNumber = String.valueOf(System.nanoTime());
 							s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
-							s3Metadata.setVersionId(versionId);
+							s3Metadata.setLastModified(new Date());
+							s3Metadata.setContentLength(0L);
+							s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
+							
 							ObjectMapper jsonMapper = new ObjectMapper();
 							String jsonmeta = "";
 							jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
@@ -153,7 +158,10 @@ public class DeleteObject extends S3Request {
 							try {
 								String versionNumber = String.valueOf(System.nanoTime());
 								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
-								s3Metadata.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL);
+								s3Metadata.setLastModified(new Date());
+								s3Metadata.setContentLength(0L);
+								s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
+								
 								ObjectMapper jsonMapper = new ObjectMapper();
 								String jsonmeta = "";
 								jsonmeta = jsonMapper.writeValueAsString(s3Metadata);

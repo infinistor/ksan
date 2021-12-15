@@ -840,10 +840,11 @@ public class MysqlDataRepository implements DataRepository{
                 subFileCount(bucketName);
             }
             
-            /*if (versionId != null){
-                if (!versionId.isEmpty())
+            if (versionId != null) {
+                if (!versionId.isEmpty()) {
                     updateVersionDelete(objId);
-            }*/
+                }
+            }
         } catch(SQLException ex){
             this.ex_message(ex);
             return -ex.getErrorCode();
