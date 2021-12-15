@@ -373,10 +373,6 @@ public class PutObject extends S3Request {
 			} else {
 				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, taggingxml, s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_FILE);
 			}
-			
-			if (result != 0) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_FAILED, bucket, object);
-			}
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), xml, versionId);
 		} catch (InvalidParameterException | ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);

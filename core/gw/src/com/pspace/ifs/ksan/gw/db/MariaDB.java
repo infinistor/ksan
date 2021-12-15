@@ -10,16 +10,12 @@
 */
 package com.pspace.ifs.ksan.gw.db;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 public class MariaDB implements GWDB {
 	protected Logger logger;
-	private final String jdbcDriver = GWConstants.JDBC_DRIVER;
 	private Set<S3User> userSet = new HashSet<S3User>();
 
 	private MariaDB() {
@@ -114,7 +109,7 @@ public class MariaDB implements GWDB {
 		PreparedStatement pstmt = null;
 		ResultSet rset = null;
         try {
-			conn = DriverManager.getConnection(jdbcDriver);
+			conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
 			pstmt = conn.prepareStatement(query);
 
             int index = 1;
@@ -160,7 +155,7 @@ public class MariaDB implements GWDB {
     }
 
 	private void execute(String query, List<Object> params, S3Parameter s3Parameter) throws GWException {
-        try (Connection conn = DriverManager.getConnection(jdbcDriver);
+        try (Connection conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
 			 PreparedStatement pstmt = conn.prepareStatement(query);
 			) {
 
@@ -295,56 +290,56 @@ public class MariaDB implements GWDB {
         if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUseName())) {
             params.add(s3Parameter.getBucket().getUseName());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // bucket name
         if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getBucket())) {
             params.add(s3Parameter.getBucket().getBucket());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // remote host
         if (!Strings.isNullOrEmpty(s3Parameter.getRemoteHost())) {
             params.add(s3Parameter.getRemoteHost());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // request user
         if (s3Parameter.getUser() != null && !Strings.isNullOrEmpty(s3Parameter.getUser().getUserName())) {
             params.add(s3Parameter.getUser().getUserName());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // request id
         if (!Strings.isNullOrEmpty(s3Parameter.getRequestID())) {
             params.add(String.valueOf(s3Parameter.getRequestID()));
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // operation
         if (!Strings.isNullOrEmpty(s3Parameter.getOperation())) {
             params.add(s3Parameter.getOperation());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // object name
         if (!Strings.isNullOrEmpty(s3Parameter.getObjectName())) {
             params.add(s3Parameter.getObjectName());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // request uri
         if (!Strings.isNullOrEmpty(s3Parameter.getRequestURI())) {
 			params.add(s3Parameter.getRequestURI());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // reponse status code
@@ -354,18 +349,9 @@ public class MariaDB implements GWDB {
         if (!Strings.isNullOrEmpty(s3Parameter.getErrorCode())) {
 			params.add(s3Parameter.getErrorCode());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
-		if (s3Parameter.getResponse() != null) {
-			for (String header : s3Parameter.getResponse().getHeaderNames()) {
-				s3Parameter.addResponseSize(header.length());
-				String value = s3Parameter.getResponse().getHeader(header);
-				if (!Strings.isNullOrEmpty(value)) {
-					s3Parameter.addResponseSize(value.length());
-				}
-			}
-		}
         // response length
         params.add(s3Parameter.getResponseSize());
 
@@ -386,39 +372,39 @@ public class MariaDB implements GWDB {
         if (!Strings.isNullOrEmpty(s3Parameter.getReferer())) {
 			params.add(s3Parameter.getReferer());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // User Agent
         if (!Strings.isNullOrEmpty(s3Parameter.getUserAgent())) {
 			params.add(s3Parameter.getUserAgent());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // Version id
         if (!Strings.isNullOrEmpty(s3Parameter.getVersionId())) {
 			params.add(s3Parameter.getVersionId());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // Host ID
         if (!Strings.isNullOrEmpty(s3Parameter.getHostID())) {
 			params.add(s3Parameter.getHostID());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // Sign Version
         if (!Strings.isNullOrEmpty(s3Parameter.getSignVersion())) {
 			params.add(s3Parameter.getSignVersion());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // ssl_group
-        params.add("-");
+        params.add(GWConstants.DASH);
 
         // sign type
         if (!Strings.isNullOrEmpty(s3Parameter.getAuthorization())) {
@@ -426,18 +412,18 @@ public class MariaDB implements GWDB {
         } else if (!Strings.isNullOrEmpty(s3Parameter.getxAmzAlgorithm())) {
 			params.add(GWConstants.QUERY_STRING);
 		} else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // endpoint
         if (!Strings.isNullOrEmpty(s3Parameter.getHostName())) {
 			params.add(s3Parameter.getHostName());
         } else {
-            params.add("-");
+            params.add(GWConstants.DASH);
         }
 
         // tls version
-        params.add("-");
+        params.add(GWConstants.DASH);
 
 		execute(query, params, s3Parameter);
     }

@@ -24,6 +24,18 @@ public final class GWException extends Exception {
     private final Map<String, String> elements;
     private S3Parameter s3Parameter = null;
 
+    public GWException(GWErrorCode error) {
+        this(error, error.getMessage(), (Throwable) null,
+                ImmutableMap.<String, String>of());
+    }
+
+    public GWException(GWErrorCode error, String message, Throwable cause,
+                Map<String, String> elements) {
+        super(requireNonNull(message), cause);
+        this.error = requireNonNull(error);
+        this.elements = ImmutableMap.copyOf(elements);
+    }
+    
     public GWException(GWErrorCode error, Throwable cause, S3Parameter s3Parameter) {
         this(error, error.getMessage(), cause,
                 ImmutableMap.<String, String>of(), s3Parameter);

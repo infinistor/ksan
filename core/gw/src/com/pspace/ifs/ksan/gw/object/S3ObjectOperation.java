@@ -402,7 +402,7 @@ public class S3ObjectOperation {
         File file = new File(makeObjPath(path, objId, versionId));
         File trashFile = new File(makeTrashPath(path, objId, versionId));
 
-        updateBucketUsed(objMeta.getBucket(), file.length() * -1);
+        updateBucketUsed(objMeta.getBucket(), file.length() * GWConfig.getInstance().replicationCount() * -1);
         retryRenameTo(file, trashFile);
     }
 
@@ -414,7 +414,6 @@ public class S3ObjectOperation {
         FileOutputStream fosReplica = null;
         OSDClient clientPrimary = null;
         OSDClient clientReplica = null;
-        long oldFileSize = 0L;
 
         try {
             MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
@@ -426,7 +425,6 @@ public class S3ObjectOperation {
             if (GWConfig.getInstance().replicationCount() > 1) {
                 if (GWConfig.getInstance().localIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     tmpFilePrimary = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
-                    oldFileSize = tmpFilePrimary.length();
                     com.google.common.io.Files.createParentDirs(tmpFilePrimary);
                     fosPrimary = new FileOutputStream(tmpFilePrimary, false);
                 } else {
@@ -436,7 +434,6 @@ public class S3ObjectOperation {
 
                 if (GWConfig.getInstance().localIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                     tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
-                    oldFileSize += tmpFileReplica.length();
                     com.google.common.io.Files.createParentDirs(tmpFileReplica);
                     fosReplica = new FileOutputStream(tmpFileReplica, false);
                 } else {
@@ -479,7 +476,6 @@ public class S3ObjectOperation {
                 }
             } else {
                 File tmpFile = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber()));
-                oldFileSize = tmpFile.length();
                 com.google.common.io.Files.createParentDirs(tmpFile);
                 try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
                     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, bufferSize)) > 0) {

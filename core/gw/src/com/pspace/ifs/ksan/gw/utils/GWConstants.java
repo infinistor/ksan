@@ -90,13 +90,13 @@ public final class GWConstants {
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	
 	public static final String MARIADB = "MariaDB";
-	public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:cp";
+	public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:gwcp";
 	public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
-	public static final String CONNECTION_POOL = "cp";
+	public static final String CONNECTION_POOL = "gwcp";
 	public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
 	public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
-	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8";
+	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true";
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final String OBJ_DIR = "obj";
@@ -373,6 +373,7 @@ public final class GWConstants {
 	public static final String DELETE_RESULT_KEY = "Key";
 	public static final String DELETE_RESULT_DELETE_MARKER_VERSION_ID = "DeleteMarkerVersionId";
 	public static final String REPLACE = "REPLACE";
+	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
 
 	public static final String JDBC_MYSQL = "jdbc:mysql://";
 	public static final String USE_SSL_FALSE = "?useSSL=false";
@@ -443,6 +444,20 @@ public final class GWConstants {
 	public static final String ACCESS_CONTROL_POLICY_DISPLAY_NAME = "<DisplayName/>";
 	public static final String ACCESS_CONTROL_POLICY_EMAIL_ADDRESS = "<EmailAddress/>";
 	public static final String ACCESS_CONTROL_POLICY_URI = "<URI/>";
+
+	public static final String LIFECYCLE_XML_ID = "<ID/>";
+	public static final String LIFECYCLE_XML_DATE = "<Date/>";
+	public static final String LIFECYCLE_XML_EXPIRED_OBJECT_DELETE_MARKER = "<ExpiredObjectDeleteMarker/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_VERSION_EXPIRATION = "<NoncurrentVersionExpiration/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_VERSION_TRANSITION = "<NoncurrentVersionTransition/>";
+	public static final String LIFECYCLE_XML_ABORT_INCOMPLETE_MULTIPART_UPLOAD = "<AbortIncompleteMultipartUpload/>";
+	public static final String LIFECYCLE_XML_PREFIX = "<Prefix/>";
+	public static final String LIFECYCLE_XML_TRANSITION = "<Transition/>";
+	public static final String LIFECYCLE_XML_FILITER = "<Filter/>";
+	public static final String LIFECYCLE_XML_DAYS = "<Days/>";
+	public static final String LIFECYCLE_XML_STORAGE_CLASS = "<StorageClass/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_DAYS = "<NoncurrentDays/>";
+	public static final String LIFECYCLE_XML_DAYS_AFTER_INITIATION = "<DaysAfterInitiation/>";
 
 	public static final String POLICY_STATUS = "PolicyStatus";
 	public static final String POLICY_IS_PUBLIC = "IsPublic";
@@ -654,8 +669,6 @@ public final class GWConstants {
 	public static final String BACKSLASH_D_PLUS = "\\d+";
 
 	public static final String RANGE_CHECK_FORMET = "bytes %d-%d/%d";
-
-	
 
 	public static final String LOG_ACCESS_DENIED_PUBLIC_ACLS = "access denied : block public acls";
 	public static final String LOG_ACCESS_CANNED_ACL = ", cannedAcl:{}";
@@ -924,6 +937,7 @@ public final class GWConstants {
 
 	// PutBucketLifeCycle
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifeCycle ...";
+	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
 	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutBucketObjectLock ...";

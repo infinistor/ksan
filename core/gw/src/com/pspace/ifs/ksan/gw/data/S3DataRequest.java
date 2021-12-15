@@ -31,6 +31,15 @@ public abstract class S3DataRequest {
 	public S3DataRequest(S3Parameter s3Parameter) throws GWException {
 		this.s3Parameter = s3Parameter;
 		checkContentLength();
+		if (s3Parameter.getResponse() != null) {
+			for (String header : s3Parameter.getResponse().getHeaderNames()) {
+				s3Parameter.addResponseSize(header.length());
+				String value = s3Parameter.getResponse().getHeader(header);
+				if (!Strings.isNullOrEmpty(value)) {
+					s3Parameter.addResponseSize(value.length());
+				}
+			}
+		}
 	}
 
 	private void checkContentLength() throws GWException {
