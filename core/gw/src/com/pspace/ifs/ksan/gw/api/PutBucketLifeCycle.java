@@ -49,6 +49,7 @@ public class PutBucketLifeCycle extends S3Request {
 		dataPutBucketLifeCycle.extract();
 
 		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();
+		logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_XML, lifecycleXml);
 		updateBucketLifecycle(bucket, lifecycleXml);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
