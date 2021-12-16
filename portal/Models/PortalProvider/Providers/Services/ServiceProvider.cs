@@ -894,7 +894,6 @@ namespace PortalProvider.Providers.Services
 		public async Task<ResponseData> Start(string id)
 		{
 			ResponseData result = new ResponseData();
-			
 			try
 			{
 				// 아이디가 유효하지 않은 경우
@@ -902,14 +901,20 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				Service exist = await m_dbContext.Services.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				Service exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == guidId);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
+				// 해당 서비스와 연결된 서버 아이디를 가져온다.
 				var Server = Get(id);
+				
+				// 서비스와 연결된 서버가 존재하지 않을 경우 에러 반환
+				if(Server.Result.Data.Vlans.Count == 0)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.UL_COMMON__NO_SERVER);
+
+				//서비스 아이디
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 시작 요청
@@ -925,7 +930,6 @@ namespace PortalProvider.Providers.Services
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
@@ -954,7 +958,14 @@ namespace PortalProvider.Providers.Services
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
+				// 해당 서비스와 연결된 서버 아이디를 가져온다.
 				var Server = Get(id);
+				
+				// 서비스와 연결된 서버가 존재하지 않을 경우 에러 반환
+				if(Server.Result.Data.Vlans.Count == 0)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.UL_COMMON__NO_SERVER);
+
+				//서비스 아이디
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 중지 요청
@@ -999,7 +1010,14 @@ namespace PortalProvider.Providers.Services
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
+				// 해당 서비스와 연결된 서버 아이디를 가져온다.
 				var Server = Get(id);
+				
+				// 서비스와 연결된 서버가 존재하지 않을 경우 에러 반환
+				if(Server.Result.Data.Vlans.Count == 0)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.UL_COMMON__NO_SERVER);
+
+				//서비스 아이디
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 재시작 요청
@@ -1051,7 +1069,14 @@ namespace PortalProvider.Providers.Services
 				foreach (ServiceNetworkInterfaceVlan serviceVlan in exist.Vlans)
 					ips.Add(serviceVlan.NetworkInterfaceVlan.IpAddress);
 				
+				// 해당 서비스와 연결된 서버 아이디를 가져온다.
 				var Server = Get(id);
+				
+				// 서비스와 연결된 서버가 존재하지 않을 경우 에러 반환
+				if(Server.Result.Data.Vlans.Count == 0)
+					return new ResponseData<T>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.UL_COMMON__NO_SERVER);
+				
+				//서비스 아이디
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 타입에 따라 라우팅 키 설정
@@ -1135,7 +1160,14 @@ namespace PortalProvider.Providers.Services
 					foreach (ServiceNetworkInterfaceVlan serviceVlan in exist.Vlans)
 						ips.Add(serviceVlan.NetworkInterfaceVlan.IpAddress);
 
+					// 해당 서비스와 연결된 서버 아이디를 가져온다.
 					var Server = Get(id);
+
+					// 서비스와 연결된 서버가 존재하지 않을 경우 에러 반환
+					if(Server.Result.Data.Vlans.Count == 0)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.UL_COMMON__NO_SERVER);
+					
+					//서비스 아이디
 					var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 					// 타입에 따라 라우팅 키 설정
