@@ -180,7 +180,7 @@ public class DBManager {
         ){
             int index = 1;
             for(Object Param : Params) stmt.setObject(index++, Param);
-            logger.debug(stmt.getQueryString());
+            logger.debug(stmt.toString());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.error("Query Error : {}", Query, e);
@@ -196,7 +196,7 @@ public class DBManager {
             LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
             ResultSet rs = stmt.executeQuery();
         ){
-            logger.debug(stmt.getQueryString());
+            logger.debug(stmt.toString());
 
             List<HashMap<String, Object>> rmap = null;
 
@@ -233,7 +233,7 @@ public class DBManager {
             LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
         ){
             stmt.execute();
-            logger.debug(stmt.getQueryString());
+            logger.debug(stmt.toString());
             return true;
         } catch (SQLException e) {
             logger.error("Query Error : {}", Query, e);
