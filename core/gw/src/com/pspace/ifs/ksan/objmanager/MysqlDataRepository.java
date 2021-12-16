@@ -141,7 +141,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
             pstUpdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
             pstUpdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
-            pstUpdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified desc limit 1");
+            pstUpdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified asc limit 1");
             pstSelectUsedDisks = con.prepareStatement("SELECT pdiskid as diskid FROM MDSDBTable UNION DISTINCT SELECT rdiskid FROM MDSDBTable;");
             pstUpdateMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE bucket=? AND objKey=? AND versionid=?");
             pstUpdateTagging = con.prepareStatement("UPDATE MDSDBTable SET tag=?, meta=? WHERE bucket=? AND objKey=? AND versionid=?");
