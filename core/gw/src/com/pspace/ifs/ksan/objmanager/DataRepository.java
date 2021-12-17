@@ -46,7 +46,7 @@ public interface DataRepository {
     public List<Bucket> getBucketList();
     public int updateBucketVersioning(Bucket bt);
     
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException;
+    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String diskid) throws SQLException;
     public int updateMultipartUpload(String bucket, String uploadid, int partNo, boolean iscompleted) throws SQLException;
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException;
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException;
@@ -57,6 +57,7 @@ public interface DataRepository {
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException;
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException;
     public boolean isUploadId(String uploadid) throws SQLException;
+    public Part getPartWithNo(String uploadId, String partNo) throws SQLException;
     
     public void updateBucketAcl(Bucket bt) throws SQLException;
     public void updateBucketCors(Bucket bt) throws SQLException;

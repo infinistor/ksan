@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
 	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
+	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
     public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
     public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
@@ -744,6 +745,7 @@ public final class GWConstants {
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_MD5 = "MD5 : {}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_FAILED = "object insert failed(CompleteMultipartUpload). bucket={}, object={}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_INFO = "pub object : {}/{}, size {}, etag {}, acl {}, versionId {}";
+	public static final String LOG_COMPLETE_MULTIPART_VERSION_ID = "versionid : {}";
 
 	// CopyObject
 	public static final String LOG_COPY_OBJECT_START = "CopyObject ...";
@@ -1075,9 +1077,10 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
 	public static final String LOG_OSDCLIENT_WRITE = "write {} bytes";
 	public static final String LOG_OSDCLIENT_PUT_HEADER = "put header : {}";
-	public static final String LOG_OSDCLIENT_WRITE_HEADER = "write header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_HEADER = "delete header : {}";
 	public static final String LOG_OSDCLIENT_COPY_HEADER = "copy header : {}";
 	public static final String LOG_OSDCLIENT_PART_HEADER = "part header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_PART_HEADER = "delete part header : {}";
 	public static final String LOG_OSDCLIENT_PART_COPY_HEADER = "partCopy header : {}";
 	public static final String LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER = "completeMultipart header : {}";
 	public static final String LOG_OSDCLIENT_ABORT_MULTIPART_HEADER = "abortMultipart header : {}";
@@ -1102,7 +1105,7 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_DELETE = "delete - success : bucket={}, objKey={}, versionId={}";
 	public static final String LOG_S3OBJECT_OPERATION_OSD_ERROR = "Can't get osd data...";
 	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_DELETE = "failed file delete {}";
-	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME = "failed file rename {}";
+	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME = "failed file rename s : {}, d : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PATH = "obj path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TEMP_PATH = "temp path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TRASH_PATH = "trash path : {}";
@@ -1110,6 +1113,8 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP = "objMeta primary ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP = "objMeta replica ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
+	public static final String LOG_S3OBJECT_OPERATION_DISK_IP_NULL = "diskid : {} -> ip is null. check disk pool";
+	public static final String LOG_S3OBJECT_OPERATION_DISK_PATH_NULL = "diskid : {} -> path is null. check disk pool";
 
 	// S3Range
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";

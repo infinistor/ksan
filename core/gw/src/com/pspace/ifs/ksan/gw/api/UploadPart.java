@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,10 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -125,10 +128,24 @@ public class UploadPart extends S3Request {
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
+		String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		String path = GWDiskConfig.getInstance().getLocalPath();
+
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, null);
-		S3Object s3Object = objectOperation.uploadPart(length);
+		Part part = null;
+		try {
+			part = objMultipart.getPartWithNo(uploadId, partNumberStr);
+			if (part != null) {
+				objectOperation.deletePart(part.getDiskID());
+			}
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
 		
-		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize());
+		S3Object s3Object = objectOperation.uploadPart(path, length);
+		
+		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), diskID);
 		objMultipart.finishSingleUpload(uploadId, partNumber);
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());

@@ -23,6 +23,9 @@ import java.util.Properties;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GWConfig {
 	private Properties properties;
 	private URI endpoint;
@@ -49,6 +52,8 @@ public class GWConfig {
 	private String dbUser;
 	private String dbPass;
 	private int dbPoolSize;
+
+	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
 	public static GWConfig getInstance() {
         return LazyHolder.INSTANCE;

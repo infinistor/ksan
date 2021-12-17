@@ -36,6 +36,7 @@ import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -205,9 +206,11 @@ public class UploadPartCopy extends S3Request {
 		}
 
 		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+		String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		String path = GWDiskConfig.getInstance().getLocalPath();
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
-		S3Object s3Object = objectOperation.uploadPartCopy(srcMeta, s3Range);
+		S3Object s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range);
 		
 		ObjMultipart objMultipart = null;
 		try {
@@ -220,7 +223,7 @@ public class UploadPartCopy extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize());
+		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), diskID);
 		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
 		
 		s3Parameter.setFileSize(s3Object.getFileSize());

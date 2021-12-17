@@ -170,17 +170,31 @@ public class CompleteMultipartUpload extends S3Request {
 		
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
-
 		String versionId = null;
-		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-			versionId = String.valueOf(System.nanoTime());
-			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
-		} else {
-			versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+		Metadata objMeta = createLocal(bucket, object);
+		try {
+			// check exist object
+			objMeta = open(bucket, object);
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+			}
+		} catch (GWException e) {
+			logger.info(e.getMessage());
+			objMeta = createLocal(bucket, object);
+
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+			}
 		}
 
-		// get Paths
-		Metadata objMeta = createLocal(bucket, object);
+		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+			logger.info(GWConstants.LOG_COMPLETE_MULTIPART_VERSION_ID, versionId);
+			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
+		}
 
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();

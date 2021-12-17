@@ -56,7 +56,7 @@ public class GWMain extends HttpServlet {
 	private S3RequestFactory s3RequestFactory;
 	private final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 	private final static Logger logger = LoggerFactory.getLogger(GWMain.class);
-
+	
 	public GWMain() {
 		super();
 	}

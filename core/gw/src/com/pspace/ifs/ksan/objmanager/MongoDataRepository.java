@@ -343,7 +343,7 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
+    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String diskid) throws SQLException{
         MongoCollection<Document> multip;
         String collName;
         Document doc;
@@ -635,5 +635,11 @@ public class MongoDataRepository implements DataRepository{
     public void updateBucketUsed(String bucketName, long size) {
         // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public Part getPartWithNo(String uploadId, String partNo) throws SQLException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -152,7 +152,7 @@ public class CopyObject extends S3Request {
 
 		Metadata srcMeta = null;
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-			if (!Strings.isNullOrEmpty(srcVersionId)) {
+			if (!Strings.isNullOrEmpty(srcVersionId) && !GWConstants.VERSIONING_DISABLE_TAIL.equals(srcVersionId)) {
 				srcMeta = open(srcBucket, srcObjectName, srcVersionId);
 			} else {
 				srcMeta = open(srcBucket, srcObjectName);
