@@ -129,6 +129,7 @@ docker create -i -t \
 --net ksannet \
 --ip 172.10.0.11 \
 -v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/logs:/app/logs \
 -v /home/ksan/share:/home/share \
 -v /home/ksan/custom:/app/wwwroot/custom \
 -v /home/ksan/session:/home/session \
@@ -143,10 +144,10 @@ docker create -i -t \
 --net ksannet \
 --ip 172.10.0.21 \
 -v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/logs:/app/logs \
 -v /home/ksan/share:/home/share \
 -v /home/ksan/custom:/app/wwwroot/custom \
 -v /home/ksan/data:/app/wwwroot/data \
--v /home/ksan/logs:/app/logs \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
 --name ksanapi \
