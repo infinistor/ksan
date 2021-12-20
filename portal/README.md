@@ -40,6 +40,35 @@ systemctl start docker
 cd setup/aspnetcore_for_api
 docker build -t pspace/aspnetcore_for_api:latest .
 ```
+##### dotnet 구성이 안될 경우
+``` shell
+# docker 버전 확인
+docker -v
+Docker version 1.13.1, build 0be3e21/1.13.1
+# 버전이 1.13.1일 경우 버전 업데이트
+yum update
+# 기존 버전 삭제
+yum remove -y docker-common
+# Docker Update에 필요한 Tool 설치
+yum install -y yum-utils device-mapper-persistent-data lvm2
+# Docker 공식 Repository 추가
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+  # peer's certificate issuer is not recognized에러 발생시
+  yum install ca-certificates
+  update-ca-trust force-enable
+  # 다시 Docker 공식 Repository 추가
+  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 설치가능한 Docker version 확인
+yum list docker-ce --showduplicates | sort -r
+# 최신 Docker version 설치
+yum install -y docker-ce
+# Docker를 부팅시 실행되도록 설정
+systemctl enable docker
+# Docker 시작
+systemctl start docker
+```
 
 ### 빌드
 - 모든 스크립트는 git에 다운 받은 폴더가 작업 시작지점입니다.
