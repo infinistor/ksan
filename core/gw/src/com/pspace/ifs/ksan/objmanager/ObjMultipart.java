@@ -91,7 +91,7 @@ public class ObjMultipart{
                 return null;
             
             try {
-                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0L);
+                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0L, "");
                 return id;
             } catch (SQLException ex) {
                 Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,9 +99,9 @@ public class ObjMultipart{
         }
     }
 
-    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size){
+    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size, String diskid){
         try {
-            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size);
+            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size, diskid);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -203,6 +203,10 @@ public class ObjMultipart{
 
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
         return dbm.getParts(uploadId);
+    }
+
+    public Part getPartWithNo(String uploadId, String partNo) throws SQLException {
+        return dbm.getPartWithNo(uploadId, partNo);
     }
 
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {

@@ -38,6 +38,8 @@ public final class OSDConstants {
     public static final String PART_COPY = "PC";
     public static final String COMPLETE_MULTIPART = "CM";
     public static final String ABORT_MULTIPART = "AB";
+    public static final String GET_PART = "GP";
+    public static final String DELETE_PART = "DP";
 
     public static final String FILE = "FILE";
 
@@ -60,6 +62,7 @@ public final class OSDConstants {
     public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_PARTNOS = 4;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
+    public static final int PART_NO_INDEX = 3;
     public static final int PARTNOS_INDEX = 3;
     public static final int PART_COPY_OFFSET_INDEX = 7;
     public static final int PART_COPY_LENGTH_INDEX = 8;
@@ -109,10 +112,20 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_DELETE_END = "delete end ...";
     public static final String LOG_OSD_SERVER_DELETE_SUCCESS_INFO = "delete - success : path={}, objId={}, versionId={}";
 
+    public static final String LOG_OSD_SERVER_DELETE_PART_START = "delete part start ...";
+    public static final String LOG_OSD_SERVER_DELETE_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_DELETE_PART_END = "delete part end ...";
+    public static final String LOG_OSD_SERVER_DELETE_PART_SUCCESS_INFO = "delete - success : path={}, objId={}, partNo={}";
+
     public static final String LOG_OSD_SERVER_COPY_START = "copy start ...";
     public static final String LOG_OSD_SERVER_COPY_INFO = "srcPath : {}, srcObjId : {}, srcVersionId : {}, destPath : {}, destObjId : {}, destVersionId : {}";
     public static final String LOG_OSD_SERVER_COPY_RELAY_OSD = "relay osd {}, put header : {}";
     public static final String LOG_OSD_SERVER_COPY_SUCCESS_INFO = "copy - success : srcPath={}, srcObjId={}, srcVersionId={}, destPath={}, destObjId={}, destVersionId={}";
+
+    public static final String LOG_OSD_SERVER_GET_PART_START = "getPart start ...";
+    public static final String LOG_OSD_SERVER_GET_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_GET_PART_END = "getPart end ... read total : {}";
+    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "get - success : path={}, objId={}, partNo={}";
 
     public static final String LOG_OSD_SERVER_PART_START = "part start ...";
     public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}";

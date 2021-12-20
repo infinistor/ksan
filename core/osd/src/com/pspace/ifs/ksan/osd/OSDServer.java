@@ -182,9 +182,16 @@ public class OSDServer {
                     case OSDConstants.COPY:
                         copy(headers);
                         break;
+
+                    case OSDConstants.GET_PART:
+                        getPart(headers);
     
                     case OSDConstants.PART:
                         part(headers);
+                        break;
+
+                    case OSDConstants.DELETE_PART:
+                        deletePart(headers);
                         break;
     
                     case OSDConstants.PART_COPY:
@@ -332,6 +339,20 @@ public class OSDServer {
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_END);
             logger.info(OSDConstants.LOG_OSD_SERVER_DELETE_SUCCESS_INFO, path, objId, versionId);
         }
+
+        private void deletePart(String[] headers) throws IOException {
+            logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_PART_START);
+            String path = headers[OSDConstants.PATH_INDEX];
+            String objId = headers[OSDConstants.OBJID_INDEX];
+            String partNo = headers[OSDConstants.PARTNO_INDEX];
+            logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_PART_INFO, path, objId, partNo);
+
+            File file = new File(makeTempPath(path, objId, partNo));
+            file.delete();
+
+            logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_PART_END);
+            logger.info(OSDConstants.LOG_OSD_SERVER_DELETE_PART_SUCCESS_INFO, path, objId, partNo);
+        }
     
         private void copy(String[] headers) throws IOException, NoSuchAlgorithmException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_START);
@@ -395,6 +416,45 @@ public class OSDServer {
             logger.info(OSDConstants.LOG_OSD_SERVER_COPY_SUCCESS_INFO, srcPath, srcObjId, srcVersionId, destPath, destObjId, destVersionId);
         }
     
+        private void getPart(String[] headers) throws IOException {
+            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_START);
+            String path = headers[OSDConstants.PATH_INDEX];
+            String objId = headers[OSDConstants.OBJID_INDEX];
+            String partNo = headers[OSDConstants.PART_NO_INDEX];
+
+            long readTotal = 0L;
+            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_INFO, path, objId, partNo);
+    
+            byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+            File file = new File(makeTempPath(path, objId, partNo));
+            try (FileInputStream fis = new FileInputStream(file)) {
+                long remainLength = 0L;
+                int readLength = 0;
+                int readBytes;
+    
+                remainLength = file.length();
+                while (remainLength > 0) {
+                    readBytes = 0;
+                    if (remainLength < OSDConstants.MAXBUFSIZE) {
+                        readBytes = (int)remainLength;
+                    } else {
+                        readBytes = OSDConstants.MAXBUFSIZE;
+                    }
+                    readLength = fis.read(buffer, 0, readBytes);
+                    readTotal += readLength;
+                    socket.getOutputStream().write(buffer, 0, readLength);
+                    remainLength -= readLength;
+                }
+            }
+            socket.getOutputStream().flush();
+            if (!file.delete()) {
+                logger.error(OSDConstants.LOG_OSD_SERVER_FAILED_FILE_DELETE, file.getName());
+            }
+            
+            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_END, readTotal);
+            logger.info(OSDConstants.LOG_OSD_SERVER_GET_PART_SUCCESS_INFO, path, objId, partNo);
+        }
+
         private void part(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_START);
             String path = headers[OSDConstants.PATH_INDEX];
@@ -455,14 +515,40 @@ public class OSDServer {
             OSDData data = null;
 
             try (FileInputStream fis = new FileInputStream(srcFile)) {
-                if (ip.equals(destIP)) {
-                    File tmpFile = new File(makeTempPath(destPath, destObjId, destPartNo));
-                    com.google.common.io.Files.createParentDirs(tmpFile);
-                    try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                        data = new OSDData();
-                        if (Strings.isNullOrEmpty(copySourceRange)) {
-                            remainLength = srcFile.length();
-                            data.setFileSize(remainLength);
+                File tmpFile = new File(makeTempPath(destPath, destObjId, destPartNo));
+                com.google.common.io.Files.createParentDirs(tmpFile);
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                    data = new OSDData();
+                    if (Strings.isNullOrEmpty(copySourceRange)) {
+                        remainLength = srcFile.length();
+                        data.setFileSize(remainLength);
+                        while (remainLength > 0) {
+                            readBytes = 0;
+                            if (remainLength < OSDConstants.MAXBUFSIZE) {
+                                readBytes = (int)remainLength;
+                            } else {
+                                readBytes = OSDConstants.MAXBUFSIZE;
+                            }
+                            readLength = fis.read(buffer, 0, readBytes);
+                            fos.write(buffer, 0, readLength);
+                            md5er.update(buffer, 0, readLength);
+                            remainLength -= readLength;
+                        }
+                        fos.flush();
+                    } else {
+                        String[] ranges = copySourceRange.split(OSDConstants.SLASH);
+                        long totalLength = 0L;
+                        for (String range : ranges) {
+                            String[] rangeParts = range.split(OSDConstants.COMMA);
+                            long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                            long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                            logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+    
+                            if (offset > 0) {
+                                fis.skip(offset);
+                            }
+                            remainLength = length;
+                            totalLength += length;
                             while (remainLength > 0) {
                                 readBytes = 0;
                                 if (remainLength < OSDConstants.MAXBUFSIZE) {
@@ -476,89 +562,118 @@ public class OSDServer {
                                 remainLength -= readLength;
                             }
                             fos.flush();
-                        } else {
-                            String[] ranges = copySourceRange.split(OSDConstants.SLASH);
-                            long totalLength = 0L;
-                            for (String range : ranges) {
-                                String[] rangeParts = range.split(OSDConstants.COMMA);
-                                long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
-                                long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
-                                logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
-        
-                                if (offset > 0) {
-                                    fis.skip(offset);
-                                }
-                                remainLength = length;
-                                totalLength += length;
-                                while (remainLength > 0) {
-                                    readBytes = 0;
-                                    if (remainLength < OSDConstants.MAXBUFSIZE) {
-                                        readBytes = (int)remainLength;
-                                    } else {
-                                        readBytes = OSDConstants.MAXBUFSIZE;
-                                    }
-                                    readLength = fis.read(buffer, 0, readBytes);
-                                    fos.write(buffer, 0, readLength);
-                                    md5er.update(buffer, 0, readLength);
-                                    remainLength -= readLength;
-                                }
-                                fos.flush();
-        
-                                data.setFileSize(totalLength);
-                            }
-                        }
-                    }
-                    byte[] digest = md5er.digest();
-                    eTag = base16().lowerCase().encode(digest);
-                } else {
-                    try (Socket destSocket = new Socket(destIP, port)) {
-                        String header = OSDConstants.PART + OSDConstants.DELIMITER + destPath + OSDConstants.DELIMITER + destObjId + OSDConstants.DELIMITER + destPartNo + OSDConstants.DELIMITER + String.valueOf(srcFile.length());
-                        logger.debug(OSDConstants.LOG_OSD_SERVER_PART_COPY_RELAY_OSD, destIP, header);
-                        sendHeader(destSocket, header);
     
-                        if (Strings.isNullOrEmpty(copySourceRange)) {
-                            while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
-                                destSocket.getOutputStream().write(buffer, 0, readLength);
-                                md5er.update(buffer, 0, readLength);
-                            }
-                            destSocket.getOutputStream().flush();
-                        } else {
-                            String[] ranges = copySourceRange.split(OSDConstants.SLASH);
-                            for (String range : ranges) {
-                                String[] rangeParts = range.split(OSDConstants.COMMA);
-                                long offset = Longs.tryParse(rangeParts[0]);
-                                long length = Longs.tryParse(rangeParts[1]);
-                                logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
-        
-                                if (offset > 0) {
-                                    fis.skip(offset);
-                                }
-                                remainLength = length;
-                                while (remainLength > 0) {
-                                    readBytes = 0;
-                                    if (remainLength < OSDConstants.MAXBUFSIZE) {
-                                        readBytes = (int)remainLength;
-                                    } else {
-                                        readBytes = OSDConstants.MAXBUFSIZE;
-                                    }
-                                    readLength = fis.read(buffer, 0, readBytes);
-                                    destSocket.getOutputStream().write(buffer, 0, readLength);
-                                    md5er.update(buffer, 0, readLength);
-                                    remainLength -= readLength;
-                                }
-                                destSocket.getOutputStream().flush();
-                            }
-                        }
-                        
-                        byte[] digest = md5er.digest();
-                        eTag = base16().lowerCase().encode(digest);
-    
-                        data = receiveData(destSocket);
-                        if (!eTag.equals(data.getETag())) {
-                            logger.error(OSDConstants.LOG_OSD_SERVER_DIFFERENCE_ETAG, eTag, data.getETag());
+                            data.setFileSize(totalLength);
                         }
                     }
                 }
+                byte[] digest = md5er.digest();
+                eTag = base16().lowerCase().encode(digest);
+
+                // if (ip.equals(destIP)) {
+                //     File tmpFile = new File(makeTempPath(destPath, destObjId, destPartNo));
+                //     com.google.common.io.Files.createParentDirs(tmpFile);
+                //     try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                //         data = new OSDData();
+                //         if (Strings.isNullOrEmpty(copySourceRange)) {
+                //             remainLength = srcFile.length();
+                //             data.setFileSize(remainLength);
+                //             while (remainLength > 0) {
+                //                 readBytes = 0;
+                //                 if (remainLength < OSDConstants.MAXBUFSIZE) {
+                //                     readBytes = (int)remainLength;
+                //                 } else {
+                //                     readBytes = OSDConstants.MAXBUFSIZE;
+                //                 }
+                //                 readLength = fis.read(buffer, 0, readBytes);
+                //                 fos.write(buffer, 0, readLength);
+                //                 md5er.update(buffer, 0, readLength);
+                //                 remainLength -= readLength;
+                //             }
+                //             fos.flush();
+                //         } else {
+                //             String[] ranges = copySourceRange.split(OSDConstants.SLASH);
+                //             long totalLength = 0L;
+                //             for (String range : ranges) {
+                //                 String[] rangeParts = range.split(OSDConstants.COMMA);
+                //                 long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                //                 long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                //                 logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+        
+                //                 if (offset > 0) {
+                //                     fis.skip(offset);
+                //                 }
+                //                 remainLength = length;
+                //                 totalLength += length;
+                //                 while (remainLength > 0) {
+                //                     readBytes = 0;
+                //                     if (remainLength < OSDConstants.MAXBUFSIZE) {
+                //                         readBytes = (int)remainLength;
+                //                     } else {
+                //                         readBytes = OSDConstants.MAXBUFSIZE;
+                //                     }
+                //                     readLength = fis.read(buffer, 0, readBytes);
+                //                     fos.write(buffer, 0, readLength);
+                //                     md5er.update(buffer, 0, readLength);
+                //                     remainLength -= readLength;
+                //                 }
+                //                 fos.flush();
+        
+                //                 data.setFileSize(totalLength);
+                //             }
+                //         }
+                //     }
+                //     byte[] digest = md5er.digest();
+                //     eTag = base16().lowerCase().encode(digest);
+                // } else {
+                //     try (Socket destSocket = new Socket(destIP, port)) {
+                //         String header = OSDConstants.PART + OSDConstants.DELIMITER + destPath + OSDConstants.DELIMITER + destObjId + OSDConstants.DELIMITER + destPartNo + OSDConstants.DELIMITER + String.valueOf(srcFile.length());
+                //         logger.debug(OSDConstants.LOG_OSD_SERVER_PART_COPY_RELAY_OSD, destIP, header);
+                //         sendHeader(destSocket, header);
+    
+                //         if (Strings.isNullOrEmpty(copySourceRange)) {
+                //             while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
+                //                 destSocket.getOutputStream().write(buffer, 0, readLength);
+                //                 md5er.update(buffer, 0, readLength);
+                //             }
+                //             destSocket.getOutputStream().flush();
+                //         } else {
+                //             String[] ranges = copySourceRange.split(OSDConstants.SLASH);
+                //             for (String range : ranges) {
+                //                 String[] rangeParts = range.split(OSDConstants.COMMA);
+                //                 long offset = Longs.tryParse(rangeParts[0]);
+                //                 long length = Longs.tryParse(rangeParts[1]);
+                //                 logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+        
+                //                 if (offset > 0) {
+                //                     fis.skip(offset);
+                //                 }
+                //                 remainLength = length;
+                //                 while (remainLength > 0) {
+                //                     readBytes = 0;
+                //                     if (remainLength < OSDConstants.MAXBUFSIZE) {
+                //                         readBytes = (int)remainLength;
+                //                     } else {
+                //                         readBytes = OSDConstants.MAXBUFSIZE;
+                //                     }
+                //                     readLength = fis.read(buffer, 0, readBytes);
+                //                     destSocket.getOutputStream().write(buffer, 0, readLength);
+                //                     md5er.update(buffer, 0, readLength);
+                //                     remainLength -= readLength;
+                //                 }
+                //                 destSocket.getOutputStream().flush();
+                //             }
+                //         }
+                        
+                //         byte[] digest = md5er.digest();
+                //         eTag = base16().lowerCase().encode(digest);
+    
+                //         data = receiveData(destSocket);
+                //         if (!eTag.equals(data.getETag())) {
+                //             logger.error(OSDConstants.LOG_OSD_SERVER_DIFFERENCE_ETAG, eTag, data.getETag());
+                //         }
+                //     }
+                // }
             }
 
             sendData(data.getETag(), data.getFileSize());
