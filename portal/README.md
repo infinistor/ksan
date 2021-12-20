@@ -37,7 +37,7 @@ systemctl start docker
 
 #### dotnet 구성
 ``` shell
-cd etc/aspnetcore_for_api
+cd setup/aspnetcore_for_api
 docker build -t pspace/aspnetcore_for_api:latest .
 ```
 
@@ -47,7 +47,7 @@ docker build -t pspace/aspnetcore_for_api:latest .
 
 #### gateway 빌드
 ``` shell
-cd etc/gateway
+cd setup/gateway
 docker build -t pspace/ksangateway:latest .
 docker save -o ~/Downloads/ksangateway.tar pspace/ksangateway
 ```
@@ -167,9 +167,9 @@ pspace/ksangateway:latest
 
 #### 파일 복사 및 권한 수정
 ``` shell
-cp /home/ksan/share/ksanapi.service /etc/systemd/system/ksanapi.service
-cp /home/ksan/share/ksanportal.service /etc/systemd/system/ksanportal.service
-cp /home/ksan/share/ksangateway.service /etc/systemd/system/ksangateway.service
+cp /home/ksan/share/ksanapi.service /setup/systemd/system/ksanapi.service
+cp /home/ksan/share/ksanportal.service /setup/systemd/system/ksanportal.service
+cp /home/ksan/share/ksangateway.service /setup/systemd/system/ksangateway.service
 
 chmod 777 /etc/systemd/system/ksanapi.service
 chmod 777 /etc/systemd/system/ksanportal.service
