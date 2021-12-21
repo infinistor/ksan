@@ -206,7 +206,17 @@ chmod 777 /etc/systemd/system/ksangateway.service
 ```
 
 #### Api 설정
-docker cp /root/appsettings.json ksanapi:/app
+- `./PortalSvr/appsettings sample.json`에 설정 예시가 존재합니다.
+- 예시에 맞게 설정한 뒤 파일명을 `appsettings.json`으로 변경해야합니다.
+- 이후 아래의 명령어로 적용 가능합니다.
+  ``` shell
+  docker cp /root/appsettings.json ksanapi:/app
+  ```
+- 기존 설정을 변경 하고 싶을 경우
+  ``` shell
+  docker cp /root/appsettings.json ksanapi:/app
+  systemctl restart ksanapi
+  ```
 
 #### Portal 서비스 등록 및 실행
 ``` shell
