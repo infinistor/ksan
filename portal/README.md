@@ -196,9 +196,9 @@ pspace/ksangateway:latest
 
 #### 파일 복사 및 권한 수정
 ``` shell
-cp /home/ksan/share/ksanapi.service /setup/systemd/system/ksanapi.service
-cp /home/ksan/share/ksanportal.service /setup/systemd/system/ksanportal.service
-cp /home/ksan/share/ksangateway.service /setup/systemd/system/ksangateway.service
+cp ./setup/ksanapi.service /etc/systemd/system/ksanapi.service
+cp ./setup/ksanportal.service /etc/systemd/system/ksanportal.service
+cp ./setup/ksangateway.service /etc/systemd/system/ksangateway.service
 
 chmod 777 /etc/systemd/system/ksanapi.service
 chmod 777 /etc/systemd/system/ksanportal.service
@@ -218,6 +218,11 @@ systemctl enable ksangateway.service
 # 서비스 실행
 systemctl start ksanapi
 systemctl start ksanportal
+systemctl start ksangateway
+
+# ksangateway는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료
+# httpd를 종료하고 ksangateway 재실행
+systemctl stop httpd
 systemctl start ksangateway
 ```
 #### swigger 접속 주소
