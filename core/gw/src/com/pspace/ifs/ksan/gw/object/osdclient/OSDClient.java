@@ -118,8 +118,14 @@ public class OSDClient {
 		return readTotal;
 	}
 
-	public void putInit(String path, String objId, String versionId, long length) throws IOException {
-		String header = OSDConstants.PUT + GWConstants.COLON + path + GWConstants.COLON + objId + GWConstants.COLON + versionId + GWConstants.COLON + String.valueOf(length);
+	public void putInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID) throws IOException {
+		String header = OSDConstants.PUT 
+						+ GWConstants.COLON + path 
+						+ GWConstants.COLON + objId 
+						+ GWConstants.COLON + versionId 
+						+ GWConstants.COLON + String.valueOf(length) 
+						+ GWConstants.COLON + replication 
+						+ GWConstants.COLON + replicaDiskID;
 		logger.debug(GWConstants.LOG_OSDCLIENT_PUT_HEADER, header);
 		sendHeader(header);
 	}
@@ -138,8 +144,16 @@ public class OSDClient {
 		sendHeader(header);
 	}
 
-	public void copy(String srcPath, String srcObjId, String srcVersionId, String destPath, String destObjId, String destVersionId) throws IOException {
-		String header = OSDConstants.COPY + GWConstants.COLON + srcPath + GWConstants.COLON + srcObjId + GWConstants.COLON + srcVersionId + GWConstants.COLON + destPath + GWConstants.COLON + destObjId + GWConstants.COLON + destVersionId;
+	public void copy(String srcPath, String srcObjId, String srcVersionId, String destPath, String destObjId, String destVersionId, String replication, String replicaDiskID) throws IOException {
+		String header = OSDConstants.COPY 
+						+ GWConstants.COLON + srcPath 
+						+ GWConstants.COLON + srcObjId 
+						+ GWConstants.COLON + srcVersionId 
+						+ GWConstants.COLON + destPath 
+						+ GWConstants.COLON + destObjId 
+						+ GWConstants.COLON + destVersionId
+						+ GWConstants.COLON + replication
+						+ GWConstants.COLON + replicaDiskID;
 		logger.debug(GWConstants.LOG_OSDCLIENT_COPY_HEADER, header);
 		sendHeader(header);
 	}

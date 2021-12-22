@@ -103,6 +103,7 @@ public final class GWConstants {
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
 	public static final String TRASH_DIR = "trash";
+	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
 
 	public static final String METHOD_PUT = "PUT";
@@ -150,7 +151,7 @@ public final class GWConstants {
 	public static final String SEMICOLON = ";";
 	public static final String SPACE = " ";
 	public static final String EQUAL = "=";
-	public static final String LOW_LINE = "_";
+	public static final String UNDERSCORE = "_";
 	public static final String DASH = "-";
 	public static final String PLUS = "+";
 	public static final String URL_ESCAPER_FORMAT = "%20";
@@ -1096,6 +1097,11 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
+	public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 	public static final String LOG_S3OBJECT_OPERATION_FILE_SIZE = "get obeject file size : {}";
 	public static final String LOG_S3OBJECT_OPERATION_RANGE = "offset : {}, length : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJECT_PRIMARY_INFO = "obj primary : {}";
@@ -1109,12 +1115,21 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PATH = "obj path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TEMP_PATH = "temp path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TRASH_PATH = "trash path : {}";
+	public static final String LOG_S3OBJECT_OPERATION_EC_PATH = "ec path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_LOCAL_IP = "local ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP = "objMeta primary ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP = "objMeta replica ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_IP_NULL = "diskid : {} -> ip is null. check disk pool";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_PATH_NULL = "diskid : {} -> path is null. check disk pool";
+	public static final String ZUNFEC = "zunfec -o ";
+	public static final String ZFEC_0 = ".0_4.fec";
+	public static final String ZFEC_1 = ".1_4.fec";
+	public static final String ZFEC_2 = ".2_4.fec";
+	public static final String ZFEC_3 = ".3_4.fec";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND = "command : {}";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE = "DECODE EC : {}";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE = "DECODE exit : {}";
 
 	// S3Range
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";

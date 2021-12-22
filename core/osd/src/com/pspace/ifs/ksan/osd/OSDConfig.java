@@ -24,9 +24,9 @@ public class OSDConfig {
     private String port;
     private String ip;
     private String replicaPort;
-    private String objDir;
-    private String trashDir;
-    private String writeTempDir;
+    private String ecScheduleMinutes;
+    private String ecApplyMinutes;
+    private String ecFileSize;
     
     public OSDConfig(String path) {
         properties = new Properties();
@@ -43,9 +43,9 @@ public class OSDConfig {
         poolSize = properties.getProperty(OSDConstants.POOL_SIZE);
         ip = properties.getProperty(OSDConstants.OSD_LOCAL_IP);
         port = properties.getProperty(OSDConstants.OSD_PORT);
-        objDir = properties.getProperty(OSDConstants.OBJ_DIR);
-        trashDir = properties.getProperty(OSDConstants.TRASH_DIR);
-        writeTempDir = properties.getProperty(OSDConstants.WRITE_TEMP_DIR);
+        ecScheduleMinutes = properties.getProperty(OSDConstants.EC_SCHEDULE_MINUTES);
+        ecApplyMinutes = properties.getProperty(OSDConstants.EC_APPLY_MINUTES);
+        ecFileSize = properties.getProperty(OSDConstants.EC_FILE_SIZE);
     }
 
     public String getPoolSize() {
@@ -64,15 +64,15 @@ public class OSDConfig {
         return replicaPort;
     }
 
-    public String getObjDir() {
-        return objDir;
+    public String getECScheduleMinutes() {
+        return ecScheduleMinutes;
     }
 
-    public String getTrashDir() {
-        return trashDir;
+    public String getECApplyMinutes() {
+        return ecApplyMinutes;
     }
 
-    public String getWriteTempDir() {
-        return writeTempDir;
+    public String getECFileSize() {
+        return ecFileSize;
     }
 }
