@@ -28,11 +28,11 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class PutBucketObjectLock extends S3Request {
+public class PutObjectLockConfiguration extends S3Request {
 
-    public PutBucketObjectLock(S3Parameter s3Parameter) {
+    public PutObjectLockConfiguration(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(PutBucketObjectLock.class);
+        logger = LoggerFactory.getLogger(PutObjectLockConfiguration.class);
     }
 
     @Override

@@ -181,7 +181,7 @@ public class S3RequestFactory {
 						return new GetBucketCors(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIFECYCLE))) {
 						s3Parameter.setOperation(OP_GET_LIFECYCLE);
-						return new GetBucketLifeCycle(s3Parameter);
+						return new GetBucketLifecycleConfiguration(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PUBLIC_ACCESS_BLOCK))) {
 						s3Parameter.setOperation(OP_GET_PUBLICACCESSBLOCK);
 						return new GetPublicAccessBlock(s3Parameter);
@@ -205,7 +205,7 @@ public class S3RequestFactory {
 						return new GetBucketVersioning(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_OBJECT_LOCK))) {
 						s3Parameter.setOperation(OP_GET_OBJECTLOCK);
-						return new GetBucketObjectLock(s3Parameter);
+						return new GetObjectLockConfiguration(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_GET_REPLICATION);
 						return new GetBucketReplication(s3Parameter);
@@ -285,7 +285,7 @@ public class S3RequestFactory {
 						return new PutBucketCors(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIFECYCLE))) {
 						s3Parameter.setOperation(OP_PUT_LIFECYCLE);
-						return new PutBucketLifeCycle(s3Parameter);
+						return new PutBucketLifecycleConfiguration(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PUBLIC_ACCESS_BLOCK))) {
 						s3Parameter.setOperation(OP_PUT_PUBLICACCESSBLOCK);
 						return new PutPublicAccessBlock(s3Parameter);
@@ -303,7 +303,7 @@ public class S3RequestFactory {
 						return new PutBucketVersioning(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_OBJECT_LOCK))) {
 						s3Parameter.setOperation(OP_PUT_OBJECTLOCK);
-						return new PutBucketObjectLock(s3Parameter);
+						return new PutObjectLockConfiguration(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_PUT_REPLICATION);
 						return new PutBucketReplication(s3Parameter);

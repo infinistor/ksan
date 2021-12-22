@@ -10,31 +10,27 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.gw.data.DataPutBucketLifeCycle;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketLifeCycle extends S3Request {
-    public GetBucketLifeCycle(S3Parameter s3Parameter) {
+public class PutBucketLifecycleConfiguration extends S3Request {
+    public PutBucketLifecycleConfiguration(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(GetBucketLifeCycle.class);
+		logger = LoggerFactory.getLogger(PutBucketLifecycleConfiguration.class);
 	}
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_GET_BUCKET_LIFECYCLE_START);
-		
+        logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
@@ -47,24 +43,16 @@ public class GetBucketLifeCycle extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ_ACP);
+		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
 
-		String lifecycle = getBucketInfo().getLifecycle();
-		logger.debug(GWConstants.LOG_GET_BUCKET_LIFECYCLE, lifecycle);
-		if (Strings.isNullOrEmpty(lifecycle)) {
-			throw new GWException(GWErrorCode.NO_SUCH_LIFECYCLE_CONFIGURATION, s3Parameter);
-		}
+		DataPutBucketLifeCycle dataPutBucketLifeCycle = new DataPutBucketLifeCycle(s3Parameter);
+		dataPutBucketLifeCycle.extract();
 
-		try {
-			if (!Strings.isNullOrEmpty(lifecycle)) {
-				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(lifecycle.getBytes());
-			}
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		
+		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();
+		logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_XML, lifecycleXml);
+		updateBucketLifecycle(bucket, lifecycleXml);
+
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
+
 }
