@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""
+* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+* the GNU General Public License as published by the Free Software Foundation, either version 
+* 3 of the License.  See LICENSE for details
+*
+* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
+* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
+* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
+"""
+
+
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from ksan.common.daemon import Daemon
+from ksan.network.network_mq_handle import *
+from ksan.disk.disk_mq_handle import UpdateDiskStat
+from ksan.server.server_mq_handle import *
+from ksan.service.service_mq_handle import *
+from ksan.mqmanage.mq import Mq
+from ksan.common.init import GetConf
+
+from optparse import OptionParser
+import threading
+
+# Check Network Info
+
+
+# Check Disk Info
+
+def MqHandler(conf):
+    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', 'guest', 'guest',
+            ["*.services.*", "*.services.*.*", "*.services.*.*", "*.servers.*", "*.servers.*.*"], ExchangeName, 'IfsMon-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId)
+    mq.Receiver()
+
+
+def Start(conf, Foreground=False):
+    ret, conf = GetConf(MonServicedConfPath)
+    if ret is False:
+        print('Init conf first')
+        sys.exit(-1)
+    else:
+        if conf.mgs.ServerId == '':
+            print('Local server is not registered. Excute ksanEdge register first')
+            sys.exit(-1)
+
+    #MqHandler(conf)
+    if Foreground is False:
+        D = Daemon(KsanMonPidFile, 'ksanMon')
+        D.start()
+
+    threads = list()
+    th = threading.Thread(target=UpdateDiskStat, args=(conf,))
+    th.start()
+    threads.append(th)
+    th = threading.Thread(target=UpdateNetworkStat, args=(conf,))
+    th.start()
+    threads.append(th)
+    th = threading.Thread(target=MonUpdateServerUsage, args=(conf,))
+    th.start()
+    threads.append(th)
+    th = threading.Thread(target=ServiceMonitoring, args=(conf,))
+    th.start()
+    threads.append(th)
+
+    for th in threads:
+        th.join()
+
+def Stop():
+    D = Daemon(KsanMonPidFile, 'ksanMon')
+    D.stop()
+
+
+
+class MyOptionParser(OptionParser):
+    def print_help(self):
+        Usage = """
+        Usage: ksanMon {start|stop|satatus}
+                start                                                                  : Start ksanMon 
+                stop                                                                   : Stop ksanMon 
+        [options]
+                -h, --help                                                             : show this help message and exit
+"""
+        print(Usage)
+
+
+if __name__ == '__main__':
+    usage = "Usage: %prog {start|stop|status}"
+    parser = MyOptionParser(usage=usage)
+    parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
+    parser.add_option('-f', "--Foreground", dest="Foreground", action='store_true', default=False, help='Running as Foreground')
+
+    options, args = parser.parse_args()
+
+    if len(args) != 1:
+        parser.print_help()
+        sys.exit(-1)
+
+    logger = None
+    if options.debug is True:
+        logger = Logging(loglevel='debug')
+        logger = logger.create()
+
+    ret, conf = GetConf(MonServicedConfPath)
+    #if ret is False and args[0] != 'init':
+    #    print('Check if configuration is done')
+    #    sys.exit(-1)
+
+    if args[0] == 'start':
+        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        if Ret is True:
+            print('ksanMon is already running')
+        else:
+            Start(conf, Foreground=options.Foreground)
+
+    elif args[0] == 'stop':
+        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        if Ret is False:
+            print('ksanMon is not running')
+        else:
+            Stop()
+
+    elif args[0] == 'status':
+        print('KsanMon ... ',end=' ')
+        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        if Ret is True:
+            print('Ok')
+        else:
+            print('Not Ok')
+    else:
+        parser.print_help()
