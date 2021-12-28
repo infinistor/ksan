@@ -19,7 +19,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListBuckets;
+import com.pspace.ifs.ksan.gw.data.DataListObjectV2;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
@@ -33,17 +33,17 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class ListObject extends S3Request {
+public class ListObjectsV2 extends S3Request {
 
-	public ListObject(S3Parameter s3Parameter) {
+	public ListObjectsV2(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(ListObject.class);
+		logger = LoggerFactory.getLogger(ListObjectsV2.class);
 	}
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_LIST_OBJECT_START);
-
+		logger.info(GWConstants.LOG_LIST_OBJECT_V2_START);
+		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
@@ -55,32 +55,37 @@ public class ListObject extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
+		
 		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
-		DataListBuckets dataListBuckets = new DataListBuckets(s3Parameter);
-		dataListBuckets.extract();
+		DataListObjectV2 dataListObjectV2 = new DataListObjectV2(s3Parameter);
+		dataListObjectV2.extract();
 
+		// read header
 		S3ObjectList s3ObjectList = new S3ObjectList();
-		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {
-			if (Integer.valueOf(dataListBuckets.getMaxkeys()) < 0) {
+		
+		if (!Strings.isNullOrEmpty(dataListObjectV2.getMaxKeys())) {
+			if (Integer.valueOf(dataListObjectV2.getMaxKeys()) < 0) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
-			s3ObjectList.setMaxKeys(dataListBuckets.getMaxkeys());
+			s3ObjectList.setMaxKeys(dataListObjectV2.getMaxKeys());
 		} else {
 			s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 		}
+		
+		s3ObjectList.setContinuationToken(dataListObjectV2.getContinuationToken());
+		s3ObjectList.setDelimiter(dataListObjectV2.getDelimiter());
+		s3ObjectList.setEncodingType(dataListObjectV2.getEncodingType());
+		s3ObjectList.setPrefix(dataListObjectV2.getPrefix());
+		s3ObjectList.setStartAfter(dataListObjectV2.getStartAfter());
+		s3ObjectList.setFetchOwner(dataListObjectV2.getFetchOwner());
 
-		s3ObjectList.setDelimiter(dataListBuckets.getDelimiter());
-		s3ObjectList.setEncodingType(dataListBuckets.getEncodingType());
-		s3ObjectList.setMarker(dataListBuckets.getMarker());
-		s3ObjectList.setPrefix(dataListBuckets.getPrefix());
-				
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
-		ObjectListParameter objectListParameter = listObject(bucket, s3ObjectList);
-
+        ObjectListParameter objectListParameter = listObjectV2(bucket, s3ObjectList);
+		
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
 			XMLStreamWriter xmlStreamWriter = xmlOutputFactory.createXMLStreamWriter(writer);
@@ -88,41 +93,50 @@ public class ListObject extends S3Request {
 			xmlStreamWriter.writeStartElement(GWConstants.LIST_BUCKET_RESULT);
 			xmlStreamWriter.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 			
-			writeSimpleElement(xmlStreamWriter, GWConstants.XML_NAME, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), bucket));
-			if (s3ObjectList.getPrefix() == null) {
+			writeSimpleElement(xmlStreamWriter, GWConstants.XML_NAME, bucket);
+
+			String encodingType = s3ObjectList.getEncodingType();
+			String prefix = s3ObjectList.getPrefix();
+			if (prefix == null) {
 				xmlStreamWriter.writeEmptyElement(GWConstants.XML_PREFIX);
 			} else {
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_PREFIX, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), s3ObjectList.getPrefix()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_PREFIX, GWUtils.encodeObjectName(encodingType, prefix));
 			}
 
 			writeSimpleElement(xmlStreamWriter, GWConstants.XML_MAX_KEYS, String.valueOf(s3ObjectList.getMaxKeys()));
 
-			if (s3ObjectList.getMarker() == null) {
-				xmlStreamWriter.writeEmptyElement(GWConstants.XML_MARKER);
+			if (s3ObjectList.getStartAfter() == null) {
+				xmlStreamWriter.writeEmptyElement(GWConstants.XML_START_AFTER);
 			} else {
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_MARKER, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), s3ObjectList.getMarker()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_START_AFTER, GWUtils.encodeObjectName(encodingType, s3ObjectList.getStartAfter()));
+			}
+			
+			if (s3ObjectList.getContinuationToken() == null) {
+				xmlStreamWriter.writeEmptyElement(GWConstants.XML_CONTINUEATION_TOKEN);
+			} else {
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_CONTINUEATION_TOKEN, GWUtils.encodeObjectName(encodingType, s3ObjectList.getContinuationToken()));
 			}
 
+			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(objectListParameter.getObjects().size()));
+			
 			if (s3ObjectList.getDelimiter() != null) {
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_DELIMITER, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), s3ObjectList.getDelimiter()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_DELIMITER, GWUtils.encodeObjectName(encodingType, s3ObjectList.getDelimiter()));
 			}
 
-			if (s3ObjectList.getEncodingType() != null && s3ObjectList.getEncodingType().equals(GWConstants.URL)) {
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_ENCODING_TYPE, s3ObjectList.getEncodingType());
+			if (encodingType != null && encodingType.equals(GWConstants.URL)) {
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_ENCODING_TYPE, encodingType);
 			}
 
 			if (objectListParameter.isTruncated()) {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_IS_TRUNCATED, GWConstants.XML_TRUE);
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_NEXT_MARKER, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), objectListParameter.getNextMarker()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_NEXT_CONTINUATION_TOKEN, GWUtils.encodeObjectName(encodingType, objectListParameter.getNextMarker()));
 			} else {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_IS_TRUNCATED, GWConstants.XML_FALSE);
 			}
 			
 			for (S3Metadata s3Metadata : objectListParameter.getObjects()) {
 				xmlStreamWriter.writeStartElement(GWConstants.XML_CONTENTS);
-				logger.debug(s3Metadata.getName());
-
-				writeSimpleElement(xmlStreamWriter, GWConstants.KEY, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), s3Metadata.getName()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.KEY, GWUtils.encodeObjectName(encodingType, s3Metadata.getName()));
 				if (s3Metadata.getLastModified() != null) {
 					writeSimpleElement(xmlStreamWriter, GWConstants.LAST_MODIFIED, formatDate(s3Metadata.getLastModified()));
 				}
@@ -130,25 +144,32 @@ public class ListObject extends S3Request {
 				if (s3Metadata.getETag() != null) {
 					writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, GWUtils.maybeQuoteETag(s3Metadata.getETag()));
 				}
+
+				if( !Strings.isNullOrEmpty(s3ObjectList.getFetchOwner()) && s3ObjectList.getFetchOwner().equals(GWConstants.XML_TRUE)) {
+					writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
+				}
 				
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getSize().toString());
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getContentLength().toString());
 				writeSimpleElement(xmlStreamWriter, GWConstants.STORAGE_CLASS, s3Metadata.getTier());
-				writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
+				
 				xmlStreamWriter.writeEndElement();
 			}
 			
-			for (Entry<String, String> prefix : objectListParameter.getCommonPrefixes().entrySet()) {
+			for (Entry<String, String> entry : objectListParameter.getCommonPrefixes().entrySet()) {
 				xmlStreamWriter.writeStartElement(GWConstants.XML_COMMON_PREFIXES);
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_PREFIX, GWUtils.encodeObjectName(s3ObjectList.getEncodingType(), prefix.getValue()));
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_PREFIX, GWUtils.encodeObjectName(encodingType, entry.getValue()));
 				xmlStreamWriter.writeEndElement();
-				logger.debug(GWConstants.LOG_LIST_OBJECT_PREFIX_ENCODING, s3ObjectList.getEncodingType(), prefix.getValue());
 			}
-			
+		
 			xmlStreamWriter.writeEndElement();
 			xmlStreamWriter.flush();
-		} catch (IOException | XMLStreamException e) {
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
+
 }
