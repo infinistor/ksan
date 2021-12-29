@@ -216,13 +216,13 @@ public class S3RequestFactory {
 
 					if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIST_TYPE) != null) {
 						s3Parameter.setOperation(OP_GET_LISTOBJECTSV2);
-						return new ListObjectV2(s3Parameter);
+						return new ListObjectsV2(s3Parameter);
 					} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_VERSIONS) != null) {
 						s3Parameter.setOperation(OP_GET_LISTVERSIONS);
 						return new ListObjectVersions(s3Parameter);
 					} else {
 						s3Parameter.setOperation(OP_GET_LISTOBJECTS);
-						return new ListObject(s3Parameter);
+						return new ListObjects(s3Parameter);
 					}
 				}
 
