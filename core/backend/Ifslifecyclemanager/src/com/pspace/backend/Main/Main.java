@@ -56,12 +56,17 @@ public class Main {
         var BucketList = DB.GetBucketList();
         if(BucketList.size() > 0)
         {
+            logger.info("Lifecycle Filter Start!");
             var Filter = new LifecycleFilter(DB);
+
             if (Filter.Filtering())
             {
+                logger.info("Lifecycle Sender Start!");
                 var Sender = new LifecycleSender(DB, Config.S3SourceURL, Config.AccessKey, Config.SecretKey);
                 Sender.Start();
             }
+            else
+                logger.info("Lifecycle filtering Empty!");
         }
 
         logger.info("Lifecycle Manager End!");

@@ -304,8 +304,6 @@ public class LifecycleFilter {
         // 필터가 존재할 경우
         if (Rule.filter != null || !Rule.filter.prefix.isBlank())
         {
-            //Prefix가 일치하지 않을 경우 스킵
-            logger.debug("{}, {}, {}, {}", Object.ObjectName, Object.VersionId, Rule.filter.prefix, Object.ObjectName.startsWith(Rule.filter.prefix));
             //필터가 일치하지 않을 경우 스킵
             if(!Object.ObjectName.startsWith(Rule.filter.prefix)) return true;
         }
@@ -346,7 +344,8 @@ public class LifecycleFilter {
         var NowTime = LocalDateTime.now();
         
         // 만료시간이 지났을 경우
-        if (ExpiredTime.isAfter(NowTime)) return true;
+        logger.debug("long. {} / {} : {}", NowTime, ExpiredTime, ExpiredTime.isAfter(NowTime));
+        if (NowTime.isAfter(ExpiredTime)) return true;
         return false;
     }
 
@@ -361,8 +360,7 @@ public class LifecycleFilter {
         var NowTime = new Date();
 
         // 만료시간이 지났을 경우
-        logger.debug("{} / {}", NowTime, ExpiredTime);
-        logger.debug("Now : {} / Expired : {}", NowTime.getTime(), ExpiredTime.getTime());
+        logger.debug("Date. {} / {} : {}", NowTime, ExpiredTime, NowTime.getTime() > ExpiredTime.getTime());
         if (NowTime.getTime() > ExpiredTime.getTime()) return true;
         return false;
     }

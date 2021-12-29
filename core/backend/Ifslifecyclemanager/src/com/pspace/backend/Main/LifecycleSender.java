@@ -67,13 +67,6 @@ public class LifecycleSender {
     }
 
     /*************************************** Utility *******************************************/
-    private void Delay(int Time)
-    {
-        try{
-            Thread.sleep(Time);
-        }catch(Exception e){
-        }
-    }
 
     protected AmazonS3 CreateClient(String S3URL, String AccessKey, String SecretKey)
     {
