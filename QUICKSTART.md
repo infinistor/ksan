@@ -14,7 +14,7 @@
  * java 11 이상
 
 ## 2. Portal 설치(MGS 노드)
-##### docker 설치 및 설정
+### docker 설치 및 설정
 ``` bash
 yum update             # has missing requires of  설치 업데이트 실패 하는 경우 yum --skip-broken update 로 진행 
                             # Error: Protected multilib versions 에러 발생 시 해당 package를 yum -y upgrade package* 로 업그레이드 해준다.
@@ -24,7 +24,7 @@ systemctl start docker
 sudo docker run hello-world // 컨테이너에 테스트 이미지를 실행하여 설치가 잘 되었는지 확인
 systemctl stop firewalld // docker 에서 udp 사용이 가능하도록 방화벽 stop
 ```
-##### dotnet 구성
+### dotnet 구성
 ```bash
 # [dotnet 설치]
 # git package의 portal 디렉토리(ksan-master/portal/) 에서 아래 수행
@@ -59,7 +59,7 @@ cd setup/aspnetcore_for_api
 docker build -t pspace/aspnetcore_for_api:latest . # dotnet 설치
 ```
 
-##### portal 용 mariadb 설치
+### portal 용 mariadb 설치
 ```bash
 # [mariadb 이미지 다운로드] 
 docker rmi mariadb # 기존 이미지 삭제
@@ -79,7 +79,7 @@ docker container run -d -p 3306:3306 \
 mysql -uroot -pqwe123 -h 192.168.0.100
 ```
 
-##### 빌드
+### 빌드
  * 모든 이미지는 /opt/ksan_build 에 저장 
 
 ```bash
@@ -114,7 +114,7 @@ sudo ln -s /home/docker /var/lib/docker
 sudo systemctl start docker
 ```
 
-##### portal 이미지 로드 및 내부 ip 생성
+### portal 이미지 로드 및 내부 ip 생성
 ```bash
 cd /opt/ksan_build
 docker load -i ksangateway.tar
@@ -124,14 +124,14 @@ docker load -i ksanportal.tar
 docker network create --subnet=172.10.0.0/24 ksannet
 ```
 
-##### 공유용 폴더 생성
+### 공유용 폴더 생성
 ```bash
 mkdir /home/ksan
 mkdir /home/ksan/ksan
 mkdir /home/ksan/session
 ```
 
-##### 컨테이너 생성(실행 위치는 상관 없음)
+### 컨테이너 생성(실행 위치는 상관 없음)
 ```bash
 # [web 컨테이터 생성]
 docker create -i -t \
@@ -191,7 +191,7 @@ systemctl start ksanportal
 systemctl start ksangateway
 ```
 
-##### rabbitmq 설치
+### rabbitmq 설치
 ```bash
 # [ rabbitmq 설치 및 실행 ]
 docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 --restart=unless-stopped rabbitmq:3-management
@@ -208,7 +208,7 @@ password:guest
  * MGS, OSD1,OSD2 각 노드에 동일하게 유틸리티 관련 모듈을 설치한다. 
  * ksanOsd, ksanGw 빌드 및 설치 전에 수행되어야 함. 
 
-##### python3.6 설치 및 가상환경 구성
+### python3.6 설치 및 가상환경 구성
 ```bash
 # [epel 설치]
 yum install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -232,7 +232,7 @@ python3.6 -m venv /root/ksan_system // 가상환경 생성
 
 source /root/ksan_system/bin/activate  // 가상환경 활성화
 ```
-##### python dependency 및 common 모듈 설치
+### python dependency 및 common 모듈 설치
 ```bash 
 cd ksan-master/core/common
 pip  install -r requirements.txt
@@ -242,7 +242,7 @@ python setup.py install
 ```
 
 ## 4. 시스템 관리 유틸리티 설치(MGS 노드)
-##### 유틸리티 실행 환경 설정 및 시스템 관리 유틸리티 설치
+### 유틸리티 실행 환경 설정 및 시스템 관리 유틸리티 설치
 ```bash
 # 시스템 관리 유틸리티 설치
 cd ksan-master/core/mgs/util
@@ -252,7 +252,7 @@ python setup.py install
 ## 5. ksanOsd & ksanGw 빌드 및 설치(OSD1, OSD2 노드)  
  * ksanOsd 빌드 후 ksanGw 빌드 수행해야 함.
 
-##### java 버전 업데이트 및 maven 설치
+### java 버전 업데이트 및 maven 설치
 ```bash
 # [java 버전이 낮을 경우 버전 업데이트]
 yum -y install java-11-openjdk.x86_64  java-11-openjdk-devel.x86_64 
@@ -288,7 +288,7 @@ source /etc/profile
 yum -y install maven
 ```
 
-##### 빌드 및 설치
+### 빌드 및 설치
 
 ```bash
 #[ksanOsd 빌드]
@@ -300,8 +300,8 @@ cd ksan-master/core/gw
 sh install.sh
 ```
 
-##### object DB 설치(OSD1 노드)
-##### docker 설치 및 설정
+### object DB 설치(OSD1 노드)
+#### docker 설치 및 설정
 ``` bash
 # [docker 설치 및 실행]
 yum update             # has missing requires of  설치 업데이트 실패 하는 경우 yum --skip-broken update 로 진행 
@@ -445,7 +445,7 @@ mysql -uroot -pqwe123 -h 192.168.0.100
  * 시스템 정보 설정 및 ksanEdge & ksanMon 데몬은 모든 노드에서 동일하게 수행 되어야 함.
  * 각 노드들이 시스템에 등록된다.
 
-##### 시스템 정보 설정 및 ksanEdge & ksanMon 데몬 시작
+### 시스템 정보 설정 및 ksanEdge & ksanMon 데몬 시작
 ```bash
 # 설정 초기화
 /usr/local/ksan/bin/ksanEdge init
@@ -490,7 +490,7 @@ IfsPortal = 5443
 ## 6. 디스크 설정(MGS 노드)
  * 디스크 관리를 위한 유틸리티
  
-##### 추가
+### 추가
  * /usr/local/ksan/bin/ksanDisk add -S [Server Id] -p [Disk 마운트 패스]
  * 서버 Id는 ksanServer list 로확인
  * osd1, osd2 에 디스크 마운트 패스는 각각 /DISK1 로 설정 되어 있는 경우 결과는 아래와 같다.
@@ -512,7 +512,7 @@ Success
 -----------------------------------------------------------------------------------
 ```
 
-##### 시작
+### 시작
  * 디스크가 사용 가능하도록 활성화 한다.
  * /usr/local/ksan/bin/ksanDisk start -I [Disk Id]
  
@@ -523,7 +523,7 @@ Success
 /usr/local/ksan/bin/ksanDisk start -I 985b3890-63fd-43e9-8e24-8a8c80038ca6 # osd2
 ```
 
-##### 정지
+### 정지
  * DISK 사용을 중지해야 할 경우 아래와 같이 수행 한다.
  * /usr/local/ksan/bin/ksanDisk stop -I [Disk Id]
  
@@ -535,21 +535,21 @@ Success
 ## 7. 디스크 풀 설정(MGS 노드)
  * 디스크 풀을 관리하는 유틸리티
  
-##### 생성
+### 생성
  * /usr/local/ksan/bin/ksanDiskpool add -n [Disk Pool Name]
 ```bash
 /usr/local/ksan/bin/ksanDiskpool add -n diskpool1
 Success 
 ```
 
-##### 삭제
+### 삭제
 * /usr/local/ksan/bin/ksanDiskpool remove -I [Disk Pool Id]
 ```bash
 /usr/local/ksan/bin/ksanDiskpool remove -I f1bec273-311c-4b1a-81d1-9b9abe17f182
 Success
 ```
 
-##### 조회
+### 조회
 ```bash
 /usr/local/ksan/bin/ksanDiskpool list
 ==================================================================================
@@ -574,7 +574,7 @@ Success
                      -----------------------------------------------------------------------------
 ```
 
-##### 디스크 풀 에 디스크 추가
+### 디스크 풀 에 디스크 추가
  * 설정 된 디스크 풀에 신규 디스크를 추가 또는 삭제 한다.
  * /usr/local/ksan/bin/ksanDiskpool addDisk -I [Disk Pool Id] -D [Disk Id]
  
@@ -586,7 +586,7 @@ Success
 Success
 ```
 
-##### 디스크 풀 에서 디스크 삭제
+### 디스크 풀 에서 디스크 삭제
  * /usr/local/ksan/bin/ksanDiskpool removeDisk -I [Disk Pool Id] -D [Disk Id]
 
 ```bash
@@ -594,7 +594,7 @@ Success
 Success
 ```
 
-##### 조회
+### 조회
  * 디스크 정보를 확인 한다.
  ```bash
  /usr/local/ksan/bin/ksanDisk list -L
@@ -608,7 +608,7 @@ Success
  ```
 
 ## 8. OSD & GW 서비스 설정
-##### ksanOsd 서비스 추가(OSD1, OSD2)
+### ksanOsd 서비스 추가(OSD1, OSD2)
  * ksanOsd 서비스 설정을 초기화 하고 시작 한다.
  
 ```bash
@@ -627,7 +627,7 @@ Success
 ksanOsd ... Ok
 ```
 
-##### ksanGw 서비스 추가(OSD1, OSD2)
+### ksanGw 서비스 추가(OSD1, OSD2)
  * ksanGw 서비스 설정을 초기화 하고 서비스를 시작 한다.
  * metadata DB 가 192.168.0.111 에 구성 되어 있다.
 
@@ -671,7 +671,7 @@ Removing/clearing stale PID file.
 Tomcat started.
 ```
 
-##### 조회
+### 조회
 * 등록한 서비스 정보를 조회한다.
 
 ```bash
@@ -690,7 +690,7 @@ Success
 --------------------------------------------------------------------------------------------------------------------------
 ```
 ## 9. 서비스 그룹 설정(MGS 노드)
-##### 생성
+### 생성
  * /usr/local/ksan/bin/ksanServicegroup add -n [Group Name] -T [ Service Type: GW|OSD]
  
 ```bash
@@ -701,7 +701,7 @@ Success
 Success
 ```
 
-##### 삭제
+### 삭제
  * /usr/local/ksan/bin/ksanServicegroup remove -G [Servcie Group Id]
  
 ```bash
@@ -709,7 +709,7 @@ Success
 Success
 ```
 
-##### 조회
+### 조회
 ```bash
 ./ksanServicegroup list 
 Success 
@@ -722,7 +722,7 @@ Success
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-##### 등록 된 서비스 그룹 확인
+### 등록 된 서비스 그룹 확인
 ```bash
 ./ksanServicegroup list -L
 Success 
@@ -740,7 +740,7 @@ Success
 ```
 
 
-##### 그룹에 서비스 추가
+### 그룹에 서비스 추가
  * /usr/local/ksan/bin/ksanServicegroup addService -G [Service Group Id] -D [Service Id]
 
 ```bash
@@ -751,7 +751,7 @@ Success
 Success
 ```
 
-##### 그룹에서 서비스 삭제
+### 그룹에서 서비스 삭제
  * /usr/local/ksan/bin/ksanServicegroup removeService -G [Service Group Id] -D [Service Id]
 
 ```bash
@@ -762,7 +762,7 @@ Success
 ## 10. 서비스 관리(MGS 노드)
  * 등록된 서비스를 조회/시작/정지/재시작 한다.
 
-##### 조회
+### 조회
 * 서비스 정보를 조회한다.
 
 ```bash
@@ -794,7 +794,7 @@ Success
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-##### 시작
+### 시작
  * 기존 서비스를 시작한다.
  * /usr/local/ksan/bin/ksanService start -I [Service Id]
 
@@ -803,7 +803,7 @@ Success
 Success 
 ```
 
-##### 정지
+### 정지
  * 기존 서비스를 정지한다.
  * /usr/local/ksan/bin/ksanService stop -I [Service Id]
 
@@ -812,7 +812,7 @@ Success
 Success 
 ```
 
-##### 재시작
+### 재시작
  * 기존 서비스를 재시작한다.
  * /usr/local/ksan/bin/ksanService restart -I [Service Id]
 
@@ -821,7 +821,7 @@ Success
 Success 
 ```
 
-##### 삭제
+### 삭제
  * 기존 서비스를 삭제한다.
  * 서비스를 삭제를 수행하기위해 해당서비스를 중지 해야한다.
  * /usr/local/ksan/bin/ksanService remove -I [Service Id]
