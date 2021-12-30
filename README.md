@@ -68,7 +68,7 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 
 ## KSAN 시작하기
 
-([Quick Start Guide 문서](docs/QUICKSTART.md))를 참고하여 KSAN을 직접 사용해 보세요.
+[Quick Start Guide 문서](docs/QUICKSTART.md)를 참고하여 KSAN을 직접 사용해 보세요.
 
 ---
 
