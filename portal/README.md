@@ -15,8 +15,8 @@
   - Network Interface Vlan Management
 - Service Management
 - Server Management
-- Master Management
-- Swigger를 통한 Api 테스트 기능 제공(접속 주소 : `https://<ip>:<port>/api`)
+- Portal User Management
+- Swagger를 통한 Api 테스트 기능 제공(접속 주소 : `https://<ip>:<port>/api`)
 
 
 ## 빌드 가이드
@@ -235,7 +235,7 @@ systemctl start ksangateway
 systemctl stop httpd
 systemctl start ksangateway
 ```
-#### swigger 접속 주소
+#### Swagger 접속 주소
 - `https://<ip>:<port>/api`
 - 별다른 설정 변경이 없을 시 : `https://localhost:5443/api`
 
