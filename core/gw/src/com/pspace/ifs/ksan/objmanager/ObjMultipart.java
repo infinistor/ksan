@@ -1,23 +1,18 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
-package com.pspace.ifs.ksan.objmanager;
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.pspace.ifs.KSAN.ObjManger;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
-import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.gw.object.multipart.Upload;
+import com.pspace.ifs.KSAN.s3gw.exception.S3Exception;
+import com.pspace.ifs.KSAN.s3gw.multipart.Multipart;
+import com.pspace.ifs.KSAN.s3gw.multipart.Part;
+import com.pspace.ifs.KSAN.s3gw.multipart.ResultParts;
+import com.pspace.ifs.KSAN.s3gw.multipart.ResultUploads;
+import com.pspace.ifs.KSAN.s3gw.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -91,7 +86,7 @@ public class ObjMultipart{
                 return null;
             
             try {
-                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0L, "");
+                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0L);
                 return id;
             } catch (SQLException ex) {
                 Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,9 +94,9 @@ public class ObjMultipart{
         }
     }
 
-    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size, String diskid){
+    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size){
         try {
-            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size, diskid);
+            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -205,15 +200,11 @@ public class ObjMultipart{
         return dbm.getParts(uploadId);
     }
 
-    public Part getPartWithNo(String uploadId, String partNo) throws SQLException {
-        return dbm.getPartWithNo(uploadId, partNo);
-    }
-
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
         return dbm.getParts(uploadId, partNumberMarker, maxParts);
     }
 
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
         try {
             return dbm.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, maxUploads);
         } catch (SQLException e) {

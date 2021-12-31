@@ -1,4 +1,3 @@
-```
 Rabbit MQ Server is running at IP 192.168.11.76 
 
 Rabbit MQ Receiver is running at IP xxx.xxx.xxx.a, xxx.xxx.xxx.b, xxx.xxx.xxx.c, xxx.xxx.xxx.c
@@ -14,9 +13,9 @@ We provide two class separate class for one to one and one to many date exchange
 
 1. To import class
    -> for sender class
-    import com.pspace.ifs.ksan.mq.MQSender;
+    import com.pspace.ifs.DSAN.MQ.MQSender;
    -> for receiver class 
-    import com.pspace.ifs.ksan.mq.MQReceiver;
+    import com.pspace.ifs.DSAN.MQ.MQReceiver;
 
 2. To create objects
    -> for one to one sender
@@ -93,5 +92,3 @@ TestTrashSender.java    TestTrashSender          alloc 2 osd disk and send the d
 TestOsdReceiver.java     TestOsdReceiver           receive disk and path information and display
 TestDiskInfoSender.java TestDiskInfoSender       Send disk information in json format 
 TestDiskInfoReciver.java TestDiskInfoReciver     Receive disk information(you can run multiple instance of this program) 
-
-```

@@ -1,34 +1,30 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
-package com.pspace.ifs.ksan.objmanager;
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.pspace.ifs.KSAN.ObjManger;
 
 //import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.gw.object.multipart.Upload;
-import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.KSAN.s3gw.exception.S3Exception;
+import com.pspace.ifs.KSAN.s3gw.identity.ObjectListParameter;
+import com.pspace.ifs.KSAN.s3gw.identity.S3Metadata;
+import com.pspace.ifs.KSAN.s3gw.multipart.Multipart;
+import com.pspace.ifs.KSAN.s3gw.multipart.Part;
+import com.pspace.ifs.KSAN.s3gw.multipart.ResultParts;
+import com.pspace.ifs.KSAN.s3gw.multipart.ResultUploads;
+import com.pspace.ifs.KSAN.s3gw.multipart.Upload;
 
 import java.util.Date;
 import java.sql.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
@@ -51,18 +47,15 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstCreate;
     private PreparedStatement pstInsert;
     private PreparedStatement pstDelete;
-    private PreparedStatement pstUpdateMetadata;
+    private PreparedStatement pstupdateMetadata;
     //private PreparedStatement pstDeleteWithVersionId;
     private PreparedStatement pstSelectOne;
     private PreparedStatement pstSelectOneWithVersionId;
     private PreparedStatement pstSelectList;
-    private PreparedStatement pstUpdateDisks;
-    private PreparedStatement pstUpdateSizeTime;
-    private PreparedStatement pstUpdateLastVersion;
-    private PreparedStatement pstUpdateLastVersionDelete;
-    private PreparedStatement pstUpdateTagging;
-    private PreparedStatement pstUpdateAcl;
-    private PreparedStatement pstUpdateMeta;
+    private PreparedStatement pstupdateDisks;
+    private PreparedStatement pstupdateSizeTime;
+    private PreparedStatement pstupdateLastVersion;
+    private PreparedStatement pstupdateLastVersionDelete;
     
     // for buckets
     private PreparedStatement pstCreateBucket;
@@ -70,7 +63,6 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstDeleteBucket;
     private PreparedStatement pstSelectBucket;
     private PreparedStatement pstSelectAllBucket;
-    private PreparedStatement pstSelectUserBucket;
     private PreparedStatement pstUpdateBucket;
     //private PreparedStatement pstSelectUsedBucket;
     private PreparedStatement pstSelectUsedDisks;
@@ -82,9 +74,6 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketAccess;
     private PreparedStatement pstUpdateBucketTagging;
     private PreparedStatement pstUpdateBucketReplication;
-    private PreparedStatement pstUpdateBucketEncryption;
-    private PreparedStatement pstUpdateBucketObjectLock;
-    private PreparedStatement pstUpdateBucketPolicy;
     
     private PreparedStatement pstCreateMultiPart;
     private PreparedStatement pstInsertMultiPart;
@@ -96,8 +85,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstGetParts;
     private PreparedStatement pstGetPartsMax;
     private PreparedStatement pstGetUploads;
-    private PreparedStatement pstGetPartWithNo;
-    
+    private PreparedStatement pstUpdateObjectMeta;
     private PreparedStatement pstIsUpload;
     
     private PreparedStatement pstCreateUJob;
@@ -109,10 +97,10 @@ public class MysqlDataRepository implements DataRepository{
     // Add 2021-11-22
     private PreparedStatement pstIsDeleteBucket;
     
-    // Add 2021-12-10
-    private PreparedStatement pstAddFilecount;
-    private PreparedStatement pstSubFilecount;
-    private PreparedStatement pstBucketUsed;
+    private PreparedStatement pstCreateUserDiskPool;
+    private PreparedStatement pstInsertUserDiskPool;
+    private PreparedStatement pstSelectUserDiskPool;
+    private PreparedStatement pstDeleteUserDiskPool;
     
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname){
         this.obmCache = obmCache;
@@ -124,39 +112,44 @@ public class MysqlDataRepository implements DataRepository{
             this.connect();
             pstCreate = con.prepareStatement("CREATE TABLE IF NOT EXISTS MDSDBTable("
                     + "bucket VARCHAR(256) NOT NULL, objKey VARCHAR(2048) NOT NULL, size BIGINT NOT NULL default 0,"
-                    + "etag VARCHAR(1048) NOT NULL, meta VARCHAR(2048) NOT NULL, tag TEXT NOT NULL, "
+                    + "etag VARCHAR(1048) NOT NULL, meta VARCHAR(1048) NOT NULL, tag VARCHAR(1048) NOT NULL, "
                     + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
                     + "acl VARCHAR(2048) NOT NULL, "
-                    + "lastModified BIGINT NOT NULL, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-                    //+ "lastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-                    + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX `sortnumber` (objid, lastModified)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");  
-                    // + "PRIMARY KEY(objid, versionid, deleteMarker)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");  
-            pstInsert = con.prepareStatement("INSERT INTO MDSDBTable(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?, 9223372036854775808 - ?, ?, ?, ?, ?, ?, true)");
+                    + "lastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
+                    + "PRIMARY KEY(objid, versionid, deleteMarker)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");  
+            pstInsert = con.prepareStatement("INSERT INTO MDSDBTable(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)");
             pstDelete = con.prepareStatement("DELETE FROM MDSDBTable WHERE objid=? AND (versionid=? OR versionid is NULL)");
             //pstDeleteWithVersionId = con.prepareStatement("DELETE FROM MDSDBTable WHERE bucket=? AND objKey=? AND versionid=?");
             pstSelectOne = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND lastversion=true");
             pstSelectOneWithVersionId = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND versionid=?");
-            pstUpdateMetadata = con.prepareStatement("UPDATE MDSDBTable SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=9223372036854775808-?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?");
+            pstupdateMetadata = con.prepareStatement("UPDATE MDSDBTable SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?");
                     
             pstSelectList = con.prepareStatement("SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM MDSDBTable WHERE objKey LIKE ?");
-            pstUpdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
-            pstUpdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
-            pstUpdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
-            pstUpdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified asc limit 1");
+            pstupdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
+            pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
+            pstupdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
+            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified desc limit 1");
             pstSelectUsedDisks = con.prepareStatement("SELECT pdiskid as diskid FROM MDSDBTable UNION DISTINCT SELECT rdiskid FROM MDSDBTable;");
-            pstUpdateMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE bucket=? AND objKey=? AND versionid=?");
-            pstUpdateTagging = con.prepareStatement("UPDATE MDSDBTable SET tag=?, meta=? WHERE bucket=? AND objKey=? AND versionid=?");
-            pstUpdateAcl = con.prepareStatement("UPDATE MDSDBTable SET acl=? WHERE bucket=? AND objKey=? AND versionid=?");
+            pstUpdateObjectMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE objKey=? AND versionid=?");
+            pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
             
             // for bucket
             pstCreateBucket = con.prepareStatement("CREATE TABLE IF NOT EXISTS BUCKETS("
-                    + "name VARCHAR(256) NOT NULL, id VARCHAR(80) NOT NULL, filecount BIGINT(20) NOT NULL DEFAULT '0', used BIGINT(20) NOT NULL DEFAULT '0', diskPoolId CHAR(36) NOT NULL, userName VARCHAR(200), userId CHAR(32), acl VARCHAR(2048), web VARCHAR(2048), cors VARCHAR(2048), lifecycle VARCHAR(2048), access VARCHAR(2048), tagging VARCHAR(2048), encryption VARCHAR(2048), replication VARCHAR(2048), objectlock VARCHAR(2048), policy VARCHAR(2048), versioning VARCHAR(50), MfaDelete VARCHAR(50), createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                    + "name VARCHAR(256) NOT NULL, "
+                    + "id VARCHAR(80) NOT NULL, "
+                    + "diskPoolId CHAR(36) NOT NULL, "
+                    + "userId CHAR(32), "
+                    + "acl VARCHAR(2048), web VARCHAR(2048), cors VARCHAR(2048), "
+                    + "lifecycle VARCHAR(2048), access VARCHAR(2048), "
+                    + "tagging VARCHAR(2048), replication VARCHAR(2048), "
+                    + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
+                    + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                    + "replicaCount INT DEFAULT 2, "
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertBucket = con.prepareStatement("INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
+            pstInsertBucket = con.prepareStatement("INSERT INTO BUCKETS(name, id, diskPoolId, userId, acl, replicaCount) VALUES(?, ?, ?, ?, ?, ?)");
             pstDeleteBucket = con.prepareStatement("DELETE FROM BUCKETS WHERE id=?");
-            pstSelectBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, encryption, replication, objectlock, policy, createTime FROM BUCKETS WHERE id=?");
-            pstSelectAllBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, encryption, replication, objectlock, policy, createTime FROM BUCKETS");
-            pstSelectUserBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, encryption, replication, objectlock, policy, createTime FROM BUCKETS WHERE userName=? AND userId=?");
+            pstSelectBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userId, acl, web, cors, lifecycle, access, tagging, replication, createTime, replicaCount FROM BUCKETS WHERE id=?");
+            pstSelectAllBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userId, acl, web, cors, lifecycle, access, tagging, replication, createTime, replicaCount FROM BUCKETS");
             pstUpdateBucket = con.prepareStatement("UPDATE BUCKETS SET versioning=? WHERE id=?");
             
             pstUpdateBucketAcl = con.prepareStatement("UPDATE BUCKETS SET acl=? WHERE id=?");
@@ -165,10 +158,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketLifecycle = con.prepareStatement("UPDATE BUCKETS SET lifecycle=? WHERE id=?");
             pstUpdateBucketAccess = con.prepareStatement("UPDATE BUCKETS SET access=? WHERE id=?");
             pstUpdateBucketTagging = con.prepareStatement("UPDATE BUCKETS SET tagging=? WHERE id=?");
-            pstUpdateBucketReplication = con.prepareStatement("UPDATE BUCKETS SET replication=? WHERE id=?");
-            pstUpdateBucketEncryption = con.prepareStatement("UPDATE BUCKETS SET encryption=? WHERE id=?");
-            pstUpdateBucketObjectLock = con.prepareStatement("UPDATE BUCKETS SET objectlock=? WHERE id=?");
-            pstUpdateBucketPolicy = con.prepareStatement("UPDATE BUCKETS SET policy=? WHERE id=?");
+            pstUpdateBucketReplication = con.prepareStatement("UPDATE BUCK SET replication=? WHERE id=?");
 
             // for multipart
             pstCreateMultiPart= con.prepareStatement("CREATE TABLE IF NOT EXISTS MULTIPARTS("
@@ -181,19 +171,18 @@ public class MysqlDataRepository implements DataRepository{
                     + " meta VARCHAR(1024),"
                     + " etag VARCHAR(64),"
                     + " size bigint(20),"
-                    + " diskid VARCHAR(80),"
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
                     + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertMultiPart = con.prepareStatement("INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, diskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())");
+            pstInsertMultiPart = con.prepareStatement("INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, now())");
             pstUpdateMultiPart = con.prepareStatement("UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?");
             pstDeleteMultiPart = con.prepareStatement("DELETE FROM MULTIPARTS WHERE uploadid=?");
             pstSelectMultiPart = con.prepareStatement("SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ");
 
-            pstGetMultiPart = con.prepareStatement("SELECT bucket, objKey, changeTime, uploadid, acl, meta FROM MULTIPARTS WHERE uploadid=? AND partNo = 0");
-            pstGetParts = con.prepareStatement("SELECT changeTime, etag, size, partNo, diskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0");
-            pstGetPartWithNo = con.prepareStatement("SELECT changeTime, etag, size, partNo, diskid FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
+            pstGetMultiPart = con.prepareStatement("SELECT bucket, objKey, changeTime, uploadid, acl, meta FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0");
+            pstGetParts = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0");
             pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
             pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
+            
             
             
             pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
@@ -209,12 +198,16 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateUJob2 = con.prepareStatement("UPDATE UTILJOBS SET TotalNumObject=?, NumJobDone=? WHERE Id=?");
             pstSelectUJob = con.prepareStatement("SELECT status, TotalNumObject, NumJobDone, checkOnly, utilName, startTime FROM UTILJOBS WHERE Id=?");
 
-            // Add 2021-11-22
-            pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
-
-            pstAddFilecount = con.prepareStatement("UPDATE BUCKETS SET filecount = filecount + 1 WHERE name=?");
-            pstSubFilecount = con.prepareStatement("UPDATE BUCKETS SET filecount = filecount - 1 WHERE name=?");
-            pstBucketUsed = con.prepareStatement("UPDATE BUCKETS SET used = used + ? WHERE name=?");
+            // for user disk pool table
+            pstCreateUserDiskPool = con.prepareStatement("CREATE TABLE IF NOT EXISTS USERSDISKPOOL(userId VARCHAR(50) NOT NULL, "
+                    + "credential VARCHAR(80) NOT NULL COMMENT 'access key _ secret key', diskpoolId VARCHAR(50) NOT NULL, "
+                    + "replcaCount INT NOT NULL, PRIMARY KEY(userId, credential)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
+            pstInsertUserDiskPool = con.prepareStatement("INSERT INTO USERSDISKPOOL(userId, credential, diskpoolId, replcaCount) VALUES(?, ?, ?, ?)");
+            
+            pstSelectUserDiskPool = con.prepareStatement("SELECT diskpoolId, replcaCount FROM USERSDISKPOOL WHERE userId=?");
+            
+            pstDeleteUserDiskPool = con.prepareStatement("DELETE FROM USERSDISKPOOL WHERE userId=? AND diskpoolId=?");
+            
         } catch(SQLException ex){
             this.ex_message(ex);
         }
@@ -271,6 +264,7 @@ public class MysqlDataRepository implements DataRepository{
             this.pstCreateBucket.execute();
             this.pstCreateMultiPart.execute();
             pstCreateUJob.execute();
+            pstCreateUserDiskPool.execute();
         } catch(SQLException ex){
             this.ex_message(ex);
             return -ex.getErrorCode();
@@ -279,36 +273,36 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int updateVersion(String bucketName, String key) throws SQLException{        
-        pstUpdateLastVersion.clearParameters();
-        pstUpdateLastVersion.setString(1, key);
-        pstUpdateLastVersion.execute();
+        pstupdateLastVersion.clearParameters();
+        pstupdateLastVersion.setString(1, key);
+        pstupdateLastVersion.execute();
         return 0;
     }
     
 
     private int updateMetadata(Metadata md){
         try {
-            pstUpdateMetadata.clearParameters();
-            pstUpdateMetadata.setString(1, md.getEtag());
-            pstUpdateMetadata.setString(2, md.getMeta());
-            pstUpdateMetadata.setString(3, md.getTag());
-            pstUpdateMetadata.setString(4, md.getAcl());
-            pstUpdateMetadata.setLong(5, md.getSize());
-            Instant instant = Instant.now();
-            long nano = instant.getEpochSecond() * 1000000000L + instant.getNano();
-            pstUpdateMetadata.setLong(6, nano);
-            // pstUpdateMetadata.setString(6, md.getLastModified().toString());
-            pstUpdateMetadata.setString(7, md.getPrimaryDisk().getId());
+            pstupdateMetadata.clearParameters();
+            pstupdateMetadata.setString(1, md.getEtag());
+            pstupdateMetadata.setString(2, md.getMeta());
+            pstupdateMetadata.setString(3, md.getTag());
+            pstupdateMetadata.setString(4, md.getAcl());
+            pstupdateMetadata.setLong(5, md.getSize());
+            pstupdateMetadata.setString(6, md.getLastModified().toString());
+            pstupdateMetadata.setString(7, md.getPrimaryDisk().getId());
             try{
-               pstUpdateMetadata.setString(8, md.getReplicaDisk().getId());
+                if (md.isReplicaExist())
+                    pstupdateMetadata.setString(8, md.getReplicaDisk().getId());
+                else 
+                   pstupdateMetadata.setString(8,  ""); 
             } catch(ResourceNotFoundException ex){
-               pstUpdateMetadata.setString(8,  "");
+               pstupdateMetadata.setString(8,  "");
             }
-            pstUpdateMetadata.setString(9, md.getVersionId());
-            pstUpdateMetadata.setString(10, md.getDeleteMarker());
-            pstUpdateMetadata.setBoolean(11, md.getLastVersion());
-            pstUpdateMetadata.setString(12, md.getObjId());
-            pstUpdateMetadata.execute();
+            pstupdateMetadata.setString(9, md.getVersionId());
+            pstupdateMetadata.setString(10, md.getDeleteMarker());
+            pstupdateMetadata.setBoolean(11, md.getLastVersion());
+            pstupdateMetadata.setString(12, md.getObjId());
+            pstupdateMetadata.execute();
         } catch (SQLException ex) {
             ex_message( ex);
             return -1;
@@ -382,11 +376,7 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsert.setString(5, md.getTag());
             this.pstInsert.setString(6, md.getAcl());
             this.pstInsert.setLong(7, md.getSize());
-            
-            Instant instant = Instant.now();
-            long nano = instant.getEpochSecond() * 1000000000L + instant.getNano();
-            this.pstInsert.setLong(8, nano);
-
+            this.pstInsert.setString(8, md.getLastModified().toString());
             this.pstInsert.setString(9, md.getPrimaryDisk().getId());
             if (md.isReplicaExist()){
                 this.pstInsert.setString(10, md.getReplicaDisk().getId());
@@ -403,10 +393,7 @@ public class MysqlDataRepository implements DataRepository{
             //this.pstInsert.setBoolean(12, true);
             // if (md.getVersionId().isEmpty())
             //     updateVersion(md.getBucket(), md.getObjId());
-            if (this.pstInsert.executeUpdate() == 1) {
-                addFileCount(md.getBucket());
-            }
-
+            this.pstInsert.executeUpdate();
         } catch(SQLException ex){
             if (ex.getErrorCode() == 1062)
                 return updateMetadata(md);
@@ -422,15 +409,15 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateDisks(Metadata md) {
         try {
-            pstUpdateDisks.clearParameters();
-            pstUpdateDisks.setString(1, md.getPrimaryDisk().getId());
+            pstupdateDisks.clearParameters();
+            pstupdateDisks.setString(1, md.getPrimaryDisk().getId());
             try {
-                pstUpdateDisks.setString(2, md.getReplicaDisk().getId());
+                pstupdateDisks.setString(2, md.getReplicaDisk().getId());
             } catch (ResourceNotFoundException ex) {
-                pstUpdateDisks.setString(2, "");
+                pstupdateDisks.setString(2, "");
             }
-            pstUpdateDisks.setString(3, md.getObjId());
-            return pstUpdateDisks.executeUpdate();
+            pstupdateDisks.setString(3, md.getObjId());
+            return pstupdateDisks.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -440,11 +427,11 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateSizeTime(Metadata md) {
         try {
-            pstUpdateSizeTime.clearParameters();
-            pstUpdateSizeTime.setLong(1, md.getSize());
-            pstUpdateSizeTime.setString(2, md.getLastModified().toString());
-            pstUpdateSizeTime.setString(3, md.getObjId());
-            return pstUpdateSizeTime.executeUpdate();
+            pstupdateSizeTime.clearParameters();
+            pstupdateSizeTime.setLong(1, md.getSize());
+            pstupdateSizeTime.setString(2, md.getLastModified().toString());
+            pstupdateSizeTime.setString(3, md.getObjId());
+            return pstupdateSizeTime.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -473,15 +460,20 @@ public class MysqlDataRepository implements DataRepository{
         return 0;
     }
     
-    private Metadata getSelectObjectResult(ResultSet rs) throws SQLException, ResourceNotFoundException{
+    private Metadata getSelectObjectResult(String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
         DISK rdsk;
+        String rdiskPath;
         
         while(rs.next()){
-            pdsk = this.obmCache.getDiskWithId("1", rs.getString(9));
+            pdsk = this.obmCache.getDiskWithId(diskPoolId, rs.getString(9));
             try{
-                rdsk = this.obmCache.getDiskWithId("1", rs.getString(10));
+                rdiskPath = rs.getString(10);
+                if (!rdiskPath.isEmpty())
+                    rdsk = this.obmCache.getDiskWithId(diskPoolId, rs.getString(10));
+                else
+                    rdsk = new DISK();
             } catch(ResourceNotFoundException ex){
                 rdsk = new DISK();
             }
@@ -499,12 +491,12 @@ public class MysqlDataRepository implements DataRepository{
         throw new ResourceNotFoundException("path not found in the db");
     }
     
-    private synchronized Metadata selectSingleObjectInternal(String objId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String diskPoolId, String objId) throws ResourceNotFoundException {
         try{
             this.pstSelectOne.clearParameters();
             this.pstSelectOne.setString(1, objId);
             ResultSet rs = this.pstSelectOne.executeQuery();
-            return getSelectObjectResult(rs);
+            return getSelectObjectResult(diskPoolId, rs);
         } catch(SQLException ex){
             System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -512,13 +504,13 @@ public class MysqlDataRepository implements DataRepository{
         }
     }
 
-    private synchronized Metadata selectSingleObjectInternal(String objId, String versionId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
         try{
             this.pstSelectOneWithVersionId.clearParameters();
             this.pstSelectOneWithVersionId.setString(1, objId);
             this.pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = this.pstSelectOneWithVersionId.executeQuery();
-            return getSelectObjectResult(rs);      
+            return getSelectObjectResult(diskPoolId, rs);      
         } catch(SQLException ex){
             System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -527,14 +519,14 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public synchronized Metadata selectSingleObject(String bucketName, String path) throws ResourceNotFoundException {
+    public synchronized Metadata selectSingleObject(String diskPoolId, String bucketName, String path) throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-       return selectSingleObjectInternal(mt.getObjId()); 
+       return selectSingleObjectInternal(diskPoolId, mt.getObjId()); 
     }
     
     @Override
-    public synchronized Metadata selectSingleObjectWithObjId(String bucketName, String objid) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(objid); 
+    public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException {
+       return selectSingleObjectInternal(diskPoolId, objid); 
     }
     
     @Override
@@ -586,7 +578,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public synchronized Bucket insertBucket(String bucketName, String diskPoolId, String userName, String userId, String acl, String encryption, String objectlock) 
+    public synchronized Bucket insertBucket(String bucketName, String diskPoolId, String userId, String acl, int replicaCount) 
             throws ResourceAlreadyExistException{
         Bucket bt = null;
         String bucketId;
@@ -596,14 +588,12 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setString(1, bucketName);
             this.pstInsertBucket.setString(2, bucketId);
             this.pstInsertBucket.setString(3, diskPoolId);
-            this.pstInsertBucket.setString(4, userName);
-            this.pstInsertBucket.setString(5, userId);
-            this.pstInsertBucket.setString(6, acl);
-            this.pstInsertBucket.setString(7, encryption);
-            this.pstInsertBucket.setString(8, objectlock);
+            this.pstInsertBucket.setString(4, userId);
+            this.pstInsertBucket.setString(5, acl);
+            this.pstInsertBucket.setInt(6, replicaCount);
             this.pstInsertBucket.executeUpdate();
-            bt = new Bucket(bucketName, bucketId, diskPoolId, "", "", userName, userId, acl, new Date());
-            bt.setObjectlock(objectlock);
+            bt = new Bucket(bucketName, bucketId, diskPoolId, "", "", userId, acl, new Date());
+            getUserDiskPool(bt); // get diskpoolId and replicaCount
             // bt.setVersioning(versioning, MfaDelete);
         } catch(SQLException ex){
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bucketName), ex);
@@ -632,16 +622,14 @@ public class MysqlDataRepository implements DataRepository{
         ResultSet rs = this.pstSelectBucket.executeQuery();
 
         while(rs.next()){
-           Bucket bt = new Bucket(bucketName, rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), (Date)rs.getObject(18));
-           bt.setWeb(rs.getString(9));
-           bt.setCors(rs.getString(10));
-           bt.setLifecycle(rs.getString(11));
-           bt.setAccess(rs.getString(12));
-           bt.setTagging(rs.getString(13));
-           bt.setEncryption(rs.getString(14));
-           bt.setReplication(rs.getString(15));
-           bt.setObjectlock(rs.getString(16));
-           bt.setPolicy(rs.getString(17));
+           Bucket bt = new Bucket(bucketName, rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), (Date)rs.getObject(13));
+           bt.setWeb(rs.getString(8));
+           bt.setCors(rs.getString(9));
+           bt.setLifecycle(rs.getString(10));
+           bt.setAccess(rs.getString(11));
+           bt.setTagging(rs.getString(12));
+           bt.setReplicaCount(rs.getInt(14));
+           getUserDiskPool(bt); // get diskpoolId and replicaCount
            return bt;
         }
         throw new ResourceNotFoundException("Bucket("+bucketName+") is not found in the db");
@@ -656,16 +644,14 @@ public class MysqlDataRepository implements DataRepository{
             
             while(rs.next()){
                 //name-1, id-2, diskPoolId-3, versioning-4, MfaDelete-5, userId-6, acl-7, web-8, cors-9, lifecycle-10, access-11, tagging-12, replication-13, createTime-14
-                bt = new Bucket(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), (Date)rs.getObject(18));
-                bt.setWeb(rs.getString(9));
-                bt.setCors(rs.getString(10));
-                bt.setLifecycle(rs.getString(11));
-                bt.setAccess(rs.getString(12));
-                bt.setTagging(rs.getString(13));
-                bt.setEncryption(rs.getString(14));
-                bt.setReplication(rs.getString(15));
-                bt.setObjectlock(rs.getString(16));
-                bt.setPolicy(rs.getString(17));
+                bt = new Bucket(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), (Date)rs.getObject(14));
+                bt.setWeb(rs.getString(8));
+                bt.setCors(rs.getString(9));
+                bt.setLifecycle(rs.getString(10));
+                bt.setAccess(rs.getString(11));
+                bt.setTagging(rs.getString(12));
+                bt.setReplication(rs.getString(13));
+                bt.setReplicaCount(rs.getInt(15));
                 System.out.println("bucketList>>" + bt);
                 obmCache.setBucketInCache(bt);
             }
@@ -684,13 +670,13 @@ public class MysqlDataRepository implements DataRepository{
             ResultSet rs = this.pstSelectAllBucket.executeQuery();
             
             while(rs.next()){
-                Bucket bt = new Bucket(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), (Date)rs.getObject(15));
-                bt.setWeb(rs.getString(9));
-                bt.setCors(rs.getString(10));
-                bt.setLifecycle(rs.getString(11));
-                bt.setAccess(rs.getString(12));
-                bt.setTagging(rs.getString(13));
-                bt.setReplication(rs.getString(14));
+                Bucket bt = new Bucket(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), (Date)rs.getObject(14));
+                bt.setWeb(rs.getString(8));
+                bt.setCors(rs.getString(9));
+                bt.setLifecycle(rs.getString(10));
+                bt.setAccess(rs.getString(11));
+                bt.setTagging(rs.getString(12));
+                bt.setReplication(rs.getString(13));
                 btList.add(bt);
             }
             return btList;
@@ -715,7 +701,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String diskid) throws SQLException{
+    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
         pstInsertMultiPart.clearParameters();
         pstInsertMultiPart.setString(1, bucket);
         pstInsertMultiPart.setString(2, objkey);
@@ -725,7 +711,6 @@ public class MysqlDataRepository implements DataRepository{
         pstInsertMultiPart.setString(6, meta);
         pstInsertMultiPart.setString(7, etag);
         pstInsertMultiPart.setLong(8, size);
-        pstInsertMultiPart.setString(9, diskid);
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -784,7 +769,7 @@ public class MysqlDataRepository implements DataRepository{
         }
     }
 
-    @Override
+    /*@Override
     public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
         PreparedStatement stmt = this.con.prepareStatement(query.toString());
         //stmt.setLargeMaxRows(1000);
@@ -823,12 +808,12 @@ public class MysqlDataRepository implements DataRepository{
         }
 
         return list;
-    }
+    }*/
 
     private int updateVersionDelete(String objId) throws SQLException{        
-        pstUpdateLastVersionDelete.clearParameters();
-        pstUpdateLastVersionDelete.setString(1, objId);
-        pstUpdateLastVersionDelete.execute();
+        pstupdateLastVersionDelete.clearParameters();
+        pstupdateLastVersionDelete.setString(1, objId);
+        pstupdateLastVersionDelete.execute();
         return 0;
     }
 
@@ -839,15 +824,12 @@ public class MysqlDataRepository implements DataRepository{
             pstDelete.clearParameters();
             pstDelete.setString(1, objId);
             pstDelete.setString(2, versionId);
-            if (pstDelete.executeUpdate() == 1) {
-                subFileCount(bucketName);
-            }
+            pstDelete.executeUpdate();
             
-            if (versionId != null) {
-                if (!versionId.isEmpty()) {
+            /*if (versionId != null){
+                if (!versionId.isEmpty())
                     updateVersionDelete(objId);
-                }
-            }
+            }*/
         } catch(SQLException ex){
             this.ex_message(ex);
             return -ex.getErrorCode();
@@ -856,10 +838,10 @@ public class MysqlDataRepository implements DataRepository{
     }
 
     @Override
-    public Metadata selectSingleObject(String bucketName, String path, String versionId)
+    public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
             throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-        return selectSingleObjectInternal(mt.getObjId(), versionId); 
+        return selectSingleObjectInternal(diskPoolId, mt.getObjId(), versionId); 
     }
 
     @Override
@@ -893,34 +875,11 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
             listPart.put(part.getPartNumber(), part);
         }
 
         return listPart;
     }
-
-    @Override
-    public Part getPartWithNo(String uploadId, String partNo) throws SQLException {
-        pstGetPartWithNo.clearParameters();
-        pstGetPartWithNo.setString(1, uploadId);
-        pstGetPartWithNo.setString(2, partNo);
-        ResultSet rs = this.pstGetPartWithNo.executeQuery();
-
-        if (rs.next()) {
-            Part part = new Part();
-            part.setLastModified((Date)rs.getObject(1));
-            part.setPartETag(rs.getString(2));
-            part.setPartSize(rs.getLong(3));
-            part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
-
-            return part;
-        }
-
-        return null;
-    }
-    
 
     @Override
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
@@ -958,7 +917,7 @@ public class MysqlDataRepository implements DataRepository{
     }
 
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<Upload>());
 
@@ -982,6 +941,20 @@ public class MysqlDataRepository implements DataRepository{
             resultUploads.getList().add(upload);
         }
         return resultUploads;
+    }
+
+    @Override
+    public void updateObjectMeta(String bucket, String objId, String versionid, String meta) throws SQLException {
+        try {
+            pstUpdateObjectMeta.clearParameters();
+            pstUpdateObjectMeta.setString(1, meta);
+            pstUpdateObjectMeta.setString(2, bucket);
+            pstUpdateObjectMeta.setString(3, objId);
+            pstUpdateObjectMeta.setString(4, versionid);
+            pstUpdateObjectMeta.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -1081,7 +1054,7 @@ public class MysqlDataRepository implements DataRepository{
         return success;
     }
 
-    @Override
+    /*@Override
     public ObjectListParameter listObject(String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException {       
         ObjectListParameter objectListParameter;
         boolean bBucketListParameterPrefix = false;
@@ -1240,10 +1213,10 @@ public class MysqlDataRepository implements DataRepository{
 							// common prefix 등록
 							objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
 
-							if (objectListParameter.isTruncated()) {
+							if(objectListParameter.isTruncated()) {
 								StringBuilder delimiterp1 = new StringBuilder(); 
-								delimiterp1.append(endPrefix.substring(0, endPrefix.length() - 1));
-								delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length() - 1)) + 1);
+								delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
+								delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
 								delmarker = delimiterp1.toString();
 								bDelForceGte = true;
 								
@@ -1253,7 +1226,7 @@ public class MysqlDataRepository implements DataRepository{
 									PreparedStatement truncatePSTMT = null;
 									
 									// istruncate check
-									String truncateQuery = "SELECT objKey, meta FROM MDSDBTable WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+									String truncateQuery = "SELECT objKey, meta FROM MDSDBTable WHERE lastversion=true AND deleteMarker <> 'mark' ";
 
 									if (bBucketListParameterPrefix)
 										truncateQuery += " AND objKey LIKE ?";
@@ -1764,7 +1737,7 @@ public class MysqlDataRepository implements DataRepository{
 					query += " AND objKey >= ?";
 				}
 
-				query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1);
+				query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1);
 
 				pstmt = this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
@@ -1878,6 +1851,7 @@ public class MysqlDataRepository implements DataRepository{
 								bDelForceGte = true;
 								break;
 							}
+                                                        // there is differce here
 
 						} else {
 							S3Metadata s3Metadata = new S3Metadata();
@@ -1934,7 +1908,7 @@ public class MysqlDataRepository implements DataRepository{
 		}
 
         return objectListParameter;
-    }
+    }*/
     
     @Override
     public  List<Object> utilJobMgt(String operation, List<Object> in){
@@ -1974,179 +1948,126 @@ public class MysqlDataRepository implements DataRepository{
         }
         return ret;
     }
-
+    
     @Override
-    public boolean isBucketDelete(String bucket) throws SQLException {
+    public boolean isBucketDeleted(String bucket) throws SQLException {
         pstIsDeleteBucket.clearParameters();
         pstIsDeleteBucket.setString(1, bucket);
         ResultSet rs = pstIsDeleteBucket.executeQuery();
+        
+        if (rs == null) {
+            return true;
+        }
 
-        if (rs.next()) {
+        if (rs != null && rs.next()) {
             return false;
         }
 
         return true;
     }
-
+    
     @Override
-    public boolean isClosed() throws SQLException {
-        return con.isClosed();
-    }
-
-    @Override
-    public void close() throws SQLException {
-        if (con != null) {
-            con.close();
-        }
-    }
-
-    @Override
-    public void updateBucketEncryption(Bucket bt) throws SQLException {
-        try {
-            pstUpdateBucketEncryption.clearParameters();
-            pstUpdateBucketEncryption.setString(1, bt.getReplication());
-            pstUpdateBucketEncryption.setString(2, bt.getId());
-            pstUpdateBucketEncryption.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void updateBucketObjectLock(Bucket bt) throws SQLException {
-        try {
-            pstUpdateBucketObjectLock.clearParameters();
-            pstUpdateBucketObjectLock.setString(1, bt.getReplication());
-            pstUpdateBucketObjectLock.setString(2, bt.getId());
-            pstUpdateBucketObjectLock.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void updateBucketPolicy(Bucket bt) throws SQLException {
-        try {
-            pstUpdateBucketPolicy.clearParameters();
-            pstUpdateBucketPolicy.setString(1, bt.getReplication());
-            pstUpdateBucketPolicy.setString(2, bt.getId());
-            pstUpdateBucketPolicy.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void updateObjectTagging(Metadata meta) throws SQLException {
-        try {
-            pstUpdateTagging.clearParameters();
-            pstUpdateTagging.setString(1, meta.getTag());
-            pstUpdateTagging.setString(2, meta.getMeta());
-            pstUpdateTagging.setString(3, meta.getBucket());
-            pstUpdateTagging.setString(4, meta.getPath());
-            pstUpdateTagging.setString(5, meta.getVersionId());
-            pstUpdateTagging.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public List<S3BucketSimpleInfo> listBuckets(String userName, String userId) throws SQLException {
-        List<S3BucketSimpleInfo> list = new ArrayList<>();
-        try {
-            Bucket bt;
-            pstSelectUserBucket.clearParameters();
-            pstSelectUserBucket.setString(1, userName);
-            pstSelectUserBucket.setString(2, userId);
-            ResultSet rs = this.pstSelectUserBucket.executeQuery();
-                        
-            while(rs.next()){
-                //name-1, id-2, diskPoolId-3, versioning-4, MfaDelete-5, userId-6, acl-7, web-8, cors-9, lifecycle-10, access-11, tagging-12, replication-13, createTime-14
-                bt = new Bucket(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), (Date)rs.getObject(18));
-                bt.setWeb(rs.getString(9));
-                bt.setCors(rs.getString(10));
-                bt.setLifecycle(rs.getString(11));
-                bt.setAccess(rs.getString(12));
-                bt.setTagging(rs.getString(13));
-                bt.setEncryption(rs.getString(14));
-                bt.setReplication(rs.getString(15));
-                bt.setObjectlock(rs.getString(16));
-                bt.setPolicy(rs.getString(17));
-                
-                S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
-                bsi.setBucketName(rs.getString(1));
-                bsi.setCreateDate((Date)rs.getObject(18));
-                list.add(bsi);
-                // System.out.println("bucketList>>" + bt);
-                // obmCache.setBucketInCache(bt);
-            }
-
-        } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
-        }
-
-        return list;
-    }
-
-    @Override
-    public void updateObjectAcl(Metadata meta) throws SQLException {
-        try {
-            pstUpdateAcl.clearParameters();
-            pstUpdateAcl.setString(1, meta.getAcl());
-            pstUpdateAcl.setString(2, meta.getBucket());
-            pstUpdateAcl.setString(3, meta.getPath());
-            pstUpdateAcl.setString(4, meta.getVersionId());
-            pstUpdateAcl.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void updateObjectMeta(Metadata meta) throws SQLException {
-        try {
-            pstUpdateMeta.clearParameters();
-            pstUpdateMeta.setString(1, meta.getMeta());
-            pstUpdateMeta.setString(2, meta.getBucket());
-            pstUpdateMeta.setString(3, meta.getPath());
-            pstUpdateMeta.setString(4, meta.getVersionId());
-            pstUpdateMeta.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public synchronized int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException{
+        pstInsertUserDiskPool.clearParameters();
+        pstInsertUserDiskPool.setString(1, userId);
+        pstInsertUserDiskPool.setString(2, secretKey + "_" + accessKey);
+        pstInsertUserDiskPool.setString(3, diskpoolId);
+        pstInsertUserDiskPool.setInt(4, replicaCount);
+        pstInsertUserDiskPool.execute();
+        return 0;
     }
     
-    private void addFileCount(String bucketName) {
-        try {
-            pstAddFilecount.clearParameters();
-            pstAddFilecount.setString(1, bucketName);
-            pstAddFilecount.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void subFileCount(String bucketName) {
-        try {
-            pstSubFilecount.clearParameters();
-            pstSubFilecount.setString(1, bucketName);
-            pstSubFilecount.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     @Override
-    public void updateBucketUsed(String bucketName, long size) {
-        try {
-            pstBucketUsed.clearParameters();
-            pstBucketUsed.setLong(1, size);
-            pstBucketUsed.setString(2, bucketName);
-            pstBucketUsed.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+    public synchronized Bucket getUserDiskPool(Bucket bt) throws SQLException{
+              
+        pstSelectUserDiskPool.clearParameters();
+        pstSelectUserDiskPool.setString(1, bt.getUserId());
+   
+        ResultSet rs = pstSelectUserDiskPool.executeQuery();
+        
+        while(rs.next()){
+            bt.setDiskPoolId(rs.getString(1));
+            bt.setReplicaCount(rs.getInt(2));
+            break;
         }
+        return bt;
     }
+    
+    @Override
+    public synchronized int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException{
+        pstDeleteUserDiskPool.clearParameters();
+        pstDeleteUserDiskPool.setString(1, userId);
+        pstDeleteUserDiskPool.setString(2, diskPoolId);
+        pstDeleteUserDiskPool.execute();
+        return 0;
+    }
+    
+    @Override
+    public PreparedStatement getStatement(String query) throws SQLException{	
+        return this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+    }
+    
+    private LocalDateTime convertDate(String date2Convert){
+        //System.out.println("date2Convert>>" + date2Convert);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+        LocalDateTime dateTime = LocalDateTime.parse(date2Convert, formatter);
+        return dateTime;
+    }
+    
+    @Override
+    public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys) throws SQLException{
+        List<Metadata> list = new ArrayList();
+        ResultSet rs = null;
+        DISK pdsk = null;
+        DISK rdsk = null;
+        String diskPoolId = "1";
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        obmCache.displayBucketList();
+        obmCache.displayDiskPoolList();
+        if (bt != null)
+            //return list;
+            diskPoolId = bt.getDiskPoolId();
+        
+        rs = ((PreparedStatement)pstmt).executeQuery();
+        while (rs.next()) {
+            String objKey = rs.getString("objKey");
+            String meta = rs.getString("meta");
+            String versionid = rs.getString("versionid"); 
+            Boolean lastversion = rs.getBoolean("lastversion");
+            String etag = rs.getString("etag");
+            LocalDateTime lastModified = convertDate(rs.getObject("lastModified").toString());//rs.getString("lastModified")
+            //LocalDateTime lastModified = (rs.getDate("lastModified")).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            long size = rs.getLong("size");
+            String tag = rs.getString("tag");
+            String acl = rs.getString("acl");
+            String pdiskid = rs.getString("pdiskid");
+            String rdiskid = rs.getString("rdiskid");
+            try {
+                pdsk = obmCache.getDiskWithId(diskPoolId, pdiskid);
+                if (!rdiskid.isEmpty())
+                    rdsk = this.obmCache.getDiskWithId(diskPoolId, rdiskid);
+                else
+                    rdsk = new DISK();
+            } catch (ResourceNotFoundException ex) {
+                if ( pdsk == null)
+                    pdsk = new DISK();
+                rdsk = new DISK();
+            }
+            
+            Metadata mt = new Metadata(bucketName, objKey);
+            mt.setMeta(meta);
+            mt.set(etag, tag, meta, acl, size);
+            mt.setLastModified(lastModified);
+            mt.setVersionId(versionid, "", lastversion);
+            mt.setPrimaryDisk(pdsk);
+            mt.setReplicaDISK(rdsk);
+            list.add(mt);
+        }
+        
+        rs.close();
+        ((PreparedStatement)pstmt).close();
+        
+        return list;
+    }
+    
 }
