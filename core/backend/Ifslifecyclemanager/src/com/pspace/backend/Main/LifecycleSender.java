@@ -59,6 +59,9 @@ public class LifecycleSender {
                     }
                     // UploadId가 존재할 경우 Multipart 삭제
                     else Result = AbortMultipartUpload(Event.BucketName, Event.ObjectName, Event.UploadId);
+
+                    // 성공했을 경우 종료
+                    if (Result.equals("")) break;
                 }
                 //반환값이 비어있지 않을 경우 - 에러가 발생할 경우
                 if (!Result.isBlank()) DB.InsertLifecycleFailed(new LifecycleFailedData(Event, Result));
@@ -84,7 +87,6 @@ public class LifecycleSender {
         var Result = "";
         try {
             Client.deleteObject(BucketName, ObjectName);
-            return Result;
         } catch (Exception e) {
             logger.error("", e);
             Result = e.getMessage();
@@ -97,7 +99,6 @@ public class LifecycleSender {
         var Result = "";
         try {
             Client.deleteVersion(BucketName, ObjectName, VersionId);
-            return Result;
         } catch (Exception e) {
             logger.error("", e);
             Result = e.getMessage();
@@ -110,7 +111,6 @@ public class LifecycleSender {
         var Result = "";
         try {
             Client.abortMultipartUpload(new AbortMultipartUploadRequest(BucketName, ObjectName, UploadId));
-            return Result;
         } catch (Exception e) {
             logger.error("", e);
             Result = e.getMessage();
