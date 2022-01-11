@@ -99,8 +99,7 @@ public class LifecycleFilter {
                                     if (ExpiredCheck(ExpiredTime))
                                     {
                                         // DB에 저장
-                                        if (isMARKER(Object.DeleteMarker)) DB.InsertLifecycle(new LifecycleEventData(Object.BucketName, Object.ObjectName, Object.VersionId));
-                                        else DB.InsertLifecycle(new LifecycleEventData(Object.BucketName, Object.ObjectName));
+                                        DB.InsertLifecycle(new LifecycleEventData(Object.BucketName, Object.ObjectName));
 
                                         // 목록에서 제거
                                         ObjectList.remove(Index);
@@ -203,6 +202,9 @@ public class LifecycleFilter {
     {
         // 마지막 버전이 아닐 경우 스킵
         if (!Object.LastVersion) return true;
+        
+        // DeleteMarker일 경우 스킵
+        if (isMARKER(Object.DeleteMarker)) return true;
 
         // 필터가 존재할 경우
         if(Rule.filter != null)
