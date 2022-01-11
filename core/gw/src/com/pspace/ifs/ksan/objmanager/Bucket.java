@@ -1,14 +1,9 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
-package com.pspace.ifs.ksan.objmanager;
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.pspace.ifs.KSAN.ObjManger;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,15 +24,10 @@ public class Bucket {
     private String lifecycle;
     private String access;
     private String tagging;
-    private String encryption;
     private String replication;
-    private String objectlock;
-    private String policy;
-    private String userName;
     private String userId;
-    private long used;
-    private long fileCount;
     private Date createTime;
+    private int replicaCount;
     
     public Bucket(){
         name = "";
@@ -46,11 +36,9 @@ public class Bucket {
         versioning = "";
         mfaDelete = "";
         acl = "";
-        userName = "";
         userId = "";
-        createTime = null;
-        used = 0L;
-        fileCount = 0L;
+        createTime = new Date(0);
+        replicaCount= 0;
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -60,11 +48,9 @@ public class Bucket {
         versioning = "";
         mfaDelete = "";
         acl = "";
-        userName = "";
         userId = "";
-        createTime = null;
-        used = 0L;
-        fileCount = 0L;
+        createTime = new Date(0);
+        replicaCount = 0;
     }
     
     /*public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete){
@@ -78,16 +64,16 @@ public class Bucket {
         createTime = null;
     }*/
 
-    public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userName, String userId, String acl, Date createTime){
+    public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
         this.name = name;
         this.id   = id;
         this.diskPoolId = diskPoolId;
         this.versioning = versioning;
         this.mfaDelete = "";
         this.acl = acl;
-        this.userName = userName;
         this.userId = userId;
         this.createTime = createTime;
+        replicaCount = 0;
     }
     
     public void setName(String name){
@@ -107,9 +93,6 @@ public class Bucket {
         this.mfaDelete = mfaDelete;
     }
 
-    public void serUserName(String userName) {
-        this.userName = userName;
-    }
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -144,10 +127,6 @@ public class Bucket {
         return mfaDelete;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
     public String getUserId() {
         return userId;
     }
@@ -172,6 +151,10 @@ public class Bucket {
         return cors;
     }
 
+    public int getReplicaCount(){
+        return replicaCount;
+    }
+    
     public void setCors(String cors) {
         this.cors = cors;
     }
@@ -208,46 +191,10 @@ public class Bucket {
         this.replication = replication;
     }
     
-    public String getEncryption() {
-        return encryption;
+    public void setReplicaCount(int replicaCount){
+        this.replicaCount = replicaCount;
     }
-
-    public void setEncryption(String encryption) {
-        this.encryption = encryption;
-    }
-
-    public String getObjectlock() {
-        return objectlock;
-    }
-
-    public void setObjectlock(String objectlock) {
-        this.objectlock = objectlock;
-    }
-
-    public String getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
-    public long getUsed() {
-        return used;
-    }
-
-    public void setUsed(long used) {
-        this.used = used;
-    }
-
-    public long getFileCount() {
-        return fileCount;
-    }
-
-    public void setFileCount(long fileCount) {
-        this.fileCount = fileCount;
-    }
-
+    
     @Override
     public String toString(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

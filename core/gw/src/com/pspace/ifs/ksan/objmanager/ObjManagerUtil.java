@@ -1,20 +1,18 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
-package com.pspace.ifs.ksan.objmanager;
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.pspace.ifs.KSAN.ObjManger;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException;
+import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
+import java.util.ArrayList;
 
 /**
  *
@@ -57,12 +55,32 @@ public class ObjManagerUtil {
             logger = new OMLogger(ObjManager.class.getName());
     }
     
+    private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt == null)
+            bt = dbm.selectBucket(bucketName);
+        return bt;
+    }
+    
     public Metadata getObject(String bucketName, String objid) throws ResourceNotFoundException{
-        return dbm.selectSingleObjectWithObjId(bucketName, objid);
+        Bucket bt;
+        
+        try {
+            bt = this.getBucket(bucketName);
+        } catch (SQLException ex) {
+            throw new ResourceNotFoundException(ex.getMessage());
+        }
+        return dbm.selectSingleObjectWithObjId(bt.getDiskPoolId(), bucketName, objid);
     }
     
     public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
-        return dbm.selectSingleObject(bucketName, key);
+        Bucket bt;
+        try {
+            bt = this.getBucket(bucketName);
+        } catch (SQLException ex) {
+            throw new ResourceNotFoundException(ex.getMessage());
+        }
+        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key);
     }
     
     public int updateObject(String bucketName, String objid, Metadata mt, int updateCtrl){
@@ -77,8 +95,12 @@ public class ObjManagerUtil {
     }
     
     public List<Metadata> listObjects(String bucketName, String diskid, int listCtrl, long offset, long numObjects){
-        ListObject lo = new ListObject(dbm, obmCache, bucketName, diskid, offset, (int)numObjects);
-        return lo.excute1();
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, diskid, offset, (int)numObjects);
+            return lo.getUnformatedList();
+        } catch (SQLException ex) {
+            return new ArrayList();
+        }
     }
     /**
      * It will allocate a replica disk for recovery of failed replica object
@@ -147,6 +169,31 @@ public class ObjManagerUtil {
             return dbm.getAllUsedDiskId();
         } catch (SQLException ex) {
             return null;
+        }
+    }
+    
+    public int addUserDiskPool(String userId, String diskPoolId, int replicaCount){
+  
+        try {
+            DISKPOOL dp = obmCache.getDiskPoolFromCache(diskPoolId);
+            if (dp == null)
+                return -2;
+            return dbm.insertUserDiskPool(userId, "", "", diskPoolId, replicaCount);
+        } catch (ResourceNotFoundException e) {
+            return -2; 
+        } catch (SQLException ex) {
+            if (ex.getErrorCode() == 1062)
+                return -17;
+            System.out.println(ex);
+            return -1;
+        } 
+    }
+    
+    public int removeUserDiskPool(String userId, String diskPoolId){
+        try {
+            return dbm.deleteUserDiskPool(userId, diskPoolId);
+        } catch (SQLException ex) {
+            return -1;
         }
     }
 }
