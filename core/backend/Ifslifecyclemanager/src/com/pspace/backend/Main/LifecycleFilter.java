@@ -346,7 +346,6 @@ public class LifecycleFilter {
         var NowTime = LocalDateTime.now();
         
         // 만료시간이 지났을 경우
-        logger.debug("long. {} / {} : {}", NowTime, ExpiredTime, ExpiredTime.isAfter(NowTime));
         if (NowTime.isAfter(ExpiredTime)) return true;
         return false;
     }
@@ -362,7 +361,6 @@ public class LifecycleFilter {
         var NowTime = new Date();
 
         // 만료시간이 지났을 경우
-        logger.debug("Date. {} / {} : {}", NowTime, ExpiredTime, NowTime.getTime() > ExpiredTime.getTime());
         if (NowTime.getTime() > ExpiredTime.getTime()) return true;
         return false;
     }
