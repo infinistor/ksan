@@ -46,18 +46,20 @@ public class LifecycleSender {
                 //결과값 초기화
                 String Result = "";
 
-                // UploadId가 존재하지 않을 경우 오브젝트 삭제
-                if (Event.UploadId.isBlank())
-                {
-                    //VersionId가 존재하지 않을 경우 일반적인 삭제로 취급 (3회 시도)
-                    if (Event.VersionId.isBlank()) Result = DeleteObject(Event.BucketName, Event.ObjectName);
+                // 3회 시도
+                for(int i = 0; i < 3; i++){
+                    // UploadId가 존재하지 않을 경우 오브젝트 삭제
+                    if (Event.UploadId.isBlank())
+                    {
+                        //VersionId가 존재하지 않을 경우 일반적인 삭제로 취급
+                        if (Event.VersionId.isBlank()) Result = DeleteObject(Event.BucketName, Event.ObjectName);
 
-                    //VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급 (3회 시도)
-                    else Result = DeleteObjectVersion(Event.BucketName, Event.ObjectName, Event.VersionId);
+                        //VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급
+                        else Result = DeleteObjectVersion(Event.BucketName, Event.ObjectName, Event.VersionId);
+                    }
+                    // UploadId가 존재할 경우 Multipart 삭제
+                    else Result = AbortMultipartUpload(Event.BucketName, Event.ObjectName, Event.UploadId);
                 }
-                // UploadId가 존재할 경우 Multipart 삭제
-                else Result = AbortMultipartUpload(Event.BucketName, Event.ObjectName, Event.UploadId);
-                
                 //반환값이 비어있지 않을 경우 - 에러가 발생할 경우
                 if (!Result.isBlank()) DB.InsertLifecycleFailed(new LifecycleFailedData(Event, Result));
             }
@@ -80,15 +82,12 @@ public class LifecycleSender {
     protected String DeleteObject(String BucketName, String ObjectName)
     {
         var Result = "";
-        for(int i = 0; i < 3; i++)
-        {
-            try {
-                Client.deleteObject(BucketName, ObjectName);
-                return Result;
-            } catch (Exception e) {
-                logger.error("", e);
-                Result = e.getMessage();
-            }
+        try {
+            Client.deleteObject(BucketName, ObjectName);
+            return Result;
+        } catch (Exception e) {
+            logger.error("", e);
+            Result = e.getMessage();
         }
         return Result;
     }
@@ -96,15 +95,12 @@ public class LifecycleSender {
     protected String DeleteObjectVersion(String BucketName, String ObjectName, String VersionId)
     {
         var Result = "";
-        for(int i = 0; i < 3; i++)
-        {
-            try {
-                Client.deleteVersion(BucketName, ObjectName, VersionId);
-                return Result;
-            } catch (Exception e) {
-                logger.error("", e);
-                Result = e.getMessage();
-            }
+        try {
+            Client.deleteVersion(BucketName, ObjectName, VersionId);
+            return Result;
+        } catch (Exception e) {
+            logger.error("", e);
+            Result = e.getMessage();
         }
         return Result;
     }
@@ -112,15 +108,12 @@ public class LifecycleSender {
     protected String AbortMultipartUpload(String BucketName, String ObjectName, String UploadId)
     {
         var Result = "";
-        for(int i = 0; i < 3; i++)
-        {
-            try {
-                Client.abortMultipartUpload(new AbortMultipartUploadRequest(BucketName, ObjectName, UploadId));
-                return Result;
-            } catch (Exception e) {
-                logger.error("", e);
-                Result = e.getMessage();
-            }
+        try {
+            Client.abortMultipartUpload(new AbortMultipartUploadRequest(BucketName, ObjectName, UploadId));
+            return Result;
+        } catch (Exception e) {
+            logger.error("", e);
+            Result = e.getMessage();
         }
         return Result;
     }
