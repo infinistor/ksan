@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger.ObjManagerException;
+package com.pspace.ifs.ksan.objmanager.ObjManagerException;
 
 /**
  * It could be thrown when there is no space left in the bucket quota 

@@ -1,7 +1,7 @@
-package com.pspace.ifs.ksan.MQ.testcode;
+package com.pspace.ifs.ksan.mq.testcode;
 
-import com.pspace.ifs.ksan.MQ.MQReceiver;
-import com.pspace.ifs.ksan.MQ.MQSender;
+import com.pspace.ifs.ksan.mq.MQReceiver;
+import com.pspace.ifs.ksan.mq.MQSender;
 
 /**
  *

@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.s3gw.exception.S3Exception;
-import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.s3gw.identity.S3Metadata;
-import com.pspace.ifs.ksan.s3gw.multipart.Multipart;
-import com.pspace.ifs.ksan.s3gw.multipart.Part;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultParts;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultUploads;
-import com.pspace.ifs.ksan.s3gw.multipart.Upload;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 
 import java.util.Date;
 import java.sql.*;
@@ -917,7 +917,7 @@ public class MysqlDataRepository implements DataRepository{
     }
 
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<Upload>());
 

@@ -1,6 +1,4 @@
-package com.pspace.ifs.ksan.ObjManger;
-
-import java.math.BigInteger;
+package com.pspace.ifs.ksan.objmanager;
 
 public class DISK{
     private String path;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import java.security.*;
 import java.io.UnsupportedEncodingException;
@@ -12,7 +12,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import javax.xml.bind.DatatypeConverter;
 
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 /**
  *

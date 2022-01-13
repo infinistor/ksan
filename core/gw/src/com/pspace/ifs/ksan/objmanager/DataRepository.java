@@ -3,20 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.SortedMap;
 
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.s3gw.exception.S3Exception;
-import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.s3gw.multipart.Multipart;
-import com.pspace.ifs.ksan.s3gw.multipart.Part;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultParts;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultUploads;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
 
 /**
  *
@@ -49,7 +48,7 @@ public interface DataRepository {
     public Multipart getMulipartUpload(String uploadid) throws SQLException;
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException;
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException;
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception;
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException;
     public void updateObjectMeta(String bucket, String objkey, String versionid, String meta) throws SQLException;
     public boolean isUploadId(String uploadid) throws SQLException;
     

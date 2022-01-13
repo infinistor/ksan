@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import java.util.ArrayList;
 
@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 /**
  *

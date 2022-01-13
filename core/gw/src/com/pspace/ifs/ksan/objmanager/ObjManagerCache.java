@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.s3gw.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 
 /**
  *  Store diskpool and list of bucket in memory

@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
-import com.pspace.ifs.ksan.s3gw.exception.S3Exception;
-import com.pspace.ifs.ksan.s3gw.multipart.Multipart;
-import com.pspace.ifs.ksan.s3gw.multipart.Part;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultParts;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultUploads;
-import com.pspace.ifs.ksan.s3gw.multipart.Upload;
+import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -204,7 +204,7 @@ public class ObjMultipart{
         return dbm.getParts(uploadId, partNumberMarker, maxParts);
     }
 
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
         try {
             return dbm.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, maxUploads);
         } catch (SQLException e) {

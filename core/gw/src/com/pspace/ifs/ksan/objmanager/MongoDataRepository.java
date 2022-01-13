@@ -1,4 +1,4 @@
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoCredential;
@@ -11,14 +11,14 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.s3gw.exception.S3Exception;
-import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.s3gw.multipart.Multipart;
-import com.pspace.ifs.ksan.s3gw.multipart.Part;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultParts;
-import com.pspace.ifs.ksan.s3gw.multipart.ResultUploads;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
+import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -589,7 +589,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
         // TODO Auto-generated method stub
         return null;
     }

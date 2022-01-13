@@ -3,17 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.ksan.ObjManger;
+package com.pspace.ifs.ksan.objmanager;
 
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.pspace.ifs.ksan.MQ.MQCallback;
-import com.pspace.ifs.ksan.MQ.MQReceiver;
-import com.pspace.ifs.ksan.MQ.MQResponse;
-import com.pspace.ifs.ksan.MQ.MQResponseType;
-import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.mq.MQCallback;
+import com.pspace.ifs.ksan.mq.MQReceiver;
+import com.pspace.ifs.ksan.mq.MQResponse;
+import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.json.simple.JSONArray;
 
