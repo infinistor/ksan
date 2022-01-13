@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.KSAN.s3gw.exception.S3Exception;
-import com.pspace.ifs.KSAN.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.KSAN.s3gw.identity.S3Metadata;
-import com.pspace.ifs.KSAN.s3gw.multipart.Multipart;
-import com.pspace.ifs.KSAN.s3gw.multipart.Part;
-import com.pspace.ifs.KSAN.s3gw.multipart.ResultParts;
-import com.pspace.ifs.KSAN.s3gw.multipart.ResultUploads;
-import com.pspace.ifs.KSAN.s3gw.multipart.Upload;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.s3gw.exception.S3Exception;
+import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.s3gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.s3gw.multipart.Multipart;
+import com.pspace.ifs.ksan.s3gw.multipart.Part;
+import com.pspace.ifs.ksan.s3gw.multipart.ResultParts;
+import com.pspace.ifs.ksan.s3gw.multipart.ResultUploads;
+import com.pspace.ifs.ksan.s3gw.multipart.Upload;
 
 import java.util.Date;
 import java.sql.*;

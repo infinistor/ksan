@@ -1,4 +1,4 @@
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import java.math.BigInteger;
 

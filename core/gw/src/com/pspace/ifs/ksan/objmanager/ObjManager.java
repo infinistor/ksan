@@ -3,20 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pspace.ifs.KSAN.MQ.MQSender;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.KSAN.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.KSAN.s3gw.identity.S3BucketSimpleInfo;
-import com.pspace.ifs.KSAN.s3gw.identity.S3ObjectList;
+import com.pspace.ifs.ksan.MQ.MQSender;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.s3gw.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.s3gw.identity.S3ObjectList;
 import java.util.logging.Level;
 
 import org.json.simple.JSONObject;
@@ -179,8 +179,8 @@ public class ObjManager {
      * @param path the path or key of the metadata is going to be created
      * @return a basics of metadata object with allocated disk information with primary on local osd 
      * @throws IOException 
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException 
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException 
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException 
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException 
      */
     public Metadata createLocal(String bucket, String path)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
         return create(bucket, path, AllocAlgorithm.LOCALPRIMARY);
@@ -195,8 +195,8 @@ public class ObjManager {
      * @param versionId  version id of the source object
      * @return a basics of metadata object with allocated disk information 
      * @throws IOException 
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException 
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException 
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException 
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException 
      */
     public Metadata createCopy(String bucket, String from, String versionId, String toBucket, String to) throws IOException, AllServiceOfflineException, ResourceNotFoundException{
         Metadata mt;
@@ -448,8 +448,8 @@ public class ObjManager {
      * @param userId the user uniquely identifying name
      * @param acl    
      * @return 0 for success or negative number for error     
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceAlreadyExistException     
-     * @throws com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException     
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException     
+     * @throws com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException     
      */
     
     public int createBucket(String bucketName, String userId, String acl) throws ResourceAlreadyExistException, ResourceNotFoundException{

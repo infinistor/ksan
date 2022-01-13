@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

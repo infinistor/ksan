@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.MQ.testcode;
+package com.pspace.ifs.ksan.MQ.testcode;
 
-import com.pspace.ifs.KSAN.MQ.MQCallback;
-import com.pspace.ifs.KSAN.MQ.MQReceiver;
-import com.pspace.ifs.KSAN.MQ.MQResponse;
-import com.pspace.ifs.KSAN.MQ.MQResponseType;
+import com.pspace.ifs.ksan.MQ.MQCallback;
+import com.pspace.ifs.ksan.MQ.MQReceiver;
+import com.pspace.ifs.ksan.MQ.MQResponse;
+import com.pspace.ifs.ksan.MQ.MQResponseType;
 
 /**
  *

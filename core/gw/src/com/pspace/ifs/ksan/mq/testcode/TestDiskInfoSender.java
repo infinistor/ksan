@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.MQ.testcode;
+package com.pspace.ifs.ksan.MQ.testcode;
 
 import java.io.File;
 import java.util.Date;
 
-import com.pspace.ifs.KSAN.MQ.MQSender;
+import com.pspace.ifs.ksan.MQ.MQSender;
 
 /**
  *

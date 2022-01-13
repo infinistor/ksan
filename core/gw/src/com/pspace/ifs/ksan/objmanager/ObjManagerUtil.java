@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
 
 /**

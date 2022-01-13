@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Set;
 
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
 
 /**
  *

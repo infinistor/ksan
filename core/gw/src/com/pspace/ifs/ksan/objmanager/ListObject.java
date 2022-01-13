@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger;
+package com.pspace.ifs.ksan.ObjManger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.KSAN.s3gw.identity.ObjectListParameter;
-import com.pspace.ifs.KSAN.s3gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.s3gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.s3gw.identity.S3Metadata;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

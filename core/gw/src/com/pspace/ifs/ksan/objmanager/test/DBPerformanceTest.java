@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.pspace.ifs.KSAN.ObjManger.test;
+package com.pspace.ifs.ksan.ObjManger.test;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -17,11 +17,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.pspace.ifs.KSAN.ObjManger.Metadata;
-import com.pspace.ifs.KSAN.ObjManger.ObjManager;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.AllServiceOfflineException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.KSAN.ObjManger.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.ObjManger.Metadata;
+import com.pspace.ifs.ksan.ObjManger.ObjManager;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.AllServiceOfflineException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.ObjManger.ObjManagerException.ResourceNotFoundException;
 
 /**
  *
