@@ -17,6 +17,7 @@ import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
 
+
 /**
  *
  * @author legesse
@@ -47,8 +48,8 @@ public interface DataRepository {
 
     public Multipart getMulipartUpload(String uploadid) throws SQLException;
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException;
-    public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException;
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException;
+    public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException;
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception;
     public void updateObjectMeta(String bucket, String objkey, String versionid, String meta) throws SQLException;
     public boolean isUploadId(String uploadid) throws SQLException;
     

@@ -71,8 +71,11 @@ public class Bucket {
         this.versioning = versioning;
         this.mfaDelete = "";
         this.acl = acl;
-        this.userId = userId;
-        this.createTime = createTime;
+        this.userId = userId; 
+        this.createTime = new Date(0);
+        if (createTime != null)
+            this.createTime = createTime;
+          
         replicaCount = 0;
     }
     
@@ -198,7 +201,7 @@ public class Bucket {
     @Override
     public String toString(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String fomatTime = formatter.format(this.createTime);
+        String fomatTime = createTime == null ? "" :formatter.format(createTime);
         return String.format(
                 "{name : %s id : %s diskPoolId : %s versioning : %s MfaDelete : %s userId : %s acl : %s createTime : %s}", 
                 this.getName(), this.getId(), 

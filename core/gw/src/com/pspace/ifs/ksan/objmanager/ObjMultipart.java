@@ -5,8 +5,10 @@
  */
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
+
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
@@ -201,7 +203,12 @@ public class ObjMultipart{
     }
 
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
-        return dbm.getParts(uploadId, partNumberMarker, maxParts);
+        int partNumberMarkerDec = 0;
+        
+        if (!Strings.isNullOrEmpty(partNumberMarker))
+            partNumberMarkerDec = Integer.valueOf(partNumberMarker);
+        
+        return dbm.getParts(uploadId, partNumberMarkerDec, maxParts);
     }
 
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {

@@ -7,6 +7,7 @@ package com.pspace.ifs.ksan.objmanager;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import javax.xml.parsers.DocumentBuilder;
@@ -57,7 +58,7 @@ public class ObjManagerConfig {
         return Long.parseLong(value);
     }
     
-    public ObjManagerConfig() throws Exception{
+    public ObjManagerConfig() throws IOException {
         prop = new Properties();
         InputStream is = new FileInputStream("/usr/local/ksan/etc/objmanger.conf");
         prop.load(is);
@@ -143,7 +144,7 @@ public class ObjManagerConfig {
                omc.setDiskPoolInCache(dp);
             }
         }catch (Exception e){
-            System.out.println("Error-->" + e);
+            System.out.println("Error loading diskpool-->" + e);
         }
     }
     

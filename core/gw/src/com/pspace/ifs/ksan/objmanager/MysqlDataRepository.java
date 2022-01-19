@@ -7,9 +7,10 @@ package com.pspace.ifs.ksan.objmanager;
 
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
+
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
@@ -22,8 +23,6 @@ import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 import java.util.Date;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -844,6 +843,8 @@ public class MysqlDataRepository implements DataRepository{
         return selectSingleObjectInternal(diskPoolId, mt.getObjId(), versionId); 
     }
 
+    /***********************START*******************************************************************/
+    // TO BE
     @Override
     public Multipart getMulipartUpload(String uploadid) throws SQLException {
         Multipart multipart = null;
@@ -862,9 +863,10 @@ public class MysqlDataRepository implements DataRepository{
         return multipart;
     }
 
+    // TO BE
     @Override
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
-        SortedMap<Integer, Part> listPart = new TreeMap<Integer, Part>();
+        SortedMap<Integer, Part> listPart = new TreeMap<>();
         this.pstGetParts.clearParameters();
         this.pstGetParts.setString(1, uploadId);
         ResultSet rs = this.pstGetParts.executeQuery();
@@ -881,16 +883,17 @@ public class MysqlDataRepository implements DataRepository{
         return listPart;
     }
 
+    // TO BE
     @Override
-    public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
+    public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
         ResultParts resultParts = new ResultParts(uploadId, maxParts);
         resultParts.setListPart(new TreeMap<Integer, Part>());
         
         pstGetPartsMax.clearParameters();
         pstGetPartsMax.setString(1, uploadId);
-        if (Strings.isNullOrEmpty(partNumberMarker)) {
+        /*if (Strings.isNullOrEmpty(partNumberMarker)) {
             pstGetPartsMax.setInt(2, 0);
-        } else {
+        } else*/ {
             pstGetPartsMax.setInt(2, Integer.valueOf(partNumberMarker));
         }
         pstGetPartsMax.setInt(3, maxParts + 1);
@@ -916,8 +919,9 @@ public class MysqlDataRepository implements DataRepository{
         return resultParts;
     }
 
+    // TO BE
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<Upload>());
 
@@ -942,7 +946,7 @@ public class MysqlDataRepository implements DataRepository{
         }
         return resultUploads;
     }
-
+/***********************************************END*****************************************************************************/
     @Override
     public void updateObjectMeta(String bucket, String objId, String versionid, String meta) throws SQLException {
         try {
@@ -1959,7 +1963,7 @@ public class MysqlDataRepository implements DataRepository{
             return true;
         }
 
-        if (rs != null && rs.next()) {
+        if (rs.next()) {
             return false;
         }
 

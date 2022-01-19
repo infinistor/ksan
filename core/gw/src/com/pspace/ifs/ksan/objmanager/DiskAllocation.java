@@ -58,7 +58,23 @@ public class DiskAllocation {
          dsk.setOSDIP(replica.getName());
          return dsk;
     }
-     
+    
+    private DISKPOOL getDiskPool(String dskPoolId) throws ResourceNotFoundException{
+       DISKPOOL dskPool; 
+       try  {
+           dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+       } catch(ResourceNotFoundException ex){
+           obmCache.loadDiskPools();
+           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           //obmCache.displayDiskPoolList();
+           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+           if(dskPool != null)
+               System.out.println(">>>Get disk pool is fixed!!!!!");
+       }
+       return dskPool;
+    }
+    
     public int allocDisk(Metadata md, String dskPoolId, int replicaCount, int algorithm) 
              throws IOException, AllServiceOfflineException{
          DISK primaryDisk;
@@ -66,10 +82,10 @@ public class DiskAllocation {
          DISKPOOL dskPool;
          try{
              logger.debug("disk pool id : {}", dskPoolId);
-             dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+             dskPool = getDiskPool(dskPoolId);
              if (dskPool == null) {
-                logger.error("there is no bucket in the system!");
-                throw new ResourceNotFoundException("there is no bucket in the system!");
+                logger.error("there is no diskpool in the system!");
+                throw new ResourceNotFoundException("there is no diskpool in the system!");
              }
              
              SERVER primary = this.allocPrimaryServer(algorithm, dskPool);
@@ -103,7 +119,7 @@ public class DiskAllocation {
         SERVER svr;
         
         logger.debug("disk pool id : {}", dskPoolId);
-        dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+        dskPool = getDiskPool(dskPoolId);
         if (dskPool == null) {
             logger.error("there is no bucket in the system!");
             throw new ResourceNotFoundException("there is no bucket in the system!");
@@ -121,7 +137,7 @@ public class DiskAllocation {
         SERVER rsvr2;
         
         try {
-            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+            dskPool = getDiskPool(dskPoolId);
             if (dskPool == null)
                 return false;
              

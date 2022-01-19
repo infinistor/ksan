@@ -13,12 +13,14 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -27,6 +29,7 @@ import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.DeleteResult;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,6 +38,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 /**
@@ -53,6 +57,14 @@ public class MongoDataRepository implements DataRepository{
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
+    
+    // for collection names
+    private static final String BUCKETSCOLLECTION="BUCKETS";
+    private static final String USERSDISKPOOL="USERSDISKPOOL";
+    private static final String MULTIPARTUPLOAD ="MULTIPARTUPLOAD";
+    private static final String UTILJOBS = "UTILJOBS";
+    
+    // for object collection
     private static final String OBJKEY="objKey";
     private static final String OBJID="objId";
     private static final String SIZE="size";
@@ -82,8 +94,24 @@ public class MongoDataRepository implements DataRepository{
     private static final String MFADELETE="MfaDelete";
     private static final String CREATETIME="createTime";
     private static final String REPLICACOUNT="replicaCount";
+    private static final String CREDENTIAL="credential";
     
+    // for multipart upload
+    private static final String UPLOADID="uploadId";
+    private static final String PARTNO ="partNo";
+    private static final String COMPLETED = "completed";
+    private static final String CHANGETIME = "changeTime";
     
+    // for utility
+    private static final String ID = "Id";
+    private static final String STATUS = "status";
+    private static final String TOTALNUMBEROFOBJECTS = "TotalNumObject";
+    private static final String NUMJOBDONE = "NumJobDone";
+    private static final String CHECKONLY = "checkOnly";
+    private static final String UTILNAME = "utilName";
+    private static final String STARTTIME = "startTime";
+    
+   
     public MongoDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname, int port) throws UnknownHostException{
         this.url = "mongodb://" + host + ":" + port;
         this.username = username;
@@ -92,6 +120,7 @@ public class MongoDataRepository implements DataRepository{
         this.obmCache = obmCache;
         connect();
         createBucketsHolder();
+        createUserDiskPoolHolder();
     }
     
     private void connect() throws UnknownHostException{
@@ -108,31 +137,38 @@ public class MongoDataRepository implements DataRepository{
         Document index;
         
         index = new Document(BUCKETNAME, 1);
-        buckets = database.getCollection("BUCKETS");
+        buckets = database.getCollection(BUCKETSCOLLECTION);
         if (buckets == null){
-            database.createCollection("BUCKETS");
-            buckets = database.getCollection("BUCKETS");
+            database.createCollection(BUCKETSCOLLECTION);
+            buckets = database.getCollection(BUCKETSCOLLECTION);
             buckets.createIndex(index);
         }
     }
     
-    private String getMultiPartUploadCollName(String bucketName){
-        return "MULTIPARTUPLOAD_" + bucketName;
+    private void createUserDiskPoolHolder(){
+        Document index;
+        
+        index = new Document(USERID, 1);
+        index.append(CREDENTIAL, 1);
+        MongoCollection<Document> userDiskPool = database.getCollection(USERSDISKPOOL);
+        if (userDiskPool == null){
+            database.createCollection(USERSDISKPOOL);
+            userDiskPool = database.getCollection(USERSDISKPOOL);
+            userDiskPool.createIndex(index);
+        }
     }
     
-    private int createMultipartUploadCollection(String bucketName){
-        //Document index;
-        String collName;
-        MongoCollection<Document> coll;
+    private MongoCollection<Document> getMultiPartUploadCollection(){
+        MongoCollection<Document> multip;
         
-        collName = getMultiPartUploadCollName(bucketName);
-        if (database.getCollection(collName) == null){
-            database.createCollection(collName);
-            coll = database.getCollection(collName);
-            coll.createIndex(Indexes.ascending("uploadId", "partNo", OBJKEY));
-            //coll.createIndexes(list);
+        multip = this.database.getCollection(MULTIPARTUPLOAD);
+        if (multip == null){
+            database.createCollection(MULTIPARTUPLOAD);
+            multip = database.getCollection(MULTIPARTUPLOAD);
+            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME));
         }
-        return 0;
+        
+        return multip;
     }
     
     private String getCurrentDateTime(){
@@ -158,7 +194,7 @@ public class MongoDataRepository implements DataRepository{
         doc.append(ACL, md.getAcl());
         doc.append(VERSIONID, md.getVersionId());
         doc.append(DELETEMARKER, md.getDeleteMarker());
-        doc.append(DELETEMARKER, true);
+        doc.append(LASTVERSION, true);
         doc.append(PDISKID, md.getPrimaryDisk().getId());
         if (md.isReplicaExist())
             doc.append(RDISKID, md.getReplicaDisk().getId());
@@ -218,9 +254,9 @@ public class MongoDataRepository implements DataRepository{
         boolean lastversion = doc.getBoolean(LASTVERSION);
         Bucket bt           = obmCache.getBucketFromCache(bucketName);
         String pdiskId      = doc.getString(PDISKID);
-        DISK pdsk           = obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId);
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
         String rdiskId      = doc.getString(RDISKID);
-        DISK rdsk           = obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId);
+        DISK rdsk           = rdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId) : new DISK();
         
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
@@ -237,6 +273,7 @@ public class MongoDataRepository implements DataRepository{
         Metadata mt;
         
         mt = new Metadata( bucketName, key);
+        //System.out.format("[selectSingleObject ] bucket : %s path : %s objid : %s\n", mt.getBucket(), mt.getPath(), mt.getObjId());
         return selectSingleObjectInternal(bucketName, mt.getObjId(), ""); 
     }
     @Override
@@ -300,8 +337,7 @@ public class MongoDataRepository implements DataRepository{
         Document doc;
         Document index;
         Bucket bt = null;
-        try{
-            index = new Document(BUCKETNAME, 1);
+        try{ 
             doc = new Document(BUCKETNAME, bucketName);
             doc.append(BUCKETNAME, bucketName);
             doc.append(DISKPOOLID, diskPoolId);
@@ -322,6 +358,11 @@ public class MongoDataRepository implements DataRepository{
             
             buckets.insertOne(doc);
             database.createCollection(bucketName);
+            // for index for object collection
+            index = new Document(OBJID, 1);
+            index.append(VERSIONID, 1);
+            index.append(LASTVERSION, 1);
+            index.append(DELETEMARKER, 1);
             database.getCollection(bucketName).createIndex(index);
             bt = new Bucket(bucketName, bucketName, diskPoolId);
             getUserDiskPool(bt);
@@ -352,7 +393,17 @@ public class MongoDataRepository implements DataRepository{
         String access     = doc.getString(ACCESS);
         String tagging    = doc.getString(TAGGING);
         String replication= doc.getString(REPLICATION);
-        Date createTime = doc.getDate(CREATETIME);
+        Date createTime;
+        try {
+            String createTimeStr = doc.getString(CREATETIME);
+      
+            if (createTimeStr == null)
+                createTime = new Date(0);
+            else
+                createTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(createTimeStr);
+        } catch (ParseException ex) {
+            createTime = new Date(0);
+        }
         String versioning = doc.getString(VERSIONING);
         String mfdelete   = doc.getString(MFADELETE);
         Bucket bt = new Bucket(bucketName, bucketId, diskPoolId);
@@ -368,7 +419,7 @@ public class MongoDataRepository implements DataRepository{
         bt.setCreateTime(createTime);
         bt.setVersioning(versioning, mfdelete);
         getUserDiskPool(bt);
-        System.out.println(">>" + bt);
+        //System.out.println(">>" + bt);
         return bt;
     }
     
@@ -429,24 +480,22 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         Document doc;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
         doc = new Document(OBJKEY, objkey);
-        //doc.append("key", objkey);
-        doc.append("uploadId", uploadid);
-        doc.append("partNo", partNo);
-        doc.append("completed", false);
-        doc.append("changeTime", getCurrentDateTime());
-        doc.append("acl", acl);
-        doc.append("meta", meta);
-        doc.append("etag", etag);
-        doc.append("size", size);
+        doc.append(BUCKETNAME, bucket);
+        doc.append(UPLOADID, uploadid);
+        doc.append(PARTNO, partNo);
+        doc.append(COMPLETED, false);
+        doc.append(CHANGETIME, getCurrentDateTime());
+        doc.append(ACL, acl);
+        doc.append(META, meta);
+        doc.append(ETAG, etag);
+        doc.append(SIZE, size);
      
         multip.insertOne(doc);
         return 0;
@@ -455,35 +504,31 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public int updateMultipartUpload(String bucket,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.updateOne(Filters.and(eq("uploadId", uploadid), eq("partNo", partNo)), Updates.set("completed", iscompleted));
+        multip.updateOne(Filters.and(eq(BUCKETNAME, bucket), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.set(COMPLETED, iscompleted));
         return 0;
     }
     
     @Override
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.deleteOne(Filters.eq("uploadId", uploadid));
+        multip.deleteOne(Filters.eq(UPLOADID, uploadid));
         return 0;
     }
     
     @Override
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException{
         List<Integer> list=new ArrayList<>();
-        MongoCollection<Document> multip;
+        /*MongoCollection<Document> multip;
         String collName;
         
         collName = getMultiPartUploadCollName(bucket);
@@ -491,20 +536,20 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return null;
         
-        FindIterable fit = multip.find(Filters.and(eq("uploadId", uploadid), Filters.gt("partNo", partNoMarker)))
-                .limit(maxParts).sort(new BasicDBObject("partNo", 1 ));
+        FindIterable fit = multip.find(Filters.and(eq(UPLOADID, uploadid), Filters.gt(PARTNO, partNoMarker)))
+                .limit(maxParts).sort(new BasicDBObject(PARTNO, 1 ));
      
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            list.add(doc.getInteger("partNo"));
-        }
+            list.add(doc.getInteger(PARTNO));
+        }*/
         return list;
     }
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
-        MongoCollection<Document> multip;
+        /*MongoCollection<Document> multip;
         String collName;
         String key;
         String uploadid;
@@ -516,8 +561,8 @@ public class MongoDataRepository implements DataRepository{
         multip = this.database.getCollection(collName);
         
         BasicDBObject sortList = new BasicDBObject(OBJKEY, 1 );
-        sortList.append("uploadId", 1);
-        sortList.append("partNo", 1);
+        sortList.append(UPLOADID, 1);
+        sortList.append(PARTNO, 1);
         FindIterable fit = multip.find((BasicDBObject)query).limit(maxKeys + 1)
                 .sort(sortList);
      
@@ -525,8 +570,8 @@ public class MongoDataRepository implements DataRepository{
         while((it.hasNext())){
             Document doc = (Document)it.next();
             key      = doc.getString(OBJKEY);
-            uploadid = doc.getString("uploadId");
-            partNo   = (long )doc.getInteger("partNo");
+            uploadid = doc.getString(UPLOADID);
+            partNo   = (long )doc.getInteger(PARTNO);
             ++counter;
             if (counter == maxKeys){
                 isTruncated =it.hasNext();
@@ -536,7 +581,7 @@ public class MongoDataRepository implements DataRepository{
             callback.call(key, uploadid, "", partNo, "", "", "", isTruncated);
             if (isTruncated == true)
                 break;
-        }
+        }*/
     }
 
     /*@Override
@@ -549,11 +594,12 @@ public class MongoDataRepository implements DataRepository{
     public int deleteObject(String bucketName, String objKey, String versionId) {
         MongoCollection<Document> objects;
         DeleteResult dres;
+        String objId = new Metadata(bucketName, objKey).getObjId();
         objects = database.getCollection(bucketName);
         if (versionId.equalsIgnoreCase("null"))
-            dres = objects.deleteOne(Filters.eq(OBJKEY, objKey));
+            dres = objects.deleteOne(Filters.eq(OBJID, objId));
         else
-            dres = objects.deleteOne(Filters.and(Filters.eq(OBJKEY, objKey), Filters.eq(VERSIONID, versionId)));
+            dres = objects.deleteOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)));
         
         if (dres == null)
             return -1;
@@ -571,34 +617,151 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public Multipart getMulipartUpload(String uploadid) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public Multipart getMulipartUpload(String uploadId) throws SQLException {
+        MongoCollection<Document> multip;
+        Multipart mpart = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            mpart = new Multipart(doc.getString(BUCKETNAME), doc.getString(OBJKEY), uploadId);
+            mpart.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            mpart.setAcl(doc.getString(ACL));
+            mpart.setMeta(doc.getString(META));
+        }
+        
+        return mpart;
     }
 
     @Override
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        SortedMap<Integer, Part> listPart = new TreeMap<>();
+        MongoCollection<Document> multip;
+        Multipart mpart = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            Part part = new Part();
+            part.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            part.setPartETag(doc.getString(ETAG));
+            part.setPartSize(doc.getLong(SIZE));
+            part.setPartNumber(doc.getInteger(PARTNO));
+            listPart.put(part.getPartNumber(), part);
+        }
+        
+        return listPart;
+    }
+
+    //SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?")
+    @Override
+    public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
+        MongoCollection<Document> multip;
+        ResultParts resultParts = new ResultParts(uploadId, maxParts);
+        resultParts.setListPart(new TreeMap<>());
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return resultParts;
+        
+        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        
+        FindIterable fit = multip.find(
+                Filters.and(Filters.eq(UPLOADID, uploadId), Filters.gt(PARTNO, partNumberMarker)))
+                .limit(maxParts + 1)
+                .sort(sortList);
+     
+        Iterator it = fit.iterator();
+        int count = 0;
+        resultParts.setTruncated(false);
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            count++;
+            if (count > maxParts) {
+                resultParts.setPartNumberMarker(doc.getString(PARTNO));
+                resultParts.setTruncated(true);
+                break;
+            }
+            Part part = new Part();
+            part.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            part.setPartETag(doc.getString(ETAG));
+            part.setPartSize(doc.getLong(SIZE));
+            part.setPartNumber(doc.getInteger(PARTNO));
+            resultParts.getListPart().put(part.getPartNumber(), part);
+        }
+        
+        return resultParts;
+    }
+
+    // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
+    @Override
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
+        ResultUploads resultUploads = new ResultUploads();
+        resultUploads.setList(new ArrayList<>());
+        resultUploads.setTruncated(false);
+        
+        MongoCollection<Document> multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return resultUploads;
+        
+        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        
+        FindIterable fit = multip.find(
+                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)))
+                .limit(maxUploads + 1)
+                .sort(sortList);
+        
+        int count = 0;
+        Iterator it = fit.iterator();
+        resultUploads.setTruncated(false);
+        while (it.hasNext()) {
+            Document doc = (Document)it.next();
+            count++;
+            if (count > maxUploads) {
+                resultUploads.setKeyMarker(doc.getString(OBJKEY));
+                resultUploads.setUploadIdMarker(doc.getString(UPLOADID));
+                resultUploads.setTruncated(true);
+                break;
+            }
+            Upload upload = new Upload(doc.getString(OBJKEY), (Date)doc.getDate(CHANGETIME), doc.getString(UPLOADID), doc.getString(META));
+            resultUploads.getList().add(upload);
+        }
+        return resultUploads;
     }
 
     @Override
-    public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public boolean isUploadId(String uploadid) throws SQLException {
+        MongoCollection<Document> multip = getMultiPartUploadCollection();
+        if (multip == null){
+            return false;
+        }
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadid)); 
+        Iterator it = fit.iterator();
+        if (it.hasNext()){
+          return true;  
+        }
+        
+        return false;
     }
-
-    @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
+    
     @Override
     public void updateObjectMeta(String bucketName, String objId, String versionid, String meta) throws SQLException {
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq("versionid", versionid)), Updates.set("meta", meta));
+        objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionid)), Updates.set(META, meta));
     }
 
     private int updateBucket(String bucketName, String key, String value){
@@ -613,43 +776,37 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void updateBucketAcl(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "acl", bt.getAcl());
+        updateBucket(bt.getName(), ACL, bt.getAcl());
     }
 
     @Override
     public void updateBucketCors(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "cors", bt.getCors());
+        updateBucket(bt.getName(), CORS, bt.getCors());
     }
 
     @Override
     public void updateBucketWeb(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "web", bt.getWeb());
+        updateBucket(bt.getName(), WEB, bt.getWeb());
     }
 
     @Override
     public void updateBucketLifecycle(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "lifecycle", bt.getLifecycle());
+        updateBucket(bt.getName(), LIFECYCLE, bt.getLifecycle());
     }
 
     @Override
     public void updateBucketAccess(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "access", bt.getAccess());
+        updateBucket(bt.getName(), ACCESS, bt.getAccess());
     }
 
     @Override
     public void updateBucketTagging(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "tagging", bt.getTagging());
+        updateBucket(bt.getName(), TAGGING, bt.getTagging());
     }
 
     @Override
     public void updateBucketReplication(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), "replication", bt.getReplication());
-    }
-
-    @Override
-    public boolean isUploadId(String uploadid) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        updateBucket(bt.getName(), REPLICATION, bt.getReplication());
     }
 
     /*@Override
@@ -689,59 +846,59 @@ public class MongoDataRepository implements DataRepository{
         Document doc;
         String startTime = getCurrentDateTime();
         
-        utilJob = this.database.getCollection("UTILJOBS");
+        utilJob = this.database.getCollection(UTILJOBS);
         if (utilJob == null)
             return new ArrayList<>();
         
-        doc = new Document("Id", Id);
-        doc.append("status", status);
-        doc.append("TotalNumObject", TotalNumObject);
-        doc.append("NumJobDone", 0);
-        doc.append("checkOnly", checkOnly);
-        doc.append("utilName", utilName);
-        doc.append("startTime", startTime);
+        doc = new Document(ID, Id);
+        doc.append(STATUS, status);
+        doc.append(TOTALNUMBEROFOBJECTS, TotalNumObject);
+        doc.append(NUMJOBDONE, 0);
+        doc.append(CHECKONLY, checkOnly);
+        doc.append(UTILNAME, utilName);
+        doc.append(STARTTIME, startTime);
         utilJob.insertOne(doc);
         return getUtilJobObject(Id, status, 0, 0, false, " ", startTime);
     }
     private List<Object> selectUtilJob(String Id){
         MongoCollection<Document> utilJob;
-        utilJob = this.database.getCollection("UTILJOBS");
+        utilJob = this.database.getCollection(UTILJOBS);
         
-        FindIterable fit = utilJob.find(eq("Id", Id));
+        FindIterable fit = utilJob.find(eq(ID, Id));
         
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            return getUtilJobObject(Id, doc.getString("status"), 
-                    doc.getLong("TotalNumObject"), doc.getLong("NumJobDone"), 
-                    doc.getBoolean("checkOnly"), doc.getString("utilName"), 
-                    doc.getString("startTime"));
+            return getUtilJobObject(Id, doc.getString(STATUS), 
+                    doc.getLong(TOTALNUMBEROFOBJECTS), doc.getLong(NUMJOBDONE), 
+                    doc.getBoolean(CHECKONLY), doc.getString(UTILNAME), 
+                    doc.getString(STARTTIME));
         }
         return null;
     }
     
     private List<Object> updateStatusUtilJob(String Id, String status){
         MongoCollection<Document> utilJob;
-        utilJob = this.database.getCollection("UTILJOBS");
-        FindIterable fit = utilJob.find(eq("Id", Id));
+        utilJob = this.database.getCollection(UTILJOBS);
+        FindIterable fit = utilJob.find(eq(ID, Id));
         Document doc =(Document)fit.first();
         if (doc == null)
           return new ArrayList<>();
         
-        utilJob.updateOne(Filters.eq("Id", Id), Updates.set("status", status));
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(STATUS, status));
         return getUtilJobObject(Id, status, 0, 0, false, " ", "");
     }
     
     private List<Object> updateNumberJobsUtilJob(String Id, long TotalNumObject, long NumJobDone){
         MongoCollection<Document> utilJob;
-        utilJob = this.database.getCollection("UTILJOBS");
-        FindIterable fit = utilJob.find(eq("Id", Id));
+        utilJob = this.database.getCollection(UTILJOBS);
+        FindIterable fit = utilJob.find(eq(ID, Id));
         Document doc =(Document)fit.first();
         if (doc == null)
           return new ArrayList<>();
         
-        utilJob.updateOne(Filters.eq("Id", Id), Updates.set("TotalNumObject", TotalNumObject));
-        utilJob.updateOne(Filters.eq("Id", Id), Updates.set("NumJobDone", NumJobDone));
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(TOTALNUMBEROFOBJECTS, TotalNumObject));
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(NUMJOBDONE, NumJobDone));
         return getUtilJobObject(Id, "", TotalNumObject, NumJobDone, false, "", "");
     }
     
@@ -790,17 +947,23 @@ public class MongoDataRepository implements DataRepository{
         MongoCollection<Document> userDiskPool;
         Document doc;
         
-        userDiskPool = this.database.getCollection("USERSDISKPOOL");
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
         if (userDiskPool == null)
             return -1;
         
-        doc = new Document("userId", userId);
-        doc.append("credential", secretKey + "_" + accessKey);
-        doc.append("diskpoolId", diskpoolId);
-        doc.append("replcaCount", replicaCount);
-  
+        doc = new Document(USERID, userId);
+        doc.append(CREDENTIAL, secretKey + "_" + accessKey);
+        doc.append(DISKPOOLID, diskpoolId);
+        doc.append(REPLICACOUNT, replicaCount);
         userDiskPool.insertOne(doc);
-        return 0;
+        
+        // check inserted or not
+        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, userId), Filters.eq(CREDENTIAL, secretKey + "_" + accessKey)));
+        Iterator it = fit.iterator();
+        if((it.hasNext()))
+            return 0;
+        
+        return -1;
     }
 
     @Override
@@ -809,16 +972,17 @@ public class MongoDataRepository implements DataRepository{
         String diskPoolId;
         int replicaCount;
         
-        System.out.printf("userId : " + bt.getUserId());
-        userDiskPool = this.database.getCollection("USERSDISKPOOL");
+        //System.out.println("userId : " + bt.getUserId());
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
         
-        FindIterable fit = userDiskPool.find(Filters.and(eq("userId", bt.getUserId()), Filters.eq("credential", "_")));
+        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, bt.getUserId()), Filters.eq(CREDENTIAL, "_")));
         
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            diskPoolId      = doc.getString("diskpoolId");
-            replicaCount   = doc.getInteger("replcaCount");
+            diskPoolId      = doc.getString(DISKPOOLID);
+            //System.out.println("doc >>" + doc);
+            replicaCount   = doc.getInteger(REPLICACOUNT);
             bt.setDiskPoolId(diskPoolId);
             bt.setReplicaCount(replicaCount);
             break;
@@ -830,17 +994,18 @@ public class MongoDataRepository implements DataRepository{
     public int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException {
        MongoCollection<Document> userDiskPool;
         
-        userDiskPool = this.database.getCollection("USERSDISKPOOL");
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
         if (userDiskPool == null)
             return -1;
         
-        userDiskPool.deleteOne(Filters.and(eq("userId", userId), eq("diskPoolId", diskPoolId)));
+        userDiskPool.deleteOne(Filters.and(eq(USERID, userId), eq(CREDENTIAL, diskPoolId)));
         return 0;
     }
 
     @Override
     public Object getStatement(String query) throws SQLException {
-        return null;
+        throw new SQLException("mongod is not supported mysql like statements!");
+        //return null;
     }
 
     @Override
@@ -851,8 +1016,8 @@ public class MongoDataRepository implements DataRepository{
         BasicDBObject sortBy = new BasicDBObject(OBJKEY, 1 );
         BasicDBObject mongoQuery =(BasicDBObject)query;
         
-        if (mongoQuery.containsField("versionid"))
-            sortBy.append("lastModified", -1);
+        if (mongoQuery.containsField(VERSIONID))
+            sortBy.append(LASTMODIFIED, -1);
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy);
         Iterator it = oit.iterator();
@@ -864,17 +1029,17 @@ public class MongoDataRepository implements DataRepository{
         while((it.hasNext())){
             Document doc = (Document)it.next();
             String key         = doc.getString(OBJKEY);
-            String etag        = doc.getString("etag");
-            String tag         = doc.getString("tag");
-            String meta        = doc.getString("meta");
-            String acl         = doc.getString("acl");
-            String pdiskid     = doc.getString("pdiskId");
-            String rdiskid     = doc.getString("rdiskId");
-            Date lastModified  = doc.getDate("lastModified");
+            String etag        = doc.getString(ETAG);
+            String tag         = doc.getString(TAG);
+            String meta        = doc.getString(META);
+            String acl         = doc.getString(ACL);
+            String pdiskid     = doc.getString(PDISKID);
+            String rdiskid     = doc.getString(RDISKID);
+            Date lastModified  = doc.getDate(LASTMODIFIED);
             LocalDateTime lastModifiedStr = lastModified.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
-            long size           = doc.getLong("size");
+            long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
             mt.set(etag, tag, meta, acl, size);
             mt.setLastModified(lastModifiedStr);

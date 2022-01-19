@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -36,6 +37,7 @@ public class SERVER {
     private int currentDiskIdx;
     private HashMap<String, DISK> diskMap;
     private static Logger logger;
+    private static final ReentrantLock lock = new ReentrantLock();
     
     public SERVER(String id, long ip, String name){
         this.id = id;
@@ -220,14 +222,20 @@ public class SERVER {
     }
     
     private String getNextDiskId(){
-        Set<String> entry =  diskMap.keySet();
-        String []keys = entry.toArray( new String[entry.size()]);
-          
-        if (currentDiskIdx >= diskMap.size())
-            currentDiskIdx = 0;
-
-        String diskid = keys[currentDiskIdx];
-        currentDiskIdx++;
+        lock.lock();
+        String diskid;
+        try {
+            Set<String> entry =  diskMap.keySet();
+            String []keys = entry.toArray( new String[entry.size()]);
+            
+            if (currentDiskIdx >= diskMap.size())
+                currentDiskIdx = 0;
+            
+            diskid = keys[currentDiskIdx];
+            currentDiskIdx++;
+        } finally {
+            lock.unlock();
+        }
         return diskid;
     }
     

@@ -17,6 +17,7 @@ import java.util.Set;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -29,6 +30,7 @@ public class DISKPOOL {
     private int currentServerIdx;
     private HashMap<String, SERVER> serverMap;
     private static Logger logger;
+    private static final ReentrantLock lock = new ReentrantLock();
     
     public DISKPOOL(String id, String name){
         this.id = id;
@@ -89,63 +91,73 @@ public class DISKPOOL {
      }
      
      private String getNextServerId(){
-        Set<String> entry =  serverMap.keySet();
-        List<String> keys = new ArrayList<>(entry);
-        String serverid = "";
-        
-        if (keys.isEmpty())
-            return ""; 
-        
-        if (currentServerIdx >= keys.size())
-            currentServerIdx = 0;
-        
-        try
-        {
-           serverid = keys.get(currentServerIdx);
-           currentServerIdx++;
-        }catch (IndexOutOfBoundsException e){
-            logger.debug(" >>currentServerIdx: {} keySize {}", currentServerIdx, keys.size());
-            currentServerIdx = 0;
-        }
+         String serverid = "";
+        //try{
+        //    lock.lock();
+            Set<String> entry =  serverMap.keySet();
+            List<String> keys = new ArrayList<>(entry);
+            
+            if (keys.isEmpty())
+                return ""; 
+
+            if (currentServerIdx >= keys.size())
+                currentServerIdx = 0;
+
+            try
+            {
+               serverid = keys.get(currentServerIdx);
+               currentServerIdx++;
+            }catch (IndexOutOfBoundsException e){
+                logger.debug(" >>currentServerIdx: {} keySize {}", currentServerIdx, keys.size());
+                currentServerIdx = 0;
+            }
+            /*}finally{
+                lock.unlock();
+            }*/
            
         return serverid;
      }
      
      public SERVER getNextServer()throws ResourceNotFoundException, AllServiceOfflineException{
-         SERVER srv;
-         int startIndex;
-         boolean retried = false;
-        
-         if (serverMap.isEmpty()){
-             logger.error("There is no server in the system!");
-             throw new ResourceNotFoundException("There is no server in the system!"); 
-         }
-         
-         startIndex = currentServerIdx;
-         while((srv = serverMap.get(getNextServerId())) != null){
-              if (srv == null && retried == false){ // to rotate one more time
-                  retried = true; 
-                  continue;
-              }
-              
-              if (startIndex == currentServerIdx) {
-                  if (serverMap.size() > 1){
-                    logger.error("All OSD server are offline!");
-                    throw new AllServiceOfflineException("All OSD server are offline!");
-                  }
-                  else{
-                    logger.error("There is no enough OSD server for all replica!");
-                    throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
-                  }  
-              }
-              
-              if (srv.getStatus() != ServerStatus.ONLINE){
-                  continue;
-              }
-              return srv;
-         }
-         logger.error("There is no server in the system!");
-         throw new ResourceNotFoundException("There is no server in the system!"); 
+        try{
+            lock.lock();
+            SERVER srv;
+            int startIndex;
+            boolean retried = false;
+
+            if (serverMap.isEmpty()){
+                logger.error("There is no server in the system!");
+                throw new ResourceNotFoundException("There is no server in the system!"); 
+            }
+
+            startIndex = currentServerIdx;
+            while((srv = serverMap.get(getNextServerId())) != null){
+                 if (srv == null && retried == false){ // to rotate one more time
+                     retried = true; 
+                     continue;
+                 }
+
+                 if (startIndex == currentServerIdx) {
+                     if (serverMap.size() > 1){
+                       logger.error("All OSD server are offline!");
+                       throw new AllServiceOfflineException("All OSD server are offline!");
+                     }
+                     else{
+                       logger.error("There is no enough OSD server for all replica!");
+                       throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
+                     }  
+                 }
+
+                 if (srv.getStatus() != ServerStatus.ONLINE){
+                     continue;
+                 }
+                 return srv;
+            }
+            logger.error("There is no server in the system!");
+            throw new ResourceNotFoundException("There is no server in the system!"); 
+        } finally{
+            lock.unlock();
+        } 
     }
     
     public boolean diskExistInPool(String diskid, String path){

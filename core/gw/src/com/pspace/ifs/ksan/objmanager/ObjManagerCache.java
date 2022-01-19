@@ -8,13 +8,19 @@ package com.pspace.ifs.ksan.objmanager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
+import java.io.File;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -40,13 +46,23 @@ public class ObjManagerCache {
         diskPoolMap.remove(diskPoolId);
     }
     
-    public DISKPOOL getDiskPoolFromCache(String diskPoolId) throws ResourceNotFoundException{
+    private DISKPOOL getDiskPool(String diskPoolId){
         DISKPOOL dskPool;
         dskPool = diskPoolMap.get(diskPoolId);
         if (dskPool == null) {
-            logger.error("diskPool is null");
-            logger.error("There is no diskpool with id : {}!", diskPoolId);
-             throw new ResourceNotFoundException("There is no diskpool with id : " + diskPoolId +"!");
+            this.loadDiskPools();
+            dskPool = diskPoolMap.get(diskPoolId);
+        }
+        
+        return dskPool;
+    }
+    
+    public DISKPOOL getDiskPoolFromCache(String diskPoolId) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        dskPool = getDiskPool(diskPoolId);
+        if (dskPool == null) {
+            //here is no diskpool with id : " + diskPoolId +"!");
+            throw new ResourceNotFoundException("There is no diskpool wih id : " + diskPoolId + " !");
         }
         return dskPool;
     }
@@ -55,7 +71,7 @@ public class ObjManagerCache {
         DISKPOOL dskPool;
         
         for(String diskPoolId : diskPoolMap.keySet()){
-            dskPool = diskPoolMap.get(diskPoolId);
+            dskPool = getDiskPool(diskPoolId);
             try {
                 dskPool.getServerById(serverId);
                 return dskPool;
@@ -108,7 +124,7 @@ public class ObjManagerCache {
         DISKPOOL dskPool;
         DISK dsk;
         
-        dskPool = diskPoolMap.get(dskPoolId);
+        dskPool = getDiskPool(dskPoolId);
         if (dskPool != null){
             dsk = dskPool.getDisk(dpath, "");
             return dsk;
@@ -122,7 +138,7 @@ public class ObjManagerCache {
         DISKPOOL dskPool;
         DISK dsk;
         
-        dskPool = diskPoolMap.get(dskPoolId);
+        dskPool = getDiskPool(dskPoolId);
         if (dskPool != null){
             dsk = dskPool.getDisk("", diskid);
             return dsk;
@@ -135,7 +151,7 @@ public class ObjManagerCache {
     public boolean validateDisk(String dskPoolId, String diskid, String dskPath){
          DISKPOOL dskPool;
          
-         dskPool = diskPoolMap.get(dskPoolId);
+         dskPool = getDiskPool(dskPoolId);
          if (dskPool == null)
              return false;
          
@@ -145,7 +161,7 @@ public class ObjManagerCache {
     public SERVER getServerWithDiskPath( String dskPoolId, String dpath) throws ResourceNotFoundException{
         DISKPOOL dskPool;
         
-        dskPool = diskPoolMap.get(dskPoolId);
+        dskPool = getDiskPool(dskPoolId);
         if (dskPool != null){
             return dskPool.getServer(dpath, "");
         }
@@ -155,7 +171,7 @@ public class ObjManagerCache {
     }
     
     public void displayBucketList(){
-        Bucket bt;
+        /*Bucket bt;
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println("<BUCKETLIST>");
         for(String bucketName : bucketMap.keySet()){
@@ -164,12 +180,11 @@ public class ObjManagerCache {
             System.out.format("   <BUCKET id=\"%s\"  name=\"%s\" diskPoolId=\"%s\" Versioning=\"%s\" createTime=\"%s\" >\n", 
                     bt.getId(), bt.getName(), bt.getDiskPoolId(), bt.getVersioning(), formatTime);
         }
-        System.out.println("</BUCKETLIST>");
+        System.out.println("</BUCKETLIST>");*/
     }
     
     public void displayDiskPoolList(){
-        DISKPOOL dskPool;
-        
+        /*DISKPOOL dskPool;
         
         System.out.println("<DISKPOOLLIST>");
         for(String dskPoolId : diskPoolMap.keySet()){
@@ -179,10 +194,51 @@ public class ObjManagerCache {
              dskPool.displayServerList();
              System.out.println("   </DISKPOOL>");
          }
-         System.out.println("</DISKPOOLLIST>");
+         System.out.println("</DISKPOOLLIST>");*/
     }
 
     public void resetBucketList() {
         bucketMap.clear();
+    }
+    
+    public void loadDiskPools(){
+        try{ 
+            File fXmlFile = new File("/usr/local/ksan/etc/diskpools.xml");
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(fXmlFile);
+            doc.getDocumentElement().normalize();
+            NodeList nList = doc.getElementsByTagName("DISKPOOL");
+            for (int idx = 0; idx < nList.getLength(); idx++) {
+                DISKPOOL dp;
+                //SERVER s;
+                Node dpoolNode = nList.item(idx);
+                dp = new DISKPOOL(((Element)dpoolNode).getAttribute("id"), ((Element)dpoolNode).getAttribute("name"));
+                logger.debug("disk pool : id {}, name {}", dp.getId(), dp.getName());
+                NodeList serverNodeList = ((Element)dpoolNode).getElementsByTagName("SERVER");
+                int sidx = 0;
+                SERVER s[] = new SERVER[serverNodeList.getLength()];
+                while (sidx < serverNodeList.getLength()){
+                    
+                    Element elemS = (Element)((Element)serverNodeList.item(sidx));
+                    s[sidx] = new SERVER(elemS.getAttribute("id"), 0, elemS.getAttribute("ip"));
+
+                    NodeList diskNodeList = elemS.getElementsByTagName("DISK");
+                    int didx = 0;
+                    while(didx < diskNodeList.getLength()){
+                        Element elemD = ((Element)diskNodeList.item(didx));
+                        s[sidx].addDisk(elemD.getAttribute("path"), elemD.getAttribute("id"), 0, DiskStatus.GOOD);
+                        //System.out.format("Disk id : %s path : %s status : %s\n",  elemD.getAttribute("id"), elemD.getAttribute("path"), elemD.getAttribute("status"));
+                        logger.debug("disk id : {}, path : {}", elemD.getAttribute("id"), elemD.getAttribute("path"));
+                        didx++; 
+                    }
+                    dp.addServer(s[sidx]);
+                    sidx++;
+                }
+               this.setDiskPoolInCache(dp);
+            }
+        }catch (Exception e){
+            System.out.println("Error loading diskpool-->" + e);
+        }
     }
 }

@@ -35,7 +35,7 @@ public class Objmanagertest {
     /**
      * @param args the command line arguments
      */
-    static void createFileTest(){
+    static void createFileTest() throws Exception{
         String path;
         String bucket = "testvol2";
         String tmp = "parentDir1/subDir/test";
@@ -78,7 +78,7 @@ public class Objmanagertest {
  
     }
     
-    static void createFileTestLocal(){
+    static void createFileTestLocal() throws Exception{
         String path;
         String bucket = "testv1";
         String tmp = "test0003-0004-003";
@@ -117,7 +117,7 @@ public class Objmanagertest {
         
     }
     
-    static void createFileOnDBPerformanceTest(){
+    static void createFileOnDBPerformanceTest() throws Exception{
         String path;
         String bucket = "testvol3";
         String tmp = "parentDir1/subDir/test";
@@ -208,7 +208,7 @@ public class Objmanagertest {
         logger.log(OMLoggerLevel.TREACE, " INFO->test message");
     }
     
-    static void testBucket(){
+    static void testBucket() throws Exception{
         ObjManager om = new ObjManager();;
         String [] lst = om.listBucket();
         System.out.println("length : " + lst.length + "list : " + Arrays.toString(lst));
@@ -264,6 +264,8 @@ public class Objmanagertest {
             om.replaceDisk(bucketName, md.getObjId(), md.getPrimaryDisk().getId(), replica.getId());
         } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -317,7 +319,7 @@ public class Objmanagertest {
         
     }
     
-    static void testVersiong(){
+    static void testVersiong() throws Exception{
         String path;
         String bucket = "testvol3vers";
         String tmp = "parentD1/subDir/test";
@@ -328,7 +330,10 @@ public class Objmanagertest {
         String vers;
         int ret;
         
-        ObjManager om = new ObjManager();
+        ObjManager om;
+        
+        om = new ObjManager();
+        
         S3ObjectList s3ObjectList = new S3ObjectList();
         
         try {
@@ -399,7 +404,7 @@ public class Objmanagertest {
         }
     }
 
-    static void testMultiPartUpload(){
+    static void testMultiPartUpload() throws Exception{
     String path;
         String bucket = "testvol1";
         String tmp = "parentD1/subDir/test";
