@@ -23,11 +23,9 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineExcep
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -204,7 +202,7 @@ public class DBPerformanceTest extends Thread{
             ObjManager om = new ObjManager();
             try {
                 System.out.println("bucketName :>" + bucket);
-                om.createBucket(bucket,  userName, "acl");
+                om.createBucket(bucket,  userName,  userName, "acl", "", "");
             } catch (ResourceNotFoundException ex) {
                 Logger.getLogger(DBPerformanceTest.class.getName()).log(Level.SEVERE, null, ex);
             }

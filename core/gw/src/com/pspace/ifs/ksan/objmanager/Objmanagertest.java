@@ -22,8 +22,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
+
 /**
  *
  * @author legesse
@@ -52,7 +52,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "legesse1", "acl");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -91,7 +91,7 @@ public class Objmanagertest {
         
         try{
             try{
-                om.createBucket(bucket, "legesse1", "acl");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Buket already exist!");
             }
@@ -134,7 +134,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "user", "acl");
+                om.createBucket(bucket, "user", "user", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -343,7 +343,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "legesse1", "acl");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -423,7 +423,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "user", "acl");
+                om.createBucket(bucket, "user", "user", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }

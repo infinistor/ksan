@@ -11,9 +11,9 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
@@ -333,18 +333,17 @@ public class MongoDataRepository implements DataRepository{
     }
    
     @Override
-    public Bucket insertBucket(String bucketName, String diskPoolId, String userId, String acl, int replicaCount) throws ResourceAlreadyExistException{
+    public Bucket insertBucket(Bucket bt) throws ResourceAlreadyExistException{
         Document doc;
         Document index;
-        Bucket bt = null;
         try{ 
-            doc = new Document(BUCKETNAME, bucketName);
-            doc.append(BUCKETNAME, bucketName);
-            doc.append(DISKPOOLID, diskPoolId);
-            doc.append(BUCKETID, new Metadata(bucketName, "/").getBucketId());
-            doc.append(USERID, userId);
-            doc.append(ACL, acl);
-            doc.append(REPLICACOUNT, replicaCount);
+            doc = new Document(BUCKETNAME, bt.getName());
+            //doc.append(BUCKETNAME, bucketName);
+            doc.append(DISKPOOLID, bt.getDiskPoolId());
+            doc.append(BUCKETID, new Metadata(bt.getName(), "/").getBucketId());
+            doc.append(USERID, bt.getUserId());
+            doc.append(ACL, bt.getAcl());
+            doc.append(REPLICACOUNT, bt.getReplicaCount());
             
             doc.append(WEB, "");
             doc.append(CORS, "");
@@ -357,17 +356,17 @@ public class MongoDataRepository implements DataRepository{
             doc.append(CREATETIME, getCurrentDateTime());
             
             buckets.insertOne(doc);
-            database.createCollection(bucketName);
+            database.createCollection(bt.getName());
             // for index for object collection
             index = new Document(OBJID, 1);
             index.append(VERSIONID, 1);
             index.append(LASTVERSION, 1);
             index.append(DELETEMARKER, 1);
-            database.getCollection(bucketName).createIndex(index);
-            bt = new Bucket(bucketName, bucketName, diskPoolId);
+            database.getCollection(bt.getName()).createIndex(index);
+            //bt = new Bucket(bucketName, bucketName, diskPoolId);
             getUserDiskPool(bt);
         } catch(SQLException ex){
-            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bucketName), ex);
+            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bt.getName()), ex);
         }
         return bt;
     }
@@ -707,7 +706,7 @@ public class MongoDataRepository implements DataRepository{
 
     // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, S3Exception {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<>());
         resultUploads.setTruncated(false);
@@ -758,10 +757,10 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateObjectMeta(String bucketName, String objId, String versionid, String meta) throws SQLException {
+    public void updateObjectMeta(Metadata mt) throws SQLException {
         MongoCollection<Document> objects;
-        objects = database.getCollection(bucketName);
-        objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionid)), Updates.set(META, meta));
+        objects = database.getCollection(mt.getBucket());
+        objects.updateOne(Filters.and(Filters.eq(OBJID, mt.getObjId()), Filters.eq(VERSIONID, mt.getVersionId())), Updates.set(META, mt.getMeta()));
     }
 
     private int updateBucket(String bucketName, String key, String value){
@@ -1058,5 +1057,35 @@ public class MongoDataRepository implements DataRepository{
             list.add(mt);
         }
         return list;
+    }
+
+    @Override
+    public void updateObjectTagging(Metadata mt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateObjectAcl(Metadata mt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateBucketEncryption(Bucket bt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateBucketObjectLock(Bucket bt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateBucketPolicy(Bucket bt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

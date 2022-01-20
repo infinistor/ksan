@@ -487,7 +487,7 @@ public class ObjManager {
      * @throws ResourceNotFoundException     
      */
     
-    public int createBucket(String bucketName, String userId, String acl) throws ResourceAlreadyExistException, ResourceNotFoundException{
+    public int createBucket(String bucketName, String userName, String userId, String acl, String  encryption, String objectlock) throws ResourceAlreadyExistException, ResourceNotFoundException{
        
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         if (bt != null)
@@ -500,15 +500,19 @@ public class ObjManager {
                 throw new ResourceAlreadyExistException("Bucket (" +bucketName + ") already exist in the system!");
             }
         } catch (SQLException | ResourceNotFoundException ex) {
-            Bucket tmpBt = new Bucket();
-            tmpBt.setUserId(userId);
+            bt = new Bucket();
+            bt.setName(bucketName);
+            bt.setUserId(userId);
+            bt.setAcl(acl);
+            bt.setEncryption(encryption);
+            bt.setObjectLock(objectlock);
             
             try {
-                tmpBt = dbm.getUserDiskPool(tmpBt);
+                bt = dbm.getUserDiskPool(bt);
             } catch (SQLException ex1) {
                 throw new ResourceNotFoundException("User("+ userId +") not assocated with diskpool. Please create user to diskpool assocation first!");
             }
-            bt = dbm.insertBucket(bucketName, tmpBt.getDiskPoolId(), userId, acl, tmpBt.getReplicaCount());
+            bt = dbm.insertBucket(bt);
             obmCache.setBucketInCache(bt);
         }
         return 0;
@@ -537,7 +541,7 @@ public class ObjManager {
      * List all bucket exist in the system
      * @return list of bucket names or null if no bucket exist     
      */
-    public List<S3BucketSimpleInfo> listBucketSimpleInfo() {
+    public List<S3BucketSimpleInfo> listBucketSimpleInfo(String userName, String userId) {
         return obmCache.getBucketSimpleList();
         
         // 2021-11-18 temporary fix
@@ -675,10 +679,21 @@ public class ObjManager {
         return bt;
     }
 
-    public void updateObjectMeta(String bucketName, String objKey, String versionId, String meta) throws SQLException {
-        dbm.updateObjectMeta(bucketName, new Metadata(bucketName,objKey).getObjId(), versionId, meta);
+    /*public void updateObjectMeta(String bucketName, String objKey, String versionId, String meta) throws SQLException {*/
+    public void updateObjectMeta(Metadata mt) throws SQLException {
+        //Metadata mt = new Metadata(bucketName, objKey);
+        //mt.setVersionId(versionId, meta, Boolean.TRUE);
+        dbm.updateObjectMeta(mt);
     }
     
+    public void updateObjectTagging(Metadata mt) throws SQLException {
+        dbm.updateObjectTagging(mt);
+    }
+
+    public void updateObjectAcl(Metadata mt) throws SQLException {
+        dbm.updateObjectAcl(mt);
+    }
+
     public void updateBucketAcl(String bucketName, String acl) throws SQLException {
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         bt.setAcl(acl);
@@ -690,7 +705,13 @@ public class ObjManager {
         bt.setCors(cors);
         dbm.updateBucketCors(bt);
     }
-
+   
+    public void updateBucketEncryption(String bucketName, String encryption) throws SQLException {
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        bt.setEncryption(encryption);
+        dbm.updateBucketEncryption(bt);
+    }
+    
     public void updateBucketWeb(String bucketName, String web) throws SQLException {
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         bt.setWeb(web);
@@ -721,6 +742,27 @@ public class ObjManager {
         dbm.updateBucketReplication(bt);
     }
 
+    public void updateBucketObjectLock(String bucketName, String lock) throws SQLException {
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        bt.setObjectLock(lock);
+        dbm.updateBucketObjectLock(bt);
+    }
+
+    public void updateBucketPolicy(String bucketName, String policy) throws SQLException {
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        bt.setPolicy(policy);
+        dbm.updateBucketPolicy(bt);
+    }
+
+    public void updateBucketUsed(String bucketName, long size) throws SQLException {
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        dbm.updateBucketUsedSpace(bt, size);
+    }
+
+    public boolean isBucketDelete(String bucketName) throws SQLException {
+        return dbm.isBucketDeleted(bucketName);
+    }
+    
     public ObjectListParameter listObject(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), Integer.parseInt(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         return list.getList();
@@ -744,8 +786,20 @@ public class ObjManager {
         return list.getUnformatedList();
     }
     
-    // Add 2021-11-22
-    public boolean isBucketDelete(String bucketName) throws SQLException {
-        return dbm.isBucketDeleted(bucketName);
+    // for pool
+    public boolean isValid(){
+        return true;
     }
+    
+    public void close() throws SQLException {
+    }
+    
+    public void activate(){
+        
+    }
+    
+    public void deactivate(){
+        
+    }
+
 }
