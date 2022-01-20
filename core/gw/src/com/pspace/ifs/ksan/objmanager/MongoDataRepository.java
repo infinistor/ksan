@@ -15,7 +15,6 @@ import com.mongodb.client.model.Updates;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
@@ -1086,6 +1085,11 @@ public class MongoDataRepository implements DataRepository{
 
     @Override
     public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

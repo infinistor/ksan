@@ -13,8 +13,6 @@ package com.pspace.ifs.ksan.objmanager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
@@ -94,8 +92,8 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstGetParts;
     private PreparedStatement pstGetPartsMax;
     private PreparedStatement pstGetUploads;
-    
     private PreparedStatement pstIsUpload;
+    private PreparedStatement pstIsUploadPartNo;
     
     // for utility
     private PreparedStatement pstCreateUJob;
@@ -200,6 +198,7 @@ public class MysqlDataRepository implements DataRepository{
             pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
             pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
             pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
+            pstIsUploadPartNo = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
 
            
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
@@ -828,7 +827,15 @@ public class MysqlDataRepository implements DataRepository{
             callback.call(key, uploadid, "", partNo, "", "", "", isTrancated);
         }
     }
-
+    
+    @Override
+    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException{
+        pstIsUploadPartNo.clearParameters();
+        pstIsUploadPartNo.setString(1, uploadId);
+        pstIsUploadPartNo.setInt(2, partNo);
+        ResultSet rs = pstIsUploadPartNo.executeQuery();
+        return rs.next();
+    }
     /*@Override
     public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
         PreparedStatement stmt = this.con.prepareStatement(query.toString());

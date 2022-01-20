@@ -7,14 +7,12 @@ package com.pspace.ifs.ksan.objmanager;
 
 import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Filters;
 
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -222,5 +219,9 @@ public class ObjMultipart{
 
     public boolean isUploadId(String uploadid) throws SQLException {
         return dbm.isUploadId(uploadid);
+    }
+    
+    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException {
+        return dbm.isUploadIdPartNoExist(uploadId, partNo);
     }
 }
