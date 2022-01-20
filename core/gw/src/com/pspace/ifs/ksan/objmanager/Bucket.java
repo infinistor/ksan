@@ -151,7 +151,7 @@ public class Bucket {
         this.encryption = encryption;
     }
     
-    public void setObjectlock(String objectlock){
+    public void setObjectLock(String objectlock){
         this.objectlock = objectlock;
     }
     
