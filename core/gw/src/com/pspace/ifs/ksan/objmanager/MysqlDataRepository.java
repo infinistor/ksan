@@ -118,7 +118,7 @@ public class MysqlDataRepository implements DataRepository{
             this.connect();
             pstCreate = con.prepareStatement("CREATE TABLE IF NOT EXISTS MDSDBTable("
                     + "bucket VARCHAR(256) NOT NULL, objKey VARCHAR(2048) NOT NULL, size BIGINT NOT NULL default 0,"
-                    + "etag VARCHAR(1048) NOT NULL, meta VARCHAR(1048) NOT NULL, tag VARCHAR(1048) NOT NULL, "
+                    + "etag VARCHAR(1048) NOT NULL, meta VARCHAR(1048) NOT NULL, tag VARCHAR(2048) NOT NULL, "
                     + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
                     + "acl VARCHAR(2048) NOT NULL, "
                     + "lastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
