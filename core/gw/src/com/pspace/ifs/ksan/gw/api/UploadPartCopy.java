@@ -206,7 +206,7 @@ public class UploadPartCopy extends S3Request {
 		}
 
 		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
-		String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		// String diskID = GWDiskConfig.getInstance().getLocalDiskID();
 		String path = GWDiskConfig.getInstance().getLocalPath();
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
@@ -223,7 +223,7 @@ public class UploadPartCopy extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), diskID);
+		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize());
 		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
 		
 		s3Parameter.setFileSize(s3Object.getFileSize());

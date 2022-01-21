@@ -84,10 +84,10 @@ public class CreateBucket extends S3Request {
 		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			result = createBucket(bucket, GWConstants.BUCKET_DISKID_DEFAULT, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", objectLockXml);
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", objectLockXml);
 			putBucketVersioning(bucket, GWConstants.STATUS_ENABLED);
 		} else {
-			result = createBucket(bucket, GWConstants.BUCKET_DISKID_DEFAULT, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", "");
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", "");
 		}
 
 		if (result != 0) {
