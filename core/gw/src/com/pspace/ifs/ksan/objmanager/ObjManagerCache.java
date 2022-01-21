@@ -87,6 +87,10 @@ public class ObjManagerCache {
         bucketMap.putIfAbsent(bt.getName(), bt);
     }
     
+    public void updateBucketInCache(Bucket bt){
+        bucketMap.replace(bt.getName(), bt);
+    }
+    
     public void removeBucketFromCache(String bucketName){
         bucketMap.remove(bucketName);
     }

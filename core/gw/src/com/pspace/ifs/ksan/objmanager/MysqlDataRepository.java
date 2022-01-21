@@ -607,8 +607,8 @@ public class MysqlDataRepository implements DataRepository{
     public void updateObjectAcl(Metadata mt) throws SQLException {
         pstUpdateAcl.clearParameters();
         pstUpdateAcl.setString(1, mt.getAcl());
-        pstUpdateAcl.setString(3, mt.getObjId());
-        pstUpdateAcl.setString(4, mt.getVersionId());
+        pstUpdateAcl.setString(2, mt.getObjId());
+        pstUpdateAcl.setString(3, mt.getVersionId());
         pstUpdateAcl.executeUpdate();
     }
 

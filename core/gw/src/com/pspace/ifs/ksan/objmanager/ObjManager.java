@@ -17,6 +17,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
+import java.util.logging.Level;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -488,12 +489,13 @@ public class ObjManager {
      */
     
     public int createBucket(String bucketName, String userName, String userId, String acl, String  encryption, String objectlock) throws ResourceAlreadyExistException, ResourceNotFoundException{
-       
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        if (bt != null)
-            throw new ResourceAlreadyExistException("Bucket (" +bucketName + ") already exist in the system!");
+       Bucket bt;
         
         try {
+            bt = getBucket(bucketName);
+            if (bt != null)
+                throw new ResourceAlreadyExistException("Bucket (" +bucketName + ") already exist in the system!");
+            
             bt = dbm.selectBucket(bucketName);
             if (bt != null){
                 obmCache.setBucketInCache(bt);
@@ -601,7 +603,14 @@ public class ObjManager {
         
         primary.setPath(dpath);
         primary.setId(diskid);
-        String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
+        Bucket bt;
+        try {
+            bt = getBucket(bucketName);
+        } catch (SQLException ex) {
+            throw new ResourceNotFoundException("unable to get buckt " + bucketName + " in the system!");
+        }
+        
+        String dskPoolId = bt.getDiskPoolId();
         return dAlloc.allocDisk(dskPoolId, primary);
     }
     
@@ -618,7 +627,14 @@ public class ObjManager {
         String diskpoolid;
         DISK primary;
         DISK replica;
-        diskpoolid = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
+        Bucket bt;
+        
+        try {
+            bt = getBucket(bucketName);
+        } catch (SQLException ex) {
+            throw new ResourceNotFoundException("unable to get buckt " + bucketName + " in the system!");
+        }
+        diskpoolid = bt.getDiskPoolId();
         primary = obmCache.getDiskWithId(diskpoolid, pdiskid);
         replica = obmCache.getDiskWithId(diskpoolid, rdiskid);
         logger.debug(" PRIMARY > " + pdiskid + ", " + primary + " REPLICA >" + rdiskid + " ," + replica);
@@ -630,9 +646,12 @@ public class ObjManager {
     }
     
     public int putBucketVersioning(String bucketName, String versionState) throws ResourceNotFoundException, SQLException{
+        int ret;
         Bucket bt = dbm.selectBucket(bucketName);
         bt.setVersioning(versionState, "");
-        return dbm.updateBucketVersioning(bt);
+        ret = dbm.updateBucketVersioning(bt);
+        obmCache.updateBucketInCache(bt);
+        return ret;
     }
     
     public String getBucketVersioning(String bucketName) throws ResourceNotFoundException, SQLException{
@@ -694,69 +713,80 @@ public class ObjManager {
         dbm.updateObjectAcl(mt);
     }
 
-    public void updateBucketAcl(String bucketName, String acl) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketAcl(String bucketName, String acl) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setAcl(acl);
         dbm.updateBucketAcl(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketCors(String bucketName, String cors) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketCors(String bucketName, String cors) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setCors(cors);
         dbm.updateBucketCors(bt);
+        obmCache.updateBucketInCache(bt);
     }
    
-    public void updateBucketEncryption(String bucketName, String encryption) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketEncryption(String bucketName, String encryption) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setEncryption(encryption);
         dbm.updateBucketEncryption(bt);
+        obmCache.updateBucketInCache(bt);
     }
     
-    public void updateBucketWeb(String bucketName, String web) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketWeb(String bucketName, String web) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setWeb(web);
         dbm.updateBucketWeb(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketLifecycle(String bucketName, String lifecycle) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketLifecycle(String bucketName, String lifecycle) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setLifecycle(lifecycle);
         dbm.updateBucketLifecycle(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketAccess(String bucketName, String access) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketAccess(String bucketName, String access) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setAccess(access);
         dbm.updateBucketAccess(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketTagging(String bucketName, String tagging) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketTagging(String bucketName, String tagging) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setTagging(tagging);
         dbm.updateBucketTagging(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketReplication(String bucketName, String replicationXml) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketReplication(String bucketName, String replicationXml) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setReplication(replicationXml);
         dbm.updateBucketReplication(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketObjectLock(String bucketName, String lock) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketObjectLock(String bucketName, String lock) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setObjectLock(lock);
         dbm.updateBucketObjectLock(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketPolicy(String bucketName, String policy) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketPolicy(String bucketName, String policy) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         bt.setPolicy(policy);
         dbm.updateBucketPolicy(bt);
+        obmCache.updateBucketInCache(bt);
     }
 
-    public void updateBucketUsed(String bucketName, long size) throws SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+    public void updateBucketUsed(String bucketName, long size) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
         dbm.updateBucketUsedSpace(bt, size);
+        obmCache.updateBucketInCache(bt);
     }
 
     public boolean isBucketDelete(String bucketName) throws SQLException {
