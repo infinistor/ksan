@@ -758,7 +758,6 @@ public final class GWConstants {
 	public static final String LOG_COPY_OBJECT_INFO = "pub object : {}/{}, size={}, etag={}, tag={}, acl={}, versionId={}";
 
 	// CreateBucket
-	public static final String BUCKET_DISKID_DEFAULT = "1";
 	public static final String LOG_CREATE_BUCKET_START = "CreateBucket ...";
 	public static final String LOG_CREATE_BUCKET_NAME = "bucket : {}";
 	public static final String LOG_CREATE_BUCKET_EXIST = "bucket({}) is already exists";

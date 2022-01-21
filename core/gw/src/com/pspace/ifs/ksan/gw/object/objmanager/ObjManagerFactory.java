@@ -46,7 +46,7 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
 
     @Override
     public void passivateObject(PooledObject<ObjManager> p) throws Exception {
-        p.getObject().desactivate();
+        p.getObject().deactivate();
     }
 
     @Override

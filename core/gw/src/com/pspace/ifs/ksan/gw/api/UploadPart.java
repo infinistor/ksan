@@ -128,15 +128,15 @@ public class UploadPart extends S3Request {
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
-		String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		// String diskID = GWDiskConfig.getInstance().getLocalDiskID();
 		String path = GWDiskConfig.getInstance().getLocalPath();
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, null);
-		Part part = null;
+		Metadata part = null;
 		try {
-			part = objMultipart.getPartWithNo(uploadId, partNumberStr);
+			part = objMultipart.getObjectWithUploadIdPartNo(uploadId, partNumber);
 			if (part != null) {
-				objectOperation.deletePart(part.getDiskID());
+				objectOperation.deletePart(part.getPrimaryDisk().getId());
 			}
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
@@ -145,7 +145,7 @@ public class UploadPart extends S3Request {
 		
 		S3Object s3Object = objectOperation.uploadPart(path, length);
 		
-		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), diskID);
+		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize());
 		objMultipart.finishSingleUpload(uploadId, partNumber);
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());

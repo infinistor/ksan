@@ -809,11 +809,11 @@ public abstract class S3Request {
 		}
 	}
 
-	protected int createBucket(String bucket, String diskPoolId, String userName, String userId, String acl, String encryption, String objectlock) throws GWException {
+	protected int createBucket(String bucket, String userName, String userId, String acl, String encryption, String objectlock) throws GWException {
 		int result = 0;
 		try {
 			setObjManager();
-            result = objManager.createBucket(bucket, diskPoolId, userName, userId, acl, encryption, objectlock);
+            result = objManager.createBucket(bucket, userName, userId, acl, encryption, objectlock);
         } catch (ResourceAlreadyExistException e) {
 			PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);

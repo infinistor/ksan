@@ -52,7 +52,7 @@ public class GetObjectLockConfiguration extends S3Request {
 		
 		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ_ACP);
 
-		String objectLock = getBucketInfo().getObjectlock();
+		String objectLock = getBucketInfo().getObjectLock();
 		logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);
         if (Strings.isNullOrEmpty(objectLock)) {
             throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR, s3Parameter);

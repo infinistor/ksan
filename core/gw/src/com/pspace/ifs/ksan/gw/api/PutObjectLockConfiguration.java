@@ -57,7 +57,7 @@ public class PutObjectLockConfiguration extends S3Request {
 
 		String ObjectLockXml = dataPutBucketObjectLock.getObjectLockXml();
 
-		if(Strings.isNullOrEmpty(getBucketInfo().getObjectlock())) {
+		if(Strings.isNullOrEmpty(getBucketInfo().getObjectLock())) {
 			throw new GWException(GWErrorCode.INVALID_BUCKET_STATE, s3Parameter);
 		}
 
@@ -65,9 +65,9 @@ public class PutObjectLockConfiguration extends S3Request {
 			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 		}
 
-		logger.info(GWConstants.LOG_PUT_BUCKET_OBJECT_LOCK, getBucketInfo().getObjectlock());
+		logger.info(GWConstants.LOG_PUT_BUCKET_OBJECT_LOCK, getBucketInfo().getObjectLock());
 		try {
-			ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectlock(), ObjectLockConfiguration.class);
+			ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 			if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
 				throw new GWException(GWErrorCode.INVALID_BUCKET_STATE, s3Parameter);
 			}
