@@ -216,11 +216,12 @@ public class ObjManager {
      * @throws AllServiceOfflineException 
      * @throws ResourceNotFoundException 
      */
-    public Metadata createCopy(String bucket, String from, String versionId, String toBucket, String to) throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+    public Metadata createCopy(String bucket, String from, String versionId, String toBucket, String to) throws IOException, AllServiceOfflineException, ResourceNotFoundException, SQLException{
         Metadata mt;
         Metadata cpy_mt;
         
-        mt = dbm.selectSingleObject(bucket, from, versionId);
+        Bucket bt = getBucket(bucket);
+        mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, from, versionId);
         if (mt == null)
             throw new ResourceNotFoundException("Bucket(" + bucket +")  and key("+ from +") not exist!");
         
@@ -287,7 +288,8 @@ public class ObjManager {
         String bindingKey;
         String bindingKeyPref = "*.servers.unlink.";
         try {
-            mt = dbm.selectSingleObject(bucket, path, versionId);
+            Bucket bt = getBucket(bucket);
+            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
             // remove from DB
             dbm.deleteObject(bucket, path, versionId);
             
