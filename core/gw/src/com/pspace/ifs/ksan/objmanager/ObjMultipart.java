@@ -13,6 +13,7 @@ import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -221,7 +222,12 @@ public class ObjMultipart{
         return dbm.isUploadId(uploadid);
     }
     
-    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException {
-        return dbm.isUploadIdPartNoExist(uploadId, partNo);
+    public Metadata getObjectWithUploadIdPartNo(String uploadId, int partNo) throws SQLException {
+        try {
+            Bucket bt = dbm.selectBucket(bucket);
+            return dbm.getObjectWithUploadIdPart(bt.getDiskPoolId(), uploadId, partNo);
+        } catch (ResourceNotFoundException ex) {
+            return null;
+        }
     }
 }

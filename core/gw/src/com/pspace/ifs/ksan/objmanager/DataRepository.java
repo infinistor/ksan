@@ -71,7 +71,7 @@ public interface DataRepository {
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException;
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException;
     public boolean isUploadId(String uploadid) throws SQLException;
-    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException;
+    public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException;
     
     // for utility 
     public List<Object> utilJobMgt(String operation, List<Object> in);

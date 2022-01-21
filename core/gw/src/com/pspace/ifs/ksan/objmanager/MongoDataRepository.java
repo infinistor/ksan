@@ -1089,7 +1089,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException {
+    public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

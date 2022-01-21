@@ -198,7 +198,7 @@ public class MysqlDataRepository implements DataRepository{
             pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
             pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
             pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
-            pstIsUploadPartNo = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
+            pstIsUploadPartNo = con.prepareStatement("SELECT bucket, objKey FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
 
            
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
@@ -829,12 +829,24 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public boolean isUploadIdPartNoExist(String uploadId, int partNo) throws SQLException{
+    public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException{
         pstIsUploadPartNo.clearParameters();
         pstIsUploadPartNo.setString(1, uploadId);
         pstIsUploadPartNo.setInt(2, partNo);
         ResultSet rs = pstIsUploadPartNo.executeQuery();
-        return rs.next();
+        if (!rs.next()){
+            return null;
+        }
+        
+        String bucketName = rs.getString(1);
+        String objkey     = rs.getString(2);
+        Metadata mt;
+        try {
+            mt = selectSingleObject(diskPoolId, bucketName, objkey);
+        } catch (ResourceNotFoundException ex) {
+            return null;
+        }
+        return mt;
     }
     /*@Override
     public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
