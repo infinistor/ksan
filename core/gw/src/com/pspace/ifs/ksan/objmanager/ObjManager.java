@@ -788,6 +788,7 @@ public class ObjManager {
     public void updateBucketUsed(String bucketName, long size) throws SQLException, ResourceNotFoundException {
         Bucket bt = getBucket(bucketName);
         dbm.updateBucketUsedSpace(bt, size);
+        bt.setUsedSpace(bt.getUsedSpace() + size);
         obmCache.updateBucketInCache(bt);
     }
 
