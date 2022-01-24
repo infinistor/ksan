@@ -17,7 +17,6 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
-import java.util.logging.Level;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -804,7 +803,7 @@ public class ObjManager {
     }
 
     public ObjectListParameter listObjectV2(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
-        ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), Integer.parseInt(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
+        ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), s3ObjectList.getContinuationToken(), Integer.parseInt(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         return list.getList();
          //return dbm.listObjectV2(bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), Integer.parseInt(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
     }
