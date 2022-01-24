@@ -227,7 +227,8 @@ public class ObjManager {
         
         cpy_mt = new Metadata(toBucket, to);
         cpy_mt.setPrimaryDisk(mt.getPrimaryDisk());
-        cpy_mt.setReplicaDISK(mt.getReplicaDisk());
+        if (mt.isReplicaExist())
+            cpy_mt.setReplicaDISK(mt.getReplicaDisk());
         return cpy_mt;
     }
     
