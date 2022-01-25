@@ -7,27 +7,15 @@ package com.pspace.ifs.ksan.objmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -775,7 +763,7 @@ public class ListObject{
                  orObjQuery = new BasicDBObject();
                  //orObjQuery.put("bucketName", new BasicDBObject("$regex", bucketName).append("$options", "i"));
              }
-             System.out.println(" orObjQuery>>" +orObjQuery);
+             //System.out.println(" orObjQuery>>" +orObjQuery);
             return orObjQuery;
          }else{
             String sql; 
@@ -911,7 +899,7 @@ public class ListObject{
            
            andObjQuery = new BasicDBObject("$and", and.toArray());
            
-           System.out.println( "andObjQuery >>" + andObjQuery);
+           //System.out.println( "andObjQuery >>" + andObjQuery);
            return andObjQuery;
        }
        return null;
@@ -977,7 +965,7 @@ public class ListObject{
             bDelForceGte = false;
         }
 
-        System.out.println(pstmt.toString());
+        //System.out.println(pstmt.toString());
         return dbm.getObjectList(bucketName, pstmt, maxKeys);
     }
     
@@ -1000,7 +988,7 @@ public class ListObject{
             bDelForceGte = false;
 	}
         
-        System.out.println(pstmt.toString());
+        //System.out.println(pstmt.toString());
         return dbm.getObjectList(bucketName, pstmt, maxKeys);
     }
     
@@ -1025,7 +1013,7 @@ public class ListObject{
             bDelForceGte = false;
         }
 
-        System.out.println(pstmt.toString());
+        //System.out.println(pstmt.toString());
         return dbm.getObjectList(bucketName, pstmt, maxKeys);
     }
     
