@@ -258,12 +258,12 @@ public class MariaDB {
 	}
 
 	public void bucketIOMeterMin() {
-		String query = "insert into ioMeter(indate, user, bucket, upload, download) select now(), user_name, bucket_name, sum(request_length), sum(response_length) from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time group by user_name, bucket;";
+		String query = "insert into ioMeter(indate, user, bucket, upload, download) select now(), user_name, bucket_name, sum(request_length), sum(response_length) from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time and now() > date_time group by user_name, bucket_name;";
 		executeUpdate(query, null);
 	}
 
 	public void bucketAPIMeterMin() {
-		String query = "insert into apiMeter(indate, user, bucket, event, count) select now(), user_name, bucket_name, operation, count(*) as count from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time group by user_name, bucket, operation;";
+		String query = "insert into apiMeter(indate, user, bucket, event, count) select now(), user_name, bucket_name, operation, count(*) as count from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time and now() > date_time group by user_name, bucket_name, operation;";
 		executeUpdate(query, null);
 	}
 
@@ -274,15 +274,15 @@ public class MariaDB {
 		query = "truncate table `apiMeter`";
 		executeUpdate(query, null);
 
-		query = "delete from `apiMeter` where indate < DATE_SUB(now(), interval 180 day)";
+		query = "delete from `apiStat` where indate < DATE_SUB(now(), interval 180 day)";
 		executeUpdate(query, null);
 	}
 
 	public void bucketIOMeterHour() {
-		String query = "insert into ioStat(indate, user, bucket, upload, download) select now(), user, bucket, upload, download from ioMeter group by user, bucket";
+		String query = "insert into ioStat(indate, user, bucket, upload, download) select now(), user, bucket, sum(upload), sum(download) from ioMeter group by user, bucket";
 		executeUpdate(query, null);
 
-		query = "truncate table `ioStat`";
+		query = "truncate table `ioMeter`";
 		executeUpdate(query, null);
 
 		query = "delete from `ioStat` where indate < DATE_SUB(now(), interval 180 day)";
@@ -293,7 +293,7 @@ public class MariaDB {
 		String query = "insert into usageStat(indate, user, bucket, used, filecount) select now(), user, bucket, used, filecount from bucketlist;";
 		executeUpdate(query, null);
 
-		query = "truncate table `usageStat`";
+		query = "truncate table `usageMeter`";
 		executeUpdate(query, null);
 
 		query = "delete from `usageStat` where indate < DATE_SUB(now(), interval 180 day)";
