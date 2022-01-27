@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 public class PrintStack {
 	public static void logging(Logger log, Exception e) {
 		log.error(e.getMessage());
-		for ( StackTraceElement k : e.getStackTrace() ) {
-			log.error(k.toString());
+		for ( StackTraceElement ste : e.getStackTrace() ) {
+			log.error(ste.toString());
 		}
 	}
 }

@@ -11,100 +11,15 @@
 
 package com.pspace.ifs.watcher.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.TimeZone;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
 import com.google.common.base.Splitter;
-import com.google.common.escape.Escaper;
-import com.google.common.net.PercentEscaper;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 public class WatcherUtils {
 
-	private static final Logger logger = LoggerFactory.getLogger(WatcherUtils.class);
-	private static final Escaper urlEscaper = new PercentEscaper("*-./_", false);
-
-	/**
-	 * Parse ISO 8601 timestamp into seconds since 1970.
-	 * 
-	 */
-	public static long parseTime8601(String date) {
-		SimpleDateFormat formatter = null;
-		if(date == null) {
-			return 0;
-		}
-
-		if( date.length() >= 23 ) {
-			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		} else if ( date.contains(":") && date.length() < 23 ) {
-			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-		} else if ( !date.contains(":") && date.length() < 23 ) {
-			formatter = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
-		}
-
-		formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-		logger.debug("8601date {}", date);
-		try {
-			return formatter.parse(date).getTime() / 1000;
-		} catch (ParseException pe) {
-			PrintStack.logging(logger, pe);
-		}
-
-		return 0;
-	}
-
-	public static String maybeQuoteETag(String eTag) {
-		if (!eTag.startsWith("\"") && !eTag.endsWith("\"")) {
-			eTag = "\"" + eTag + "\"";
-		}
-		return eTag;
-	}
-
-	private static boolean startsWithIgnoreCase(String string, String prefix) {
-		return string.toLowerCase().startsWith(prefix.toLowerCase());
-	}
-
-	public static boolean isField(String string, String field) {
-		return startsWithIgnoreCase(string, "Content-Disposition: form-data; name=\"" + field + "\"");
-	}
-
-	public static boolean startsField(String string, String field) {
-		return startsWithIgnoreCase(string, "Content-Disposition: form-data; name=\"" + field);
-	}
-
-	static byte[] hmac(String algorithm, byte[] data, byte[] key) {
-		try {
-			Mac mac = Mac.getInstance(algorithm);
-			mac.init(new SecretKeySpec(key, algorithm));
-			return mac.doFinal(data);
-		} catch (InvalidKeyException | NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	// Encode blob name if client requests it. This allows for characters
-	// which XML 1.0 cannot represent.
-	public static String encodeBlob(String encodingType, String blobName) {
-		if (encodingType != null && encodingType.equalsIgnoreCase("url")) {
-			return urlEscaper.escape(blobName);
-		} else {
-			return blobName;
-		}
-	}
+	//private static final Logger logger = LoggerFactory.getLogger(WatcherUtils.class);
 
 	public static boolean validateIpAddress(String string) {
 		List<String> parts = Splitter.on('.').splitToList(string);
@@ -122,38 +37,6 @@ public class WatcherUtils {
 			}
 		}
 		return true;
-	}
-
-	public static boolean constantTimeEquals(String x, String y) {
-		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8), y.getBytes(StandardCharsets.UTF_8));
-	}
-
-	public static String infini_passdecoding(String infini_password) throws Exception {
-		String password = null;
-		try {
-			Process p = Runtime.getRuntime().exec("/usr/local/pspace/bin/ifs_passwd_dec " + infini_password);
-			int exitcode = p.waitFor();
-
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line = reader.readLine();
-			password = line;
-
-			if (line != null) {
-				if (exitcode != 0) {
-					throw new Exception("Password decoding fail");
-				}
-			} else {
-				throw new Exception("Password decoding fail");
-			}
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw e;
-		} catch (InterruptedException e) {
-			PrintStack.logging(logger, e);
-			throw e;
-		}
-
-		return password;
 	}
 
 	public static boolean likematch(String first, String second) {

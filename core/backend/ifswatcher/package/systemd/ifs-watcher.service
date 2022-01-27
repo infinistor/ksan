@@ -1,0 +1,10 @@
+[Unit]
+Description=Systemd ifs-watcher Daemon
+
+[Service]
+Type=simple
+ExecStart="java -jar -Dlogback.configurationFile=/usr/local/pspace/bin/ifs-wathcer.xml /usr/local/pspace/bin/ifs-watcher"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
