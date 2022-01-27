@@ -7,11 +7,15 @@
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
+ */
 package com.pspace.ifs.ksan.objmanager;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -29,13 +33,16 @@ public class Bucket {
     private String lifecycle;
     private String access;
     private String tagging;
-    private String encryption;
+    private String encryption; // new
     private String replication;
-    private String objectlock;
-    private String policy;
-    private String userName;
+    private String objectlock; // new
+    private String policy; // new
+    private String userName; // new
     private String userId;
     private Date createTime;
+    private int replicaCount;
+    private long usedSpace; // new
+    private long fileCount; // new
     
     public Bucket(){
         name = "";
@@ -44,9 +51,15 @@ public class Bucket {
         versioning = "";
         mfaDelete = "";
         acl = "";
-        userName = "";
         userId = "";
-        createTime = null;
+        createTime = new Date(0);
+        replicaCount= 0;
+        encryption = "";
+        objectlock = "";
+        policy = "";
+        userName = "";
+        usedSpace = 0;
+        fileCount = 0;
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -56,36 +69,57 @@ public class Bucket {
         versioning = "";
         mfaDelete = "";
         acl = "";
-        userName = "";
         userId = "";
-        createTime = null;
+        createTime = new Date(0);
+        replicaCount = 0;
+        encryption = "";
+        objectlock = "";
+        policy = "";
+        userName = "";
+        usedSpace = 0;
+        fileCount = 0;
     }
     
-    /*public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete){
-        this.name = name;
-        this.id   = id;
-        this.diskPoolId = diskPoolId;
-        this.versioning = versioning;
-        this.mfaDelete = mfaDelete;
-        acl = "";
-        userId = "";
-        createTime = null;
-    }*/
-
-    public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userName, String userId, String acl, Date createTime){
+    public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
         this.name = name;
         this.id   = id;
         this.diskPoolId = diskPoolId;
         this.versioning = versioning;
         this.mfaDelete = "";
         this.acl = acl;
-        this.userName = userName;
-        this.userId = userId;
-        this.createTime = createTime;
+        this.userId = userId; 
+        this.createTime = new Date(0);
+        if (createTime != null)
+            this.createTime = createTime;
+          
+        replicaCount = 0;
+        encryption = "";
+        objectlock = "";
+        policy = "";
+        userName = "";
+        usedSpace = 0;
+        fileCount = 0;
+    }
+    
+    private void setHashOfName() {
+        byte[] bytesOfMessage;
+        byte[] thedigest;
+        MessageDigest md;
+        String res;
+        
+        try{
+            bytesOfMessage = name.getBytes("UTF-8");
+            md = MessageDigest.getInstance("MD5"); //"SHA-1"
+            thedigest = md.digest(bytesOfMessage);
+            id = DatatypeConverter.printHexBinary(thedigest);
+        } catch(UnsupportedEncodingException | NoSuchAlgorithmException ex){
+            id = name;
+        } 
     }
     
     public void setName(String name){
         this.name = name;
+        this.setHashOfName();
     }
     
     public void setId(String id){
@@ -101,9 +135,6 @@ public class Bucket {
         this.mfaDelete = mfaDelete;
     }
 
-    public void serUserName(String userName) {
-        this.userName = userName;
-    }
     public void setUserId(String userId) {
         this.userId = userId;
     }
@@ -114,6 +145,58 @@ public class Bucket {
 
     public void setCreateTime(Date date) {
         this.createTime = date;
+    }
+    
+    public void setEncryption(String encryption){
+        this.encryption = encryption;
+    }
+    
+    public void setObjectLock(String objectlock){
+        this.objectlock = objectlock;
+    }
+    
+    public void setPolicy(String policy){
+        this.policy = policy;
+    }
+    
+    public void setUserName(String userName){
+        this.userName = userName;
+    }
+    
+    public void setUsedSpace(long usedSpace){
+        this.usedSpace = usedSpace;
+    }
+    
+    public void setFileCount(long fileCount){
+        this.fileCount = fileCount;
+    }
+    
+    public void setWeb(String web) {
+        this.web = web;
+    }
+ 
+    public void setCors(String cors) {
+        this.cors = cors;
+    }
+    
+    public void setLifecycle(String lifecycle) {
+        this.lifecycle = lifecycle;
+    }
+     
+    public void setAccess(String access) {
+        this.access = access;
+    }
+    
+    public void setTagging(String tagging) {
+        this.tagging = tagging;
+    }
+     
+    public void setReplication(String replication) {
+        this.replication = replication;
+    }
+    
+    public void setReplicaCount(int replicaCount){
+        this.replicaCount = replicaCount;
     }
     
     public String getName(){
@@ -138,10 +221,6 @@ public class Bucket {
         return mfaDelete;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
     public String getUserId() {
         return userId;
     }
@@ -158,78 +237,61 @@ public class Bucket {
         return web;
     }
 
-    public void setWeb(String web) {
-        this.web = web;
-    }
-
+    
     public String getCors() {
         return cors;
     }
 
-    public void setCors(String cors) {
-        this.cors = cors;
+    public int getReplicaCount(){
+        return replicaCount;
     }
+    
+    
 
     public String getLifecycle() {
         return lifecycle;
     }
 
-    public void setLifecycle(String lifecycle) {
-        this.lifecycle = lifecycle;
-    }
-
     public String getAccess() {
         return access;
     }
-
-    public void setAccess(String access) {
-        this.access = access;
-    }
-
+    
     public String getTagging() {
         return tagging;
     }
-
-    public void setTagging(String tagging) {
-        this.tagging = tagging;
-    }
-
+    
     public String getReplication() {
         return replication;
     }
 
-    public void setReplication(String replication) {
-        this.replication = replication;
+    public String getEncryption(){
+        return this.encryption;
     }
     
-    public String getEncryption() {
-        return encryption;
+    public String getObjectLock(){
+        return this.objectlock;
     }
-
-    public void setEncryption(String encryption) {
-        this.encryption = encryption;
+    
+    public String  getPolicy(){
+        return this.policy;
     }
-
-    public String getObjectlock() {
-        return objectlock;
+    
+    public String getUserName(){
+        return this.userName;
     }
-
-    public void setObjectlock(String objectlock) {
-        this.objectlock = objectlock;
+    
+    public long getUsedSpace(){
+        return this.usedSpace;
     }
-
-    public String getPolicy() {
-        return policy;
+    
+    public long getFileCount(){
+        return this.fileCount;
     }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
+    
     @Override
     public String toString(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String fomatTime = formatter.format(this.createTime);
+        String fomatTime = createTime == null ? "" :formatter.format(createTime);
         return String.format(
                 "{name : %s id : %s diskPoolId : %s versioning : %s MfaDelete : %s userId : %s acl : %s createTime : %s}", 
                 this.getName(), this.getId(), 

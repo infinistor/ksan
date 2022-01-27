@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 public class HeadObject extends S3Request {
 
-	public HeadObject(S3Parameter ip) {
-		super(ip);
+	public HeadObject(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(HeadObject.class);
 	}
 
@@ -60,7 +60,7 @@ public class HeadObject extends S3Request {
 		String expectedBucketOwner = dataHeadObject.getExpectedBucketOwner();
 		if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
 			if (!isBucketOwner(expectedBucketOwner)) {
-				throw new GWException(GWErrorCode.ACCESS_DENIED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
 
@@ -72,7 +72,7 @@ public class HeadObject extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
 		// meta info
@@ -98,7 +98,7 @@ public class HeadObject extends S3Request {
 			GWUtils.addMetadataToResponse(s3Parameter.getRequest(), s3Parameter.getResponse(), s3Metadata, null, null);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

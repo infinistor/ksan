@@ -24,8 +24,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class GetBucketTagging extends S3Request {
-    public GetBucketTagging(S3Parameter ip) {
-		super(ip);
+    public GetBucketTagging(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetBucketTagging.class);
 	}
 
@@ -50,7 +50,7 @@ public class GetBucketTagging extends S3Request {
 		String tag = getBucketInfo().getTagging();
 		logger.debug(GWConstants.LOG_TAGGING, tag);
 		if (Strings.isNullOrEmpty(tag)) {
-			throw new GWException(GWErrorCode.NO_SUCH_TAG_SET_ERROR);
+			throw new GWException(GWErrorCode.NO_SUCH_TAG_SET_ERROR, s3Parameter);
 		}
         
 		try {
@@ -60,7 +60,7 @@ public class GetBucketTagging extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 }

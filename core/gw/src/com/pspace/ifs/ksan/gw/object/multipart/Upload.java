@@ -13,9 +13,7 @@ package com.pspace.ifs.ksan.gw.object.multipart;
 import java.util.Date;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
@@ -38,12 +36,8 @@ public class Upload {
         ObjectMapper jsonMapper = new ObjectMapper();
 		try {
             s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
-        } catch (JsonMappingException e) {
-            PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
         } catch (JsonProcessingException e) {
             PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -73,7 +73,7 @@ public class GetBucketAcl extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

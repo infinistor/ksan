@@ -28,8 +28,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class GetBucketLocation extends S3Request {
-    public GetBucketLocation(S3Parameter ip) {
-		super(ip);
+    public GetBucketLocation(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetBucketLocation.class);
 	}
 
@@ -64,7 +64,7 @@ public class GetBucketLocation extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (XMLStreamException | IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 

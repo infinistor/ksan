@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 
 public class PutBucketVersioning extends S3Request {
 
-	public PutBucketVersioning(S3Parameter ip) {
-		super(ip);
+	public PutBucketVersioning(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutBucketVersioning.class);
 	}
 
@@ -61,7 +61,7 @@ public class PutBucketVersioning extends S3Request {
 				versioning = new XmlMapper().readValue(versionXml, Versioning.class);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
 			if (!Strings.isNullOrEmpty(versioning.status)) {

@@ -29,16 +29,13 @@ public final class GWException extends Exception {
                 ImmutableMap.<String, String>of());
     }
 
-    public GWException(GWErrorCode error, String message) {
-        this(error, message, (Throwable) null,
-                ImmutableMap.<String, String>of());
+    public GWException(GWErrorCode error, String message, Throwable cause,
+                Map<String, String> elements) {
+        super(requireNonNull(message), cause);
+        this.error = requireNonNull(error);
+        this.elements = ImmutableMap.copyOf(elements);
     }
-
-    public GWException(GWErrorCode error, Throwable cause) {
-        this(error, error.getMessage(), cause,
-                ImmutableMap.<String, String>of());
-    }
-
+    
     public GWException(GWErrorCode error, Throwable cause, S3Parameter s3Parameter) {
         this(error, error.getMessage(), cause,
                 ImmutableMap.<String, String>of(), s3Parameter);
@@ -47,10 +44,6 @@ public final class GWException extends Exception {
     public GWException(GWErrorCode error, String message, S3Parameter s3Parameter) {
         this(error, message, (Throwable) null,
                 ImmutableMap.<String, String>of(), s3Parameter);
-    }
-    
-    public GWException(GWErrorCode error, String message, Throwable cause, S3Parameter s3Parameter) {
-        this(error, message, cause, ImmutableMap.<String, String>of(), s3Parameter);
     }
 
     public GWException(GWErrorCode error, String message, Throwable cause, Map<String, String> elements, S3Parameter s3Parameter) {
@@ -65,17 +58,6 @@ public final class GWException extends Exception {
         this.elements = ImmutableMap.copyOf(elements);
     }
 
-    public GWException(GWErrorCode error, String message, Throwable cause) {
-        this(error, message, cause, ImmutableMap.<String, String>of());
-    }
-
-    public GWException(GWErrorCode error, String message, Throwable cause,
-                Map<String, String> elements) {
-        super(requireNonNull(message), cause);
-        this.error = requireNonNull(error);
-        this.elements = ImmutableMap.copyOf(elements);
-    }
-
     public GWException(GWErrorCode error, S3Parameter s3Parameter) {
         this(error, error.getMessage(), (Throwable) null, ImmutableMap.<String, String>of(), s3Parameter);
     }
@@ -86,6 +68,10 @@ public final class GWException extends Exception {
 
     public Map<String, String> getElements() {
         return elements;
+    }
+
+    public S3Parameter getS3Parameter() {
+        return s3Parameter;
     }
 
     @Override

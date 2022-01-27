@@ -176,16 +176,16 @@ public class GWUtils {
 		}
 	}
 
-	public static void isTimeSkewed(long date, int maxTimeSkew) throws GWException  {
+	public static void isTimeSkewed(long date, int maxTimeSkew, S3Parameter s3Parameter) throws GWException  {
 		if (date < 0) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
 		long now = System.currentTimeMillis() / 1000;
 		if (now + maxTimeSkew < date ||	now - maxTimeSkew > date) {
 			logger.debug(GWConstants.LOG_UTILS_MAX_TIME_SKEW, maxTimeSkew);
 			logger.error(GWConstants.LOG_UTILS_TIME_SKEWED, date, now);
-			throw new GWException(GWErrorCode.REQUEST_TIME_TOO_SKEWED);
+			throw new GWException(GWErrorCode.REQUEST_TIME_TOO_SKEWED, s3Parameter);
 		}
 	}
 
@@ -438,7 +438,7 @@ public class GWUtils {
 		return false;
 	}
 
-	public static boolean isPublicPolicyBucket(String policyInfo) throws GWException {
+	public static boolean isPublicPolicyBucket(String policyInfo, S3Parameter s3Parameter) throws GWException {
 		boolean effect = false;
 		if (Strings.isNullOrEmpty(policyInfo)) {
 			return effect;
@@ -455,10 +455,10 @@ public class GWUtils {
 			}
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		// check policy - loop statement
@@ -543,7 +543,7 @@ public class GWUtils {
 		return effect;
 	}
 
-	public static String makeOriginalXml(String xml) throws GWException {
+	public static String makeOriginalXml(String xml, S3Parameter s3Parameter) throws GWException {
 		logger.debug(GWConstants.LOG_UTILS_SOURCE_ACL, xml);
 		if (Strings.isNullOrEmpty(xml)) {
 			return "";
@@ -558,7 +558,7 @@ public class GWUtils {
 			actualObj = objectMapper.readValue(xml, AccessControlPolicyJson.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		AccessControlPolicy accessControlPolicy = new AccessControlPolicy();
@@ -637,7 +637,7 @@ public class GWUtils {
 			aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		aclXml = aclXml.replace(GWConstants.ACCESS_CONTROL_POLICY, GWConstants.ACCESS_CONTROL_POLICY_XMLNS); 
@@ -692,7 +692,8 @@ public class GWUtils {
 									String getGrantWrite, 
 									String getGrantFullControl, 
 									String getGrantReadAcp, 
-									String getGrantWriteAcp) throws GWException {
+									String getGrantWriteAcp, 
+									S3Parameter s3Parameter) throws GWException {
 		
 		PublicAccessBlockConfiguration pabc = null;
 		if (bucketInfo != null && !Strings.isNullOrEmpty(bucketInfo.getAccess())) {
@@ -700,7 +701,7 @@ public class GWUtils {
 				pabc = new XmlMapper().readValue(bucketInfo.getAccess(), PublicAccessBlockConfiguration.class);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 		logger.info(GWConstants.LOG_UTILS_CANNED_ACL, cannedAcl);
@@ -746,7 +747,7 @@ public class GWUtils {
 			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ.equalsIgnoreCase(cannedAcl)) {
 				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
 					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				Grant priUser = new Grant();
 				priUser.grantee = new Grantee();
@@ -765,7 +766,7 @@ public class GWUtils {
 			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ_WRITE.equalsIgnoreCase(cannedAcl)) {
 				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
 					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				Grant priUser = new Grant();
 				priUser.grantee = new Grantee();
@@ -791,7 +792,7 @@ public class GWUtils {
 			} else if (GWConstants.CANNED_ACLS_AUTHENTICATED_READ.equalsIgnoreCase(cannedAcl)) {
 				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
 					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				Grant priUser = new Grant();
 				priUser.grantee = new Grantee();
@@ -841,10 +842,10 @@ public class GWUtils {
 				accessControlPolicy.aclList.grants.add(bucketOwnerFullUser);
 			} else if (GWConstants.CANNED_ACLS.contains(cannedAcl)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_ACCESS_CANNED_ACL, cannedAcl);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
 				logger.error(HttpServletResponse.SC_BAD_REQUEST + GWConstants.LOG_ACCESS_PROCESS_FAILED);
-				throw new GWException(GWErrorCode.BAD_REQUEST);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 			}
 		}
 
@@ -870,7 +871,7 @@ public class GWUtils {
 				aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -882,25 +883,25 @@ public class GWUtils {
 			if (checkAcl.aclList.grants != null) {
 				for (Grant user : checkAcl.aclList.grants) {
 					if (!Strings.isNullOrEmpty(user.grantee.displayName)
-							&& GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName) == null) {
+							&& GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName, s3Parameter) == null) {
 						logger.info(user.grantee.displayName);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
 					if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
 						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
-					if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id) == null) {
+					if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
 						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 				}
 			}
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		return aclXml;

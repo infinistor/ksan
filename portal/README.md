@@ -15,8 +15,8 @@
   - Network Interface Vlan Management
 - Service Management
 - Server Management
-- Master Management
-- Swigger를 통한 Api 테스트 기능 제공(접속 주소 : `https://<ip>:<port>/api`)
+- Portal User Management
+- Swagger를 통한 Api 테스트 기능 제공(접속 주소 : `https://<ip>:<port>/api`)
 
 
 ## 빌드 가이드
@@ -37,8 +37,37 @@ systemctl start docker
 
 #### dotnet 구성
 ``` shell
-cd etc/aspnetcore_for_api
+cd setup/aspnetcore_for_api
 docker build -t pspace/aspnetcore_for_api:latest .
+```
+##### dotnet 구성이 안될 경우
+``` shell
+# docker 버전 확인
+docker -v
+Docker version 1.13.1, build 0be3e21/1.13.1
+# 버전이 1.13.1일 경우 버전 업데이트
+yum update
+# 기존 버전 삭제
+yum remove -y docker-common
+# Docker Update에 필요한 Tool 설치
+yum install -y yum-utils device-mapper-persistent-data lvm2
+# Docker 공식 Repository 추가
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+  # peer's certificate issuer is not recognized에러 발생시
+  yum install ca-certificates
+  update-ca-trust force-enable
+  # 다시 Docker 공식 Repository 추가
+  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 설치가능한 Docker version 확인
+yum list docker-ce --showduplicates | sort -r
+# 최신 Docker version 설치
+yum install -y docker-ce
+# Docker를 부팅시 실행되도록 설정
+systemctl enable docker
+# Docker 시작
+systemctl start docker
 ```
 
 ### 빌드
@@ -47,7 +76,7 @@ docker build -t pspace/aspnetcore_for_api:latest .
 
 #### gateway 빌드
 ``` shell
-cd etc/gateway
+cd setup/gateway
 docker build -t pspace/ksangateway:latest .
 docker save -o ~/Downloads/ksangateway.tar pspace/ksangateway
 ```
@@ -129,6 +158,7 @@ docker create -i -t \
 --net ksannet \
 --ip 172.10.0.11 \
 -v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/logs:/app/logs \
 -v /home/ksan/share:/home/share \
 -v /home/ksan/custom:/app/wwwroot/custom \
 -v /home/ksan/session:/home/session \
@@ -143,10 +173,10 @@ docker create -i -t \
 --net ksannet \
 --ip 172.10.0.21 \
 -v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/logs:/app/logs \
 -v /home/ksan/share:/home/share \
 -v /home/ksan/custom:/app/wwwroot/custom \
 -v /home/ksan/data:/app/wwwroot/data \
--v /home/ksan/logs:/app/logs \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
 --name ksanapi \
@@ -166,9 +196,9 @@ pspace/ksangateway:latest
 
 #### 파일 복사 및 권한 수정
 ``` shell
-cp /home/ksan/share/ksanapi.service /etc/systemd/system/ksanapi.service
-cp /home/ksan/share/ksanportal.service /etc/systemd/system/ksanportal.service
-cp /home/ksan/share/ksangateway.service /etc/systemd/system/ksangateway.service
+cp ./setup/ksanapi.service /etc/systemd/system/ksanapi.service
+cp ./setup/ksanportal.service /etc/systemd/system/ksanportal.service
+cp ./setup/ksangateway.service /etc/systemd/system/ksangateway.service
 
 chmod 777 /etc/systemd/system/ksanapi.service
 chmod 777 /etc/systemd/system/ksanportal.service
@@ -176,7 +206,17 @@ chmod 777 /etc/systemd/system/ksangateway.service
 ```
 
 #### Api 설정
-docker cp /root/appsettings.json ksanapi:/app
+- `./PortalSvr/appsettings sample.json`에 설정 예시가 존재합니다.
+- 예시에 맞게 설정한 뒤 파일명을 `appsettings.json`으로 변경해야합니다.
+- 이후 아래의 명령어로 적용 가능합니다.
+  ``` shell
+  docker cp /root/appsettings.json ksanapi:/app
+  ```
+- 기존 설정을 변경 하고 싶을 경우
+  ``` shell
+  docker cp /root/appsettings.json ksanapi:/app
+  systemctl restart ksanapi
+  ```
 
 #### Portal 서비스 등록 및 실행
 ``` shell
@@ -189,8 +229,13 @@ systemctl enable ksangateway.service
 systemctl start ksanapi
 systemctl start ksanportal
 systemctl start ksangateway
+
+# ksangateway는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료
+# httpd를 종료하고 ksangateway 재실행
+systemctl stop httpd
+systemctl start ksangateway
 ```
-#### swigger 접속 주소
+#### Swagger 접속 주소
 - `https://<ip>:<port>/api`
 - 별다른 설정 변경이 없을 시 : `https://localhost:5443/api`
 

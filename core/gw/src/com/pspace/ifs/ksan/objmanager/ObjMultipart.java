@@ -1,23 +1,19 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Filters;
+
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.gw.object.multipart.Upload;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -25,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -206,7 +201,12 @@ public class ObjMultipart{
     }
 
     public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
-        return dbm.getParts(uploadId, partNumberMarker, maxParts);
+        int partNumberMarkerDec = 0;
+        
+        if (!Strings.isNullOrEmpty(partNumberMarker))
+            partNumberMarkerDec = Integer.valueOf(partNumberMarker);
+        
+        return dbm.getParts(uploadId, partNumberMarkerDec, maxParts);
     }
 
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
@@ -220,5 +220,14 @@ public class ObjMultipart{
 
     public boolean isUploadId(String uploadid) throws SQLException {
         return dbm.isUploadId(uploadid);
+    }
+    
+    public Metadata getObjectWithUploadIdPartNo(String uploadId, int partNo) throws SQLException {
+        try {
+            Bucket bt = dbm.selectBucket(bucket);
+            return dbm.getObjectWithUploadIdPart(bt.getDiskPoolId(), uploadId, partNo);
+        } catch (ResourceNotFoundException ex) {
+            return null;
+        }
     }
 }

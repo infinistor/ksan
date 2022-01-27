@@ -76,21 +76,22 @@ public class CreateBucket extends S3Request {
 										dataCreateBucket.getGrantWrite(), 
 										dataCreateBucket.getGrantFullControl(), 
 										dataCreateBucket.getGrantReadAcp(), 
-										dataCreateBucket.getGrantWriteAcp());
+										dataCreateBucket.getGrantWriteAcp(),
+										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;
 		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			result = createBucket(bucket, GWConstants.BUCKET_DISKID_DEFAULT, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", objectLockXml);
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", objectLockXml);
 			putBucketVersioning(bucket, GWConstants.STATUS_ENABLED);
 		} else {
-			result = createBucket(bucket, GWConstants.BUCKET_DISKID_DEFAULT, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", "");
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", "");
 		}
 
 		if (result != 0) {
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().addHeader(HttpHeaders.LOCATION, GWConstants.SLASH + bucket);
@@ -115,12 +116,12 @@ public class CreateBucket extends S3Request {
 	private void checkBucketName(String bucket) throws GWException {
 		if (Strings.isNullOrEmpty(bucket)) {
 			logger.error(GWConstants.LOG_BUCKET_IS_NULL);
-			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED);
+			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED, s3Parameter);
 		}
 		
 		if (!isValidBucketName(bucket)) {
 			logger.error(GWConstants.LOG_CREATE_BUCKET_INVALID, bucket);
-			throw new GWException(GWErrorCode.INVALID_BUCKET_NAME);
+			throw new GWException(GWErrorCode.INVALID_BUCKET_NAME, s3Parameter);
 		}
 	}
 }

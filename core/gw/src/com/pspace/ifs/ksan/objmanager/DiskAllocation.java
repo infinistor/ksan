@@ -1,13 +1,8 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.pspace.ifs.ksan.objmanager;
 
 import org.slf4j.Logger;
@@ -63,24 +58,45 @@ public class DiskAllocation {
          dsk.setOSDIP(replica.getName());
          return dsk;
     }
-     
-    public int allocDisk(Metadata md, String dskPoolId, int algorithm) 
+    
+    private DISKPOOL getDiskPool(String dskPoolId) throws ResourceNotFoundException{
+       DISKPOOL dskPool; 
+       try  {
+           dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+       } catch(ResourceNotFoundException ex){
+           obmCache.loadDiskPools();
+           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           //obmCache.displayDiskPoolList();
+           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+           if(dskPool != null)
+               System.out.println(">>>Get disk pool is fixed!!!!!");
+       }
+       return dskPool;
+    }
+    
+    public int allocDisk(Metadata md, String dskPoolId, int replicaCount, int algorithm) 
              throws IOException, AllServiceOfflineException{
          DISK primaryDisk;
          DISK replicaDisk;
          DISKPOOL dskPool;
          try{
              logger.debug("disk pool id : {}", dskPoolId);
-             dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+             dskPool = getDiskPool(dskPoolId);
              if (dskPool == null) {
-                logger.error("there is no bucket in the system!");
-                throw new ResourceNotFoundException("there is no bucket in the system!");
+                logger.error("there is no diskpool in the system!");
+                throw new ResourceNotFoundException("there is no diskpool in the system!");
              }
              
              SERVER primary = this.allocPrimaryServer(algorithm, dskPool);
              primaryDisk = primary.getNextDisk();
              primaryDisk.setOSDIP(primary.getName());
              md.setPrimaryDisk(primaryDisk);
+             md.setReplicaCount(replicaCount);
+             if (replicaCount == 1){
+                 return 0;
+             }
+             
              try{
                 replicaDisk = this.allocReplicaDisk(dskPool, primary);
                 md.setReplicaDISK(replicaDisk);
@@ -103,7 +119,7 @@ public class DiskAllocation {
         SERVER svr;
         
         logger.debug("disk pool id : {}", dskPoolId);
-        dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+        dskPool = getDiskPool(dskPoolId);
         if (dskPool == null) {
             logger.error("there is no bucket in the system!");
             throw new ResourceNotFoundException("there is no bucket in the system!");
@@ -121,7 +137,7 @@ public class DiskAllocation {
         SERVER rsvr2;
         
         try {
-            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
+            dskPool = getDiskPool(dskPoolId);
             if (dskPool == null)
                 return false;
              

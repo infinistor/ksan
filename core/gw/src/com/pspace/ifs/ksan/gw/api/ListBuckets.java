@@ -70,7 +70,7 @@ public class ListBuckets extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (XMLStreamException | IOException e) {
             PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
     }
     

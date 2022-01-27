@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 public class GetBucketVersioning extends S3Request {
 
-	public GetBucketVersioning(S3Parameter ip) {
-		super(ip);
+	public GetBucketVersioning(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetBucketVersioning.class);
 	}
 
@@ -63,7 +63,7 @@ public class GetBucketVersioning extends S3Request {
 				xml = GWConstants.VERSION_CONFIGURATION_XMLNS_SUSPENDED;
 			} else {
 				logger.error(GWConstants.LOG_GET_BUCKET_VERSIONING_WRONG, versioningStatus);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
         }
 
@@ -73,7 +73,7 @@ public class GetBucketVersioning extends S3Request {
 			s3Parameter.getResponse().getOutputStream().write(xml.getBytes());
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

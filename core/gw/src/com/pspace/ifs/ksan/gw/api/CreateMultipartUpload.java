@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
 
 public class CreateMultipartUpload extends S3Request {
 
-	public CreateMultipartUpload(S3Parameter ip) {
-		super(ip);
+	public CreateMultipartUpload(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(CreateMultipartUpload.class);
 	}
 
@@ -89,7 +89,8 @@ public class CreateMultipartUpload extends S3Request {
 										dataCreateMultipartUpload.getGrantWrite(), 
 										dataCreateMultipartUpload.getGrantFullControl(), 
 										dataCreateMultipartUpload.getGrantReadAcp(), 
-										dataCreateMultipartUpload.getGrantWriteAcp());
+										dataCreateMultipartUpload.getGrantWriteAcp(),
+										s3Parameter);
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();
@@ -99,7 +100,7 @@ public class CreateMultipartUpload extends S3Request {
 		if (!Strings.isNullOrEmpty(serverSideEncryption)) {
 			if (!serverSideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			}
 		}
 		
@@ -126,7 +127,7 @@ public class CreateMultipartUpload extends S3Request {
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
 				s3Metadata.setServersideEncryption(serversideEncryption);
 			}
@@ -163,7 +164,7 @@ public class CreateMultipartUpload extends S3Request {
 			metaJson = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 
 		String uploadId = null;
@@ -173,10 +174,10 @@ public class CreateMultipartUpload extends S3Request {
 			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson); 
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -193,10 +194,10 @@ public class CreateMultipartUpload extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (XMLStreamException xse) {
 			PrintStack.logging(logger, xse);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 	}
 }

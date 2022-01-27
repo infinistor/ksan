@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
 
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.osd.OSDConstants;
@@ -30,6 +31,7 @@ public class OSDClient {
 	private Logger logger;
 	private OutputStream byPassOut;
 	private long fileSize;
+	private MessageDigest md5er;
 
 	public OSDClient(String ipAddress, int port) throws UnknownHostException, IOException {
 		logger = LoggerFactory.getLogger(OSDClient.class);
@@ -87,8 +89,43 @@ public class OSDClient {
 		return readTotal;
 	}
 
-	public void putInit(String path, String objId, String versionId, long length) throws IOException {
-		String header = OSDConstants.PUT + GWConstants.COLON + path + GWConstants.COLON + objId + GWConstants.COLON + versionId + GWConstants.COLON + String.valueOf(length);
+	public void getPartInit(String path, String objId, String partNo, long fileSize, OutputStream out, MessageDigest md5er) throws IOException {
+		String header = OSDConstants.GET_PART + GWConstants.COLON + path + GWConstants.COLON + objId + GWConstants.COLON + partNo;
+		logger.debug(GWConstants.LOG_OSDCLIENT_HEADER, header);
+		sendHeader(header);
+		this.fileSize = fileSize;
+		byPassOut = out;
+		this.md5er = md5er;
+	}
+
+	public long getPart() throws IOException {
+		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+		int readByte = OSDConstants.MAXBUFSIZE;
+		int readLength = 0;
+		long readTotal = 0L;
+		
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) >= 0) {
+			readTotal += readLength;
+			byPassOut.write(buffer, 0, readLength);
+			md5er.update(buffer, 0, readLength);
+			logger.debug(GWConstants.LOG_OSDCLIENT_WRITE, readLength);
+			if (readTotal >= fileSize) {
+				break;
+			}
+		}
+		byPassOut.flush();
+
+		return readTotal;
+	}
+
+	public void putInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID) throws IOException {
+		String header = OSDConstants.PUT 
+						+ GWConstants.COLON + path 
+						+ GWConstants.COLON + objId 
+						+ GWConstants.COLON + versionId 
+						+ GWConstants.COLON + String.valueOf(length) 
+						+ GWConstants.COLON + replication 
+						+ GWConstants.COLON + replicaDiskID;
 		logger.debug(GWConstants.LOG_OSDCLIENT_PUT_HEADER, header);
 		sendHeader(header);
 	}
@@ -103,12 +140,20 @@ public class OSDClient {
 
 	public void delete(String path, String objId, String versionId) throws IOException {
 		String header = OSDConstants.DELETE + GWConstants.COLON + path + GWConstants.COLON + objId + GWConstants.COLON + versionId;
-		logger.debug(GWConstants.LOG_OSDCLIENT_WRITE_HEADER, header);
+		logger.debug(GWConstants.LOG_OSDCLIENT_DELETE_HEADER, header);
 		sendHeader(header);
 	}
 
-	public void copy(String srcPath, String srcObjId, String srcVersionId, String destPath, String destObjId, String destVersionId) throws IOException {
-		String header = OSDConstants.COPY + GWConstants.COLON + srcPath + GWConstants.COLON + srcObjId + GWConstants.COLON + srcVersionId + GWConstants.COLON + destPath + GWConstants.COLON + destObjId + GWConstants.COLON + destVersionId;
+	public void copy(String srcPath, String srcObjId, String srcVersionId, String destPath, String destObjId, String destVersionId, String replication, String replicaDiskID) throws IOException {
+		String header = OSDConstants.COPY 
+						+ GWConstants.COLON + srcPath 
+						+ GWConstants.COLON + srcObjId 
+						+ GWConstants.COLON + srcVersionId 
+						+ GWConstants.COLON + destPath 
+						+ GWConstants.COLON + destObjId 
+						+ GWConstants.COLON + destVersionId
+						+ GWConstants.COLON + replication
+						+ GWConstants.COLON + replicaDiskID;
 		logger.debug(GWConstants.LOG_OSDCLIENT_COPY_HEADER, header);
 		sendHeader(header);
 	}
@@ -121,6 +166,12 @@ public class OSDClient {
 
 	public void part(byte[] buffer, int offset, int length) throws IOException {
 		socket.getOutputStream().write(buffer, offset, length);
+	}
+
+	public void deletePart(String path, String objId, String partNo) throws IOException {
+		String header = OSDConstants.DELETE_PART + GWConstants.COLON + path + GWConstants.COLON + objId + GWConstants.COLON + partNo;
+		logger.debug(GWConstants.LOG_OSDCLIENT_DELETE_PART_HEADER, header);
+		sendHeader(header);
 	}
 
 	public OSDData partCopy(String srcPath, String srcObjId, String srcVersionId, String copySourceRange, String destPath, String destObjId, String partNo) throws IOException {

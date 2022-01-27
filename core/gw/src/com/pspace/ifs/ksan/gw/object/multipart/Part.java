@@ -17,6 +17,7 @@ public class Part {
 	private long partSize;
 	private String partETag;
 	private Date lastModified;
+	private String diskID;
 	
 	public int getPartNumber() {
 		return partNumber;
@@ -41,5 +42,11 @@ public class Part {
 	}
 	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
+	}
+	public String getDiskID() {
+		return diskID;
+	}
+	public void setDiskID(String diskID) {
+		this.diskID = diskID;
 	}
 }

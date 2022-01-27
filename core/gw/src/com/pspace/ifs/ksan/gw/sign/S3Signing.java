@@ -42,12 +42,12 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 
 public class S3Signing {
 	private static final Logger logger = LoggerFactory.getLogger(S3Signing.class);
-	S3Parameter ip;
+	S3Parameter s3Parameter;
 	private int maxDateSkew;
 	
-	public S3Signing(S3Parameter ip) {
-		this.ip = ip;
-		this.maxDateSkew = ip.getMaxTimeSkew();
+	public S3Signing(S3Parameter s3Parameter) {
+		this.s3Parameter = s3Parameter;
+		this.maxDateSkew = s3Parameter.getMaxTimeSkew();
 	}
 	
 	private boolean ishasDateHeader(HttpServletRequest request) {
@@ -77,20 +77,20 @@ public class S3Signing {
 	}
 
 	public S3Parameter publicvalidation() throws GWException {
-		String uri = ip.getRequest().getRequestURI();
-		String hostHeader = ip.getRequest().getHeader(HttpHeaders.HOST);
-		String preuri = uriReconstructer(uri, hostHeader, Optional.fromNullable(ip.getVirtualHost()));
+		String uri = s3Parameter.getRequest().getRequestURI();
+		String hostHeader = s3Parameter.getRequest().getHeader(HttpHeaders.HOST);
+		String preuri = uriReconstructer(uri, hostHeader, Optional.fromNullable(s3Parameter.getVirtualHost()));
 
 		String bucket;
 		String[] path = null;
 		if(preuri.startsWith(GWConstants.SLASH_WEBSITE)) {
 			path = preuri.split(GWConstants.SLASH, 4);
 			bucket = path[2];
-			ip.setWebsite(true);
+			s3Parameter.setWebsite(true);
 		} else {
 			path = preuri.split(GWConstants.SLASH, 3);
 			bucket = path[1];
-			ip.setWebsite(false);
+			s3Parameter.setWebsite(false);
 		}
 
 		for (int i = 0; i < path.length; i++) {
@@ -98,7 +98,7 @@ public class S3Signing {
 				path[i] = URLDecoder.decode(path[i], GWConstants.CHARSET_UTF_8);
 			} catch (UnsupportedEncodingException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE, ip);
+				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE, s3Parameter);
 			}
 		}
 
@@ -129,16 +129,16 @@ public class S3Signing {
 		}
 
 		if (bucketInfo == null) {
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, ip);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
-		S3User user = GWUtils.getDBInstance().getIdentityByID(bucketInfo.getUserId());
+		S3User user = GWUtils.getDBInstance().getIdentityByID(bucketInfo.getUserId(), s3Parameter);
 		if (user == null) {
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, ip);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
 
-		ip.setUser(user);
+		s3Parameter.setUser(user);
 
-		if (ip.isWebsite()) {
+		if (s3Parameter.isWebsite()) {
 			String[] enhancepath = new String[path.length - 1];
 			for (int i = 0; i < path.length; i++) {
 				if (i == 0) {
@@ -153,30 +153,30 @@ public class S3Signing {
 				enhancepath[i - 1] = path[i];
 				logger.debug(GWConstants.LOG_S3SIGNING_ENHANCE_PATH, i, enhancepath[i]);
 			}
-			// ip.path = enhancepath;
+			// s3Parameter.path = enhancepath;
 		} else {
-			// ip.path = path;
+			// s3Parameter.path = path;
 		}
 
-		return ip;
+		return s3Parameter;
 	}
 	
 	public S3Parameter validation() throws GWException {
-		boolean hasDateHeader = ishasDateHeader(ip.getRequest());
-		boolean hasXAmzDateHeader = ishasXAmzDateHeader(ip.getRequest());
+		boolean hasDateHeader = ishasDateHeader(s3Parameter.getRequest());
+		boolean hasXAmzDateHeader = ishasXAmzDateHeader(s3Parameter.getRequest());
 
 		boolean haveBothDateHeader = false;
 		if (hasDateHeader && hasXAmzDateHeader) {
 			haveBothDateHeader = true;
 		}
 		
-		String uri = ip.getRequest().getRequestURI();
-		String hostHeader = ip.getRequest().getHeader(HttpHeaders.HOST);
+		String uri = s3Parameter.getRequest().getRequestURI();
+		String hostHeader = s3Parameter.getRequest().getHeader(HttpHeaders.HOST);
 		boolean headernull = false;
 		
-		if (!hasDateHeader && !hasXAmzDateHeader && ip.getRequest().getParameter(GWConstants.X_AMZ_DATE) == null && ip.getRequest().getParameter(GWConstants.EXPIRES) == null) {
+		if (!hasDateHeader && !hasXAmzDateHeader && s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE) == null && s3Parameter.getRequest().getParameter(GWConstants.EXPIRES) == null) {
 			logger.error(GWConstants.LOG_S3SIGNING_SIGNATURE_OR_AUTH_HEADER_NULL, uri);
-			throw new GWException(GWErrorCode.ACCESS_DENIED, GWConstants.LOG_S3SIGNING_AWS_REQUIRES_VALID_DATE);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, GWConstants.LOG_S3SIGNING_AWS_REQUIRES_VALID_DATE, s3Parameter);
 		}
 		
 		String[] path = uri.split(GWConstants.SLASH, 3);
@@ -184,32 +184,32 @@ public class S3Signing {
 			try {
 				path[i] = URLDecoder.decode(path[i], GWConstants.CHARSET_UTF_8);
 			} catch (UnsupportedEncodingException e) {
-				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE);
+				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE, s3Parameter);
 			}
 		}
 		
 		S3AuthorizationHeader authHeader = null;
-		String headerAuthorization = ip.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
+		String headerAuthorization = s3Parameter.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
 		
 		if (headerAuthorization == null) {
-			String algorithm = ip.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
+			String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
 
 			if (algorithm == null) { //v2 query
-				String identity = ip.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
-				String signature = ip.getRequest().getParameter(GWConstants.SIGNATURE);
+				String identity = s3Parameter.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
+				String signature = s3Parameter.getRequest().getParameter(GWConstants.SIGNATURE);
 				if (identity == null || signature == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
 				headernull = true;
 			} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
-				String credential = ip.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
-				String signedHeaders = ip.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
-				String signature = ip.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
+				String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
+				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
+				String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
 				if (credential == null || signedHeaders == null || signature == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_V4_SIGNATURE_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
 						GWConstants.SIGN_CREDENTIAL + credential +
@@ -227,21 +227,21 @@ public class S3Signing {
 			//whether v2 or v4 (normal header and query)
 			logger.debug(GWConstants.LOG_S3SIGNING_AUTH_HEADER, authHeader);
 		} catch (IllegalArgumentException iae) {
-			throw new GWException(GWErrorCode.INVALID_ARGUMENT, iae);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT, iae, s3Parameter);
 		}
 		
 		String requestIdentity = authHeader.identity;
 		
 		if(requestIdentity == null) {
 			logger.error(GWConstants.LOG_S3SIGNING_ACCESS_NULL);
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
 
 		String preuri = uriReconstructer(uri, hostHeader, Optional.fromNullable(null));
-		S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity);
+		S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
 		if (user == null) {
 			logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, ip);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
 
 		logger.info(GWConstants.LOG_S3SIGNING_USER, user.getUserName());
@@ -252,24 +252,24 @@ public class S3Signing {
 		boolean presignedUrl = false;
 		
 		if (headerAuthorization == null) {
-			String algorithm = ip.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
+			String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
 
 			if (algorithm == null) { //v2 query
-				String identity = ip.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
-				String signature = ip.getRequest().getParameter(GWConstants.SIGNATURE);
+				String identity = s3Parameter.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
+				String signature = s3Parameter.getRequest().getParameter(GWConstants.SIGNATURE);
 				if (identity == null || signature == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
 				presignedUrl = true;
 			} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
-				String credential = ip.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
-				String signedHeaders = ip.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
-				String signature = ip.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
+				String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
+				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
+				String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
 				if (credential == null || signedHeaders == null || signature == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_V4_SIGNATURE_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
 						GWConstants.SIGN_CREDENTIAL + credential +
@@ -296,63 +296,63 @@ public class S3Signing {
 			finalAuthType = AuthenticationType.AWS_V4;
 		} else {
 			logger.error(GWConstants.LOG_S3SIGNING_AUTHENTICATION_NULL, uri);
-			throw new GWException(GWErrorCode.ACCESS_DENIED);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
 		if (hasXAmzDateHeader) { //format diff between v2 and v4
 			if (finalAuthType == AuthenticationType.AWS_V2) {
-				logger.info(GWConstants.LOG_S3SIGNING_INTO_V2, ip.getRequest().getHeader(GWConstants.X_AMZ_DATE));
-				dateSkew = ip.getRequest().getDateHeader(GWConstants.X_AMZ_DATE);
+				logger.info(GWConstants.LOG_S3SIGNING_INTO_V2, s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE));
+				dateSkew = s3Parameter.getRequest().getDateHeader(GWConstants.X_AMZ_DATE);
 				dateSkew /= 1000;
 				//case sensetive?
 			} else if (finalAuthType == AuthenticationType.AWS_V4) {
-				logger.info(GWConstants.LOG_S3SIGNING_INTO_V4, ip.getRequest().getHeader(GWConstants.X_AMZ_DATE));
-				dateSkew = GWUtils.parseIso8601(ip.getRequest().getHeader(GWConstants.X_AMZ_DATE));
+				logger.info(GWConstants.LOG_S3SIGNING_INTO_V4, s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE));
+				dateSkew = GWUtils.parseIso8601(s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE));
 			}
-		} else if (ip.getRequest().getParameter(GWConstants.X_AMZ_DATE) != null) { // v4 query
-			String dateString = ip.getRequest().getParameter(GWConstants.X_AMZ_DATE);
+		} else if (s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE) != null) { // v4 query
+			String dateString = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE);
 			dateSkew = GWUtils.parseIso8601(dateString);
 			logger.info(GWConstants.LOG_S3SIGNING_DATE, dateString);
 		} else if (hasDateHeader) {
 			try {
-				dateSkew = ip.getRequest().getDateHeader(HttpHeaders.DATE);
+				dateSkew = s3Parameter.getRequest().getDateHeader(HttpHeaders.DATE);
 				dateSkew /= 1000;
 				logger.info(GWConstants.LOG_S3SIGNING_DATE_HEADER, dateSkew);
 			} catch (IllegalArgumentException iae) {
 				logger.info(GWConstants.LOG_S3SIGNING_ILLEGAL_DATE_SKEW, dateSkew);
-				throw new GWException(GWErrorCode.ACCESS_DENIED, iae);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, iae, s3Parameter);
 			}				
 		} else {
 			haveDate = false;
 		}
 
 		if (haveDate) {
-			GWUtils.isTimeSkewed(dateSkew, maxDateSkew);
+			GWUtils.isTimeSkewed(dateSkew, maxDateSkew, s3Parameter);
 		}
 		
 		String credential = user.getAccessSecret();
 		
-		String expiresString = ip.getRequest().getParameter(GWConstants.EXPIRES);
+		String expiresString = s3Parameter.getRequest().getParameter(GWConstants.EXPIRES);
 		if (expiresString != null) { // v2 query
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
 			if (nowSeconds >= expires) {
 				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
-				throw new GWException(GWErrorCode.ACCESS_DENIED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
 
-		String dateString = ip.getRequest().getParameter(GWConstants.X_AMZ_DATE);
+		String dateString = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE);
 
 		//from para v4 query
-		expiresString = ip.getRequest().getParameter(GWConstants.X_AMZ_EXPIRES);
+		expiresString = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_EXPIRES);
 		if (dateString != null && expiresString != null) { //v4 query
 			long date = GWUtils.parseIso8601(dateString);
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
 			if (nowSeconds >= date + expires) {
 				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
-				throw new GWException(GWErrorCode.ACCESS_DENIED, GWConstants.LOG_S3SIGNING_HAS_EXPIRED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, GWConstants.LOG_S3SIGNING_HAS_EXPIRED, s3Parameter);
 			}
 		}
 		
@@ -367,33 +367,33 @@ public class S3Signing {
 		logger.info(GWConstants.LOG_S3SIGNING_URI, preuri);
 		if (authHeader.hmacAlgorithm == null) { //v2
 			expectedSignature = s3Signature.createAuthorizationSignature(
-					ip.getRequest(), uriForSigning, credential, presignedUrl, haveBothDateHeader);
+					s3Parameter.getRequest(), uriForSigning, credential, presignedUrl, haveBothDateHeader);
 		} else {
-			String contentSha256 = ip.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
+			String contentSha256 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
 			byte[] payload = null;
 			int skip=0;
 
-			if (ip.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM) != null) {
+			if (s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM) != null) {
 				payload = new byte[0];
 			} else if (GWConstants.STREAMING_AWS4_HMAC_SHA256_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
-				ip.setInputStream(new ChunkedInputStream(ip.getInputStream()));
+				s3Parameter.setInputStream(new ChunkedInputStream(s3Parameter.getInputStream()));
 			} else if (GWConstants.UNSIGNED_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
 			} else {
 				logger.info(GWConstants.LOG_S3SIGNING_PATH_LENGTH, path.length);
-				if (ip.getRequest().getMethod().equals(GWConstants.METHOD_PUT) && path.length > 2) {
+				if (s3Parameter.getRequest().getMethod().equals(GWConstants.METHOD_PUT) && path.length > 2) {
 					skip = 1;
 				}
 
 				if(skip == 0) {
 					try {
-						payload = ByteStreams.toByteArray(ByteStreams.limit(ip.getInputStream(), 1048576 + 1));
+						payload = ByteStreams.toByteArray(ByteStreams.limit(s3Parameter.getInputStream(), 1048576 + 1));
 					} catch (IOException e) {
 						PrintStack.logging(logger, e);
 					}
 					
-					ip.setInputStream(new ByteArrayInputStream(payload));
+					s3Parameter.setInputStream(new ByteArrayInputStream(payload));
 				}
 			}
 
@@ -402,25 +402,25 @@ public class S3Signing {
 			} else {
 				try {
 					expectedSignature = s3Signature.createAuthorizationSignatureV4(// v4 sign
-							ip.getRequest(), authHeader, payload, uriForSigning, credential);
+							s3Parameter.getRequest(), authHeader, payload, uriForSigning, credential);
 
 				} catch (InvalidKeyException | NoSuchAlgorithmException e) {
 					PrintStack.logging(logger, e);
-					throw new GWException(GWErrorCode.INVALID_ARGUMENT, e);
+					throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
 				} catch (IOException e) {
 					PrintStack.logging(logger, e);
-					throw new GWException(GWErrorCode.INVALID_ARGUMENT, e);
+					throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
 				}
 			}
 		}
 
 		if (!GWUtils.constantTimeEquals(expectedSignature, authHeader.signature)) {
 			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature );
-			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH);
+			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		
-		ip.setUser(user);
-		return ip;
+		s3Parameter.setUser(user);
+		return s3Parameter;
 	}
 	
 	public String uriReconstructer(String uri, String hostHeader, Optional<String> virtualHost) {

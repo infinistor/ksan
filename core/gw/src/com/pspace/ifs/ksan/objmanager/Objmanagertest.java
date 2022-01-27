@@ -1,13 +1,8 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.pspace.ifs.ksan.objmanager;
 
 import java.io.IOException;
@@ -26,6 +21,8 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
 
 /**
  *
@@ -38,7 +35,7 @@ public class Objmanagertest {
     /**
      * @param args the command line arguments
      */
-    static void createFileTest(){
+    static void createFileTest() throws Exception{
         String path;
         String bucket = "testvol2";
         String tmp = "parentDir1/subDir/test";
@@ -55,7 +52,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "1", "username", "user", "acl", "encryption", "objectlock");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -64,7 +61,7 @@ public class Objmanagertest {
                 path = tmp + idx; 
                 System.out.println("create bucket : " + bucket + " path : " + path);   
                 md =om.create(bucket, path); // to create on round robin osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, md.getPrimaryDisk().getPath(), md.getReplicaDisk().getPath(), "", "file");
+                om.close(bucket, path, etag, meta, tag, 0L, acl, md.getPrimaryDisk().getPath(), md.isReplicaExist() ? md.getReplicaDisk().getPath() : "", "", "file");
                 md = om.open(bucket, path);
                 System.out.println(md);
                 Thread.sleep(10000);
@@ -81,7 +78,7 @@ public class Objmanagertest {
  
     }
     
-    static void createFileTestLocal(){
+    static void createFileTestLocal() throws Exception{
         String path;
         String bucket = "testv1";
         String tmp = "test0003-0004-003";
@@ -90,11 +87,11 @@ public class Objmanagertest {
         String meta = "meta_sample";
         String acl = "acl_sample";
         
-        ObjManager om = new ObjManager();;
+        ObjManager om = new ObjManager();
         
         try{
             try{
-                om.createBucket(bucket, "1", "username", "user", "acl", "encryption", "objectlock");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Buket already exist!");
             }
@@ -120,7 +117,7 @@ public class Objmanagertest {
         
     }
     
-    static void createFileOnDBPerformanceTest(){
+    static void createFileOnDBPerformanceTest() throws Exception{
         String path;
         String bucket = "testvol3";
         String tmp = "parentDir1/subDir/test";
@@ -137,7 +134,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "1", "username", "user", "acl", "encryption", "objectlock");
+                om.createBucket(bucket, "user", "user", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -211,7 +208,7 @@ public class Objmanagertest {
         logger.log(OMLoggerLevel.TREACE, " INFO->test message");
     }
     
-    static void testBucket(){
+    static void testBucket() throws Exception{
         ObjManager om = new ObjManager();;
         String [] lst = om.listBucket();
         System.out.println("length : " + lst.length + "list : " + Arrays.toString(lst));
@@ -225,12 +222,36 @@ public class Objmanagertest {
         String startAfter = "";
         int maxKeys = 10; 
         String prefix = "parentDir1/subDir";
-        /*ListObject lo1 = new ListObject(null, bucketName, delimiter, startAfter, maxKeys, prefix);
-        ListObject lo2 = new ListObject(null, bucketName, "", startAfter, maxKeys, "");
-        ListObject lo3 = new ListObject(null, bucketName, delimiter, startAfter, maxKeys, "");
-        ListObject lo4 = new ListObject(null, bucketName, "", startAfter, maxKeys, prefix);*/
-        ObjManager om = new ObjManager();;
-        om.listObjects(bucketName, delimiter, startAfter, maxKeys, prefix);
+        String diskid = "4";
+        
+        try {
+            ObjManagerUtil omu = new ObjManagerUtil();
+            List<Metadata> ml =omu.listObjects(bucketName, "", 0, 0, maxKeys);
+            System.out.println(ml.toString());
+            System.out.println("leng >> " + ml.size());
+            /*ObjManagerConfig config = new ObjManagerConfig();
+            ObjManagerCache  obmCache= new ObjManagerCache();
+            config.loadDiskPools(obmCache);
+            DataRepository dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
+            ListObject list = new ListObject(dbm, bucketName, diskid, 0, maxKeys);
+            List<Metadata> ml = list.getUnformatedList();
+            System.out.println(ml.toString());
+            System.out.println("leng >> " + ml.size());*/
+            /*ListObject lo1 = new ListObject(null, bucketName, delimiter, startAfter, maxKeys, prefix);
+            ListObject lo2 = new ListObject(null, bucketName, "", startAfter, maxKeys, "");
+            ListObject lo3 = new ListObject(null, bucketName, delimiter, startAfter, maxKeys, "");
+            ListObject lo4 = new ListObject(null, bucketName, "", startAfter, maxKeys, prefix);*/
+            /*ObjManager om = new ObjManager();
+            s3ObjectList parm;
+            = new s3ObjectList();
+            om.listObject(bucketName, s3ObjectList);
+            om.listObjects(bucketName, delimiter, startAfter, maxKeys, prefix);*/
+        } catch (SQLException ex) {
+            System.out.println("list sql error!");
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     static void testDiskRecover(){
@@ -242,6 +263,8 @@ public class Objmanagertest {
             DISK replica = om.allocReplicaDisk(bucketName, md.getPrimaryDisk().getPath(), md.getPrimaryDisk().getId());
             om.replaceDisk(bucketName, md.getObjId(), md.getPrimaryDisk().getId(), replica.getId());
         } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -296,9 +319,9 @@ public class Objmanagertest {
         
     }
     
-    static void testVersiong(){
+    static void testVersiong() throws Exception{
         String path;
-        String bucket = "testvol4vers";
+        String bucket = "testvol3vers";
         String tmp = "parentD1/subDir/test";
         String etag = "etag_sample";
         String tag = "tag_sample";
@@ -307,7 +330,12 @@ public class Objmanagertest {
         String vers;
         int ret;
         
-        ObjManager om = new ObjManager();;
+        ObjManager om;
+        
+        om = new ObjManager();
+        
+        S3ObjectList s3ObjectList = new S3ObjectList();
+        
         try {
             sleep(3);
         } catch (InterruptedException ex) {
@@ -315,7 +343,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "1", "username", "user", "acl", "encryption", "objectlock");
+                om.createBucket(bucket, "legesse1", "legesse1", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -342,7 +370,7 @@ public class Objmanagertest {
             for(idx=0; idx < 200; idx++){
                 path = tmp + idx;    
                 mt =om.create(bucket, path); // to create on round robin osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, mt.getPrimaryDisk().getPath(),mt.getReplicaDisk().getPath(), Long.toString(startTime), "file");
+                om.close(bucket, path, etag, meta, tag, 0L, acl, mt.getPrimaryDisk().getPath(), mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : "", Long.toString(startTime), "file");
                 if ((idx + 1) % 1000000 == 0){
                     diff = System.nanoTime() - startTime1m;
                     System.out.println(mcount + ": Millon create excution time  : " + diff + "nanosecond");
@@ -357,16 +385,28 @@ public class Objmanagertest {
             String startAfter = "";
             int maxKeys = 10; 
             String prefix = "parentD1/subDir";
-            om.listObjectsVersion(bucket, delimiter, startAfter, "", maxKeys, prefix);
+            s3ObjectList.setMaxKeys(String.valueOf(maxKeys));
+            s3ObjectList.setDelimiter(delimiter);
+            s3ObjectList.setPrefix(prefix);
+            s3ObjectList.setStartAfter(startAfter);
+            s3ObjectList.setVersionIdMarker("");
+            s3ObjectList.setMarker(prefix);
+            try {
+                //om.listObjectsVersion(bucket, delimiter, startAfter, "", maxKeys, prefix);
+                ObjectListParameter res =om.listObjectVersions(bucket, s3ObjectList);
+                System.out.println("res >>" +res);
+            } catch (SQLException ex) {
+                Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch(IOException | InvalidParameterException | AllServiceOfflineException | ResourceNotFoundException ex){
             System.out.println("Error : " + ex.getMessage());
             //Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    static void testMultiPartUpload(){
+    static void testMultiPartUpload() throws Exception{
     String path;
-        String bucket = "testvol4MultPart";
+        String bucket = "testvol1";
         String tmp = "parentD1/subDir/test";
         String etag = "etag_sample";
         String tag = "tag_sample";
@@ -383,7 +423,7 @@ public class Objmanagertest {
         }
         try{
             try{
-                om.createBucket(bucket, "1", "username", "user", "acl", "encryption", "objectlock");
+                om.createBucket(bucket, "user", "user", "acl", "", "");
             } catch(ResourceAlreadyExistException ex){
                 System.out.println("Bucket already exist!");
             }
@@ -419,6 +459,28 @@ public class Objmanagertest {
         }    
     }
     
+    static void testListObjectV3(){
+        String bucketName = "testvol3";
+        String delimiter = "/";
+        String marker = "parentDir1/subDir_Thread_101/test26";
+        int maxKeys = 10; 
+        String prefix = "parentDir1/subDir";
+        String diskid = "4";
+        
+        try {
+            ObjManager om = new ObjManager();
+            List<Metadata> ml =om.listObject(bucketName, delimiter, marker, null, null, maxKeys, prefix);
+            System.out.println(ml.toString());
+            System.out.println("leng >> " + ml.size());
+        } 
+        catch (SQLException ex) {
+            System.out.println("list sql error!");
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public static void main(String[] args) {
         logger = new OMLogger(Objmanagertest.class.getName());
        
@@ -442,8 +504,10 @@ public class Objmanagertest {
        
        //createFileOnDBPerformanceTest();
        
-       // testVersiong();
+       //testVersiong();
        
-       testMultiPartUpload();
+       //testMultiPartUpload();
+       
+       testListObjectV3();
     }
 }

@@ -19,25 +19,44 @@ public final class OSDConstants {
     public static final String POOL_SIZE = "pool_size";
     public static final String OSD_LOCAL_IP = "local_ip";
     public static final String OSD_PORT = "port";
-    public static final String OBJ_DIR = "obj_dir";
-    public static final String TRASH_DIR = "trash_dir";
-    public static final String WRITE_TEMP_DIR = "write_temp_dir";
+
+    public static final String OBJ_DIR = "obj";
+	public static final String TEMP_DIR = "temp";
+	public static final String TRASH_DIR = "trash";
+	public static final String EC_DIR = "ec";
+
+    public static final String EC_SCHEDULE_MINUTES = "ec_schedule_minutes";
+    public static final String EC_APPLY_MINUTES = "ec_apply_minutes";
+    public static final String EC_FILE_SIZE = "ec_file_size";
+
+    public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+    public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+    public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 
     public static final int HEADERSIZE = 1024;
     public static final int MAXBUFSIZE = 524288; // 512 * 1024
 	public static final int BUFSIZE = 262144; // 256 * 1024
 	public static final long PARTS_MIN_SIZE = 5242880; // 5MB
+    public static final long FILE_EC_DEFAULT = 1024 * 1024;
+    public static final long ONE_SEC_MILLISECONDS = 1000;
+    public static final long ONE_MINUTE_MILLISECONDS = 60 * 1000;
+    public static final long ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     public static final int INDICATOR_SIZE = 2;
     public static final String STOP = "ST";
     public static final String GET = "GE";
     public static final String PUT = "PU";
     public static final String DELETE = "DE";
+    public static final String DELETE_REPLICA = "DR";
     public static final String COPY = "CO";
     public static final String PART = "PA";
     public static final String PART_COPY = "PC";
     public static final String COMPLETE_MULTIPART = "CM";
     public static final String ABORT_MULTIPART = "AB";
+    public static final String GET_PART = "GP";
+    public static final String DELETE_PART = "DP";
 
     public static final String FILE = "FILE";
 
@@ -57,12 +76,17 @@ public final class OSDConstants {
     public static final int OFFSET_INDEX = 4;
     public static final int GET_LENGTH_INDEX = 5;
     public static final int PUT_LENGTH_INDEX = 4;
+    public static final int PUT_REPLICATION_INDEX = 5;
+    public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
     public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_PARTNOS = 4;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
+    public static final int PART_NO_INDEX = 3;
     public static final int PARTNOS_INDEX = 3;
     public static final int PART_COPY_OFFSET_INDEX = 7;
     public static final int PART_COPY_LENGTH_INDEX = 8;
+    public static final int COPY_REPLICATION_INDED = 7;
+    public static final int COPY_REPLICA_DISK_ID_INDEX = 8;
 
     public static final int RETRY_COUNT = 3;
 
@@ -74,10 +98,17 @@ public final class OSDConstants {
     public static final String UNDERSCORE = "_";
     public static final String DELIMITER = ":";
     public static final String COMMA = ",";
+    public static final String POINT = ".";
     public static final String MD5 = "MD5";
 
     public static final String JVM = "jvm";
     public static final String GET_PROCESS_ID = "getProcessId";
+
+    // DISKPOOLLIST
+    public static final String DISKPOOLLIST = "DISKPOOLLIST";
+    public static final String DISKPOOL = "DISKPOOL";
+    public static final String SERVER = "SERVER";
+    public static final String DISK = "DISK";
 
     // OSDServer constants
     public static final String LOG_OSD_SERVER_START = "OSD Server start..............";
@@ -100,7 +131,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}";
     
     public static final String LOG_OSD_SERVER_PUT_START = "put start ...";
-    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}";
+    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}";
     public static final String LOG_OSD_SERVER_PUT_END = "put end ...";
     public static final String LOG_OSD_SERVER_PUT_SUCCESS_INFO = "put - success : path={}, objId={}, versionId={}, length={}";
 
@@ -109,10 +140,24 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_DELETE_END = "delete end ...";
     public static final String LOG_OSD_SERVER_DELETE_SUCCESS_INFO = "delete - success : path={}, objId={}, versionId={}";
 
+    public static final String LOG_OSD_SERVER_DELETE_PART_START = "delete part start ...";
+    public static final String LOG_OSD_SERVER_DELETE_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_DELETE_PART_END = "delete part end ...";
+    public static final String LOG_OSD_SERVER_DELETE_PART_SUCCESS_INFO = "delete - success : path={}, objId={}, partNo={}";
+
+    public static final String LOG_OSD_SERVER_DELETE_REPLICA_START = "delete replica start ...";
+    public static final String LOG_OSD_SERVER_DELETE_REPLICA_PATH = "path : {}";
+    public static final String LOG_OSD_SERVER_DELETE_REPLICA_END = "delete replica end ...";
+
     public static final String LOG_OSD_SERVER_COPY_START = "copy start ...";
     public static final String LOG_OSD_SERVER_COPY_INFO = "srcPath : {}, srcObjId : {}, srcVersionId : {}, destPath : {}, destObjId : {}, destVersionId : {}";
     public static final String LOG_OSD_SERVER_COPY_RELAY_OSD = "relay osd {}, put header : {}";
     public static final String LOG_OSD_SERVER_COPY_SUCCESS_INFO = "copy - success : srcPath={}, srcObjId={}, srcVersionId={}, destPath={}, destObjId={}, destVersionId={}";
+
+    public static final String LOG_OSD_SERVER_GET_PART_START = "getPart start ...";
+    public static final String LOG_OSD_SERVER_GET_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_GET_PART_END = "getPart end ... read total : {}";
+    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "get - success : path={}, objId={}, partNo={}";
 
     public static final String LOG_OSD_SERVER_PART_START = "part start ...";
     public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}";
@@ -134,4 +179,20 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_INFO = "path : {}, objId : {}, partNos : {}";
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_END = "abortMultipart end ...";
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_SUCCESS_INFO = "abortMultipart - success : path : {}, objId : {}, partNos : {}";
+
+    // DoECPriObject
+    public static final String LOG_DO_EC_PRI_OBJECT_START = "DoECPriObject start ...";
+    public static final String LOG_DO_EC_PRI_OBJECT_LOCAL_IP = "ip = {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_DISKLIST_SIZE = "diskList size : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_PATH = "objPath : {}, ecPath : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_FILE = "file : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_APPLY_MINUTES = "ec apply minutes : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_ENCODE_EC = "ENCODE EC : {}";
+    public static final String DO_EC_PRI_OBJECT_ZFEC = "zfec -d ";
+    public static final String DO_EC_PRI_OBJECT_ZFEC_PREFIX_OPTION = " -p ";
+    public static final String DO_EC_PRI_OBJECT_ZFEC_TOTAL_NUMBER_OPTION = " -m 4 ";
+    public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE = "ENCODE exit code : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND = "command : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID = "replica disk id : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_HEADER = "send header : {}";
 }

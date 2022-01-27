@@ -25,8 +25,8 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import org.slf4j.LoggerFactory;
 
 public class DeleteObjectTagging extends S3Request {
-    public DeleteObjectTagging(S3Parameter ip) {
-		super(ip);
+    public DeleteObjectTagging(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(DeleteObjectTagging.class);
 	}
 
@@ -60,7 +60,7 @@ public class DeleteObjectTagging extends S3Request {
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 
 		checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
 

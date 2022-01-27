@@ -36,7 +36,7 @@ public class DataAbortMultipartUpload extends S3DataRequest {
 		uploadId = s3Parameter.getRequest().getParameter(GWConstants.UPLOAD_ID);
 		if (Strings.isNullOrEmpty(uploadId)) {
 			logger.error(GWConstants.LOG_DATA_UPLOAD_ID_NULL);
-			throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+			throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 		}
 		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {

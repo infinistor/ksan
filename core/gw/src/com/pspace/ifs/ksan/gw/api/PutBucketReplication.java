@@ -60,7 +60,7 @@ public class PutBucketReplication extends S3Request {
 		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
         
         if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(getBucketVersioning(bucket))) {
-            throw new GWException(GWErrorCode.INVALID_REPLICATION_REQUEST);
+            throw new GWException(GWErrorCode.INVALID_REPLICATION_REQUEST, s3Parameter);
         }
         
 		DataPutBucketReplication dataPutBucketReplication = new DataPutBucketReplication(s3Parameter);

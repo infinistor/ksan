@@ -35,14 +35,13 @@ public class S3Parameter {
 	private String srcVersionId;
 	private Long startTime;
 	private long maxFileSize;
-	private String uploadId;
+    private long fileSize;
+    private String uploadId;
 	private String partNumber;
 	private boolean isWebsite;
     private boolean isPublicAccess;
-
     private int statusCode;
     private String errorCode;
-
     private String virtualHost;
 	private String remoteHost;
 	private String requestURI;
@@ -50,8 +49,13 @@ public class S3Parameter {
 	private String userAgent;
 	private String authorization;
 	private String xAmzAlgorithm;
-	private String hostname;
-	private String hostid;
+	private String hostName;
+	private String hostID;
+    private String operation;
+    private String requestID;
+    private long requestSize;
+    private long responseSize;
+    private String signVersion;
 
     public S3Parameter() {
         request = null;
@@ -70,8 +74,12 @@ public class S3Parameter {
         srcVersionId = null;
         startTime = 0L;
         maxFileSize = 0L;
+        fileSize = 0L;
         uploadId = null;
         isWebsite = false;
+        statusCode = 0;
+        requestSize = 0L;
+        responseSize = 0L;
     }
 
     public HttpServletRequest getRequest() {
@@ -210,6 +218,14 @@ public class S3Parameter {
         this.maxFileSize = maxFileSize;
     }
 
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
     public String getUploadId() {
         return Strings.nullToEmpty(uploadId);
     }
@@ -314,20 +330,67 @@ public class S3Parameter {
         this.xAmzAlgorithm = xAmzAlgorithm;
     }
 
-    public String getHostname() {
-        return hostname;
+    public String getHostName() {
+        return hostName;
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setHostName(String hostname) {
+        this.hostName = hostname;
     }
 
-    public String getHostid() {
-        return hostid;
+    public String getHostID() {
+        return hostID;
     }
 
-    public void setHostid(String hostid) {
-        this.hostid = hostid;
+    public void setHostID(String hostid) {
+        this.hostID = hostid;
     }
     
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public String getRequestID() {
+        return requestID;
+    }
+
+    public void setRequestID(String requestID) {
+        this.requestID = requestID;
+    }
+
+    public void setRequestSize(long requestSize) {
+        this.requestSize = requestSize;
+    }
+
+    public void addRequestSize(long size) {
+        this.requestSize += size;
+    }
+
+    public long getRequestSize() {
+        return requestSize;
+    }
+
+    public void addResponseSize(long size) {
+        this.responseSize += size;
+    }
+
+    public void setResponseSize(long size) {
+        this.responseSize = size;
+    }
+
+    public long getResponseSize() {
+        return responseSize;
+    }
+
+    public String getSignVersion() {
+        return signVersion;
+    }
+
+    public void setSignVersion(String signVersion) {
+        this.signVersion = signVersion;
+    }
 }

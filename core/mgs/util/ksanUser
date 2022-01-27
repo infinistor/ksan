@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""
+* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+* the GNU General Public License as published by the Free Software Foundation, either version 
+* 3 of the License.  See LICENSE for details
+*
+* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
+* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
+* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
+"""
+
+import os, sys
+import pdb
+
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from ksan.common.init import read_conf
+from ksan.user.user_manage import *
+from ksan.disk.disk_manage import *
+from optparse import OptionParser
+
+
+class MyOptionParser(OptionParser):
+    def print_help(self):
+        Usage = """
+        Usage: ksanUser {add|delete|update|list} [option]
+                add       -n <user name> -E <email address>                         : Add S3user
+                remove    -I <User Id>                                              : Remove S3user
+                update    -I <User Id>                                              : Update S3User Info
+                list                                                                : Display S3User Info
+        [options]
+                -I                                                                  : S3User Id
+                -n                                                                  : S3User Name
+                -E                                                                  : Email Address
+                -P                                                                  : S3User password
+                -L                                                                  : S3User Detail information
+                -h, --help                                                          : Show this help message and exit
+"""
+        print(Usage)
+
+
+if __name__ == '__main__':
+    usage = "Usage: %prog {add|remove|update|list} [option]"
+    parser = MyOptionParser(usage=usage)
+    parser.add_option('-I', "--UserId", dest="UserId", help='S3 User Id')
+    parser.add_option('-n', "--Name", dest="Name", help='User Name')
+    parser.add_option('-E', "--Email", dest="Email", help='User Email Info')
+    parser.add_option('-P', "--Password", dest="Password", help='User Password')
+    parser.add_option('-L', "--Detail", dest="Detail", action='store_true',default=False, help='Detail info')
+    parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
+
+    options, args = parser.parse_args()
+
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(-1)
+
+    IfsPortalIp = '127.0.0.1'
+    IfsPortalPort = 5443
+    IfsMqPort = 5672
+    ret, conf = read_conf(MonServicedConfPath)
+    if ret is True:
+        IfsPortalIp = conf['mgs']['MgsIp']
+        IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
+        IfsMqPort = int(conf['mgs']['MqPort'])
+
+    options.IpAddress = IfsPortalIp
+    options.Port = IfsPortalPort
+    logger = None
+    if options.debug is True:
+        logger = Logging(loglevel='debug')
+        logger = logger.create()
+
+    if args[0] == 'add':
+        if not (options.Name or options.Email):
+            print('User Roles Info is required')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = AddS3User(IfsPortalIp, IfsPortalPort, options.Name,  Email=options.Email, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif args[0] == 'remove':
+        if not options.UserId:
+            parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = RemoveS3User(IfsPortalIp, IfsPortalPort, options.UserId, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif args[0] == 'update':
+        if not options.UserId:
+            parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = UpdateS3UserInfo(IfsPortalIp, IfsPortalPort, options.UserId, Name=options.Name,
+                                            Email=options.Email)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif args[0] == 'list':
+        Res, Errmsg, Ret, Users = GetS3UserInfo(options.IpAddress, options.Port, UserId=options.UserId, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            if Ret.Result != ResultSuccess:
+                print(Ret.Message)
+            else:
+                ShowS3UserInfo(Users, Detail=options.Detail)
+    else:
+        parser.print_help()

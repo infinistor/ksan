@@ -10,35 +10,38 @@
 */
 package com.pspace.ifs.ksan.gw.db;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
+import org.apache.commons.dbcp2.ConnectionFactory;
+import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp2.PoolableConnection;
+import org.apache.commons.dbcp2.PoolableConnectionFactory;
+import org.apache.commons.dbcp2.PoolingDriver;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MariaDB implements GWDB {
 	protected Logger logger;
-	private String url;
-	private String userName;
-	private String userPasswd;
 	private Set<S3User> userSet = new HashSet<S3User>();
 
 	private MariaDB() {
@@ -54,56 +57,59 @@ public class MariaDB implements GWDB {
     }
 
     @Override
-    public void init(String dbUrl, String dbPort, String dbName, String userName, String passwd) throws Exception {		
-		url = GWConstants.JDBC_MYSQL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + GWConstants.USE_SSL_FALSE;
-		this.userName = userName;
-		this.userPasswd = passwd;
+    public void init(String dbUrl, String dbPort, String dbName, String userName, String passwd,  int poolSize) throws GWException {				
+		try {
+			Class.forName(GWConstants.JDBC_MARIADB_DRIVER);
+			String jdbcUrl = GWConstants.MARIADB_URL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + dbName + GWConstants.MARIADB_OPTIONS;
+			ConnectionFactory connFactory = new DriverManagerConnectionFactory(jdbcUrl, userName, passwd);
+			PoolableConnectionFactory poolableConnFactory = new PoolableConnectionFactory(connFactory, null);
+			poolableConnFactory.setValidationQuery(GWConstants.MARIADB_VALIDATION_QUERY);
+			
+			GenericObjectPoolConfig<PoolableConnection> poolConfig = new GenericObjectPoolConfig<PoolableConnection>();
+			Duration timeBetweenEvictionRuns = Duration.ofMinutes(60);
+			poolConfig.setTimeBetweenEvictionRuns(timeBetweenEvictionRuns);
+			poolConfig.setTestWhileIdle(true);
+			poolConfig.setMinIdle(poolSize / 2);
+			poolConfig.setMaxTotal(poolSize);
+			poolConfig.setTestOnBorrow(true);
+			poolConfig.setTestWhileIdle(true);
+			GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnFactory, poolConfig);
+			poolableConnFactory.setPool(connectionPool);
+			Class.forName(GWConstants.DBCP2_DRIVER);
+			PoolingDriver driver = (PoolingDriver) DriverManager.getDriver(GWConstants.JDBC_DRIVER_DBCP);
+			driver.registerPool(GWConstants.CONNECTION_POOL, connectionPool);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(GWConstants.LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER, e);
+		} catch (SQLException e) {
+			throw new RuntimeException(GWConstants.LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER, e);
+		}
 		
 		createDB(dbName, userName, passwd);
-
-		url = GWConstants.JDBC_MYSQL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + dbName + GWConstants.USE_SSL_FALSE;
 
 		createTable();
 		loadUser();
     }
     
-	private int createDB(String dbname, String userName, String userPasswd) throws Exception {
-        Connection connC = null;
-        Statement stmt = null;
-        try {    
-            Class.forName(GWConstants.MYSQL_JDBC_DRIVER);
-            connC= DriverManager.getConnection(url, userName, userPasswd);
-            stmt = connC.createStatement();
-            stmt.executeUpdate(GWConstants.CREATE_DATABASE + dbname + GWConstants.SEMICOLON);
-            return 0;
-        } catch (ClassNotFoundException | SQLException ex) {
-            logger.error(ex.getMessage());
-        }finally{
-            try {
-                if (stmt != null)
-                    stmt.close();
-                if (connC != null)
-                    connC.close();
-            } catch (SQLException ex) {
-                logger.error(ex.getMessage());
-            }
-        }
-        return -1;
+	private void createDB(String dbname, String userName, String userPasswd) throws GWException {
+		String query = GWConstants.CREATE_DATABASE + dbname + GWConstants.SEMICOLON;
+		execute(query, null, null);
     }
 
-    private void createTable() throws Exception {
+    private void createTable() throws GWException {
 		String query = GWConstants.CREATE_TABLE_USERS;
-		execute(query, null);
+		execute(query, null, null);
+		query = GWConstants.CREATE_TABLE_S3LOGGING;
+		execute(query, null, null);
 	}
     
-	public List<HashMap<String, Object>> select(String query, List<Object> params) throws GWException {
+	public List<HashMap<String, Object>> select(String query, List<Object> params, S3Parameter s3Parameter) throws GWException {
         List<HashMap<String, Object>> rmap = null; 
         
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rset = null;
         try {
-			conn = DriverManager.getConnection(url, userName, userPasswd);
+			conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
 			pstmt = conn.prepareStatement(query);
 
             int index = 1;
@@ -135,21 +141,21 @@ public class MariaDB implements GWDB {
             }
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		} finally {
-			if ( rset != null ) try { rset.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);}
-			if ( pstmt != null ) try { pstmt.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);}
-			if ( conn != null ) try { conn.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);}
+			if ( rset != null ) try { rset.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);}
+			if ( pstmt != null ) try { pstmt.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);}
+			if ( conn != null ) try { conn.close(); } catch (Exception e) {logger.error(e.getMessage()); throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);}
 		}
 
         return rmap;
     }
 
-	private void execute(String query, List<Object> params) throws GWException {
-        try (Connection conn = DriverManager.getConnection(url, userName, userPasswd);
+	private void execute(String query, List<Object> params, S3Parameter s3Parameter) throws GWException {
+        try (Connection conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
 			 PreparedStatement pstmt = conn.prepareStatement(query);
 			) {
 
@@ -164,14 +170,14 @@ public class MariaDB implements GWDB {
 			logger.info(pstmt.toString());
 			pstmt.execute();
 		} catch (SQLException e) {
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		} catch (Exception e) {
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
     }
 
     @Override
-    public S3User getIdentity(String requestIdentity) throws GWException {
+    public S3User getIdentity(String requestIdentity, S3Parameter s3Parameter) throws GWException {
 		for (S3User user : userSet) {
 			if (user.getAccessKey().equals(requestIdentity)) {
 				return user;
@@ -185,7 +191,7 @@ public class MariaDB implements GWDB {
 		List<Object> params = new ArrayList<Object>();
 		params.add(requestIdentity);
 
-		resultList = select(query, params);
+		resultList = select(query, params, s3Parameter);
 		
 		if (resultList != null) {
 			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
@@ -205,7 +211,7 @@ public class MariaDB implements GWDB {
 		List<HashMap<String, Object>> resultList = null;
 		List<Object> params = new ArrayList<Object>();
 
-		resultList = select(query, params);
+		resultList = select(query, params, null);
 		if (resultList != null) {
 			for (HashMap<String, Object> result : resultList) {
 				S3User user = new S3User((long)result.get(GWConstants.USERS_TABLE_USER_ID), 
@@ -218,7 +224,7 @@ public class MariaDB implements GWDB {
 	}
 
 	@Override
-	public S3User getIdentityByID(String userId) throws GWException {
+	public S3User getIdentityByID(String userId, S3Parameter s3Parameter) throws GWException {
 		long id = Long.parseLong(userId);
 		for (S3User user : userSet) {
 			if (user.getUserId() == id) {
@@ -232,7 +238,7 @@ public class MariaDB implements GWDB {
 		List<Object> params = new ArrayList<Object>();
 		params.add(userId);
 
-		resultList = select(query, params);
+		resultList = select(query, params, s3Parameter);
 		
 		if (resultList != null) {
 			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
@@ -247,7 +253,7 @@ public class MariaDB implements GWDB {
 	}
 
 	@Override
-	public S3User getIdentityByName(String userName) throws GWException {
+	public S3User getIdentityByName(String userName, S3Parameter s3Parameter) throws GWException {
 		for (S3User user : userSet) {
 			if (user.getUserName().equals(userName)) {
 				return user;
@@ -260,7 +266,7 @@ public class MariaDB implements GWDB {
 		List<Object> params = new ArrayList<Object>();
 		params.add(userName);
 
-		resultList = select(query, params);
+		resultList = select(query, params, s3Parameter);
 		
 		if (resultList != null) {
 			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
@@ -273,4 +279,152 @@ public class MariaDB implements GWDB {
 
         return user;
 	}
+
+	@Override
+	public void putS3logging(S3Parameter s3Parameter) throws GWException {
+        String query = GWConstants.INSERT_S3LOGGING;
+
+        List<Object> params = new ArrayList<Object>();
+        
+        // bucket owner name
+        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUseName())) {
+            params.add(s3Parameter.getBucket().getUseName());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // bucket name
+        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getBucket())) {
+            params.add(s3Parameter.getBucket().getBucket());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // remote host
+        if (!Strings.isNullOrEmpty(s3Parameter.getRemoteHost())) {
+            params.add(s3Parameter.getRemoteHost());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // request user
+        if (s3Parameter.getUser() != null && !Strings.isNullOrEmpty(s3Parameter.getUser().getUserName())) {
+            params.add(s3Parameter.getUser().getUserName());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // request id
+        if (!Strings.isNullOrEmpty(s3Parameter.getRequestID())) {
+            params.add(String.valueOf(s3Parameter.getRequestID()));
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // operation
+        if (!Strings.isNullOrEmpty(s3Parameter.getOperation())) {
+            params.add(s3Parameter.getOperation());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // object name
+        if (!Strings.isNullOrEmpty(s3Parameter.getObjectName())) {
+            params.add(s3Parameter.getObjectName());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // request uri
+        if (!Strings.isNullOrEmpty(s3Parameter.getRequestURI())) {
+			params.add(s3Parameter.getRequestURI());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // reponse status code
+        params.add(s3Parameter.getStatusCode());
+
+        // response error code
+        if (!Strings.isNullOrEmpty(s3Parameter.getErrorCode())) {
+			params.add(s3Parameter.getErrorCode());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // response length
+        params.add(s3Parameter.getResponseSize());
+
+		// object length
+		if (s3Parameter.getFileSize() > 0) {
+			params.add(s3Parameter.getFileSize());
+		} else {
+			params.add(0L);
+		}
+
+        // total time
+        params.add(System.currentTimeMillis() - s3Parameter.getStartTime());
+
+        // request length
+        params.add(s3Parameter.getRequestSize());
+
+        // referer
+        if (!Strings.isNullOrEmpty(s3Parameter.getReferer())) {
+			params.add(s3Parameter.getReferer());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // User Agent
+        if (!Strings.isNullOrEmpty(s3Parameter.getUserAgent())) {
+			params.add(s3Parameter.getUserAgent());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // Version id
+        if (!Strings.isNullOrEmpty(s3Parameter.getVersionId())) {
+			params.add(s3Parameter.getVersionId());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // Host ID
+        if (!Strings.isNullOrEmpty(s3Parameter.getHostID())) {
+			params.add(s3Parameter.getHostID());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // Sign Version
+        if (!Strings.isNullOrEmpty(s3Parameter.getSignVersion())) {
+			params.add(s3Parameter.getSignVersion());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // ssl_group
+        params.add(GWConstants.DASH);
+
+        // sign type
+        if (!Strings.isNullOrEmpty(s3Parameter.getAuthorization())) {
+			params.add(GWConstants.AUTH_HEADER);
+        } else if (!Strings.isNullOrEmpty(s3Parameter.getxAmzAlgorithm())) {
+			params.add(GWConstants.QUERY_STRING);
+		} else {
+            params.add(GWConstants.DASH);
+        }
+
+        // endpoint
+        if (!Strings.isNullOrEmpty(s3Parameter.getHostName())) {
+			params.add(s3Parameter.getHostName());
+        } else {
+            params.add(GWConstants.DASH);
+        }
+
+        // tls version
+        params.add(GWConstants.DASH);
+
+		execute(query, params, s3Parameter);
+    }
 }

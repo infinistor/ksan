@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class ListMultipartUploads extends S3Request {
 
-	public ListMultipartUploads(S3Parameter ip) {
-		super(ip);
+	public ListMultipartUploads(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(ListMultipartUploads.class);
 	}
 
@@ -72,7 +72,7 @@ public class ListMultipartUploads extends S3Request {
 			maxUploads = GWConstants.DEFAULT_MAX_KEYS;
 		} else {
 			if (Integer.valueOf(maxUploads) < 0) {
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 		}
 
@@ -83,10 +83,10 @@ public class ListMultipartUploads extends S3Request {
 			resultUploads = objMultipart.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, Integer.valueOf(maxUploads));
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
@@ -154,10 +154,10 @@ public class ListMultipartUploads extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 

@@ -16,6 +16,7 @@ import java.util.List;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 import org.slf4j.Logger;
@@ -24,10 +25,12 @@ import org.slf4j.LoggerFactory;
 public class S3Range {
 	private Logger logger;
 	private List<Range> rangeList;
+	private S3Parameter s3Parameter;
 	
-	public S3Range() {
+	public S3Range(S3Parameter s3Parameter) {
 		rangeList = new ArrayList<Range>();
 		logger = LoggerFactory.getLogger(Range.class);
+		this.s3Parameter = s3Parameter;
 	}
 
 	public void parseRange(String range, long fileLength, boolean isCopy) throws GWException {
@@ -38,7 +41,7 @@ public class S3Range {
 		
 		if (!range.startsWith(GWConstants.XML_BYTES)) {
 			logger.error(GWConstants.LOG_S3RANGE_INVALID, range);
-			throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT , s3Parameter);
 		}
 		
 		rangeList.clear();
@@ -50,7 +53,7 @@ public class S3Range {
 		for (String rangeValue : ranges) {
 			if (!rangeValue.contains(GWConstants.DASH)) {
 				logger.error(GWConstants.LOG_S3RANGE_INVALID, rangeValue);
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 			rangeValue = rangeValue.trim();
 			String[] rangeSubs = rangeValue.split(GWConstants.DASH, 2);
@@ -74,7 +77,7 @@ public class S3Range {
 				// check first position, out of file bound
 				if (hasStart && (startPosition >= fileLength || startPosition <  0)) {
 					logger.error(GWConstants.LOG_S3RANGE_NOT_SATISFIABLE, rangeValue);
-					throw new GWException(GWErrorCode.INVALID_RANGE);
+					throw new GWException(GWErrorCode.INVALID_RANGE, s3Parameter);
 				}
 
 				// check last position
@@ -82,7 +85,7 @@ public class S3Range {
 					if (endPosition >= fileLength) {
 						if (isCopy) {
 							logger.error(GWConstants.LOG_S3RANGE_ENDPOSITION_GREATER_THAN);
-							throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+							throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 						}
 						endPosition = fileLength - 1;
 					}
@@ -92,7 +95,7 @@ public class S3Range {
 
 				if (startPosition > endPosition) {
 					logger.error(GWConstants.LOG_S3RANGE_NOT_SATISFIABLE, rangeValue);
-						throw new GWException(GWErrorCode.INVALID_RANGE);
+						throw new GWException(GWErrorCode.INVALID_RANGE, s3Parameter);
 				}
 
 				logger.debug(GWConstants.LOG_S3RANGE_INFO, startPosition, endPosition, endPosition - startPosition + 1, fileLength);
@@ -100,7 +103,7 @@ public class S3Range {
 				rangeList.add(rangeObject);
 			} else {
 				logger.error(GWConstants.LOG_S3RANGE_NOT_SATISFIABLE, rangeValue);
-				throw new GWException(GWErrorCode.INVALID_RANGE);
+				throw new GWException(GWErrorCode.INVALID_RANGE, s3Parameter);
 			}
 		}
 	}

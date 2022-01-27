@@ -19,9 +19,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /** Represent an Amazon Versioning for a container or object. */
 // CHECKSTYLE:OFF
-@JacksonXmlRootElement(localName = "DISKPOOLLIST")
+@JacksonXmlRootElement(localName = OSDConstants.DISKPOOLLIST)
 public final class DISKPOOLLIST {
-    @JacksonXmlProperty(localName = "DISKPOOL")
+    @JacksonXmlProperty(localName = OSDConstants.DISKPOOL)
     public DISKPOOL diskpool;
 
 	public static final class DISKPOOL {
@@ -32,7 +32,7 @@ public final class DISKPOOLLIST {
         private String name;
 
         @JacksonXmlElementWrapper(useWrapping = false)
-        @JacksonXmlProperty(localName = "SERVER")
+        @JacksonXmlProperty(localName = OSDConstants.SERVER)
         private List<SERVER> servers;
 
         public static final class SERVER {
@@ -44,7 +44,7 @@ public final class DISKPOOLLIST {
 		    private String status;
 
             @JacksonXmlElementWrapper(useWrapping = false)
-            @JacksonXmlProperty(localName = "DISK")
+            @JacksonXmlProperty(localName = OSDConstants.DISK)
             private List<DISK> disks;
 
             public static final class DISK {

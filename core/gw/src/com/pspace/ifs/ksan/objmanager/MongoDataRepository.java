@@ -1,13 +1,3 @@
-/*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
-* 3 of the License.  See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
 package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
@@ -21,15 +11,15 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
 import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
-import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.gw.object.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -37,13 +27,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.Indexes;
+import com.mongodb.client.result.DeleteResult;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 /**
@@ -59,6 +53,69 @@ public class MongoDataRepository implements DataRepository{
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
     
+    // constant for data elements
+    // for object collection
+    //private static final String BUCKET="bucket";
+    
+    // for collection names
+    private static final String BUCKETSCOLLECTION="BUCKETS";
+    private static final String USERSDISKPOOL="USERSDISKPOOL";
+    private static final String MULTIPARTUPLOAD ="MULTIPARTUPLOAD";
+    private static final String UTILJOBS = "UTILJOBS";
+    
+    // for object collection
+    private static final String OBJKEY="objKey";
+    private static final String OBJID="objId";
+    private static final String SIZE="size";
+    private static final String ETAG="etag";
+    private static final String META="meta";
+    private static final String TAG="tag";
+    private static final String PDISKID="pdiskid";
+    private static final String RDISKID="rdiskid";
+    private static final String ACL="acl";
+    private static final String LASTMODIFIED="lastModified";
+    private static final String VERSIONID="versionid";
+    private static final String DELETEMARKER="deleteMarker";
+    private static final String LASTVERSION="lastversion";
+    
+    // for bucket
+    private static final String BUCKETNAME="bucketName";
+    private static final String BUCKETID="bucketId";
+    private static final String DISKPOOLID="diskPoolId";
+    private static final String USERID="userId";
+    private static final String WEB="web";
+    private static final String CORS="cors";
+    private static final String LIFECYCLE="lifecycle";
+    private static final String ACCESS="access";
+    private static final String TAGGING="tagging";
+    private static final String REPLICATION="replication";
+    private static final String VERSIONING="versioning";
+    private static final String MFADELETE="MfaDelete";
+    private static final String CREATETIME="createTime";
+    private static final String REPLICACOUNT="replicaCount";
+    private static final String CREDENTIAL="credential";
+    private static final String ENCRYPTION="encryption";
+    private static final String OBJECTLOCK="objectlock";
+    private static final String POLICY="policy";
+    private static final String FILECOUNT="fileCount";
+    private static final String USEDSPACE="usedSpace";
+    
+    // for multipart upload
+    private static final String UPLOADID="uploadId";
+    private static final String PARTNO ="partNo";
+    private static final String COMPLETED = "completed";
+    private static final String CHANGETIME = "changeTime";
+    
+    // for utility
+    private static final String ID = "Id";
+    private static final String STATUS = "status";
+    private static final String TOTALNUMBEROFOBJECTS = "TotalNumObject";
+    private static final String NUMJOBDONE = "NumJobDone";
+    private static final String CHECKONLY = "checkOnly";
+    private static final String UTILNAME = "utilName";
+    private static final String STARTTIME = "startTime";
+    
+   
     public MongoDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname, int port) throws UnknownHostException{
         this.url = "mongodb://" + host + ":" + port;
         this.username = username;
@@ -67,6 +124,7 @@ public class MongoDataRepository implements DataRepository{
         this.obmCache = obmCache;
         connect();
         createBucketsHolder();
+        createUserDiskPoolHolder();
     }
     
     private void connect() throws UnknownHostException{
@@ -82,32 +140,39 @@ public class MongoDataRepository implements DataRepository{
     private void createBucketsHolder(){
         Document index;
         
-        index = new Document("bucketName", 1);
-        buckets = database.getCollection("BUCKETS");
+        index = new Document(BUCKETNAME, 1);
+        buckets = database.getCollection(BUCKETSCOLLECTION);
         if (buckets == null){
-            database.createCollection("BUCKETS");
-            buckets = database.getCollection("BUCKETS");
+            database.createCollection(BUCKETSCOLLECTION);
+            buckets = database.getCollection(BUCKETSCOLLECTION);
             buckets.createIndex(index);
         }
     }
     
-    private String getMultiPartUploadCollName(String bucketName){
-        return "MULTIPARTUPLOAD_" + bucketName;
+    private void createUserDiskPoolHolder(){
+        Document index;
+        
+        index = new Document(USERID, 1);
+        index.append(CREDENTIAL, 1);
+        MongoCollection<Document> userDiskPool = database.getCollection(USERSDISKPOOL);
+        if (userDiskPool == null){
+            database.createCollection(USERSDISKPOOL);
+            userDiskPool = database.getCollection(USERSDISKPOOL);
+            userDiskPool.createIndex(index);
+        }
     }
     
-    private int createMultipartUploadCollection(String bucketName){
-        //Document index;
-        String collName;
-        MongoCollection<Document> coll;
+    private MongoCollection<Document> getMultiPartUploadCollection(){
+        MongoCollection<Document> multip;
         
-        collName = getMultiPartUploadCollName(bucketName);
-        if (database.getCollection(collName) == null){
-            database.createCollection(collName);
-            coll = database.getCollection(collName);
-            coll.createIndex(Indexes.ascending("uploadId", "partNo", "key"));
-            //coll.createIndexes(list);
+        multip = this.database.getCollection(MULTIPARTUPLOAD);
+        if (multip == null){
+            database.createCollection(MULTIPARTUPLOAD);
+            multip = database.getCollection(MULTIPARTUPLOAD);
+            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME));
         }
-        return 0;
+        
+        return multip;
     }
     
     private String getCurrentDateTime(){
@@ -121,24 +186,26 @@ public class MongoDataRepository implements DataRepository{
         MongoCollection<Document> objects;
         Document doc;
         objects = this.database.getCollection(md.getBucket());
-        doc = new Document("key", md.getPath());
-        doc.append("bucket", md.getBucket());
-        doc.append("key", md.getPath());
-        doc.append("lastModified", md.getLastModified());
-        doc.append("objId", md.getObjId());
-        doc.append("etag", md.getEtag());
-        doc.append("meta", md.getMeta());
-        doc.append("tag", md.getTag());
-        doc.append("size", md.getSize());
-        doc.append("versionid", md.getVersionId());
-        doc.append("deleteMarker", md.getDeleteMarker());
-        doc.append("lastversion", true);
-        doc.append("pdiskId", md.getPrimaryDisk().getId());
+        doc = new Document(OBJKEY, md.getPath());
+        doc.append(BUCKETNAME, md.getBucket());
+        doc.append(OBJKEY, md.getPath());
+        doc.append(LASTMODIFIED, md.getLastModified());
+        doc.append(OBJID, md.getObjId());
+        doc.append(ETAG, md.getEtag());
+        doc.append(META, md.getMeta());
+        doc.append(TAG, md.getTag());
+        doc.append(SIZE, md.getSize());
+        doc.append(ACL, md.getAcl());
+        doc.append(VERSIONID, md.getVersionId());
+        doc.append(DELETEMARKER, md.getDeleteMarker());
+        doc.append(LASTVERSION, true);
+        doc.append(PDISKID, md.getPrimaryDisk().getId());
         if (md.isReplicaExist())
-            doc.append("rdiskId", md.getReplicaDisk().getId());
+            doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
-            objects.updateMany(Filters.eq("objId", md.getObjId()), Updates.set("lastversion", false));
+            objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
         objects.insertOne(doc);
+        updateBucketObjectCount(md.getBucket(), 1);
         return 0;
     }
 
@@ -147,8 +214,8 @@ public class MongoDataRepository implements DataRepository{
        try {
             MongoCollection<Document> objects;
             objects = database.getCollection(md.getBucket());
-            objects.updateOne(Filters.eq("objId", md.getObjId()), Updates.set("pdiskPath", md.getPrimaryDisk().getId()));
-            objects.updateOne(Filters.eq("objId", md.getObjId()), Updates.set("rdiskPath", md.getReplicaDisk().getId()));
+            objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(PDISKID, md.getPrimaryDisk().getId()));
+            objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(RDISKID, md.getReplicaDisk().getId()));
             return 0;
         } catch (ResourceNotFoundException ex) {
             Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -160,75 +227,82 @@ public class MongoDataRepository implements DataRepository{
     public int updateSizeTime(Metadata md) {
         MongoCollection<Document> objects;
         objects = database.getCollection(md.getBucket());
-        objects.updateOne(Filters.eq("objId", md.getObjId()), Updates.set("lastModified", md.getLastModified()));
-        objects.updateOne(Filters.eq("objId", md.getObjId()), Updates.set("size", md.getSize()));
+        objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTMODIFIED, md.getLastModified()));
+        objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(SIZE, md.getSize()));
         return 0;
     }
  
-    private Metadata selectSingleObjectInternal(String bucketName, String objId) throws ResourceNotFoundException {
+    private Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
+        FindIterable fit;
         Metadata mt;
         
         objects = database.getCollection(bucketName);
-        FindIterable fit = objects.find(Filters.and(eq("objId", objId), eq("lastversion", true)));
+        if (versionId.isEmpty())
+            fit = objects.find(Filters.and(eq(OBJID, objId), eq(LASTVERSION, true)));
+        else
+            fit = objects.find(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+        
         Document doc =(Document)fit.first();
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
         
-        Date lastModified = doc.getDate("lastModified");
-        String key       = (String)doc.get("key");
-        String etag         = doc.getString("etag");
-        String meta         = doc.getString("meta");
-        String tag          = doc.getString("tag");
-        long size           = doc.getLong("size");
-        String versionid    = doc.getString("versionid");
-        String deleteMarker = doc.getString("deleteMarker");
-        boolean lastversion = doc.getBoolean("lastversion");
+        Date lastModified = doc.getDate(LASTMODIFIED);
+        String key       = (String)doc.get(OBJKEY);
+        String etag         = doc.getString(ETAG);
+        String meta         = doc.getString(META);
+        String tag          = doc.getString(TAG);
+        long size           = doc.getLong(SIZE);
+        String acl          = doc.getString(ACL);
+        String versionid    = doc.getString(VERSIONID);
+        String deleteMarker = doc.getString(DELETEMARKER);
+        boolean lastversion = doc.getBoolean(LASTVERSION);
         Bucket bt           = obmCache.getBucketFromCache(bucketName);
-        String pdiskId      = doc.getString("pdiskId");
-        DISK pdsk           = obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId);
-        String rdiskId      = doc.getString("rdiskId");
-        DISK rdsk           = obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId);
+        String pdiskId      = doc.getString(PDISKID);
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
+        String rdiskId      = doc.getString(RDISKID);
+        DISK rdsk           = rdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId) : new DISK();
         
         mt = new Metadata( bucketName, key);
-        mt.set(etag, tag, meta);
+        mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(rdsk);
         mt.setLastModified(lastModified.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-        mt.setSize(size);
+        //mt.setSize(size);
         mt.setVersionId(versionid, deleteMarker, lastversion);
         return mt;
     }
  
     @Override
-    public Metadata selectSingleObject(String bucketName, String key) throws ResourceNotFoundException {
+    public Metadata selectSingleObject(String diskPoolId, String bucketName, String key) throws ResourceNotFoundException {
         Metadata mt;
         
         mt = new Metadata( bucketName, key);
-        return selectSingleObjectInternal(bucketName, mt.getObjId()); 
+        //System.out.format("[selectSingleObject ] bucket : %s path : %s objid : %s\n", mt.getBucket(), mt.getPath(), mt.getObjId());
+        return selectSingleObjectInternal(bucketName, mt.getObjId(), ""); 
     }
     @Override
-    public Metadata selectSingleObjectWithObjId(String bucketName, String objId) throws ResourceNotFoundException {
-        return selectSingleObjectInternal(bucketName, objId); 
+    public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objId) throws ResourceNotFoundException {
+        return selectSingleObjectInternal(bucketName, objId, ""); 
     }
     
     @Override
     public void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        FindIterable<Document> oit = objects.find((BasicDBObject)query).limit(maxKeys).sort(new BasicDBObject("key", 1 ));
+        FindIterable<Document> oit = objects.find((BasicDBObject)query).limit(maxKeys).sort(new BasicDBObject(OBJKEY, 1 ));
         Iterator it = oit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            String key         = doc.getString("key");
-            String etag        = doc.getString("etag");
-            String pdiskid     = doc.getString("pdiskId");
-            String rdiskid     = doc.getString("rdiskId");
-            Date lastModified  = doc.getDate("lastModified");
+            String key         = doc.getString(OBJKEY);
+            String etag        = doc.getString(ETAG);
+            String pdiskid     = doc.getString(PDISKID);
+            String rdiskid     = doc.getString(RDISKID);
+            Date lastModified  = doc.getDate(LASTMODIFIED);
             String lastModifiedStr = lastModified.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime().toString();
-            long size           = doc.getLong("size");
+            long size           = doc.getLong(SIZE);
            callback.call(key, etag, lastModifiedStr, size, null, pdiskid, rdiskid, true);
         }
     }
@@ -242,17 +316,17 @@ public class MongoDataRepository implements DataRepository{
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            String bucketName = (String)doc.get("bucketName");
+            String bucketName = (String)doc.get(BUCKETNAME);
             objects = database.getCollection(bucketName);
             String diskid;
-            MongoCursor<String> cdisk = objects.distinct("pdiskId", String.class).iterator();
+            MongoCursor<String> cdisk = objects.distinct(PDISKID, String.class).iterator();
             while(cdisk.hasNext()){
                 diskid = cdisk.next();
                 if (!dList.contains(diskid))
                     dList.add(diskid);
             }
             
-            cdisk = objects.distinct("rdiskId", String.class).iterator();
+            cdisk = objects.distinct(RDISKID, String.class).iterator();
             while(cdisk.hasNext()){
                 diskid = cdisk.next();
                 if (!dList.contains(diskid))
@@ -262,43 +336,108 @@ public class MongoDataRepository implements DataRepository{
         }
         return dList;
     }
-    
-    // 2021-11-24 add username
+   
     @Override
-    public Bucket insertBucket(String bucketName, String diskPoolId, String userName, String versioning, String MfaDelete, String encryption, String objectlock) throws ResourceAlreadyExistException {
+    public Bucket insertBucket(Bucket bt) throws ResourceAlreadyExistException{
         Document doc;
         Document index;
-        
-        index = new Document("objId", 1);
-        doc = new Document("bucketName", bucketName);
-        doc.append("bucketName", bucketName);
-        doc.append("diskPoolId", diskPoolId);
-        doc.append("bucketId", new Metadata(bucketName, "/").getBucketId());
-        doc.append("versioning", versioning);
-        buckets.insertOne(doc);
-        database.createCollection(bucketName);
-        database.getCollection(bucketName).createIndex(index);
-        Bucket bt = new Bucket(bucketName, bucketName, diskPoolId);
+        try{ 
+            doc = new Document(BUCKETNAME, bt.getName());
+            //doc.append(BUCKETNAME, bucketName);
+            doc.append(DISKPOOLID, bt.getDiskPoolId());
+            doc.append(BUCKETID, new Metadata(bt.getName(), "/").getBucketId());
+            doc.append(USERID, bt.getUserId());
+            doc.append(ACL, bt.getAcl());
+            doc.append(REPLICACOUNT, bt.getReplicaCount());
+            
+            doc.append(WEB, "");
+            doc.append(CORS, "");
+            doc.append(LIFECYCLE, "");
+            doc.append(ACCESS, "");
+            doc.append(TAGGING, "");
+            doc.append(REPLICATION, "");
+            doc.append(VERSIONING, "");
+            doc.append(MFADELETE, "");
+            
+            doc.append(ENCRYPTION, "");
+            doc.append(OBJECTLOCK, "");
+            doc.append(POLICY, "");
+            doc.append(FILECOUNT, 0);
+            doc.append(USEDSPACE, 0);
+            doc.append(CREATETIME, getCurrentDateTime());
+            
+            buckets.insertOne(doc);
+            database.createCollection(bt.getName());
+            // for index for object collection
+            index = new Document(OBJID, 1);
+            index.append(VERSIONID, 1);
+            index.append(LASTVERSION, 1);
+            index.append(DELETEMARKER, 1);
+            database.getCollection(bt.getName()).createIndex(index);
+            //bt = new Bucket(bucketName, bucketName, diskPoolId);
+            getUserDiskPool(bt);
+        } catch(SQLException ex){
+            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bt.getName()), ex);
+        }
         return bt;
     }
 
     @Override
     public int deleteBucket(String bucketName) {
-        buckets.deleteOne(Filters.eq("bucketName", bucketName));
+        buckets.deleteOne(Filters.eq(BUCKETNAME, bucketName));
         this.database.getCollection(bucketName).drop();
         return 0;
     }
 
-    @Override
-    public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
-        FindIterable fit = buckets.find(eq("bucketName", bucketName));
-        Document doc =(Document)fit.first();
+    private Bucket parseBucket(String bucketName, Document doc) throws ResourceNotFoundException, SQLException{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not bucket with a name " + bucketName);
         
-        String diskPoolId = doc.getString("diskPoolId");
-        String bucketId = doc.getString("bucketId");
-        return new Bucket(bucketName, bucketId, diskPoolId);
+        String diskPoolId = doc.getString(DISKPOOLID);
+        String bucketId   = doc.getString(BUCKETID);
+        String userId     = doc.getString(USERID);
+        String web        = doc.getString(WEB);
+        String acl        = doc.getString(ACL);
+        String cors       = doc.getString(CORS);
+        String lifecycle  = doc.getString(LIFECYCLE);
+        String access     = doc.getString(ACCESS);
+        String tagging    = doc.getString(TAGGING);
+        String replication= doc.getString(REPLICATION);
+        Date createTime;
+        try {
+            String createTimeStr = doc.getString(CREATETIME);
+      
+            if (createTimeStr == null)
+                createTime = new Date(0);
+            else
+                createTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(createTimeStr);
+        } catch (ParseException ex) {
+            createTime = new Date(0);
+        }
+        String versioning = doc.getString(VERSIONING);
+        String mfdelete   = doc.getString(MFADELETE);
+        Bucket bt = new Bucket(bucketName, bucketId, diskPoolId);
+        
+        bt.setUserId(userId);
+        bt.setWeb(web);
+        bt.setAccess(access);
+        bt.setAcl(acl);
+        bt.setCors(cors);
+        bt.setLifecycle(lifecycle);
+        bt.setTagging(tagging);
+        bt.setReplication(replication);
+        bt.setCreateTime(createTime);
+        bt.setVersioning(versioning, mfdelete);
+        getUserDiskPool(bt);
+        //System.out.println(">>" + bt);
+        return bt;
+    }
+    
+    @Override
+    public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        Document doc =(Document)fit.first();
+        return parseBucket(bucketName, doc);
     }
 
     @Override
@@ -307,12 +446,14 @@ public class MongoDataRepository implements DataRepository{
         FindIterable<Document> fit = buckets.find();
         Iterator it = fit.iterator();
         while((it.hasNext())){
-            Document doc = (Document)it.next();
-            String bucketName = (String)doc.get("bucketName");
-            String diskPoolId = (String)doc.get("diskPoolId");
-            String bucketId   = (String)doc.get("bucketId");
-            bt = new Bucket(bucketName, bucketId, diskPoolId);
-            obmCache.setBucketInCache(bt);
+            try {
+                Document doc = (Document)it.next();
+                String bucketName = (String)doc.get(BUCKETNAME);
+                bt =parseBucket(bucketName, doc);
+                obmCache.setBucketInCache(bt);
+            } catch (ResourceNotFoundException | SQLException ex) {
+                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     } 
     
@@ -322,47 +463,44 @@ public class MongoDataRepository implements DataRepository{
         FindIterable<Document> fit = buckets.find();
         Iterator it = fit.iterator();
         while((it.hasNext())){
-            Document doc = (Document)it.next();
-            String bucketName = (String)doc.get("bucketName");
-            String diskPoolId = (String)doc.get("diskPoolId");
-            String bucketId   = (String)doc.get("bucketId");
-            Bucket bt = new Bucket(bucketName, bucketId, diskPoolId);
-            btList.add(bt);
+            try {
+                Document doc = (Document)it.next();
+                String bucketName = (String)doc.get(BUCKETNAME);
+                //String diskPoolId = (String)doc.get("diskPoolId");
+                //String bucketId   = (String)doc.get("bucketId");
+                Bucket bt = parseBucket(bucketName, doc);//new Bucket(bucketName, bucketId, diskPoolId);
+                btList.add(bt);
+            } catch (ResourceNotFoundException | SQLException ex) {
+                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } 
         return btList;
     }
     
     @Override
     public int updateBucketVersioning(Bucket bt){
-        FindIterable fit = buckets.find(eq("bucketName", bt.getName()));
-        Document doc =(Document)fit.first();
-        if (doc == null)
-          return -1;
-        buckets.updateOne(Filters.eq("bucketName", bt.getName()), Updates.set("versioning", bt.getVersioning()));
-        return 0;    
+        return updateBucket(bt.getName(), VERSIONING, bt.getVersioning());  
     }
     
     @Override
     public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         Document doc;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        doc = new Document("key", objkey);
-        //doc.append("key", objkey);
-        doc.append("uploadId", uploadid);
-        doc.append("partNo", partNo);
-        doc.append("completed", false);
-        doc.append("changeTime", getCurrentDateTime());
-        doc.append("acl", acl);
-        doc.append("meta", meta);
-        doc.append("etag", etag);
-        doc.append("size", size);
+        doc = new Document(OBJKEY, objkey);
+        doc.append(BUCKETNAME, bucket);
+        doc.append(UPLOADID, uploadid);
+        doc.append(PARTNO, partNo);
+        doc.append(COMPLETED, false);
+        doc.append(CHANGETIME, getCurrentDateTime());
+        doc.append(ACL, acl);
+        doc.append(META, meta);
+        doc.append(ETAG, etag);
+        doc.append(SIZE, size);
      
         multip.insertOne(doc);
         return 0;
@@ -371,35 +509,31 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public int updateMultipartUpload(String bucket,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.updateOne(Filters.and(eq("uploadId", uploadid), eq("partNo", partNo)), Updates.set("completed", iscompleted));
+        multip.updateOne(Filters.and(eq(BUCKETNAME, bucket), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.set(COMPLETED, iscompleted));
         return 0;
     }
     
     @Override
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException{
         MongoCollection<Document> multip;
-        String collName;
         
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
+        multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.deleteOne(Filters.eq("uploadId", uploadid));
+        multip.deleteOne(Filters.eq(UPLOADID, uploadid));
         return 0;
     }
     
     @Override
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException{
         List<Integer> list=new ArrayList<>();
-        MongoCollection<Document> multip;
+        /*MongoCollection<Document> multip;
         String collName;
         
         collName = getMultiPartUploadCollName(bucket);
@@ -407,20 +541,20 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return null;
         
-        FindIterable fit = multip.find(Filters.and(eq("uploadId", uploadid), Filters.gt("partNo", partNoMarker)))
-                .limit(maxParts).sort(new BasicDBObject("partNo", 1 ));
+        FindIterable fit = multip.find(Filters.and(eq(UPLOADID, uploadid), Filters.gt(PARTNO, partNoMarker)))
+                .limit(maxParts).sort(new BasicDBObject(PARTNO, 1 ));
      
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            list.add(doc.getInteger("partNo"));
-        }
+            list.add(doc.getInteger(PARTNO));
+        }*/
         return list;
     }
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
-        MongoCollection<Document> multip;
+        /*MongoCollection<Document> multip;
         String collName;
         String key;
         String uploadid;
@@ -431,18 +565,18 @@ public class MongoDataRepository implements DataRepository{
         collName = getMultiPartUploadCollName(bucket);
         multip = this.database.getCollection(collName);
         
-        BasicDBObject sortList = new BasicDBObject("key", 1 );
-        sortList.append("uploadId", 1);
-        sortList.append("partNo", 1);
+        BasicDBObject sortList = new BasicDBObject(OBJKEY, 1 );
+        sortList.append(UPLOADID, 1);
+        sortList.append(PARTNO, 1);
         FindIterable fit = multip.find((BasicDBObject)query).limit(maxKeys + 1)
                 .sort(sortList);
      
         Iterator it = fit.iterator();
         while((it.hasNext())){
             Document doc = (Document)it.next();
-            key      = doc.getString("key");
-            uploadid = doc.getString("uploadId");
-            partNo   = (long )doc.getInteger("partNo");
+            key      = doc.getString(OBJKEY);
+            uploadid = doc.getString(UPLOADID);
+            partNo   = (long )doc.getInteger(PARTNO);
             ++counter;
             if (counter == maxKeys){
                 isTruncated =it.hasNext();
@@ -452,182 +586,537 @@ public class MongoDataRepository implements DataRepository{
             callback.call(key, uploadid, "", partNo, "", "", "", isTruncated);
             if (isTruncated == true)
                 break;
-        }
+        }*/
     }
 
-    @Override
+    /*@Override
     public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
         // TODO Auto-generated method stub
         return null;
+    }*/
+
+    @Override
+    public int deleteObject(String bucketName, String objKey, String versionId) {
+        MongoCollection<Document> objects;
+        DeleteResult dres;
+        String objId = new Metadata(bucketName, objKey).getObjId();
+        objects = database.getCollection(bucketName);
+        if (versionId.equalsIgnoreCase("null"))
+            dres = objects.deleteOne(Filters.eq(OBJID, objId));
+        else
+            dres = objects.deleteOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)));
+        
+        if (dres == null)
+            return -1;
+        
+        int nchange = (int)dres.getDeletedCount();
+        updateBucketObjectCount(bucketName, -1);
+        return nchange;
     }
 
     @Override
-    public int deleteObject(String bucketName, String path, String versionId) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public Metadata selectSingleObject(String bucketName, String path, String versionId)
+    public Metadata selectSingleObject(String diskPoolId, String bucketName, String objKey, String versionId)
             throws ResourceNotFoundException {
-        // TODO Auto-generated method stub
-        return null;
+        Metadata mt;
+      
+        mt = new Metadata( bucketName, objKey);
+        return selectSingleObjectInternal(bucketName, mt.getObjId(), versionId); 
     }
 
     @Override
-    public Multipart getMulipartUpload(String uploadid) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public Multipart getMulipartUpload(String uploadId) throws SQLException {
+        MongoCollection<Document> multip;
+        Multipart mpart = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            mpart = new Multipart(doc.getString(BUCKETNAME), doc.getString(OBJKEY), uploadId);
+            mpart.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            mpart.setAcl(doc.getString(ACL));
+            mpart.setMeta(doc.getString(META));
+        }
+        
+        return mpart;
     }
 
     @Override
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        SortedMap<Integer, Part> listPart = new TreeMap<>();
+        MongoCollection<Document> multip;
+        Multipart mpart = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            Part part = new Part();
+            part.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            part.setPartETag(doc.getString(ETAG));
+            part.setPartSize(doc.getLong(SIZE));
+            part.setPartNumber(doc.getInteger(PARTNO));
+            listPart.put(part.getPartNumber(), part);
+        }
+        
+        return listPart;
     }
 
+    //SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?")
     @Override
-    public ResultParts getParts(String uploadId, String partNumberMarker, int maxParts) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
+        MongoCollection<Document> multip;
+        ResultParts resultParts = new ResultParts(uploadId, maxParts);
+        resultParts.setListPart(new TreeMap<>());
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return resultParts;
+        
+        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        
+        FindIterable fit = multip.find(
+                Filters.and(Filters.eq(UPLOADID, uploadId), Filters.gt(PARTNO, partNumberMarker)))
+                .limit(maxParts + 1)
+                .sort(sortList);
+     
+        Iterator it = fit.iterator();
+        int count = 0;
+        resultParts.setTruncated(false);
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            count++;
+            if (count > maxParts) {
+                resultParts.setPartNumberMarker(doc.getString(PARTNO));
+                resultParts.setTruncated(true);
+                break;
+            }
+            Part part = new Part();
+            part.setLastModified((Date)doc.getDate(LASTMODIFIED));
+            part.setPartETag(doc.getString(ETAG));
+            part.setPartSize(doc.getLong(SIZE));
+            part.setPartNumber(doc.getInteger(PARTNO));
+            resultParts.getListPart().put(part.getPartNumber(), part);
+        }
+        
+        return resultParts;
     }
 
+    // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void updateBucketAcl(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketCors(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketWeb(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketLifecycle(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketAccess(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketTagging(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        return;
-    }
-
-    @Override
-    public void updateBucketReplication(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
+        ResultUploads resultUploads = new ResultUploads();
+        resultUploads.setList(new ArrayList<>());
+        resultUploads.setTruncated(false);
         
+        MongoCollection<Document> multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return resultUploads;
+        
+        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        
+        FindIterable fit = multip.find(
+                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)))
+                .limit(maxUploads + 1)
+                .sort(sortList);
+        
+        int count = 0;
+        Iterator it = fit.iterator();
+        resultUploads.setTruncated(false);
+        while (it.hasNext()) {
+            Document doc = (Document)it.next();
+            count++;
+            if (count > maxUploads) {
+                resultUploads.setKeyMarker(doc.getString(OBJKEY));
+                resultUploads.setUploadIdMarker(doc.getString(UPLOADID));
+                resultUploads.setTruncated(true);
+                break;
+            }
+            Upload upload = new Upload(doc.getString(OBJKEY), (Date)doc.getDate(CHANGETIME), doc.getString(UPLOADID), doc.getString(META));
+            resultUploads.getList().add(upload);
+        }
+        return resultUploads;
     }
 
     @Override
     public boolean isUploadId(String uploadid) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        MongoCollection<Document> multip = getMultiPartUploadCollection();
+        if (multip == null){
+            return false;
+        }
+        
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadid)); 
+        Iterator it = fit.iterator();
+        return it.hasNext();
+    }
+    
+    private int updateObject(String bucketName,  String objId, String versionId, String key, String value){
+        MongoCollection<Document> objects;
+        objects = database.getCollection(bucketName);
+        objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)), Updates.set(key, value));
+        return 0;
+    }
+    
+    @Override
+    public void updateObjectMeta(Metadata mt) throws SQLException {
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
+    }
+
+    private int updateBucket(String bucketName, String key, String value){
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        Document doc =(Document)fit.first();
+        if (doc == null)
+          return -1;
+        
+        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.set(key, value));
+        return 0;
+    }
+    
+    private int updateBucketObjectSpaceCount(String bucketName, String key, long value){
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        Document doc =(Document)fit.first();
+        if (doc == null)
+          return -1;
+        
+        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.set(key, value));
+        return 0;
+    }
+    
+    @Override
+    public void updateBucketAcl(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ACL, bt.getAcl());
     }
 
     @Override
-    public ObjectListParameter listObject(String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public void updateBucketCors(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), CORS, bt.getCors());
     }
 
     @Override
-    public ObjectListParameter listObjectV2(String bucketName, String delimiter, String startAfter,
-            String continueationToken, int maxKeys, String prefix) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public void updateBucketWeb(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), WEB, bt.getWeb());
     }
 
     @Override
-    public ObjectListParameter listObjectVersions(String bucketName, String delimiter, String keyMarker,
-            String versionIdMarker, int maxKeys, String prefix) throws SQLException {
-        // TODO Auto-generated method stub
+    public void updateBucketLifecycle(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), LIFECYCLE, bt.getLifecycle());
+    }
+
+    @Override
+    public void updateBucketAccess(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ACCESS, bt.getAccess());
+    }
+
+    @Override
+    public void updateBucketTagging(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), TAGGING, bt.getTagging());
+    }
+
+    @Override
+    public void updateBucketReplication(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), REPLICATION, bt.getReplication());
+    }
+
+    private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,
+            long NumJobDone, boolean checkOnly, String utilName, String startTime){
+        List<Object> res = new ArrayList<>();
+        res.add(Id); // ID
+        res.add(status); // status
+        res.add(TotalNumObject);   // TotalNumObject
+        res.add(NumJobDone);   // NumJobDone
+        res.add(checkOnly);   // checkOnly
+        res.add(utilName); // utilName
+        res.add(startTime); // startTime
+        return res;
+    }
+
+    private List<Object> insertUtilJob(String Id, String status, long TotalNumObject, boolean checkOnly, String utilName){
+        MongoCollection<Document> utilJob;
+        Document doc;
+        String startTime = getCurrentDateTime();
+        
+        utilJob = this.database.getCollection(UTILJOBS);
+        if (utilJob == null)
+            return new ArrayList<>();
+        
+        doc = new Document(ID, Id);
+        doc.append(STATUS, status);
+        doc.append(TOTALNUMBEROFOBJECTS, TotalNumObject);
+        doc.append(NUMJOBDONE, 0);
+        doc.append(CHECKONLY, checkOnly);
+        doc.append(UTILNAME, utilName);
+        doc.append(STARTTIME, startTime);
+        utilJob.insertOne(doc);
+        return getUtilJobObject(Id, status, 0, 0, false, " ", startTime);
+    }
+    private List<Object> selectUtilJob(String Id){
+        MongoCollection<Document> utilJob;
+        utilJob = this.database.getCollection(UTILJOBS);
+        
+        FindIterable fit = utilJob.find(eq(ID, Id));
+        
+        Iterator it = fit.iterator();
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            return getUtilJobObject(Id, doc.getString(STATUS), 
+                    doc.getLong(TOTALNUMBEROFOBJECTS), doc.getLong(NUMJOBDONE), 
+                    doc.getBoolean(CHECKONLY), doc.getString(UTILNAME), 
+                    doc.getString(STARTTIME));
+        }
         return null;
+    }
+    
+    private List<Object> updateStatusUtilJob(String Id, String status){
+        MongoCollection<Document> utilJob;
+        utilJob = this.database.getCollection(UTILJOBS);
+        FindIterable fit = utilJob.find(eq(ID, Id));
+        Document doc =(Document)fit.first();
+        if (doc == null)
+          return new ArrayList<>();
+        
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(STATUS, status));
+        return getUtilJobObject(Id, status, 0, 0, false, " ", "");
+    }
+    
+    private List<Object> updateNumberJobsUtilJob(String Id, long TotalNumObject, long NumJobDone){
+        MongoCollection<Document> utilJob;
+        utilJob = this.database.getCollection(UTILJOBS);
+        FindIterable fit = utilJob.find(eq(ID, Id));
+        Document doc =(Document)fit.first();
+        if (doc == null)
+          return new ArrayList<>();
+        
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(TOTALNUMBEROFOBJECTS, TotalNumObject));
+        utilJob.updateOne(Filters.eq(ID, Id), Updates.set(NUMJOBDONE, NumJobDone));
+        return getUtilJobObject(Id, "", TotalNumObject, NumJobDone, false, "", "");
     }
     
     @Override
     public List<Object> utilJobMgt(String operation, List<Object> in) {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public boolean isBucketDelete(String bucket) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean isClosed() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void close() throws SQLException {
-        // TODO Auto-generated method stub
+                List<Object> ret;
+        String status;
+        long TotalNumObject;
+        long NumJobDone;
+        boolean checkOnly;
+        String utilName;
+        String Id = in.get(0).toString();
+           
+        if (operation.equalsIgnoreCase("addJob")){
+            status = in.get(1).toString();
+            TotalNumObject = Long.parseLong(in.get(2).toString());
+            checkOnly = Boolean.getBoolean(in.get(4).toString());
+            utilName = in.get(5).toString();
+            ret = insertUtilJob(Id, status, TotalNumObject, checkOnly, utilName);
+        } else if (operation.equalsIgnoreCase("getJob")){
+            ret = selectUtilJob(Id);
+        } else if (operation.equalsIgnoreCase("updateJobStatus")){
+            status = in.get(1).toString();
+            ret= updateStatusUtilJob(Id, status);
+        } else if (operation.equalsIgnoreCase("updateJobNumber")){
+            TotalNumObject = Long.parseLong(in.get(2).toString());
+            NumJobDone = Long.parseLong(in.get(3).toString());
+            ret= updateNumberJobsUtilJob(Id, TotalNumObject, NumJobDone);
+        }
+        else
+            ret = new ArrayList<>();
         
+        return ret;
+    }
+
+    @Override
+    public boolean isBucketDeleted(String bucketName) throws SQLException {
+        MongoCollection<Document> bkt;
+        
+        bkt = database.getCollection(bucketName);
+        return bkt.countDocuments() <= 0;
+    }
+    
+    @Override
+    public int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException {
+        MongoCollection<Document> userDiskPool;
+        Document doc;
+        
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
+        if (userDiskPool == null)
+            return -1;
+        
+        doc = new Document(USERID, userId);
+        doc.append(CREDENTIAL, secretKey + "_" + accessKey);
+        doc.append(DISKPOOLID, diskpoolId);
+        doc.append(REPLICACOUNT, replicaCount);
+        userDiskPool.insertOne(doc);
+        
+        // check inserted or not
+        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, userId), Filters.eq(CREDENTIAL, secretKey + "_" + accessKey)));
+        Iterator it = fit.iterator();
+        if((it.hasNext()))
+            return 0;
+        
+        return -1;
+    }
+
+    @Override
+    public Bucket getUserDiskPool(Bucket bt) throws SQLException {
+        MongoCollection<Document> userDiskPool;
+        String diskPoolId;
+        int replicaCount;
+        
+        //System.out.println("userId : " + bt.getUserId());
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
+        
+        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, bt.getUserId()), Filters.eq(CREDENTIAL, "_")));
+        
+        Iterator it = fit.iterator();
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            diskPoolId      = doc.getString(DISKPOOLID);
+            //System.out.println("doc >>" + doc);
+            replicaCount   = doc.getInteger(REPLICACOUNT);
+            bt.setDiskPoolId(diskPoolId);
+            bt.setReplicaCount(replicaCount);
+            break;
+        }
+        return bt;
+    }
+
+    @Override
+    public int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException {
+       MongoCollection<Document> userDiskPool;
+        
+        userDiskPool = this.database.getCollection(USERSDISKPOOL);
+        if (userDiskPool == null)
+            return -1;
+        
+        userDiskPool.deleteOne(Filters.and(eq(USERID, userId), eq(CREDENTIAL, diskPoolId)));
+        return 0;
+    }
+
+    @Override
+    public Object getStatement(String query) throws SQLException {
+        throw new SQLException("mongod is not supported mysql like statements!");
+        //return null;
+    }
+
+    @Override
+    public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys) throws SQLException {
+        String diskPoolId = "1";
+        MongoCollection<Document> objects;
+        objects = database.getCollection(bucketName);
+        BasicDBObject sortBy = new BasicDBObject(OBJKEY, 1 );
+        BasicDBObject mongoQuery =(BasicDBObject)query;
+        
+        if (mongoQuery.containsField(VERSIONID))
+            sortBy.append(LASTMODIFIED, -1);
+        
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy);
+        Iterator it = oit.iterator();
+        List<Metadata> list = new ArrayList();
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt != null)
+            diskPoolId = bt.getDiskPoolId();
+        
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            String key         = doc.getString(OBJKEY);
+            String etag        = doc.getString(ETAG);
+            String tag         = doc.getString(TAG);
+            String meta        = doc.getString(META);
+            String acl         = doc.getString(ACL);
+            String pdiskid     = doc.getString(PDISKID);
+            String rdiskid     = doc.getString(RDISKID);
+            Date lastModified  = doc.getDate(LASTMODIFIED);
+            LocalDateTime lastModifiedStr = lastModified.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            long size           = doc.getLong(SIZE);
+            Metadata mt = new Metadata(bucketName, key);
+            mt.set(etag, tag, meta, acl, size);
+            mt.setLastModified(lastModifiedStr);
+                
+            try {
+                mt.setPrimaryDisk(obmCache.getDiskWithId(diskPoolId, pdiskid));
+            } catch (ResourceNotFoundException ex) {
+                mt.setPrimaryDisk(new DISK());
+            }
+            
+            try {
+                mt.setReplicaDISK(obmCache.getDiskWithId(diskPoolId, rdiskid));
+            } catch (ResourceNotFoundException ex) {
+                mt.setReplicaDISK(new DISK());
+            }
+            list.add(mt);
+        }
+        return list;
+    }
+
+    @Override
+    public void updateObjectTagging(Metadata mt) throws SQLException {
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
+    }
+
+    @Override
+    public void updateObjectAcl(Metadata mt) throws SQLException {
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), ACL, mt.getAcl());
     }
 
     @Override
     public void updateBucketEncryption(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        
+        updateBucket(bt.getName(), ENCRYPTION, bt.getEncryption());
     }
 
     @Override
     public void updateBucketObjectLock(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        
+        updateBucket(bt.getName(), OBJECTLOCK, bt.getObjectLock());
     }
 
     @Override
     public void updateBucketPolicy(Bucket bt) throws SQLException {
-        // TODO Auto-generated method stub
-        
+        updateBucket(bt.getName(), POLICY, bt.getPolicy());
     }
 
     @Override
-    public void updateObjectTagging(Metadata meta) throws SQLException {
-        // TODO Auto-generated method stub
-        
+    public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException {
+        updateBucketObjectSpaceCount(bt.getName(), USEDSPACE, size);
     }
 
-    @Override
-    public List<S3BucketSimpleInfo> listBuckets(String userName, String userId) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    private void updateBucketObjectCount(String bucketName, long fileCount){
+        updateBucketObjectSpaceCount(bucketName, USEDSPACE, fileCount);
     }
-
+    
     @Override
-    public void updateObjectAcl(Metadata meta) throws SQLException {
-        // TODO Auto-generated method stub
+    public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException {
+        MongoCollection<Document> multip;
         
-    }
-
-    @Override
-    public void updateObjectMeta(Metadata meta) throws SQLException {
-        // TODO Auto-generated method stub
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
         
+        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        
+        if (!(it.hasNext()))
+            return null;
+        
+        Metadata mt;
+        Document doc = (Document)it.next();
+        try {
+            mt = selectSingleObject(diskPoolId, doc.getString(BUCKETNAME), doc.getString(OBJKEY));
+        } catch (ResourceNotFoundException ex) {
+            return null;
+        }
+        
+        return mt;
     }
 }

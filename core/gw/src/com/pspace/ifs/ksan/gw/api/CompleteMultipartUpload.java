@@ -89,15 +89,15 @@ public class CompleteMultipartUpload extends S3Request {
 			completeMultipartUpload = xmlMapper.readValue(multipartXml, CompleteMultipartUploadRequest.class);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		if(completeMultipartUpload.parts == null || completeMultipartUpload.parts.size() == 0) {
 			logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage() + GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_PART_NO_EXIST);
-			throw new GWException(GWErrorCode.MALFORMED_X_M_L);
+			throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 		}
 
 		SortedMap<Integer, Part> xmlListPart = new TreeMap<Integer, Part>();
@@ -115,10 +115,10 @@ public class CompleteMultipartUpload extends S3Request {
 			listPart = objMultipart.getParts(uploadId);
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		logger.info(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_XML_PARTS_SIZE, completeMultipartUpload.parts.size());
@@ -126,10 +126,10 @@ public class CompleteMultipartUpload extends S3Request {
 
 		if (completeMultipartUpload.parts.size() > listPart.size()) {
 			logger.warn(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_LESS_THAN);
-			throw new GWException(GWErrorCode.INVALID_PART);
+			throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);
 		} else if (completeMultipartUpload.parts.size() < listPart.size()) {
 			logger.warn(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_GREATER_THAN);
-			throw new GWException(GWErrorCode.INVALID_PART);
+			throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);
 		}
 
 		for (Iterator<Map.Entry<Integer, Part>> it = xmlListPart.entrySet().iterator(); it.hasNext();) {
@@ -139,13 +139,13 @@ public class CompleteMultipartUpload extends S3Request {
 				if( eTag.compareTo(listPart.get(entry.getKey()).getPartETag()) == 0 ) {
 					if (listPart.get(entry.getKey()).getPartSize() < GWConstants.PARTS_MIN_SIZE && entry.getKey() < listPart.size()) {
 						logger.error(GWErrorCode.ENTITY_TOO_SMALL.getMessage());
-						throw new GWException(GWErrorCode.ENTITY_TOO_SMALL);
+						throw new GWException(GWErrorCode.ENTITY_TOO_SMALL, s3Parameter);
 					}
 				} else {
-					throw new GWException(GWErrorCode.INVALID_PART);	
+					throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);	
 				}
 			} else {
-				throw new GWException(GWErrorCode.INVALID_PART);
+				throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);
 			}
 		}
 
@@ -156,31 +156,45 @@ public class CompleteMultipartUpload extends S3Request {
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		String acl = multipart.getAcl();
 		String meta = multipart.getMeta();
 		
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
-
 		String versionId = null;
-		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-			versionId = String.valueOf(System.nanoTime());
-			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
-		} else {
-			versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+		Metadata objMeta = createLocal(bucket, object);
+		try {
+			// check exist object
+			objMeta = open(bucket, object);
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+			}
+		} catch (GWException e) {
+			logger.info(e.getMessage());
+			objMeta = createLocal(bucket, object);
+
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+			}
 		}
 
-		// get Paths
-		Metadata objMeta = createLocal(bucket, object);
+		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+			logger.info(GWConstants.LOG_COMPLETE_MULTIPART_VERSION_ID, versionId);
+			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
+		}
 
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -219,14 +233,14 @@ public class CompleteMultipartUpload extends S3Request {
 					thread.join(500);
 				} catch (InterruptedException ie) {
 					PrintStack.logging(logger, ie);
-					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 				xmlStreamWriter.writeCharacters(GWConstants.NEWLINE);
 			}
 
 			if( S3Excp.get() != null) {
 				logger.error(S3Excp.get().getMessage());
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
 			writeSimpleElement(xmlStreamWriter, GWConstants.LOCATION, GWConstants.HTTP + bucket + GWConstants.S3_AMAZON_AWS_COM + object);
@@ -266,7 +280,7 @@ public class CompleteMultipartUpload extends S3Request {
 				jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		
 			int result = 0;
@@ -278,7 +292,7 @@ public class CompleteMultipartUpload extends S3Request {
 				}
 			} catch (ResourceNotFoundException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 			if (result != 0) {
 				logger.error(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_FAILED, bucket, object);
@@ -287,10 +301,10 @@ public class CompleteMultipartUpload extends S3Request {
 			objMultipart.abortMultipartUpload(uploadId);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 }

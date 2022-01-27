@@ -22,8 +22,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class DeletePublicAccessBlock extends S3Request {
-    public DeletePublicAccessBlock(S3Parameter ip) {
-		super(ip);
+    public DeletePublicAccessBlock(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(DeletePublicAccessBlock.class);
 	}
 

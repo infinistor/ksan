@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,10 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
+import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -36,8 +39,8 @@ import org.slf4j.LoggerFactory;
 
 public class UploadPart extends S3Request {
 
-	public UploadPart(S3Parameter ip) {
-		super(ip);
+	public UploadPart(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(UploadPart.class);
 	}
 
@@ -71,11 +74,11 @@ public class UploadPart extends S3Request {
 		s3Parameter.setUploadId(uploadId);
 		s3Parameter.setPartNumber(partNumberStr);
 
-		if (partNumber < 1 || partNumber > 10000) {
+		if (partNumber < 1 || partNumber > GWConstants.MAX_PARTS_SIZE) {
 			logger.error(GWErrorCode.INVALID_ARGUMENT.getMessage() + GWConstants.LOG_UPLOAD_PART_WRONG_PART_NUMBER);
 			
 			throw new GWException(GWErrorCode.INVALID_ARGUMENT,	GWConstants.LOG_UPLOAD_PART_WRONG_PART_NUMBER, 
-					(Throwable) null, ImmutableMap.of(GWConstants.ARGMENT_NAME, GWConstants.PART_NUMBER, GWConstants.ARGMENT_VALUE, partNumberStr));
+					(Throwable) null, ImmutableMap.of(GWConstants.ARGMENT_NAME, GWConstants.PART_NUMBER, GWConstants.ARGMENT_VALUE, partNumberStr), s3Parameter);
 		}
 
 		String contentLength = dataUploadPart.getContentLength();
@@ -86,7 +89,7 @@ public class UploadPart extends S3Request {
 		
 		if (Strings.isNullOrEmpty(contentLength)) {
 			logger.error(GWConstants.LENGTH_REQUIRED);
-			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH);
+			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH, s3Parameter);
 		}
 
 		// get metadata
@@ -99,14 +102,14 @@ public class UploadPart extends S3Request {
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		ObjectMapper jsonMapper = new ObjectMapper();
@@ -114,7 +117,7 @@ public class UploadPart extends S3Request {
 			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		Metadata objMeta = createLocal(bucket, object);
@@ -125,11 +128,28 @@ public class UploadPart extends S3Request {
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
+		// String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		String path = GWDiskConfig.getInstance().getLocalPath();
+
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, null);
-		S3Object s3Object = objectOperation.uploadPart(length);
+		Metadata part = null;
+		try {
+			part = objMultipart.getObjectWithUploadIdPartNo(uploadId, partNumber);
+			if (part != null) {
+				objectOperation.deletePart(part.getPrimaryDisk().getId());
+			}
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+		
+		S3Object s3Object = objectOperation.uploadPart(path, length);
 		
 		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize());
 		objMultipart.finishSingleUpload(uploadId, partNumber);
+
+		s3Parameter.addRequestSize(s3Object.getFileSize());
+		s3Parameter.setFileSize(s3Object.getFileSize());
 		
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
 	}

@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 
 public class DeleteObjects extends S3Request {
 
-	public DeleteObjects(S3Parameter ip) {
-		super(ip);
+	public DeleteObjects(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(DeleteObjects.class);
 	}
 
@@ -110,16 +110,16 @@ public class DeleteObjects extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (JsonParseException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (JacksonException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
@@ -150,7 +150,7 @@ public class DeleteObjects extends S3Request {
 					return;
 				} catch (XMLStreamException e1) {
 					PrintStack.logging(logger, e1);
-					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 			}
 		}
@@ -201,7 +201,7 @@ public class DeleteObjects extends S3Request {
 							xml.writeEndElement();
 						} catch (InvalidParameterException | ResourceNotFoundException | JsonProcessingException e) {
 							PrintStack.logging(logger, e);
-							throw new GWException(GWErrorCode.SERVER_ERROR);
+							throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 						}
 					}
 				} else {	// request with versionId
@@ -254,7 +254,7 @@ public class DeleteObjects extends S3Request {
 								logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 							} catch (InvalidParameterException | ResourceNotFoundException | JsonProcessingException e) {
 								PrintStack.logging(logger, e);
-								throw new GWException(GWErrorCode.SERVER_ERROR);
+								throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 							}
 						}
 					} 
@@ -291,11 +291,11 @@ public class DeleteObjects extends S3Request {
 					xml.writeEndElement();
 				}
 			} catch (XMLStreamException e1) {
-				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 			}
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 	}
 }

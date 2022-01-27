@@ -18,14 +18,14 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import org.slf4j.LoggerFactory;
 
 public class PutObjectRetention extends S3Request {
-    public PutObjectRetention(S3Parameter ip) {
-		super(ip);
+    public PutObjectRetention(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutObjectRetention.class);
 	}
 
 	@Override
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_PUT_OBJECT_RETENTION_START);
-		throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+		throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 	}
 }

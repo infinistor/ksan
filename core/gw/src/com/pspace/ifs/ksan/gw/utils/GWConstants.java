@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
 	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
+	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
     public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
     public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
@@ -32,6 +33,7 @@ public final class GWConstants {
     public static final String PROPERTY_DB_PORT = "dbport";
     public static final String PROPERTY_DB_USER = "dbuser";
     public static final String PROPERTY_DB_PASS = "dbpass";
+	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
 
 	public static final long MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
 	public static final long MAX_LIST_SIZE = 200000;
@@ -89,10 +91,19 @@ public final class GWConstants {
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	
 	public static final String MARIADB = "MariaDB";
+	public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:gwcp";
+	public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
+	public static final String CONNECTION_POOL = "gwcp";
+	public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
+	public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
+	public static final String MARIADB_URL = "jdbc:mariadb://";
+	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true";
+	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
 	public static final String TRASH_DIR = "trash";
+	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
 
 	public static final String METHOD_PUT = "PUT";
@@ -140,7 +151,7 @@ public final class GWConstants {
 	public static final String SEMICOLON = ";";
 	public static final String SPACE = " ";
 	public static final String EQUAL = "=";
-	public static final String LOW_LINE = "_";
+	public static final String UNDERSCORE = "_";
 	public static final String DASH = "-";
 	public static final String PLUS = "+";
 	public static final String URL_ESCAPER_FORMAT = "%20";
@@ -229,7 +240,6 @@ public final class GWConstants {
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
 
-	// policy action
 	public static final String ACTION_PUT_OBJECT = "s3:PutObject";
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
@@ -244,6 +254,8 @@ public final class GWConstants {
 	public static final String SIGN_CREDENTIAL = " Credential=";
 	public static final String SIGN_REQEUEST_SIGNED_HEADERS = ", requestSignedHeaders=";
 	public static final String SIGN_SIGNATURE = ", Signature=";
+	public static final String AUTH_HEADER = "AuthHeader";
+	public static final String QUERY_STRING = "QueryString";
 
 	public static final String REQUEST_ROOT = "root";
 	public static final String REQUEST_BUCKET = "bucket";
@@ -261,6 +273,8 @@ public final class GWConstants {
 
 	public static final String SIGNEDHEADERS_EQUAL = "SignedHeaders=";
 	public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
+	public static final String X_AMZ_ID_2 = "x-amz-id-2";
+	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	public static final String AWS_ACCESS_KEY_ID = "AWS_AccessKeyId";
 	public static final String X_AMZ_DATE = "X-Amz-Date";
 	public static final String X_AMZ_DATE_LOWER = "x-amz-date";
@@ -361,6 +375,7 @@ public final class GWConstants {
 	public static final String DELETE_RESULT_KEY = "Key";
 	public static final String DELETE_RESULT_DELETE_MARKER_VERSION_ID = "DeleteMarkerVersionId";
 	public static final String REPLACE = "REPLACE";
+	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
 
 	public static final String JDBC_MYSQL = "jdbc:mysql://";
 	public static final String USE_SSL_FALSE = "?useSSL=false";
@@ -375,6 +390,44 @@ public final class GWConstants {
 				+ "`access_secret` varchar(40) NOT NULL,"
 				+ "PRIMARY KEY (`user_id`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String CREATE_TABLE_S3LOGGING = 
+				"CREATE TABLE IF NOT EXISTS `s3logging` ("
+				+ "  `log_id` bigint NOT NULL AUTO_INCREMENT,"
+				+ "  `user_name` varchar(64),"
+				+ "  `bucket_name` varchar(64),"
+				+ "  `date_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),"
+				+ "  `remote_host` varchar(256),"
+				+ "  `request_user` varchar(64),"
+				+ "  `request_id` varchar(64),"
+				+ "  `operation` varchar(64),"
+				+ "  `object_name` varchar(2048),"
+				+ "  `request_uri` varchar(2048),"
+				+ "  `status_code` int,"
+				+ "  `error_code` varchar(256),"
+				+ "  `response_length` bigint,"
+				+ "  `object_length` int,"
+				+ "  `total_time` bigint,"
+				+ "  `request_length` bigint,"
+				+ "  `referer` varchar(64),"
+				+ "  `user_agent` varchar(256),"
+				+ "  `version_id` varchar(64),"
+				+ "  `host_id` varchar(256),"
+				+ "  `sign` varchar(32),"
+				+ "  `ssl_group` varchar(64),"
+				+ "  `sign_type` varchar(32),"
+				+ "  `endpoint` varchar(64),"
+				+ "  `tls_version` varchar(32),"
+				+ "  PRIMARY KEY (`log_id`, `user_name`, `bucket_name`, `date_time`, `request_id`)"
+				+ "  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String  INSERT_S3LOGGING = 
+		"insert into s3logging " +
+		"(user_name, bucket_name,     date_time,     remote_host,  request_user, " +
+		" request_id, operation,       object_name,   request_uri,  status_code, " + 
+	    " error_code, response_length, object_length, total_time,   request_length, " + 
+		" referer,    user_agent,      version_id,    host_id,      sign, " + 
+		" ssl_group,  sign_type,       endpoint,      tls_version) " +
+		" VALUES (?, ?, now(), ?, ?,    ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,      ?, ?, ?, ?);";
+
 	public static final String SELECT_USERS = "select user_id, user_name, access_key, access_secret from dsan.users;";
 	public static final String SELECT_USERS_ACCESS_KEY = "select user_id, user_name, access_secret from dsan.users where access_key = ?;";
 	public static final String SELECT_USERS_USER_ID = "select user_id, user_name, access_key, access_secret from dsan.users where user_id = ?;";
@@ -393,6 +446,20 @@ public final class GWConstants {
 	public static final String ACCESS_CONTROL_POLICY_DISPLAY_NAME = "<DisplayName/>";
 	public static final String ACCESS_CONTROL_POLICY_EMAIL_ADDRESS = "<EmailAddress/>";
 	public static final String ACCESS_CONTROL_POLICY_URI = "<URI/>";
+
+	public static final String LIFECYCLE_XML_ID = "<ID/>";
+	public static final String LIFECYCLE_XML_DATE = "<Date/>";
+	public static final String LIFECYCLE_XML_EXPIRED_OBJECT_DELETE_MARKER = "<ExpiredObjectDeleteMarker/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_VERSION_EXPIRATION = "<NoncurrentVersionExpiration/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_VERSION_TRANSITION = "<NoncurrentVersionTransition/>";
+	public static final String LIFECYCLE_XML_ABORT_INCOMPLETE_MULTIPART_UPLOAD = "<AbortIncompleteMultipartUpload/>";
+	public static final String LIFECYCLE_XML_PREFIX = "<Prefix/>";
+	public static final String LIFECYCLE_XML_TRANSITION = "<Transition/>";
+	public static final String LIFECYCLE_XML_FILITER = "<Filter/>";
+	public static final String LIFECYCLE_XML_DAYS = "<Days/>";
+	public static final String LIFECYCLE_XML_STORAGE_CLASS = "<StorageClass/>";
+	public static final String LIFECYCLE_XML_NON_CURRENT_DAYS = "<NoncurrentDays/>";
+	public static final String LIFECYCLE_XML_DAYS_AFTER_INITIATION = "<DaysAfterInitiation/>";
 
 	public static final String POLICY_STATUS = "PolicyStatus";
 	public static final String POLICY_IS_PUBLIC = "IsPublic";
@@ -605,8 +672,6 @@ public final class GWConstants {
 
 	public static final String RANGE_CHECK_FORMET = "bytes %d-%d/%d";
 
-	public static final String CONFIG_MUST_CONTAIN = "Properties file must contain: ";
-
 	public static final String LOG_ACCESS_DENIED_PUBLIC_ACLS = "access denied : block public acls";
 	public static final String LOG_ACCESS_CANNED_ACL = ", cannedAcl:{}";
 	public static final String LOG_ACCESS_PROCESS_FAILED = ": x-amz-acl process fail";
@@ -638,6 +703,11 @@ public final class GWConstants {
 	public static final int TAG_MAX_SIZE = 10;
 	public static final int RANGE_OFFSET_INDEX = 0;
 	public static final int RANGE_LENGTH_INDEX = 1;
+
+	// GWConfig
+	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
+	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
+	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
 
 	// GWMain
 	public static final String LOG_GWMAIN_INIT = "GW Init.......";
@@ -676,6 +746,7 @@ public final class GWConstants {
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_MD5 = "MD5 : {}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_FAILED = "object insert failed(CompleteMultipartUpload). bucket={}, object={}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_INFO = "pub object : {}/{}, size {}, etag {}, acl {}, versionId {}";
+	public static final String LOG_COMPLETE_MULTIPART_VERSION_ID = "versionid : {}";
 
 	// CopyObject
 	public static final String LOG_COPY_OBJECT_START = "CopyObject ...";
@@ -687,7 +758,6 @@ public final class GWConstants {
 	public static final String LOG_COPY_OBJECT_INFO = "pub object : {}/{}, size={}, etag={}, tag={}, acl={}, versionId={}";
 
 	// CreateBucket
-	public static final String BUCKET_DISKID_DEFAULT = "1";
 	public static final String LOG_CREATE_BUCKET_START = "CreateBucket ...";
 	public static final String LOG_CREATE_BUCKET_NAME = "bucket : {}";
 	public static final String LOG_CREATE_BUCKET_EXIST = "bucket({}) is already exists";
@@ -869,6 +939,7 @@ public final class GWConstants {
 
 	// PutBucketLifeCycle
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifeCycle ...";
+	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
 	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutBucketObjectLock ...";
@@ -950,6 +1021,7 @@ public final class GWConstants {
 	// UploadPart
 	public static final String LOG_UPLOAD_PART_START = "UploadPart ...";
 	public static final String LOG_UPLOAD_PART_WRONG_PART_NUMBER = " : Part number must be an integer between 1 and 10000, inclusive";
+	public static final int MAX_PARTS_SIZE = 10000;
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
@@ -1005,9 +1077,10 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
 	public static final String LOG_OSDCLIENT_WRITE = "write {} bytes";
 	public static final String LOG_OSDCLIENT_PUT_HEADER = "put header : {}";
-	public static final String LOG_OSDCLIENT_WRITE_HEADER = "write header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_HEADER = "delete header : {}";
 	public static final String LOG_OSDCLIENT_COPY_HEADER = "copy header : {}";
 	public static final String LOG_OSDCLIENT_PART_HEADER = "part header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_PART_HEADER = "delete part header : {}";
 	public static final String LOG_OSDCLIENT_PART_COPY_HEADER = "partCopy header : {}";
 	public static final String LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER = "completeMultipart header : {}";
 	public static final String LOG_OSDCLIENT_ABORT_MULTIPART_HEADER = "abortMultipart header : {}";
@@ -1023,6 +1096,11 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
+	public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 	public static final String LOG_S3OBJECT_OPERATION_FILE_SIZE = "get obeject file size : {}";
 	public static final String LOG_S3OBJECT_OPERATION_RANGE = "offset : {}, length : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJECT_PRIMARY_INFO = "obj primary : {}";
@@ -1032,13 +1110,25 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_DELETE = "delete - success : bucket={}, objKey={}, versionId={}";
 	public static final String LOG_S3OBJECT_OPERATION_OSD_ERROR = "Can't get osd data...";
 	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_DELETE = "failed file delete {}";
-	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME = "failed file rename {}";
+	public static final String LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME = "failed file rename s : {}, d : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PATH = "obj path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TEMP_PATH = "temp path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_TRASH_PATH = "trash path : {}";
+	public static final String LOG_S3OBJECT_OPERATION_EC_PATH = "ec path : {}";
 	public static final String LOG_S3OBJECT_OPERATION_LOCAL_IP = "local ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP = "objMeta primary ip : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP = "objMeta replica ip : {}";
+	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
+	public static final String LOG_S3OBJECT_OPERATION_DISK_IP_NULL = "diskid : {} -> ip is null. check disk pool";
+	public static final String LOG_S3OBJECT_OPERATION_DISK_PATH_NULL = "diskid : {} -> path is null. check disk pool";
+	public static final String ZUNFEC = "zunfec -o ";
+	public static final String ZFEC_0 = ".0_4.fec";
+	public static final String ZFEC_1 = ".1_4.fec";
+	public static final String ZFEC_2 = ".2_4.fec";
+	public static final String ZFEC_3 = ".3_4.fec";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND = "command : {}";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE = "DECODE EC : {}";
+	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE = "DECODE exit : {}";
 
 	// S3Range
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";
@@ -1087,4 +1177,7 @@ public final class GWConstants {
 	public static final String LOG_S3SIGNING_URI = "URI - {}";
 	public static final String LOG_S3SIGNING_PATH_LENGTH = "path.length({})";
 	public static final String LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER = "fail to validate signature expect({}), authheader({})";
+
+	// MariaDB
+	public static final String LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER = "fail to load JDBC Driver";
 }

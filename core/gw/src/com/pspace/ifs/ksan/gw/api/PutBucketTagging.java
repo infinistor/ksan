@@ -29,8 +29,8 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import org.slf4j.LoggerFactory;
 
 public class PutBucketTagging extends S3Request {
-    public PutBucketTagging(S3Parameter ip) {
-		super(ip);
+    public PutBucketTagging(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutBucketTagging.class);
 	}
 
@@ -67,24 +67,24 @@ public class PutBucketTagging extends S3Request {
 
 						// key, value 길이 체크
 						if (t.key.length() > 128) {
-							throw new GWException(GWErrorCode.INVALID_TAG);
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
 						}
 
 						if (t.value.length() > 256) {
-							throw new GWException(GWErrorCode.INVALID_TAG);
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
 						}
 					}
 				}
 
 				if ( tagging.tagset != null && tagging.tagset.tags != null ) {
 					if(tagging.tagset.tags.size() > 10) {
-						throw new GWException(GWErrorCode.BAD_REQUEST);	
+						throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);	
 					}
 				}
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		updateBucketTagging(bucket, taggingXml);

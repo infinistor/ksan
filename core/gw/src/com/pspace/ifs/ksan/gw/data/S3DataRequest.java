@@ -31,6 +31,15 @@ public abstract class S3DataRequest {
 	public S3DataRequest(S3Parameter s3Parameter) throws GWException {
 		this.s3Parameter = s3Parameter;
 		checkContentLength();
+		if (s3Parameter.getResponse() != null) {
+			for (String header : s3Parameter.getResponse().getHeaderNames()) {
+				s3Parameter.addResponseSize(header.length());
+				String value = s3Parameter.getResponse().getHeader(header);
+				if (!Strings.isNullOrEmpty(value)) {
+					s3Parameter.addResponseSize(value.length());
+				}
+			}
+		}
 	}
 
 	private void checkContentLength() throws GWException {
@@ -38,7 +47,7 @@ public abstract class S3DataRequest {
 		if (!Strings.isNullOrEmpty(contentLength)) {
 			long length = Long.parseLong(contentLength);
 			if (length < 0) {
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 		}
 	}
@@ -52,6 +61,7 @@ public abstract class S3DataRequest {
 
 		try {
 			byte[] xml = s3Parameter.getInputStream().readAllBytes();
+			s3Parameter.addRequestSize(xml.length);
 			ret = new String(xml);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
@@ -77,6 +87,7 @@ public abstract class S3DataRequest {
 
 		try {
 			byte[] json = s3Parameter.getInputStream().readAllBytes();
+			s3Parameter.addRequestSize(json.length);
 			ret = new String(json);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);

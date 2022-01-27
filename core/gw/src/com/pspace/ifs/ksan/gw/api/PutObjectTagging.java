@@ -34,8 +34,8 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import org.slf4j.LoggerFactory;
 
 public class PutObjectTagging extends S3Request {
-    public PutObjectTagging(S3Parameter ip) {
-		super(ip);
+    public PutObjectTagging(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutObjectTagging.class);
 	}
 
@@ -74,18 +74,18 @@ public class PutObjectTagging extends S3Request {
 
 						// key, value 길이 체크
 						if (t.key.length() > GWConstants.TAG_KEY_MAX) {
-							throw new GWException(GWErrorCode.INVALID_TAG);
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
 						}
 
 						if (t.value.length() > GWConstants.TAG_VALUE_MAX) {
-							throw new GWException(GWErrorCode.INVALID_TAG);
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
 						}
 					}
 				}
 
 				if ( tagging.tagset != null && tagging.tagset.tags != null ) {
 					if(tagging.tagset.tags.size() > GWConstants.TAG_MAX_SIZE) {
-						throw new GWException(GWErrorCode.BAD_REQUEST);	
+						throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);	
 					}
 
 					taggingCount = String.valueOf(tagging.tagset.tags.size());
@@ -93,7 +93,7 @@ public class PutObjectTagging extends S3Request {
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		String versionId = dataPutObjectTagging.getVersionId();
@@ -111,7 +111,7 @@ public class PutObjectTagging extends S3Request {
 			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Metadata.setTaggingCount(taggingCount);
@@ -121,7 +121,7 @@ public class PutObjectTagging extends S3Request {
 			jsonMeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		objMeta.setMeta(jsonMeta);
 		objMeta.setTag(taggingXml);

@@ -76,7 +76,7 @@ public abstract class S3Request {
 		srcBucket = getBucket(bucket);
 		if (srcBucket == null) {
 			logger.info(GWConstants.LOG_BUCKET_IS_NOT_EXIST, bucket);
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		}
 	}
 
@@ -87,13 +87,13 @@ public abstract class S3Request {
 			result = objManager.isBucketExist(bucket);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 		return result;
@@ -110,7 +110,7 @@ public abstract class S3Request {
 	private void checkBucket(String bucket) throws GWException {
 		if (Strings.isNullOrEmpty(bucket)) {
 			logger.error(GWConstants.LOG_BUCKET_IS_NULL);
-			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED);
+			throw new GWException(GWErrorCode.METHOD_NOT_ALLOWED, s3Parameter);
 		}
 	}
 
@@ -121,26 +121,26 @@ public abstract class S3Request {
 			dstBucket = objManager.getBucket(bucket);
 			if (dstBucket != null) {
 				if (!dstBucket.getAcl().startsWith(GWConstants.XML_VERSION)) {
-					dstBucket.setAcl(GWUtils.makeOriginalXml(dstBucket.getAcl()));
+					dstBucket.setAcl(GWUtils.makeOriginalXml(dstBucket.getAcl(), s3Parameter));
 				}
 			}
 		} catch (ResourceNotFoundException e) {
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
 		if (dstBucket == null) {
 			logger.info(GWConstants.LOG_BUCKET_IS_NOT_EXIST, bucket);
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		}
 	}
 
@@ -152,26 +152,26 @@ public abstract class S3Request {
 			bucketInfo = objManager.getBucket(bucket);
 			if (bucketInfo != null) {
 				if (!bucketInfo.getAcl().startsWith(GWConstants.XML_VERSION)) {
-					bucketInfo.setAcl(GWUtils.makeOriginalXml(bucketInfo.getAcl()));
+					bucketInfo.setAcl(GWUtils.makeOriginalXml(bucketInfo.getAcl(), s3Parameter));
 				}
 			}
 		} catch (ResourceNotFoundException e) {
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
 		if (bucketInfo == null) {
 			logger.info(GWConstants.LOG_BUCKET_IS_NOT_EXIST, bucket);
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		}
 		
 		return bucketInfo;
@@ -188,10 +188,10 @@ public abstract class S3Request {
 				accessControlPolicy = xmlMapper.readValue(dstBucket.getAcl(), AccessControlPolicy.class);
 			} catch (JsonMappingException e) {
 				logger.error(e.getMessage());
-				new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+				new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 			} catch (JsonProcessingException e) {
 				logger.error(e.getMessage());
-				new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+				new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 			}
 		}
 		
@@ -213,10 +213,10 @@ public abstract class S3Request {
 			accessControlPolicy = xmlMapper.readValue(dstBucket.getAcl(), AccessControlPolicy.class);
 		} catch (JsonMappingException e) {
 			logger.error(e.getMessage());
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			logger.error(e.getMessage());
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		logger.info(GWConstants.LOG_REQUEST_CHECK_ACL_ID_GRANT, id, s3grant);
@@ -356,7 +356,7 @@ public abstract class S3Request {
 			
 		default:
 			logger.error(GWConstants.LOG_REQUEST_GRANT_NOT_DEFINED, s3grant);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		return false;
@@ -571,10 +571,10 @@ public abstract class S3Request {
 				accessControlPolicyObject = xmlMapper.readValue(meta.getAcl(), AccessControlPolicy.class);
 			} catch (JsonMappingException e) {
 				logger.error(e.getMessage());
-				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 			} catch (JsonProcessingException e) {
 				logger.error(e.getMessage());
-				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+				throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -631,16 +631,16 @@ public abstract class S3Request {
 			
 		} catch (ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -654,16 +654,16 @@ public abstract class S3Request {
 			objMeta = objManager.getObjectWithVersionId(bucket, object, versionId);
 		} catch (ResourceNotFoundException e) {
 			logger.info(GWConstants.LOG_REQUEST_NOT_FOUND_IN_DB, bucket, object);
-			throw new GWException(GWErrorCode.NO_SUCH_KEY);
+			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -676,16 +676,16 @@ public abstract class S3Request {
 			setObjManager();
 			meta = objManager.open(bucket, object);
 		} catch (ResourceNotFoundException e) {
-			throw new GWException(GWErrorCode.NO_SUCH_KEY);
+			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -699,16 +699,16 @@ public abstract class S3Request {
 			meta = objManager.open(bucket, objcet, versionId);
 		} catch (ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.NO_SUCH_KEY);
+			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -722,13 +722,13 @@ public abstract class S3Request {
 			meta = objManager.create(bucket, object);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -742,13 +742,13 @@ public abstract class S3Request {
 			meta = objManager.createLocal(bucket, object);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -762,13 +762,13 @@ public abstract class S3Request {
 			objMeta = objManager.createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -781,13 +781,13 @@ public abstract class S3Request {
 			objManager.remove(bucket, object);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -798,42 +798,42 @@ public abstract class S3Request {
 			objManager.remove(bucket, object, versionId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
 
-	protected int createBucket(String bucket, String diskPoolId, String userName, String userId, String acl, String encryption, String objectlock) throws GWException {
+	protected int createBucket(String bucket, String userName, String userId, String acl, String encryption, String objectlock) throws GWException {
 		int result = 0;
 		try {
 			setObjManager();
-            result = objManager.createBucket(bucket, diskPoolId, userName, userId, acl, encryption, objectlock);
+            result = objManager.createBucket(bucket, userName, userId, acl, encryption, objectlock);
         } catch (ResourceAlreadyExistException e) {
 			PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS);
+            throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);
         } catch(ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
         } catch (Exception e) {
 			PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
 		if (result != 0) {
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 
 		return  result;
@@ -849,19 +849,19 @@ public abstract class S3Request {
 			}
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
 		if (!result) {
 			logger.info(GWConstants.LOG_REQUEST_BUCKET_IS_NOT_EMPTY);
-            throw new GWException(GWErrorCode.BUCKET_NOT_EMPTY);
+            throw new GWException(GWErrorCode.BUCKET_NOT_EMPTY, s3Parameter);
 		}
 	}
 
@@ -872,13 +872,13 @@ public abstract class S3Request {
 			result = objManager.close(bucket, object, etag, jsonmeta, tag, size, acl, pdskPath, rdskPath, versionId, deleteMarker);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -891,13 +891,13 @@ public abstract class S3Request {
 			objManager.updateObjectMeta(meta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -908,13 +908,13 @@ public abstract class S3Request {
 			objManager.updateBucketAcl(bucket, aclXml);
 		} catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -925,13 +925,13 @@ public abstract class S3Request {
             objManager.updateBucketCors(bucket, cors);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -942,13 +942,13 @@ public abstract class S3Request {
             objManager.updateBucketLifecycle(bucket, lifecycle);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -959,13 +959,13 @@ public abstract class S3Request {
             objManager.updateBucketReplication(bucket, replica);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -976,13 +976,13 @@ public abstract class S3Request {
             objManager.updateBucketTagging(bucket, tagging);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -993,13 +993,13 @@ public abstract class S3Request {
             objManager.updateBucketWeb(bucket, web);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1010,13 +1010,13 @@ public abstract class S3Request {
             objManager.updateBucketAccess(bucket, access);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1027,13 +1027,13 @@ public abstract class S3Request {
             objManager.updateBucketEncryption(bucket, encryption);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1044,13 +1044,13 @@ public abstract class S3Request {
             objManager.updateBucketObjectLock(bucket, lock);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1061,13 +1061,13 @@ public abstract class S3Request {
             objManager.updateBucketPolicy(bucket, policy);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new GWException(GWErrorCode.SERVER_ERROR);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1081,13 +1081,13 @@ public abstract class S3Request {
 			return null;
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -1100,16 +1100,16 @@ public abstract class S3Request {
 			objManager.putBucketVersioning(bucket, status);
 		} catch (ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1121,13 +1121,13 @@ public abstract class S3Request {
 			bucketList = objManager.listBucketSimpleInfo(userName, userId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 		
@@ -1141,13 +1141,13 @@ public abstract class S3Request {
 			objectListParameter = objManager.listObject(bucket, s3ObjectList);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -1161,13 +1161,13 @@ public abstract class S3Request {
 			objectListParameter = objManager.listObjectV2(bucket, s3ObjectList);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -1181,13 +1181,13 @@ public abstract class S3Request {
 			objectListParameter = objManager.listObjectVersions(bucket, s3ObjectList);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 
@@ -1200,13 +1200,13 @@ public abstract class S3Request {
 			objManager.updateObjectTagging(meta);
 		} catch(Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1217,13 +1217,13 @@ public abstract class S3Request {
 			objManager.updateObjectAcl(meta);
 		} catch(Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} finally {
 			try {
 				releaseObjManager();
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 	}
@@ -1264,12 +1264,12 @@ public abstract class S3Request {
 		if (pub) {
 			if (!isGrantBucketOwner(GWConstants.LOG_REQUEST_ROOT_ID, grant)) {
 				logger.error(GWConstants.LOG_REQUEST_PUBLIC_ACCESS_DENIED);
-				throw new GWException(GWErrorCode.ACCESS_DENIED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		} else {
 			if (!isGrantBucketOwner(uid, grant)) {
 				logger.error(GWConstants.LOG_REQUEST_USER_ACCESS_DENIED, uid);
-				throw new GWException(GWErrorCode.ACCESS_DENIED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
 	}

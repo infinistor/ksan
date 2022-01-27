@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public class HeadBucket extends S3Request {
 
-	public HeadBucket(S3Parameter ip) {
-		super(ip);
+	public HeadBucket(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(HeadBucket.class);
 	}
 
@@ -54,14 +54,14 @@ public class HeadBucket extends S3Request {
 		String expectedBucketOwner = dataHeadBucket.getExpectedBucketOwner();
 		if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
 			if (!isBucketOwner(expectedBucketOwner)) {
-				throw new GWException(GWErrorCode.ACCESS_DENIED);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
 		
 		if (isGrant(String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ)) {
 			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 		} else {
-			throw new GWException(GWErrorCode.ACCESS_DENIED);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 	}
 }

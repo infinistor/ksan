@@ -30,8 +30,8 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import org.slf4j.LoggerFactory;
 
 public class GetObjectTagging extends S3Request {
-    public GetObjectTagging(S3Parameter ip) {
-		super(ip);
+    public GetObjectTagging(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(GetObjectTagging.class);
 	}
 
@@ -64,7 +64,7 @@ public class GetObjectTagging extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 		
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl()));
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
         checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
@@ -84,10 +84,10 @@ public class GetObjectTagging extends S3Request {
 				xml.flush();
 			} catch (XMLStreamException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			} catch (IOException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		} else {
 			try {
@@ -97,7 +97,7 @@ public class GetObjectTagging extends S3Request {
 				}
 			} catch (IOException e) {
 				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
 

@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
 
 public class ListParts extends S3Request {
 
-	public ListParts(S3Parameter ip) {
-		super(ip);
+	public ListParts(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(ListParts.class);
 	}
 
@@ -54,7 +54,7 @@ public class ListParts extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		if (!isExistBucket(bucket)) {
 			logger.error(GWConstants.LOG_BUCKET_IS_NOT_EXIST, bucket);
-            throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+            throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
         }
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
@@ -78,7 +78,7 @@ public class ListParts extends S3Request {
 		
 		if (!Strings.isNullOrEmpty(maxParts)) {
 			if (Integer.valueOf(maxParts) < 0) {
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 			maxPartsValue = Integer.valueOf(maxParts);
 		}
@@ -91,17 +91,17 @@ public class ListParts extends S3Request {
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 			// check acl use multipart acl
 
 			resultPart = objMultipart.getParts(uploadId, partNumberMarker, maxPartsValue);
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		String meta = multipart.getMeta();
@@ -111,10 +111,10 @@ public class ListParts extends S3Request {
 			s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -160,10 +160,10 @@ public class ListParts extends S3Request {
 			xmlStreamWriter.flush();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (XMLStreamException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 }

@@ -36,6 +36,7 @@ import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -44,8 +45,8 @@ import org.slf4j.LoggerFactory;
 
 public class UploadPartCopy extends S3Request {
 
-	public UploadPartCopy(S3Parameter ip) {
-		super(ip);
+	public UploadPartCopy(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(UploadPartCopy.class);
 	}
 
@@ -90,7 +91,7 @@ public class UploadPartCopy extends S3Request {
 		// Check copy source
 		if (Strings.isNullOrEmpty(copySource)) {
 			logger.error(GWConstants.LOG_COPY_SOURCE_IS_NULL);
-			throw new GWException(GWErrorCode.BAD_REQUEST);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 		
 		try {
@@ -98,19 +99,19 @@ public class UploadPartCopy extends S3Request {
 			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE, copySource);
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		if (copySource.startsWith(GWConstants.SLASH)) {
 			copySource = copySource.substring(1);
 		} else if (copySource.contains(GWConstants.S3_ARN)) {
 			logger.error(GWConstants.LOG_COPY_SOURCE_IS_NOT_IMPLEMENTED, copySource);
-			throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+			throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 		}
 
 		String[] sourcePath = copySource.split(GWConstants.SLASH, 2);
 		if (sourcePath.length != 2) {
-			throw new GWException(GWErrorCode.INVALID_ARGUMENT);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 		}
 
 		String srcBucket = sourcePath[0];
@@ -119,7 +120,7 @@ public class UploadPartCopy extends S3Request {
 
 		if (!isExistBucket(srcBucket)) {
 			logger.error(GWConstants.LOG_BUCKET_IS_NOT_EXIST, srcBucket);
-            throw new GWException(GWErrorCode.NO_SUCH_BUCKET);
+            throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
         }
 
 		if (srcObjectName.contains(GWConstants.SUB_PARAMETER_VERSIONID) == true) {
@@ -149,7 +150,7 @@ public class UploadPartCopy extends S3Request {
 		
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
-		srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl()));
+		srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
 		// get metadata
@@ -159,21 +160,21 @@ public class UploadPartCopy extends S3Request {
 			s3Metadata = jsonMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
 		// Check match
 		if (!Strings.isNullOrEmpty(copySourceIfMatch)) {
 			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
 			if (!GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
-				throw new GWException(GWErrorCode.PRECONDITION_FAILED);
+				throw new GWException(GWErrorCode.PRECONDITION_FAILED, s3Parameter);
 			}
 		}
 
 		if (!Strings.isNullOrEmpty(copySourceIfNoneMatch)) {
 			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
 			if (GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
-				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH));
+				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH), s3Parameter);
 			}
 		}
 
@@ -182,7 +183,7 @@ public class UploadPartCopy extends S3Request {
 			if (copySourceIfModifiedSinceLong != -1) {
 				Date modifiedSince = new Date(copySourceIfModifiedSinceLong);
 				if (s3Metadata.getLastModified().before(modifiedSince)) {
-					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince));
+					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince), s3Parameter);
 				}
 			}
 		}
@@ -192,37 +193,40 @@ public class UploadPartCopy extends S3Request {
 			if (copySourceIfUnmodifiedSinceLong != -1) {
 				Date unmodifiedSince = new Date(copySourceIfUnmodifiedSinceLong);
 				if (s3Metadata.getLastModified().after(unmodifiedSince)) {
-					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince));
+					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince), s3Parameter);
 				}
 			}
 		}
 		
 		//Check copy source Range
-		S3Range s3Range = new S3Range();
+		S3Range s3Range = new S3Range(s3Parameter);
 		if (!Strings.isNullOrEmpty(copySourceRange)) {
 			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE_RANGE, copySourceRange, s3Metadata.getSize());
 			s3Range.parseRange(copySourceRange, s3Metadata.getSize(), true);
 		}
 
 		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+		// String diskID = GWDiskConfig.getInstance().getLocalDiskID();
+		String path = GWDiskConfig.getInstance().getLocalPath();
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
-		S3Object s3Object = objectOperation.uploadPartCopy(srcMeta, s3Range);
+		S3Object s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range);
 		
 		ObjMultipart objMultipart = null;
 		try {
 			objMultipart = new ObjMultipart(bucket);
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize());
 		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
 		
+		s3Parameter.setFileSize(s3Object.getFileSize());
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
@@ -239,7 +243,7 @@ public class UploadPartCopy extends S3Request {
 			xmlout.flush();
 		} catch (XMLStreamException | IOException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

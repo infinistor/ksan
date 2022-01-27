@@ -53,8 +53,8 @@ import org.slf4j.LoggerFactory;
 
 public class PutObject extends S3Request {
 
-	public PutObject(S3Parameter ip) {
-		super(ip);
+	public PutObject(S3Parameter s3Parameter) {
+		super(s3Parameter);
 		logger = LoggerFactory.getLogger(PutObject.class);
 	}
 
@@ -105,7 +105,7 @@ public class PutObject extends S3Request {
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
 				s3Metadata.setServersideEncryption(serversideEncryption);
 			}
@@ -147,25 +147,25 @@ public class PutObject extends S3Request {
 				contentMD5 = HashCode.fromBytes(BaseEncoding.base64().decode(contentMD5String));
 			} catch (IllegalArgumentException iae) {
 				PrintStack.logging(logger, iae);
-				throw new GWException(GWErrorCode.INVALID_DIGEST, iae);
+				throw new GWException(GWErrorCode.INVALID_DIGEST, iae, s3Parameter);
 			}
 			if (contentMD5.bits() != MD5.bits()) {
 				logger.error(GWErrorCode.INVALID_DIGEST.getMessage() + GWConstants.LOG_PUT_OBJECT_HASHCODE_ILLEGAL);
-				throw new GWException(GWErrorCode.INVALID_DIGEST);
+				throw new GWException(GWErrorCode.INVALID_DIGEST, s3Parameter);
 			}
 		}
 
 		long contentLength;
 		if (Strings.isNullOrEmpty(contentLengthString)) {
 			logger.error(GWErrorCode.MISSING_CONTENT_LENGTH.getMessage());
-			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH);
+			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH, s3Parameter);
 		} else {
 			try {
 				contentLength = Long.parseLong(contentLengthString);
 				s3Metadata.setContentLength(contentLength);
 			} catch (NumberFormatException nfe) {
 				PrintStack.logging(logger, nfe);
-				throw new GWException(GWErrorCode.INVALID_ARGUMENT, nfe);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, nfe, s3Parameter);
 			}
 		}
 
@@ -188,7 +188,8 @@ public class PutObject extends S3Request {
 										dataPutObject.getGrantWrite(), 
 										dataPutObject.getGrantFullControl(), 
 										dataPutObject.getGrantReadAcp(), 
-										dataPutObject.getGrantWriteAcp());
+										dataPutObject.getGrantWriteAcp(),
+										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, xml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		// check encryption
@@ -262,8 +263,8 @@ public class PutObject extends S3Request {
 
 		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockMode())) {
 			try {
-				logger.debug(GWConstants.LOG_OBJECT_LOCK, getBucketInfo().getObjectlock());
-				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectlock(), ObjectLockConfiguration.class);
+				logger.debug(GWConstants.LOG_OBJECT_LOCK, getBucketInfo().getObjectLock());
+				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 				if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED) ) {
 					logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_STATUS, oc.objectLockEnabled);
 					throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
@@ -288,7 +289,7 @@ public class PutObject extends S3Request {
 			}
 
 			try {
-				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectlock(), ObjectLockConfiguration.class);
+				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 				if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED) ) {
 					logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_STATUS, oc.objectLockEnabled);
 					throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
@@ -303,7 +304,7 @@ public class PutObject extends S3Request {
 
 		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockLegalHold())) {
 			try {
-				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectlock(), ObjectLockConfiguration.class);
+				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 				if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED) ) {
 					logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_STATUS, oc.objectLockEnabled);
 					throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
@@ -353,13 +354,15 @@ public class PutObject extends S3Request {
 		s3Metadata.setVersionId(s3Object.getVersionId());
 		s3Metadata.setTaggingCount(taggingCount);
 
+		s3Parameter.setFileSize(s3Object.getFileSize());
+
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
@@ -370,14 +373,10 @@ public class PutObject extends S3Request {
 			} else {
 				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, taggingxml, s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_FILE);
 			}
-			
-			if (result != 0) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_FAILED, bucket, object);
-			}
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), xml, versionId);
 		} catch (InvalidParameterException | ResourceNotFoundException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));

@@ -41,13 +41,13 @@ public class DataUploadPart extends S3DataRequest {
 		partNumber = s3Parameter.getRequest().getParameter(GWConstants.PART_NUMBER);
 		if (Strings.isNullOrEmpty(partNumber)) {
 			logger.error(GWConstants.LOG_DATA_PART_NUMBER_NULL);
-			throw new GWException(GWErrorCode.ILLEGAL_VERSIONING_CONFIGURATION);
+			throw new GWException(GWErrorCode.ILLEGAL_VERSIONING_CONFIGURATION, s3Parameter);
 		}
 		
 		uploadId = s3Parameter.getRequest().getParameter(GWConstants.UPLOAD_ID);
 		if (Strings.isNullOrEmpty(uploadId)) {
 			logger.error(GWConstants.LOG_DATA_UPLOAD_ID_NULL);
-			throw new GWException(GWErrorCode.ILLEGAL_VERSIONING_CONFIGURATION);
+			throw new GWException(GWErrorCode.ILLEGAL_VERSIONING_CONFIGURATION, s3Parameter);
 		}
 		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
