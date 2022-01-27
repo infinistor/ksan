@@ -13,6 +13,7 @@ import java.util.HashMap;
 import javax.xml.bind.DatatypeConverter;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.time.Instant;
 
 /**
  *
@@ -28,7 +29,7 @@ public class Metadata {
     private String acl;
     private String objid;
     private String bucketId;
-    private LocalDateTime lastModified;
+    private long lastModified;
     private long size;
     private int replicaCount;
     private String versionId;
@@ -74,7 +75,7 @@ public class Metadata {
         this.tag = tag;
         this.meta = meta;
         this.size = 0;
-        this.lastModified = LocalDateTime.now();
+        this.lastModified = getNowInNanoSec();
         //this.disk = new LinkedList<>();
         allocDisk = new HashMap<>();
         this.setPrimaryDisk(pdiskid, pdskPath, 0);
@@ -98,7 +99,7 @@ public class Metadata {
         this.meta = meta;
         this.size = size;
         this.acl = acl;
-        this.lastModified = LocalDateTime.now();
+        this.lastModified = getNowInNanoSec();
         //this.disk = new LinkedList<>();
         allocDisk = new HashMap<>();
         this.setPrimaryDisk(pdiskid, pdskPath, 0);
@@ -116,7 +117,7 @@ public class Metadata {
         this.etag = "";
         this.meta = "";
         this.size = 0;
-        this.lastModified = LocalDateTime.now();
+        this.lastModified = getNowInNanoSec();
         this.bucketId = hashOfPath(bucket);
         this.objid = hashOfPath(bucket + path);
         // this.objid = hashOfPath(path);
@@ -124,6 +125,11 @@ public class Metadata {
         allocDisk = new HashMap<>();
         this.versionId = "";
         this.lastVersion = false;
+    }
+    
+    private long getNowInNanoSec(){
+        Instant instant = Instant.now();
+        return  instant.getEpochSecond() * 1000000000L + instant.getNano();
     }
     
     public void set(String etag, String tag, String meta){  
@@ -140,7 +146,7 @@ public class Metadata {
         this.size = size;
     }
     
-    public LocalDateTime getLastModified(){
+    public long getLastModified(){
         return this.lastModified;
     }
     
@@ -216,7 +222,7 @@ public class Metadata {
         return replicaCount;
     }
     
-    public void setLastModified(LocalDateTime lastmodified){
+    public void setLastModified(long lastmodified){
         this.lastModified = lastmodified;
     }
     

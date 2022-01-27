@@ -121,9 +121,9 @@ public class MysqlDataRepository implements DataRepository{
                     + "etag VARCHAR(1048) NOT NULL, meta VARCHAR(1048) NOT NULL, tag TEXT NOT NULL, "
                     + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
                     + "acl VARCHAR(2048) NOT NULL, "
-                    + "lastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
+                    + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
                     + "PRIMARY KEY(objid, versionid, deleteMarker)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");  
-            pstInsert = con.prepareStatement("INSERT INTO MDSDBTable(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)");
+            pstInsert = con.prepareStatement("INSERT INTO MDSDBTable(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)");
             pstDelete = con.prepareStatement("DELETE FROM MDSDBTable WHERE objid=? AND (versionid=? OR versionid is NULL)");
             //pstDeleteWithVersionId = con.prepareStatement("DELETE FROM MDSDBTable WHERE bucket=? AND objKey=? AND versionid=?");
             pstSelectOne = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND lastversion=true");
@@ -134,7 +134,7 @@ public class MysqlDataRepository implements DataRepository{
             pstupdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
             pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
             pstupdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
-            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified desc limit 1");
+            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified asc limit 1");
             pstSelectUsedDisks = con.prepareStatement("SELECT pdiskid as diskid FROM MDSDBTable UNION DISTINCT SELECT rdiskid FROM MDSDBTable;");
             pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
             pstUpdateObjectMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE objid=? AND versionid=?");
@@ -301,7 +301,7 @@ public class MysqlDataRepository implements DataRepository{
             pstupdateMetadata.setString(3, md.getTag());
             pstupdateMetadata.setString(4, md.getAcl());
             pstupdateMetadata.setLong(5, md.getSize());
-            pstupdateMetadata.setString(6, md.getLastModified().toString());
+            pstupdateMetadata.setLong(6, md.getLastModified());
             pstupdateMetadata.setString(7, md.getPrimaryDisk().getId());
             try{
                 if (md.isReplicaExist())
@@ -389,7 +389,7 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsert.setString(5, md.getTag());
             this.pstInsert.setString(6, md.getAcl());
             this.pstInsert.setLong(7, md.getSize());
-            this.pstInsert.setString(8, md.getLastModified().toString());
+            this.pstInsert.setLong(8, md.getLastModified());
             this.pstInsert.setString(9, md.getPrimaryDisk().getId());
             if (md.isReplicaExist()){
                 this.pstInsert.setString(10, md.getReplicaDisk().getId());
@@ -445,7 +445,7 @@ public class MysqlDataRepository implements DataRepository{
         try {
             pstupdateSizeTime.clearParameters();
             pstupdateSizeTime.setLong(1, md.getSize());
-            pstupdateSizeTime.setString(2, md.getLastModified().toString());
+            pstupdateSizeTime.setLong(2, md.getLastModified());
             pstupdateSizeTime.setString(3, md.getObjId());
             return pstupdateSizeTime.executeUpdate();
         } catch (SQLException ex) {
@@ -2133,8 +2133,7 @@ public class MysqlDataRepository implements DataRepository{
             String versionid = rs.getString("versionid"); 
             Boolean lastversion = rs.getBoolean("lastversion");
             String etag = rs.getString("etag");
-            LocalDateTime lastModified = convertDate(rs.getObject("lastModified").toString());//rs.getString("lastModified")
-            //LocalDateTime lastModified = (rs.getDate("lastModified")).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            long lastModified = rs.getLong("lastModified");
             long size = rs.getLong("size");
             String tag = rs.getString("tag");
             String acl = rs.getString("acl");

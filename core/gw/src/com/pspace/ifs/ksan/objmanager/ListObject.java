@@ -850,7 +850,7 @@ public class ListObject{
 	    query += " AND objKey >= ?";
 	}
 
-        query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1); 
+        query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
     }
     
     private BasicDBObject makeMongoQuery(){
@@ -1131,8 +1131,8 @@ public class ListObject{
                                     int truncateMatchCount = 0;
 
                                     while (truncateItr.hasNext()) {
-                                        mt = (Metadata)truncateItr.next();
-                                        String truncateObjectName = mt.getPath();
+                                        //mt = (Metadata)truncateItr.next();
+                                        String truncateObjectName = objectName;//mt.getPath();
                                         String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
 
                                         String truncateEndPrefix = "";

@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.DeleteResult;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -37,7 +38,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -189,7 +192,7 @@ public class MongoDataRepository implements DataRepository{
         doc = new Document(OBJKEY, md.getPath());
         doc.append(BUCKETNAME, md.getBucket());
         doc.append(OBJKEY, md.getPath());
-        doc.append(LASTMODIFIED, md.getLastModified());
+        doc.append(LASTMODIFIED, Long.MAX_VALUE - md.getLastModified());
         doc.append(OBJID, md.getObjId());
         doc.append(ETAG, md.getEtag());
         doc.append(META, md.getMeta());
@@ -247,7 +250,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
         
-        Date lastModified = doc.getDate(LASTMODIFIED);
+        long lastModified = doc.getLong(LASTMODIFIED);
         String key       = (String)doc.get(OBJKEY);
         String etag         = doc.getString(ETAG);
         String meta         = doc.getString(META);
@@ -267,7 +270,7 @@ public class MongoDataRepository implements DataRepository{
         mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(rdsk);
-        mt.setLastModified(lastModified.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        mt.setLastModified(lastModified);
         //mt.setSize(size);
         mt.setVersionId(versionid, deleteMarker, lastversion);
         return mt;
@@ -298,8 +301,9 @@ public class MongoDataRepository implements DataRepository{
             String etag        = doc.getString(ETAG);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
-            Date lastModified  = doc.getDate(LASTMODIFIED);
-            String lastModifiedStr = lastModified.toInstant()
+            long lastModified  = doc.getLong(LASTMODIFIED);
+            Date dt = new Date(TimeUnit.MILLISECONDS.convert(lastModified, TimeUnit.NANOSECONDS));
+            String lastModifiedStr = dt.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime().toString();
             long size           = doc.getLong(SIZE);
@@ -1034,14 +1038,11 @@ public class MongoDataRepository implements DataRepository{
             String acl         = doc.getString(ACL);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
-            Date lastModified  = doc.getDate(LASTMODIFIED);
-            LocalDateTime lastModifiedStr = lastModified.toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
+            long lastModified  = doc.getLong(LASTMODIFIED);
             long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
             mt.set(etag, tag, meta, acl, size);
-            mt.setLastModified(lastModifiedStr);
+            mt.setLastModified(lastModified);
                 
             try {
                 mt.setPrimaryDisk(obmCache.getDiskWithId(diskPoolId, pdiskid));
