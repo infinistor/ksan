@@ -505,7 +505,7 @@ public class ListObject{
         }  
         
     }
-    // for listObjectV2
+    // for listObject
     public ListObject(DataRepository dbm, String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException{
         /*this.dbm = dbm;
         this.bucketName = bucketName;
@@ -932,7 +932,7 @@ public class ListObject{
         s3Metadata.setName(objKey);
         if (listType.equalsIgnoreCase("listObjectVersion")){
            s3Metadata.setVersionId(mt.getVersionId());
-            s3Metadata.setIsLatest(mt.getLastVersion() ? "true" : "false"); 
+           s3Metadata.setIsLatest(mt.getLastVersion() ? "true" : "false"); 
         }
 
         objectListParameter.getObjects().add(s3Metadata);
@@ -1042,6 +1042,10 @@ public class ListObject{
        
         if (listType.equalsIgnoreCase("listObject"))
             return objectListParameter.getCommonPrefixes().size();
+        
+        if (listType.equalsIgnoreCase("listObjectV2"))
+            return objectListParameter.getCommonPrefixes().size();
+        
         return 0;
     }
     
