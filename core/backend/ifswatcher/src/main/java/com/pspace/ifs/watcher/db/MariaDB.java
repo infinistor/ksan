@@ -187,7 +187,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`upload` bigint(20) DEFAULT NULL,"
 				+ "`download` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 				
 		execute(query, null);
@@ -198,7 +198,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`used` bigint(20) DEFAULT NULL,"
 				+ "`filecount` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 				
 		execute(query, null);
@@ -209,7 +209,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`event` varchar(200) DEFAULT NULL,"
 				+ "`count` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`, `event`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`, `event`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		
 		execute(query, null);
@@ -220,7 +220,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`event` varchar(200) DEFAULT NULL,"
 				+ "`count` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`, `event`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`, `event`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		
 		execute(query, null);
@@ -231,7 +231,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`upload` bigint(20) DEFAULT NULL,"
 				+ "`download` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		
 		execute(query, null);
@@ -242,7 +242,7 @@ public class MariaDB {
 				+ "`bucket` varchar(200) NOT NULL DEFAULT '',"
 				+ "`used` bigint(20) DEFAULT NULL,"
 				+ "`filecount` bigint(20) DEFAULT NULL,"
-				+ "PRIMARY KEY (`indate`,`user`,`bucket`),"
+				+ "PRIMARY KEY (`indate`,`user`,`bucket`)"
 				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
 		execute(query, null);

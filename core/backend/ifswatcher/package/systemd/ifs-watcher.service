@@ -1,9 +1,11 @@
 [Unit]
 Description=Systemd ifs-watcher Daemon
+After=network.target
 
 [Service]
 Type=simple
-ExecStart="java -jar -Dlogback.configurationFile=/usr/local/pspace/bin/ifs-wathcer.xml /usr/local/pspace/bin/ifs-watcher /usr/local/pspace/etc/watcher.conf"
+ExecStart=/usr/bin/java -jar -Dlogback.configurationFile=/usr/local/pspace/bin/ifs-wathcer.xml /usr/local/pspace/bin/ifs-watcher /usr/local/pspace/etc/watcher.conf
+ExecStop=/bin/kill -9 ${MAINPID}
 Restart=on-failure
 
 [Install]
