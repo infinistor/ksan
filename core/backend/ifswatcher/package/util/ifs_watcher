@@ -147,10 +147,8 @@ def WATCHER_init():
             conf['dbpass'] = input
         break
 
-    update_mgsrest_auth_conf(conf)
-
     tmp ='dbhost='+conf['dbhost']+\
-    '\ns3db='+conf['s3db']+\
+    '\ndbs3='+conf['dbs3']+\
     '\ndbport='+conf['dbport']+\
     '\ndbuser='+conf['dbuser']+\
     '\ndbpass='+conf['dbpass']+\
@@ -207,9 +205,6 @@ if __name__ == "__main__":
     else:
         if args[0] == 'init':
             WATCHER_init()
-            ret = add_server_to_mgs()
-            if not ret:
-                print('fail to register WATCHER to mgs')
             out, err = shcall('systemctl enable ifs-watcher')
         elif args[0] == 'start':
             out, err = shcall('systemctl start ifs-watcher')

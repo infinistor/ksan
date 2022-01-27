@@ -40,7 +40,7 @@ public final class WMain {
 			posix.setrlimit(RLIMIT.RLIMIT_NOFILE.intValue(), 50000L, 50000L);
 		}
 
-		WatcherConfig config = new WatcherConfig("/usr/local/ksan/etc/ifs-watcher.conf");
+		WatcherConfig config = new WatcherConfig(args[1]);
 		config.configure();
 
 		MariaDB s3db = new MariaDB();
