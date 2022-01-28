@@ -489,7 +489,7 @@ public class ListObject{
                 StringBuilder delimiterp2 = new StringBuilder(); 
                 delimiterp2.append(marker.substring(0, marker.length()-1));
                 delimiterp2.append(Character.getNumericValue(marker.charAt(marker.length()-1)) + 1);
-                marker = delimiterp2.toString();
+                this.marker = delimiterp2.toString();
                 bDelimiterMarker = true;
             }
 	}
@@ -499,7 +499,7 @@ public class ListObject{
                 StringBuilder delimiterp2 = new StringBuilder(); 
                 delimiterp2.append(continuationToken.substring(0, continuationToken.length()-1));
                 delimiterp2.append(Character.getNumericValue(continuationToken.charAt(continuationToken.length()-1)) + 1);
-                continuationToken = delimiterp2.toString();
+                this.continuationToken = delimiterp2.toString();
                 bDelimitertoken = true;
             }
         }  
