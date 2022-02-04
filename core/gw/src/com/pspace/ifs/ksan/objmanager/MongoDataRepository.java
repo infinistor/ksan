@@ -487,7 +487,7 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
+    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
         MongoCollection<Document> multip;
         Document doc;
         
@@ -505,7 +505,8 @@ public class MongoDataRepository implements DataRepository{
         doc.append(META, meta);
         doc.append(ETAG, etag);
         doc.append(SIZE, size);
-     
+        doc.append(PDISKID, pdiskid);
+        
         multip.insertOne(doc);
         return 0;
     }
@@ -670,6 +671,7 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
+            part.setDiskID(PDISKID);
             listPart.put(part.getPartNumber(), part);
         }
         
@@ -710,6 +712,7 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
+            part.setDiskID(PDISKID);
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
         

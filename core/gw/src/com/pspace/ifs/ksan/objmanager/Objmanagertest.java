@@ -435,9 +435,9 @@ public class Objmanagertest {
                 path = tmp + idx;    
                Metadata mt =om.create(bucket, path); 
                 
-                String uploadId = mp.createMultipartUpload(bucket, path, "acl", "meta");
+                String uploadId = mp.createMultipartUpload(bucket, path, "acl", "meta", "disk1");
                 for (idx1 =1; idx1 < 100; idx1++){
-                    mp.startSingleUpload(path, uploadId, idx1, "acl", "meta", "etag", 0);
+                    mp.startSingleUpload(path, uploadId, idx1, "acl", "meta", "etag", 0, "disk2");
                     mp.finishSingleUpload(uploadId, idx1);
                 }
                 List<Integer> lst = mp.listParts(path, uploadId, 100, 0);

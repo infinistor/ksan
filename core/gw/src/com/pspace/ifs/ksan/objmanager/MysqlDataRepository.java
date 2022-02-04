@@ -187,15 +187,16 @@ public class MysqlDataRepository implements DataRepository{
                     + " etag VARCHAR(64),"
                     + " size bigint(20),"
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
+                    + " pdiskid VARCHAR(80) NOT NULL, "
                     + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertMultiPart = con.prepareStatement("INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, now())");
+            pstInsertMultiPart = con.prepareStatement("INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())");
             pstUpdateMultiPart = con.prepareStatement("UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?");
             pstDeleteMultiPart = con.prepareStatement("DELETE FROM MULTIPARTS WHERE uploadid=?");
             pstSelectMultiPart = con.prepareStatement("SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ");
 
-            pstGetMultiPart = con.prepareStatement("SELECT bucket, objKey, changeTime, uploadid, acl, meta FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0");
-            pstGetParts = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0");
-            pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
+            pstGetMultiPart = con.prepareStatement("SELECT bucket, objKey, changeTime, uploadid, acl, meta, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0");
+            pstGetParts = con.prepareStatement("SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0");
+            pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
             pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
             pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
             pstIsUploadPartNo = con.prepareStatement("SELECT bucket, objKey FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
@@ -760,7 +761,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size) throws SQLException{
+    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
         pstInsertMultiPart.clearParameters();
         pstInsertMultiPart.setString(1, bucket);
         pstInsertMultiPart.setString(2, objkey);
@@ -770,6 +771,7 @@ public class MysqlDataRepository implements DataRepository{
         pstInsertMultiPart.setString(6, meta);
         pstInsertMultiPart.setString(7, etag);
         pstInsertMultiPart.setLong(8, size);
+        pstInsertMultiPart.setString(9, pdiskid);
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -929,6 +931,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public Multipart getMulipartUpload(String uploadid) throws SQLException {
         Multipart multipart = null;
+        String pdiskid;
 
         this.pstGetMultiPart.clearParameters();
         this.pstGetMultiPart.setString(1, uploadid);
@@ -939,6 +942,8 @@ public class MysqlDataRepository implements DataRepository{
             multipart.setLastModified((Date)rs.getObject(3));
             multipart.setAcl(rs.getString(5));
             multipart.setMeta(rs.getString(6));
+            pdiskid = rs.getString(7);
+            //multipart.setDiskID(pdiskid);
         }
         
         return multipart;
@@ -958,6 +963,7 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
+            part.setDiskID(rs.getString(5));
             listPart.put(part.getPartNumber(), part);
         }
 
@@ -994,6 +1000,7 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
+            part.setDiskID(rs.getString(5));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
 
