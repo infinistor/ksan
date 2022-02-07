@@ -53,11 +53,11 @@ public final class WMain {
 		ScheduledExecutorService executor1H = Executors.newScheduledThreadPool(1);
 
 		Runnable runnableMin = () -> {
-			AsyncHandler.accountMin(s3db);
+			AsyncHandler.accountMin(s3db, config.chkVIP());
 		};
 
 		Runnable runnableHour = () -> {
-			AsyncHandler.accountHour(s3db);
+			AsyncHandler.accountHour(s3db, config.chkVIP());
 		};
 
 		executor1M.scheduleAtFixedRate(runnableMin, 0, 1, TimeUnit.MINUTES);
