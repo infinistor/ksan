@@ -307,11 +307,11 @@ public class S3Signing {
 				//case sensetive?
 			} else if (finalAuthType == AuthenticationType.AWS_V4) {
 				logger.info(GWConstants.LOG_S3SIGNING_INTO_V4, s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE));
-				dateSkew = GWUtils.parseIso8601(s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE));
+				dateSkew = GWUtils.parseIso8601(s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DATE), s3Parameter);
 			}
 		} else if (s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE) != null) { // v4 query
 			String dateString = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_DATE);
-			dateSkew = GWUtils.parseIso8601(dateString);
+			dateSkew = GWUtils.parseIso8601(dateString, s3Parameter);
 			logger.info(GWConstants.LOG_S3SIGNING_DATE, dateString);
 		} else if (hasDateHeader) {
 			try {
@@ -347,11 +347,11 @@ public class S3Signing {
 		//from para v4 query
 		expiresString = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_EXPIRES);
 		if (dateString != null && expiresString != null) { //v4 query
-			long date = GWUtils.parseIso8601(dateString);
+			long date = GWUtils.parseIso8601(dateString, s3Parameter);
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
 			if (nowSeconds >= date + expires) {
-				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
+				logger.error("nowSeconds({}), date({}), expires({})", nowSeconds, date, expires);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, GWConstants.LOG_S3SIGNING_HAS_EXPIRED, s3Parameter);
 			}
 		}

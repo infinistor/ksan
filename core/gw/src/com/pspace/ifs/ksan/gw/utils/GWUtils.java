@@ -166,14 +166,14 @@ public class GWUtils {
 	}
 
 	/** Parse ISO 8601 timestamp into seconds since 1970. */
-	public static long parseIso8601(String date) {
+	public static long parseIso8601(String date, S3Parameter s3Parameter) throws GWException {
 		SimpleDateFormat formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
 		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
 		logger.debug(GWConstants.LOG_UTILS_8061_DATE, date);
 		try {
 			return formatter.parse(date).getTime() / 1000;
 		} catch (ParseException pe) {
-			throw new IllegalArgumentException(pe);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 	}
 
