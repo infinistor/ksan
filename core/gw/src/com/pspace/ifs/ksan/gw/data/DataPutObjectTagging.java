@@ -36,7 +36,7 @@ public class DataPutObjectTagging extends S3DataRequest {
 	public void extract() throws GWException {
 		versionId = s3Parameter.getRequest().getParameter(GWConstants.VERSION_ID);
 		if (Strings.isNullOrEmpty(versionId)) {
-			logger.error(GWConstants.LOG_DATA_VERSION_ID_NULL);
+			logger.debug(GWConstants.LOG_DATA_VERSION_ID_NULL);
 		}
 		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
