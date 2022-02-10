@@ -26,6 +26,7 @@ public class WatcherConfig {
 	private String dbPort;
 	private String dbUser;
 	private String dbPass;
+	private String chkVIP;
 
 	public WatcherConfig() {
 	}
@@ -66,6 +67,12 @@ public class WatcherConfig {
 	    if (this.dbPass == null) {
 	    	throw new IllegalArgumentException("Properties file must contain: " + WatcherConstants.PROPERTY_DB_PASS);
 	    }
+
+		this.chkVIP = properties.getProperty(WatcherConstants.PROPERTY_CHK_VIP);
+	    if (this.chkVIP == null) {
+	    	throw new IllegalArgumentException("Properties file must contain: " + WatcherConstants.PROPERTY_CHK_VIP);
+	    }
+		
 	}
 
 	public String dbHost() {
@@ -88,6 +95,10 @@ public class WatcherConfig {
 		return this.dbPass;
 	}
 
+	public String chkVIP() {
+		return this.chkVIP;
+	}
+
 	public void setDbHost(String dbHost) {
 		this.dbHost = dbHost;
 	}
@@ -106,5 +117,9 @@ public class WatcherConfig {
 	
 	public void setDbPass(String dbPass) {
 		this.dbPass = dbPass;
+	}
+
+	public void setchkVIP(String chkVIP) {
+		this.chkVIP = chkVIP;
 	}
 }

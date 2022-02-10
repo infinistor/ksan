@@ -19,25 +19,25 @@ import com.pspace.ifs.watcher.db.MariaDB;
 public class AsyncHandler {
     //private final static Logger logger = LoggerFactory.getLogger(AsyncHandler.class);
 
-    public static void accountMin(MariaDB s3db) {
+    public static void accountMin(MariaDB s3db, String vip) {
         // insert bucket io meter
-        s3db.bucketUsageMeterMin();
+        s3db.bucketUsageMeterMin(vip);
         
         // insert bucket api meter
-        s3db.bucketAPIMeterMin();
+        s3db.bucketAPIMeterMin(vip);
 
         // insert bucket io meter
-        s3db.bucketIOMeterMin();
+        s3db.bucketIOMeterMin(vip);
     }
 
-    public static void accountHour(MariaDB s3db) {
+    public static void accountHour(MariaDB s3db, String vip) {
         // insert bucket io meter
-        s3db.bucketUsageMeterHour();
+        s3db.bucketUsageMeterHour(vip);
         
         // insert bucket api meter
-        s3db.bucketAPIMeterHour();
+        s3db.bucketAPIMeterHour(vip);
         
         // insert bucket io meter
-        s3db.bucketIOMeterHour();
+        s3db.bucketIOMeterHour(vip);
     }
 }

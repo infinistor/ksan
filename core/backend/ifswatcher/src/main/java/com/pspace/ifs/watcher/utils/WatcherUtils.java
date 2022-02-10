@@ -11,6 +11,10 @@
 
 package com.pspace.ifs.watcher.utils;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 import java.util.List;
 import com.google.common.base.Splitter;
 
@@ -37,6 +41,28 @@ public class WatcherUtils {
 			}
 		}
 		return true;
+	}
+
+	public static boolean checkvip(String vip) {
+		Enumeration enumNetwork;
+		try {
+			enumNetwork = NetworkInterface.getNetworkInterfaces();
+
+			while (enumNetwork.hasMoreElements()) {
+				NetworkInterface n = (NetworkInterface) enumNetwork.nextElement();
+				Enumeration enumIp = n.getInetAddresses();
+				while (enumIp.hasMoreElements()) {
+					InetAddress i = (InetAddress) enumIp.nextElement();
+					if( i.getHostAddress().trim().equals(vip) ) {
+						return true;
+					}
+				}
+			}
+		} catch (SocketException e) {
+			return false;
+		}
+
+		return false;
 	}
 
 	public static boolean likematch(String first, String second) {

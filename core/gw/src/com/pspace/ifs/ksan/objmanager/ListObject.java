@@ -1167,7 +1167,7 @@ public class ListObject{
                         } else {
                             int ret;
                             
-                            if (listType.equalsIgnoreCase("listObject")) 
+                            if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")) 
                                 ret = setObject(objectName, mt, objectListParameter.getCommonPrefixes().size());
                             else  
                                 ret = setObject(objectName, mt, 0);

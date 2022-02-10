@@ -22,6 +22,8 @@ public final class WatcherConstants {
     		"dbuser";
     public static final String PROPERTY_DB_PASS = 
     		"dbpass";
+	public static final String PROPERTY_CHK_VIP = 
+    		"chkvip";
 
 	public static final int RETRY = 40;
 	public static final int SLEEP = 500;
