@@ -64,6 +64,16 @@ public class PutBucketVersioning extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
+			if (versioning.status != null && !versioning.status.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED) && !versioning.status.equalsIgnoreCase(GWConstants.VERSIONING_SUSPENDED)) {
+				throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+			}
+
+			if (!Strings.isNullOrEmpty(getBucketInfo().getObjectLock())) {
+				if (!versioning.status.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) {
+					throw new GWException(GWErrorCode.INVALID_BUCKET_STATE, s3Parameter);
+				}
+			}
+
 			if (!Strings.isNullOrEmpty(versioning.status)) {
 				putBucketVersioning(bucket, versioning.status);
 			}
