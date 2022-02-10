@@ -440,6 +440,16 @@ public class GWUtils {
 	}
 
 	public static boolean isPublicPolicyBucket(String policyInfo, S3Parameter s3Parameter) throws GWException {
+		PublicAccessBlockConfiguration pabc = null;
+		if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getAccess())) {
+			try {
+				pabc = new XmlMapper().readValue(s3Parameter.getBucket().getAccess(), PublicAccessBlockConfiguration.class);
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, e, s3Parameter);
+			}
+		}
+
 		boolean effect = false;
 		if (Strings.isNullOrEmpty(policyInfo)) {
 			return effect;
@@ -469,6 +479,9 @@ public class GWUtils {
 			// check principal (id)
 			for (String aws : s.principal.aws) {
 				if (aws.equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -477,6 +490,9 @@ public class GWUtils {
 			// check Resource (object path, bucket path)
 			for (String resource : s.resources) {
 				if (resource.equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -484,6 +500,9 @@ public class GWUtils {
 				String[] res = resource.split(GWConstants.COLON, -1);
 				// all resource check
 				if (!Strings.isNullOrEmpty(res[5]) && res[5].equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -535,6 +554,9 @@ public class GWUtils {
 
 			if (s.effect.equals(GWConstants.ALLOW)) {
 				if (effectcheck == true && conditioncheck == false) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effect = true;
 					return effect;
 				}
