@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -634,6 +635,7 @@ public class GWUtils {
 		String aclXml = "";
 		XmlMapper xmlMapper = new XmlMapper();
 		try {
+			xmlMapper.setSerializationInclusion(Include.NON_EMPTY);
 			aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
@@ -641,10 +643,6 @@ public class GWUtils {
 		}
 
 		aclXml = aclXml.replace(GWConstants.ACCESS_CONTROL_POLICY, GWConstants.ACCESS_CONTROL_POLICY_XMLNS); 
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_ID, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_DISPLAY_NAME, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_EMAIL_ADDRESS, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_URI, "");
 
 		if(!aclXml.contains(GWConstants.XML_VERSION)) {
 			aclXml = GWConstants.XML_VERSION_FULL_STANDALONE + aclXml;

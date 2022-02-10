@@ -15,6 +15,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -48,6 +49,9 @@ public class GetBucketAcl extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
+		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
+		dataGetObjectAcl.extract();
+
 		String aclInfo = getBucketInfo().getAcl();
 		logger.debug(GWConstants.LOG_ACL, aclInfo);
 		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
@@ -59,16 +63,6 @@ public class GetBucketAcl extends S3Request {
         try {
 			if (!Strings.isNullOrEmpty(aclInfo)) {
 				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				
-				if (!aclInfo.contains(GWConstants.XML_VERSION)) {
-					aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;
-				}
-				aclInfo = aclInfo.replace(GWConstants.ACCESS_CONTROL_POLICY, GWConstants.ACCESS_CONTROL_POLICY_XMLNS);
-				aclInfo = aclInfo.replace(GWConstants.ACCESS_CONTROL_POLICY_ID, "");
-				aclInfo = aclInfo.replace(GWConstants.ACCESS_CONTROL_POLICY_DISPLAY_NAME, "");
-				aclInfo = aclInfo.replace(GWConstants.ACCESS_CONTROL_POLICY_EMAIL_ADDRESS, "");
-				aclInfo = aclInfo.replace(GWConstants.ACCESS_CONTROL_POLICY_URI, "");
-				logger.debug(GWConstants.LOG_ACL, aclInfo);
 				s3Parameter.getResponse().getOutputStream().write(aclInfo.getBytes());
 			}
 		} catch (IOException e) {
