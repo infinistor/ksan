@@ -35,6 +35,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import org.slf4j.LoggerFactory;
@@ -167,11 +168,20 @@ public class CreateMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 
-		String uploadId = null;
+		Metadata objMeta = null;
+		try {
+			// check exist object
+			objMeta = createLocal(bucket, object);
+		} catch (GWException e) {
+			logger.info(e.getMessage());
+			logger.error(GWConstants.LOG_CREATE_MULTIPART_UPLOAD_FAILED, bucket, object);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
+		}
 
+		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = new ObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson); 
+			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId()); 
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

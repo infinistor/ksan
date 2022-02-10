@@ -766,6 +766,7 @@ public final class GWConstants {
 
 	// CreateMultipartUpload
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_START = "CreateMultipartUpload ...";
+	public static final String LOG_CREATE_MULTIPART_UPLOAD_FAILED = "object insert failed(CreateMultipartUpload). bucket={}, object={}";
 
 	// DeleteBucket
 	public static final String LOG_DELETE_BUCKET_START = "DeleteBucket ...";

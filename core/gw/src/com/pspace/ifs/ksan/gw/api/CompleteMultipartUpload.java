@@ -171,7 +171,7 @@ public class CompleteMultipartUpload extends S3Request {
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
 		String versionId = null;
-		Metadata objMeta = createLocal(bucket, object);
+		Metadata objMeta = null;
 		try {
 			// check exist object
 			objMeta = open(bucket, object);
@@ -239,6 +239,7 @@ public class CompleteMultipartUpload extends S3Request {
 			}
 
 			if( S3Excp.get() != null) {
+				PrintStack.logging(logger, S3Excp.get());
 				logger.error(S3Excp.get().getMessage());
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
@@ -285,6 +286,7 @@ public class CompleteMultipartUpload extends S3Request {
 		
 			int result = 0;
 			try {
+				remove(bucket, object);
 				if (objMeta.getReplicaDisk() != null) {
 					result = insertObject(bucket, object, s3Object.get().getEtag(), jsonmeta, "", s3Object.get().getFileSize(), acl, objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_FILE);
 				} else {
