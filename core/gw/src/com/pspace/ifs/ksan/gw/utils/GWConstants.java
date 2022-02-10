@@ -557,6 +557,10 @@ public final class GWConstants {
 	public static final String XML_FILTER = "Filter";
 	public static final String XML_AND = "And";
 	public static final String XML_TAG = "Tag";
+	public static final String XML_KEY = "Key";
+	public static final String XML_VALUE = "Value";
+	public static final String XML_OBJECT_SIZE_GREATER_THAN = "ObjectSizeGreaterThan";
+	public static final String XML_OBJECT_SIZE_LESS_THAN = "ObjectSizeLessThan";
 	public static final String XML_ALLOWED_HEADER = "AllowedHeader";
 	public static final String XML_ALLOWED_METHOD = "AllowedMethod";
 	public static final String XML_ALLOWED_ORIGIN = "AllowedOrigin";
@@ -830,8 +834,8 @@ public final class GWConstants {
 	public static final String LOG_GET_BUCKET_ENCRYPTION_START = "GetBucketEncryption ...";
 	public static final String LOG_GET_BUCKET_ENCRYPTION = "encryption : {}";
 
-	// GetBucketLifeCycle
-	public static final String LOG_GET_BUCKET_LIFECYCLE_START = "GetBucketLifeCycle ...";
+	// GetBucketLifecycleConfiguration
+	public static final String LOG_GET_BUCKET_LIFECYCLE_START = "GetBucketLifecycleConfiguration ...";
 	public static final String LOG_GET_BUCKET_LIFECYCLE = "lifecycle : {}";
 
 	// GetBucketLocation
@@ -938,8 +942,8 @@ public final class GWConstants {
 	// PutBucketEncryption
 	public static final String LOG_PUT_BUCKET_ENCRYPTION_START = "PutBucketEncryption ...";
 
-	// PutBucketLifeCycle
-	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifeCycle ...";
+	// PutBucketLifecycleConfiguration
+	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifecycleConfiguration ...";
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock

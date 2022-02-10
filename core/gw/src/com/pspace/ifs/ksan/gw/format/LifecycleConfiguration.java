@@ -38,9 +38,48 @@ public final class LifecycleConfiguration {
 		Filter filter;
 		
 		public static final class Filter {
+			@JacksonXmlProperty(localName = GWConstants.XML_AND)
+            public And and;
+
+            public static final class And{
+                @JacksonXmlProperty(localName = GWConstants.XML_PREFIX)
+                public String prefix;
+
+                @JacksonXmlProperty(localName = GWConstants.XML_TAG)
+                @JacksonXmlElementWrapper(useWrapping = false)
+                public Collection<Tag> tag;
+
+                public static final class Tag{
+                    @JacksonXmlProperty(localName = GWConstants.XML_KEY)
+                    public String key;
+    
+                    @JacksonXmlProperty(localName = GWConstants.XML_VALUE)
+                    public String value;
+                }
+            }
+
+			@JacksonXmlProperty(localName = GWConstants.XML_OBJECT_SIZE_GREATER_THAN)
+			public
+			String objectSizeGreaterThan;
+
+			@JacksonXmlProperty(localName = GWConstants.XML_OBJECT_SIZE_LESS_THAN)
+			public
+			String objectSizeLessThan;
+
 			@JacksonXmlProperty(localName = GWConstants.XML_PREFIX)
 			public
 			String prefix;
+
+			@JacksonXmlProperty(localName = GWConstants.XML_TAG)
+            public Tag tag;
+
+            public static final class Tag{
+                @JacksonXmlProperty(localName = GWConstants.XML_KEY)
+                public String key;
+
+                @JacksonXmlProperty(localName = GWConstants.XML_VALUE)
+                public String value;
+            }
 		}
 		
 		@JacksonXmlProperty(localName = GWConstants.XML_TRANSITION)
