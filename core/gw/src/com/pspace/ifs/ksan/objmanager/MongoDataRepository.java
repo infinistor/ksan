@@ -117,10 +117,9 @@ public class MongoDataRepository implements DataRepository{
     private static final String CHECKONLY = "checkOnly";
     private static final String UTILNAME = "utilName";
     private static final String STARTTIME = "startTime";
-    
    
-    public MongoDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname, int port) throws UnknownHostException{
-        this.url = "mongodb://" + host + ":" + port;
+    public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
+        parseDBHostNames2URL(hosts, port);
         this.username = username;
         this.passwd = passwd;
         this.dbname = dbname;
@@ -128,6 +127,20 @@ public class MongoDataRepository implements DataRepository{
         connect();
         createBucketsHolder();
         createUserDiskPoolHolder();
+    }
+    
+    private void parseDBHostNames2URL(String hosts, int port){
+        if (hosts.contains(",")){
+            if (hosts.contains(":"))
+                url = "mongodb://" + hosts;
+            else{
+                String hostList[] = hosts.split(",");
+                url = "mongodb://";
+                for( String host: hostList)
+                    url = url + host + ":" + port + ",";
+            }
+        } else
+            this.url = "mongodb://" + hosts + ":" + port;
     }
     
     private void connect() throws UnknownHostException{
