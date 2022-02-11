@@ -156,6 +156,7 @@ public final class GWConstants {
 	public static final String PLUS = "+";
 	public static final String URL_ESCAPER_FORMAT = "%20";
 	public static final String AMPERSAND = "&";
+	public static final String DOLLAR_SIGN = "$";
 	public static final String NEWLINE = "\n";
 	public static final String DOUBLE_QUOTE = "\"";
 	public static final String DOUBLE_POINT = "..";
@@ -235,7 +236,9 @@ public final class GWConstants {
 	public static final String PARAMETER_VERSION_ID = "versionId";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
-
+	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";
+	public static final String SUCCESS_ACTION_STATUS = "success_action_status";
+	public static final String SUCCESS_ACTION_REDIRECT = "success_action_redirect";
 	public static final String UNDEFINED_METHOD = "undefined method : {}";
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
@@ -275,7 +278,7 @@ public final class GWConstants {
 	public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
 	public static final String X_AMZ_ID_2 = "x-amz-id-2";
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
-	public static final String AWS_ACCESS_KEY_ID = "AWS_AccessKeyId";
+	public static final String AWS_ACCESS_KEY_ID = "AWSAccessKeyId";
 	public static final String X_AMZ_DATE = "X-Amz-Date";
 	public static final String X_AMZ_DATE_LOWER = "x-amz-date";
 	public static final String SIGNATURE = "Signature";
@@ -296,6 +299,7 @@ public final class GWConstants {
 	public static final String X_AMZ_CONFIRM_REMOVE_SELF_BUCKET_ACCESS = "x-amz-confirm-remove-self-bucket-access";
 	public static final String CACHE_CONTROL = "Cache-Control";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
+	public static final String CONTENT_DISPOSITION_FORM_DATA = "Content-Disposition: form-data; name=\"";
 	public static final String CONTENT_ENCODING = "Content-Encoding";
 	public static final String CONTENT_LANGUAGE = "Content-Language";
 	public static final String CONTENT_TYPE = "Content-Type";
@@ -557,6 +561,10 @@ public final class GWConstants {
 	public static final String XML_FILTER = "Filter";
 	public static final String XML_AND = "And";
 	public static final String XML_TAG = "Tag";
+	public static final String XML_KEY = "Key";
+	public static final String XML_VALUE = "Value";
+	public static final String XML_OBJECT_SIZE_GREATER_THAN = "ObjectSizeGreaterThan";
+	public static final String XML_OBJECT_SIZE_LESS_THAN = "ObjectSizeLessThan";
 	public static final String XML_ALLOWED_HEADER = "AllowedHeader";
 	public static final String XML_ALLOWED_METHOD = "AllowedMethod";
 	public static final String XML_ALLOWED_ORIGIN = "AllowedOrigin";
@@ -697,7 +705,7 @@ public final class GWConstants {
 	public static final String TAGGING_INIT = "0";
 	public static final int TAG_KEY_SIZE = 2;
 	public static final int TAG_KEY_INDEX = 0;
-	public static final int TAG_VALUE_INDEX = 0;
+	public static final int TAG_VALUE_INDEX = 1;
 	public static final int TAG_KEY_MAX = 128;
 	public static final int TAG_VALUE_MAX = 256;
 	public static final int TAG_MAX_SIZE = 10;
@@ -766,6 +774,7 @@ public final class GWConstants {
 
 	// CreateMultipartUpload
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_START = "CreateMultipartUpload ...";
+	public static final String LOG_CREATE_MULTIPART_UPLOAD_FAILED = "object insert failed(CreateMultipartUpload). bucket={}, object={}";
 
 	// DeleteBucket
 	public static final String LOG_DELETE_BUCKET_START = "DeleteBucket ...";
@@ -829,8 +838,8 @@ public final class GWConstants {
 	public static final String LOG_GET_BUCKET_ENCRYPTION_START = "GetBucketEncryption ...";
 	public static final String LOG_GET_BUCKET_ENCRYPTION = "encryption : {}";
 
-	// GetBucketLifeCycle
-	public static final String LOG_GET_BUCKET_LIFECYCLE_START = "GetBucketLifeCycle ...";
+	// GetBucketLifecycleConfiguration
+	public static final String LOG_GET_BUCKET_LIFECYCLE_START = "GetBucketLifecycleConfiguration ...";
 	public static final String LOG_GET_BUCKET_LIFECYCLE = "lifecycle : {}";
 
 	// GetBucketLocation
@@ -937,8 +946,8 @@ public final class GWConstants {
 	// PutBucketEncryption
 	public static final String LOG_PUT_BUCKET_ENCRYPTION_START = "PutBucketEncryption ...";
 
-	// PutBucketLifeCycle
-	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifeCycle ...";
+	// PutBucketLifecycleConfiguration
+	public static final String LOG_PUT_BUCKET_LIFECYCLE_START = "PutBucketLifecycleConfiguration ...";
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
@@ -1030,6 +1039,9 @@ public final class GWConstants {
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE = "copySource : {}";
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE_RANGE = "copy source range : {}, file size : {}";
+
+	// PostObject
+	public static final String LOG_POST_OBJECT_START = "PostObject ...";
 
 	// Log, GWUtils
 	public static final String LOG_UTILS_USER_META_DATA = "user metadata ==> {} : {}";

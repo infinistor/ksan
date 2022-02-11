@@ -50,6 +50,8 @@ public class PutBucketPolicy extends S3Request {
 
 		String policyJson = dataPutBucketPolicy.getPolicyJson();
 
+		GWUtils.isPublicPolicyBucket(policyJson, s3Parameter);
+		
 		updateBucketPolicy(bucket, policyJson);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.pspace.ifs.watcher.utils.PrintStack;
+import com.pspace.ifs.watcher.utils.WatcherUtils;
 
 import org.apache.commons.dbcp2.ConnectionFactory;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
@@ -33,9 +34,13 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+
 public class MariaDB {
     protected final String jdbcDriver = "jdbc:apache:commons:dbcp:cpMetering";
 	protected Logger logger;
+	private JedisPool jrpool;
 		
 	public MariaDB() {
         logger = LoggerFactory.getLogger(MariaDB.class);
@@ -171,6 +176,8 @@ public class MariaDB {
 			Class.forName("org.apache.commons.dbcp2.PoolingDriver");
 			PoolingDriver driver = (PoolingDriver) DriverManager.getDriver("jdbc:apache:commons:dbcp:");
 			driver.registerPool("cpMetering", connectionPool);
+
+			jrpool = new JedisPool(dbUrl, 6379);
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("fail to load JDBC Driver", e);
 		} catch (SQLException e) {
@@ -178,6 +185,34 @@ public class MariaDB {
 		}
 
 		initDBTable();
+		loadbuckets();
+	}
+
+	private void loadbuckets() {
+		String query = "select bucket, uniqname, filecount, used from bucketlist";
+		List<HashMap<String, Object>> resultList = null;
+		resultList = select(query, null);
+		if (resultList != null) {
+			for (HashMap<String, Object> result : resultList) {
+				logger.info("bucket : {}, uniqname : {}, filecount : {}, bucketused : {}", result.get("bucket"), result.get("uniqname"), result.get("filecount"), result.get("used"));
+				String querybucket = "update bucketlist, (select IFNULL(sum(JSON_EXTRACT(meta, '$.cL')),0) as used, count(*) as filecount from " + result.get("uniqname") +") as b set bucketlist.filecount=b.filecount, bucketlist.used=b.used where bucketlist.bucket = '" + result.get("bucket") +"'";
+				execute(querybucket, null);
+			}
+		}
+
+		resultList = null;
+		resultList = select(query, null);
+		if (resultList != null) {
+			for (HashMap<String, Object> result : resultList) {
+				logger.info("bucket : {}, uniqname : {}, filecount : {}, bucketused : {}", result.get("bucket"), result.get("uniqname"), result.get("filecount"), result.get("used"));
+				try(Jedis jrclient = jrpool.getResource()) {
+					Long filecount = (long)result.get("filecount");
+					Long used = (long)result.get("used");
+					jrclient.set(result.get("bucket") + "__FILECOUNT", filecount.toString());
+					jrclient.set(result.get("bucket") + "__USED", used.toString());
+				}
+			}
+		}
 	}
 
 	private void initDBTable() throws Exception {
@@ -252,22 +287,38 @@ public class MariaDB {
 		initConnectionPool(dbUrl, dbPort, dbName, userName, passwd);
     }
 	
-	public void bucketUsageMeterMin() {
+	public void bucketUsageMeterMin(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
 		String query = "insert into usageMeter(indate, user, bucket, used, filecount) select now(), user, bucket, used, filecount from bucketlist;";
 		executeUpdate(query, null);
 	}
 
-	public void bucketIOMeterMin() {
+	public void bucketIOMeterMin(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
 		String query = "insert into ioMeter(indate, user, bucket, upload, download) select now(), user_name, bucket_name, sum(request_length), sum(response_length) from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time and now() > date_time group by user_name, bucket_name;";
 		executeUpdate(query, null);
 	}
 
-	public void bucketAPIMeterMin() {
+	public void bucketAPIMeterMin(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
 		String query = "insert into apiMeter(indate, user, bucket, event, count) select now(), user_name, bucket_name, operation, count(*) as count from s3logging where DATE_SUB(NOW(), INTERVAL 1 MINUTE) < date_time and now() > date_time group by user_name, bucket_name, operation;";
 		executeUpdate(query, null);
 	}
 
-	public void bucketAPIMeterHour() {
+	public void bucketAPIMeterHour(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
 		String query = "insert into apiStat(indate, user, bucket, event, count) select now(), user, bucket, event, sum(count) from apiMeter group by user, bucket, event";
 		executeUpdate(query, null);
 
@@ -278,7 +329,11 @@ public class MariaDB {
 		executeUpdate(query, null);
 	}
 
-	public void bucketIOMeterHour() {
+	public void bucketIOMeterHour(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
 		String query = "insert into ioStat(indate, user, bucket, upload, download) select now(), user, bucket, sum(upload), sum(download) from ioMeter group by user, bucket";
 		executeUpdate(query, null);
 
@@ -289,8 +344,27 @@ public class MariaDB {
 		executeUpdate(query, null);
 	}
 
-	public void bucketUsageMeterHour() {
-		String query = "insert into usageStat(indate, user, bucket, used, filecount) select now(), user, bucket, used, filecount from bucketlist;";
+	public void bucketUsageMeterHour(String vip) {
+		if( !WatcherUtils.checkvip(vip) ) {
+			return;
+		}
+
+		String query = "select bucket, uniqname, filecount, used from bucketlist";
+		List<HashMap<String, Object>> resultList = null;
+		resultList = select(query, null);
+		if (resultList != null) {
+			for (HashMap<String, Object> result : resultList) {
+				logger.info("bucket : {}, uniqname : {}, filecount : {}, bucketused", result.get("bucket"), result.get("uniqname"), result.get("filecount"), result.get("used"));
+				try(Jedis jrclient = jrpool.getResource()) {
+					String filecount = jrclient.get(result.get("bucket") + "__FILECOUNT");
+					String used = jrclient.get(result.get("bucket") + "__USED");
+					String querybucket = "update bucketlist set filecount="+ filecount + ", used=" + used + " where bucket = '" + result.get("bucket") +"'";
+					execute(querybucket, null);
+				}
+			}
+		}
+
+		query = "insert into usageStat(indate, user, bucket, used, filecount) select now(), user, bucket, used, filecount from bucketlist;";
 		executeUpdate(query, null);
 
 		query = "truncate table `usageMeter`";

@@ -74,7 +74,7 @@ public class GetObjectTagging extends S3Request {
 			XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
 			javax.xml.stream.XMLStreamWriter xml;
 			try {
-				xml = xmlOutputFactory.createXMLStreamWriter(s3Parameter.getResponse().getWriter());
+				xml = xmlOutputFactory.createXMLStreamWriter(s3Parameter.getResponse().getOutputStream());
 				xml.writeStartDocument();
 				xml.writeStartElement(GWConstants.TAGGING);
 				xml.writeDefaultNamespace(GWConstants.AWS_XMLNS);
@@ -93,7 +93,7 @@ public class GetObjectTagging extends S3Request {
 			try {
 				if (!Strings.isNullOrEmpty(taggingInfo)) {
 					s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-					s3Parameter.getResponse().getWriter().write(taggingInfo);
+					s3Parameter.getResponse().getOutputStream().write(taggingInfo.getBytes());
 				}
 			} catch (IOException e) {
 				PrintStack.logging(logger, e);

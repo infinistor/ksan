@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -165,14 +166,14 @@ public class GWUtils {
 	}
 
 	/** Parse ISO 8601 timestamp into seconds since 1970. */
-	public static long parseIso8601(String date) {
+	public static long parseIso8601(String date, S3Parameter s3Parameter) throws GWException {
 		SimpleDateFormat formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
 		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
 		logger.debug(GWConstants.LOG_UTILS_8061_DATE, date);
 		try {
 			return formatter.parse(date).getTime() / 1000;
 		} catch (ParseException pe) {
-			throw new IllegalArgumentException(pe);
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 	}
 
@@ -194,6 +195,18 @@ public class GWUtils {
 			eTag = GWConstants.DOUBLE_QUOTE + eTag + GWConstants.DOUBLE_QUOTE;
 		}
 		return eTag;
+	}
+
+	private static boolean startsWithIgnoreCase(String string, String prefix) {
+		return string.toLowerCase().startsWith(prefix.toLowerCase());
+	}
+
+	public static boolean isField(String string, String field) {
+		return startsWithIgnoreCase(string, GWConstants.CONTENT_DISPOSITION_FORM_DATA + field + GWConstants.DOUBLE_QUOTE);
+	}
+
+	public static boolean startsField(String string, String field) {
+		return startsWithIgnoreCase(string, GWConstants.CONTENT_DISPOSITION_FORM_DATA + field);
 	}
 
 	public static boolean constantTimeEquals(String x, String y) {
@@ -439,6 +452,16 @@ public class GWUtils {
 	}
 
 	public static boolean isPublicPolicyBucket(String policyInfo, S3Parameter s3Parameter) throws GWException {
+		PublicAccessBlockConfiguration pabc = null;
+		if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getAccess())) {
+			try {
+				pabc = new XmlMapper().readValue(s3Parameter.getBucket().getAccess(), PublicAccessBlockConfiguration.class);
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, e, s3Parameter);
+			}
+		}
+
 		boolean effect = false;
 		if (Strings.isNullOrEmpty(policyInfo)) {
 			return effect;
@@ -468,6 +491,9 @@ public class GWUtils {
 			// check principal (id)
 			for (String aws : s.principal.aws) {
 				if (aws.equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -476,6 +502,9 @@ public class GWUtils {
 			// check Resource (object path, bucket path)
 			for (String resource : s.resources) {
 				if (resource.equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -483,6 +512,9 @@ public class GWUtils {
 				String[] res = resource.split(GWConstants.COLON, -1);
 				// all resource check
 				if (!Strings.isNullOrEmpty(res[5]) && res[5].equals(GWConstants.ASTERISK)) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effectcheck = true;
 					break;
 				}
@@ -534,6 +566,9 @@ public class GWUtils {
 
 			if (s.effect.equals(GWConstants.ALLOW)) {
 				if (effectcheck == true && conditioncheck == false) {
+					if (pabc != null && pabc.BlockPublicPolicy.equalsIgnoreCase(GWConstants.STRING_TRUE)) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
 					effect = true;
 					return effect;
 				}
@@ -634,6 +669,7 @@ public class GWUtils {
 		String aclXml = "";
 		XmlMapper xmlMapper = new XmlMapper();
 		try {
+			xmlMapper.setSerializationInclusion(Include.NON_EMPTY);
 			aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
@@ -641,10 +677,6 @@ public class GWUtils {
 		}
 
 		aclXml = aclXml.replace(GWConstants.ACCESS_CONTROL_POLICY, GWConstants.ACCESS_CONTROL_POLICY_XMLNS); 
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_ID, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_DISPLAY_NAME, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_EMAIL_ADDRESS, "");
-		aclXml = aclXml.replaceAll(GWConstants.ACCESS_CONTROL_POLICY_URI, "");
 
 		if(!aclXml.contains(GWConstants.XML_VERSION)) {
 			aclXml = GWConstants.XML_VERSION_FULL_STANDALONE + aclXml;

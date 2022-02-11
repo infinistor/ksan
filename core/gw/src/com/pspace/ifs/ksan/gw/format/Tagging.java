@@ -40,7 +40,7 @@ public final class Tagging {
 	    public String toString() {
 	    	StringBuilder sb = new StringBuilder();
 	    	sb.append(Tag.class.getSimpleName()).append(GWConstants.CHAR_LEFT_BRACE);
-	    	sb.append(GWConstants.XML_TYPE).append(tags);
+	    	sb.append(GWConstants.TAG_ASSIGN).append(tags);
 	    	return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
 	    }
 	    

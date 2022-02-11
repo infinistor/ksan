@@ -139,6 +139,7 @@ public class S3ObjectOperation {
                 }
             }
         } catch (Exception e) {
+            PrintStack.logging(logger, e);
             logger.error(e.getMessage());
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } 
@@ -553,7 +554,7 @@ public class S3ObjectOperation {
                         }
                     }
                 } else {
-                    OSDClient client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    OSDClient client = OSDClientManager.getInstance().getOSDClient(entry.getValue().getDiskID());
                     client.getPartInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut, md5er);
                     totalLength += client.getPart();
                     OSDClientManager.getInstance().returnOSDClient(client);
@@ -644,6 +645,7 @@ public class S3ObjectOperation {
         try {
             for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<Integer, Part> entry = it.next();
+                logger.info("key : {}, diskId : {}", entry.getKey(), objMeta.getPrimaryDisk().getId());
                 if (GWDiskConfig.getInstance().getLocalDiskID().equals(entry.getValue().getDiskID())) {
                     // part is in local disk
                     File partFile = new File(makeTempPath(GWDiskConfig.getInstance().getLocalPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
@@ -796,7 +798,9 @@ public class S3ObjectOperation {
         try {            
             logger.info(GWConstants.LOG_S3OBJECT_OPERATION_LOCAL_IP, GWConfig.getInstance().localIP());
             logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP, objMeta.getPrimaryDisk().getOsdIp());
-            logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP, objMeta.getReplicaDisk().getOsdIp());
+            if (objMeta.getReplicaDisk() != null) {
+                logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP, objMeta.getReplicaDisk().getOsdIp());
+            }
 
             if (GWConfig.getInstance().replicationCount() > 1) {
                 // check primary local src, obj

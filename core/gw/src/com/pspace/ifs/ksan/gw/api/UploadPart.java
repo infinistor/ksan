@@ -117,35 +117,34 @@ public class UploadPart extends S3Request {
 			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		Metadata objMeta = createLocal(bucket, object);
-		
+
 		if (!Strings.isNullOrEmpty(contentMD5String)) {
 			s3Metadata.setContentMD5(contentMD5String);
 		}
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
-		// String diskID = GWDiskConfig.getInstance().getLocalDiskID();
 		String path = GWDiskConfig.getInstance().getLocalPath();
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, null);
 		Metadata part = null;
+		S3Object s3Object = null;
 		try {
 			part = objMultipart.getObjectWithUploadIdPartNo(uploadId, partNumber);
 			if (part != null) {
 				objectOperation.deletePart(part.getPrimaryDisk().getId());
 			}
+			s3Object = objectOperation.uploadPart(path, length);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
-		S3Object s3Object = objectOperation.uploadPart(path, length);
-		
-		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize());
+		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
 		objMultipart.finishSingleUpload(uploadId, partNumber);
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());

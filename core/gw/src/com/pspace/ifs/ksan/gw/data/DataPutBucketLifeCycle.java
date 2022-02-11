@@ -10,15 +10,12 @@
 */
 package com.pspace.ifs.ksan.gw.data;
 
-import java.nio.charset.Charset;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -90,12 +87,20 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 				} else {
 					String generatedString = UUID.randomUUID().toString().substring(24).toUpperCase();
 					id.put(generatedString, generatedString);
-					rl.id =generatedString;
+					rl.id = generatedString;
 				}
 				
 				if (rl.status != null && rl.status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
 					logger.error("rl.status : {}", rl.status);
 					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+				}
+
+				// date check
+				if( rl.expiration != null) {
+					if( !Strings.isNullOrEmpty(rl.expiration.date) ) {
+						if( !rl.expiration.date.contains("T00:00:00") )
+							throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					}
 				}
 			}
 
@@ -106,6 +111,7 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 		}
 
 		try {
+			xmlMapper.setSerializationInclusion(Include.NON_EMPTY);
 			lifecycleXml = xmlMapper.writeValueAsString(lcc);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
@@ -114,20 +120,6 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
-
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_ID, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_DATE, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_EXPIRED_OBJECT_DELETE_MARKER, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_NON_CURRENT_VERSION_EXPIRATION, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_NON_CURRENT_VERSION_TRANSITION, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_ABORT_INCOMPLETE_MULTIPART_UPLOAD, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_PREFIX, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_TRANSITION, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_FILITER, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_DAYS, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_STORAGE_CLASS, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_NON_CURRENT_DAYS, "");
-		lifecycleXml = lifecycleXml.replaceAll(GWConstants.LIFECYCLE_XML_DAYS_AFTER_INITIATION, "");
 
 		if(!lifecycleXml.contains(GWConstants.XML_VERSION)) {
 			lifecycleXml = GWConstants.XML_VERSION_FULL_STANDALONE + lifecycleXml;
