@@ -112,7 +112,7 @@ public class S3Signing {
 		ObjManager objManager = null;
 		try {
 			objManager = ObjManagerHelper.getInstance().getObjManager();
-			bucketInfo = ObjManagerHelper.getInstance().getObjManager().getBucket(bucket);
+			bucketInfo = objManager.getBucket(bucket);
 		} catch (ResourceNotFoundException e) {
 			logger.info("bucket({}) is not fount in the db", bucket);
 			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
