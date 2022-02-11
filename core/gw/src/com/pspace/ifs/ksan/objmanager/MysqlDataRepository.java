@@ -908,10 +908,10 @@ public class MysqlDataRepository implements DataRepository{
             if (pstDelete.executeUpdate()> 0)
                 updateBucketFileCount(bucketName, -1);
             
-            /*if (versionId != null){
+            if (versionId != null){
                 if (!versionId.isEmpty())
                     updateVersionDelete(objId);
-            }*/
+            }
         } catch(SQLException ex){
             this.ex_message(ex);
             return -ex.getErrorCode();
