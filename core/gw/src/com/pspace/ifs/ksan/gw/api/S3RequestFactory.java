@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -269,6 +270,12 @@ public class S3RequestFactory {
 						&& s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PART_NUMBER) == null) {
 					s3Parameter.setOperation(OP_POST_COMPLETE);
 					return new CompleteMultipartUpload(s3Parameter);
+				}
+
+				if (s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE) != null && 
+					s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE).startsWith(GWConstants.CONTENT_TYPE_POST_OBJECT)) {
+					s3Parameter.setOperation(OP_POST_OBJECT);
+					return new PostObject(s3Parameter);
 				}
 				break;
 

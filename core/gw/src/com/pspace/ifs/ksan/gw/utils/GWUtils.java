@@ -197,6 +197,18 @@ public class GWUtils {
 		return eTag;
 	}
 
+	private static boolean startsWithIgnoreCase(String string, String prefix) {
+		return string.toLowerCase().startsWith(prefix.toLowerCase());
+	}
+
+	public static boolean isField(String string, String field) {
+		return startsWithIgnoreCase(string, GWConstants.CONTENT_DISPOSITION_FORM_DATA + field + GWConstants.DOUBLE_QUOTE);
+	}
+
+	public static boolean startsField(String string, String field) {
+		return startsWithIgnoreCase(string, GWConstants.CONTENT_DISPOSITION_FORM_DATA + field);
+	}
+
 	public static boolean constantTimeEquals(String x, String y) {
 		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8),
 				y.getBytes(StandardCharsets.UTF_8));
