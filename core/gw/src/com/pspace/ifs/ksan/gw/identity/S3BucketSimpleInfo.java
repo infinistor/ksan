@@ -19,7 +19,7 @@ public class S3BucketSimpleInfo {
 	private Date createDate;
 
     public S3BucketSimpleInfo() {
-        bucketName = null;
+        bucketName = "";
         createDate = null;
     }
 

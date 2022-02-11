@@ -287,8 +287,8 @@ public class MariaDB implements GWDB {
         List<Object> params = new ArrayList<Object>();
         
         // bucket owner name
-        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUseName())) {
-            params.add(s3Parameter.getBucket().getUseName());
+        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUserName())) {
+            params.add(s3Parameter.getBucket().getUserName());
         } else {
             params.add(GWConstants.DASH);
         }

@@ -28,9 +28,9 @@ public class ObjectListParameter {
 	
 	public ObjectListParameter() {
         istruncated = false;
-        nextMarker = null;
-        nextVersion = null;
-        nextUploadid = null;
+        nextMarker = "";
+        nextVersion = "";
+        nextUploadid = "";
         nextPartNumber = 0;
 		objects = new ArrayList<S3Metadata>();
 		commonPrefixes = new TreeMap<String, String>();

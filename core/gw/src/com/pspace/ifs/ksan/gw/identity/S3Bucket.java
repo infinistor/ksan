@@ -30,89 +30,89 @@ public class S3Bucket {
 	private Date timestamp;
 	
 	public S3Bucket() {
-		userName = null;
-		userId = null;
-		bucket = null;
-		acl = null;
-		web = null;
-		cors = null;
-		lifecycle = null;
-		versioning = null;
-		access = null;
-		tagging = null;
-		encryption = null;
-		replication = null;
+		userName = "";
+		userId = "";
+		bucket = "";
+		acl = "";
+		web = "";
+		cors = "";
+		lifecycle = "";
+		versioning = "";
+		access = "";
+		tagging = "";
+		encryption = "";
+		replication = "";
 		timestamp = null;
 	}
 
-	public String getUseName() {
-		return Strings.nullToEmpty(userName);
+	public String getUserName() {
+		return userName;
 	}
 	public void setUserName(String user) {
 		this.userName = user;
 	}
 	public String getUserId() {
-		return Strings.nullToEmpty(userId);
+		return userId;
 	}
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
 	public String getBucket() {
-		return Strings.nullToEmpty(bucket);
+		return bucket;
 	}
 	public void setBucket(String bucket) {
 		this.bucket = bucket;
 	}
 	public String getAcl() {
-		return Strings.nullToEmpty(acl);
+		return acl;
 	}
 	public void setAcl(String acl) {
 		this.acl = acl;
 	}
 	public String getWeb() {
-		return Strings.nullToEmpty(web);
+		return web;
 	}
 	public void setWeb(String web) {
 		this.web = web;
 	}
 	public String getCors() {
-		return Strings.nullToEmpty(cors);
+		return cors;
 	}
 	public void setCors(String cors) {
 		this.cors = cors;
 	}
 	public String getLifecycle() {
-		return Strings.nullToEmpty(lifecycle);
+		return lifecycle;
 	}
 	public void setLifecycle(String lifecycle) {
 		this.lifecycle = lifecycle;
 	}
 	public String getVersioning() {
-		return Strings.nullToEmpty(versioning);
+		return versioning;
 	}
 	public void setVersioning(String versioning) {
 		this.versioning = versioning;
 	}
 	public String getAccess() {
-		return Strings.nullToEmpty(access);
+		return access;
 	}
 	public void setAccess(String access) {
 		this.access = access;
 	}
 	public String getTagging() {
-		return Strings.nullToEmpty(tagging);
+		return tagging;
 	}
 	public void setTagging(String tagging) {
 		this.tagging = tagging;
 	}
 	public String getEncryption() {
-		return Strings.nullToEmpty(encryption);
+		return encryption;
 	}
 	public void setEncryption(String encryption) {
 		this.encryption = encryption;
 	}
 	public String getReplication() {
-		return Strings.nullToEmpty(replication);
+		return replication;
 	}
 	public void setReplication(String replication) {
 		this.replication = replication;

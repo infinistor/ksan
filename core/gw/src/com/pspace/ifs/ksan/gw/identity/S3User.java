@@ -20,9 +20,9 @@ public class S3User {
 
     public S3User() {
         userId = 0L;
-        userName = null;
-        accessKey = null;
-        accessSecret = null;
+        userName = "";
+        accessKey = "";
+        accessSecret = "";
     }
 
     public S3User(long id, String name, String access, String secret) {

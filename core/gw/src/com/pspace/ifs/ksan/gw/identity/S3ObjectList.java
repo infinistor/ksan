@@ -33,16 +33,16 @@ public class S3ObjectList {
 	private String fetchOwner;
 
 	public S3ObjectList() {
-		encodingType = null;
-		delimiter = null;
-		prefix = null;
-		marker = null;
-		maxKeys = null;
-		keyMarker = null;
-		versionIdMarker = null;
-		startAfter = null;
-		continuationToken = null;
-		fetchOwner = null;
+		encodingType = "";
+		delimiter = "";
+		prefix = "";
+		marker = "";
+		maxKeys = "";
+		keyMarker = "";
+		versionIdMarker = "";
+		startAfter = "";
+		continuationToken = "";
+		fetchOwner = "";
 	}
 
 	public String getEncodingType() {
