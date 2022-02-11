@@ -353,6 +353,9 @@ public class PutObject extends S3Request {
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
 		s3Metadata.setTaggingCount(taggingCount);
+		if(encryption.isEnableSSEServer()) {
+			s3Metadata.setServersideEncryption(GWConstants.AES256);
+		}
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 
