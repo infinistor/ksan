@@ -141,6 +141,8 @@ public final class GWConstants {
 	public static final String AWS4_HMAC = "AWS4-HMAC";
 	public static final String AWS4 = "AWS4";
 	public static final String HMAC = "Hmac";
+	public static final String HMACSHA256 = "HmacSHA256";
+	public static final String HMACSHA1 = "HmacSHA1";
 	public static final String AWS4_REQUEST = "aws4_request";
 	public static final String S3_AWS4_REQUEST = "/s3/aws4_request";
 	public static final String ASTERISK = "*";
@@ -1087,6 +1089,7 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_SOCKET_INFO = "socket : {}";
 	public static final String LOG_OSDCLIENT_SOCKET_ERROR = "socket error, {}";
 	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
+	public static final String LOG_OSDCLIENT_READ = "read {} bytes";
 	public static final String LOG_OSDCLIENT_WRITE = "write {} bytes";
 	public static final String LOG_OSDCLIENT_PUT_HEADER = "put header : {}";
 	public static final String LOG_OSDCLIENT_DELETE_HEADER = "delete header : {}";
@@ -1171,7 +1174,8 @@ public final class GWConstants {
 	public static final String LOG_S3SIGNING_SIGNATURE_OR_AUTH_HEADER_NULL = "Signature or auth header null : {}";
 	public static final String LOG_S3SIGNING_AWS_REQUIRES_VALID_DATE = "AWS authentication requires a valid Date or x-amz-date header";
 	public static final String LOG_S3SIGNING_V2_SIGNATURE_NULL = "V2 identity or signature null : {}";
-	public static final String LOG_S3SIGNING_V4_SIGNATURE_NULL = "V4 credential or signature or signedHeaders null : {}";
+	public static final String LOG_S3SIGNING_V4_SIGNATURE_NULL = "V4 identity or signature null : {}";
+	public static final String LOG_S3SIGNING_V4_CREDENTIAL_NULL = "V4 credential or signature or signedHeaders null : {}";
 	public static final String LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE = "unknown algorithm : {}";
 	public static final String LOG_S3SIGNING_UNKNOWN_ALGORITHM = "unknown algorithm : ";
 	public static final String LOG_S3SIGNING_AUTH_HEADER = "S3AuthorizationHeader {}";
@@ -1189,6 +1193,18 @@ public final class GWConstants {
 	public static final String LOG_S3SIGNING_URI = "URI - {}";
 	public static final String LOG_S3SIGNING_PATH_LENGTH = "path.length({})";
 	public static final String LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER = "fail to validate signature expect({}), authheader({})";
+	public static final String LOG_S3SIGNING_MATCH_TIME = "match time now({}), expire({})";
+	public static final String LOG_S3SIGNING_TIME_EXPIRED = "time expired {} {}";
+	public static final String LOG_S3SIGNING_HMACSHA256 = "HmacSHA256";
+
+	// S3AuthorizationHeader
+	public static final String S3AUTH_HEADER_IDENTITY = "Identity: ";
+	public static final String S3AUTH_HEADER_SIGNATURE = "; Signature: ";
+	public static final String S3AUTH_HEADER_HMAC_ALGORITHM = "; HMAC algorithm: ";
+	public static final String S3AUTH_HEADER_HASH_ALGORITHM = "; Hash algorithm: ";
+	public static final String S3AUTH_HEADER_REGION = "; region: ";
+	public static final String S3AUTH_HEADER_DATE = "; date: ";
+	public static final String S3AUTH_HEADER_SERVICE = "; service ";
 
 	// MariaDB
 	public static final String LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER = "fail to load JDBC Driver";

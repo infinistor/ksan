@@ -79,7 +79,7 @@ public class OSDClient {
 		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) >= 0) {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
-			logger.debug(GWConstants.LOG_OSDCLIENT_WRITE, readLength);
+			logger.debug(GWConstants.LOG_OSDCLIENT_READ, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}
@@ -108,7 +108,7 @@ public class OSDClient {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
 			md5er.update(buffer, 0, readLength);
-			logger.debug(GWConstants.LOG_OSDCLIENT_WRITE, readLength);
+			logger.debug(GWConstants.LOG_OSDCLIENT_READ, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}
