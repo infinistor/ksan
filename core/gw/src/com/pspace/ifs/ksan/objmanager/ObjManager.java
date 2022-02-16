@@ -333,7 +333,7 @@ public class ObjManager {
         Metadata mt;
         Bucket bt;
         DISK pdsk;
-        DISK rdsk = null;
+        DISK rdsk;
         boolean isreplicaExist;
         
         mt = new Metadata(bucketName, path);
@@ -421,6 +421,12 @@ public class ObjManager {
             
         }
         
+        if (!obmCache.isDiskSeparatedAndValid(bt.getDiskPoolId(), mt)){
+            String err = String.format("Bucket : %s key : %s disk information pdiskid : %s rdiskid : %s is not separated or not exist in the syystem",
+                    bucketName, path, mt.getPrimaryDisk().getId(), mt.isReplicaExist()? mt.getReplicaDisk().getId()  : "");
+            logger.debug(err);
+            throw new InvalidParameterException(err);
+        }
         //System.out.format("[close ] bucket : %s path : %s objid : %s\n", mt.getBucket(), mt.getPath(), mt.getObjId());
         return dbm.insertObject(mt); 
     }

@@ -15,6 +15,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import java.io.File;
+import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -160,6 +161,34 @@ public class ObjManagerCache {
              return false;
          
          return dskPool.diskExistInPool(diskid, dskPath);
+    }
+    
+    public boolean isDiskSeparatedAndValid(String dskPoolId, Metadata mt){
+        DISKPOOL dskPool;
+         
+        dskPool = getDiskPool(dskPoolId);
+        if (dskPool == null)
+            return false; // diskpool not exist
+        
+        if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), ""))
+            return false; // primary disk not exist
+        
+        if (!mt.isReplicaExist())
+           return true;
+                
+        
+        
+        try {
+            if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), ""))
+                return false; // replica disk not exist
+            
+            if ((mt.getPrimaryDisk().getOsdIp()).equals(mt.getReplicaDisk().getOsdIp()))
+                return false;
+        } catch (ResourceNotFoundException ex) {
+            return true;
+        }
+       
+        return true;
     }
     
     public SERVER getServerWithDiskPath( String dskPoolId, String dpath) throws ResourceNotFoundException{
