@@ -217,7 +217,7 @@ public class CopyObject extends S3Request {
 		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
 										null, 
 										dataCopyObject.hasAclKeyword(), 
 										null, 
@@ -361,17 +361,14 @@ public class CopyObject extends S3Request {
 		logger.debug(GWConstants.LOG_COPY_OBJECT_META, jsonmeta);
         try {
 			int result;
-			if (objMeta.getReplicaDisk() != null) {
-				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, srcMeta.getTag(), s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_FILE);
-			} else {
-				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, srcMeta.getTag(), s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_FILE);
-			}
-
+			objMeta.set(s3Object.getEtag(), srcMeta.getTag(), jsonmeta, aclXml, s3Object.getFileSize());
+			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+			result = insertObject(bucket, object, objMeta);
 			if (result != 0) {
 				logger.error(GWConstants.LOG_COPY_OBJECT_FAILED, bucket, object);
 			}
 			logger.debug(GWConstants.LOG_COPY_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), srcMeta.getAcl(), srcMeta.getAcl(), versionId);
-		} catch (Exception e) {
+		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

@@ -176,7 +176,7 @@ public class PutObject extends S3Request {
 		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
 										null, 
 										dataPutObject.hasAclKeyword(), 
 										null, 
@@ -190,7 +190,7 @@ public class PutObject extends S3Request {
 										dataPutObject.getGrantReadAcp(), 
 										dataPutObject.getGrantWriteAcp(),
 										s3Parameter);
-		logger.debug(GWConstants.LOG_ACL, xml);
+		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		// check encryption
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
@@ -371,13 +371,11 @@ public class PutObject extends S3Request {
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
 			int result;
-			if (objMeta.getReplicaDisk() != null) {
-				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, taggingxml, s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_FILE);
-			} else {
-				result = insertObject(bucket, object, s3Object.getEtag(), jsonmeta, taggingxml, s3Object.getFileSize(), xml, objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_FILE);
-			}
-			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), xml, versionId);
-		} catch (InvalidParameterException | ResourceNotFoundException e) {
+			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
+        	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+			result = insertObject(bucket, object, objMeta);
+			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);
+		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
