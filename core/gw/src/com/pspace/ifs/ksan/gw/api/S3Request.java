@@ -865,11 +865,11 @@ public abstract class S3Request {
 		}
 	}
 
-	protected int insertObject(String bucket, String object, String etag, String jsonmeta, String tag, long size, String acl, String pdskPath, String rdskPath, String versionId, String deleteMarker) throws GWException {
+	protected int insertObject(String bucket, String object, Metadata data) throws GWException {
 		int result = 0;
 		try {
 			setObjManager();
-			result = objManager.close(bucket, object, etag, jsonmeta, tag, size, acl, pdskPath, rdskPath, versionId, deleteMarker);
+			result = objManager.close(bucket, object, data);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

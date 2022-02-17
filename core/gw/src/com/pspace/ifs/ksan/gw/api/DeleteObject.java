@@ -154,7 +154,7 @@ public class DeleteObject extends S3Request {
 
 	private void putDeleteMarker(String bucket, String object, S3Metadata s3Metadata, Metadata objMeta) throws GWException {
 		try {
-			String versionNumber = String.valueOf(System.nanoTime());
+			String versionId = String.valueOf(System.nanoTime());
 			s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
 			s3Metadata.setLastModified(new Date());
 			s3Metadata.setContentLength(0L);
@@ -164,18 +164,13 @@ public class DeleteObject extends S3Request {
 			String jsonmeta = "";
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
-			if (objMeta.getReplicaDisk() != null) {
-				result = insertObject(bucket, object, "", jsonmeta, "", 0L, "", objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionNumber, GWConstants.OBJECT_TYPE_MARK);
-			} else {
-				result = insertObject(bucket, object, "", jsonmeta, "", 0L, "", objMeta.getPrimaryDisk().getPath(), "", versionNumber, GWConstants.OBJECT_TYPE_MARK);
-			}
-			if (result != 0) {
-				logger.error(GWConstants.LOG_DELETE_OBJECT_FAILED_MARKER, bucket, object);
-			}
+			objMeta.set("", "", jsonmeta, "", 0L);
+			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARK, true);
+			result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
-			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionNumber);
-		} catch (ResourceNotFoundException | JsonProcessingException e) {
+			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
+		} catch (GWException | JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

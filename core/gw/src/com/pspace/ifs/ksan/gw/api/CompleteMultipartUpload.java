@@ -287,12 +287,10 @@ public class CompleteMultipartUpload extends S3Request {
 			int result = 0;
 			try {
 				remove(bucket, object);
-				if (objMeta.getReplicaDisk() != null) {
-					result = insertObject(bucket, object, s3Object.get().getEtag(), jsonmeta, "", s3Object.get().getFileSize(), acl, objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_FILE);
-				} else {
-					result = insertObject(bucket, object, s3Object.get().getEtag(), jsonmeta, "", s3Object.get().getFileSize(), acl, objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_FILE);
-				}
-			} catch (ResourceNotFoundException e) {
+				objMeta.set(s3Object.get().getEtag(), "", jsonmeta, acl, s3Object.get().getFileSize());
+				objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+				result = insertObject(bucket, object, objMeta);
+			} catch (GWException e) {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
