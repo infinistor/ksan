@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -446,7 +447,7 @@ public class ListObject{
     
     private ObjectListParameter objectListParameter;
     private DataRepository dbm;
-    private static Logger logger;
+    private static Logger logger  = LoggerFactory.getLogger(ListObject.class);
     
     private void initParameters(DataRepository dbm, String bucketName, String delimiter, String marker, String versionIdMarker, String continuationToken, int maxKeys, String prefix){
         this.dbm = dbm;
