@@ -1029,7 +1029,7 @@ public class ListObject{
     private List<Metadata> bindAndExcute() throws SQLException{
         if (dbm instanceof MongoDataRepository){
             logger.debug(">> bucketName : {} >>mongo query : {}  maxKeys : {}", bucketName, mongoQuery.toString(), maxKeys);
-            return dbm.getObjectList(bucketName, mongoQuery, maxKeys);
+            return dbm.getObjectList(bucketName, mongoQuery, maxKeys + 1);
         }
         if (listType.equalsIgnoreCase("listObject")) 
             return bindAndExcuteV1();
