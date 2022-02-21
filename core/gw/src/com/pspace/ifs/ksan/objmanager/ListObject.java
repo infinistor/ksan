@@ -1,8 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+* the GNU General Public License as published by the Free Software Foundation, either version
+* 3 of the License. See LICENSE for details
+*
+* All materials such as this program, related source codes, and documents are provided as they are.
+* Developers and developers of the KSAN project are not responsible for the results of using this program.
+* The KSAN development team has the right to change the LICENSE method for all outcomes related to KSAN development without prior notice, permission, or consent.
+*/
 package com.pspace.ifs.ksan.objmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +21,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
 
 /**
  *
@@ -440,6 +446,7 @@ public class ListObject{
     
     private ObjectListParameter objectListParameter;
     private DataRepository dbm;
+    private static Logger logger;
     
     private void initParameters(DataRepository dbm, String bucketName, String delimiter, String marker, String versionIdMarker, String continuationToken, int maxKeys, String prefix){
         this.dbm = dbm;
@@ -859,7 +866,7 @@ public class ListObject{
            BasicDBObject andObjQuery;
            List<BasicDBObject> and = new ArrayList();
            
-           and.add(new BasicDBObject("lastversion", "true"));
+           and.add(new BasicDBObject("lastversion", true));
            and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            prefixStr = prefix.replaceAll("\\%",  "\\\\/").replaceAll("\\_",  "\\\\_");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
@@ -907,8 +914,10 @@ public class ListObject{
     
     private void makeQuery(){
         mongoQuery = makeMongoQuery();
-        if (mongoQuery != null)
+        if (mongoQuery != null){
+            logger.debug(" >>mongo query : {}", mongoQuery.toString());
             return;
+        }
         
         if (listType.equalsIgnoreCase("listObject")) 
             makeQueryV1();
@@ -1019,6 +1028,7 @@ public class ListObject{
     
     private List<Metadata> bindAndExcute() throws SQLException{
         if (dbm instanceof MongoDataRepository){
+            logger.debug(">> bucketName : {} >>mongo query : {}  maxKeys : {}", bucketName, mongoQuery.toString(), maxKeys);
             return dbm.getObjectList(bucketName, mongoQuery, maxKeys);
         }
         if (listType.equalsIgnoreCase("listObject")) 
