@@ -428,6 +428,7 @@ public class MongoDataRepository implements DataRepository{
         String access     = doc.getString(ACCESS);
         String tagging    = doc.getString(TAGGING);
         String replication= doc.getString(REPLICATION);
+        int replicaCount = doc.getInteger(REPLICACOUNT);
         Date createTime;
         try {
             String createTimeStr = doc.getString(CREATETIME);
@@ -453,7 +454,8 @@ public class MongoDataRepository implements DataRepository{
         bt.setReplication(replication);
         bt.setCreateTime(createTime);
         bt.setVersioning(versioning, mfdelete);
-        getUserDiskPool(bt);
+        bt.setReplicaCount(replicaCount);
+        //getUserDiskPool(bt);
         //System.out.println(">>" + bt);
         return bt;
     }

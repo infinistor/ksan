@@ -690,7 +690,7 @@ public class MysqlDataRepository implements DataRepository{
         bt.setObjectLock(objectlock);
         bt.setPolicy(policy);
         bt.setReplicaCount(replicaCount);
-        getUserDiskPool(bt); // get diskpoolId and replicaCount
+        //getUserDiskPool(bt); // get diskpoolId and replicaCount
         bt.setUsedSpace(usedSpace);
         bt.setFileCount(fileCount);
         return bt;
