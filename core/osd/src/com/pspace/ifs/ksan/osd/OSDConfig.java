@@ -24,9 +24,15 @@ public class OSDConfig {
     private String port;
     private String ip;
     private String replicaPort;
+    private String ec;
     private String ecScheduleMinutes;
     private String ecApplyMinutes;
     private String ecFileSize;
+    private String cacheDisk;
+    private String cacheScheduleMinutes;
+    private String cacheFileSize;
+    private String cacheLimitMinutes;
+    private String trashScheduleMinutes;
     
     public OSDConfig(String path) {
         properties = new Properties();
@@ -46,6 +52,11 @@ public class OSDConfig {
         ecScheduleMinutes = properties.getProperty(OSDConstants.EC_SCHEDULE_MINUTES);
         ecApplyMinutes = properties.getProperty(OSDConstants.EC_APPLY_MINUTES);
         ecFileSize = properties.getProperty(OSDConstants.EC_FILE_SIZE);
+        cacheDisk = properties.getProperty(OSDConstants.CACHE_DISK);
+        cacheScheduleMinutes = properties.getProperty(OSDConstants.CACHE_SCHEDULE_MINUTES);
+        cacheFileSize = properties.getProperty(OSDConstants.CACHE_FILE_SIZE);
+        cacheLimitMinutes = properties.getProperty(OSDConstants.CACHE_LIMIT_MINUTES);
+        trashScheduleMinutes = properties.getProperty(OSDConstants.TRASH_SCHEDULE_MINUTES);
     }
 
     public String getPoolSize() {
@@ -74,5 +85,25 @@ public class OSDConfig {
 
     public String getECFileSize() {
         return ecFileSize;
+    }
+
+    public String getCacheDisk() {
+        return cacheDisk;
+    }
+
+    public String getCacheScheduleMinutes() {
+        return cacheScheduleMinutes;
+    }
+
+    public String getCacheFileSize() {
+        return cacheFileSize;
+    }
+    
+    public String getCacheLimitMinutes() {
+        return cacheLimitMinutes;
+    }
+
+    public String getTrashScheduleMinutes() {
+        return trashScheduleMinutes;
     }
 }

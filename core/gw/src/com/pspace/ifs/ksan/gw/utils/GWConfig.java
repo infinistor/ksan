@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,8 +21,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
+import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
+import com.pspace.ifs.ksan.osd.OSDConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +58,9 @@ public class GWConfig {
 	private String dbUser;
 	private String dbPass;
 	private int dbPoolSize;
+
+	private String cacheDisk;
+	private long cacheFileSize;
 
 	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
@@ -174,6 +183,79 @@ public class GWConfig {
 		} else {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_POOL_SIZE);
 		}
+
+		this.cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
+		// String cacheSheduleMintues = properties.getProperty(GWConstants.PROPERTY_CACHE_SCHEDULE_MINTUES);
+		// this.cacheSheduleMintues = Long.parseLong(cacheSheduleMintues);
+		if (this.cacheDisk != null) {
+			try {
+				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
+				XmlMapper xmlMapper = new XmlMapper();
+				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+				try {
+					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+					is.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+				String xml = new String(buffer);
+				
+				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+					if (GWConfig.getInstance().localIP().equals(server.getIp())) {
+						for (DISK disk : server.getDisks()) {
+							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+						}
+					}
+				}
+			} catch (JsonProcessingException | FileNotFoundException e) {
+				logger.error(e.getMessage());
+			}
+		} else {
+			try {
+				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
+				XmlMapper xmlMapper = new XmlMapper();
+				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+				try {
+					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+					is.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+				String xml = new String(buffer);
+				
+				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+					if (GWConfig.getInstance().localIP().equals(server.getIp())) {
+						for (DISK disk : server.getDisks()) {
+							File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+						}
+					}
+				}
+			} catch (JsonProcessingException | FileNotFoundException e) {
+				logger.error(e.getMessage());
+			}
+		}
+		String cacheFileSize = properties.getProperty(GWConstants.PROPERTY_CACHE_FILE_SIZE);
+		this.cacheFileSize = Long.parseLong(cacheFileSize);
 	}
 	
 	public URI endpoint() {
@@ -262,5 +344,13 @@ public class GWConfig {
 
 	public int dbPoolSize() {
 		return this.dbPoolSize;
+	}
+
+	public String getCacheDisk() {
+		return this.cacheDisk;
+	}
+
+	public long getCacheFileSize() {
+		return this.cacheFileSize;
 	}
 }

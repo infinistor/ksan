@@ -79,6 +79,25 @@ public class OSDUtils {
         return Integer.parseInt(config.getECApplyMinutes());
     }
 
+    public String getCacheDisk() {
+        return config.getCacheDisk();
+    }
+
+    public int getCacheScheduleMinutes() {
+        return Integer.parseInt(config.getCacheScheduleMinutes());
+    }
+    public long getCacheFileSize() {
+        return Long.parseLong(config.getCacheFileSize());
+    }
+
+    public int getCacheLimitMinutes() {
+        return Integer.parseInt(config.getCacheLimitMinutes());
+    }
+
+    public int getTrashScheduleMinutes() {
+        return Integer.parseInt(config.getTrashScheduleMinutes());
+    }
+
     public void writePID() {
         File file = new File(OSDConstants.PID_PATH);
         try {
@@ -175,6 +194,11 @@ public class OSDUtils {
         return fullPath;
     }
 
+    public String makeCachePath(String path) {
+        String fullPath = getCacheDisk() + path;
+        return fullPath;
+    }
+
     public String makeECPath(String path, String objId, String versionId) {
         String fullPath = path + OSDConstants.SLASH + OSDConstants.EC_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + OSDConstants.POINT + objId + OSDConstants.UNDERSCORE + versionId;
         return fullPath;
@@ -193,7 +217,7 @@ public class OSDUtils {
     public DISKPOOLLIST getDiskPoolList() {
         DISKPOOLLIST diskpoolList = null;
         try {
-            logger.debug(OSDConstants.LOG_OSD_SERVER_CONFIGURE_DISPOOLS);
+            // logger.debug(OSDConstants.LOG_OSD_SERVER_CONFIGURE_DISPOOLS);
 			XmlMapper xmlMapper = new XmlMapper();
 			InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
 			byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
@@ -204,10 +228,10 @@ public class OSDUtils {
 			}
 			String xml = new String(buffer);
 			
-			logger.debug(xml);
+			// logger.debug(xml);
 			diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
-			logger.debug(OSDConstants.LOG_OSD_SERVER_DISK_POOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
-			logger.debug(OSDConstants.LOG_OSD_SERVER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
+			// logger.debug(OSDConstants.LOG_OSD_SERVER_DISK_POOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
+			// logger.debug(OSDConstants.LOG_OSD_SERVER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
 		} catch (JsonProcessingException | FileNotFoundException e) {
 			logger.error(e.getMessage());
 		}
