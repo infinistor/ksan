@@ -14,20 +14,27 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.Map.Entry;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.HttpHeaders;
+import com.pspace.ifs.ksan.gw.data.DataPostObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -208,7 +215,7 @@ public class S3Signing {
 				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
 				String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
 				if (credential == null || signedHeaders == null || signature == null) {
-					logger.error(GWConstants.LOG_S3SIGNING_V4_SIGNATURE_NULL, uri);
+					logger.error(GWConstants.LOG_S3SIGNING_V4_CREDENTIAL_NULL, uri);
 					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
@@ -268,7 +275,7 @@ public class S3Signing {
 				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
 				String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
 				if (credential == null || signedHeaders == null || signature == null) {
-					logger.error(GWConstants.LOG_S3SIGNING_V4_SIGNATURE_NULL, uri);
+					logger.error(GWConstants.LOG_S3SIGNING_V4_CREDENTIAL_NULL, uri);
 					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
 				headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
@@ -447,5 +454,143 @@ public class S3Signing {
 		}
 
 		return uri;
+	}
+
+	private static byte[] hmac(String algorithm, byte[] data, byte[] key) {
+        try {
+            Mac mac = Mac.getInstance(algorithm);
+            mac.init(new SecretKeySpec(key, algorithm));
+            return mac.doFinal(data);
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+	
+	public S3Parameter validatePost(DataPostObject dataPostObject) throws GWException {
+		String uri = s3Parameter.getRequest().getRequestURI();
+		
+		String headerAuthorization = null;
+		S3AuthorizationHeader authHeader = null;
+		boolean signatureVersion4;
+
+		if(dataPostObject.getAlgorithm() == null) {
+			if( dataPostObject.getAccessKey() == null || dataPostObject.getSignature() == null) {
+				logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
+			signatureVersion4 = false;
+			headerAuthorization = GWConstants.AWS_SPACE + dataPostObject.getAccessKey() + GWConstants.COLON + dataPostObject.getSignature();
+		} else if ( dataPostObject.getAlgorithm().equals(GWConstants.AWS4_HMAC_SHA256)) {
+			if( dataPostObject.getAccessKey() == null || dataPostObject.getSignature() == null) {
+				logger.error(GWConstants.LOG_S3SIGNING_V4_SIGNATURE_NULL, uri);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
+			signatureVersion4 = true;
+			headerAuthorization = GWConstants.AWS4_HMAC_SHA256 + GWConstants.SIGN_CREDENTIAL + dataPostObject.getAccessKey() +
+			GWConstants.SIGN_SIGNATURE + dataPostObject.getSignature();
+		} else {
+			logger.error(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE, dataPostObject.getAlgorithm());
+            throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+        }
+
+		try {
+			authHeader = new S3AuthorizationHeader(headerAuthorization);
+			//whether v2 or v4 (normal header and query)
+			logger.debug(GWConstants.LOG_S3SIGNING_AUTH_HEADER, authHeader);
+		} catch (IllegalArgumentException iae) {
+			PrintStack.logging(logger, iae);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT, iae, s3Parameter);
+		}
+
+		String requestIdentity = authHeader.identity;
+		
+		if(requestIdentity == null) {
+			logger.error(GWConstants.LOG_S3SIGNING_ACCESS_NULL);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		}
+		
+		S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
+		if (user == null) {
+			logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		}
+
+		// Entry<String, S3User> provider = s3Parameter.locator.locateIdentity(requestIdentity);
+		// if(provider == null) {
+		// 	user = s3DB.getIdentity(requestIdentity, s3Parameter);
+			
+		// 	if(user == null) {
+		// 		logger.error(GWConstants.LOG_S3SIGNING_ACCESS_NULL);
+		// 		throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		// 	}
+			
+		// 	try {
+		// 		ip.locator.addIdentity(requestIdentity, user.credential, user);
+		// 	} catch (Exception e) {
+		// 		logger.error(GWConstants.LOG_S3SIGNING_ACCESS_NULL);
+		// 		throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		// 	}
+			
+		// 	Entry<String, S3Volume> Volume = ip.locator.locateVolume(user.Volume);
+		// 	if(Volume == null) {
+		// 		S3Volume Vol = s3DB.getVolume(user.Volume, s3Parameter);
+		// 		if(Vol == null) {
+		// 			logger.error("Volume is null (Invalid access key)");
+		// 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		// 		}
+				
+		// 		ip.locator.addVolume(Vol.volume, Vol.password);
+		// 	} else {
+		// 		if (s3Parameter.locator.checkVolume(user.Volume) < 0 ) {
+		// 			logger.error("Volume is null (Invalid access key)");
+		// 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		// 		}
+		// 	}
+		// } else {
+		// 	user = provider.getValue();
+		// }
+
+		if (dataPostObject.getExpiration() != null) {
+			long dateSkew = GWUtils.parseTimeExpire(dataPostObject.getExpiration(), s3Parameter);
+			if (dateSkew < 0) {
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
+			
+			long now = System.currentTimeMillis() / 1000;
+
+			logger.info(GWConstants.LOG_S3SIGNING_MATCH_TIME, now, dateSkew );
+			if (now > dateSkew) {
+				logger.error(GWConstants.LOG_S3SIGNING_TIME_EXPIRED, dateSkew, now);
+				throw new GWException(GWErrorCode.REQUEST_TIME_TOO_SKEWED, s3Parameter);
+			}
+		} else {
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		}
+
+		if (signatureVersion4) {
+            byte[] kSecret = (GWConstants.AWS4 + user.getAccessSecret()).getBytes(StandardCharsets.UTF_8);
+            byte[] kDate = hmac(GWConstants.HMACSHA256, authHeader.getDate().getBytes(StandardCharsets.UTF_8), kSecret);
+            byte[] kRegion = hmac(GWConstants.HMACSHA256, authHeader.getRegion().getBytes(StandardCharsets.UTF_8), kDate);
+            byte[] kService = hmac(GWConstants.HMACSHA256, authHeader.getService().getBytes(StandardCharsets.UTF_8), kRegion);
+            byte[] kSigning = hmac(GWConstants.HMACSHA256, GWConstants.AWS4_REQUEST.getBytes(StandardCharsets.UTF_8), kService);
+            String expectedSignature = BaseEncoding.base16().lowerCase().encode(
+                    hmac(GWConstants.HMACSHA256, dataPostObject.getPolicy().getBytes(StandardCharsets.UTF_8), kSigning));
+            if (!GWUtils.constantTimeEquals(dataPostObject.getSignature(), expectedSignature)) {
+                logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, dataPostObject.getSignature() );
+				throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
+            }
+        } else {
+			String expectedSignature = Base64.getEncoder().encodeToString(
+                    hmac(GWConstants.HMACSHA1, dataPostObject.getPolicy().getBytes(StandardCharsets.UTF_8),
+                            user.getAccessSecret().getBytes(StandardCharsets.UTF_8)));
+            if (!GWUtils.constantTimeEquals(dataPostObject.getSignature(), expectedSignature)) {
+                logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, dataPostObject.getSignature() );
+				throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
+            }
+		}
+		
+		// s3Parameter.s3Property = GWUtils.getS3Property();
+		s3Parameter.setUser(user);
+		return s3Parameter;
 	}
 }
