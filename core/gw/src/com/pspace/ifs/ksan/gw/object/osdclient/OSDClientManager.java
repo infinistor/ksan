@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST;
 import com.pspace.ifs.ksan.osd.OSDConstants;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
@@ -71,7 +72,7 @@ public class OSDClientManager {
         config.setMaxTotal(osdClientCount);
 
         for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-            if (!GWConfig.getInstance().localIP().equals(server.getIp())) {
+            if (!GWUtils.getLocalIP().equals(server.getIp())) {
                 logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
                 OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
                 OSDClientPool pool = new OSDClientPool(factory, config);

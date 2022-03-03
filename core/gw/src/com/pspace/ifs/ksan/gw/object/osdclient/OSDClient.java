@@ -118,14 +118,15 @@ public class OSDClient {
 		return readTotal;
 	}
 
-	public void putInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID) throws IOException {
+	public void putInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID, String mode) throws IOException {
 		String header = OSDConstants.PUT 
 						+ GWConstants.COLON + path 
 						+ GWConstants.COLON + objId 
 						+ GWConstants.COLON + versionId 
 						+ GWConstants.COLON + String.valueOf(length) 
 						+ GWConstants.COLON + replication 
-						+ GWConstants.COLON + replicaDiskID;
+						+ GWConstants.COLON + replicaDiskID
+						+ GWConstants.COLON + mode;
 		logger.debug(GWConstants.LOG_OSDCLIENT_PUT_HEADER, header);
 		sendHeader(header);
 	}
@@ -203,6 +204,7 @@ public class OSDClient {
 		DataOutputStream so = new DataOutputStream(socket.getOutputStream());
 		
 		so.writeInt(size);
+		logger.info("send header size : {}", size);
 		so.write(buffer, 0, size);
         so.flush();
 	}
