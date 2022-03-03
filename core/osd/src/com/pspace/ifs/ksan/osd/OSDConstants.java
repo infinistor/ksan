@@ -37,6 +37,9 @@ public final class OSDConstants {
 
     public static final String TRASH_SCHEDULE_MINUTES = "trash_schedule_minutes";
 
+    public static final String PERFORMANCE_MODE = "performance_mode";
+    public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
+
     public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
     public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
 	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
@@ -86,6 +89,7 @@ public final class OSDConstants {
     public static final int PUT_LENGTH_INDEX = 4;
     public static final int PUT_REPLICATION_INDEX = 5;
     public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
+    public static final int PUT_MODE_INDEX = 7;
     public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_PARTNOS = 4;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
@@ -140,7 +144,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}";
     
     public static final String LOG_OSD_SERVER_PUT_START = "put start ...";
-    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}";
+    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}, mode : {}";
     public static final String LOG_OSD_SERVER_PUT_END = "put end ...";
     public static final String LOG_OSD_SERVER_PUT_SUCCESS_INFO = "put - success : path={}, objId={}, versionId={}, length={}";
 

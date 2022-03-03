@@ -55,7 +55,7 @@ public class OSDServer {
         OSDUtils.getInstance().writePID();
 
         int poolSize = OSDUtils.getInstance().getPoolSize();
-        ip = OSDUtils.getInstance().getIP();
+        ip = OSDUtils.getInstance().getLocalIP();
         port = OSDUtils.getInstance().getPort();
         
         diskpoolList = OSDUtils.getInstance().getDiskPoolList();
@@ -101,6 +101,11 @@ public class OSDServer {
                 DataInputStream di = new DataInputStream(socket.getInputStream());
                 while (true) {
                     int length = di.readInt();
+                    if (length > OSDConstants.HEADERSIZE) {
+                        logger.error("HEADERSIZE is too big : {}", length);
+                        break;
+                    }
+
                     di.read(buffer, 0, length);
                     String indicator = new String(buffer, 0, OSDConstants.INDICATOR_SIZE);
                     String header = new String(buffer, 0, length);
@@ -206,7 +211,9 @@ public class OSDServer {
                         } else {
                             readBytes = OSDConstants.MAXBUFSIZE;
                         }
+
                         readLength = fis.read(buffer, 0, readBytes);
+                        
                         readTotal += readLength;
                         socket.getOutputStream().write(buffer, 0, readLength);
                         remainLength -= readLength;
@@ -230,7 +237,9 @@ public class OSDServer {
                             } else {
                                 readBytes = OSDConstants.MAXBUFSIZE;
                             }
+
                             readLength = fis.read(buffer, 0, readBytes);
+                            
                             readTotal += readLength;
                             socket.getOutputStream().write(buffer, 0, readLength);
                             remainLength -= readLength;
@@ -252,14 +261,22 @@ public class OSDServer {
             long length = Longs.tryParse(headers[OSDConstants.PUT_LENGTH_INDEX]);
             String replication = headers[OSDConstants.PUT_REPLICATION_INDEX];
             String replicaDiskID = headers[OSDConstants.PUT_REPLICA_DISK_ID_INDEX];
-            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication);
+            String mode  = headers[OSDConstants.PUT_MODE_INDEX];
+            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication, mode);
+
+            boolean isNoDisk = false;
+            if (mode != null) {
+                if (mode.equals(OSDConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    isNoDisk = true;
+                }
+            }
 
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = null;
             File tmpFile = null;
             File trashFile = null;
 
-            if (OSDUtils.getInstance().getCacheDisk() != null && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
                 file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
                 tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
                 trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
@@ -279,13 +296,17 @@ public class OSDServer {
                 int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
                 while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
                     remainLength -= readLength;
-                    fos.write(buffer, 0, readLength);
+                    if (!isNoDisk) {
+                        fos.write(buffer, 0, readLength);
+                    }
                     if (remainLength <= 0) {
                         break;
                     }
                     readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
                 }
-                fos.flush();
+                if (!isNoDisk) {
+                    fos.flush();
+                }
             }
 
             if (file.exists()) {
@@ -293,7 +314,7 @@ public class OSDServer {
             }
             OSDUtils.getInstance().setAttributeFileReplication(tmpFile, replication, replicaDiskID);
             retryRenameTo(tmpFile, file);
-            if (OSDUtils.getInstance().getCacheDisk() != null && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
                 String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
                 String command = "ln -s " + file.getAbsolutePath() + " " + fullPath;
 
@@ -320,7 +341,7 @@ public class OSDServer {
             boolean isCache = false;
             File file = null;
             File trashFile = null;
-            if (OSDUtils.getInstance().getCacheDisk() != null) {
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk())) {
                 file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
                 if (file.exists()) {
                     isCache = true;
