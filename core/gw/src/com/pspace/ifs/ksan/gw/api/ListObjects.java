@@ -75,7 +75,10 @@ public class ListObjects extends S3Request {
 		s3ObjectList.setEncodingType(dataListBuckets.getEncodingType());
 		s3ObjectList.setMarker(dataListBuckets.getMarker());
 		s3ObjectList.setPrefix(dataListBuckets.getPrefix());
-				
+		logger.debug("delimiter : {}", dataListBuckets.getDelimiter());
+		logger.debug("marker : {}", dataListBuckets.getMarker());
+		logger.debug("prefix : {}", dataListBuckets.getPrefix());
+		logger.debug("maxKeys : {}", dataListBuckets.getMaxkeys());
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
