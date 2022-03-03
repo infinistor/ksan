@@ -59,7 +59,7 @@ public class GWDiskConfig {
             System.exit(-1);
 		}
 
-        localHost = GWConfig.getInstance().localIP();
+        localHost = GWUtils.getLocalIP();
         for (SERVER server : diskPoolList.getDiskpool().getServers()) {
             if (localHost.equals(server.getIp())) {
                 for (DISK disk : server.getDisks()) {
