@@ -49,7 +49,6 @@ public class GWConfig {
 	private int osdPort = GWConstants.DEFAULT_OSD_PORT;
 	private int osdClientCount = GWConstants.DEFAULT_OSD_CLIENT_SIZE;
 	private int objManagerCount = GWConstants.DEFAULT_OBJMANAGER_SIZE;
-	private String localIP;
 	
 	private static String dbRepository;
 	private String dbHost;
@@ -61,6 +60,8 @@ public class GWConfig {
 
 	private String cacheDisk;
 	private long cacheFileSize;
+
+	private String performanceMode;
 
 	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
@@ -141,11 +142,6 @@ public class GWConfig {
 		} else {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OBJMANAGER_COUNT);
 		}
-
-		localIP = properties.getProperty(GWConstants.PROPERTY_LOCAL_IP);
-		if (localIP == null) {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_LOCAL_IP);
-		}
 	    
 		setDbRepository(properties.getProperty(GWConstants.PROPERTY_DB_REPOSITORY));
 		if (getDbRepository() == null || getDbRepository().isEmpty()) {
@@ -185,8 +181,6 @@ public class GWConfig {
 		}
 
 		this.cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
-		// String cacheSheduleMintues = properties.getProperty(GWConstants.PROPERTY_CACHE_SCHEDULE_MINTUES);
-		// this.cacheSheduleMintues = Long.parseLong(cacheSheduleMintues);
 		if (this.cacheDisk != null) {
 			try {
 				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
@@ -203,7 +197,7 @@ public class GWConfig {
 				
 				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
 				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-					if (GWConfig.getInstance().localIP().equals(server.getIp())) {
+					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (DISK disk : server.getDisks()) {
 							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
 							file.mkdirs();
@@ -239,7 +233,7 @@ public class GWConfig {
 				
 				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
 				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-					if (GWConfig.getInstance().localIP().equals(server.getIp())) {
+					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (DISK disk : server.getDisks()) {
 							File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
 							file.mkdirs();
@@ -254,8 +248,14 @@ public class GWConfig {
 				logger.error(e.getMessage());
 			}
 		}
+
 		String cacheFileSize = properties.getProperty(GWConstants.PROPERTY_CACHE_FILE_SIZE);
 		this.cacheFileSize = Long.parseLong(cacheFileSize);
+
+		this.performanceMode = properties.getProperty(GWConstants.PROPERTY_PERFORMANCE_MODE);
+		if (this.performanceMode == null) {
+			this.performanceMode = GWConstants.PERFORMANCE_MODE_NO_OPTION;
+		}
 	}
 	
 	public URI endpoint() {
@@ -296,10 +296,6 @@ public class GWConfig {
 
 	public int replicationCount() {
 		return this.replicationCount;
-	}
-
-	public String localIP() {
-		return this.localIP;
 	}
 
 	public int osdPort() {
@@ -352,5 +348,9 @@ public class GWConfig {
 
 	public long getCacheFileSize() {
 		return this.cacheFileSize;
+	}
+
+	public String getPerformanceMode() {
+		return this.performanceMode;
 	}
 }
