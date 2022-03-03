@@ -33,7 +33,7 @@ public class DoECPriObject implements Runnable {
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
-        String ip = OSDUtils.getInstance().getIP();
+        String ip = OSDUtils.getInstance().getLocalIP();
         fileLength = OSDUtils.getInstance().getECFileSize() * OSDConstants.MEGABYTES;
         ecApplyMinutes = OSDUtils.getInstance().getECApplyMinutes();
 
@@ -112,7 +112,7 @@ public class DoECPriObject implements Runnable {
                 String diskPath = OSDUtils.getInstance().getPath(diskPoolList, replicaDiskID);
                 String replicaPath = OSDUtils.getInstance().makePath(diskPath, file.getName());
                 if (ip != null && diskPath != null) {
-                    if (OSDUtils.getInstance().getIP().equals(ip)) {
+                    if (OSDUtils.getInstance().getLocalIP().equals(ip)) {
                         // local replica
                         File replicaFile = new File(replicaPath);
                         if (replicaFile.exists()) {

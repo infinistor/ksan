@@ -17,7 +17,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -27,6 +29,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 
@@ -36,6 +39,7 @@ import org.slf4j.LoggerFactory;
 public class OSDUtils {
     private final static Logger logger = LoggerFactory.getLogger(OSDUtils.class);
     private OSDConfig config;
+    private String localIP = null;
 
     public static OSDUtils getInstance() {
         return LazyHolder.INSTANCE;
@@ -57,10 +61,6 @@ public class OSDUtils {
 
     public int getPoolSize() {
         return Integer.parseInt(config.getPoolSize());
-    }
-
-    public String getIP() {
-        return config.getIP();
     }
 
     public int getPort() {
@@ -246,6 +246,9 @@ public class OSDUtils {
             view.write(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(replicaDiskID));
         } catch (IOException e) {
             logger.error(e.getMessage());
+            for ( StackTraceElement k : e.getStackTrace() ) {
+                logger.error(k.toString());
+            }
         }
     }
 
@@ -284,4 +287,19 @@ public class OSDUtils {
 
         return Charset.defaultCharset().decode(buf).toString();
     }
+
+    public String getLocalIP() {
+		if (!Strings.isNullOrEmpty(localIP)) {
+			return localIP;
+		} else {
+			InetAddress local = null;
+			try {
+				local = InetAddress.getLocalHost();
+				localIP = local.getHostAddress();
+			} catch (UnknownHostException e) {
+				logger.error(e.getMessage());
+			}
+			return localIP;
+		}
+	}
 }

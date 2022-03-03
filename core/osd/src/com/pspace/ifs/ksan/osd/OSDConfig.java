@@ -22,9 +22,7 @@ public class OSDConfig {
     private Properties properties;
     private String poolSize;
     private String port;
-    private String ip;
     private String replicaPort;
-    private String ec;
     private String ecScheduleMinutes;
     private String ecApplyMinutes;
     private String ecFileSize;
@@ -33,7 +31,7 @@ public class OSDConfig {
     private String cacheFileSize;
     private String cacheLimitMinutes;
     private String trashScheduleMinutes;
-    
+
     public OSDConfig(String path) {
         properties = new Properties();
 		try (InputStream myis = new FileInputStream(path)) {
@@ -47,7 +45,6 @@ public class OSDConfig {
 
     public void configure() throws URISyntaxException {
         poolSize = properties.getProperty(OSDConstants.POOL_SIZE);
-        ip = properties.getProperty(OSDConstants.OSD_LOCAL_IP);
         port = properties.getProperty(OSDConstants.OSD_PORT);
         ecScheduleMinutes = properties.getProperty(OSDConstants.EC_SCHEDULE_MINUTES);
         ecApplyMinutes = properties.getProperty(OSDConstants.EC_APPLY_MINUTES);
@@ -65,10 +62,6 @@ public class OSDConfig {
 
     public String getPort() {
         return port;
-    }
-
-    public String getIP() {
-        return ip;
     }
 
     public String getReplicaPort() {

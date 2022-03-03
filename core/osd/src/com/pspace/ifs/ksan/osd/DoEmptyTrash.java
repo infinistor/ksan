@@ -32,7 +32,7 @@ public class DoEmptyTrash implements Runnable {
         }
 
         for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-            if (OSDUtils.getInstance().getIP().equals(server.getIp())) {
+            if (OSDUtils.getInstance().getLocalIP().equals(server.getIp())) {
                 for (DISK disk : server.getDisks()) {
                     String trashDir = disk.getPath() + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
                     empty(trashDir);
