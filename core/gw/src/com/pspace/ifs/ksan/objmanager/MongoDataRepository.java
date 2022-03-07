@@ -239,12 +239,12 @@ public class MongoDataRepository implements DataRepository{
             MongoCollection<Document> objects;
             objects = database.getCollection(md.getBucket());
             objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(PDISKID, md.getPrimaryDisk().getId()));
-            objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(RDISKID, md.getReplicaDisk().getId()));
-            return 0;
-        } catch (ResourceNotFoundException ex) {
+            if (md.isReplicaExist())
+                objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(RDISKID, md.getReplicaDisk().getId()));
+       } catch (ResourceNotFoundException ex) {
             Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return 0; 
+       }
+       return 0; 
     }
 
     @Override
@@ -285,7 +285,13 @@ public class MongoDataRepository implements DataRepository{
         String pdiskId      = doc.getString(PDISKID);
         DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
         String rdiskId      = doc.getString(RDISKID);
-        DISK rdsk           = rdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId) : new DISK();
+        DISK rdsk;
+        if (rdiskId == null)
+            rdsk = new DISK();
+        else if (rdiskId.isEmpty())
+            rdsk = new DISK();
+        else
+            rdsk = obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId);
         
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
@@ -1077,7 +1083,12 @@ public class MongoDataRepository implements DataRepository{
             }
             
             try {
-                mt.setReplicaDISK(obmCache.getDiskWithId(diskPoolId, rdiskid));
+                if (rdiskid == null)
+                    mt.setReplicaDISK(new DISK());
+                else if(rdiskid.isEmpty())
+                    mt.setReplicaDISK(new DISK());
+                else
+                    mt.setReplicaDISK(obmCache.getDiskWithId(diskPoolId, rdiskid));
             } catch (ResourceNotFoundException ex) {
                 mt.setReplicaDISK(new DISK());
             }
