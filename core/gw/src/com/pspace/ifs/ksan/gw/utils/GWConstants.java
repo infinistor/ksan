@@ -35,8 +35,18 @@ public final class GWConstants {
     public static final String PROPERTY_DB_PASS = "dbpass";
 	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
 
+	public static final String PROPERTY_CACHE_DISK = "cache_disk";
+	public static final String PROPERTY_CACHE_FILE_SIZE = "cache_file_size";
+
+	public static final String PROPERTY_PERFORMANCE_MODE = "gw.performance.mode";
+	public static final String PERFORMANCE_MODE_NO_OPTION = "NO_OPTION";
+	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
+	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
+	public static final String PERFORMANCE_MODE_NO_REPLICA = "NO_REPLICA";
+
 	public static final long MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
 	public static final long MAX_LIST_SIZE = 200000;
+	public static final long MEGABYTES = 1048576;
 	public static final int MAX_TIME_SKEW = 15 * 60;
 	public static final int DEFAULT_REPLICATION_VALUE = 1;
 	public static final int DEFAULT_OSD_PORT = 8000;

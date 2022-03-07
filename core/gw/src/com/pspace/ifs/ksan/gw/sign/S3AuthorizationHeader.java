@@ -88,13 +88,13 @@ public final class S3AuthorizationHeader {
 
     @Override
     public String toString() {
-        return "Identity: " + identity +
-                "; Signature: " + signature +
-                "; HMAC algorithm: " + hmacAlgorithm +
-                "; Hash algorithm: " + hashAlgorithm +
-                "; region: " + region +
-                "; date: " + date +
-                "; service " + service;
+        return GWConstants.S3AUTH_HEADER_IDENTITY + identity +
+                GWConstants.S3AUTH_HEADER_SIGNATURE + signature +
+                GWConstants.S3AUTH_HEADER_HMAC_ALGORITHM + hmacAlgorithm +
+                GWConstants.S3AUTH_HEADER_HASH_ALGORITHM + hashAlgorithm +
+                GWConstants.S3AUTH_HEADER_REGION + region +
+                GWConstants.S3AUTH_HEADER_DATE + date +
+                GWConstants.S3AUTH_HEADER_SERVICE + service;
     }
 
     private String extractSignature(String header) {
@@ -109,5 +109,17 @@ public final class S3AuthorizationHeader {
         } else {
             return header.substring(signatureIndex, signatureEnd);
         }
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getService() {
+        return service;
     }
 }

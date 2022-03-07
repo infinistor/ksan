@@ -55,13 +55,19 @@ public class OSDServer {
         OSDUtils.getInstance().writePID();
 
         int poolSize = OSDUtils.getInstance().getPoolSize();
-        ip = OSDUtils.getInstance().getIP();
+        ip = OSDUtils.getInstance().getLocalIP();
         port = OSDUtils.getInstance().getPort();
         
         diskpoolList = OSDUtils.getInstance().getDiskPoolList();
 
-        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(new DoECPriObject(), 0, OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
+        ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
+        serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
+
+        ScheduledExecutorService serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), OSDUtils.getInstance().getTrashScheduleMinutes(), OSDUtils.getInstance().getTrashScheduleMinutes(), TimeUnit.MINUTES);
+
+        ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
+        serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
@@ -95,6 +101,11 @@ public class OSDServer {
                 DataInputStream di = new DataInputStream(socket.getInputStream());
                 while (true) {
                     int length = di.readInt();
+                    if (length > OSDConstants.HEADERSIZE) {
+                        logger.error("HEADERSIZE is too big : {}", length);
+                        break;
+                    }
+
                     di.read(buffer, 0, length);
                     String indicator = new String(buffer, 0, OSDConstants.INDICATOR_SIZE);
                     String header = new String(buffer, 0, length);
@@ -153,7 +164,19 @@ public class OSDServer {
                     }
                 }
             } catch (IOException | NoSuchAlgorithmException e) {
-                logger.error(e.getMessage());
+                if (e.getMessage() != null) {
+                    logger.error(e.getMessage());
+                }
+
+                if (socket.isClosed()) {
+                    logger.error("Socket is closed");
+                }   
+                if (!socket.isConnected()) {
+                    logger.error("Socket is not connected");
+                }
+                if (socket.isInputShutdown()) {
+                    logger.error("Socket input is shutdown");
+                }
             } finally {
                 try {
                     socket.close();
@@ -188,7 +211,9 @@ public class OSDServer {
                         } else {
                             readBytes = OSDConstants.MAXBUFSIZE;
                         }
+
                         readLength = fis.read(buffer, 0, readBytes);
+                        
                         readTotal += readLength;
                         socket.getOutputStream().write(buffer, 0, readLength);
                         remainLength -= readLength;
@@ -212,7 +237,9 @@ public class OSDServer {
                             } else {
                                 readBytes = OSDConstants.MAXBUFSIZE;
                             }
+
                             readLength = fis.read(buffer, 0, readBytes);
+                            
                             readTotal += readLength;
                             socket.getOutputStream().write(buffer, 0, readLength);
                             remainLength -= readLength;
@@ -234,12 +261,32 @@ public class OSDServer {
             long length = Longs.tryParse(headers[OSDConstants.PUT_LENGTH_INDEX]);
             String replication = headers[OSDConstants.PUT_REPLICATION_INDEX];
             String replicaDiskID = headers[OSDConstants.PUT_REPLICA_DISK_ID_INDEX];
-            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication);
+            String mode  = headers[OSDConstants.PUT_MODE_INDEX];
+            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication, mode);
+
+            boolean isNoDisk = false;
+            if (mode != null) {
+                if (mode.equals(OSDConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    isNoDisk = true;
+                }
+            }
 
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-            File file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
-            File tmpFile = new File(OSDUtils.getInstance().makeTempPath(path, objId, versionId));
-            File trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+            File file = null;
+            File tmpFile = null;
+            File trashFile = null;
+
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
+                tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
+                trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
+                File linkFile = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                com.google.common.io.Files.createParentDirs(linkFile);
+            } else {
+                file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                tmpFile = new File(OSDUtils.getInstance().makeTempPath(path, objId, versionId));
+                trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+            }
 
             com.google.common.io.Files.createParentDirs(file);
             com.google.common.io.Files.createParentDirs(tmpFile);
@@ -249,13 +296,17 @@ public class OSDServer {
                 int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
                 while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
                     remainLength -= readLength;
-                    fos.write(buffer, 0, readLength);
+                    if (!isNoDisk) {
+                        fos.write(buffer, 0, readLength);
+                    }
                     if (remainLength <= 0) {
                         break;
                     }
                     readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
                 }
-                fos.flush();
+                if (!isNoDisk) {
+                    fos.flush();
+                }
             }
 
             if (file.exists()) {
@@ -263,7 +314,20 @@ public class OSDServer {
             }
             OSDUtils.getInstance().setAttributeFileReplication(tmpFile, replication, replicaDiskID);
             retryRenameTo(tmpFile, file);
-            
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
+                String command = "ln -s " + file.getAbsolutePath() + " " + fullPath;
+
+                logger.debug("{}", command);
+                Process p = Runtime.getRuntime().exec(command);
+                int exitCode;
+                try {
+                    exitCode = p.waitFor();
+                    logger.info("ln : {}", exitCode);
+                } catch (InterruptedException e) {
+                    logger.error(e.getMessage());
+                }
+            }
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_END);
             logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);
         }
@@ -274,11 +338,29 @@ public class OSDServer {
             String objId = headers[OSDConstants.OBJID_INDEX];
             String versionId = headers[OSDConstants.VERSIONID_INDEX];
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_INFO, path, objId, versionId);
-
-            File file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
-            File trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+            boolean isCache = false;
+            File file = null;
+            File trashFile = null;
+            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk())) {
+                file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
+                if (file.exists()) {
+                    isCache = true;
+                    trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
+                } else {
+                    file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                    trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+                }
+            } else {
+                file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+            }
             
             retryRenameTo(file, trashFile);
+            if (isCache) {
+                File link = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                link.delete();
+            }
+
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_END);
             logger.info(OSDConstants.LOG_OSD_SERVER_DELETE_SUCCESS_INFO, path, objId, versionId);
         }

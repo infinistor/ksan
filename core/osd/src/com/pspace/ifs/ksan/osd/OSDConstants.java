@@ -25,9 +25,20 @@ public final class OSDConstants {
 	public static final String TRASH_DIR = "trash";
 	public static final String EC_DIR = "ec";
 
+    public static final String EC_FUNCTION = "ec";
     public static final String EC_SCHEDULE_MINUTES = "ec_schedule_minutes";
     public static final String EC_APPLY_MINUTES = "ec_apply_minutes";
     public static final String EC_FILE_SIZE = "ec_file_size";
+
+    public static final String CACHE_DISK = "cache_disk";
+    public static final String CACHE_SCHEDULE_MINUTES = "cache_schedule_minutes";
+    public static final String CACHE_FILE_SIZE = "cache_file_size";
+    public static final String CACHE_LIMIT_MINUTES = "cache_limit_minutes";
+
+    public static final String TRASH_SCHEDULE_MINUTES = "trash_schedule_minutes";
+
+    public static final String PERFORMANCE_MODE = "performance_mode";
+    public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 
     public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
     public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
@@ -39,7 +50,7 @@ public final class OSDConstants {
     public static final int MAXBUFSIZE = 524288; // 512 * 1024
 	public static final int BUFSIZE = 262144; // 256 * 1024
 	public static final long PARTS_MIN_SIZE = 5242880; // 5MB
-    public static final long FILE_EC_DEFAULT = 1024 * 1024;
+    public static final long MEGABYTES = 1024 * 1024;
     public static final long ONE_SEC_MILLISECONDS = 1000;
     public static final long ONE_MINUTE_MILLISECONDS = 60 * 1000;
     public static final long ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
@@ -78,6 +89,7 @@ public final class OSDConstants {
     public static final int PUT_LENGTH_INDEX = 4;
     public static final int PUT_REPLICATION_INDEX = 5;
     public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
+    public static final int PUT_MODE_INDEX = 7;
     public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_PARTNOS = 4;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
@@ -99,6 +111,7 @@ public final class OSDConstants {
     public static final String DELIMITER = ":";
     public static final String COMMA = ",";
     public static final String POINT = ".";
+    public static final String SPACE = " ";
     public static final String MD5 = "MD5";
 
     public static final String JVM = "jvm";
@@ -131,7 +144,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}";
     
     public static final String LOG_OSD_SERVER_PUT_START = "put start ...";
-    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}";
+    public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}, mode : {}";
     public static final String LOG_OSD_SERVER_PUT_END = "put end ...";
     public static final String LOG_OSD_SERVER_PUT_SUCCESS_INFO = "put - success : path={}, objId={}, versionId={}, length={}";
 
@@ -195,4 +208,12 @@ public final class OSDConstants {
     public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND = "command : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID = "replica disk id : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_HEADER = "send header : {}";
+
+    // DoEmptyTrash
+    public static final String LOG_DO_EMPTY_TRASH_START = "DoEmptyTrash start ...";
+
+    // DoMoveCacheToDisk
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK = "DoMoveCacheToDisk start ...";
+    public static final String DO_MOVE_CACHE_TO_DISK_COMMAND = "cp -a ";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_COMMAND = "{}";
 }

@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.ParseException;
@@ -59,8 +61,8 @@ public class GWUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(GWUtils.class);
 	private static final Escaper urlEscaper = new PercentEscaper(GWConstants.PERCENT_ESCAPER, true);
-	
-	
+	private static String localIP = null;
+
 	private static void addResponseHeaderWithOverride(
 			HttpServletRequest request, HttpServletResponse response,
 			String headerName, String overrideHeaderName, String value) {
@@ -163,6 +165,19 @@ public class GWUtils {
 		}
 		
 		response.addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
+	}
+
+	/** Parse ISO 8601 timestamp into seconds since 1970. */
+	public static long parseTimeExpire(String date, S3Parameter s3Parameter) throws GWException {
+		SimpleDateFormat formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_SIMPLE_FORMAT);
+		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
+		logger.debug(GWConstants.LOG_UTILS_8061_DATE, date);
+		try {
+			return formatter.parse(date).getTime() / 1000;
+		} catch (ParseException pe) {
+			PrintStack.logging(logger, pe);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+		}
 	}
 
 	/** Parse ISO 8601 timestamp into seconds since 1970. */
@@ -937,5 +952,20 @@ public class GWUtils {
 		}
 
 		return aclXml;
+	}
+
+	public static String getLocalIP() {
+		if (!Strings.isNullOrEmpty(localIP)) {
+			return localIP;
+		} else {
+			InetAddress local = null;
+			try {
+				local = InetAddress.getLocalHost();
+				localIP = local.getHostAddress();
+			} catch (UnknownHostException e) {
+				logger.error(e.getMessage());
+			}
+			return localIP;
+		}
 	}
 }
