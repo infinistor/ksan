@@ -86,38 +86,7 @@ public class ObjManager {
             System.out.println(e);
         }*/
     }
-   
-    /**
-     * Return a new primary and replica disk mount path allocated for the path provided.Unless the close method is called, the allocated disk mount path is not stored permanently. 
-     * @param bucket   bucket name
-     * @param path     the path or key of the metadata is going to be opened
-     * @return  metadata associated with the object requested 
-     * @throws ResourceNotFoundException 
-     */
-    public Metadata open(String bucket, String path) 
-            throws ResourceNotFoundException{
-        Metadata mt;
-        Bucket bt;
-        
-        try {
-            bt = this.getBucket(bucket);
-        } catch (SQLException ex) {
-            throw new ResourceNotFoundException(ex.getMessage());
-        }
-        mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path);
-       
-        return mt;
-    }
-
-    /**
-     * Return a new primary and replica disk mount path allocated for the path provided.Unless the close method is called, the allocated disk mount path is not stored permanently. 
-     * @param bucket   bucket name
-     * @param path     the path or key of the metadata is going to be opened
-     * @param versionId specific versionId
-     * @return  metadata associated with the object requested 
-     * @throws ResourceNotFoundException 
-     */
-    public Metadata open(String bucket, String path, String versionId) 
+   private Metadata _open(String bucket, String path, String versionId)
             throws ResourceNotFoundException{
         Metadata mt;
         Bucket bt;
@@ -132,11 +101,40 @@ public class ObjManager {
             throw new ResourceNotFoundException("Bucket(" + bucket +") not exist in the system!");
         }
         
-        mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
+        if (versionId == null)
+            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path);
+        else
+            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
        
         mt.setReplicaCount(bt.getReplicaCount());
         
         return mt;
+    }
+    /**
+     * Return a new primary and replica disk mount path allocated for the path provided.Unless the close method is called, the allocated disk mount path is not stored permanently. 
+     * @param bucket   bucket name
+     * @param path     the path or key of the metadata is going to be opened
+     * @return  metadata associated with the object requested 
+     * @throws ResourceNotFoundException 
+     */
+
+    public Metadata open(String bucket, String path) 
+            throws ResourceNotFoundException{
+        return _open(bucket, path, null);
+    }
+
+    /**
+     * Return a new primary and replica disk mount path allocated for the path provided.Unless the close method is called, the allocated disk mount path is not stored permanently. 
+     * @param bucket   bucket name
+     * @param path     the path or key of the metadata is going to be opened
+     * @param versionId specific versionId
+     * @return  metadata associated with the object requested 
+     * @throws ResourceNotFoundException 
+     */
+    public Metadata open(String bucket, String path, String versionId) 
+            throws ResourceNotFoundException{
+        
+        return _open(bucket, path, versionId);
     }
     
     /**
@@ -231,6 +229,7 @@ public class ObjManager {
         
         cpy_mt = new Metadata(toBucket, to);
         cpy_mt.setPrimaryDisk(mt.getPrimaryDisk());
+        cpy_mt.setReplicaCount(bt.getReplicaCount());
         if (mt.isReplicaExist())
             cpy_mt.setReplicaDISK(mt.getReplicaDisk());
         return cpy_mt;
@@ -691,13 +690,11 @@ public class ObjManager {
     }*/
 
     public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException, SQLException{
-        Bucket bt = getBucket(bucketName);
-        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key);
+        return _open(bucketName, key, null); 
     }
 
     public Metadata getObjectWithVersionId(String bucketName, String key, String versionId) throws ResourceNotFoundException, SQLException{
-        Bucket bt = getBucket(bucketName);
-        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key, versionId);
+        return _open(bucketName, key, versionId);
     }
 
     public Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
@@ -713,8 +710,6 @@ public class ObjManager {
 
     /*public void updateObjectMeta(String bucketName, String objKey, String versionId, String meta) throws SQLException {*/
     public void updateObjectMeta(Metadata mt) throws SQLException {
-        //Metadata mt = new Metadata(bucketName, objKey);
-        //mt.setVersionId(versionId, meta, Boolean.TRUE);
         dbm.updateObjectMeta(mt);
     }
     
@@ -856,5 +851,4 @@ public class ObjManager {
     public void deactivate(){
         
     }
-
 }
