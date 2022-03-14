@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;

@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.gw.object;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWException;

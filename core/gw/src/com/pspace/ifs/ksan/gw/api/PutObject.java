@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -330,12 +330,11 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
-			if (GWConfig.getInstance().replicationCount() > 1) {
+			if (GWConfig.getReplicaCount() > 1) {
 				objMeta = create(bucket, object);
 			} else {
 				objMeta = createLocal(bucket, object);
 			}
-
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 			} else {

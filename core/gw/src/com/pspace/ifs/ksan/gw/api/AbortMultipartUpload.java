@@ -12,7 +12,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.util.SortedMap;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.pspace.ifs.ksan.gw.data.DataAbortMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;

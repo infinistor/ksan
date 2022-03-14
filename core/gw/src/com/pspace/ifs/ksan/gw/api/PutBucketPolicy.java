@@ -10,7 +10,7 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.pspace.ifs.ksan.gw.data.DataPutBucketPolicy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;

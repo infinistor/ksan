@@ -8,17 +8,19 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.api;
+package com.pspace.ifs.ksan.gw.format;
 
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+public class PostPolicy {
+    public String expiration;
+    public List<Object> conditions;
 
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+    public String getExpiration() {
+        return expiration;
+    }
 
-
-public interface S3AddResponse {
-	public void addMetadataToResponse(HttpServletResponse response, S3Metadata metadata, List<String> contentsHeaders, Long streamSize);
-	public void addResponseHeaderWithOverride(HttpServletRequest request, HttpServletResponse response, String headerName, String overrideHeaderName, String value);
+    public List<Object> getCoditions() {
+        return conditions;
+    }
 }

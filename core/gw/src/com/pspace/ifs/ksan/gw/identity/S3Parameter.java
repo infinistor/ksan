@@ -12,8 +12,8 @@ package com.pspace.ifs.ksan.gw.identity;
 
 import java.io.InputStream;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 
@@ -44,6 +44,7 @@ public class S3Parameter {
     private String errorCode;
     private String virtualHost;
 	private String remoteHost;
+    private String remoteAddr;
 	private String requestURI;
 	private String referer;
 	private String userAgent;
@@ -288,6 +289,14 @@ public class S3Parameter {
 
     public void setRemoteHost(String remoteHost) {
         this.remoteHost = remoteHost;
+    }
+
+    public String getRemoteAddr() {
+        return remoteAddr;
+    }
+
+    public void setRemoteAddr(String remoteAddr) {
+        this.remoteAddr = remoteAddr;
     }
 
     public String getRequestURI() {

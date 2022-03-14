@@ -23,7 +23,6 @@ import java.util.Properties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
 import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
@@ -34,48 +33,37 @@ import org.slf4j.LoggerFactory;
 
 public class GWConfig {
 	private Properties properties;
+
+	private static String dbRepository;
+	private static int replicaCount;
+	private static String cacheDisk;
+	private static String performanceMode;
+	private static long cacheFileSize;
+
 	private URI endpoint;
 	private URI secureEndpoint;
-	
 	private String authorizationString;
-	private String servicePath;
 	private String keyStorePath;
 	private String keyStorePassword;
+	private int jettyMaxThreads = GWConstants.JETTY_MAX_THREADS;
+	private int jettyMaxIdleTimeout = GWConstants.JETTY_MAX_IDLE_TIMEOUT;
 	private long maxFileSize = GWConstants.MAX_FILE_SIZE;
 	private long maxListSize = GWConstants.MAX_LIST_SIZE;
-	private boolean ignoreUnknownHeaders;
 	private int maxTimeSkew = GWConstants.MAX_TIME_SKEW;
-	private int replicationCount = GWConstants.DEFAULT_REPLICATION_VALUE;
 	private int osdPort = GWConstants.DEFAULT_OSD_PORT;
 	private int osdClientCount = GWConstants.DEFAULT_OSD_CLIENT_SIZE;
 	private int objManagerCount = GWConstants.DEFAULT_OBJMANAGER_SIZE;
-	
-	private static String dbRepository;
 	private String dbHost;
 	private String database;
 	private String dbPort;
 	private String dbUser;
 	private String dbPass;
 	private int dbPoolSize;
-
-	private String cacheDisk;
-	private long cacheFileSize;
-
-	private String performanceMode;
+	
 
 	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
-
-	public static GWConfig getInstance() {
-        return LazyHolder.INSTANCE;
-    }
-
-    private static class LazyHolder {
-        private static GWConfig INSTANCE = new GWConfig();
-    }
 	
-	private GWConfig() {}
-	
-	public void configure(String path) throws URISyntaxException, GWException {
+	public GWConfig(String path) {
 		properties = new Properties();
 		try (InputStream myis = new FileInputStream(path)) {
 			properties.load(myis);
@@ -84,7 +72,9 @@ public class GWConfig {
 		} catch (IOException e) {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_FAILED_LOADING);
 		}
-
+	}
+	
+	public void configure() throws URISyntaxException, GWException {
 		String endpoint = properties.getProperty(GWConstants.PROPERTY_ENDPOINT);
 		String secureEndpoint = properties.getProperty(GWConstants.PROPERTY_SECURE_ENDPOINT);
 		if (endpoint == null && secureEndpoint == null) {
@@ -102,6 +92,19 @@ public class GWConfig {
 			this.secureEndpoint = requireNonNull(new URI(secureEndpoint));
 		}
 
+		keyStorePath = properties.getProperty(GWConstants.PROPERTY_KEYSTORE_PATH);
+		keyStorePassword = properties.getProperty(GWConstants.PROPERTY_KEYSTORE_PASSWORD);
+
+		String jettyMaxThreads = properties.getProperty(GWConstants.PROPERTY_JETTY_MAX_THREADS);
+		if (jettyMaxThreads != null) {
+			this.jettyMaxThreads = Integer.parseInt(jettyMaxThreads);
+		}
+
+		String jettyMaxIdleTimeout = properties.getProperty(GWConstants.PROPERTY_JETTY_MAX_IDLE_TIMEOUT);
+		if (jettyMaxIdleTimeout != null) {
+			this.jettyMaxIdleTimeout = Integer.parseInt(jettyMaxIdleTimeout);
+		}
+
 		this.authorizationString = properties.getProperty(GWConstants.PROPERTY_AUTHORIZATION);
 		
 		if (this.authorizationString == null) {
@@ -113,13 +116,6 @@ public class GWConfig {
 	        this.maxTimeSkew = Integer.parseInt(maxTimeSkew);
 	    } else {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
-		}
-
-		String replication = properties.getProperty(GWConstants.PROPERTY_REPLICATION);
-		if (replication != null) {
-			replicationCount = Integer.parseInt(replication);
-		} else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_REPLICATION);
 		}
 
 		String osdPort = properties.getProperty(GWConstants.PROPERTY_OSD_PORT);
@@ -178,6 +174,11 @@ public class GWConfig {
 			this.dbPoolSize = Integer.parseInt(dbPoolSize);
 		} else {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_POOL_SIZE);
+		}
+
+		String replicaCount = properties.getProperty(GWConstants.PROPERTY_REPLICA_COUNT);
+		if (replicaCount != null) {
+			this.replicaCount = Integer.parseInt(replicaCount);
 		}
 
 		this.cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
@@ -274,10 +275,14 @@ public class GWConfig {
 		return this.keyStorePassword;
 	}
 	
-	public String servicePath() {
-		return this.servicePath;
+	public int jettyMaxThreads() {
+		return this.jettyMaxThreads;
 	}
-	
+
+	public int jettyMaxIdleTimeout() {
+		return this.jettyMaxIdleTimeout;
+	}
+
 	public long maxFileSize() {
 		return this.maxFileSize;
 	}
@@ -286,16 +291,8 @@ public class GWConfig {
 		return this.maxListSize;
 	}
 	
-	public boolean ignoreUnknownHeaders() {
-		return this.ignoreUnknownHeaders;
-	}
-	
 	public int maxTimeSkew() {
 		return this.maxTimeSkew;
-	}
-
-	public int replicationCount() {
-		return this.replicationCount;
 	}
 
 	public int osdPort() {
@@ -342,15 +339,19 @@ public class GWConfig {
 		return this.dbPoolSize;
 	}
 
-	public String getCacheDisk() {
-		return this.cacheDisk;
+	public static int getReplicaCount() {
+		return replicaCount;
 	}
 
-	public long getCacheFileSize() {
-		return this.cacheFileSize;
+	public static String getCacheDisk() {
+		return cacheDisk;
 	}
 
-	public String getPerformanceMode() {
-		return this.performanceMode;
+	public static long getCacheFileSize() {
+		return cacheFileSize;
+	}
+
+	public static String getPerformanceMode() {
+		return performanceMode;
 	}
 }

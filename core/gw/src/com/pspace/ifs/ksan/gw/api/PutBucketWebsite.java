@@ -12,7 +12,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.sql.SQLException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.pspace.ifs.ksan.gw.data.DataPutBucketWebsite;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;

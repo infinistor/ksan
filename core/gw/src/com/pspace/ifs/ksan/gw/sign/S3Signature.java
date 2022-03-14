@@ -26,7 +26,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
