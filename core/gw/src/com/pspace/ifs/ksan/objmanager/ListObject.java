@@ -872,7 +872,7 @@ public class ListObject{
            prefixStr = prefix.replaceAll("\\%",  "\\\\/").replaceAll("\\_",  "\\\\_");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){    
-               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", prefixStr).append("$options", "i")));
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
            }
            
            if (listType.equalsIgnoreCase("listObjectVersion")){
