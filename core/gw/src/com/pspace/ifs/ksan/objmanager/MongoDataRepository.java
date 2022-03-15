@@ -1071,11 +1071,15 @@ public class MongoDataRepository implements DataRepository{
             String tag         = doc.getString(TAG);
             String meta        = doc.getString(META);
             String acl         = doc.getString(ACL);
+            String versionid   = doc.getString(VERSIONID);
+            String deletem     = doc.getString(DELETEMARKER);
+            boolean lastversion = doc.getBoolean(LASTVERSION);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
             long lastModified  = doc.getLong(LASTMODIFIED);
             long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
+            mt.setVersionId(versionid, deletem, lastversion);
             mt.set(etag, tag, meta, acl, size);
             mt.setLastModified(lastModified);
                 
