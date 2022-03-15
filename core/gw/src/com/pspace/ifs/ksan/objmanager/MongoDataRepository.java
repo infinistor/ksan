@@ -267,6 +267,10 @@ public class MongoDataRepository implements DataRepository{
         else
             fit = objects.find(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
         
+        Bucket bt  = obmCache.getBucketFromCache(bucketName);
+        if (bt == null)
+            throw new   ResourceNotFoundException("There is not bucket with a bucket name " + bucketName + " and contain object with objid " + objId);
+        
         Document doc =(Document)fit.first();
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
@@ -281,7 +285,6 @@ public class MongoDataRepository implements DataRepository{
         String versionid    = doc.getString(VERSIONID);
         String deleteMarker = doc.getString(DELETEMARKER);
         boolean lastversion = doc.getBoolean(LASTVERSION);
-        Bucket bt           = obmCache.getBucketFromCache(bucketName);
         String pdiskId      = doc.getString(PDISKID);
         DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
         String rdiskId      = doc.getString(RDISKID);

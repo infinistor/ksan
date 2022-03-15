@@ -20,6 +20,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,12 +36,19 @@ import org.w3c.dom.NodeList;
 public class ObjManagerCache {
     private final HashMap<String, DISKPOOL> diskPoolMap;
     private final HashMap<String, Bucket> bucketMap;
+    private DataRepository dbm;
     private static Logger logger;
     
     public ObjManagerCache(){
         diskPoolMap = new HashMap<>();
         bucketMap   = new HashMap<>();
         logger = LoggerFactory.getLogger(ObjManager.class);
+        dbm = null;
+    }
+    
+    // the db manager will be used to reload data incase not exist in memory
+    public void setDBManager(DataRepository dbm){
+        this.dbm = dbm;
     }
     
     public void setDiskPoolInCache(DISKPOOL dskPool){
@@ -103,6 +111,15 @@ public class ObjManagerCache {
     
     public Bucket getBucketFromCache(String bucketName){
         Bucket bt = bucketMap.get(bucketName);
+        if (bt == null){
+            try {
+                bt = dbm.selectBucket(bucketName);
+                if (bt != null)
+                    setBucketInCache(bt);
+            } catch (SQLException | ResourceNotFoundException ex) {
+                return null;
+            }
+        }
         return bt;
     }
    

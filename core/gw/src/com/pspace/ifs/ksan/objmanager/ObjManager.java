@@ -65,6 +65,8 @@ public class ObjManager {
             else 
                 logger.debug("ObjManger initalization error :  there is no db storage configured!");
 
+            obmCache.setDBManager(dbm);
+            
             config.loadDiskPools(obmCache);
             //config.loadBucketList(obmCache);
             logger.debug(config.toString());
