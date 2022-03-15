@@ -100,7 +100,7 @@ public class CreateMultipartUpload extends S3Request {
 
 		if (!Strings.isNullOrEmpty(serverSideEncryption)) {
 			if (!serverSideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			}
 		}
@@ -127,7 +127,7 @@ public class CreateMultipartUpload extends S3Request {
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
 				s3Metadata.setServersideEncryption(serversideEncryption);

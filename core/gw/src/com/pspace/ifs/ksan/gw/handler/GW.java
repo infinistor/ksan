@@ -19,6 +19,7 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
+import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 
@@ -53,23 +54,23 @@ public class GW {
 		}
 		
 		checkArgument(config.endpoint() != null || config.secureEndpoint() != null,
-				"Must provide endpoint or secure-endpoint");
+				GWConstants.LOG_GW_MUST_ENDPOINT);
 		
 		if (config.endpoint() != null) {
 			checkArgument(config.endpoint().getPath().isEmpty(),
-					"endpoint path must be empty, was: %s",	config.endpoint().getPath());
+					GWConstants.LOG_GW_MUST_ENDPOINT_PATH,	config.endpoint().getPath());
 		}
 		
 		if (config.secureEndpoint() != null) {
 			checkArgument(config.secureEndpoint().getPath().isEmpty(),
-					"secure-endpoint path must be empty, was: %s",
+					GWConstants.LOG_GW_MUST_SECURE_ENDPOINT_PATH,
 					config.secureEndpoint().getPath());
-			requireNonNull(config.keyStorePath(), "Must provide keyStorePath with HTTPS endpoint");
-			requireNonNull(config.keyStorePassword(), "Must provide keyStorePassword with HTTPS endpoint");
+			requireNonNull(config.keyStorePath(), GWConstants.LOG_GW_MUST_KEYSTORE_PATH);
+			requireNonNull(config.keyStorePassword(), GWConstants.LOG_GW_MUST_KEYSTORE_PASSWORD);
 		}
 
 		ExecutorThreadPool pool = new ExecutorThreadPool(config.jettyMaxThreads());
-		pool.setName("S3");
+		pool.setName(GWConstants.S3);
 		server = new Server(pool);
 
 		// if (config.servicePath() != null && !config.servicePath().isEmpty()) {
@@ -83,9 +84,9 @@ public class GW {
 		httpConfig.setSendServerVersion(false);
 
 		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfig);
-		HttpCompliance customHttpCompliance = HttpCompliance.from("RFC7230,MULTIPLE_CONTENT_LENGTHS");
+		HttpCompliance customHttpCompliance = HttpCompliance.from(GWConstants.LOG_GW_RFC7230);
 		httpConnectionFactory.getHttpConfiguration().setHttpCompliance(customHttpCompliance);
-		UriCompliance customUriCompliance = UriCompliance.from("RFC3986,-AMBIGUOUS_PATH_SEPARATOR");
+		UriCompliance customUriCompliance = UriCompliance.from(GWConstants.LOG_GW_RFC3986);
 		httpConnectionFactory.getHttpConfiguration().setUriCompliance(customUriCompliance);
 		//httpConnectionFactory.getHttpConfiguration().setUriCompliance(UriCompliance.RFC3986);
 
@@ -103,7 +104,7 @@ public class GW {
 			connector.setReuseAddress(true);
 			server.addConnector(connector);
 		} else {
-			logger.info("endpoint is null");
+			logger.info(GWConstants.LOG_GW_ENDPOINT_IS_NULL);
 		}
 
 		if (config.secureEndpoint() != null) {
@@ -120,7 +121,7 @@ public class GW {
 			connector.setReuseAddress(true);
 			server.addConnector(connector);
 		} else {
-			logger.info("secureEndpoint is null");
+			logger.info(GWConstants.LOG_GW_SECURE_ENDPOINT_IS_NULL);
 		}
 
 		handler = new GWHandlerJetty(config);

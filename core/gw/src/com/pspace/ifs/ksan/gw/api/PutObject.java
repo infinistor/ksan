@@ -104,7 +104,7 @@ public class PutObject extends S3Request {
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_SERVER_SIDE_OPTION);
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
 				s3Metadata.setServersideEncryption(serversideEncryption);
