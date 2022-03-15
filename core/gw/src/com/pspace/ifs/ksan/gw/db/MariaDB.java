@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class MariaDB implements GWDB {
 	protected Logger logger;
-	private Set<S3User> userSet = new HashSet<S3User>();
+	private static Set<S3User> userSet = new HashSet<S3User>();
 
 	private MariaDB() {
         logger = LoggerFactory.getLogger(MariaDB.class);
@@ -282,6 +282,7 @@ public class MariaDB implements GWDB {
 
 	@Override
 	public void putS3logging(S3Parameter s3Parameter) throws GWException {
+/*		
         String query = GWConstants.INSERT_S3LOGGING;
 
         List<Object> params = new ArrayList<Object>();
@@ -426,5 +427,6 @@ public class MariaDB implements GWDB {
         params.add(GWConstants.DASH);
 
 		execute(query, params, s3Parameter);
+*/		
     }
 }

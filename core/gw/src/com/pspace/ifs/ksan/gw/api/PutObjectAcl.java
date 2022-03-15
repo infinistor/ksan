@@ -12,7 +12,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataPutObjectAcl;

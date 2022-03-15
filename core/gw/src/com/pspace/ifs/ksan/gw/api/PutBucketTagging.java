@@ -12,7 +12,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.data.DataPutBucketTagging;

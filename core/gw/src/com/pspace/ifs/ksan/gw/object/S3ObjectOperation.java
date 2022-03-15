@@ -85,7 +85,7 @@ public class S3ObjectOperation {
         long actualSize = 0L;
         long fileSize = objMeta.getSize();
 
-        if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+        if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
             byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
             int sendSize = 0;
             long remainingLength = fileSize;
@@ -114,7 +114,7 @@ public class S3ObjectOperation {
         }
         
         try {
-            if (GWConfig.getInstance().replicationCount() > 1) {
+            if (objMeta.getReplicaCount() > 1) {
                 logger.debug("bucket : {}, object : {}", objMeta.getBucket(), objMeta.getPath());
                 logger.debug("primary disk id : {}, osd ip : {}", objMeta.getPrimaryDisk().getId(), objMeta.getPrimaryDisk().getOsdIp());
                 logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
@@ -211,7 +211,7 @@ public class S3ObjectOperation {
                         readBytes = GWConstants.MAXBUFSIZE;
                     }
 
-                    if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
                         if (remaingLength >= GWConstants.MAXBUFSIZE) {
                             readLength = GWConstants.MAXBUFSIZE;
                         } else {
@@ -245,7 +245,7 @@ public class S3ObjectOperation {
                             readBytes = GWConstants.MAXBUFSIZE;
                         }
 
-                        if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+                        if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
                             readLength = readBytes;
                         } else {
                             readLength = fis.read(buffer, 0, readBytes);
@@ -321,27 +321,27 @@ public class S3ObjectOperation {
             boolean isNoDisk = false;
             boolean isNoReplica = false;
 
-            if (!Strings.isNullOrEmpty(GWConfig.getInstance().getPerformanceMode())) {
-                if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
+            if (!Strings.isNullOrEmpty(GWConfig.getPerformanceMode())) {
+                if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
                     isNoIO = true;
-                } else if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+                } else if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
                     isNoDisk = true;
-                } else if (GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+                } else if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
                     isNoReplica = true;
                 }
             }
 
-            // logger.error("NO_IO : {}, NO_DISK : {}, NO_REPLICA : {}", isNoIO, isNoDisk, isNoReplica);
-
-            if (GWConfig.getInstance().replicationCount() > 1 && !isNoIO && !isNoReplica) {
+            logger.info("NO_IO : {}, NO_DISK : {}, NO_REPLICA : {}", isNoIO, isNoDisk, isNoReplica);
+            logger.info("objMeta - replicaCount : {}", objMeta.getReplicaCount());
+            if (objMeta.getReplicaCount() > 1 && !isNoIO && !isNoReplica) {
                 // check local / OSD server
-                existFileSize *= GWConfig.getInstance().replicationCount();
-                putSize *= GWConfig.getInstance().replicationCount();
+                existFileSize *= objMeta.getReplicaCount();
+                putSize *= objMeta.getReplicaCount();
                 logger.debug("bucket : {}, object : {}", objMeta.getBucket(), objMeta.getPath());
                 logger.debug("primary disk id : {}, osd ip : {}", objMeta.getPrimaryDisk().getId(), objMeta.getPrimaryDisk().getOsdIp());
                 logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-                    if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= (GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES)) {
+                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= (GWConfig.getCacheFileSize() * GWConstants.MEGABYTES)) {
                         filePrimary = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         tmpFilePrimary = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         trashPrimary = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
@@ -363,11 +363,11 @@ public class S3ObjectOperation {
                     }
                 } else {
                     clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
-                    clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getInstance().getPerformanceMode());
+                    clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getPerformanceMode());
                 }
                 
                 if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                    if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize()) {
+                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize()) {
                         fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
                         tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
                         trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
@@ -389,7 +389,7 @@ public class S3ObjectOperation {
                     }
                 } else {
                     clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                    clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getInstance().getPerformanceMode());
+                    clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getPerformanceMode());
                 }
     
                 while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
@@ -445,7 +445,7 @@ public class S3ObjectOperation {
                     clientReplica.putFlush();
                     OSDClientManager.getInstance().returnOSDClient(clientReplica);
                 } else {
-                    if (!GWConfig.getInstance().getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    if (!isNoDisk) {
                         fosReplica.flush();
                         if (fileReplica.exists()) {
                             retryRenameTo(fileReplica, trashReplica);
@@ -467,53 +467,71 @@ public class S3ObjectOperation {
                 File file = null;
                 File tmpFile = null;
                 File trashFile = null;
-                if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize()) {
-                    file = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                    tmpFile = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                    trashFile = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                    File link = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                    com.google.common.io.Files.createParentDirs(link);
-                    isPrimaryCache = true;
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize()) {
+                        file = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        tmpFile = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        trashFile = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        File link = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        com.google.common.io.Files.createParentDirs(file);
+                        com.google.common.io.Files.createParentDirs(tmpFile);
+                        com.google.common.io.Files.createParentDirs(link);
+                        fosPrimary = new FileOutputStream(tmpFile, false);
+                        isPrimaryCache = true;
+                    } else {
+                        file = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        tmpFile = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        trashFile = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        com.google.common.io.Files.createParentDirs(file);
+                        com.google.common.io.Files.createParentDirs(tmpFile);
+                        fosPrimary = new FileOutputStream(tmpFile, false);
+                    }
+                    
                 } else {
-                    file = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                    tmpFile = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                    trashFile = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                }
-                com.google.common.io.Files.createParentDirs(file);
-                com.google.common.io.Files.createParentDirs(tmpFile);
-                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                        remainLength -= readLength;
-                        if (!isNoIO && !isNoDisk) {
-                            fos.write(buffer, 0, readLength);
-                        }
-                        md5er.update(buffer, 0, readLength);
-                        if (remainLength <= 0) {
-                            break;
-                        }
-                        bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
-                    }
-                    if (!isNoIO && !isNoDisk) {
-                        fos.flush();
-                    }
-                }
-
-                if (file.exists()) {
-                    retryRenameTo(file, trashFile);
+                    clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getPerformanceMode());
                 }
                 
-                if (!isNoDisk) {
-                    setAttributeFileReplication(tmpFile, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+
+                while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
+                    remainLength -= readLength;
+
+                    if (file == null) {
+                        clientPrimary.put(buffer, 0, readLength);
+                    } else {
+                        if (!isNoDisk && !isNoDisk) {
+                            fosPrimary.write(buffer, 0, readLength);
+                        }
+                    }
+
+                    md5er.update(buffer, 0, readLength);
+                    if (remainLength <= 0) {
+                        break;
+                    }
+                    bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                 }
 
-                retryRenameTo(tmpFile, file);
-                if (isPrimaryCache) {
-                    String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                    String command = "ln -s " + file.getAbsolutePath() + " " + path;
-                    logger.debug("{}", command);
-                    Process p = Runtime.getRuntime().exec(command);
-                    int exitCode = p.waitFor();
-                    logger.info("ln : {}", exitCode);
+                if (file == null) {
+                    clientPrimary.putFlush();
+                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                } else {
+                    if (!isNoDisk && !isNoDisk) {
+                        fosPrimary.flush();
+                        if (file.exists()) {
+                            retryRenameTo(file, trashFile);
+                        }
+                        setAttributeFileReplication(tmpFile, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
+                        retryRenameTo(tmpFile, file);
+                        if (isPrimaryCache) {
+                            String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
+                            String command = "ln -s " + file.getAbsolutePath() + " " + path;
+    
+                            logger.debug("{}", command);
+                            Process p = Runtime.getRuntime().exec(command);
+                            int exitCode = p.waitFor();
+                            logger.info("ln : {}", exitCode);
+                        }
+                    }
                 }
             }
 
@@ -540,7 +558,7 @@ public class S3ObjectOperation {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } finally {
-            if (GWConfig.getInstance().replicationCount() > 1) {
+            if (objMeta.getReplicaCount() > 1) {
                 if (fosPrimary != null) {
                     try {
                         fosPrimary.close();
@@ -564,7 +582,7 @@ public class S3ObjectOperation {
 
     public boolean deleteObject() throws GWException {
         try {
-            if (GWConfig.getInstance().replicationCount() > 1) {
+            if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     deleteObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
                 } else {
@@ -594,7 +612,7 @@ public class S3ObjectOperation {
     private void deleteObjectLocal(String path, String objId) throws IOException, GWException {
         File file = null;
         File trashFile = null;
-        if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && objMeta.getSize() <= (GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES)) {
+        if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && objMeta.getSize() <= (GWConfig.getCacheFileSize() * GWConstants.MEGABYTES)) {
             file = new File(makeCachePath(makeObjPath(path, objId, versionId)));
             trashFile = new File(makeCachePath(makeTrashPath(path, objId, versionId)));
         } else {
@@ -602,10 +620,10 @@ public class S3ObjectOperation {
             trashFile = new File(makeTrashPath(path, objId, versionId));
         }
 
-        updateBucketUsed(objMeta.getBucket(), file.length() * GWConfig.getInstance().replicationCount() * -1);
+        updateBucketUsed(objMeta.getBucket(), file.length() * objMeta.getReplicaCount() * -1);
         if (file.exists()) {
             retryRenameTo(file, trashFile);
-            if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && objMeta.getSize() <= (GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES)) {
+            if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && objMeta.getSize() <= (GWConfig.getCacheFileSize() * GWConstants.MEGABYTES)) {
                 File link = new File(makeObjPath(path, objId, versionId));
                 link.delete();
             }
@@ -728,17 +746,17 @@ public class S3ObjectOperation {
         existFileSize = objMeta.getSize();
         putSize = totalLength;
 
-        if (GWConfig.getInstance().replicationCount() > 1) {
-            existFileSize *= GWConfig.getInstance().replicationCount();
-            putSize *= GWConfig.getInstance().replicationCount();
+        if (objMeta.getReplicaCount() > 1) {
+            existFileSize *= objMeta.getReplicaCount();
+            putSize *= objMeta.getReplicaCount();
             if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                 clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
-                clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, totalLength, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getInstance().getPerformanceMode());
+                clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, totalLength, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getPerformanceMode());
             }
 
             if (!GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                 clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, totalLength, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getInstance().getPerformanceMode());
+                clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, totalLength, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getPerformanceMode());
             }
             
             if (clientPrimary != null || clientReplica != null) {
@@ -830,7 +848,7 @@ public class S3ObjectOperation {
             }
             logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE, copySourceRange);
             OSDData osdData = null;
-            if (GWConfig.getInstance().replicationCount() > 1) {
+            if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(srcObjMeta.getPrimaryDisk().getOsdIp())) {
                     osdData = uploadPartCopyLocal(srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, path, objMeta.getObjId(), s3Parameter.getPartNumber());
                 } else if (GWUtils.getLocalIP().equals(srcObjMeta.getReplicaDisk().getOsdIp())) {
@@ -954,7 +972,7 @@ public class S3ObjectOperation {
                 logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP, objMeta.getReplicaDisk().getOsdIp());
             }
 
-            if (GWConfig.getInstance().replicationCount() > 1) {
+            if (objMeta.getReplicaCount() > 1) {
                 // check primary local src, obj
                 if (GWUtils.getLocalIP().equals(srcObjMeta.getPrimaryDisk().getOsdIp())) {
                     if (srcObjMeta.getPrimaryDisk().getOsdIp().equals(objMeta.getPrimaryDisk().getOsdIp())) {
@@ -1176,7 +1194,7 @@ public class S3ObjectOperation {
     }
 
     private String makeCachePath(String path) {
-        String fullPath = GWConfig.getInstance().getCacheDisk() + path;
+        String fullPath = GWConfig.getCacheDisk() + path;
         return fullPath;
     }
 

@@ -25,9 +25,9 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 
-import org.apache.tomcat.util.http.fileupload.MultipartStream;
-import org.apache.tomcat.util.http.fileupload.MultipartStream.MalformedStreamException;
-import org.apache.tomcat.util.http.fileupload.impl.FileUploadIOException;
+import org.apache.commons.fileupload.MultipartStream;
+import org.apache.commons.fileupload.FileUploadBase.FileUploadIOException;
+import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
 import org.slf4j.LoggerFactory;
 
 public class DataPostObject extends S3DataRequest {

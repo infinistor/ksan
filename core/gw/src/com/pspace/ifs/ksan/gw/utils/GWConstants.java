@@ -15,13 +15,19 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
+	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
+	public static final String HOOK_THREAD_INFO = "Hook Thread....";
+	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
 	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
     public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
     public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
+	public static final String PROPERTY_KEYSTORE_PATH = "gw.keystore-path";
+	public static final String PROPERTY_KEYSTORE_PASSWORD = "gw.keystore-password";
+	public static final String PROPERTY_JETTY_MAX_THREADS = "gw.jetty.max-threads";
+	public static final String PROPERTY_JETTY_MAX_IDLE_TIMEOUT = "gw.jetty.max-idle-timeout";
     public static final String PROPERTY_MAXIMUM_TIME_SKEW = "gw.maxtimeskew";
-	public static final String PROPERTY_REPLICATION = "gw.replication";
 	public static final String PROPERTY_OSD_PORT = "gw.osd-port";
 	public static final String PROPERTY_OSD_CLIENT_COUNT = "gw.osd-client-count";
 	public static final String PROPERTY_OBJMANAGER_COUNT = "gw.objmanager-count";
@@ -35,6 +41,7 @@ public final class GWConstants {
     public static final String PROPERTY_DB_PASS = "dbpass";
 	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
 
+	public static final String PROPERTY_REPLICA_COUNT = "gw.replication";
 	public static final String PROPERTY_CACHE_DISK = "cache_disk";
 	public static final String PROPERTY_CACHE_FILE_SIZE = "cache_file_size";
 
@@ -43,12 +50,12 @@ public final class GWConstants {
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 	public static final String PERFORMANCE_MODE_NO_REPLICA = "NO_REPLICA";
-
-	public static final long MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
+	public static final int JETTY_MAX_THREADS = 1000;
+	public static final int JETTY_MAX_IDLE_TIMEOUT = 30000;
+	public static final long MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024;
 	public static final long MAX_LIST_SIZE = 200000;
 	public static final long MEGABYTES = 1048576;
 	public static final int MAX_TIME_SKEW = 15 * 60;
-	public static final int DEFAULT_REPLICATION_VALUE = 1;
 	public static final int DEFAULT_OSD_PORT = 8000;
 	public static final int DEFAULT_OSD_CLIENT_SIZE = 10;
 	public static final int DEFAULT_OBJMANAGER_SIZE = 10;
@@ -171,6 +178,7 @@ public final class GWConstants {
 	public static final String DOLLAR_SIGN = "$";
 	public static final String NEWLINE = "\n";
 	public static final String DOUBLE_QUOTE = "\"";
+	public static final String SPACE_COLON_SPACE = " : ";
 	public static final String DOUBLE_POINT = "..";
 	public static final String POINT_DASH = ".-";
 	public static final String DASH_POINT = "-.";
@@ -272,9 +280,9 @@ public final class GWConstants {
 	public static final String AUTH_HEADER = "AuthHeader";
 	public static final String QUERY_STRING = "QueryString";
 
-	public static final String REQUEST_ROOT = "root";
-	public static final String REQUEST_BUCKET = "bucket";
-	public static final String REQUEST_OBJECT = "object";
+	// public static final String REQUEST_ROOT = "root";
+	// public static final String REQUEST_BUCKET = "bucket";
+	// public static final String REQUEST_OBJECT = "object";
 
 	public static final String MD5 = "MD5";
 	public static final String SHA256 = "SHA256";
