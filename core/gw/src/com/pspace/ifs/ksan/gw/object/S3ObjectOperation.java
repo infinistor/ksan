@@ -520,7 +520,11 @@ public class S3ObjectOperation {
                         if (file.exists()) {
                             retryRenameTo(file, trashFile);
                         }
-                        setAttributeFileReplication(tmpFile, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
+                        
+                        if (objMeta.getReplicaDisk() != null) {
+                            setAttributeFileReplication(tmpFile, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
+                        }
+                        
                         retryRenameTo(tmpFile, file);
                         if (isPrimaryCache) {
                             String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);

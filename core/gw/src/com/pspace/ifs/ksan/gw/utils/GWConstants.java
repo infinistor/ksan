@@ -15,6 +15,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
+	public static final String S3 = "S3";
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
@@ -279,10 +280,6 @@ public final class GWConstants {
 	public static final String SIGN_SIGNATURE = ", Signature=";
 	public static final String AUTH_HEADER = "AuthHeader";
 	public static final String QUERY_STRING = "QueryString";
-
-	// public static final String REQUEST_ROOT = "root";
-	// public static final String REQUEST_BUCKET = "bucket";
-	// public static final String REQUEST_OBJECT = "object";
 
 	public static final String MD5 = "MD5";
 	public static final String SHA256 = "SHA256";
@@ -721,6 +718,7 @@ public final class GWConstants {
 	public static final String LOG_TAGGING = "tag : {}";
 	public static final String LOG_ACCESS = "access : {}";
 	public static final String LOG_UPLOAD_NOT_FOUND = "uploadId({}) is not found";
+	public static final String SERVER_SIDE_OPTION = " : server side option";
 
 	public static final String TAGGING_INIT = "0";
 	public static final int TAG_KEY_SIZE = 2;
@@ -737,18 +735,27 @@ public final class GWConstants {
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
 	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
 
-	// GWMain
-	public static final String LOG_GWMAIN_INIT = "GW Init.......";
-	public static final String LOG_GWMAIN_MOTHOD_CATEGORY = "method : {}, category : {}";
-	public static final String LOG_GWMAIN_PREURI = "PREURI - {}";
-	public static final String LOG_GWMAIN_URI = "URI - {}";
-	public static final String LOG_GWMAIN_CLIENT_ADDRESS = "client address - {}";
-	public static final String LOG_GWMAIN_CLIENT_HOST = "client host - {}";
-	public static final String LOG_GWMAIN_METHOD = "M - {}";
-	public static final String LOG_GWMAIN_HEADER = "H - {}: {}";
-	public static final String LOG_GWMAIN_PARAMETER = "P - {}: {}";
-	public static final String LOG_GWMAIN_PATH = "path[{}] : {}";
-	public static final String LOG_SERVER_SIDE_OPTION = " : server side option";
+	// GW
+	public static final String LOG_GW_MUST_ENDPOINT = "Must provide endpoint or secure-endpoint";
+	public static final String LOG_GW_MUST_ENDPOINT_PATH = "endpoint path must be empty, was: %s";
+	public static final String LOG_GW_MUST_SECURE_ENDPOINT_PATH = "secure-endpoint path must be empty, was: %s";
+	public static final String LOG_GW_MUST_KEYSTORE_PATH = "Must provide keyStorePath with HTTPS endpoint";
+	public static final String LOG_GW_MUST_KEYSTORE_PASSWORD = "Must provide keyStorePassword with HTTPS endpoint";
+	public static final String LOG_GW_RFC7230 = "RFC7230,MULTIPLE_CONTENT_LENGTHS";
+	public static final String LOG_GW_RFC3986 = "RFC3986,-AMBIGUOUS_PATH_SEPARATOR";
+	public static final String LOG_GW_ENDPOINT_IS_NULL = "endpoint is null";
+	public static final String LOG_GW_SECURE_ENDPOINT_IS_NULL = "secureEndpoint is null";
+
+	// GWHandler
+	public static final String LOG_GWHANDLER_MOTHOD_CATEGORY = "method : {}, category : {}";
+	public static final String LOG_GWHANDLER_PREURI = "PREURI - {}";
+	public static final String LOG_GWHANDLER_URI = "URI - {}";
+	public static final String LOG_GWHANDLER_CLIENT_ADDRESS = "client address - {}";
+	public static final String LOG_GWHANDLER_CLIENT_HOST = "client host - {}";
+	public static final String LOG_GWHANDLER_METHOD = "M - {}";
+	public static final String LOG_GWHANDLER_HEADER = "H - {} : {}";
+	public static final String LOG_GWHANDLER_PARAMETER = "P - {} : {}";
+	public static final String LOG_GWHANDLER_PATH = "path[{}] : {}";
 
 	// S3Request
 	public static final String LOG_REQUEST_CHECK_ACL_ID_GRANT = "check acl - id : {}, grant : {}";

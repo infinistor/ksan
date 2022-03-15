@@ -76,16 +76,16 @@ public class GWHandler {
 
 		long startTime = System.currentTimeMillis();
 		
-		logger.info("PREURI - {}", uri);
+		logger.info(GWConstants.LOG_GWHANDLER_PREURI, uri);
 		uri = removeDuplicateRoot(uri);
-		logger.info("URI - {}", uri);
+		logger.info(GWConstants.LOG_GWHANDLER_URI, uri);
 
-		logger.info("client address: {}", request.getRemoteAddr());
-		logger.info("client host - {}", request.getRemoteHost());
-		logger.info("M - {}", method);
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_ADDRESS, request.getRemoteAddr());
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_HOST, request.getRemoteHost());
+		logger.info(GWConstants.LOG_GWHANDLER_METHOD, method);
 
 		for (String parameter : Collections.list(request.getParameterNames())) {
-			logger.info("P - {} : {}", parameter, Strings.nullToEmpty(request.getParameter(parameter)));
+			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
 
 			requestSize += parameter.length();
 			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
@@ -95,7 +95,7 @@ public class GWHandler {
 
 		for (String headerName : Collections.list(request.getHeaderNames())) {
 			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
-				logger.info("H - {} : {}", headerName, Strings.nullToEmpty(headerValue));
+				logger.info(GWConstants.LOG_GWHANDLER_HEADER, headerName, Strings.nullToEmpty(headerValue));
 
 				requestSize += headerName.length();
 				if (!Strings.isNullOrEmpty(headerValue)) {
@@ -107,18 +107,18 @@ public class GWHandler {
 		// make request id
 		String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
 
-		String[] path = uri.split("/", 3);
+		String[] path = uri.split(GWConstants.SLASH, 3);
 		try {
 			for (int i = 0; i < path.length; i++) {
 				path[i] = URLDecoder.decode(path[i], GWConstants.CHARSET_UTF_8);
-				logger.info("path[{}] : {}", i, path[i]);
+				logger.info(GWConstants.LOG_GWHANDLER_PATH, i, path[i]);
 			}
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.BAD_REQUEST, null);
 		}
 
-		String pathCategory = "";
+		String pathCategory = GWConstants.EMPTY_STRING;
 		if (uri.equals(GWConstants.SLASH)) {
 			pathCategory = GWConstants.CATEGORY_ROOT;
 		} else if (path.length <= 2 || path[2].isEmpty()) {
@@ -171,7 +171,7 @@ public class GWHandler {
 			s3Parameter.setPublicAccess(false);
 		}
 
-		logger.info(GWConstants.LOG_GWMAIN_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
+		logger.info(GWConstants.LOG_GWHANDLER_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
 		S3Request s3Request = s3RequestFactory.createS3Request(s3Parameter);
 		s3Request.process();
 		s3Parameter.setStatusCode(response.getStatus());
