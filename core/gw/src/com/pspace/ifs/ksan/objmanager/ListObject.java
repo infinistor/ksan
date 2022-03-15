@@ -901,8 +901,10 @@ public class ListObject{
                }
            }
            
-           if (bDelForceGte)
-               and.add(new BasicDBObject("$gte", delmarker)); //objkey
+           if (bDelForceGte){
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", delmarker))); //objkey
+               bDelForceGte = false;
+           }
  
            
            andObjQuery = new BasicDBObject("$and", and.toArray());
