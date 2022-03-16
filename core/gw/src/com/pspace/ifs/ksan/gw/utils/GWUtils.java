@@ -10,6 +10,11 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -56,7 +61,10 @@ import com.pspace.ifs.ksan.gw.format.CORSConfiguration.CORSRule;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
+import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 import com.pspace.ifs.ksan.objmanager.Bucket;
+import com.pspace.ifs.ksan.osd.OSDConstants;
 
 public class GWUtils {
 
@@ -967,6 +975,76 @@ public class GWUtils {
 				logger.error(e.getMessage());
 			}
 			return localIP;
+		}
+	}
+
+	public static void initCache(String cacheDisk) {
+		if (cacheDisk != null) {
+			try {
+				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
+				XmlMapper xmlMapper = new XmlMapper();
+				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+				try {
+					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+					is.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+				String xml = new String(buffer);
+				
+				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+					if (GWUtils.getLocalIP().equals(server.getIp())) {
+						for (DISK disk : server.getDisks()) {
+							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+						}
+					}
+				}
+			} catch (JsonProcessingException | FileNotFoundException e) {
+				logger.error(e.getMessage());
+			}
+		} else {
+			try {
+				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
+				XmlMapper xmlMapper = new XmlMapper();
+				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+				try {
+					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+					is.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+				String xml = new String(buffer);
+				
+				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+					if (GWUtils.getLocalIP().equals(server.getIp())) {
+						for (DISK disk : server.getDisks()) {
+							File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file.mkdirs();
+							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file.mkdirs();
+						}
+					}
+				}
+			} catch (JsonProcessingException | FileNotFoundException e) {
+				logger.error(e.getMessage());
+			}
 		}
 	}
 }
