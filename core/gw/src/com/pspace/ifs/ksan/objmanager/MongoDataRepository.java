@@ -1055,7 +1055,7 @@ public class MongoDataRepository implements DataRepository{
         BasicDBObject mongoQuery =(BasicDBObject)query;
         
         if (!mongoQuery.containsField(LASTVERSION))
-            sortBy.append(LASTMODIFIED, 1);
+            sortBy.append(LASTMODIFIED, -1);
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy);
         Iterator it = oit.iterator();
