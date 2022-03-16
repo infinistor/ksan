@@ -265,13 +265,11 @@ public class S3ObjectOperation {
 
         return actualSize;
     }
-
     
     public S3Object putObject() throws GWException {
         S3Object s3Object = null;
         String objectName = s3Parameter.getObjectName();
 
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_OBJECT_PRIMARY_INFO, objMeta.getPrimaryDisk().getOsdIp() + objMeta.getPrimaryDisk().getPath());
         if (getDirectoryBlobSuffix(objectName) != null) {
             s3Object = new S3Object();
 			s3Object.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL);
@@ -367,7 +365,7 @@ public class S3ObjectOperation {
                 }
                 
                 if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize()) {
+                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize() * GWConstants.MEGABYTES) {
                         fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
                         tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
                         trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
@@ -468,7 +466,7 @@ public class S3ObjectOperation {
                 File tmpFile = null;
                 File trashFile = null;
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize()) {
+                    if (!Strings.isNullOrEmpty(GWConfig.getCacheDisk()) && length <= GWConfig.getCacheFileSize() * GWConstants.MEGABYTES) {
                         file = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         tmpFile = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         trashFile = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
@@ -520,7 +518,7 @@ public class S3ObjectOperation {
                         if (file.exists()) {
                             retryRenameTo(file, trashFile);
                         }
-                        
+
                         if (objMeta.getReplicaDisk() != null) {
                             setAttributeFileReplication(tmpFile, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
                         }

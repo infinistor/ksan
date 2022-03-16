@@ -145,6 +145,8 @@ public class GW {
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
+
+		GWUtils.initCache(config.getCacheDisk());
 	}
 
 	public void start() throws Exception {
