@@ -199,7 +199,7 @@ public class MysqlDataRepository implements DataRepository{
             pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
             pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
             pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
-            pstIsUploadPartNo = con.prepareStatement("SELECT bucket, objKey FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
+            pstIsUploadPartNo = con.prepareStatement("SELECT bucket, objKey, acl, meta, etag, size, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
 
            
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
@@ -842,12 +842,25 @@ public class MysqlDataRepository implements DataRepository{
         
         String bucketName = rs.getString(1);
         String objkey     = rs.getString(2);
+        String acl        = rs.getString(3);
+        String meta       = rs.getString(4);
+        String etag       = rs.getString(5);
+        long size         = rs.getLong(6);
+        String pdiskId    = rs.getString(7);
+        
         Metadata mt;
+        DISK pdsk;
         try {
-            mt = selectSingleObject(diskPoolId, bucketName, objkey);
+            pdsk = pdiskId != null ? obmCache.getDiskWithId(diskPoolId, pdiskId) : new DISK();
         } catch (ResourceNotFoundException ex) {
-            return null;
+             pdsk = new DISK();
         }
+        
+        mt = new Metadata(bucketName, objkey);
+        mt.set(etag, "", meta, acl, size);
+        mt.setPrimaryDisk(pdsk);
+        mt.setReplicaDISK(new DISK());
+        
         return mt;
     }
     /*@Override

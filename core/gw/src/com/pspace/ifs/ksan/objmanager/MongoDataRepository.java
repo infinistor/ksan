@@ -1154,14 +1154,28 @@ public class MongoDataRepository implements DataRepository{
         if (!(it.hasNext()))
             return null;
         
-        Metadata mt;
+        Metadata mt; 
+        DISK pdsk;
+        
         Document doc = (Document)it.next();
+        String bucketName = doc.getString(BUCKETNAME);
+        String objkey     = doc.getString(OBJKEY);
+        String acl        = doc.getString(ACL);
+        String meta       = doc.getString(META);
+        String etag       = doc.getString(ETAG);
+        long size         = doc.getLong(SIZE);
+        String pdiskId    = doc.getString(PDISKID);
+       
         try {
-            mt = selectSingleObject(diskPoolId, doc.getString(BUCKETNAME), doc.getString(OBJKEY));
+            pdsk = pdiskId != null ? obmCache.getDiskWithId(diskPoolId, pdiskId) : new DISK();
         } catch (ResourceNotFoundException ex) {
-            return null;
+            pdsk = new DISK();
         }
         
+        mt = new Metadata(bucketName, objkey);
+        mt.set(etag, "", meta, acl, size);
+        mt.setPrimaryDisk(pdsk);
+        mt.setReplicaDISK(new DISK());
         return mt;
     }
 }
