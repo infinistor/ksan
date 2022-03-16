@@ -43,7 +43,7 @@ public class GWMain {
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
 
-		gw = new GW(new GWConfig(GWConstants.CONFIG_PATH));
+		gw = new GW(new GWConfig());
 
 		try {
 			gw.init();

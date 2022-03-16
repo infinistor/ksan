@@ -19,7 +19,7 @@ public final class GWConstants {
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
-	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
+	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksan-gw.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
     public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";

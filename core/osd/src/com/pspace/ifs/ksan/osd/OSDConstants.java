@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.osd;
 
 public final class OSDConstants {
     public static final String CHARSET_UTF_8 = "UTF-8";
-    public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanOsd.conf";
+    public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksan-osd.conf";
     public static final String PID_PATH = "/var/run/ksanOsd.pid";
     public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String POOL_SIZE = "pool_size";
@@ -124,7 +124,7 @@ public final class OSDConstants {
     public static final String DISK = "DISK";
 
     // OSDServer constants
-    public static final String LOG_OSD_SERVER_START = "OSD Server start..............";
+    public static final String LOG_OSD_SERVER_START = "OSD Server start ...";
     public static final String LOG_OSD_SERVER_PID = "pid : {}";
     public static final String LOG_OSD_SERVER_CONFIGURE_DISPOOLS = "configure diskpools ...";
     public static final String LOG_OSD_SERVER_DISK_POOL_INFO = "disk pool id : {}, name = {}";
@@ -216,4 +216,5 @@ public final class OSDConstants {
     public static final String LOG_DO_MOVE_CACHE_TO_DISK = "DoMoveCacheToDisk start ...";
     public static final String DO_MOVE_CACHE_TO_DISK_COMMAND = "cp -a ";
     public static final String LOG_DO_MOVE_CACHE_TO_DISK_COMMAND = "{}";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH = "targetPath : {}";
 }

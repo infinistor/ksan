@@ -63,7 +63,12 @@ public class GWConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 	
-	public GWConfig(String path) {
+	public GWConfig() {
+		String path = System.getProperty("configure");
+		if (path == null) {
+			path = GWConstants.CONFIG_PATH;
+		}
+
 		properties = new Properties();
 		try (InputStream myis = new FileInputStream(path)) {
 			properties.load(myis);
