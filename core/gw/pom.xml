@@ -236,7 +236,7 @@
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.5.0</version>
 				<configuration>
-					<programFile>ksan-gw</programFile>
+					<programFile>ksan-gw.jar</programFile>
 				</configuration>
 				<executions>
 					<execution>

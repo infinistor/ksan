@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.pspace.ifs.ksan.osd</groupId>
-  <artifactId>ksanOsd</artifactId>
+  <artifactId>ksan-osd</artifactId>
   <name>ksanOsd</name>
   <version>0.8.1</version>
   <build>
@@ -61,7 +61,7 @@
           </execution>
         </executions>
         <configuration>
-          <programFile>ksanOsd.jar</programFile>
+          <programFile>ksan-osd.jar</programFile>
         </configuration>
       </plugin>
     </plugins>
