@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,13 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
-import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
-import com.pspace.ifs.ksan.osd.OSDConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +53,10 @@ public class GWConfig {
 	private String dbPass;
 	private int dbPoolSize;
 	
+	private static boolean isNoOption;
+	private static boolean isNoIO;
+	private static boolean isNoDisk;
+	private static boolean isNoReplica;
 
 	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 	
@@ -181,19 +178,34 @@ public class GWConfig {
 			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_POOL_SIZE);
 		}
 
-		String replicaCount = properties.getProperty(GWConstants.PROPERTY_REPLICA_COUNT);
-		if (replicaCount != null) {
-			this.replicaCount = Integer.parseInt(replicaCount);
+		String replicaCountStr = properties.getProperty(GWConstants.PROPERTY_REPLICA_COUNT);
+		if (replicaCountStr != null) {
+			replicaCount = Integer.parseInt(replicaCountStr);
 		}
 
-		this.cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
+		cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
 
-		String cacheFileSize = properties.getProperty(GWConstants.PROPERTY_CACHE_FILE_SIZE);
-		this.cacheFileSize = Long.parseLong(cacheFileSize);
+		String cacheFileSizeStr = properties.getProperty(GWConstants.PROPERTY_CACHE_FILE_SIZE);
+		cacheFileSize = Long.parseLong(cacheFileSizeStr);
 
-		this.performanceMode = properties.getProperty(GWConstants.PROPERTY_PERFORMANCE_MODE);
-		if (this.performanceMode == null) {
-			this.performanceMode = GWConstants.PERFORMANCE_MODE_NO_OPTION;
+		isNoOption = false;
+		isNoIO = false;
+		isNoDisk = false;
+		isNoReplica = false;
+		performanceMode = properties.getProperty(GWConstants.PROPERTY_PERFORMANCE_MODE);
+		if (performanceMode == null) {
+			performanceMode = GWConstants.PERFORMANCE_MODE_NO_OPTION;
+			isNoOption = true;
+		} else {
+			if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_OPTION)) {
+				isNoOption = true;
+			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
+				isNoIO = true;
+			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+				isNoDisk = true;
+			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+				isNoReplica = true;
+			}
 		}
 	}
 	
@@ -291,5 +303,21 @@ public class GWConfig {
 
 	public static String getPerformanceMode() {
 		return performanceMode;
+	}
+
+	public static boolean isNoOption() {
+		return isNoOption;
+	}
+
+	public static boolean isNoIO() {
+		return isNoIO;
+	}
+
+	public static boolean isNoDisk() {
+		return isNoDisk;
+	}
+
+	public static boolean isNoReplica() {
+		return isNoReplica;
 	}
 }

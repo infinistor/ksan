@@ -1169,6 +1169,7 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND = "command : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE = "DECODE EC : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE = "DECODE exit : {}";
+	public static final String LOG_S3OBJECT_OPERATION_OPTION_NO_CASE = "option({}) is not supported.";
 
 	// S3Range
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";
