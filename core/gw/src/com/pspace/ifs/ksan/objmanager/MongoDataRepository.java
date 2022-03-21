@@ -213,7 +213,7 @@ public class MongoDataRepository implements DataRepository{
         doc = new Document(OBJKEY, md.getPath());
         doc.append(BUCKETNAME, md.getBucket());
         doc.append(OBJKEY, md.getPath());
-        doc.append(LASTMODIFIED, Long.MAX_VALUE - md.getLastModified());
+        doc.append(LASTMODIFIED, md.getLastModified());
         doc.append(OBJID, md.getObjId());
         doc.append(ETAG, md.getEtag());
         doc.append(META, md.getMeta());
