@@ -24,9 +24,7 @@ public class DoMoveCacheToDisk implements Runnable {
     public void run() {
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
 
-        if (OSDUtils.getInstance().getCacheDisk() != null) {
-            recursiveMove(OSDUtils.getInstance().getCacheDisk());
-        }
+        recursiveMove(OSDUtils.getInstance().getCacheDisk());
     }
     
     private void recursiveMove(String dirPath) {
@@ -37,6 +35,8 @@ public class DoMoveCacheToDisk implements Runnable {
             if (files[i].isDirectory()) {
                 if (files[i].getName().equals(OSDConstants.OBJ_DIR)) {
                     check(files[i].getAbsolutePath());
+                } else {
+                    recursiveMove(files[i].getAbsolutePath());
                 }
             }
         }
@@ -48,16 +48,26 @@ public class DoMoveCacheToDisk implements Runnable {
         long now = Calendar.getInstance().getTimeInMillis();
         
         for (int i = 0; i < files.length; i++) {
-            long diff = (now - files[i].lastModified()) / OSDConstants.ONE_MINUTE_MILLISECONDS;
+            if (files[i].isDirectory()) {
+                check(files[i].getAbsolutePath());
+            } else if (files[i].isFile()) {
+                long diff = (now - files[i].lastModified()) / OSDConstants.ONE_MINUTE_MILLISECONDS;
 
-            if (diff >= OSDUtils.getInstance().getCacheLimitMinutes()) {
-                move(files[i]);
+                if (diff >= OSDUtils.getInstance().getCacheLimitMinutes()) {
+                    move(files[i]);
+                }
             }
         }
     }
 
     private void move(File file) {
         String targetPath = file.getAbsolutePath().substring(OSDUtils.getInstance().getCacheDisk().length());
+
+        logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH, targetPath);
+        File target = new File(targetPath);
+        if (target.exists()) {
+            target.delete();
+        }
 
         String command = OSDConstants.DO_MOVE_CACHE_TO_DISK_COMMAND + file.getAbsolutePath() + OSDConstants.SPACE + targetPath;
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_COMMAND, command);

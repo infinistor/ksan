@@ -50,7 +50,11 @@ public class OSDUtils {
     }
 
     private OSDUtils() {
-        config = new OSDConfig(OSDConstants.CONFIG_PATH);
+        String path = System.getProperty("configure");
+        if (path == null) {
+            path = OSDConstants.CONFIG_PATH;
+        }
+        config = new OSDConfig(path);
         try {
             config.configure();
         } catch (URISyntaxException e) {

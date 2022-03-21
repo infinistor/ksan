@@ -50,7 +50,7 @@ public class OSDServer {
     }
 
     public void start() {
-        logger.debug(OSDConstants.LOG_OSD_SERVER_START);
+        logger.info(OSDConstants.LOG_OSD_SERVER_START);
         
         OSDUtils.getInstance().writePID();
 
@@ -60,14 +60,16 @@ public class OSDServer {
         
         diskpoolList = OSDUtils.getInstance().getDiskPoolList();
 
-        ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
-        serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
+        // ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
+        // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
         ScheduledExecutorService serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
         serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), OSDUtils.getInstance().getTrashScheduleMinutes(), OSDUtils.getInstance().getTrashScheduleMinutes(), TimeUnit.MINUTES);
 
-        ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-        serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
+        if (OSDUtils.getInstance().getCacheDisk() != null) {
+            ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
+            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
+        }
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
