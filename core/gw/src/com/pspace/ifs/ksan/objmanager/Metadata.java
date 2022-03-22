@@ -231,6 +231,10 @@ public class Metadata {
         this.lastModified = lastmodified;
     }
     
+    public void updateLastmodified(){
+        this.lastModified = getNowInNanoSec();
+    }
+    
     public void setSize(long size){
         this.size = size;
     }

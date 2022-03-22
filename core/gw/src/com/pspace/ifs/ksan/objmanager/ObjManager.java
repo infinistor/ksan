@@ -434,6 +434,8 @@ public class ObjManager {
             throw new InvalidParameterException(err);
         }
         //System.out.format("[close ] bucket : %s path : %s objid : %s\n", mt.getBucket(), mt.getPath(), mt.getObjId());
+        
+        mt.updateLastmodified(); // to update last modified time to now
         return dbm.insertObject(mt); 
     }
     /**
