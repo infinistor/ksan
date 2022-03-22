@@ -638,16 +638,15 @@ public class MongoDataRepository implements DataRepository{
         DeleteResult dres;
         String objId = new Metadata(bucketName, objKey).getObjId();
         objects = database.getCollection(bucketName);
-        if (versionId.equalsIgnoreCase("null"))
-            dres = objects.deleteOne(Filters.eq(OBJID, objId));
-        else
-            dres = objects.deleteOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)));
+        
+        dres = objects.deleteOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)));
         
         if (dres == null)
             return -1;
         
         int nchange = (int)dres.getDeletedCount();
-        updateBucketObjectCount(bucketName, -1);
+        if (nchange > 0)
+            updateBucketObjectCount(bucketName, -1);
         return nchange;
     }
 
