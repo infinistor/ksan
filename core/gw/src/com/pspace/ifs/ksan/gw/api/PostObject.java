@@ -68,6 +68,7 @@ public class PostObject extends S3Request {
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();
 		String object = dataPostObject.getKey();
+		s3Parameter.setObjectName(object);
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		if (Strings.isNullOrEmpty(dataPostObject.getKey())) {
