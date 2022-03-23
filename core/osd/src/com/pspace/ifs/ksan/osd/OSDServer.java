@@ -21,6 +21,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -63,12 +65,18 @@ public class OSDServer {
         // ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
         // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
-        ScheduledExecutorService serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
-        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), OSDUtils.getInstance().getTrashScheduleMinutes(), OSDUtils.getInstance().getTrashScheduleMinutes(), TimeUnit.MINUTES);
+        // ScheduledExecutorService serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
+        // serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), OSDUtils.getInstance().getTrashScheduleMinutes(), OSDUtils.getInstance().getTrashScheduleMinutes(), TimeUnit.MINUTES);
 
-        if (OSDUtils.getInstance().getCacheDisk() != null) {
-            ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
+        // if (OSDUtils.getInstance().getCacheDisk() != null) {
+        //     ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
+        //     serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
+        // }
+        if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk())) {
+            logger.error("cache disk : {}", OSDUtils.getInstance().getCacheDisk());
+            DoMoveCacheToDisk worker = new DoMoveCacheToDisk();
+            Thread mover = new Thread(worker);
+            mover.start();
         }
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
@@ -318,17 +326,19 @@ public class OSDServer {
             retryRenameTo(tmpFile, file);
             if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
                 String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
-                String command = "ln -s " + file.getAbsolutePath() + " " + fullPath;
+                Files.createSymbolicLink(Paths.get(fullPath), Paths.get(file.getAbsolutePath()));
+                // String command = "ln -s " + file.getAbsolutePath() + " " + fullPath;
 
-                logger.debug("{}", command);
-                Process p = Runtime.getRuntime().exec(command);
-                int exitCode;
-                try {
-                    exitCode = p.waitFor();
-                    logger.info("ln : {}", exitCode);
-                } catch (InterruptedException e) {
-                    logger.error(e.getMessage());
-                }
+                // logger.debug("{}", command);
+                // Process p = Runtime.getRuntime().exec(command);
+                // int exitCode;
+                // try {
+                //     exitCode = p.waitFor();
+                //     p.destroy();
+                //     logger.info("ln : {}", exitCode);
+                // } catch (InterruptedException e) {
+                //     logger.error(e.getMessage());
+                // }
             }
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_END);
             logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);
