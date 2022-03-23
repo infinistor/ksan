@@ -156,8 +156,8 @@ public class DataPostObject extends S3DataRequest {
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5)) {
 						serverSideEncryptionCustomerKeyMD5 = new String(baos.toByteArray());
 					} else if (GWUtils.startsField(header, GWConstants.USER_METADATA_PREFIX)) {
-						String parseHeader = header.substring(GWConstants.ACCESS_CONTROL_POLICY.length());
-						parseHeader = parseHeader.substring(0, parseHeader.lastIndexOf("\""));
+						String parseHeader = header.substring(GWConstants.CONTENT_DISPOSITION_FORM_DATA.length());
+						parseHeader = parseHeader.substring(0, parseHeader.lastIndexOf(GWConstants.DOUBLE_QUOTE));
 						userMetadata.put(parseHeader, new String(baos.toByteArray()));
 					}
 				} catch (IOException e) {
