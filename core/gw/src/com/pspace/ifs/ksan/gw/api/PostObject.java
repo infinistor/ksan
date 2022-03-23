@@ -57,11 +57,8 @@ public class PostObject extends S3Request {
     public void process() throws GWException {
         logger.info(GWConstants.LOG_POST_OBJECT_START);
 		
-        // throw new GWException(GWErrorCode.NOT_IMPLEMENTED);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		String object = s3Parameter.getObjectName();
-		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setCors(getBucketInfo().getCors());
@@ -70,12 +67,15 @@ public class PostObject extends S3Request {
 
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();
-        
+		String object = dataPostObject.getKey();
+		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
+
 		if (Strings.isNullOrEmpty(dataPostObject.getKey())) {
 			logger.info(GWErrorCode.BAD_REQUEST.getMessage());
 			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 
+		logger.info("policy list : {}", dataPostObject.getPolicy());
         if (!Strings.isNullOrEmpty(dataPostObject.getPolicy())) {
 			Decoder decoder = Base64.getDecoder();
 			byte[] bytePostPolicy = decoder.decode(dataPostObject.getPolicy());
@@ -274,14 +274,14 @@ public class PostObject extends S3Request {
 		tagging.tagset = new TagSet();
 
 		try {
-			if ( dataPostObject.getTagging() != null )
+			if (dataPostObject.getTagging() != null)
 				tagging = new XmlMapper().readValue(dataPostObject.getTagging(), Tagging.class);
 		} catch (JsonProcessingException e) {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
 		try {
-			if ( tagging != null)
+			if (tagging != null)
 				taggingxml = new XmlMapper().writeValueAsString(tagging);
 		} catch (JsonProcessingException e) {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -341,6 +341,7 @@ public class PostObject extends S3Request {
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setSize(s3Object.getFileSize());
+		s3Metadata.setContentLength(s3Object.getFileSize());
 		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 		s3Metadata.setLastModified(s3Object.getLastModified());
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
