@@ -83,21 +83,21 @@ public class S3ObjectOperation {
         long actualSize = 0L;
         long fileSize = objMeta.getSize();
 
-        if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
-            byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-            int sendSize = 0;
-            long remainingLength = fileSize;
+        // if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+        //     byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
+        //     int sendSize = 0;
+        //     long remainingLength = fileSize;
 
-            while (remainingLength > 0) {
-                if (remainingLength > GWConstants.MAXBUFSIZE) {
-                    sendSize = GWConstants.MAXBUFSIZE;
-                } else {
-                    sendSize = (int)remainingLength;
-                }
-                s3Parameter.getResponse().getOutputStream().write(buffer, 0, sendSize);
-                remainingLength -= sendSize;
-            }
-        }
+        //     while (remainingLength > 0) {
+        //         if (remainingLength > GWConstants.MAXBUFSIZE) {
+        //             sendSize = GWConstants.MAXBUFSIZE;
+        //         } else {
+        //             sendSize = (int)remainingLength;
+        //         }
+        //         s3Parameter.getResponse().getOutputStream().write(buffer, 0, sendSize);
+        //         remainingLength -= sendSize;
+        //     }
+        // }
 
         if (s3Range != null && s3Range.getListRange().size() > 0) {
             fileSize = 0L;
@@ -183,6 +183,7 @@ public class S3ObjectOperation {
             Process p = Runtime.getRuntime().exec(command);
             try {
                 int exitCode = p.waitFor();
+                p.destroy();
                 logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE, exitCode);
             } catch (InterruptedException e) {
                 logger.error(e.getMessage());
@@ -411,12 +412,14 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFilePrimary, filePrimary);
                         if (isPrimaryCache) {
                             String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + filePrimary.getAbsolutePath() + " " + path;
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
+                            // String command = "ln -s " + filePrimary.getAbsolutePath() + " " + path;
     
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            // logger.debug("{}", command);
+                            // Process p = Runtime.getRuntime().exec(command);
+                            // int exitCode = p.waitFor();
+                            // p.destroy();
+                            // logger.info("ln : {}", exitCode);
                         }
                     }
                     if (fileReplica == null) {
@@ -431,12 +434,14 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFileReplica, fileReplica);
                         if (isReplicaCache) {
                             String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + fileReplica.getAbsolutePath() + " " + path;
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+                            // String command = "ln -s " + fileReplica.getAbsolutePath() + " " + path;
     
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            // logger.debug("{}", command);
+                            // Process p = Runtime.getRuntime().exec(command);
+                            // int exitCode = p.waitFor();
+                            // p.destroy();
+                            // logger.info("ln : {}", exitCode);
                         }
                     }
                 } else {
@@ -501,12 +506,14 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFile, file);
                         if (isPrimaryCache) {
                             String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + file.getAbsolutePath() + " " + path;
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
+                            // String command = "ln -s " + file.getAbsolutePath() + " " + path;
     
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            // logger.debug("{}", command);
+                            // Process p = Runtime.getRuntime().exec(command);
+                            // int exitCode = p.waitFor();
+                            // p.destroy();
+                            // logger.info("ln : {}", exitCode);
                         }
                     }
                 }
@@ -573,12 +580,14 @@ public class S3ObjectOperation {
                     retryRenameTo(tmpFile, file);
                     if (isPrimaryCache) {
                         String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                        String command = "ln -s " + file.getAbsolutePath() + " " + path;
+                        Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
+                        // String command = "ln -s " + file.getAbsolutePath() + " " + path;
 
-                        logger.debug("{}", command);
-                        Process p = Runtime.getRuntime().exec(command);
-                        int exitCode = p.waitFor();
-                        logger.info("ln : {}", exitCode);
+                        // logger.debug("{}", command);
+                        // Process p = Runtime.getRuntime().exec(command);
+                        // int exitCode = p.waitFor();
+                        // p.destroy();
+                        // logger.info("ln : {}", exitCode);
                     }
                 }
             }
