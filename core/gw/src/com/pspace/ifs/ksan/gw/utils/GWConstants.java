@@ -192,6 +192,11 @@ public final class GWConstants {
 	public static final String SLASH_WEBSITE_SLASH = "/website/";
 	public static final String PERCENT_ESCAPER = "*-./_";
 	public static final String PERCENT_ESCAPER_SIGNATURE = "-_.~";
+	public static final String PARAMETER_BUCKET = "?bucket=";
+	public static final String PARAMETER_KEY = "&key=";
+	public static final String PARAMETER_ETAG = "&etag=%22";
+	public static final String ENCODING_DOUBLE_QUOTE = "%22";
+	public static final String STATUS_SC_OK = "200";
 
 	public static final int AUTH_FIELD_SIZE = 2;
 	public static final int IDENTITY_INDEX = 0;
@@ -951,7 +956,7 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_VERSIONS_START = "ListObjectVersions ...";
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_PARAMETER_INFO = "{}, {}";
-	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, versionId : {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
 	public static final String LOG_LIST_PARTS_START = "ListParts ...";
