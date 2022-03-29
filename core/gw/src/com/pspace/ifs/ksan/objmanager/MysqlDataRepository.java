@@ -56,6 +56,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateObjectMeta;
     private PreparedStatement pstUpdateTagging;
     private PreparedStatement pstUpdateAcl;
+    private PreparedStatement pstUpdateDeleteMarker;
     
 
     // for buckets
@@ -112,7 +113,7 @@ public class MysqlDataRepository implements DataRepository{
         this.obmCache = obmCache;
         this.passwd = passwd;
         this.username = username;
-        this.url ="jdbc:mysql://"+ host+":3306/"+ dbname +"?useSSL=false";
+        this.url ="jdbc:mysql://"+ host+":3306/"+ dbname +"?useSSL=false&autoReconnect=true";
         try{
             this.createDB(host, dbname);
             this.connect();
@@ -129,7 +130,9 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectOne = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND lastversion=true");
             pstSelectOneWithVersionId = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND versionid=?");
             pstupdateMetadata = con.prepareStatement("UPDATE MDSDBTable SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?");
-                    
+                 
+            pstUpdateDeleteMarker=con.prepareStatement("UPDATE MDSDBTable SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=?");
+            
             pstSelectList = con.prepareStatement("SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM MDSDBTable WHERE objKey LIKE ?");
             pstupdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
             pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
@@ -932,6 +935,17 @@ public class MysqlDataRepository implements DataRepository{
         return 0;
     }
 
+    @Override
+    public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
+        String objId = new Metadata(bucketName, path).getObjId();
+        pstUpdateDeleteMarker.clearParameters();
+        pstUpdateDeleteMarker.setString(1, markDelete);
+        pstUpdateDeleteMarker.setBoolean(2, false);
+        pstUpdateDeleteMarker.setString(3, objId);
+        pstUpdateDeleteMarker.setString(4, versionId);
+        return pstUpdateDeleteMarker.executeUpdate();
+    }
+    
     @Override
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
             throws ResourceNotFoundException {

@@ -36,6 +36,7 @@ public interface DataRepository {
     public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException; 
     public void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException;
     public int deleteObject(String bucketName, String path, String versionId);
+    public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException;
     public List<String> getAllUsedDiskId() throws SQLException;
     public Object getStatement(String query) throws SQLException;
     public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys) throws SQLException;

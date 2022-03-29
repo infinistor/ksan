@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -649,7 +650,18 @@ public class MongoDataRepository implements DataRepository{
             updateBucketObjectCount(bucketName, -1);
         return nchange;
     }
-
+    
+    @Override
+    public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) 
+            throws SQLException {
+        int ret;
+        String objId = new Metadata(bucketName, path).getObjId();
+        ret = updateObject(bucketName,  objId, versionId, DELETEMARKER, markDelete);
+        if (ret == 0)
+            ret = updateObject(bucketName,  objId, versionId, LASTVERSION, false);
+        return ret;
+    }
+    
     @Override
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String objKey, String versionId)
             throws ResourceNotFoundException {
@@ -801,8 +813,15 @@ public class MongoDataRepository implements DataRepository{
     private int updateObject(String bucketName,  String objId, String versionId, String key, String value){
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)), Updates.set(key, value));
-        return 0;
+        UpdateResult res = objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)), Updates.set(key, value));
+        return res.getModifiedCount() > 0 ? 0 : -1;
+    }
+    
+    private int updateObject(String bucketName,  String objId, String versionId, String key, boolean value){
+        MongoCollection<Document> objects;
+        objects = database.getCollection(bucketName);
+        UpdateResult res = objects.updateOne(Filters.and(Filters.eq(OBJID, objId), Filters.eq(VERSIONID, versionId)), Updates.set(key, value));
+        return res.getModifiedCount() > 0 ? 0 : -1;
     }
     
     @Override
@@ -1053,8 +1072,10 @@ public class MongoDataRepository implements DataRepository{
         BasicDBObject sortBy = new BasicDBObject(OBJKEY, 1 );
         BasicDBObject mongoQuery =(BasicDBObject)query;
         
-        if (!mongoQuery.containsField(LASTVERSION))
+        if (!mongoQuery.containsField(LASTVERSION)){
             sortBy.append(LASTMODIFIED, -1);
+            sortBy.append("_id", -1);
+        }
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy);
         Iterator it = oit.iterator();

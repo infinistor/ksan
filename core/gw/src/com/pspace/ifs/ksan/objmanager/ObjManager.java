@@ -236,7 +236,54 @@ public class ObjManager {
             cpy_mt.setReplicaDISK(mt.getReplicaDisk());
         return cpy_mt;
     }
+  
+    private int sendDeletedObjectToOSD(Metadata mt) throws Exception{
+        /*
+        JSONObject obj;
+        String bindingKey;
+        String bindingKeyPref = "*.servers.unlink.";
+        
+        obj = new JSONObject();
+        obj.put("ObjId", mt.getObjId());
+        obj.put("Path", mt.getPath());
+        obj.put("DiskId", mt.getPrimaryDisk().getId());
+        obj.put("DiskPath", mt.getPrimaryDisk().getPath());
+        bindingKey = bindingKeyPref + mt.getPrimaryDisk().getId();
+        mqSender.send(obj.toString(), bindingKey);
+
+        if (mt.isReplicaExist()){
+            obj.replace("DiskId", mt.getReplicaDisk().getId());
+            obj.replace("DiskPath", mt.getReplicaDisk().getPath());
+            bindingKey = bindingKeyPref + mt.getReplicaDisk().getId();
+            mqSender.send(obj.toString(), bindingKey);
+        }*/
+        return 0;
+    }
     
+    private int removeObject(String bucket, String path, String  versionId){
+        Metadata mt;
+        
+        try {
+            Bucket bt = getBucket(bucket);
+            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
+            // remove from DB
+            if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
+                dbm.deleteObject(bucket, path, versionId);
+                sendDeletedObjectToOSD(mt);
+            } 
+            else
+                dbm.markDeletedObject(bucket, path, versionId, "mark");
+   
+            return 0;
+        } catch (ResourceNotFoundException ex) {
+            logger.debug(ex.getMessage());
+        }
+        catch (Exception ex) {
+            logger.debug(ex.getMessage());
+        }
+        
+        return -1;
+    }
     /**
      * Remove the metadata associated with path if it existed 
      * @param bucket bucket name
@@ -244,41 +291,7 @@ public class ObjManager {
      * @return 
      */
     public int remove(String bucket, String path) {
-        dbm.deleteObject(bucket, path, "null");
-        return 0;
-        // Metadata mt;
-        // JSONObject obj;
-        // String bindingKey;
-        // String bindingKeyPref = "*.servers.unlink.";
-        // try {
-        //     mt = dbm.selectSingleObject(bucket, path);
-        //     // remove from DB
-        //     dbm.deleteObject(bucket, path, "null");
-            
-        //     obj = new JSONObject();
-        //     obj.put("ObjId", mt.getObjId());
-        //     obj.put("Path", mt.getPath());
-        //     obj.put("DiskId", mt.getPrimaryDisk().getId());
-        //     obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-        //     bindingKey = bindingKeyPref + mt.getPrimaryDisk().getId();
-        //     if (mqSender != null){ // FIXME until MQ intergation working well
-        //         mqSender.send(obj.toString(), bindingKey);
-
-        //         obj.replace("DiskId", mt.getReplicaDisk().getId());
-        //         obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-        //         bindingKey = bindingKeyPref + mt.getReplicaDisk().getId();
-        //         mqSender.send(obj.toString(), bindingKey);
-        //     }
-        //     return 0;
-        // } catch (ResourceNotFoundException ex) {
-        //     // logger.log(OMLoggerLevel.ERROR, ex, "[remove ] bucket : %s path : %s failed", bucket, path);
-        //     logger.debug(ex.getMessage());
-        // }
-        // catch (Exception ex) {
-        //     // logger.log(OMLoggerLevel.ERROR, ex, "[remove ] bucket : %s path : %s failed", bucket, path);
-        //     logger.debug(ex.getMessage());
-        // }
-        // return -1;
+        return removeObject(bucket, path, "null"); 
     }
 
     /**
@@ -289,36 +302,7 @@ public class ObjManager {
      * @return 
      */
     public int remove(String bucket, String path, String  versionId){
-        Metadata mt;
-        JSONObject obj;
-        String bindingKey;
-        String bindingKeyPref = "*.servers.unlink.";
-        try {
-            Bucket bt = getBucket(bucket);
-            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
-            // remove from DB
-            dbm.deleteObject(bucket, path, versionId);
-            
-            obj = new JSONObject();
-            obj.put("ObjId", mt.getObjId());
-            obj.put("Path", mt.getPath());
-            obj.put("DiskId", mt.getPrimaryDisk().getId());
-            obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-            bindingKey = bindingKeyPref + mt.getPrimaryDisk().getId();
-            mqSender.send(obj.toString(), bindingKey);
-            
-            obj.replace("DiskId", mt.getReplicaDisk().getId());
-            obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-            bindingKey = bindingKeyPref + mt.getReplicaDisk().getId();
-            mqSender.send(obj.toString(), bindingKey);
-            return 0;
-        } catch (ResourceNotFoundException ex) {
-            logger.debug(ex.getMessage());
-        }
-        catch (Exception ex) {
-            logger.debug(ex.getMessage());
-        }
-        return -1;
+        return removeObject(bucket, path, versionId); 
     }
 
     /**
