@@ -237,12 +237,14 @@ public class ObjManager {
         return cpy_mt;
     }
   
-    private int sendDeletedObjectToOSD(Metadata mt) throws Exception{
+    private int sendDeletedObjectToOSD(String diskpoolId, String bucket, String path, String versionId) throws Exception{
         /*
+        Metadata mt;
         JSONObject obj;
         String bindingKey;
         String bindingKeyPref = "*.servers.unlink.";
         
+        mt = dbm.selectSingleObject(diskpoolId, bucket, path, versionId);
         obj = new JSONObject();
         obj.put("ObjId", mt.getObjId());
         obj.put("Path", mt.getPath());
@@ -261,19 +263,17 @@ public class ObjManager {
     }
     
     private int removeObject(String bucket, String path, String  versionId){
-        Metadata mt;
-        
+             
         try {
             Bucket bt = getBucket(bucket);
-            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
             // remove from DB or mark
             if (versionId.equalsIgnoreCase("null")){
                 dbm.deleteObject(bucket, path, versionId);
-                sendDeletedObjectToOSD(mt);
+                sendDeletedObjectToOSD(bt.getDiskPoolId(), bucket, path, versionId);
             }
             else if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
                 dbm.deleteObject(bucket, path, versionId);
-                sendDeletedObjectToOSD(mt);
+                sendDeletedObjectToOSD(bt.getDiskPoolId(), bucket, path, versionId);
             } 
             else
                 dbm.markDeletedObject(bucket, path, versionId, "mark");
