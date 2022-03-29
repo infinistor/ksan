@@ -266,8 +266,12 @@ public class ObjManager {
         try {
             Bucket bt = getBucket(bucket);
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
-            // remove from DB
-            if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
+            // remove from DB or mark
+            if (versionId.equalsIgnoreCase("null")){
+                dbm.deleteObject(bucket, path, versionId);
+                sendDeletedObjectToOSD(mt);
+            }
+            else if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
                 dbm.deleteObject(bucket, path, versionId);
                 sendDeletedObjectToOSD(mt);
             } 
