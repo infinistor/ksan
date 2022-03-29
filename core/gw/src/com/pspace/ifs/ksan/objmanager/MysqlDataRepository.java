@@ -131,13 +131,13 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectOneWithVersionId = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND versionid=?");
             pstupdateMetadata = con.prepareStatement("UPDATE MDSDBTable SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?");
                  
-            pstUpdateDeleteMarker=con.prepareStatement("UPDATE MDSDBTable SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=?");
+            pstUpdateDeleteMarker=con.prepareStatement("UPDATE MDSDBTable SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=? AND lastversion=true");
             
             pstSelectList = con.prepareStatement("SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM MDSDBTable WHERE objKey LIKE ?");
             pstupdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
             pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
             pstupdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
-            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? ORDER BY lastModified asc limit 1");
+            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1");
             pstSelectUsedDisks = con.prepareStatement("SELECT pdiskid as diskid FROM MDSDBTable UNION DISTINCT SELECT rdiskid FROM MDSDBTable;");
             pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
             pstUpdateObjectMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE objid=? AND versionid=?");
@@ -937,13 +937,21 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
+        int ret;
         String objId = new Metadata(bucketName, path).getObjId();
         pstUpdateDeleteMarker.clearParameters();
         pstUpdateDeleteMarker.setString(1, markDelete);
         pstUpdateDeleteMarker.setBoolean(2, false);
         pstUpdateDeleteMarker.setString(3, objId);
         pstUpdateDeleteMarker.setString(4, versionId);
-        return pstUpdateDeleteMarker.executeUpdate();
+        ret= pstUpdateDeleteMarker.executeUpdate();
+        if (ret  > 0){
+            if (versionId != null){
+                if (!versionId.isEmpty())
+                    updateVersionDelete(objId);
+            }
+        }
+        return ret;
     }
     
     @Override

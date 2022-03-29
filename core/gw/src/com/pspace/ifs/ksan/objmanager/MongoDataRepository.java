@@ -632,7 +632,43 @@ public class MongoDataRepository implements DataRepository{
         // TODO Auto-generated method stub
         return null;
     }*/
-
+    
+    private int updateVersionDelete(String bucketName, String objId){
+        MongoCollection<Document> objects;
+        long lastmodfiedT =0;
+        String versionId = "null";
+        String deletemaker;
+        UpdateResult ures;
+        
+        objects = database.getCollection(bucketName);
+        
+        FindIterable fit = objects.find(Filters.eq(OBJID, objId));
+     
+        Iterator it = fit.iterator();
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            deletemaker = doc.getString(DELETEMARKER);
+            if (deletemaker != null){
+                if (deletemaker.equalsIgnoreCase("mark"))
+                    continue;
+            }
+            if (doc.getLong(LASTMODIFIED) > lastmodfiedT){
+                lastmodfiedT = doc.getLong(LASTMODIFIED);
+                versionId = doc.getString(VERSIONID);
+            }
+        }
+        
+        ures = objects.updateOne(Filters.and(Filters.eq(OBJID, objId), 
+                Filters.eq(VERSIONID, versionId)), Updates.set(LASTVERSION, true));
+        if (ures == null)
+            return -1;
+        
+        if (ures.getModifiedCount() > 0)
+            return 0;
+        
+        return -1;
+    }
+    
     @Override
     public int deleteObject(String bucketName, String objKey, String versionId) {
         MongoCollection<Document> objects;
@@ -646,8 +682,12 @@ public class MongoDataRepository implements DataRepository{
             return -1;
         
         int nchange = (int)dres.getDeletedCount();
-        if (nchange > 0)
+        if (nchange > 0){
+            if (!versionId.equalsIgnoreCase("null"))
+                updateVersionDelete(bucketName, objId);
+            
             updateBucketObjectCount(bucketName, -1);
+        }
         return nchange;
     }
     
@@ -659,6 +699,9 @@ public class MongoDataRepository implements DataRepository{
         ret = updateObject(bucketName,  objId, versionId, DELETEMARKER, markDelete);
         if (ret == 0)
             ret = updateObject(bucketName,  objId, versionId, LASTVERSION, false);
+        
+        if (ret == 0)
+            updateVersionDelete(bucketName, objId);
         return ret;
     }
     
