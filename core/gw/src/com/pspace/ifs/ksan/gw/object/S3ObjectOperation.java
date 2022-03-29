@@ -83,21 +83,21 @@ public class S3ObjectOperation {
         long actualSize = 0L;
         long fileSize = objMeta.getSize();
 
-        if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
-            byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-            int sendSize = 0;
-            long remainingLength = fileSize;
+        // if (GWConfig.getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+        //     byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
+        //     int sendSize = 0;
+        //     long remainingLength = fileSize;
 
-            while (remainingLength > 0) {
-                if (remainingLength > GWConstants.MAXBUFSIZE) {
-                    sendSize = GWConstants.MAXBUFSIZE;
-                } else {
-                    sendSize = (int)remainingLength;
-                }
-                s3Parameter.getResponse().getOutputStream().write(buffer, 0, sendSize);
-                remainingLength -= sendSize;
-            }
-        }
+        //     while (remainingLength > 0) {
+        //         if (remainingLength > GWConstants.MAXBUFSIZE) {
+        //             sendSize = GWConstants.MAXBUFSIZE;
+        //         } else {
+        //             sendSize = (int)remainingLength;
+        //         }
+        //         s3Parameter.getResponse().getOutputStream().write(buffer, 0, sendSize);
+        //         remainingLength -= sendSize;
+        //     }
+        // }
 
         if (s3Range != null && s3Range.getListRange().size() > 0) {
             fileSize = 0L;
@@ -183,6 +183,7 @@ public class S3ObjectOperation {
             Process p = Runtime.getRuntime().exec(command);
             try {
                 int exitCode = p.waitFor();
+                p.destroy();
                 logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE, exitCode);
             } catch (InterruptedException e) {
                 logger.error(e.getMessage());
@@ -298,6 +299,7 @@ public class S3ObjectOperation {
         File trashReplica = null;
         OSDClient clientPrimary = null;
         OSDClient clientReplica = null;
+        long totalReads = 0L;
         long existFileSize = 0L;
         long putSize = 0L;
         long calSize = 0L;
@@ -306,16 +308,14 @@ public class S3ObjectOperation {
             MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
             byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
             int readLength = 0;
-            long remainLength = length;
-            int bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
             
             existFileSize = objMeta.getSize();
             putSize = length;
             boolean isPrimaryCache = false;
             boolean isReplicaCache = false;
 
-            logger.info("performance mode : {}", GWConfig.getPerformanceMode());
-            logger.info("objMeta - replicaCount : {}", objMeta.getReplicaCount());
+            logger.debug("performance mode : {}", GWConfig.getPerformanceMode());
+            logger.debug("objMeta - replicaCount : {}", objMeta.getReplicaCount());
 
             // No option
             if (GWConfig.isNoOption()) {
@@ -377,9 +377,8 @@ public class S3ObjectOperation {
                         clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getPerformanceMode());
                     }
         
-                    while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                        remainLength -= readLength;
-                        
+                    while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) >= 0) {
+                        totalReads += readLength;
                         if (filePrimary == null) {
                             clientPrimary.put(buffer, 0, readLength);
                         } else {
@@ -393,10 +392,6 @@ public class S3ObjectOperation {
                         }
     
                         md5er.update(buffer, 0, readLength);
-                        if (remainLength <= 0) {
-                            break;
-                        }
-                        bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                     }
     
                     if (filePrimary == null) {
@@ -411,12 +406,7 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFilePrimary, filePrimary);
                         if (isPrimaryCache) {
                             String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + filePrimary.getAbsolutePath() + " " + path;
-    
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
                     if (fileReplica == null) {
@@ -431,12 +421,7 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFileReplica, fileReplica);
                         if (isReplicaCache) {
                             String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + fileReplica.getAbsolutePath() + " " + path;
-    
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
                 } else {
@@ -469,9 +454,8 @@ public class S3ObjectOperation {
                     }
                     
     
-                    while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                        remainLength -= readLength;
-    
+                    while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) >= 0) {
+                        totalReads += readLength;
                         if (file == null) {
                             clientPrimary.put(buffer, 0, readLength);
                         } else {
@@ -479,10 +463,6 @@ public class S3ObjectOperation {
                         }
     
                         md5er.update(buffer, 0, readLength);
-                        if (remainLength <= 0) {
-                            break;
-                        }
-                        bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                     }
     
                     if (file == null) {
@@ -501,12 +481,7 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFile, file);
                         if (isPrimaryCache) {
                             String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                            String command = "ln -s " + file.getAbsolutePath() + " " + path;
-    
-                            logger.debug("{}", command);
-                            Process p = Runtime.getRuntime().exec(command);
-                            int exitCode = p.waitFor();
-                            logger.info("ln : {}", exitCode);
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                         }
                     }
                 }
@@ -541,9 +516,8 @@ public class S3ObjectOperation {
                     clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId(), GWConfig.getPerformanceMode());
                 }
                 
-                while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                    remainLength -= readLength;
-
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) >= 0) {
+                    totalReads += readLength;
                     if (file == null) {
                         clientPrimary.put(buffer, 0, readLength);
                     } else {
@@ -551,10 +525,6 @@ public class S3ObjectOperation {
                     }
 
                     md5er.update(buffer, 0, readLength);
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                 }
 
                 if (file == null) {
@@ -573,24 +543,15 @@ public class S3ObjectOperation {
                     retryRenameTo(tmpFile, file);
                     if (isPrimaryCache) {
                         String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                        String command = "ln -s " + file.getAbsolutePath() + " " + path;
-
-                        logger.debug("{}", command);
-                        Process p = Runtime.getRuntime().exec(command);
-                        int exitCode = p.waitFor();
-                        logger.info("ln : {}", exitCode);
+                        Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }
             }
             // No IO option
             else if (GWConfig.isNoIO()) {
-                while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                    remainLength -= readLength;
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) > 0) {
+                    totalReads += readLength;
                     md5er.update(buffer, 0, readLength);
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                 }
             }
             // No disk option
@@ -604,9 +565,8 @@ public class S3ObjectOperation {
                     clientReplica.putInit(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId, length, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, GWConfig.getPerformanceMode());
                 }
 
-                while ((readLength = is.read(buffer, 0, bufferSize)) > 0) {
-                    remainLength -= readLength;
-                    
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) >= 0) {
+                    totalReads += readLength;
                     if (clientPrimary != null) {
                         clientPrimary.put(buffer, 0, readLength);
                     }
@@ -616,10 +576,6 @@ public class S3ObjectOperation {
                     }
 
                     md5er.update(buffer, 0, readLength);
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    bufferSize = (int) (remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                 }
 
                 if (clientPrimary != null) {
@@ -640,7 +596,7 @@ public class S3ObjectOperation {
 
             s3Object.setEtag(eTag);
             s3Object.setLastModified(new Date());
-            s3Object.setFileSize(length);
+            s3Object.setFileSize(totalReads);
             s3Object.setVersionId(versionId);
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
 

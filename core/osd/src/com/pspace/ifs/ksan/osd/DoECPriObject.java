@@ -101,6 +101,7 @@ public class DoECPriObject implements Runnable {
             logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND, command);
             Process p = Runtime.getRuntime().exec(command);
             int exitCode = p.waitFor();
+            p.destroy();
             logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE, exitCode);
             createECTemp(file.getName(), ecPath);
             

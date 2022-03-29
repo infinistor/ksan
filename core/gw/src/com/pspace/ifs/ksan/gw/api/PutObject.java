@@ -347,6 +347,7 @@ public class PutObject extends S3Request {
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setSize(s3Object.getFileSize());
+		s3Metadata.setContentLength(s3Object.getFileSize());
 		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 		s3Metadata.setLastModified(s3Object.getLastModified());
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());

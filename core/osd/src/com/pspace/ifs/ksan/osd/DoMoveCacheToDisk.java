@@ -23,8 +23,15 @@ public class DoMoveCacheToDisk implements Runnable {
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
+        while (true) {
+            recursiveMove(OSDUtils.getInstance().getCacheDisk());
 
-        recursiveMove(OSDUtils.getInstance().getCacheDisk());
+            try {
+                Thread.sleep(1000 * 60);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            }
+        }
     }
     
     private void recursiveMove(String dirPath) {
@@ -75,6 +82,7 @@ public class DoMoveCacheToDisk implements Runnable {
         try {
             p = Runtime.getRuntime().exec(command);
             int exitCode = p.waitFor();
+            p.destroy();
             logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE, exitCode);
             file.delete();
         } catch (IOException | InterruptedException e) {
