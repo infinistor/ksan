@@ -394,8 +394,8 @@ public class MongoDataRepository implements DataRepository{
             doc.append(VERSIONING, "");
             doc.append(MFADELETE, "");
             
-            doc.append(ENCRYPTION, "");
-            doc.append(OBJECTLOCK, "");
+            doc.append(ENCRYPTION, bt.getEncryption());
+            doc.append(OBJECTLOCK, bt.getObjectLock());
             doc.append(POLICY, "");
             doc.append(FILECOUNT, 0);
             doc.append(USEDSPACE, 0);
