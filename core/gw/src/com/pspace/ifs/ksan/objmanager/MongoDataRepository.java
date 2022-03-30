@@ -399,8 +399,8 @@ public class MongoDataRepository implements DataRepository{
             doc.append(ENCRYPTION, bt.getEncryption());
             doc.append(OBJECTLOCK, bt.getObjectLock());
             doc.append(POLICY, "");
-            doc.append(FILECOUNT, 0);
-            doc.append(USEDSPACE, 0);
+            doc.append(FILECOUNT, 0L);
+            doc.append(USEDSPACE, 0L);
             doc.append(CREATETIME, getCurrentDateTime());
             
             buckets.insertOne(doc);
@@ -445,8 +445,8 @@ public class MongoDataRepository implements DataRepository{
         String objectlock = doc.getString(OBJECTLOCK);
         String encryption = doc.getString(ENCRYPTION);
         String policy     = doc.getString(POLICY);
-        long usedSpace = doc.getLong(USEDSPACE);
-        long fileCount = doc.getLong(FILECOUNT);;
+        long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
+        long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
         
         Date createTime;
         try {
