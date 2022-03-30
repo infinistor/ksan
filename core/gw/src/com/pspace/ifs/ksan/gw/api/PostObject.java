@@ -265,7 +265,7 @@ public class PostObject extends S3Request {
 										s3Parameter);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
 		encryption.build();
 
 		// Tagging information

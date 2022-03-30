@@ -75,6 +75,7 @@ public final class OSDConstants {
     public static final int OBJID_INDEX = 2;
     public static final int VERSIONID_INDEX = 3;
     public static final int SOURCE_RANGE_INDEX = 4;
+    public static final int KEY_INDEX = 5;
     public static final int DEST_PATH_INDEX = 4;
     public static final int DEST_OBJID_INDEX = 5;
     public static final int DEST_VERSIONID_INDEX = 6;
@@ -89,7 +90,8 @@ public final class OSDConstants {
     public static final int PUT_LENGTH_INDEX = 4;
     public static final int PUT_REPLICATION_INDEX = 5;
     public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
-    public static final int PUT_MODE_INDEX = 7;
+    public static final int PUT_KEY_INDEX = 7;
+    public static final int PUT_MODE_INDEX = 8;
     public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_PARTNOS = 4;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
@@ -116,6 +118,9 @@ public final class OSDConstants {
 
     public static final String JVM = "jvm";
     public static final String GET_PROCESS_ID = "getProcessId";
+
+    public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
+	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 
     // DISKPOOLLIST
     public static final String DISKPOOLLIST = "DISKPOOLLIST";

@@ -36,6 +36,8 @@ import com.google.common.primitives.Longs;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 
+import org.apache.commons.crypto.stream.CtrCryptoInputStream;
+import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,44 +204,65 @@ public class OSDServer {
             String objId = headers[OSDConstants.OBJID_INDEX];
             String versionId = headers[OSDConstants.VERSIONID_INDEX];
             String sourceRange = headers[OSDConstants.SOURCE_RANGE_INDEX];
+            String key = headers[OSDConstants.KEY_INDEX];
             long readTotal = 0L;
+            CtrCryptoInputStream encryptIS = null;
+            
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_INFO, path, objId, versionId, sourceRange);
     
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
-            try (FileInputStream fis = new FileInputStream(file)) {
-                long remainLength = 0L;
-                int readLength = 0;
-                int readBytes;
-    
-                if (Strings.isNullOrEmpty(sourceRange)) {
-                    remainLength = file.length();
-                    while (remainLength > 0) {
-                        readBytes = 0;
-                        if (remainLength < OSDConstants.MAXBUFSIZE) {
-                            readBytes = (int)remainLength;
-                        } else {
-                            readBytes = OSDConstants.MAXBUFSIZE;
-                        }
+            if (!Strings.isNullOrEmpty(key)) {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    long remainLength = 0L;
+                    int readLength = 0;
+                    int readBytes;
+        
+                    encryptIS = OSDUtils.initCtrDecrypt(fis, key);
 
-                        readLength = fis.read(buffer, 0, readBytes);
-                        
-                        readTotal += readLength;
-                        socket.getOutputStream().write(buffer, 0, readLength);
-                        remainLength -= readLength;
-                    }
-                } else {
-                    String[] ranges = sourceRange.split(OSDConstants.SLASH);
-                    for (String range : ranges) {
-                        String[] rangeParts = range.split(OSDConstants.COMMA);
-                        long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
-                        long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
-                        logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
-    
-                        if (offset > 0) {
-                            fis.skip(offset);
+                    if (Strings.isNullOrEmpty(sourceRange)) {
+                        remainLength = file.length();
+                        while ((readLength = encryptIS.read(buffer, 0, OSDConstants.BUFSIZE)) != -1) {
+                            readTotal += readLength;
+                            socket.getOutputStream().write(buffer, 0, readLength);
                         }
-                        remainLength = length;
+                    } else {
+                        String[] ranges = sourceRange.split(OSDConstants.SLASH);
+                        for (String range : ranges) {
+                            String[] rangeParts = range.split(OSDConstants.COMMA);
+                            long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                            long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                            logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+        
+                            if (offset > 0) {
+                                encryptIS.skip(offset);
+                            }
+                            remainLength = length;
+                            while (remainLength > 0) {
+                                readBytes = 0;
+                                if (remainLength < OSDConstants.MAXBUFSIZE) {
+                                    readBytes = (int)remainLength;
+                                } else {
+                                    readBytes = OSDConstants.MAXBUFSIZE;
+                                }
+    
+                                readLength = encryptIS.read(buffer, 0, readBytes);
+                                
+                                readTotal += readLength;
+                                socket.getOutputStream().write(buffer, 0, readLength);
+                                remainLength -= readLength;
+                            }
+                        }
+                    }
+                }
+            } else {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    long remainLength = 0L;
+                    int readLength = 0;
+                    int readBytes;
+        
+                    if (Strings.isNullOrEmpty(sourceRange)) {
+                        remainLength = file.length();
                         while (remainLength > 0) {
                             readBytes = 0;
                             if (remainLength < OSDConstants.MAXBUFSIZE) {
@@ -247,16 +270,44 @@ public class OSDServer {
                             } else {
                                 readBytes = OSDConstants.MAXBUFSIZE;
                             }
-
+    
                             readLength = fis.read(buffer, 0, readBytes);
                             
                             readTotal += readLength;
                             socket.getOutputStream().write(buffer, 0, readLength);
                             remainLength -= readLength;
                         }
+                    } else {
+                        String[] ranges = sourceRange.split(OSDConstants.SLASH);
+                        for (String range : ranges) {
+                            String[] rangeParts = range.split(OSDConstants.COMMA);
+                            long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                            long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                            logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+        
+                            if (offset > 0) {
+                                fis.skip(offset);
+                            }
+                            remainLength = length;
+                            while (remainLength > 0) {
+                                readBytes = 0;
+                                if (remainLength < OSDConstants.MAXBUFSIZE) {
+                                    readBytes = (int)remainLength;
+                                } else {
+                                    readBytes = OSDConstants.MAXBUFSIZE;
+                                }
+    
+                                readLength = fis.read(buffer, 0, readBytes);
+                                
+                                readTotal += readLength;
+                                socket.getOutputStream().write(buffer, 0, readLength);
+                                remainLength -= readLength;
+                            }
+                        }
                     }
                 }
             }
+            
             socket.getOutputStream().flush();
             
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_END, readTotal);
@@ -271,7 +322,10 @@ public class OSDServer {
             long length = Longs.tryParse(headers[OSDConstants.PUT_LENGTH_INDEX]);
             String replication = headers[OSDConstants.PUT_REPLICATION_INDEX];
             String replicaDiskID = headers[OSDConstants.PUT_REPLICA_DISK_ID_INDEX];
+            String key = headers[OSDConstants.PUT_KEY_INDEX];
             String mode  = headers[OSDConstants.PUT_MODE_INDEX];
+            CtrCryptoOutputStream encryptOS = null;
+
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication, mode);
 
             boolean isNoDisk = false;
@@ -286,36 +340,72 @@ public class OSDServer {
             File tmpFile = null;
             File trashFile = null;
 
-            if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
-                file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
-                tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
-                trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
-                File linkFile = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
-                com.google.common.io.Files.createParentDirs(linkFile);
-            } else {
-                file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
-                tmpFile = new File(OSDUtils.getInstance().makeTempPath(path, objId, versionId));
-                trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
-            }
-
-            com.google.common.io.Files.createParentDirs(file);
-            com.google.common.io.Files.createParentDirs(tmpFile);
-            try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                int readLength = 0;
-                long remainLength = length;
-                int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
-                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
-                    remainLength -= readLength;
-                    if (!isNoDisk) {
-                        fos.write(buffer, 0, readLength);
-                    }
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+            if (!Strings.isNullOrEmpty(key)) {
+                if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                    file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
+                    tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
+                    trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
+                    File linkFile = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                    com.google.common.io.Files.createParentDirs(linkFile);
+                } else {
+                    file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                    tmpFile = new File(OSDUtils.getInstance().makeTempPath(path, objId, versionId));
+                    trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
                 }
-                if (!isNoDisk) {
-                    fos.flush();
+
+                com.google.common.io.Files.createParentDirs(file);
+                com.google.common.io.Files.createParentDirs(tmpFile);
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+                    encryptOS = OSDUtils.initCtrEncrypt(fos, key);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
+                        remainLength -= readLength;
+                        if (!isNoDisk) {
+                            encryptOS.write(buffer, 0, readLength);
+                        }
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+                    }
+                    if (!isNoDisk) {
+                        encryptOS.flush();
+                    }
+                }
+            } else {
+                if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                    file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
+                    tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
+                    trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
+                    File linkFile = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                    com.google.common.io.Files.createParentDirs(linkFile);
+                } else {
+                    file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+                    tmpFile = new File(OSDUtils.getInstance().makeTempPath(path, objId, versionId));
+                    trashFile = new File(OSDUtils.getInstance().makeTrashPath(path, objId, versionId));
+                }
+
+                com.google.common.io.Files.createParentDirs(file);
+                com.google.common.io.Files.createParentDirs(tmpFile);
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
+                        remainLength -= readLength;
+                        if (!isNoDisk) {
+                            fos.write(buffer, 0, readLength);
+                        }
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+                    }
+                    if (!isNoDisk) {
+                        fos.flush();
+                    }
                 }
             }
 
@@ -327,18 +417,6 @@ public class OSDServer {
             if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
                 String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
                 Files.createSymbolicLink(Paths.get(fullPath), Paths.get(file.getAbsolutePath()));
-                // String command = "ln -s " + file.getAbsolutePath() + " " + fullPath;
-
-                // logger.debug("{}", command);
-                // Process p = Runtime.getRuntime().exec(command);
-                // int exitCode;
-                // try {
-                //     exitCode = p.waitFor();
-                //     p.destroy();
-                //     logger.info("ln : {}", exitCode);
-                // } catch (InterruptedException e) {
-                //     logger.error(e.getMessage());
-                // }
             }
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_END);
             logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);

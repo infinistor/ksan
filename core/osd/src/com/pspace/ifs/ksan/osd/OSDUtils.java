@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.osd;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.Properties;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +35,8 @@ import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 
+import org.apache.commons.crypto.stream.CtrCryptoInputStream;
+import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,5 +309,43 @@ public class OSDUtils {
 			}
 			return localIP;
 		}
+	}
+
+    public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info(customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(OSDConstants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(OSDConstants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoOutputStream cipherOut = new CtrCryptoOutputStream(property, out, key, iv);
+
+		return cipherOut;
+	}
+	
+	public static CtrCryptoInputStream initCtrDecrypt(FileInputStream in, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info(customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(OSDConstants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(OSDConstants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoInputStream cipherIn = new CtrCryptoInputStream(property, in, key, iv);
+
+		return cipherIn;
 	}
 }

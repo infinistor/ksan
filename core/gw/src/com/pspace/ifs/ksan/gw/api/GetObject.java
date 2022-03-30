@@ -29,6 +29,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.ResultRange;
+import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -72,8 +73,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 		String ifNoneMatch = dataGetObject.getIfNoneMatch();
 		String ifModifiedSince = dataGetObject.getIfModifiedSince();
 		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
-
-		String versioningStatus = getBucketVersioning(bucket);
 
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -143,11 +142,15 @@ public class GetObject extends S3Request implements S3AddResponse {
 			}
 		}
 
+		// check encryption
+		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		s3ObjectEncryption.build();
+
 		ResultRange resultRange = new ResultRange(range, s3Metadata, s3Parameter);
 
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, resultRange.getContentLengthHeaders(), resultRange.getStreamSize()); 
 		
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, null);
+		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
 		try {
 			objectOperation.getObject(resultRange.getS3Range());
 		} catch (Exception e) {

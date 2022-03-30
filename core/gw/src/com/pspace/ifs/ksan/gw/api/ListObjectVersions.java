@@ -159,7 +159,7 @@ public class ListObjectVersions extends S3Request {
 						writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 						xmlStreamWriter.writeEndElement();
 
-						logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getVersionId());
+						logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
 					}
 				}
 			}
