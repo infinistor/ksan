@@ -291,6 +291,8 @@ public final class GWConstants {
 	public static final String SHA_256 = "SHA-256";
 	public static final String SHA1 = "SHA1";
 	public static final String SHA_1 = "SHA-1";
+	public static final String AES_CBC_PKCS5PADDING = "AES/CBC/PKCS5Padding";
+	public static final String AES = "AES";
 	public static final String AES256 = "AES256";
 	public static final String INFINISTOR = "INFINISTOR";
 	public static final String SIGNATURE_FIELD = "Signature=";
@@ -983,7 +985,7 @@ public final class GWConstants {
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
-	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutBucketObjectLock ...";
+	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutObjectLockConfiguration ...";
 	public static final String LOG_PUT_BUCKET_OBJECT_LOCK = "ObjectLock : {}";
 
 	// PutBucketPolicy
@@ -1075,7 +1077,9 @@ public final class GWConstants {
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
 
-	// Log, GWUtils
+	// GWUtils
+	public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
+	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 	public static final String LOG_UTILS_USER_META_DATA = "user metadata ==> {} : {}";
 	public static final String LOG_UTILS_8061_DATE = "8601date : {}";
 	public static final String LOG_UTILS_MAX_TIME_SKEW = "maxtimeskew : {}";
@@ -1239,4 +1243,8 @@ public final class GWConstants {
 
 	// MariaDB
 	public static final String LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER = "fail to load JDBC Driver";
+
+	// S3ObjectEncryption
+	public static final String S3OBJECT_ENCRYPTION_ENABLE_SSE_SERVER = "enableSSEServer : {}";
+	public static final String S3OBJECT_ENCRYPTION_ENABLE_SSE_CUSTOMER = "enableSSECustomer : {}";
 }

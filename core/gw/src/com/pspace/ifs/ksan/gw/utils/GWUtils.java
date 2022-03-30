@@ -13,12 +13,16 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,8 +31,18 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TimeZone;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.crypto.stream.CtrCryptoInputStream;
+import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +75,7 @@ import com.pspace.ifs.ksan.gw.format.CORSConfiguration.CORSRule;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.object.S3Encryption;
 import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
 import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -164,10 +179,6 @@ public class GWUtils {
 		}
 		
 		response.addDateHeader(HttpHeaders.LAST_MODIFIED, s3Metadata.getLastModified().getTime());
-		for (Map.Entry<String, String> entry : s3Metadata.getUserMetadataMap().entrySet()) {
-			response.addHeader(GWConstants.USER_METADATA_PREFIX + entry.getKey(), entry.getValue());
-			logger.info(GWConstants.USER_METADATA_PREFIX + entry.getKey() + GWConstants.COLON + entry.getValue());
-		}
 		
 		if (s3Metadata.getTaggingCount() != null) {
 			response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, s3Metadata.getTaggingCount());
@@ -1046,5 +1057,43 @@ public class GWUtils {
 				logger.error(e.getMessage());
 			}
 		}
+	}
+
+	public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info(customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(GWConstants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(GWConstants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoOutputStream cipherOut = new CtrCryptoOutputStream(property, out, key, iv);
+
+		return cipherOut;
+	}
+	
+	public static CtrCryptoInputStream initCtrDecrypt(FileInputStream in, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info(customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(GWConstants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(GWConstants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoInputStream cipherIn = new CtrCryptoInputStream(property, in, key, iv);
+
+		return cipherIn;
 	}
 }

@@ -192,8 +192,9 @@ public class PutObject extends S3Request {
 										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
+		logger.debug("bucket encryption : {}", bucketEncryption);
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
 		encryption.build();
 
 		// Tagging information
