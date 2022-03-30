@@ -207,6 +207,16 @@ public class MongoDataRepository implements DataRepository{
         return formatter.format(date);
     }
     
+    private Date convertString2Date(String dateStr){
+        Date date;
+        try {  
+            date=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(dateStr);
+        } catch (ParseException ex) {
+            date = new Date();
+        }
+        return date;
+    }
+    
     @Override
     public int insertObject(Metadata md) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
@@ -850,7 +860,8 @@ public class MongoDataRepository implements DataRepository{
                 resultUploads.setTruncated(true);
                 break;
             }
-            Upload upload = new Upload(doc.getString(OBJKEY), (Date)doc.getDate(CHANGETIME), doc.getString(UPLOADID), doc.getString(META));
+            Date changeTime = convertString2Date(doc.getString(CHANGETIME));
+            Upload upload = new Upload(doc.getString(OBJKEY), changeTime, doc.getString(UPLOADID), doc.getString(META));
             resultUploads.getList().add(upload);
         }
         return resultUploads;
