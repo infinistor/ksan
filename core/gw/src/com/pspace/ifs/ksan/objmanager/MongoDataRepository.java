@@ -95,6 +95,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String BUCKETID="bucketId";
     private static final String DISKPOOLID="diskPoolId";
     private static final String USERID="userId";
+    private static final String USERNAME="userName";
     private static final String WEB="web";
     private static final String CORS="cors";
     private static final String LIFECYCLE="lifecycle";
@@ -385,6 +386,7 @@ public class MongoDataRepository implements DataRepository{
             doc.append(ACL, bt.getAcl());
             doc.append(REPLICACOUNT, bt.getReplicaCount());
             
+            doc.append(USERNAME, bt.getUserName());
             doc.append(WEB, "");
             doc.append(CORS, "");
             doc.append(LIFECYCLE, "");
@@ -431,6 +433,7 @@ public class MongoDataRepository implements DataRepository{
         String diskPoolId = doc.getString(DISKPOOLID);
         String bucketId   = doc.getString(BUCKETID);
         String userId     = doc.getString(USERID);
+        String userName   = doc.getString(USERNAME);
         String web        = doc.getString(WEB);
         String acl        = doc.getString(ACL);
         String cors       = doc.getString(CORS);
@@ -438,7 +441,13 @@ public class MongoDataRepository implements DataRepository{
         String access     = doc.getString(ACCESS);
         String tagging    = doc.getString(TAGGING);
         String replication= doc.getString(REPLICATION);
-        int replicaCount = doc.getInteger(REPLICACOUNT);
+        int replicaCount  = doc.getInteger(REPLICACOUNT);
+        String objectlock = doc.getString(OBJECTLOCK);
+        String encryption = doc.getString(ENCRYPTION);
+        String policy     = doc.getString(POLICY);
+        long usedSpace = doc.getLong(USEDSPACE);
+        long fileCount = doc.getLong(FILECOUNT);;
+        
         Date createTime;
         try {
             String createTimeStr = doc.getString(CREATETIME);
@@ -465,6 +474,12 @@ public class MongoDataRepository implements DataRepository{
         bt.setCreateTime(createTime);
         bt.setVersioning(versioning, mfdelete);
         bt.setReplicaCount(replicaCount);
+        bt.setObjectLock(objectlock);
+        bt.setEncryption(encryption);
+        bt.setUserName(userName);
+        bt.setPolicy(policy);
+        bt.setFileCount(fileCount);
+        bt.setUsedSpace(usedSpace);
         //getUserDiskPool(bt);
         //System.out.println(">>" + bt);
         return bt;
