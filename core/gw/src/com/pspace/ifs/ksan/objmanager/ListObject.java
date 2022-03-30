@@ -867,10 +867,11 @@ public class ListObject{
            BasicDBObject andObjQuery;
            List<BasicDBObject> and = new ArrayList();
            
-           if (!listType.equalsIgnoreCase("listObjectVersion"))
-                and.add(new BasicDBObject("lastversion", true));
+           if (!listType.equalsIgnoreCase("listObjectVersion")){
+               and.add(new BasicDBObject("lastversion", true));
+               and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
+           }
            
-           and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            prefixStr = prefix.replaceAll("\\%",  "\\\\/").replaceAll("\\_",  "\\\\_");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){    
