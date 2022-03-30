@@ -268,7 +268,9 @@ public class ObjManager {
             Bucket bt = getBucket(bucket);
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
             // remove from DB or mark
-            if (versionId.equalsIgnoreCase("null")){
+            dbm.deleteObject(bucket, path, versionId);
+            sendDeletedObjectToOSD(mt);
+            /*if (versionId.equalsIgnoreCase("null")){
                 dbm.deleteObject(bucket, path, versionId);
                 sendDeletedObjectToOSD(mt);
             }
@@ -282,10 +284,8 @@ public class ObjManager {
                 else{
                    dbm.deleteObject(bucket, path, versionId);
                    sendDeletedObjectToOSD(mt);   
-                }
-                    
-            }
-   
+                }     
+            }*/
             return 0;
         } catch (ResourceNotFoundException ex) {
             logger.debug(ex.getMessage());
