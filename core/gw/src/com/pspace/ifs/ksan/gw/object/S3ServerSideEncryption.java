@@ -31,54 +31,20 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class S3ServerSideEncryption {
+public class S3ServerSideEncryption extends S3Encryption {
     private final Logger logger = LoggerFactory.getLogger(S3ServerSideEncryption.class);
-    private boolean enableSSEServer;
-	private boolean enableSSECustomer;
-    private String algorithm;               // x-amz-server-side-encryption
-    private String customerAlgorithm;       // x-amz-server-side-encryption-customer-algorithm
-    private String customerKey;
-    private String customerKeyMD5;
-    private String encryptionXml;           // bucket encryption Xml
-    private S3Parameter s3Parameter;
 
-    public S3ServerSideEncryption() {
-        enableSSEServer = false;
-        enableSSECustomer = false;
-        algorithm = null;
-        customerAlgorithm = null;
-        customerKey = null;
-        customerKeyMD5 = null;
-        encryptionXml = null;
-    }
-
-    public S3ServerSideEncryption(S3Metadata s3metadata, S3Parameter s3Parameter) {
-        this.s3Parameter = s3Parameter;
-        enableSSEServer = false;
-        enableSSECustomer = false;
-        this.customerAlgorithm = s3metadata.getCustomerAlgorithm();
-        this.customerKey = s3metadata.getCustomerKey();
-        this.customerKeyMD5 = s3metadata.getCustomerKeyMD5();
-        this.algorithm = s3metadata.getServersideEncryption();
-    }
-
-    public S3ServerSideEncryption(String encryptionXml, String algorithm, String customerAlgorithm, String customerKey, String customerKeyMD, S3Parameter s3Parameter) {
-        this.s3Parameter = s3Parameter;
-        enableSSEServer = false;
-        enableSSECustomer = false;
-        this.algorithm = algorithm;
+    public S3ServerSideEncryption(String encryptionXml, S3Metadata s3Metadata, S3Parameter s3Parameter) {
+        super(s3Metadata, s3Parameter);
         this.encryptionXml = encryptionXml;
-        this.customerAlgorithm = customerAlgorithm;
-        this.customerKey = customerKey;
-        this.customerKeyMD5 = customerKeyMD;
     }
 
     public void srcbuild() throws GWException {
         if (!Strings.isNullOrEmpty(customerAlgorithm) && customerAlgorithm.equalsIgnoreCase(GWConstants.AES256) == true) {
             if (!Strings.isNullOrEmpty(customerKey) && !Strings.isNullOrEmpty(customerKeyMD5)) {
-                String MD5 = makeMD5(customerKey);			
-                if (MD5.compareTo(customerKeyMD5) != 0) {
-                    logger.error(GWErrorCode.INVALID_DIGEST.getMessage() + GWConstants.LOG_S3SERVER_SIDE_ENCRYPTION_CALC_KEY + MD5 + GWConstants.LOG_S3SERVER_SIDE_ENCRYPTION_SOURCE_KEY + customerKeyMD5);
+                String md5 = makeMD5(customerKey);			
+                if (md5.compareTo(customerKeyMD5) != 0) {
+                    logger.error(GWErrorCode.INVALID_DIGEST.getMessage() + GWConstants.LOG_S3SERVER_SIDE_ENCRYPTION_CALC_KEY + md5 + GWConstants.LOG_S3SERVER_SIDE_ENCRYPTION_SOURCE_KEY + customerKeyMD5);
                     throw new GWException(GWErrorCode.INVALID_DIGEST, s3Parameter);
                 }
             } else {
@@ -138,41 +104,4 @@ public class S3ServerSideEncryption {
             }
         }
     }
-
-    public boolean isEncryptionEnabled() {
-        return enableSSEServer || enableSSECustomer;
-    }
-
-    public boolean isEnableSSEServer() {
-        return enableSSEServer;
-    }
-
-    public boolean isEnableSSECustomer() {
-        return enableSSECustomer;
-    }
-
-    public String getKey() {
-        if (enableSSECustomer || enableSSEServer) {
-            return customerKey;
-        }
-
-        return null;
-    }
-
-    private String makeMD5(String str) {
-		String MD5 = ""; 
-		
-		try {
-			MessageDigest md = MessageDigest.getInstance(GWConstants.MD5);
-			md.update(BaseEncoding.base64().decode(str)); 
-			byte byteData[] = md.digest();
-			HashCode actualHashCode = HashCode.fromBytes(byteData);			
-			MD5 = BaseEncoding.base64().encode(actualHashCode.asBytes());
-		} catch (NoSuchAlgorithmException e){
-			e.printStackTrace(); 
-			MD5 = null; 
-		}
-
-		return MD5;
-	}
 }
