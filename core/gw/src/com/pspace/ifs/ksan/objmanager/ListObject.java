@@ -909,8 +909,10 @@ public class ListObject{
                bDelForceGte = false;
            }
  
-           
-           andObjQuery = new BasicDBObject("$and", and.toArray());
+           if (and.isEmpty())
+               andObjQuery = new BasicDBObject();
+           else
+               andObjQuery = new BasicDBObject("$and", and.toArray());
            
            //System.out.println( "andObjQuery >>" + andObjQuery);
            return andObjQuery;
