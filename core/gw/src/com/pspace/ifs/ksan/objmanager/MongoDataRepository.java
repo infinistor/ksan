@@ -772,7 +772,7 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return null;
         
-        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+        FindIterable fit = multip.find(Filters.and(Filters.eq(UPLOADID, uploadId), Filters.ne(PARTNO, 0)));
      
         Iterator it = fit.iterator();
         while ((it.hasNext())){
