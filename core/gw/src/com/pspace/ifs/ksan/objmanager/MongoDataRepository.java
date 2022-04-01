@@ -64,7 +64,7 @@ public class MongoDataRepository implements DataRepository{
     private ObjManagerCache obmCache;
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
-    
+    private static Logger logger;
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
@@ -782,7 +782,7 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(PDISKID);
+            part.setDiskID(doc.getString(PDISKID));
             listPart.put(part.getPartNumber(), part);
         }
         
@@ -823,7 +823,7 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(PDISKID);
+            part.setDiskID(doc.getString(PDISKID));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
         
@@ -1236,7 +1236,7 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return null;
         
-        FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadId));
+        FindIterable fit = multip.find(Filters.and(Filters.eq(UPLOADID, uploadId), Filters.eq(PARTNO, partNo)));
      
         Iterator it = fit.iterator();
         
@@ -1256,7 +1256,10 @@ public class MongoDataRepository implements DataRepository{
         String pdiskId    = doc.getString(PDISKID);
        
         try {
-            pdsk = pdiskId != null ? obmCache.getDiskWithId(diskPoolId, pdiskId) : new DISK();
+            if (pdiskId == null || obmCache == null)
+                pdsk = new DISK();
+            else 
+                pdsk = obmCache.getDiskWithId(diskPoolId, pdiskId);
         } catch (ResourceNotFoundException ex) {
             pdsk = new DISK();
         }
