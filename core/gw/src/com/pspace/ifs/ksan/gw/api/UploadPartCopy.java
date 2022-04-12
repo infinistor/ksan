@@ -32,8 +32,10 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3Range;
+import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
@@ -154,26 +156,28 @@ public class UploadPartCopy extends S3Request {
 		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
 		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
+		S3Metadata s3SrcMetadata = new S3Metadata();
 		ObjectMapper jsonMapper = new ObjectMapper();
 		try {
-			s3Metadata = jsonMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
+			s3SrcMetadata = jsonMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
+		S3ObjectEncryption s3SrcObjectEncryption = new S3ObjectEncryption(s3Parameter, s3SrcMetadata);
+		s3SrcObjectEncryption.build();
 
 		// Check match
 		if (!Strings.isNullOrEmpty(copySourceIfMatch)) {
-			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
-			if (!GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
+			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3SrcMetadata.getETag(), copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
+			if (!GWUtils.maybeQuoteETag(s3SrcMetadata.getETag()).equals(copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				throw new GWException(GWErrorCode.PRECONDITION_FAILED, s3Parameter);
 			}
 		}
 
 		if (!Strings.isNullOrEmpty(copySourceIfNoneMatch)) {
-			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
-			if (GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
+			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3SrcMetadata.getETag(), copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
+			if (GWUtils.maybeQuoteETag(s3SrcMetadata.getETag()).equals(copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH), s3Parameter);
 			}
 		}
@@ -182,8 +186,8 @@ public class UploadPartCopy extends S3Request {
 			long copySourceIfModifiedSinceLong = Long.parseLong(copySourceIfModifiedSince);
 			if (copySourceIfModifiedSinceLong != -1) {
 				Date modifiedSince = new Date(copySourceIfModifiedSinceLong);
-				if (s3Metadata.getLastModified().before(modifiedSince)) {
-					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince), s3Parameter);
+				if (s3SrcMetadata.getLastModified().before(modifiedSince)) {
+					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3SrcMetadata.getLastModified(), modifiedSince), s3Parameter);
 				}
 			}
 		}
@@ -192,8 +196,8 @@ public class UploadPartCopy extends S3Request {
 			long copySourceIfUnmodifiedSinceLong = Long.parseLong(copySourceIfUnmodifiedSince);
 			if (copySourceIfUnmodifiedSinceLong != -1) {
 				Date unmodifiedSince = new Date(copySourceIfUnmodifiedSinceLong);
-				if (s3Metadata.getLastModified().after(unmodifiedSince)) {
-					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince), s3Parameter);
+				if (s3SrcMetadata.getLastModified().after(unmodifiedSince)) {
+					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3SrcMetadata.getLastModified(), unmodifiedSince), s3Parameter);
 				}
 			}
 		}
@@ -201,28 +205,60 @@ public class UploadPartCopy extends S3Request {
 		//Check copy source Range
 		S3Range s3Range = new S3Range(s3Parameter);
 		if (!Strings.isNullOrEmpty(copySourceRange)) {
-			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE_RANGE, copySourceRange, s3Metadata.getSize());
-			s3Range.parseRange(copySourceRange, s3Metadata.getSize(), true);
+			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE_RANGE, copySourceRange, s3SrcMetadata.getContentLength());
+			s3Range.parseRange(copySourceRange, s3SrcMetadata.getContentLength(), true);
 		}
 
-		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
-
-		String path = GWDiskConfig.getInstance().getLocalPath();
-		S3Object s3Object = null;
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
-		try {
-			s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range);
-		} catch (GWException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		
+		// 
 		ObjMultipart objMultipart = null;
+		Multipart multipart = null;
 		try {
 			objMultipart = new ObjMultipart(bucket);
+			multipart = objMultipart.getMultipart(uploadId);
+			if (multipart == null) {
+				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
+				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
+			}
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+
+		// get metadata
+		S3Metadata s3Metadata = new S3Metadata();
+		try {
+			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+
+		if (!Strings.isNullOrEmpty(customerKey)) {
+			if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
+				logger.error("different customer key : {}/{}", customerKey, s3Metadata.getCustomerKey());
+				new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+			}
+		}
+
+		// check encryption
+		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		s3ObjectEncryption.build();
+		
+		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+
+		String path = GWDiskConfig.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		if (path == null) {
+			logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+		
+		S3Object s3Object = null;
+		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		try {
+			s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range, s3SrcObjectEncryption);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
