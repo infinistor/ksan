@@ -1013,11 +1013,7 @@ public class MysqlDataRepository implements DataRepository{
         
         pstGetPartsMax.clearParameters();
         pstGetPartsMax.setString(1, uploadId);
-        /*if (Strings.isNullOrEmpty(partNumberMarker)) {
-            pstGetPartsMax.setInt(2, 0);
-        } else*/ {
-            pstGetPartsMax.setInt(2, Integer.valueOf(partNumberMarker));
-        }
+        pstGetPartsMax.setInt(2, partNumberMarker);
         pstGetPartsMax.setInt(3, maxParts + 1);
         ResultSet rs = pstGetPartsMax.executeQuery();
 

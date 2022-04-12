@@ -436,6 +436,16 @@ public class MongoDataRepository implements DataRepository{
         return 0;
     }
 
+    private long getParseLong(Document doc, String key){
+        long value = 0;
+        Object tmp = doc.get(key);
+        
+        if (tmp != null)
+            value = Long.valueOf(tmp.toString());
+        
+        return value;
+    }
+    
     private Bucket parseBucket(String bucketName, Document doc) throws ResourceNotFoundException, SQLException{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not bucket with a name " + bucketName);
@@ -455,8 +465,10 @@ public class MongoDataRepository implements DataRepository{
         String objectlock = doc.getString(OBJECTLOCK);
         String encryption = doc.getString(ENCRYPTION);
         String policy     = doc.getString(POLICY);
-        long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
-        long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
+        long usedSpace = getParseLong(doc, USEDSPACE);
+        long fileCount = getParseLong(doc, FILECOUNT);
+        //long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
+        //long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
         
         Date createTime;
         try {
