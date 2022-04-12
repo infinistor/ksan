@@ -34,6 +34,7 @@ public class S3Range {
 	}
 
 	public void parseRange(String range, long fileLength, boolean isCopy) throws GWException {
+		logger.debug(GWConstants.LOG_S3RANGE_VALUE, range);
 		if (Strings.isNullOrEmpty(range)) {
 			logger.error(GWConstants.LOG_S3RANGE_EMPTY, range);
 			return;
