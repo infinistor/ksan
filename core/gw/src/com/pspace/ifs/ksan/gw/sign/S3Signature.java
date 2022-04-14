@@ -56,7 +56,6 @@ final public class S3Signature {
             GWConstants.PARAMETER_LOCATION,
             GWConstants.PARAMETER_LOGGING,
             GWConstants.PARAMETER_NOTIFICATION,
-            GWConstants.PARAMETER_PUBLIC_ACCESS_BLOCK,
             GWConstants.PARAMETER_OBJECT_LOCK,
             GWConstants.PARAMETER_RETENTION,
             GWConstants.PARAMETER_LEGAL_HOLD,
@@ -164,6 +163,7 @@ final public class S3Signature {
             builder.append(entry.getKey()).append(GWConstants.CHAR_COLON)
                     .append(entry.getValue()).append(GWConstants.CHAR_NEWLINE);
         }
+
         builder.append(uri);
 
         char separator = GWConstants.CHAR_QUESTION;
