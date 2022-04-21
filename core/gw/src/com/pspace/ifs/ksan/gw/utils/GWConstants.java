@@ -277,6 +277,7 @@ public final class GWConstants {
 	public static final String ISO_8601_TIME_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
 	public static final String ISO_8601_TIME_SIMPLE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String ISO_8601_TIME_FORMAT_MILI = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+	public static final String LIFECYCLE_CONTAIN_TIME = "T00:00:00";
 
 	public static final String HMAC_SHA1 = "HmacSHA1";
 	public static final String AWS4_HMAC_SHA256 = "AWS4-HMAC-SHA256";
@@ -1068,6 +1069,7 @@ public final class GWConstants {
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
+	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path - match disk id : {}";
 
 	// UploadPartCopy
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";
@@ -1115,6 +1117,8 @@ public final class GWConstants {
 	public static final String LOG_DATA_VERSION_ID_MARKER_NULL = "versionIdMarker is null or empty";
 	public static final String LOG_DATA_MAX_PARTS_NULL = "maxParts is null or empty";
 	public static final String LOG_DATA_PART_NUMBER_MARKER_NULL = "partNumberMarker is null or empty";
+	public static final String LOG_DATA_LIFECYCLE_R1_STATUS = "rl.status : {}";
+	public static final String LOG_DATA_LIFECYCLE_LCC_RULE_SIZE = "lcc.rules.size : {}, id.size : {}";
 
 	// ObjManagerHelper
 	public static final String LOG_OBJMANAGER_COUNT = "objManager count : {}";
@@ -1181,6 +1185,7 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_OPTION_NO_CASE = "option({}) is not supported.";
 
 	// S3Range
+	public static final String LOG_S3RANGE_VALUE = "range : {}";
 	public static final String LOG_S3RANGE_EMPTY = "Range is empty";
 	public static final String LOG_S3RANGE_INVALID = "Range({})_is not valid";
 	public static final String LOG_S3RANGE_NOT_SATISFIABLE = "The requested range is not satisfiable : {}";

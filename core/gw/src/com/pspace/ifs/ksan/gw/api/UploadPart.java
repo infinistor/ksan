@@ -11,7 +11,6 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +24,9 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
@@ -91,9 +90,6 @@ public class UploadPart extends S3Request {
 			logger.error(GWConstants.LENGTH_REQUIRED);
 			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH, s3Parameter);
 		}
-
-		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
 		
 		ObjMultipart objMultipart = null;
 		Multipart multipart = null;
@@ -112,6 +108,8 @@ public class UploadPart extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		// get metadata
+		S3Metadata s3Metadata = new S3Metadata();
 		ObjectMapper jsonMapper = new ObjectMapper();
 		try {
 			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
@@ -120,17 +118,40 @@ public class UploadPart extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
-		Metadata objMeta = createLocal(bucket, object);
-
+		// check SSE
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			if (!GWConstants.AES256.equalsIgnoreCase(customerAlgorithm)) {
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+			} else {
+				s3Metadata.setServersideEncryption(customerAlgorithm);
+			}
+		}
+		if (!Strings.isNullOrEmpty(customerKey)) {
+			s3Metadata.setCustomerKey(customerKey);
+		}
+		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
+			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
+		}
 		if (!Strings.isNullOrEmpty(contentMD5String)) {
 			s3Metadata.setContentMD5(contentMD5String);
 		}
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
-		String path = GWDiskConfig.getInstance().getLocalPath();
+		Metadata objMeta = createLocal(bucket, object);
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, null);
+		// check encryption
+		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		s3ObjectEncryption.build();
+
+		String path = GWDiskConfig.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		if (path == null) {
+			logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+
+		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
 		Metadata part = null;
 		S3Object s3Object = null;
 		try {

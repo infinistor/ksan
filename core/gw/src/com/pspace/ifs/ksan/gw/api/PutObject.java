@@ -347,7 +347,6 @@ public class PutObject extends S3Request {
 		S3Object s3Object = objectOperation.putObject();
 
 		s3Metadata.setETag(s3Object.getEtag());
-		s3Metadata.setSize(s3Object.getFileSize());
 		s3Metadata.setContentLength(s3Object.getFileSize());
 		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 		s3Metadata.setLastModified(s3Object.getLastModified());
@@ -371,10 +370,9 @@ public class PutObject extends S3Request {
 
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			int result;
 			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
-			result = insertObject(bucket, object, objMeta);
+			int result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);

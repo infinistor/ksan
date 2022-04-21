@@ -23,6 +23,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -166,10 +167,10 @@ public class CopyObject extends S3Request {
 		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
 
 		// get metadata
-		S3Metadata s3Metadata = null;
+		S3Metadata srcMetadata = null;
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			s3Metadata = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
+			srcMetadata = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -177,15 +178,15 @@ public class CopyObject extends S3Request {
 
         // Check match
 		if (!Strings.isNullOrEmpty(copySourceIfMatch)) {
-			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
-			if (!GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
+			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, srcMetadata.getETag(), copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
+			if (!GWUtils.maybeQuoteETag(srcMetadata.getETag()).equals(copySourceIfMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				throw new GWException(GWErrorCode.PRECONDITION_FAILED, s3Parameter);
 			}
 		}
 
 		if (!Strings.isNullOrEmpty(copySourceIfNoneMatch)) {
-			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
-			if (GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
+			logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, srcMetadata.getETag(), copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""));
+			if (GWUtils.maybeQuoteETag(srcMetadata.getETag()).equals(copySourceIfNoneMatch.replace(GWConstants.DOUBLE_QUOTE, ""))) {
 				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH), s3Parameter);
 			}
 		}
@@ -194,8 +195,8 @@ public class CopyObject extends S3Request {
 			long copySourceIfModifiedSinceLong = Long.parseLong(copySourceIfModifiedSince);
 			if (copySourceIfModifiedSinceLong != -1) {
 				Date modifiedSince = new Date(copySourceIfModifiedSinceLong);
-				if (s3Metadata.getLastModified().before(modifiedSince)) {
-					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, s3Metadata.getLastModified(), modifiedSince), s3Parameter);
+				if (srcMetadata.getLastModified().before(modifiedSince)) {
+					throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_MATCH_BEFORE, srcMetadata.getLastModified(), modifiedSince), s3Parameter);
 				}
 			}
 		}
@@ -204,8 +205,8 @@ public class CopyObject extends S3Request {
 			long copySourceIfUnmodifiedSinceLong = Long.parseLong(copySourceIfUnmodifiedSince);
 			if (copySourceIfUnmodifiedSinceLong != -1) {
 				Date unmodifiedSince = new Date(copySourceIfUnmodifiedSinceLong);
-				if (s3Metadata.getLastModified().after(unmodifiedSince)) {
-					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, s3Metadata.getLastModified(), unmodifiedSince), s3Parameter);
+				if (srcMetadata.getLastModified().after(unmodifiedSince)) {
+					throw new GWException(GWErrorCode.PRECONDITION_FAILED, String.format(GWConstants.LOG_MATCH_AFTER, srcMetadata.getLastModified(), unmodifiedSince), s3Parameter);
 				}
 			}
 		}
@@ -232,52 +233,75 @@ public class CopyObject extends S3Request {
 										dataCopyObject.getGrantWriteAcp(),
 										s3Parameter);
         
+		// check replace or copy
         boolean bReplaceMetadata = false;
 		logger.debug(GWConstants.LOG_COPY_OBJECT_METADATA_DIRECTIVE, metadataDirective);
 		if (!Strings.isNullOrEmpty(metadataDirective) && metadataDirective.equalsIgnoreCase(GWConstants.REPLACE)) {
             bReplaceMetadata = true;
 		}
 		
-        s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
-        s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
+        srcMetadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+        srcMetadata.setOwnerName(s3Parameter.getUser().getUserName());
+
         if (userMetadata.size() > 0) {
             for (String key : userMetadata.keySet()) {
                 logger.info(GWConstants.LOG_COPY_OBJECT_USER_METADATA, key, userMetadata.get(key));
             }
             if (bReplaceMetadata) {
 				logger.info(GWConstants.LOG_COPY_OBJECT_REPLACE_USER_METADATA, userMetadata.toString());
-                s3Metadata.setUserMetadataMap(userMetadata);
+                srcMetadata.setUserMetadataMap(userMetadata);
             }
         }
 
+		if (!Strings.isNullOrEmpty(serversideEncryption)) {
+			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+			} else {
+				srcMetadata.setServersideEncryption(serversideEncryption);
+			}
+		}
         if (!Strings.isNullOrEmpty(cacheControl) && bReplaceMetadata) {
-				s3Metadata.setCacheControl(cacheControl);
+			srcMetadata.setCacheControl(cacheControl);
 		}
 		if (!Strings.isNullOrEmpty(contentDisposition) && bReplaceMetadata) {
-				s3Metadata.setContentDisposition(contentDisposition);
+			srcMetadata.setContentDisposition(contentDisposition);
 		}
 		if (!Strings.isNullOrEmpty(contentEncoding) && bReplaceMetadata) {
-				s3Metadata.setContentEncoding(contentEncoding);
+			srcMetadata.setContentEncoding(contentEncoding);
 		}
 		if (!Strings.isNullOrEmpty(contentLanguage) && bReplaceMetadata) {
-				s3Metadata.setContentLanguage(contentLanguage);
+			srcMetadata.setContentLanguage(contentLanguage);
 		}
 		if (!Strings.isNullOrEmpty(contentType) && bReplaceMetadata) {
-				s3Metadata.setContentType(contentType);
+			srcMetadata.setContentType(contentType);
 		}
-
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			if (!customerAlgorithm.equalsIgnoreCase(GWConstants.AES256)) {
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+			} else {
+				srcMetadata.setCustomerAlgorithm(customerAlgorithm);
+			}
+		}
+		if (!Strings.isNullOrEmpty(customerKey)) {
+			srcMetadata.setCustomerKey(customerKey);
+		}
+		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
+			srcMetadata.setCustomerKeyMD5(customerKeyMD5);
+		}
         if (Strings.isNullOrEmpty(contentLengthString)) {
             logger.error(GWErrorCode.MISSING_CONTENT_LENGTH.getMessage());
 			throw new GWException(GWErrorCode.MISSING_CONTENT_LENGTH, s3Parameter);
-        } /*else {
+        } else {
             try {
                 long contentLength = Long.parseLong(contentLengthString);
-                s3Metadata.setContentLength(contentLength);
+                srcMetadata.setContentLength(contentLength);
             } catch (NumberFormatException e) {
                 logger.error(e.getMessage());
-				throw new S3Exception(S3ErrorCode.INVALID_ARGUMENT, e);
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
             }
-        }*/
+        }
 
 		String jsonmeta = "";
         // update
@@ -286,16 +310,16 @@ public class CopyObject extends S3Request {
                 // update metadata
 				try {
 					S3Metadata metaClass = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
-					s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
-					s3Metadata.setContentLength(metaClass.getContentLength());
-					s3Metadata.setETag(metaClass.getETag());
+					srcMetadata.setTier(GWConstants.AWS_TIER_STANTARD);
+					srcMetadata.setContentLength(metaClass.getContentLength());
+					srcMetadata.setETag(metaClass.getETag());
 				} catch (JsonProcessingException e) {
 					PrintStack.logging(logger, e);
 					throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 				}
-				s3Metadata.setLastModified(new Date());
+				srcMetadata.setLastModified(new Date());
 				try {
-					jsonmeta = objectMapper.writeValueAsString(s3Metadata);
+					jsonmeta = objectMapper.writeValueAsString(srcMetadata);
 				} catch (JsonProcessingException e) {
 					PrintStack.logging(logger, e);
                     throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -313,8 +337,8 @@ public class CopyObject extends S3Request {
                     xmlout.writeStartElement(GWConstants.COPY_OBJECT_RESULT);
                     xmlout.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 
-                    writeSimpleElement(xmlout, GWConstants.LAST_MODIFIED, formatDate(s3Metadata.getLastModified()));
-                    writeSimpleElement(xmlout, GWConstants.ETAG, GWUtils.maybeQuoteETag(s3Metadata.getETag()));
+                    writeSimpleElement(xmlout, GWConstants.LAST_MODIFIED, formatDate(srcMetadata.getLastModified()));
+                    writeSimpleElement(xmlout, GWConstants.ETAG, GWUtils.maybeQuoteETag(srcMetadata.getETag()));
 
                     xmlout.writeEndElement();
                     xmlout.flush();
@@ -341,18 +365,18 @@ public class CopyObject extends S3Request {
 			versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 		}
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, null);
+		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, srcMetadata, s3Parameter, versionId, null);
 		S3Object s3Object = objectOperation.copyObject(srcMeta);
 
-        s3Metadata.setETag(s3Object.getEtag());
-		s3Metadata.setSize(s3Object.getFileSize());
-		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
-		s3Metadata.setLastModified(s3Object.getLastModified());
-		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
-		s3Metadata.setVersionId(s3Object.getVersionId());
+        srcMetadata.setETag(s3Object.getEtag());
+		srcMetadata.setContentLength(s3Object.getFileSize());
+		srcMetadata.setTier(GWConstants.AWS_TIER_STANTARD);
+		srcMetadata.setLastModified(s3Object.getLastModified());
+		srcMetadata.setDeleteMarker(s3Object.getDeleteMarker());
+		srcMetadata.setVersionId(s3Object.getVersionId());
 
         try {
-			jsonmeta = objectMapper.writeValueAsString(s3Metadata);
+			jsonmeta = objectMapper.writeValueAsString(srcMetadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -382,7 +406,7 @@ public class CopyObject extends S3Request {
 			xmlout.writeStartElement(GWConstants.COPY_OBJECT_RESULT);
 			xmlout.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 
-			writeSimpleElement(xmlout, GWConstants.LAST_MODIFIED, formatDate(s3Metadata.getLastModified()));
+			writeSimpleElement(xmlout, GWConstants.LAST_MODIFIED, formatDate(srcMetadata.getLastModified()));
 			writeSimpleElement(xmlout, GWConstants.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
 
 			xmlout.writeEndElement();

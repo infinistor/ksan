@@ -38,7 +38,7 @@ public class ResultRange {
         } else {
             status = HttpServletResponse.SC_PARTIAL_CONTENT;
             s3Range = new S3Range(s3Parameter);
-            s3Range.parseRange(range, s3Metadata.getSize(), false);
+            s3Range.parseRange(range, s3Metadata.getContentLength(), false);
             checkRange();
         }
     }

@@ -23,6 +23,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.object.multipart.Part;
@@ -152,21 +154,32 @@ public class CompleteMultipartUpload extends S3Request {
 		// get Acl, Meta data
 		Multipart multipart = null;
 		try {
-			objMultipart = new ObjMultipart(bucket);
+			// objMultipart = new ObjMultipart(bucket);
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
 				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
+
 		String acl = multipart.getAcl();
 		String meta = multipart.getMeta();
+		S3Metadata s3Metadata = null;
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			logger.debug(GWConstants.LOG_META, meta);
+			s3Metadata = objectMapper.readValue(meta, S3Metadata.class);
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+		
+		// check encryption
+		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		s3ObjectEncryption.build();
 		
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
@@ -204,10 +217,10 @@ public class CompleteMultipartUpload extends S3Request {
 			final AtomicReference<S3Object> s3Object = new AtomicReference<>();
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
-			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
+			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
 			
 			ObjectMapper jsonMapper = new ObjectMapper();
-			S3Metadata s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
+			
 			SortedMap<Integer, Part> constListPart = listPart;
 
 			Thread thread = new Thread() {
@@ -267,8 +280,7 @@ public class CompleteMultipartUpload extends S3Request {
 
 			xmlStreamWriter.writeEndElement();
 			xmlStreamWriter.flush();
-					
-			s3Metadata.setSize(s3Object.get().getFileSize());
+
 			s3Metadata.setContentLength(s3Object.get().getFileSize());
 			s3Metadata.setETag(s3Object.get().getEtag());
 			s3Metadata.setLastModified(s3Object.get().getLastModified());
