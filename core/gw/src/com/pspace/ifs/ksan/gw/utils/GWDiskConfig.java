@@ -14,8 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -29,8 +28,7 @@ public class GWDiskConfig {
     private static final Logger logger = LoggerFactory.getLogger(GWDiskConfig.class);
     private DISKPOOLLIST diskPoolList;
     private String localHost;
-    private List<String> diskList = new ArrayList<String>();
-    private List<String> pathList = new ArrayList<String>();
+    private HashMap<String, String> localDiskInfoMap = new HashMap<String, String>();
 
     public static GWDiskConfig getInstance() {
         return LazyHolder.INSTANCE;
@@ -63,37 +61,14 @@ public class GWDiskConfig {
         for (SERVER server : diskPoolList.getDiskpool().getServers()) {
             if (localHost.equals(server.getIp())) {
                 for (DISK disk : server.getDisks()) {
-                    diskList.add(disk.getId());
-                    pathList.add(disk.getPath());
+                    localDiskInfoMap.put(disk.getId(), disk.getPath());
                 }
             }
         }
     }
 
-    public String getLocalDiskID() {
-        if (diskList.size() > 0) {
-            return diskList.get(0);
-        }
-        return null;
-    }
-
-    public String getLocalPath() {
-        if (pathList.size() > 0) {
-            return pathList.get(0);
-        }
-        return null;
-    }
-
-    public String getPath(String diskID) {
-        for (SERVER server : diskPoolList.getDiskpool().getServers()) {
-            for (DISK disk : server.getDisks()) {
-                if (diskID.equals(disk.getId())) {
-                    return disk.getPath();
-                }
-            }
-        }
-
-        return null;
+    public String getLocalPath(String diskID) {
+        return localDiskInfoMap.get(diskID);
     }
 
     public String getOSDIP(String diskID) {

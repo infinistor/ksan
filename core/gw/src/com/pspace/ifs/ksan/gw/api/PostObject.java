@@ -341,7 +341,6 @@ public class PostObject extends S3Request {
 		S3Object s3Object = objectOperation.putObject();
 
 		s3Metadata.setETag(s3Object.getEtag());
-		s3Metadata.setSize(s3Object.getFileSize());
 		s3Metadata.setContentLength(s3Object.getFileSize());
 		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 		s3Metadata.setLastModified(s3Object.getLastModified());

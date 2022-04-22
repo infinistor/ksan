@@ -91,21 +91,21 @@ public class DataPutBucketLifeCycle extends S3DataRequest {
 				}
 				
 				if (rl.status != null && rl.status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
-					logger.error("rl.status : {}", rl.status);
+					logger.error(GWConstants.LOG_DATA_LIFECYCLE_R1_STATUS, rl.status);
 					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 				}
 
 				// date check
 				if( rl.expiration != null) {
-					if( !Strings.isNullOrEmpty(rl.expiration.date) ) {
-						if( !rl.expiration.date.contains("T00:00:00") )
+					if(!Strings.isNullOrEmpty(rl.expiration.date)) {
+						if(!rl.expiration.date.contains(GWConstants.LIFECYCLE_CONTAIN_TIME))
 							throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 				}
 			}
 
 			if( lcc.rules.size() > id.size() ) {
-				logger.error("lcc.rules.isze : {}, id.size : {}", lcc.rules.size(), id.size());
+				logger.error(GWConstants.LOG_DATA_LIFECYCLE_LCC_RULE_SIZE, lcc.rules.size(), id.size());
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 		}

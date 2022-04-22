@@ -125,7 +125,7 @@ public class GWUtils {
 			response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
 			response.addHeader(HttpHeaders.CONTENT_LENGTH, streamsize.toString());
 		} else {
-			response.addHeader(HttpHeaders.CONTENT_LENGTH, s3Metadata.getSize().toString());
+			response.addHeader(HttpHeaders.CONTENT_LENGTH, s3Metadata.getContentLength().toString());
 		}
 				
 		String overrideContentType = request.getParameter(GWConstants.RESPONSE_CONTENT_TYPE);

@@ -152,7 +152,7 @@ public class ListObjectVersions extends S3Request {
 							writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, GWUtils.maybeQuoteETag(s3Metadata.getETag()));
 						}
 						
-						writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getSize().toString());
+						writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getContentLength().toString());
 						writeSimpleElement(xmlStreamWriter, GWConstants.STORAGE_CLASS, s3Metadata.getTier());
 						writeSimpleElement(xmlStreamWriter, GWConstants.VERSIONID, s3Metadata.getVersionId());
 						writeSimpleElement(xmlStreamWriter, GWConstants.XML_IS_LATEST, s3Metadata.getIsLatest());

@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -171,7 +172,7 @@ public class MongoDataRepository implements DataRepository{
         if (buckets == null){
             database.createCollection(BUCKETSCOLLECTION);
             buckets = database.getCollection(BUCKETSCOLLECTION);
-            buckets.createIndex(index);
+            buckets.createIndex(index, new IndexOptions().unique(true));
         }
     }
     
@@ -184,7 +185,7 @@ public class MongoDataRepository implements DataRepository{
         if (userDiskPool == null){
             database.createCollection(USERSDISKPOOL);
             userDiskPool = database.getCollection(USERSDISKPOOL);
-            userDiskPool.createIndex(index);
+            userDiskPool.createIndex(index, new IndexOptions().unique(true));
         }
     }
     
@@ -195,7 +196,7 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null){
             database.createCollection(MULTIPARTUPLOAD);
             multip = database.getCollection(MULTIPARTUPLOAD);
-            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME));
+            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
         
         return multip;
@@ -420,7 +421,7 @@ public class MongoDataRepository implements DataRepository{
             index.append(VERSIONID, 1);
             index.append(LASTVERSION, 1);
             index.append(DELETEMARKER, 1);
-            database.getCollection(bt.getName()).createIndex(index);
+            database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
             //bt = new Bucket(bucketName, bucketName, diskPoolId);
             getUserDiskPool(bt);
         } catch(SQLException ex){
@@ -436,6 +437,16 @@ public class MongoDataRepository implements DataRepository{
         return 0;
     }
 
+    private long getParseLong(Document doc, String key){
+        long value = 0;
+        Object tmp = doc.get(key);
+        
+        if (tmp != null)
+            value = Long.valueOf(tmp.toString());
+        
+        return value;
+    }
+    
     private Bucket parseBucket(String bucketName, Document doc) throws ResourceNotFoundException, SQLException{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not bucket with a name " + bucketName);
@@ -455,8 +466,10 @@ public class MongoDataRepository implements DataRepository{
         String objectlock = doc.getString(OBJECTLOCK);
         String encryption = doc.getString(ENCRYPTION);
         String policy     = doc.getString(POLICY);
-        long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
-        long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
+        long usedSpace = getParseLong(doc, USEDSPACE);
+        long fileCount = getParseLong(doc, FILECOUNT);
+        //long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
+        //long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
         
         Date createTime;
         try {

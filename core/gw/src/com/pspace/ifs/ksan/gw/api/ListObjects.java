@@ -134,7 +134,7 @@ public class ListObjects extends S3Request {
 					writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, GWUtils.maybeQuoteETag(s3Metadata.getETag()));
 				}
 				
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getSize().toString());
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getContentLength().toString());
 				writeSimpleElement(xmlStreamWriter, GWConstants.STORAGE_CLASS, s3Metadata.getTier());
 				writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 				xmlStreamWriter.writeEndElement();
