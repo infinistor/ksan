@@ -141,7 +141,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_RANGE_INFO = "offset : {}, length : {}";
     public static final String LOG_OSD_SERVER_FAILED_FILE_DELETE = "failed file delete {}";
     public static final String LOG_OSD_SERVER_UNKNOWN_DATA = "Unknown data : {}";
-    public static final String LOG_OSD_SERVER_FAILED_FILE_RENAME = "failed file rename {}";
+    public static final String LOG_OSD_SERVER_FAILED_FILE_RENAME = "failed file rename {} -> {}";
     
     public static final String LOG_OSD_SERVER_GET_START = "get start ...";
     public static final String LOG_OSD_SERVER_GET_INFO = "path : {}, objId : {}, versionId : {}, source range : {}";

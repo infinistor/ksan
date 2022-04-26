@@ -69,6 +69,7 @@ public class OSDClientManager {
     public void init(int port, int osdClientCount) throws Exception {
         logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_CLIENT_COUNT, osdClientCount);
         GenericObjectPoolConfig  config = new GenericObjectPoolConfig();
+        config.setTestOnReturn(true);
         config.setMaxTotal(osdClientCount);
 
         for (SERVER server : diskpoolList.getDiskpool().getServers()) {

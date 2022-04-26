@@ -13,12 +13,16 @@ package com.pspace.ifs.ksan.osd;
 
 import static com.google.common.io.BaseEncoding.base16;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -111,18 +115,26 @@ public class OSDServer {
             try {
                 byte[] buffer = new byte[OSDConstants.HEADERSIZE];
                 DataInputStream di = new DataInputStream(socket.getInputStream());
+                boolean flag = false;
+
                 while (true) {
-                    int length = di.readInt();
-                    if (length > OSDConstants.HEADERSIZE) {
-                        logger.error("HEADERSIZE is too big : {}", length);
+                    int length = socket.getInputStream().read();
+                    if (length == -1) {
+                        logger.info("socket {} EOF ...", socket.getRemoteSocketAddress().toString());
                         break;
                     }
 
-                    di.read(buffer, 0, length);
+                    logger.info("header length : {}", length);
+                    // if (length > OSDConstants.HEADERSIZE) {
+                    //     logger.error("Header size is too big : {}", length);
+                    //     break;
+                    // }
+
+                    socket.getInputStream().read(buffer, 0, length);
                     String indicator = new String(buffer, 0, OSDConstants.INDICATOR_SIZE);
                     String header = new String(buffer, 0, length);
                     String[] headers = header.split(OSDConstants.DELIMITER, -1);
-    
+                    
                     switch (indicator) {
                     case OSDConstants.GET:
                         get(headers);
@@ -173,12 +185,15 @@ public class OSDServer {
     
                     default:
                         logger.error(OSDConstants.LOG_OSD_SERVER_UNKNOWN_INDICATOR, indicator);
+                        flag = true;
+                    }
+                    
+                    if (flag) {
+                        break;
                     }
                 }
             } catch (IOException | NoSuchAlgorithmException e) {
-                if (e.getMessage() != null) {
-                    logger.error(e.getMessage());
-                }
+                logger.error("closed socket : {}", socket.getRemoteSocketAddress().toString());
 
                 if (socket.isClosed()) {
                     logger.error("Socket is closed");
@@ -311,6 +326,7 @@ public class OSDServer {
             socket.getOutputStream().flush();
             
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_END, readTotal);
+            logger.info("from : {}", socket.getRemoteSocketAddress().toString());
             logger.info(OSDConstants.LOG_OSD_SERVER_GET_SUCCESS_INFO, path, objId, versionId, sourceRange);
         }
     
@@ -360,7 +376,7 @@ public class OSDServer {
                     long remainLength = length;
                     int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
                     encryptOS = OSDUtils.initCtrEncrypt(fos, key);
-                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
                         remainLength -= readLength;
                         if (!isNoDisk) {
                             encryptOS.write(buffer, 0, readLength);
@@ -393,7 +409,7 @@ public class OSDServer {
                     int readLength = 0;
                     long remainLength = length;
                     int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
-                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
                         remainLength -= readLength;
                         if (!isNoDisk) {
                             fos.write(buffer, 0, readLength);
@@ -410,15 +426,19 @@ public class OSDServer {
             }
 
             if (file.exists()) {
-                retryRenameTo(file, trashFile);
+                File temp = new File(file.getAbsolutePath());
+                logger.info("file is already exists : {}", file.getAbsolutePath());
+                retryRenameTo(temp, trashFile);
             }
-            OSDUtils.getInstance().setAttributeFileReplication(tmpFile, replication, replicaDiskID);
+
+            // OSDUtils.getInstance().setAttributeFileReplication(tmpFile, replication, replicaDiskID);
             retryRenameTo(tmpFile, file);
             if (!Strings.isNullOrEmpty(OSDUtils.getInstance().getCacheDisk()) && length <= (OSDUtils.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
                 String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
                 Files.createSymbolicLink(Paths.get(fullPath), Paths.get(file.getAbsolutePath()));
             }
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_END);
+            logger.info("from : {}", socket.getRemoteSocketAddress().toString());
             logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);
         }
     
@@ -521,9 +541,10 @@ public class OSDServer {
                         fos.flush();
                     }
                     if (file.exists()) {
-                        retryRenameTo(file, trashFile);
+                        File temp = new File(file.getAbsolutePath());
+                        retryRenameTo(temp, trashFile);
                     }
-                    OSDUtils.getInstance().setAttributeFileReplication(file, replication, replicaDiskID);
+                    // OSDUtils.getInstance().setAttributeFileReplication(file, replication, replicaDiskID);
                     retryRenameTo(tmpFile, file);
                 } else {
                     try (Socket destSocket = new Socket(destIP, port)) {
@@ -614,7 +635,7 @@ public class OSDServer {
                 int readLength = 0;
                 long remainLength = length;
                 int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
-                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) > 0) {
+                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
                     remainLength -= readLength;
                     fos.write(buffer, 0, readLength);
                     if (remainLength <= 0) {
@@ -758,7 +779,8 @@ public class OSDServer {
                 }
             }
             if (file.exists()) {
-                retryRenameTo(file, trashFile);
+                File temp = new File(file.getAbsolutePath());
+                retryRenameTo(temp, trashFile);
             }
             
             retryRenameTo(tmpFile, file);
@@ -846,14 +868,14 @@ public class OSDServer {
             return null;
         }
 
-        private void retryRenameTo(File tempFile, File destFile) throws IOException {
-            if (tempFile.exists()) {
+        private void retryRenameTo(File srcFile, File destFile) throws IOException {
+            if (srcFile.exists()) {
                 for (int i = 0; i < OSDConstants.RETRY_COUNT; i++) {
-                    if (tempFile.renameTo(destFile)) {
+                    if (srcFile.renameTo(destFile)) {
                         return;
                     }
                 }
-                logger.error(OSDConstants.LOG_OSD_SERVER_FAILED_FILE_RENAME, destFile.getName());
+                logger.error(OSDConstants.LOG_OSD_SERVER_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
             }
         }
     }

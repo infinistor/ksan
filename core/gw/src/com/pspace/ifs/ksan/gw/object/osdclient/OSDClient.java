@@ -10,10 +10,13 @@
 */
 package com.pspace.ifs.ksan.gw.object.osdclient;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -51,6 +54,7 @@ public class OSDClient {
 	}
 
 	public void close() {
+		logger.debug(GWConstants.LOG_OSDCLIENT_CLOSE_SOCKET_INFO, socket.toString());
 		if (socket != null) {
 			try {
 				socket.close();
@@ -81,16 +85,15 @@ public class OSDClient {
 		int readLength = 0;
 		long readTotal = 0L;
 		
-		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) >= 0) {
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
-			logger.debug(GWConstants.LOG_OSDCLIENT_READ, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}
 		}
 		byPassOut.flush();
-
+		logger.info(GWConstants.LOG_OSDCLIENT_READ, readTotal);
 		return readTotal;
 	}
 
@@ -109,7 +112,7 @@ public class OSDClient {
 		int readLength = 0;
 		long readTotal = 0L;
 		
-		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) >= 0) {
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
 			md5er.update(buffer, 0, readLength);
@@ -205,14 +208,12 @@ public class OSDClient {
 
 	private void sendHeader(String header) throws IOException {
 		byte[] buffer = header.getBytes(GWConstants.CHARSET_UTF_8);
-		int size = buffer.length;
+		byte length = (byte)buffer.length;
+		socket.getOutputStream().write(length);
 		
-		DataOutputStream so = new DataOutputStream(socket.getOutputStream());
-		
-		so.writeInt(size);
-		logger.info("send header size : {}", size);
-		so.write(buffer, 0, size);
-        so.flush();
+		socket.getOutputStream().write(buffer, 0, buffer.length);
+		socket.getOutputStream().flush();
+		logger.info("send header size : {}", buffer.length);
 	}
 
 	private OSDData receiveData() throws IOException {
