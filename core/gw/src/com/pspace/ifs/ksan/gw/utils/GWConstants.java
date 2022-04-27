@@ -807,6 +807,7 @@ public final class GWConstants {
 	public static final String LOG_COPY_OBJECT_META = "meta : {}";
 	public static final String LOG_COPY_OBJECT_FAILED = "object insert failed(CopyObject). bucket={}, object={}";
 	public static final String LOG_COPY_OBJECT_INFO = "pub object : {}/{}, size={}, etag={}, tag={}, acl={}, versionId={}";
+	public static final String LOG_COPY_OBJECT_ENCRYPTION = "bucket encryption : {}";
 
 	// CreateBucket
 	public static final String LOG_CREATE_BUCKET_START = "CreateBucket ...";

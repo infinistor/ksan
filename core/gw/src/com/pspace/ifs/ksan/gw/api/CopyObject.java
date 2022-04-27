@@ -201,12 +201,12 @@ public class CopyObject extends S3Request {
 		s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
-		logger.debug("bucket encryption : {}", bucketEncryption);
+		logger.debug(GWConstants.LOG_COPY_OBJECT_ENCRYPTION, bucketEncryption);
 		// check encryption
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
 		encryption.build();
 		if (encryption.isEncryptionEnabled()) {
-			s3Metadata.setServersideEncryption("AES256");
+			s3Metadata.setServersideEncryption(GWConstants.AES256);
 		} else {
 			s3Metadata.setServersideEncryption(null);
 		}
