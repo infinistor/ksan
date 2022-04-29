@@ -8,28 +8,17 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System;
 
-namespace PortalData.Enums
+namespace PortalData.Responses.Configs
 {
-	/// <summary>서비스 타입</summary>
-	[JsonConverter(typeof(StringEnumConverter))]
-	public enum EnumServiceType
+	/// <summary>서비스 설정 응답 인터페이스</summary>
+	public class ResponseUpdateConfig
 	{
-		/// <summary>Unknown</summary>
-		Unknown = -1,
-		/// <summary>OSD</summary>
-		OSD,
-		/// <summary>S3</summary>
-		S3,
-		/// <summary>S3 Backend</summary>
-		S3Backend,
-		/// <summary>HA Proxy</summary>
-		HaProxy,
-		/// <summary>Monitor</summary>
-		Monitor,
-		/// <summary>Edge</summary>
-		Edge,
+		/// <summary> 설정 버전 </summary>
+		public int Version { get; set; }
+
+		/// <summary> 추가 일자 </summary>
+		public virtual DateTime RegDate { get; set; }
 	}
 }
