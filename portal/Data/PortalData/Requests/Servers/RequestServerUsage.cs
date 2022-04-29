@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -29,7 +29,7 @@ namespace PortalData.Requests.Servers
 
 		/// <summary>15분 Load Average</summary>
 		public float LoadAverage15M { get; set; }
-		
+
 		/// <summary>사용 메모리 크기</summary>
 		[Range(0, 999999999999999, ErrorMessageResourceName = "EM_SERVERS_MEMORY_SIZE_MUST_BE_AT_LEAST_0", ErrorMessageResourceType = typeof(Resource))]
 		public decimal MemoryUsed { get; set; }

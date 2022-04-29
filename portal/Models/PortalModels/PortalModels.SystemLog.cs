@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -12,31 +12,32 @@ using System;
 
 namespace PortalModels
 {
-    /// <summary>시스템 로그</summary>
-    public partial class SystemLog {
+	/// <summary> 시스템 로그 </summary>
+	public partial class SystemLog
+	{
 
-        public SystemLog()
-        {
-            OnCreated();
-        }
+		public SystemLog()
+		{
+			OnCreated();
+		}
 
-        /// <summary>로그 아이디</summary>
-        public virtual long LogId { get; set; }
+		/// <summary> 로그 아이디 </summary>
+		public virtual long LogId { get; set; }
 
-        /// <summary>로그 레벨</summary>
-        public virtual EnumDbLogLevel LogLevel { get; set; }
+		/// <summary> 로그 레벨 </summary>
+		public virtual EnumDbLogLevel LogLevel { get; set; }
 
-        /// <summary>등록일시</summary>
-        public virtual DateTime RegDate { get; set; }
+		/// <summary> 등록일시 </summary>
+		public virtual DateTime RegDate { get; set; }
 
-        /// <summary>메세지</summary>
-        public virtual string Message { get; set; }
+		/// <summary> 메세지 </summary>
+		public virtual string Message { get; set; }
 
-        #region Extensibility Method Definitions
+		#region Extensibility Method Definitions
 
-        partial void OnCreated();
+		partial void OnCreated();
 
-        #endregion
-    }
+		#endregion
+	}
 
 }

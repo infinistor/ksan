@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -12,55 +12,56 @@ using System;
 
 namespace PortalModels
 {
-    /// <summary>서비스 사용 네트워크 인터페이스 정보</summary>
-    public partial class ServiceNetworkInterfaceVlan {
+	/// <summary> 서비스 사용 네트워크 인터페이스 정보 </summary>
+	public partial class ServiceNetworkInterfaceVlan
+	{
 
-        public ServiceNetworkInterfaceVlan()
-        {
-            OnCreated();
-        }
+		public ServiceNetworkInterfaceVlan()
+		{
+			OnCreated();
+		}
 
-        /// <summary>서비스 아이디</summary>
-        public virtual Guid ServiceId { get; set; }
+		/// <summary> 서비스 아이디 </summary>
+		public virtual Guid ServiceId { get; set; }
 
-        /// <summary>네트워크 인터페이스 VLAN 아이디</summary>
-        public virtual Guid VlanId { get; set; }
+		/// <summary> 네트워크 인터페이스 VLAN 아이디 </summary>
+		public virtual Guid VlanId { get; set; }
 
-        /// <summary>서비스 정보</summary>
-        public virtual Service Service { get; set; }
+		/// <summary> 서비스 정보 </summary>
+		public virtual Service Service { get; set; }
 
-        /// <summary>네트워크 인터페이스 VLAN 정보</summary>
-        public virtual NetworkInterfaceVlan NetworkInterfaceVlan { get; set; }
+		/// <summary> 네트워크 인터페이스 VLAN 정보 </summary>
+		public virtual NetworkInterfaceVlan NetworkInterfaceVlan { get; set; }
 
-        #region Extensibility Method Definitions
+		#region Extensibility Method Definitions
 
-        partial void OnCreated();
+		partial void OnCreated();
 
-        public override bool Equals(object obj)
-        {
-          ServiceNetworkInterfaceVlan toCompare = obj as ServiceNetworkInterfaceVlan;
-          if (toCompare == null)
-          {
-            return false;
-          }
+		public override bool Equals(object obj)
+		{
+			ServiceNetworkInterfaceVlan toCompare = obj as ServiceNetworkInterfaceVlan;
+			if (toCompare == null)
+			{
+				return false;
+			}
 
-          if (!Object.Equals(this.ServiceId, toCompare.ServiceId))
-            return false;
-          if (!Object.Equals(this.VlanId, toCompare.VlanId))
-            return false;
+			if (!Object.Equals(this.ServiceId, toCompare.ServiceId))
+				return false;
+			if (!Object.Equals(this.VlanId, toCompare.VlanId))
+				return false;
 
-          return true;
-        }
+			return true;
+		}
 
-        public override int GetHashCode()
-        {
-          int hashCode = 13;
-          hashCode = (hashCode * 7) + ServiceId.GetHashCode();
-          hashCode = (hashCode * 7) + VlanId.GetHashCode();
-          return hashCode;
-        }
+		public override int GetHashCode()
+		{
+			int hashCode = 13;
+			hashCode = (hashCode * 7) + ServiceId.GetHashCode();
+			hashCode = (hashCode * 7) + VlanId.GetHashCode();
+			return hashCode;
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 
 }

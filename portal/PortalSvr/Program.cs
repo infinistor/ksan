@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -20,51 +20,51 @@ using MTLib.Core;
 namespace PortalSvr
 {
 	/// <summary>프로그램 클래스</summary>
-    public class Program
-    {
-	    /// <summary>메인 함수</summary>
-	    /// <param name="args">인수 목록</param>
-        public static void Main(string[] args)
-        {
-	        try
-	        {
-		        CreateHostBuilder(args).Build().Run();
-	        }
-	        catch (Exception ex)
-	        {
-		        NNException.Log(ex);
-	        }
-        }
-        
-        /// <summary>호스트 빌더를 생성한다.</summary>
-        /// <param name="args">인자 목록</param>
-        /// <returns>IHostBuilder 객체</returns>
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-	        Host.CreateDefaultBuilder(args)
-		        .ConfigureWebHostDefaults(webBuilder =>
-		        {
-			        webBuilder.ConfigureKestrel(serverOptions =>
-				        {
-					        serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024;
+	public class Program
+	{
+		/// <summary>메인 함수</summary>
+		/// <param name="args">인수 목록</param>
+		public static void Main(string[] args)
+		{
+			try
+			{
+				CreateHostBuilder(args).Build().Run();
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+		}
 
-					        serverOptions.Listen(IPAddress.Any, 56080);
-					        try
-					        {
-						        serverOptions.Listen(IPAddress.Any, 56443, listenOptions =>
-						        {
-							        listenOptions.UseHttps(new HttpsConnectionAdapterOptions
-							        {
-								        ServerCertificate = new X509Certificate2("pspace.pfx", "pspaceqwe123!"),
-								        SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
-							        });
-						        });
-					        }
-					        catch (Exception)
-					        {
-						        // ignored
-					        }
-				        })
-				        .UseStartup<Startup>();
-		        });
-    }
+		/// <summary>호스트 빌더를 생성한다.</summary>
+		/// <param name="args">인자 목록</param>
+		/// <returns>IHostBuilder 객체</returns>
+		public static IHostBuilder CreateHostBuilder(string[] args) =>
+			Host.CreateDefaultBuilder(args)
+				.ConfigureWebHostDefaults(webBuilder =>
+				{
+					webBuilder.ConfigureKestrel(serverOptions =>
+						{
+							serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024;
+
+							serverOptions.Listen(IPAddress.Any, 56080);
+							try
+							{
+								serverOptions.Listen(IPAddress.Any, 56443, listenOptions =>
+								{
+									listenOptions.UseHttps(new HttpsConnectionAdapterOptions
+									{
+										ServerCertificate = new X509Certificate2("pspace.pfx", "pspaceqwe123!"),
+										SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
+									});
+								});
+							}
+							catch (Exception)
+							{
+								// ignored
+							}
+						})
+						.UseStartup<Startup>();
+				});
+	}
 }

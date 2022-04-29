@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -164,7 +164,7 @@ namespace PortalSvr.Controllers.Services
 				, searchFields, searchKeyword
 			));
 		}
-		
+
 		/// <summary>특정 서비스 정보를 가져온다.</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
@@ -174,7 +174,7 @@ namespace PortalSvr.Controllers.Services
 		{
 			return Json(await m_dataProvider.Get(id));
 		}
-		
+
 		/// <summary>특정 이름의 서비스가 존재하는지 확인한다.</summary>
 		/// <param name="request">특정 이름의 서비스 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
@@ -184,7 +184,7 @@ namespace PortalSvr.Controllers.Services
 		{
 			return Json(await m_dataProvider.IsNameExist(null, request));
 		}
-		
+
 		/// <summary>특정 이름의 서비스가 존재하는지 확인한다.</summary>
 		/// <param name="exceptId">이름 검색 시 제외할 서비스 아이디</param>
 		/// <param name="request">특정 이름의 서비스 존재여부 확인 요청 객체</param>
@@ -326,7 +326,7 @@ namespace PortalSvr.Controllers.Services
 			if (response.Result == EnumResponseResult.Success)
 			{
 				// HA Proxy 타입인 경우
-				if (response.Data.ServiceType == EnumServiceType.GW)
+				if (response.Data.ServiceType == EnumServiceType.S3)
 					return Json(await m_dataProvider.GetConfig<ResponseServiceConfigForGW>(id));
 
 				// 그 외
@@ -352,7 +352,7 @@ namespace PortalSvr.Controllers.Services
 			if (response.Result == EnumResponseResult.Success)
 			{
 				// HA Proxy 타입인 경우
-				if (response.Data.ServiceType == EnumServiceType.GW)
+				if (response.Data.ServiceType == EnumServiceType.S3)
 					return Json(await m_dataProvider.SetConfig(id, config));
 
 				// 그 외

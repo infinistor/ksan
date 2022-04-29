@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -142,7 +142,7 @@ namespace PortalProvider
 		public async Task<List<string>> GetUserRoles()
 		{
 			List<string> result = new List<string>();
-			
+
 			if (m_userManager != null)
 			{
 				// 로그인한 사용자의 역할을 가져온다.
@@ -197,7 +197,7 @@ namespace PortalProvider
 			// 정렬 필드가 지정되지 않은 경우, 기본 정렬 필드 설정
 			if (orderFields.Count == 0)
 			{
-				if(DefaultOrderFields.Count > 0)
+				if (DefaultOrderFields.Count > 0)
 				{
 					orderFields.AddRange(DefaultOrderFields);
 					orderDirections.Clear();
@@ -231,7 +231,7 @@ namespace PortalProvider
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
 					if (rabbitMqRpc == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
-					
+
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
 					ResponseData<string> response = rabbitMqRpc.Send(exchange, routingKey, request, waitForResponseTimeoutSec);
 					// 에러인 경우
@@ -240,11 +240,11 @@ namespace PortalProvider
 					// 에러가 아닌 경우
 					else
 					{
-						// 결과 데이터를 객체로 변환 
+						// 결과 데이터를 객체로 변환
 						ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(response.Data);
 						result.CopyValueFrom(responseData);
 					}
-						
+
 					rabbitMqRpc.Close();
 				}
 			}
@@ -278,7 +278,7 @@ namespace PortalProvider
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
 					if (rabbitMqRpc == null)
 						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
-					
+
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
 					ResponseData<string> response = rabbitMqRpc.Send(exchange, routingKey, request, waitForResponseTimeoutSec);
 					// 에러인 경우
@@ -287,11 +287,11 @@ namespace PortalProvider
 					// 에러가 아닌 경우
 					else
 					{
-						// 결과 데이터를 객체로 변환 
+						// 결과 데이터를 객체로 변환
 						ResponseData<U> responseData = JsonConvert.DeserializeObject<ResponseData<U>>(response.Data);
 						result.CopyValueFrom(responseData);
 					}
-						
+
 					rabbitMqRpc.Close();
 				}
 			}

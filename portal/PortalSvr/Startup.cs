@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -51,82 +51,80 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 namespace PortalSvr
 {
 	/// <summary>시작 클래스</summary>
-    public class Startup
-    {
-	    /// <summary>설정 객체</summary>
-	    public IConfiguration Configuration { get; }
+	public class Startup
+	{
+		/// <summary>설정 객체</summary>
+		public IConfiguration Configuration { get; }
 
-	    /// <summary>설정 옵션 객체</summary>
-	    public NNConfigurationOptions ConfigurationOptions { get; }
+		/// <summary>설정 옵션 객체</summary>
+		public NNConfigurationOptions ConfigurationOptions { get; }
 
-	    /// <summary>서비스 프로바이더 싱글톤 객체</summary>
-	    public static System.IServiceProvider ServiceProviderSignleton { get; set; }
+		/// <summary>서비스 프로바이더 싱글톤 객체</summary>
+		public static System.IServiceProvider ServiceProviderSignleton { get; set; }
 
-	    /// <summary>생성자</summary>
-	    /// <param name="env">호스팅 환경 객체</param>
-	    /// <param name="configuration">환경 설정 객체</param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration)
-        {
-	        try
-	        {
-		        Configuration = configuration;
-
-		        // 기본 설정 옵션 생성
-		        ConfigurationOptions = new NNConfigurationOptions(env:env,
-			        applicationName:"CSSPApi",
-			        domain:Configuration["AppSettings:Domain"],
-			        sharedAuthTicketKeyPath:Configuration["AppSettings:SharedAuthTicketKeyPath"],
-			        sharedAuthTicketKeyCertificateFilePath:Configuration["AppSettings:SharedAuthTicketKeyCertificateFilePath"],
-			        sharedAuthTicketKeyCertificatePassword:Configuration["AppSettings:SharedAuthTicketKeyCertificatePassword"],
-			        sessionTimeoutMins:Configuration.GetValue<int>("AppSettings:ExpireMinutes")
-		        );
-
-		        IList<CultureInfo> supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ko") };
-
-		        ConfigurationOptions.Localization.DefaultRequestCulture = new RequestCulture("ko");
-		        ConfigurationOptions.Localization.SupportedCultures = supportedCultures;
-		        ConfigurationOptions.Localization.SupportedUICultures = supportedCultures;
-
-		        ConfigurationOptions.Identity.User.RequireUniqueEmail = true;
-		        ConfigurationOptions.Identity.Password.RequireUppercase = false;
-		        ConfigurationOptions.Identity.Password.RequireNonAlphanumeric = false;
-		        ConfigurationOptions.Identity.Password.RequireDigit = true;
-		        ConfigurationOptions.CookieAuthentication.LoginPath = new PathString("/api/v1/Account/NeedLogin");
-		        ConfigurationOptions.CookieAuthentication.LogoutPath = new PathString("/api/v1/Account/Logout");
-		        ConfigurationOptions.CookieAuthentication.AccessDeniedPath = new PathString("/api/v1/Account/AccessDenied");
-		        ConfigurationOptions.CookieAuthentication.Events.OnSigningIn = FilterRoleClaims;
-		        ConfigurationOptions.CookieAuthentication.Events.OnRedirectToLogin = (context) =>
-		        {
-			        context.HttpContext.Response.Redirect(context.RedirectUri.Replace("http://", "https://"));
-			        return Task.CompletedTask;
-		        };
-		        ConfigurationOptions.CookieAuthentication.Events.OnRedirectToAccessDenied = (context) =>
-		        {
-			        context.HttpContext.Response.Redirect(context.RedirectUri.Replace("http://", "https://"));
-			        return Task.CompletedTask;
-		        };
-		        ConfigurationOptions.LoggingSectionName = "Logging";
-	        }
-	        catch (Exception ex)
-	        {
-		        NNException.Log(ex);
-	        }
-        }
-
-        /// <summary>컨테이너에 서비스들을 추가한다.</summary>
-        /// <param name="services">서비스 집합 객체</param>
-        public void ConfigureServices(IServiceCollection services)
-        {
+		/// <summary>생성자</summary>
+		/// <param name="env">호스팅 환경 객체</param>
+		/// <param name="configuration">환경 설정 객체</param>
+		public Startup(IWebHostEnvironment env, IConfiguration configuration)
+		{
 			try
 			{
-				// 사용자 인증 관련 데이터베이스 연결 설정
-				services.AddDbContext<ApplicationIdentityDbContext>(options =>
-					options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+				Configuration = configuration;
 
+				// 기본 설정 옵션 생성
+				ConfigurationOptions = new NNConfigurationOptions(env: env,
+					applicationName: "CSSPApi",
+					domain: Configuration["AppSettings:Domain"],
+					sharedAuthTicketKeyPath: Configuration["AppSettings:SharedAuthTicketKeyPath"],
+					sharedAuthTicketKeyCertificateFilePath: Configuration["AppSettings:SharedAuthTicketKeyCertificateFilePath"],
+					sharedAuthTicketKeyCertificatePassword: Configuration["AppSettings:SharedAuthTicketKeyCertificatePassword"],
+					sessionTimeoutMins: Configuration.GetValue<int>("AppSettings:ExpireMinutes")
+				);
+
+				IList<CultureInfo> supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ko") };
+
+				ConfigurationOptions.Localization.DefaultRequestCulture = new RequestCulture("ko");
+				ConfigurationOptions.Localization.SupportedCultures = supportedCultures;
+				ConfigurationOptions.Localization.SupportedUICultures = supportedCultures;
+
+				ConfigurationOptions.Identity.User.RequireUniqueEmail = true;
+				ConfigurationOptions.Identity.Password.RequireUppercase = false;
+				ConfigurationOptions.Identity.Password.RequireNonAlphanumeric = false;
+				ConfigurationOptions.Identity.Password.RequireDigit = true;
+				ConfigurationOptions.CookieAuthentication.LoginPath = new PathString("/api/v1/Account/NeedLogin");
+				ConfigurationOptions.CookieAuthentication.LogoutPath = new PathString("/api/v1/Account/Logout");
+				ConfigurationOptions.CookieAuthentication.AccessDeniedPath = new PathString("/api/v1/Account/AccessDenied");
+				ConfigurationOptions.CookieAuthentication.Events.OnSigningIn = FilterRoleClaims;
+				ConfigurationOptions.CookieAuthentication.Events.OnRedirectToLogin = (context) =>
+				{
+					context.HttpContext.Response.Redirect(context.RedirectUri.Replace("http://", "https://"));
+					return Task.CompletedTask;
+				};
+				ConfigurationOptions.CookieAuthentication.Events.OnRedirectToAccessDenied = (context) =>
+				{
+					context.HttpContext.Response.Redirect(context.RedirectUri.Replace("http://", "https://"));
+					return Task.CompletedTask;
+				};
+				ConfigurationOptions.LoggingSectionName = "Logging";
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+		}
+
+		/// <summary>컨테이너에 서비스들을 추가한다.</summary>
+		/// <param name="services">서비스 집합 객체</param>
+		public void ConfigureServices(IServiceCollection services)
+		{
+			try
+			{
 				// 데이터베이스 연결 설정
-				services.AddDbContext<PortalModel>(options =>
-					options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
-				
+				services.AddDbContext<PortalModel>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+
+				// 사용자 인증 관련 데이터베이스 연결 설정
+				services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+
 				// 컨테이너에 기본 서비스들을 추가한다.
 				services.ConfigureServices(true, ConfigurationOptions);
 
@@ -134,7 +132,7 @@ namespace PortalSvr
 				services.ReplaceTransient<IUploadConfigLoader, UploadConfigLoader>();
 				// Smtp 설정 로더 변경
 				services.ReplaceTransient<ISmtpConfigLoader, SmtpConfigLoader>();
-				
+
 				// 프로바이더 객체 DI 설정
 				services.AddSingleton<ISystemConfigLoader, SystemConfigLoader>();
 				services.AddSingleton<IAllowConnectionIpsManager, AllowConnectionIpsManager>();
@@ -154,11 +152,12 @@ namespace PortalSvr
 				services.AddTransient<INetworkInterfaceProvider, NetworkInterfaceProvider>();
 				services.AddTransient<INetworkInterfaceVlanProvider, NetworkInterfaceVlanProvider>();
 				services.AddTransient<IDiskProvider, DiskProvider>();
+				services.AddTransient<IConfigProvider, ConfigProvider>();
 				services.AddTransient<IDiskPoolProvider, DiskPoolProvider>();
 				services.AddTransient<PortalProviderInterface.IServiceProvider, PortalProvider.Providers.Services.ServiceProvider>();
 				services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
 				services.AddTransient<IS3UserProvider, S3UserProvider>();
-				
+
 				services.AddSwaggerGen(c =>
 				{
 					c.SwaggerDoc("v1", new OpenApiInfo { Title = "KSAN", Version = "v1" });
@@ -194,16 +193,16 @@ namespace PortalSvr
 					c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PortalData.xml"));
 				});
 				services.AddSwaggerGenNewtonsoftSupport();
-				
+
 				// 서비스 프로바이더 저장
 				ServiceProviderSignleton = services.BuildServiceProvider();
-      
+
 				// Rabbit MQ 설정
 				IConfigurationSection configurationSectionRabbitMq = Configuration.GetSection("AppSettings:RabbitMq");
 				RabbitMqConfiguration rabbitMqConfiguration = configurationSectionRabbitMq.Get<RabbitMqConfiguration>();
 				services.Configure<RabbitMqConfiguration>(configurationSectionRabbitMq);
-     
-				// Rabbit MQ 
+
+				// Rabbit MQ
 				if (rabbitMqConfiguration.Enabled)
 				{
 					services.AddHostedService<RabbitMqServerReceiver>();
@@ -214,30 +213,30 @@ namespace PortalSvr
 			{
 				NNException.Log(ex);
 			}
-        }
+		}
 
-        /// <summary>HTTP 요청 파이프 라인을 구성한다.</summary>
-        /// <param name="app">어플리케이션 빌더 객체</param>
-        /// <param name="env">호스팅 환경 객체</param>
-        /// <param name="loggerFactory">로거 팩토리</param>
-        /// <param name="pathProvider">경로 도우미 객체</param>
-        /// <param name="identityDbContext">인증 관련 DB 컨텍스트</param>
-        /// <param name="dbContext">DB 컨텍스트</param>
-        /// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
-        /// <param name="roleInitializer">역할 초기화 객체</param>
-        /// <param name="accountInitializer">계정 초기화 객체</param>
-        /// <param name="diskPoolsInitializer">디스크풀 초기화 객체</param>
-        /// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
-        /// <param name="smtpConfigLoader">SMTP 설정 로더</param>
-        /// <param name="uploadConfigLoader">업로드 설정 로더</param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
-            , ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
-            , IAllowConnectionIpsManager allowAddressManager
-            , IRoleInitializer roleInitializer, IAccountInitializer accountInitializer, IDiskPoolsInitializer diskPoolsInitializer
-            , ISystemConfigLoader systemConfigLoader
-            , ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
-        )
-        {
+		/// <summary>HTTP 요청 파이프 라인을 구성한다.</summary>
+		/// <param name="app">어플리케이션 빌더 객체</param>
+		/// <param name="env">호스팅 환경 객체</param>
+		/// <param name="loggerFactory">로거 팩토리</param>
+		/// <param name="pathProvider">경로 도우미 객체</param>
+		/// <param name="identityDbContext">인증 관련 DB 컨텍스트</param>
+		/// <param name="dbContext">DB 컨텍스트</param>
+		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
+		/// <param name="roleInitializer">역할 초기화 객체</param>
+		/// <param name="accountInitializer">계정 초기화 객체</param>
+		/// <param name="diskPoolsInitializer">디스크풀 초기화 객체</param>
+		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
+		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
+		/// <param name="uploadConfigLoader">업로드 설정 로더</param>
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
+			, ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
+			, IAllowConnectionIpsManager allowAddressManager
+			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer, IDiskPoolsInitializer diskPoolsInitializer
+			, ISystemConfigLoader systemConfigLoader
+			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
+		)
+		{
 			try
 			{
 				// 생성 된 Swagger를 JSON 끝점으로 제공 할 수 있게 미들웨어를 활성화한다.
@@ -294,7 +293,7 @@ namespace PortalSvr
 				roleInitializer?.Initialize().Wait();
 				accountInitializer?.Initialize().Wait();
 				diskPoolsInitializer?.Initialize().Wait();
-				
+
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader
 										, smtpConfigLoader, uploadConfigLoader);
@@ -310,7 +309,7 @@ namespace PortalSvr
 					{
 						Resource.ResourceManager
 					};
-                
+
 					string i18nRootPath = $"{Configuration["AppSettings:I18nPath"].Replace('/', Path.DirectorySeparatorChar)}";
 
 					// 모든 언어에 대해서 리소스 파일 내용을 Json으로 저장
@@ -322,102 +321,102 @@ namespace PortalSvr
 			{
 				NNException.Log(ex);
 			}
-        }
+		}
 
-        /// <summary>환경 설정을 초기화 및 로드 한다.</summary>
-        /// <param name="dbContext">MSquare DB 컨텍스트</param>
-        /// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
-        /// <param name="smtpConfigLoader">SMTP 설정 로더</param>
-        /// <param name="uploadConfigLoader">업로드 설정 로더</param>
-        private void ConfigInitializeAndLoad(PortalModel dbContext, ISystemConfigLoader systemConfigLoader
-            , ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader)
-        {
-            bool configChanged = false;
+		/// <summary>환경 설정을 초기화 및 로드 한다.</summary>
+		/// <param name="dbContext">MSquare DB 컨텍스트</param>
+		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
+		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
+		/// <param name="uploadConfigLoader">업로드 설정 로더</param>
+		private void ConfigInitializeAndLoad(PortalModel dbContext, ISystemConfigLoader systemConfigLoader
+			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader)
+		{
+			bool configChanged = false;
 
-            try
-            {
-                // 모든 설정 로드
-                systemConfigLoader.Load(dbContext);
+			try
+			{
+				// 모든 설정 로드
+				systemConfigLoader.Load(dbContext);
 
-                // SMTP 설정 관련 초기화할 목록을 가져온다.
-                List<KeyValuePair<string, string>> smtpConfigValues = smtpConfigLoader.GetListForInitialization();
-                // SMTP 설정 관련 초기화할 항목이 존재하는 경우
-                if (smtpConfigValues != null && smtpConfigValues.Count > 0)
-                {
-                    // 항목 추가
-                    foreach (KeyValuePair<string, string> keyValue in smtpConfigValues)
-                        dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-                    dbContext.SaveChangesWithConcurrencyResolution();
-                    configChanged = true;
-                }
+				// SMTP 설정 관련 초기화할 목록을 가져온다.
+				List<KeyValuePair<string, string>> smtpConfigValues = smtpConfigLoader.GetListForInitialization();
+				// SMTP 설정 관련 초기화할 항목이 존재하는 경우
+				if (smtpConfigValues != null && smtpConfigValues.Count > 0)
+				{
+					// 항목 추가
+					foreach (KeyValuePair<string, string> keyValue in smtpConfigValues)
+						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+					dbContext.SaveChangesWithConcurrencyResolution();
+					configChanged = true;
+				}
 
-                // 업로드 설정 관련 초기화할 목록을 가져온다.
-                List<KeyValuePair<string, string>> uploadConfigValues = uploadConfigLoader.GetListForInitialization();
-                // 업로드 설정 관련 초기화할 항목이 존재하는 경우
-                if (uploadConfigValues != null && uploadConfigValues.Count > 0)
-                {
-                    // 항목 추가
-                    foreach (KeyValuePair<string, string> keyValue in uploadConfigValues)
-                        dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-                    dbContext.SaveChangesWithConcurrencyResolution();
-                    configChanged = true;
-                }
+				// 업로드 설정 관련 초기화할 목록을 가져온다.
+				List<KeyValuePair<string, string>> uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
+				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
+				{
+					// 항목 추가
+					foreach (KeyValuePair<string, string> keyValue in uploadConfigValues)
+						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+					dbContext.SaveChangesWithConcurrencyResolution();
+					configChanged = true;
+				}
 
-                // 설정이 변경된 경우, 모든 설정 로드
-                if (configChanged)
-                    systemConfigLoader.Load(dbContext);
-            }
-            catch (Exception ex)
-            {
-                NNException.Log(ex);
-            }
-        }
+				// 설정이 변경된 경우, 모든 설정 로드
+				if (configChanged)
+					systemConfigLoader.Load(dbContext);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+		}
 
-        /// <summary>로그인하는 사용자의 역할에 속한 클레임들을 걸러낸다.</summary>
-        /// <param name="context">쿠키 사인인 처리 컨텍스트</param>
-        /// <returns>클레임 주요 정보</returns>
-        private static async Task<ClaimsPrincipal> FilterRoleClaims(CookieSigningInContext context)
-        {
-            ClaimsPrincipal principal = context.Principal;
-            try
-            {
-                if (principal != null && principal.Identity is ClaimsIdentity identity)
-                {
-                    RoleManager<NNApplicationRole> roleManager = (RoleManager<NNApplicationRole>)ServiceProviderSignleton.GetService(typeof(RoleManager<NNApplicationRole>));
+		/// <summary>로그인하는 사용자의 역할에 속한 클레임들을 걸러낸다.</summary>
+		/// <param name="context">쿠키 사인인 처리 컨텍스트</param>
+		/// <returns>클레임 주요 정보</returns>
+		private static async Task<ClaimsPrincipal> FilterRoleClaims(CookieSigningInContext context)
+		{
+			ClaimsPrincipal principal = context.Principal;
+			try
+			{
+				if (principal != null && principal.Identity is ClaimsIdentity identity)
+				{
+					RoleManager<NNApplicationRole> roleManager = (RoleManager<NNApplicationRole>)ServiceProviderSignleton.GetService(typeof(RoleManager<NNApplicationRole>));
 
-                    if (roleManager != null)
-                    {
-	                    // 해당 사용자의 역할 목록을 가져온다.
-	                    List<string> roleNames = identity.Claims.Where(i => i.Type == identity.RoleClaimType).Select(i => i.Value).ToList();
+					if (roleManager != null)
+					{
+						// 해당 사용자의 역할 목록을 가져온다.
+						List<string> roleNames = identity.Claims.Where(i => i.Type == identity.RoleClaimType).Select(i => i.Value).ToList();
 
-	                    // 역할이 존재하는 경우
-	                    if (roleNames.Count > 0)
-	                    {
-		                    List<string> roleClaims = new List<string>();
+						// 역할이 존재하는 경우
+						if (roleNames.Count > 0)
+						{
+							List<string> roleClaims = new List<string>();
 
-		                    // 모든 역할명에 대해서 처리
-		                    foreach (string roleName in roleNames)
-		                    {
-			                    // 이 역할에 대한 클레임 객체를 가져온다.
-			                    IList<Claim> thisRoleClaims = await roleManager.GetClaimsAsync(await roleManager.FindByNameAsync(roleName));
-			                    if (thisRoleClaims != null && thisRoleClaims.Count > 0)
-				                    roleClaims.AddRange(thisRoleClaims.Select(i => i.Value).ToList());
-		                    }
+							// 모든 역할명에 대해서 처리
+							foreach (string roleName in roleNames)
+							{
+								// 이 역할에 대한 클레임 객체를 가져온다.
+								// IList<Claim> thisRoleClaims = await roleManager.GetClaimsAsync(await roleManager.FindByNameAsync(roleName));
+								// if (thisRoleClaims != null && thisRoleClaims.Count > 0)
+								//     roleClaims.AddRange(thisRoleClaims.Select(i => i.Value).ToList());
+							}
 
-		                    // 역할에 대한 클레임에 속해 있는 클레임들을 가져온다.
-		                    List<Claim> claimsAlreadyInRole = identity.FindAll(i => roleClaims.Contains(i.Value)).ToList();
+							// 역할에 대한 클레임에 속해 있는 클레임들을 가져온다.
+							List<Claim> claimsAlreadyInRole = identity.FindAll(i => roleClaims.Contains(i.Value)).ToList();
 
-		                    // 역할에 대한 클레임에 속해 있는 클레임들을 삭제한다.
-		                    claimsAlreadyInRole.ForEach(c => identity.TryRemoveClaim(c));
-	                    }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                NNException.Log(ex);
-            }
-            return principal;
-        }
-    }
+							// 역할에 대한 클레임에 속해 있는 클레임들을 삭제한다.
+							claimsAlreadyInRole.ForEach(c => identity.TryRemoveClaim(c));
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+			return principal;
+		}
+	}
 }

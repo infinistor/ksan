@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -41,7 +41,7 @@ namespace PortalProvider.Providers.Services
 	{
 		/// <summary>서비스 데이터 프로바이더</summary>
 		protected readonly IServiceProvider m_serviceProvider;
-		
+
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
 		/// <param name="configuration">역할 정보</param>
@@ -89,21 +89,21 @@ namespace PortalProvider.Providers.Services
 
 				// 서비스 GUID 목록
 				List<Guid> serviceIds = new List<Guid>();
-      
+
 				// 모든 서비스 아이디에 대해서 처리
 				if (request.ServiceIds != null && request.ServiceIds.Count > 0)
 				{
 					// 모든 서비스 아이디에 대해서 처리
 					foreach (string serviceId in request.ServiceIds)
 					{
-						if(!Guid.TryParse(serviceId, out Guid guidServiceId))
+						if (!Guid.TryParse(serviceId, out Guid guidServiceId))
 							return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
 						serviceIds.Add(guidServiceId);
 					}
-      
-					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우  
-					if(await this.m_dbContext.Services.AsNoTracking()
-						.Where(i => serviceIds.Contains(i.Id) && i.GroupId == null && i.ServiceType == (EnumDbServiceType) request.ServiceType)
+
+					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
+					if (await this.m_dbContext.Services.AsNoTracking()
+						.Where(i => serviceIds.Contains(i.Id) && i.GroupId == null && i.ServiceType == (EnumDbServiceType)request.ServiceType)
 						.CountAsync() != serviceIds.Count)
 						return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
 				}
@@ -118,7 +118,7 @@ namespace PortalProvider.Providers.Services
 							Id = Guid.NewGuid(),
 							Name = request.Name,
 							Description = request.Description,
-							ServiceType = (EnumDbServiceType) request.ServiceType,
+							ServiceType = (EnumDbServiceType)request.ServiceType,
 							ServiceIpAddress = request.ServiceIpAddress,
 							RegId = LoginUserId,
 							RegName = LoginUserName,
@@ -129,7 +129,7 @@ namespace PortalProvider.Providers.Services
 						};
 						await m_dbContext.ServiceGroups.AddAsync(newData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						
+
 						// 모든 서비스 아이디에 대해서 처리
 						foreach (Guid guidServiceId in serviceIds)
 						{
@@ -146,7 +146,7 @@ namespace PortalProvider.Providers.Services
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						await transaction.CommitAsync();
-						
+
 						result.Result = EnumResponseResult.Success;
 						result.Data = (await this.Get(newData.Id.ToString())).Data;
 					}
@@ -168,10 +168,10 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 수정</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <param name="request">서비스 수정 요청 객체</param>
@@ -188,7 +188,7 @@ namespace PortalProvider.Providers.Services
 				// 요청이 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-					
+
 				// 동일한 이름이 존재하는지 확인한다.
 				ResponseData<bool> responseExist = await this.IsNameExist(id, new RequestIsServiceGroupNameExist(request.Name));
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
@@ -200,25 +200,25 @@ namespace PortalProvider.Providers.Services
 
 				// 서비스 GUID 목록
 				List<Guid> serviceIds = new List<Guid>();
-					
+
 				// 모든 서비스 아이디에 대해서 처리
 				if (request.ServiceIds != null && request.ServiceIds.Count > 0)
 				{
 					// 모든 서비스 아이디에 대해서 처리
 					foreach (string serviceId in request.ServiceIds)
 					{
-						if(!Guid.TryParse(serviceId, out Guid guidServiceId))
+						if (!Guid.TryParse(serviceId, out Guid guidServiceId))
 							return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
 						serviceIds.Add(guidServiceId);
 					}
-					
-					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우  
-					if(await this.m_dbContext.Services.AsNoTracking()
-						.Where(i => serviceIds.Contains(i.Id) && (i.GroupId == null || i.GroupId == guidId) && i.ServiceType == (EnumDbServiceType) request.ServiceType)
+
+					// 주어진 서비스 아이디로 다른 그룹에 속하지 않는 서비스 아이디 수가 요청 개수와 다른 경우
+					if (await this.m_dbContext.Services.AsNoTracking()
+						.Where(i => serviceIds.Contains(i.Id) && (i.GroupId == null || i.GroupId == guidId) && i.ServiceType == (EnumDbServiceType)request.ServiceType)
 						.CountAsync() != serviceIds.Count)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_NOT_AVAILABLE_SERVICE_ID_USED);
 				}
-				
+
 				// 해당 정보를 가져온다.
 				ServiceGroup exist = await m_dbContext.ServiceGroups
 					.FirstOrDefaultAsync(i => i.Id == guidId);
@@ -226,12 +226,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
-						// 이 서비스 그룹 아이디를 사용하는 이전 서비스의 그룹 아이디 초기화 
+						// 이 서비스 그룹 아이디를 사용하는 이전 서비스의 그룹 아이디 초기화
 						List<Service> oldServices = await m_dbContext.Services
 							.Where(i => i.GroupId == guidId)
 							.ToListAsync();
@@ -245,7 +245,7 @@ namespace PortalProvider.Providers.Services
 							if (m_dbContext.HasChanges())
 								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						}
-						
+
 						// 모든 서비스 아이디에 대해서 처리
 						foreach (Guid guidServiceId in serviceIds)
 						{
@@ -264,7 +264,7 @@ namespace PortalProvider.Providers.Services
 						// 정보를 수정한다.
 						exist.Name = request.Name;
 						exist.Description = request.Description;
-						exist.ServiceType = (EnumDbServiceType) request.ServiceType;
+						exist.ServiceType = (EnumDbServiceType)request.ServiceType;
 						exist.ServiceIpAddress = request.ServiceIpAddress;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
@@ -296,17 +296,17 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 삭제</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>서비스 삭제 결과 객체</returns>
 		public async Task<ResponseData> Remove(string id)
 		{
 			ResponseData result = new ResponseData();
-			
+
 			try
 			{
 				// 아이디가 유효하지 않은 경우
@@ -325,7 +325,7 @@ namespace PortalProvider.Providers.Services
 				List<Service> services = await this.m_dbContext.Services
 					.Where(i => i.GroupId == guidId)
 					.ToListAsync();
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -362,10 +362,10 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 목록을 가져온다.</summary>
 		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
@@ -396,17 +396,17 @@ namespace PortalProvider.Providers.Services
 				EnumServiceType serviceType = EnumServiceType.Unknown;
 				if (searchFields.Contains("servicetype"))
 					Enum.TryParse(searchKeyword, out serviceType);
-					
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i =>
 						(
-				            searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-				            || (searchFields.Contains("name") && i.Name.Contains(searchKeyword))
-				            || (searchFields.Contains("description") && i.Description.Contains(searchKeyword))
-				            || (searchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType) serviceType)
-				            || (searchFields.Contains("serviceipaddress") && i.ServiceIpAddress.Contains(searchKeyword))
-					    )
+							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
+							|| (searchFields.Contains("name") && i.Name.Contains(searchKeyword))
+							|| (searchFields.Contains("description") && i.Description.Contains(searchKeyword))
+							|| (searchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType)serviceType)
+							|| (searchFields.Contains("serviceipaddress") && i.ServiceIpAddress.Contains(searchKeyword))
+						)
 					)
 					.OrderByWithDirection(orderFields, orderDirections)
 					.CreateListAsync<ServiceGroup, ResponseServiceGroup>(skip, countPerPage);
@@ -421,10 +421,10 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 정보를 가져온다.</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>서비스 정보 객체</returns>
@@ -436,7 +436,7 @@ namespace PortalProvider.Providers.Services
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -446,7 +446,7 @@ namespace PortalProvider.Providers.Services
 				// 해당 데이터가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData<ResponseServiceGroupWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				result.Data = exist;
 				result.Result = EnumResponseResult.Success;
 			}
@@ -457,7 +457,7 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -469,7 +469,7 @@ namespace PortalProvider.Providers.Services
 		{
 			ResponseData<bool> result = new ResponseData<bool>();
 			Guid guidId = Guid.Empty;
-			
+
 			try
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
@@ -479,7 +479,7 @@ namespace PortalProvider.Providers.Services
 				// 요청 객체가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData<bool>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 동일한 이름이 존재하는 경우
 				if (await m_dbContext.ServiceGroups.AsNoTracking().AnyAsync(i => (exceptId.IsEmpty() || i.Id != guidId) && i.Name == request.Name))
 					result.Data = true;
@@ -527,11 +527,11 @@ namespace PortalProvider.Providers.Services
 
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
-					
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.Services.AsNoTracking()
 					.Where(i =>
-						i.ServiceType == (EnumDbServiceType) serviceType
+						i.ServiceType == (EnumDbServiceType)serviceType
 						&& i.GroupId == null
 						&& (
 							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
@@ -553,7 +553,7 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -579,7 +579,7 @@ namespace PortalProvider.Providers.Services
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseList<ResponseService>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroup exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -598,11 +598,11 @@ namespace PortalProvider.Providers.Services
 
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
-					
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.Services.AsNoTracking()
 					.Where(i =>
-						i.ServiceType == (EnumDbServiceType) exist.ServiceType
+						i.ServiceType == (EnumDbServiceType)exist.ServiceType
 						&& (i.GroupId == null || (!id.IsEmpty() && i.GroupId == guidId))
 						&& (
 							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
@@ -624,7 +624,7 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -634,13 +634,13 @@ namespace PortalProvider.Providers.Services
 		public async Task<ResponseData> Start(string id)
 		{
 			ResponseData result = new ResponseData();
-			
+
 			try
 			{
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -653,13 +653,13 @@ namespace PortalProvider.Providers.Services
 
 				StringBuilder errorCodes = new StringBuilder();
 				StringBuilder errorMessages = new StringBuilder();
-				
+
 				// 모든 서비스에 대해서 처리
 				foreach (ResponseService service in exist.Services)
 				{
 					// 서비스를 시작한다.
 					ResponseData response = await m_serviceProvider.Start(service.Id);
-				
+
 					// 성공이 아닌 경우
 					if (response.Result != EnumResponseResult.Success)
 					{
@@ -686,23 +686,23 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 중지</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>서비스 그룹 중지 결과 객체</returns>
 		public async Task<ResponseData> Stop(string id)
 		{
 			ResponseData result = new ResponseData();
-			
+
 			try
 			{
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -715,13 +715,13 @@ namespace PortalProvider.Providers.Services
 
 				StringBuilder errorCodes = new StringBuilder();
 				StringBuilder errorMessages = new StringBuilder();
-				
+
 				// 모든 서비스에 대해서 처리
 				foreach (ResponseService service in exist.Services)
 				{
 					// 서비스를 중지한다.
 					ResponseData response = await m_serviceProvider.Stop(service.Id);
-				
+
 					// 성공이 아닌 경우
 					if (response.Result != EnumResponseResult.Success)
 					{
@@ -748,23 +748,23 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-		
+
 		/// <summary>서비스 재시작</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>서비스 재시작 결과 객체</returns>
 		public async Task<ResponseData> Restart(string id)
 		{
 			ResponseData result = new ResponseData();
-			
+
 			try
 			{
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -777,13 +777,13 @@ namespace PortalProvider.Providers.Services
 
 				StringBuilder errorCodes = new StringBuilder();
 				StringBuilder errorMessages = new StringBuilder();
-				
+
 				// 모든 서비스에 대해서 처리
 				foreach (ResponseService service in exist.Services)
 				{
 					// 서비스를 재시작한다.
 					ResponseData response = await m_serviceProvider.Restart(service.Id);
-				
+
 					// 성공이 아닌 경우
 					if (response.Result != EnumResponseResult.Success)
 					{
@@ -810,7 +810,7 @@ namespace PortalProvider.Providers.Services
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -826,7 +826,7 @@ namespace PortalProvider.Providers.Services
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData<T>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -839,7 +839,7 @@ namespace PortalProvider.Providers.Services
 
 				// 첫번째 서비스 설정 응답 객체
 				T firstServiceConfig = default(T);
-				
+
 				StringBuilder errorCodes = new StringBuilder();
 				StringBuilder errorMessages = new StringBuilder();
 
@@ -847,7 +847,7 @@ namespace PortalProvider.Providers.Services
 				foreach (ResponseService service in exist.Services)
 				{
 					ResponseData<T> response = await m_serviceProvider.GetConfig<T>(service.Id);
-					
+
 					// // 응답 및 설정 객체
 					// ResponseData response = new ResponseData();
 					// IResponseServiceConfig config = null;
@@ -864,7 +864,7 @@ namespace PortalProvider.Providers.Services
 					// 		response = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 					// 		break;
 					// }
-					
+
 					// 성공이 아닌 경우
 					if (response.Result != EnumResponseResult.Success)
 					{
@@ -933,7 +933,7 @@ namespace PortalProvider.Providers.Services
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseServiceGroupWithServices exist = await m_dbContext.ServiceGroups.AsNoTracking()
 					.Where(i => i.Id == guidId)
@@ -952,7 +952,7 @@ namespace PortalProvider.Providers.Services
 				{
 					// 서비스에 설정을 저장한다.
 					ResponseData response = await m_serviceProvider.SetConfig(service.Id, config);
-				
+
 					// 성공이 아닌 경우
 					if (response.Result != EnumResponseResult.Success)
 					{

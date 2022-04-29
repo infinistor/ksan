@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -19,7 +19,7 @@ namespace PortalProviderInterface
 	{
 		/// <summary>전체 허용인지 여부</summary>
 		bool IsAllAllowed { get; }
-		
+
 		/// <summary>특정 역할에 대한 접속 허용 아이피인지 여부</summary>
 		/// <param name="roleId">역할 아이디</param>
 		/// <param name="address">검사할 아이피 주소</param>

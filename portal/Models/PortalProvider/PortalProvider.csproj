@@ -5,14 +5,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\PortalModels\PortalModels.csproj" />
-	  <ProjectReference Include="..\PortalProviderInterface\PortalProviderInterface.csproj" />
+		<ProjectReference Include="..\PortalModels\PortalModels.csproj" />
+		<ProjectReference Include="..\PortalProviderInterface\PortalProviderInterface.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MTLib.CommonData" Version="5.0.2" />
-	  <PackageReference Include="MTLib.EntityFramework" Version="5.0.2" />
-	  <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
+		<PackageReference Include="MTLib.CommonData" Version="5.0.2" />
+		<PackageReference Include="MTLib.EntityFramework" Version="5.0.2" />
+		<PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
 	</ItemGroup>
 
 </Project>

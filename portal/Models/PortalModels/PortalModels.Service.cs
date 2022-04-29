@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -13,96 +13,96 @@ using System.Collections.Generic;
 
 namespace PortalModels
 {
-    /// <summary>서비스 정보</summary>
-    public partial class Service {
+	/// <summary> 서비스 정보 </summary>
+	public partial class Service
+	{
+		public Service()
+		{
+			this.HaAction = (PortalModels.EnumDbHaAction)Enum.Parse(typeof(PortalModels.EnumDbHaAction), "-1");
+			this.State = (PortalModels.EnumDbServiceState)Enum.Parse(typeof(PortalModels.EnumDbServiceState), "-2");
+			this.CpuUsage = 0f;
+			this.MemoryTotal = 0m;
+			this.MemoryUsed = 0m;
+			this.ThreadCount = 0;
+			this.Vlans = new List<ServiceNetworkInterfaceVlan>();
+			this.ServiceDisks = new List<ServiceDisk>();
+			this.ServiceUsages = new List<ServiceUsage>();
+			OnCreated();
+		}
 
-        public Service()
-        {
-            this.HaAction = (PortalModels.EnumDbHaAction)Enum.Parse(typeof(PortalModels.EnumDbHaAction), "-1");
-            this.State = (PortalModels.EnumDbServiceState)Enum.Parse(typeof(PortalModels.EnumDbServiceState), "-2");
-            this.CpuUsage = 0f;
-            this.MemoryTotal = 0m;
-            this.MemoryUsed = 0m;
-            this.ThreadCount = 0;
-            this.Vlans = new List<ServiceNetworkInterfaceVlan>();
-            this.ServiceDisks = new List<ServiceDisk>();
-            this.ServiceUsages = new List<ServiceUsage>();
-            OnCreated();
-        }
+		/// <summary> 서비스 아이디 </summary>
+		public virtual Guid Id { get; set; }
 
-        /// <summary>서비스 아이디</summary>
-        public virtual Guid Id { get; set; }
+		/// <summary> 서비스 그룹 아이디 </summary>
+		public virtual Guid? GroupId { get; set; }
 
-        /// <summary>서비스 그룹 아이디</summary>
-        public virtual Guid? GroupId { get; set; }
+		/// <summary> 서비스명 </summary>
+		public virtual string Name { get; set; }
 
-        /// <summary>서비스명</summary>
-        public virtual string Name { get; set; }
+		/// <summary> 설명 </summary>
+		public virtual string Description { get; set; }
 
-        /// <summary>설명</summary>
-        public virtual string Description { get; set; }
+		/// <summary> 서비스 타입 </summary>
+		public virtual EnumDbServiceType ServiceType { get; set; }
 
-        /// <summary>서비스 타입</summary>
-        public virtual EnumDbServiceType ServiceType { get; set; }
+		/// <summary> HA 작업 </summary>
+		public virtual EnumDbHaAction HaAction { get; set; }
 
-        /// <summary>HA 작업</summary>
-        public virtual EnumDbHaAction HaAction { get; set; }
+		/// <summary> 서비스 상태 </summary>
+		public virtual EnumDbServiceState State { get; set; }
 
-        /// <summary>서비스 상태</summary>
-        public virtual EnumDbServiceState State { get; set; }
+		/// <summary> CPU 사용률 </summary>
+		public virtual float? CpuUsage { get; set; }
 
-        /// <summary>CPU 사용률</summary>
-        public virtual float? CpuUsage { get; set; }
+		/// <summary> 전체 메모리 크기 </summary>
+		public virtual decimal? MemoryTotal { get; set; }
 
-        /// <summary>전체 메모리 크기</summary>
-        public virtual decimal? MemoryTotal { get; set; }
+		/// <summary> 사용 메모리 크기 </summary>
+		public virtual decimal? MemoryUsed { get; set; }
 
-        /// <summary>사용 메모리 크기</summary>
-        public virtual decimal? MemoryUsed { get; set; }
+		/// <summary> 스레드수 </summary>
+		public virtual int ThreadCount { get; set; }
 
-        /// <summary>스레드수</summary>
-        public virtual int ThreadCount { get; set; }
+		/// <summary> 등록자 아이디 </summary>
+		public virtual Guid? RegId { get; set; }
 
-        /// <summary>등록자 아이디</summary>
-        public virtual Guid? RegId { get; set; }
+		/// <summary> 등록자명 </summary>
+		public virtual string RegName { get; set; }
 
-        /// <summary>등록자명</summary>
-        public virtual string RegName { get; set; }
+		/// <summary> 등록일시 </summary>
+		public virtual DateTime? RegDate { get; set; }
 
-        /// <summary>등록일시</summary>
-        public virtual DateTime? RegDate { get; set; }
+		/// <summary> 수정자 아이디 </summary>
+		public virtual Guid? ModId { get; set; }
 
-        /// <summary>수정자 아이디</summary>
-        public virtual Guid? ModId { get; set; }
+		/// <summary> 수정자명 </summary>
+		public virtual string ModName { get; set; }
 
-        /// <summary>수정자명</summary>
-        public virtual string ModName { get; set; }
+		/// <summary> 수정일시 </summary>
+		public virtual DateTime? ModDate { get; set; }
 
-        /// <summary>수정일시</summary>
-        public virtual DateTime? ModDate { get; set; }
+		/// <summary> VLAN 목록 </summary>
+		public virtual IList<ServiceNetworkInterfaceVlan> Vlans { get; set; }
 
-        /// <summary>VLAN 목록</summary>
-        public virtual IList<ServiceNetworkInterfaceVlan> Vlans { get; set; }
+		/// <summary> 서비스 그룹 정보 </summary>
+		public virtual ServiceGroup ServiceGroup { get; set; }
 
-        /// <summary>서비스 그룹 정보</summary>
-        public virtual ServiceGroup ServiceGroup { get; set; }
+		/// <summary> 등록 사용자 정보 </summary>
+		public virtual User RegUser { get; set; }
 
-        /// <summary>등록 사용자 정보</summary>
-        public virtual User RegUser { get; set; }
+		/// <summary> 수정 사용자 정보 </summary>
+		public virtual User ModUser { get; set; }
 
-        /// <summary>수정 사용자 정보</summary>
-        public virtual User ModUser { get; set; }
+		/// <summary> 서비스 디스크 정보 목록 </summary>
+		public virtual IList<ServiceDisk> ServiceDisks { get; set; }
 
-        /// <summary>서비스 디스크 정보 목록</summary>
-        public virtual IList<ServiceDisk> ServiceDisks { get; set; }
+		public virtual IList<ServiceUsage> ServiceUsages { get; set; }
 
-        public virtual IList<ServiceUsage> ServiceUsages { get; set; }
+		#region Extensibility Method Definitions
 
-        #region Extensibility Method Definitions
+		partial void OnCreated();
 
-        partial void OnCreated();
-
-        #endregion
-    }
+		#endregion
+	}
 
 }

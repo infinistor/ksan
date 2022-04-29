@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -52,7 +52,7 @@ namespace PortalProvider.Loaders
 			bool result = false;
 			try
 			{
-				if(context != null)
+				if (context != null)
 				{
 					// 전체 설정을 가져온다.
 					QueryResults<Config> configs = await ((PortalModel)context).Configs.AsNoTracking()
@@ -153,7 +153,7 @@ namespace PortalProvider.Loaders
 					{
 						// 해당 설정을 가져온다.
 						Config config = m_configs.Where(i => i.Key == key).FirstOrDefault();
-						if(config != null)
+						if (config != null)
 						{
 							item = new ResponseConfig();
 							item.CopyValueFrom(config);

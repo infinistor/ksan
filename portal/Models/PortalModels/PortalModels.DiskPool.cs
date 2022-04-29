@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -13,50 +13,61 @@ using System.Collections.Generic;
 
 namespace PortalModels
 {
-    /// <summary>디스크 Pool 정보</summary>
-    public partial class DiskPool {
+	/// <summary> 디스크 Pool 정보 </summary>
+	public partial class DiskPool
+	{
 
-        public DiskPool()
-        {
-            this.Disks = new List<Disk>();
-            OnCreated();
-        }
+		public DiskPool()
+		{
+			this.ClassTypeId = (PortalModels.EnumDbDiskPoolType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolType), "0");
+			this.ReplicationType = (PortalModels.EnumDbDiskPoolReplicaType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolReplicaType), "1");
+			this.Disks = new List<Disk>();
+			this.UserDiskPools = new List<UserDiskPool>();
+			OnCreated();
+		}
 
-        /// <summary>디스크 Pool 아이디</summary>
-        public virtual Guid Id { get; set; }
+		/// <summary> 디스크 Pool 아이디 </summary>
+		public virtual Guid Id { get; set; }
 
-        /// <summary>디스크 Pool 명</summary>
-        public virtual string Name { get; set; }
+		/// <summary> 디스크 Pool 명 </summary>
+		public virtual string Name { get; set; }
 
-        /// <summary>디스크 Pool 설명</summary>
-        public virtual string Description { get; set; }
+		/// <summary> 디스크 Pool 설명 </summary>
+		public virtual string Description { get; set; }
 
-        /// <summary>등록자 아이디</summary>
-        public virtual Guid? RegId { get; set; }
+		/// <summary> 등록자 아이디 </summary>
+		public virtual Guid? RegId { get; set; }
 
-        /// <summary>등록자명</summary>
-        public virtual string RegName { get; set; }
+		/// <summary> 등록자명 </summary>
+		public virtual string RegName { get; set; }
 
-        /// <summary>등록일시</summary>
-        public virtual DateTime? RegDate { get; set; }
+		/// <summary> 등록일시 </summary>
+		public virtual DateTime? RegDate { get; set; }
 
-        /// <summary>수정자 아이디</summary>
-        public virtual Guid? ModId { get; set; }
+		/// <summary> 수정자 아이디 </summary>
+		public virtual Guid? ModId { get; set; }
 
-        /// <summary>수정자명</summary>
-        public virtual string ModName { get; set; }
+		/// <summary> 수정자명 </summary>
+		public virtual string ModName { get; set; }
 
-        /// <summary>수정일시</summary>
-        public virtual DateTime? ModDate { get; set; }
+		/// <summary> 수정일시 </summary>
+		public virtual DateTime? ModDate { get; set; }
 
-        /// <summary>디스크 목록</summary>
-        public virtual IList<Disk> Disks { get; set; }
+		/// <summary> 디스크풀 타입 </summary>
+		public virtual EnumDbDiskPoolType ClassTypeId { get; set; }
 
-        #region Extensibility Method Definitions
+		public virtual EnumDbDiskPoolReplicaType ReplicationType { get; set; }
 
-        partial void OnCreated();
+		/// <summary> 디스크 목록 </summary>
+		public virtual IList<Disk> Disks { get; set; }
 
-        #endregion
-    }
+		public virtual IList<UserDiskPool> UserDiskPools { get; set; }
+
+		#region Extensibility Method Definitions
+
+		partial void OnCreated();
+
+		#endregion
+	}
 
 }

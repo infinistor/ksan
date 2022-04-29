@@ -187,7 +187,7 @@ namespace PortalSvr.Controllers.Disks
 				searchFields, searchKeyword
 			));
 		}
-		
+
 		/// <summary>특정 디스크 정보를 가져온다.</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="id">디스크 아이디</param>
@@ -198,7 +198,7 @@ namespace PortalSvr.Controllers.Disks
 		{
 			return Json(await m_dataProvider.Get(serverId, id));
 		}
-		
+
 		/// <summary>DiskNo로 디스크 ID를 가져온다.</summary>
 		/// <param name="diskNo">디스크 No</param>
 		/// <returns>결과 JSON 문자열</returns>

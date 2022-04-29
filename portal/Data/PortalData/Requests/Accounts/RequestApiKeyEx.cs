@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -10,27 +10,27 @@
 */
 namespace PortalData.Requests.Accounts
 {
-    /// <summary>API 키 생성 요청 클래스 (키값 지정)</summary>
-    public class RequestApiKeyEx : RequestApiKey
-    {
-	    /// <summary>키 값</summary>
-	    public string KeyValue { get; set; }
+	/// <summary>API 키 생성 요청 클래스 (키값 지정)</summary>
+	public class RequestApiKeyEx : RequestApiKey
+	{
+		/// <summary>키 값</summary>
+		public string KeyValue { get; set; }
 
-	    /// <summary>생성자</summary>
-	    public RequestApiKeyEx()
-	    {
-		    
-	    }
+		/// <summary>생성자</summary>
+		public RequestApiKeyEx()
+		{
 
-	    /// <summary>생성자</summary>
-	    public RequestApiKeyEx(RequestApiKey request)
-	    {
-		    if (request != null)
-		    {
-			    KeyName = request.KeyName;
-			    ExpireDate = request.ExpireDate;
-			    KeyValue = "";
-		    }
-	    }
-    }
+		}
+
+		/// <summary>생성자</summary>
+		public RequestApiKeyEx(RequestApiKey request)
+		{
+			if (request != null)
+			{
+				KeyName = request.KeyName;
+				ExpireDate = request.ExpireDate;
+				KeyValue = "";
+			}
+		}
+	}
 }

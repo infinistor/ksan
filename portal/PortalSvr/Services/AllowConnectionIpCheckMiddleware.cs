@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -49,14 +49,14 @@ namespace PortalSvr.Services
 				// 전체 허용이 아니고 항상 허용되는 URL 경로가 아닌 경우
 				if (!allowConnectionIpManager.IsAllAllowed && !IsAlwaysAllowPath(context.Request))
 				{
-					if(userManager != null && roleManager != null)
+					if (userManager != null && roleManager != null)
 					{
 						// 로그인한 사용자에 대한 객체를 가져온다.
 						NNApplicationUser user = await userManager.GetUserAsync(context.User);
 
 						// 사용자가 가지는 역할명 목록을 가져온댜.
 						IList<string> userRoleNames;
-						
+
 						// 로그인 상태인 경우
 						if (user != null)
 							// 사용자가 가지는 역할명 목록을 가져온댜.
@@ -94,7 +94,7 @@ namespace PortalSvr.Services
 					if (!allowIp)
 					{
 						string[] pathItems = context.Request.Path.ToString().Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-						if(pathItems.Length >= 2 && pathItems[0] == "api")
+						if (pathItems.Length >= 2 && pathItems[0] == "api")
 							context.Response.Redirect($"/{pathItems[0]}/{pathItems[1]}/Account/AccessDenied");
 						else
 							context.Response.Redirect("/api/v1/Account/AccessDenied");
@@ -124,9 +124,9 @@ namespace PortalSvr.Services
 			try
 			{
 				if (httpRequest.Path.Value != null && httpRequest.Path.Value.ToLower().Contains("/account/")
-					//|| httpRequest.Path.Value.ToLower().EndsWith("/account/login")
-					//|| httpRequest.Path.Value.ToLower().EndsWith("/account/logout")
-					//|| httpRequest.Path.Value.ToLower().EndsWith("/account/needlogin")
+				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/login")
+				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/logout")
+				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/needlogin")
 				)
 					result = true;
 			}

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -93,13 +93,13 @@ namespace PortalProvider.Providers.RabbitMq
 		public ResponseData Send(string exchange, string routingKey, object sendingObject)
 		{
 			ResponseData result = new ResponseData();
-			
+
 			try
 			{
 				// 객체가 유효하지 않은 경우
 				if (sendingObject == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 문자열로 변환
 				string message = JsonConvert.SerializeObject(sendingObject);
 
@@ -110,7 +110,7 @@ namespace PortalProvider.Providers.RabbitMq
 					body: message.GetBytes());
 
 				result.Result = EnumResponseResult.Success;
-				
+
 				m_logger.LogDebug("[Rabbit MQ] Data transfer was successful. (exchange: {Exchange}, routingKey: {RoutingKey}, message: {Message})", exchange, routingKey, message);
 			}
 			catch (Exception ex)

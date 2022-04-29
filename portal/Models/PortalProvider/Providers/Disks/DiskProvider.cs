@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -71,7 +71,7 @@ namespace PortalProvider.Providers.Disks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -79,10 +79,10 @@ namespace PortalProvider.Providers.Disks
 				// 요청이 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid guidDiskPoolId = Guid.Empty;
-				if(!request.DiskPoolId.IsEmpty() && !Guid.TryParse(request.DiskPoolId, out guidDiskPoolId))
+				if (!request.DiskPoolId.IsEmpty() && !Guid.TryParse(request.DiskPoolId, out guidDiskPoolId))
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
 
 				// 디스크 풀 아이디가 유효한 경우
@@ -92,9 +92,9 @@ namespace PortalProvider.Providers.Disks
 					DiskPool diskPool = await this.m_dbContext.DiskPools.AsNoTracking()
 						.Where(i => i.Id == guidDiskPoolId)
 						.FirstOrDefaultAsync();
-	
+
 					// 해당 디스크 풀이 존재하지 않는 경우
-					if(diskPool == null)
+					if (diskPool == null)
 						return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
 				}
 
@@ -105,13 +105,13 @@ namespace PortalProvider.Providers.Disks
 					ServerId = serverId,
 					request.Path
 				}, 10);
-				
+
 				// 실패인 경우
 				if (response.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, response.Code, response.Message);
 
 				Guid newId = Guid.NewGuid();
-				uint diskNo = (uint) newId.GetHashCode();
+				uint diskNo = (uint)newId.GetHashCode();
 				string diskNoString = $"{diskNo:0000000000}";
 
 				// 디스크 아이디 기록 요청
@@ -123,11 +123,11 @@ namespace PortalProvider.Providers.Disks
 					DiskNo = diskNoString,
 					request.Path
 				}, 10);
-			
+
 				// 실패인 경우
 				if (responseWriteDiskId.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, responseWriteDiskId.Code, responseWriteDiskId.Message);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -140,20 +140,20 @@ namespace PortalProvider.Providers.Disks
 							DiskNo = diskNoString,
 							ServerId = guidServerId,
 							Path = request.Path,
-							State = (EnumDbDiskState) request.State,
+							State = (EnumDbDiskState)request.State,
 							TotalInode = request.TotalInode,
 							ReservedInode = request.ReservedInode,
 							UsedInode = request.UsedInode,
 							TotalSize = request.TotalSize,
 							ReservedSize = request.ReservedSize,
 							UsedSize = request.UsedSize,
-							RwMode = (EnumDbDiskRwMode) request.RwMode
+							RwMode = (EnumDbDiskRwMode)request.RwMode
 						};
 						await m_dbContext.Disks.AddAsync(newData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						
+
 						await transaction.CommitAsync();
-						
+
 						result.Result = EnumResponseResult.Success;
 						result.Data = (await this.Get(serverId, newData.Id.ToString())).Data;
 
@@ -178,7 +178,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -196,7 +196,7 @@ namespace PortalProvider.Providers.Disks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -208,10 +208,10 @@ namespace PortalProvider.Providers.Disks
 				// 요청이 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid guidDiskPoolId = Guid.Empty;
-				if(!request.DiskPoolId.IsEmpty() && !Guid.TryParse(request.DiskPoolId, out guidDiskPoolId))
+				if (!request.DiskPoolId.IsEmpty() && !Guid.TryParse(request.DiskPoolId, out guidDiskPoolId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
 
 				// 디스크 풀 아이디가 유효한 경우
@@ -221,9 +221,9 @@ namespace PortalProvider.Providers.Disks
 					DiskPool diskPool = await this.m_dbContext.DiskPools.AsNoTracking()
 						.Where(i => i.Id == guidDiskPoolId)
 						.FirstOrDefaultAsync();
-	
+
 					// 해당 디스크 풀이 존재하지 않는 경우
-					if(diskPool == null)
+					if (diskPool == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
 				}
 
@@ -244,12 +244,12 @@ namespace PortalProvider.Providers.Disks
 						ServerId = serverId,
 						request.Path
 					}, 10);
-			
+
 					// 실패인 경우
 					if (response.Result != EnumResponseResult.Success)
 						return new ResponseData(EnumResponseResult.Error, response.Code, response.Message);
 				}
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -257,25 +257,25 @@ namespace PortalProvider.Providers.Disks
 						// 정보를 수정한다.
 						exist.DiskPoolId = guidDiskPoolId == Guid.Empty ? null : guidDiskPoolId;
 						exist.Path = request.Path;
-						exist.State = (EnumDbDiskState) request.State;
+						exist.State = (EnumDbDiskState)request.State;
 						exist.TotalInode = request.TotalInode;
 						exist.ReservedInode = request.ReservedInode;
 						exist.UsedInode = request.UsedInode;
 						exist.TotalSize = request.TotalSize;
 						exist.ReservedSize = request.ReservedSize;
 						exist.UsedSize = request.UsedSize;
-						exist.RwMode = (EnumDbDiskRwMode) request.RwMode;
+						exist.RwMode = (EnumDbDiskRwMode)request.RwMode;
 						// 데이터가 변경된 경우 저장
-						if(m_dbContext.HasChanges())
+						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						await transaction.CommitAsync();
 
 						result.Result = EnumResponseResult.Success;
-		
+
 						// 상세 정보를 가져온다.
 						ResponseDiskWithServices response = (await this.Get(serverId, id)).Data;
-				
+
 						// 수정된 디스크 정보 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.updated", response);
 					}
@@ -297,7 +297,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -315,7 +315,7 @@ namespace PortalProvider.Providers.Disks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -337,15 +337,15 @@ namespace PortalProvider.Providers.Disks
 					try
 					{
 						// 정보를 수정한다.
-						exist.State = (EnumDbDiskState) state;
+						exist.State = (EnumDbDiskState)state;
 						// 데이터가 변경된 경우 저장
-						if(m_dbContext.HasChanges())
+						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						await transaction.CommitAsync();
 
 						result.Result = EnumResponseResult.Success;
-						
+
 						// 디스크 상태 수정 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", new
 						{
@@ -353,7 +353,7 @@ namespace PortalProvider.Providers.Disks
 							exist.ServerId,
 							exist.DiskPoolId,
 							exist.DiskNo,
-							State = (EnumDiskState) exist.State
+							State = (EnumDiskState)exist.State
 						});
 					}
 					catch (Exception ex)
@@ -374,7 +374,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -390,20 +390,20 @@ namespace PortalProvider.Providers.Disks
 				// 아이디가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 디스크 아이디와 디스크 식별번호가 모두 없는 경우
 				if (request.Id.IsEmpty() && request.DiskNo.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_DISK_ID_OR_NO);
 
 				// 디스크 아이디가 존재하고 아이디가 유효하지 않은 경우
 				Guid guidDiskId = Guid.Empty;
-				if(!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
+				if (!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
-				
+
 				// 서버 아이디가 유효하지 않은 경우
 				if (!Guid.TryParse(request.ServerId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
-				
+
 				// 해당 정보를 가져온다.
 				Disk exist = await m_dbContext.Disks.AsNoTracking()
 					.FirstOrDefaultAsync(i => i.ServerId == guidServerId && (i.Id == guidDiskId || i.DiskNo == request.DiskNo));
@@ -411,7 +411,7 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				// 서비스 상태 수정
 				result = await UpdateState(request.ServerId, exist.Id.ToString(), request.State);
 			}
@@ -422,7 +422,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -445,7 +445,7 @@ namespace PortalProvider.Providers.Disks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -474,7 +474,7 @@ namespace PortalProvider.Providers.Disks
 						exist.ReservedSize = reservedSize;
 						exist.UsedSize = usedSize;
 						// 데이터가 변경된 경우 저장
-						if(m_dbContext.HasChanges())
+						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						await transaction.CommitAsync();
@@ -499,7 +499,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -515,16 +515,16 @@ namespace PortalProvider.Providers.Disks
 				// 아이디가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 디스크 아이디와 디스크 식별번호가 모두 없는 경우
 				if (request.Id.IsEmpty() && request.DiskNo.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_DISK_ID_OR_NO);
 
 				// 디스크 아이디가 존재하고 아이디가 유효하지 않은 경우
 				Guid guidDiskId = Guid.Empty;
-				if(!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
+				if (!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
-				
+
 				// 서버 아이디가 유효하지 않은 경우
 				if (!Guid.TryParse(request.ServerId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -536,7 +536,7 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				// 디스크 크기 수정
 				result = await UpdateSize(request.ServerId, exist.Id.ToString(), request.TotalInode, request.ReservedInode, request.UsedInode, request.TotalSize, request.ReservedSize, request.UsedSize);
 			}
@@ -547,7 +547,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -565,7 +565,7 @@ namespace PortalProvider.Providers.Disks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -581,19 +581,19 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-					
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 정보를 수정한다.
-						exist.RwMode = (EnumDbDiskRwMode) diskRwMode;
+						exist.RwMode = (EnumDbDiskRwMode)diskRwMode;
 						// 데이터가 변경된 경우 저장
-						if(m_dbContext.HasChanges())
+						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						await transaction.CommitAsync();
-						
+
 						result.Result = EnumResponseResult.Success;
 
 						// 수정된 R/W 모드 정보 전송
@@ -617,7 +617,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -633,16 +633,16 @@ namespace PortalProvider.Providers.Disks
 				// 아이디가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 디스크 아이디와 디스크 식별번호가 모두 없는 경우
 				if (request.Id.IsEmpty() && request.DiskNo.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_DISK_ID_OR_NO);
 
 				// 디스크 아이디가 존재하고 아이디가 유효하지 않은 경우
 				Guid guidDiskId = Guid.Empty;
-				if(!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
+				if (!request.Id.IsEmpty() && !Guid.TryParse(request.Id, out guidDiskId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
-				
+
 				// 서버 아이디가 유효하지 않은 경우
 				if (!Guid.TryParse(request.ServerId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
@@ -654,7 +654,7 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				// 디스크 읽기/쓰기 모드 수정
 				result = await UpdateRwMode(request.ServerId, exist.Id.ToString(), request.RwMode);
 			}
@@ -665,7 +665,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -690,7 +690,7 @@ namespace PortalProvider.Providers.Disks
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 해당 정보를 가져온다.
 				Disk exist = await m_dbContext.Disks.AsNoTracking()
 					.FirstOrDefaultAsync(i => i.ServerId == guidServerId && i.Id == guidId);
@@ -698,15 +698,15 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Success);
-				
+
 				// 연결된 디스크 풀이 존재하는 경우
-				if(exist.DiskPool != null)
+				if (exist.DiskPool != null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL);
-				
+
 				// 연결된 서비스가 존재하는 경우
-				if(await m_dbContext.ServiceDisks.AnyAsync(i => i.DiskId == guidId))
+				if (await m_dbContext.ServiceDisks.AnyAsync(i => i.DiskId == guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE);
-			
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -718,7 +718,7 @@ namespace PortalProvider.Providers.Disks
 						await transaction.CommitAsync();
 
 						result.Result = EnumResponseResult.Success;
-						
+
 						// 삭제된 디스크 정보 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.removed", new ResponseDisk().CopyValueFrom(exist));
 					}
@@ -740,7 +740,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -785,7 +785,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
-		
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.ServerId == guidServerId
@@ -794,8 +794,8 @@ namespace PortalProvider.Providers.Disks
 							|| (searchFields.Contains("diskno") && i.DiskNo.Contains(searchKeyword))
 							|| (searchFields.Contains("path") && i.Path.Contains(searchKeyword))
 						)
-						&& (searchStates == null || searchStates.Count == 0 || searchStates.Select(j => (int)j).Contains((int) i.State))
-						&& (searchRwModes == null || searchRwModes.Count == 0 || searchRwModes.Select(j => (int)j).Contains((int) i.RwMode))
+						&& (searchStates == null || searchStates.Count == 0 || searchStates.Select(j => (int)j).Contains((int)i.State))
+						&& (searchRwModes == null || searchRwModes.Count == 0 || searchRwModes.Select(j => (int)j).Contains((int)i.RwMode))
 					)
 					.OrderByWithDirection(orderFields, orderDirections)
 					.CreateListAsync<Disk, ResponseDisk>(skip, countPerPage);
@@ -809,7 +809,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -844,17 +844,17 @@ namespace PortalProvider.Providers.Disks
 
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
-		
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.Disks.AsNoTracking()
-					.Where(i => 
+					.Where(i =>
 						(
 							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
 							|| (searchFields.Contains("diskno") && i.DiskNo.Contains(searchKeyword))
 							|| (searchFields.Contains("path") && i.Path.Contains(searchKeyword))
 						)
-						&& (searchStates == null || searchStates.Count == 0 || searchStates.Select(j => (int)j).Contains((int) i.State))
-						&& (searchRwModes == null || searchRwModes.Count == 0 || searchRwModes.Select(j => (int)j).Contains((int) i.RwMode))
+						&& (searchStates == null || searchStates.Count == 0 || searchStates.Select(j => (int)j).Contains((int)i.State))
+						&& (searchRwModes == null || searchRwModes.Count == 0 || searchRwModes.Select(j => (int)j).Contains((int)i.RwMode))
 					)
 					.Include(i => i.Server)
 					.OrderByWithDirection(orderFields, orderDirections)
@@ -869,7 +869,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -894,7 +894,7 @@ namespace PortalProvider.Providers.Disks
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData<ResponseDiskWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseDiskWithServices exist = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.ServerId == guidServerId && i.Id == guidId)
@@ -905,14 +905,14 @@ namespace PortalProvider.Providers.Disks
 				// 해당 데이터가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData<ResponseDiskWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				// 연결된 서비스 목록을 가져온다.
 				List<ResponseService> services = await m_dbContext.Services.AsNoTracking()
 					.Where(i => i.ServiceDisks.Any(j => j.DiskId == guidId))
 					.ToListAsync<Service, ResponseService>();
 				if (services != null)
 					exist.Services = services;
-				
+
 				result.Data = exist;
 				result.Result = EnumResponseResult.Success;
 			}
@@ -923,7 +923,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -939,7 +939,7 @@ namespace PortalProvider.Providers.Disks
 				// 디스크 번호가 존재하지 않는 경우
 				if (diskNo.IsEmpty())
 					return new ResponseData<ResponseDiskId>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseDiskId exist = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.DiskNo == diskNo)
@@ -948,7 +948,7 @@ namespace PortalProvider.Providers.Disks
 				// 해당 데이터가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData<ResponseDiskId>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				result.Data = exist;
 				result.Result = EnumResponseResult.Success;
 			}
@@ -959,7 +959,7 @@ namespace PortalProvider.Providers.Disks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 	}

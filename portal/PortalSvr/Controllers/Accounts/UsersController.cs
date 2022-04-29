@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -34,7 +34,7 @@ namespace PortalSvr.Controllers.Accounts
 	[Route("api/v1/[controller]")]
 	[ApiKeyAuthorize]
 	public class UsersController : BaseController
-    {
+	{
 		/// <summary>데이터 프로바이더</summary>
 		private readonly IUserProvider m_dataProvider;
 
@@ -79,7 +79,7 @@ namespace PortalSvr.Controllers.Accounts
 			{
 				// 사용자 목록을 반환한다.
 				response = await m_dataProvider.GetUsers(
-					searchRoleName, regStartDate, regEndDate, 
+					searchRoleName, regStartDate, regEndDate,
 					skip, countPerPage,
 					orderFields, orderDirections,
 					searchFields, searchKeyword
@@ -220,7 +220,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add")]
 		[HttpPost]
-		public async Task<ActionResult> Post([FromBody]RequestUserRegist request)
+		public async Task<ActionResult> Post([FromBody] RequestUserRegist request)
 		{
 			return Json(await m_dataProvider.Add(request));
 		}
@@ -231,7 +231,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.update")]
 		[HttpPut("{id}")]
-		public async Task<ActionResult> Put([FromRoute] string id, [FromBody]RequestUserUpdate request)
+		public async Task<ActionResult> Put([FromRoute] string id, [FromBody] RequestUserUpdate request)
 		{
 			ResponseData response = new ResponseData();
 			try
@@ -255,7 +255,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.update")]
 		[HttpPut("{id}/ChangePassword")]
-		public async Task<ActionResult> ChangePassword([FromRoute] string id, [FromBody]RequestUserChangePassword request)
+		public async Task<ActionResult> ChangePassword([FromRoute] string id, [FromBody] RequestUserChangePassword request)
 		{
 			ResponseData response = new ResponseData();
 			try
@@ -302,7 +302,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add,common.account.users.update")]
 		[HttpPost("{id}/Claims")]
-		public async Task<ActionResult> AddClaim([FromRoute] string id, [FromBody]RequestAddClaimToUser request)
+		public async Task<ActionResult> AddClaim([FromRoute] string id, [FromBody] RequestAddClaimToUser request)
 		{
 			ResponseData response = new ResponseData();
 			try
@@ -352,7 +352,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add,common.account.users.update")]
 		[HttpPost("{id}/Roles")]
-		public async Task<ActionResult> AddRole([FromRoute] string id, [FromBody]RequestAddRoleToUser request)
+		public async Task<ActionResult> AddRole([FromRoute] string id, [FromBody] RequestAddRoleToUser request)
 		{
 			ResponseData response = new ResponseData();
 			try

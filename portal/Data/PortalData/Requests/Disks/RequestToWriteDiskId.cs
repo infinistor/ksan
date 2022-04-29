@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -24,7 +24,7 @@ namespace PortalData.Requests.Disks
 		/// <summary>서버 아이디</summary>
 		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_SERVER_ID", ErrorMessageResourceType = typeof(Resource))]
 		public string ServerId { get; set; }
-		
+
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
@@ -35,6 +35,5 @@ namespace PortalData.Requests.Disks
 		/// <summary>마운트 경로</summary>
 		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_PATH", ErrorMessageResourceType = typeof(Resource))]
 		public string Path { get; set; }
-		
 	}
 }

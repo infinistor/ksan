@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -17,7 +17,7 @@ namespace PortalData.Responses.Services.Configs
 		/// <param name="config">설정 문자열</param>
 		/// <returns>설정 문자열을 반영한 설정 객체</returns>
 		ResponseData Deserialize(string config);
-		
+
 		/// <summary>설정 내용 문자열</summary>
 		string Config { get; }
 	}

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -43,7 +43,7 @@ namespace PortalSvr.RabbitMqReceivers
 		) : base(
 			"portalsvr.services",
 			RabbitMqConfiguration.ExchangeName,
-			new []
+			new[]
 			{
 				"*.services.*",
 				"*.services.*.*",
@@ -72,7 +72,7 @@ namespace PortalSvr.RabbitMqReceivers
 		protected override async Task<ResponseMqData> HandleMessage(string routingKey, byte[] body)
 		{
 			ResponseMqData result = new ResponseMqData();
-			
+
 			try
 			{
 				// 수신된 데이터를 문자열로 변환
@@ -82,7 +82,7 @@ namespace PortalSvr.RabbitMqReceivers
 				{
 					// API 키 프로바이더를 가져온다.
 					IApiKeyProvider apiKeyProvider = scope.ServiceProvider.GetService<IApiKeyProvider>();
-					if(apiKeyProvider == null)
+					if (apiKeyProvider == null)
 						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 					// 내부 시스템 API 키 정보를 가져온다.
@@ -97,7 +97,7 @@ namespace PortalSvr.RabbitMqReceivers
 					{
 						// 처리할 프로바이더를 가져온다.
 						IServiceProvider dataProvider = scope.ServiceProvider.GetService<IServiceProvider>();
-						if(dataProvider == null)
+						if (dataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
@@ -114,7 +114,7 @@ namespace PortalSvr.RabbitMqReceivers
 					{
 						// 처리할 프로바이더를 가져온다.
 						IServiceProvider dataProvider = scope.ServiceProvider.GetService<IServiceProvider>();
-						if(dataProvider == null)
+						if (dataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
@@ -131,7 +131,7 @@ namespace PortalSvr.RabbitMqReceivers
 					{
 						// 처리할 프로바이더를 가져온다.
 						IServiceProvider dataProvider = scope.ServiceProvider.GetService<IServiceProvider>();
-						if(dataProvider == null)
+						if (dataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
@@ -148,7 +148,7 @@ namespace PortalSvr.RabbitMqReceivers
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-				
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}

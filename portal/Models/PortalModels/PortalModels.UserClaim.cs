@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -12,34 +12,35 @@ using System;
 
 namespace PortalModels
 {
-    /// <summary>사용자 권한</summary>
-    public partial class UserClaim {
+	/// <summary> 사용자 권한 </summary>
+	public partial class UserClaim
+	{
 
-        public UserClaim()
-        {
-            OnCreated();
-        }
+		public UserClaim()
+		{
+			OnCreated();
+		}
 
-        /// <summary>권한 아이디</summary>
-        public virtual int Id { get; set; }
+		/// <summary> 권한 아이디 </summary>
+		public virtual int Id { get; set; }
 
-        /// <summary>권한 타입</summary>
-        public virtual string ClaimType { get; set; }
+		/// <summary> 권한 타입 </summary>
+		public virtual string ClaimType { get; set; }
 
-        /// <summary>권한 값</summary>
-        public virtual string ClaimValue { get; set; }
+		/// <summary> 권한 값 </summary>
+		public virtual string ClaimValue { get; set; }
 
-        /// <summary>사용자 아이디</summary>
-        public virtual Guid UserId { get; set; }
+		/// <summary> 사용자 아이디 </summary>
+		public virtual Guid UserId { get; set; }
 
-        /// <summary>사용자 정보</summary>
-        public virtual User User { get; set; }
+		/// <summary> 사용자 정보 </summary>
+		public virtual User User { get; set; }
 
-        #region Extensibility Method Definitions
+		#region Extensibility Method Definitions
 
-        partial void OnCreated();
+		partial void OnCreated();
 
-        #endregion
-    }
+		#endregion
+	}
 
 }

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -37,7 +37,7 @@ namespace PortalProvider.Providers.Networks
 	/// <summary>네트워크 인터페이스 데이터 프로바이더 클래스</summary>
 	public class NetworkInterfaceProvider : BaseProvider<PortalModel>, INetworkInterfaceProvider
 	{
-		
+
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
 		/// <param name="configuration">역할 정보</param>
@@ -76,11 +76,11 @@ namespace PortalProvider.Providers.Networks
 				// 서버 아이디가 존재하지 않는 경우
 				if (serverId.IsEmpty())
 					return new ResponseData<ResponseNetworkInterface>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_SERVER_ID);
-				
+
 				// 서버 아이디가유효하지 않은 경우
 				if (!Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData<ResponseNetworkInterface>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_NETWORKS_NETWORK_INTERFACE_INVALID_SERVER_ID);
-				
+
 				// 동일한 이름이 존재하는지 확인한다.
 				ResponseData<bool> responseExist = await IsNameExist(serverId, null, new RequestIsNetworkInterfaceNameExist(request.Name));
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
@@ -93,7 +93,7 @@ namespace PortalProvider.Providers.Networks
 
 				// 신규 아이디
 				Guid newId = Guid.NewGuid();
-				
+
 				// 네트워크 인터페이스 등록을 요청한다.
 				ResponseData response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{serverId}.interfaces.add", new
 				{
@@ -112,11 +112,11 @@ namespace PortalProvider.Providers.Networks
 					request.BandWidth,
 					request.IsManagement,
 				}, 10);
-				
+
 				// 실패인 경우
 				if (response.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseNetworkInterface>(EnumResponseResult.Error, response.Code, response.Message);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -128,9 +128,9 @@ namespace PortalProvider.Providers.Networks
 							ServerId = guidServerId,
 							Name = request.Name,
 							Description = request.Description,
-							Dhcp = (EnumDbYesNo?) request.Dhcp,
+							Dhcp = (EnumDbYesNo?)request.Dhcp,
 							MacAddress = request.MacAddress,
-							LinkState = (EnumDbNetworkLinkState?) request.LinkState,
+							LinkState = (EnumDbNetworkLinkState?)request.LinkState,
 							IpAddress = request.IpAddress,
 							SubnetMask = request.SubnetMask,
 							Gateway = request.Gateway,
@@ -170,7 +170,7 @@ namespace PortalProvider.Providers.Networks
 
 						result.Result = EnumResponseResult.Success;
 						result.Data = (await Get(serverId, newData.Id.ToString())).Data;
-						
+
 						// 추가된 네트워크 인터페이스 정보 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.added", new ResponseNetworkInterface().CopyValueFrom(newData));
 						// 추가된 네트워크 인터페이스 VLAN 정보 전송
@@ -194,7 +194,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -224,7 +224,7 @@ namespace PortalProvider.Providers.Networks
 				// 요청이 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 동일한 이름이 존재하는지 확인한다.
 				ResponseData<bool> responseExist = await IsNameExist(serverId, id, new RequestIsNetworkInterfaceNameExist(request.Name));
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
@@ -242,7 +242,7 @@ namespace PortalProvider.Providers.Networks
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보를 가져온다. 
+				// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보를 가져온다.
 				NetworkInterfaceVlan existVlan = await m_dbContext.NetworkInterfaceVlans
 					.FirstOrDefaultAsync(i => i.InterfaceId == guidId && i.Tag == 1);
 
@@ -253,9 +253,9 @@ namespace PortalProvider.Providers.Networks
 						// 정보를 수정한다.
 						exist.Name = request.Name;
 						exist.Description = request.Description;
-						exist.Dhcp = (EnumDbYesNo?) request.Dhcp;
+						exist.Dhcp = (EnumDbYesNo?)request.Dhcp;
 						exist.MacAddress = request.MacAddress;
-						exist.LinkState = (EnumDbNetworkLinkState?) request.LinkState;
+						exist.LinkState = (EnumDbNetworkLinkState?)request.LinkState;
 						exist.IpAddress = request.IpAddress;
 						exist.SubnetMask = request.SubnetMask;
 						exist.Gateway = request.Gateway;
@@ -284,7 +284,7 @@ namespace PortalProvider.Providers.Networks
 								request.BandWidth,
 								request.IsManagement,
 							}, 10);
-				
+
 							// 실패인 경우
 							if (response.Result != EnumResponseResult.Success)
 							{
@@ -299,7 +299,7 @@ namespace PortalProvider.Providers.Networks
 						}
 
 						bool isChangedVlan = false;
-						
+
 						// 해당 인터페이스와 연결된 Tag가 1인 VLAN 정보가 존재하지 않는 경우
 						if (existVlan == null)
 						{
@@ -344,11 +344,11 @@ namespace PortalProvider.Providers.Networks
 						await transaction.CommitAsync();
 
 						result.Result = EnumResponseResult.Success;
-						
+
 						// 수정된 네트워크 인터페이스 정보 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.updated", new ResponseNetworkInterface().CopyValueFrom(exist));
 						// 수정된 네트워크 인터페이스 VLAN 정보 전송
-						if(isChangedVlan)
+						if (isChangedVlan)
 							SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.updated", new ResponseNetworkInterfaceVlan().CopyValueFrom(existVlan));
 					}
 					catch (Exception ex)
@@ -369,7 +369,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -409,9 +409,9 @@ namespace PortalProvider.Providers.Networks
 					try
 					{
 						// 정보를 수정한다.
-						exist.LinkState = (EnumDbNetworkLinkState) state;
+						exist.LinkState = (EnumDbNetworkLinkState)state;
 						// 데이터가 변경된 경우 저장
-						if(m_dbContext.HasChanges())
+						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await transaction.CommitAsync();
 
@@ -435,7 +435,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -462,10 +462,10 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-	
+
 		/// <summary>네트워크 인터페이스 사용 정보 수정</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
@@ -480,11 +480,11 @@ namespace PortalProvider.Providers.Networks
 				// 서버 아이디가 유효하지 않은 경우
 				if (serverId.IsEmpty() || !Guid.TryParse(serverId, out Guid guidServerId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_SERVER_ID);
-				
+
 				// 네트워크 인터페이스 아이디가 유효하지 않은 경우
 				if (interfaceId.IsEmpty() || !Guid.TryParse(interfaceId, out Guid guidInterfaceId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_INTERFACE_ID);
-				
+
 				// 해당 네트워크 인터페이스 정보를 가져온다.
 				NetworkInterface exist = await m_dbContext.NetworkInterfaces
 					.FirstOrDefaultAsync(i => i.Id == guidInterfaceId && i.ServerId == guidServerId);
@@ -492,7 +492,7 @@ namespace PortalProvider.Providers.Networks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -537,10 +537,10 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
-	
+
 		/// <summary>네트워크 인터페이스 사용 정보 수정</summary>
 		/// <param name="request">서버 사용 정보 수정 요청 객체</param>
 		/// <returns>네트워크 인터페이스 사용 정보 수정 결과 객체</returns>
@@ -563,7 +563,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -588,7 +588,7 @@ namespace PortalProvider.Providers.Networks
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 해당 정보를 가져온다.
 				NetworkInterface exist = await m_dbContext.NetworkInterfaces.AsNoTracking()
 					.FirstOrDefaultAsync(i => i.ServerId == guidServerId && i.Id == guidId);
@@ -596,7 +596,7 @@ namespace PortalProvider.Providers.Networks
 				// 해당 정보가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData(EnumResponseResult.Success);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -632,7 +632,7 @@ namespace PortalProvider.Providers.Networks
 						await transaction.CommitAsync();
 
 						result.Result = EnumResponseResult.Success;
-						
+
 						foreach (NetworkInterfaceVlan vlan in vlans)
 							// 삭제된 네트워크 인터페이스 VLAN 정보 전송
 							SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.deleted", new ResponseNetworkInterfaceVlan().CopyValueFrom(vlan));
@@ -657,7 +657,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -698,7 +698,7 @@ namespace PortalProvider.Providers.Networks
 
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
-					
+
 				// 목록을 가져온다.
 				result.Data = await m_dbContext.NetworkInterfaces.AsNoTracking()
 					.Where(i => i.ServerId == guidServerId
@@ -726,7 +726,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -751,7 +751,7 @@ namespace PortalProvider.Providers.Networks
 				// 아이디가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
 					return new ResponseData<ResponseNetworkInterfaceDetail>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 정보를 가져온다.
 				ResponseNetworkInterfaceDetail exist = await m_dbContext.NetworkInterfaces.AsNoTracking()
 					.Where(i => i.ServerId == guidServerId && i.Id == guidId)
@@ -761,7 +761,7 @@ namespace PortalProvider.Providers.Networks
 				// 해당 데이터가 존재하지 않는 경우
 				if (exist == null)
 					return new ResponseData<ResponseNetworkInterfaceDetail>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				
+
 				result.Data = exist;
 				result.Result = EnumResponseResult.Success;
 			}
@@ -772,7 +772,7 @@ namespace PortalProvider.Providers.Networks
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 
@@ -785,7 +785,7 @@ namespace PortalProvider.Providers.Networks
 		{
 			ResponseData<bool> result = new ResponseData<bool>();
 			Guid guidId = Guid.Empty;
-			
+
 			try
 			{
 				// 서버 아이디가 존재하지 않는 경우
@@ -799,11 +799,11 @@ namespace PortalProvider.Providers.Networks
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
 				if (!exceptId.IsEmpty() && !Guid.TryParse(exceptId, out guidId))
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-				
+
 				// 요청 객체가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData<bool>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-					
+
 				// 동일한 이름이 존재하는 경우
 				if (await m_dbContext.NetworkInterfaces.AsNoTracking().AnyAsync(i => (exceptId.IsEmpty() || i.Id != guidId) && i.ServerId == guidServerId && i.Name == request.Name))
 					result.Data = true;

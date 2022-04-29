@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -41,7 +41,7 @@ namespace PortalProvider.Loaders
 				NNException.Log(ex);
 			}
 		}
-		
+
 		/// <summary>19219
 		/// 허용된 아이피 목록을 로드한다.</summary>
 		/// <param name="context">DB 컨텍스트</param>
@@ -51,7 +51,7 @@ namespace PortalProvider.Loaders
 			bool result = false;
 
 			m_isAllAllowed = false;
-			
+
 			try
 			{
 				if (context != null)
@@ -89,7 +89,7 @@ namespace PortalProvider.Loaders
 
 					// 허용된 아이피 목록을 설정하지 않았거나, 설정된 범위 내의 아이피인 경우
 					if (m_allowedConnectionIps.All(i => i.RoleId.ToString() != roleId)
-					    || m_allowedConnectionIps.Any(i => i.RoleId.ToString() == roleId && i.StartAddress <= addressNumber && addressNumber <= i.EndAddress))
+						|| m_allowedConnectionIps.Any(i => i.RoleId.ToString() == roleId && i.StartAddress <= addressNumber && addressNumber <= i.EndAddress))
 						result = true;
 				}
 			}

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -23,13 +23,13 @@ namespace PortalData.Requests.Services.Configs
 	{
 		/// <summary>전역 설정</summary>
 		public RequestHaProxyConfigGlobal ConfigGlobal { get; set; } = new RequestHaProxyConfigGlobal();
-	
+
 		/// <summary>기본 설정</summary>
 		public RequestHaProxyConfigDefault ConfigDefault { get; set; } = new RequestHaProxyConfigDefault();
 
 		/// <summary>서비스 리슨 설정</summary>
 		public List<RequestHaProxyConfigListen> ConfigListens { get; set; } = new List<RequestHaProxyConfigListen>();
-		
+
 		/// <summary>설정 객체의 내용을 문자열로 변환한다.</summary>
 		/// <returns>설정 문자열</returns>
 		public ResponseData<string> Serialize()
@@ -50,7 +50,7 @@ namespace PortalData.Requests.Services.Configs
 				if (responseDefault.Result == EnumResponseResult.Error)
 					return new ResponseData<string>(responseDefault.Result, responseDefault.Code, responseDefault.Message);
 				config.AppendLine(responseDefault.Data);
-				
+
 				// 모든 listen 설정을 처리 한다.
 				foreach (RequestHaProxyConfigListen configListen in ConfigListens)
 				{
@@ -71,7 +71,7 @@ namespace PortalData.Requests.Services.Configs
 				config.AppendLine("    stats realm HAProxy\\Statistics");
 				config.AppendLine("    stats auth admin:admin");
 				config.AppendLine("    stats admin if TRUE");
-				
+
 				result.Data = config.ToString();
 				result.Result = EnumResponseResult.Success;
 			}
@@ -82,7 +82,7 @@ namespace PortalData.Requests.Services.Configs
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 	}

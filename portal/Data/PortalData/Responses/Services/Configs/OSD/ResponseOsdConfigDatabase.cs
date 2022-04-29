@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -48,12 +48,12 @@ namespace PortalData.Responses.Services.Configs.OSD
 				using (StringReader reader = new StringReader(configContent))
 				{
 					string line;
-					
+
 					do
 					{
 						// 한줄을 읽어 들인다.
 						line = reader.ReadLine();
-					
+
 						// 빈 문자열이 아닌 경우
 						if (line != null && !line.IsEmpty())
 						{
@@ -64,11 +64,11 @@ namespace PortalData.Responses.Services.Configs.OSD
 							line = line.Trim();
 
 							// 이름과 값으로 분리한다.
-							string[] items = line.Split(new [] {' ', '='}, StringSplitOptions.RemoveEmptyEntries);
+							string[] items = line.Split(new[] { ' ', '=' }, StringSplitOptions.RemoveEmptyEntries);
 
 							// 항목이 부족한 경우, 스킵
 							if (items.Length < 2) continue;
-							
+
 							// 데이터베이스 관련 설정
 							if (items[0].StartsWith("db."))
 							{
@@ -83,7 +83,7 @@ namespace PortalData.Responses.Services.Configs.OSD
 									{
 										this.Port = port;
 										config.AppendLine(line);
-									}									
+									}
 								}
 
 								if (items[0] == "db.name")
@@ -91,7 +91,7 @@ namespace PortalData.Responses.Services.Configs.OSD
 									this.Name = items[1];
 									config.AppendLine(line);
 								}
-								if (items[0] == "db.username") 
+								if (items[0] == "db.username")
 								{
 									this.UserName = items[1];
 									config.AppendLine(line);
@@ -105,14 +105,14 @@ namespace PortalData.Responses.Services.Configs.OSD
 						}
 					} while (line != null);
 				}
-						
+
 				this.Config = config.ToString();
 				result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-		
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}

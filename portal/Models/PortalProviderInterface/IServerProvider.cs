@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -24,13 +24,13 @@ namespace PortalProviderInterface
 		/// <param name="request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
 		Task<ResponseData<ResponseServerDetail>> Add(RequestServer request);
-		
+
 		/// <summary>서버 수정</summary>
 		/// <param name="id">서버 아이디</param>
 		/// <param name="request">서버 수정 요청 객체</param>
 		/// <returns>서버 수정 결과 객체</returns>
 		Task<ResponseData> Update(string id, RequestServer request);
-	
+
 		/// <summary>서버 상태 수정</summary>
 		/// <param name="id">서버 아이디</param>
 		/// <param name="state">서버 상태</param>
@@ -38,14 +38,14 @@ namespace PortalProviderInterface
 		/// <param name="modName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
 		Task<ResponseData> UpdateState(string id, EnumServerState state, string modId = "", string modName = "");
-	
+
 		/// <summary>서버 상태 수정</summary>
 		/// <param name="request">서버 상태 수정 요청 객체</param>
 		/// <param name="modId">수정자 아이디</param>
 		/// <param name="modName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
 		Task<ResponseData> UpdateState(RequestServerState request, string modId = "", string modName = "");
-	
+
 		/// <summary>서버 사용 정보 수정</summary>
 		/// <param name="id">서버 아이디</param>
 		/// <param name="loadAverage1M">1분 Load Average</param>
@@ -54,17 +54,17 @@ namespace PortalProviderInterface
 		/// <param name="memoryUsed">서버 아이디</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
 		Task<ResponseData> UpdateUsage(string id, float loadAverage1M, float loadAverage5M, float loadAverage15M, decimal memoryUsed);
-	
+
 		/// <summary>서버 사용 정보 수정</summary>
 		/// <param name="request">서버 사용 정보 수정 요청 객체</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
 		Task<ResponseData> UpdateUsage(RequestServerUsage request);
-		
+
 		/// <summary>서버 삭제</summary>
 		/// <param name="id">서버 아이디</param>
 		/// <returns>서버 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string id);
-		
+
 		/// <summary>서버 목록을 가져온다.</summary>
 		/// <param name="searchStates">검색할 서버 상태 목록</param>
 		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
@@ -75,12 +75,12 @@ namespace PortalProviderInterface
 		/// <param name="searchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> searchStates, 
+			List<EnumServerState> searchStates,
 			int skip = 0, int countPerPage = 100,
 			List<string> orderFields = null, List<string> orderDirections = null,
 			List<string> searchFields = null, string searchKeyword = ""
 		);
-		
+
 		/// <summary>서버 정보를 가져온다.</summary>
 		/// <param name="id">서버 아이디</param>
 		/// <returns>서버 정보 객체</returns>

@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -82,7 +82,7 @@ namespace PortalProvider.Providers.Accounts
 				// 비밀번호가 유효하고, 확인 비밀번호와 일치하지 않는 경우
 				if (!password.IsEmpty() && password != confirmPassword)
 					return new ResponseData<ResponseUserWithRoles>(EnumResponseResult.Error, Resource.EM_COMMON_ACCOUNT_INVALID_PASSWORD, Resource.EM_COMMON_ACCOUNT_PASSWORD_AND_CONFIRM_PASSWORD_DO_NOT_MATCH);
-			
+
 				// 사용자명이 없는 경우, 사용자 아이디를 사용자명으로 설정
 				if (request.Name.IsEmpty())
 					request.Name = request.Email;
@@ -155,7 +155,7 @@ namespace PortalProvider.Providers.Accounts
 					result.Data.Email = request.Email;
 					result.Data.Name = request.Name;
 					result.Data.Code = request.Code;
-					if(request.Roles != null)
+					if (request.Roles != null)
 						result.Data.Roles.AddRange(request.Roles);
 					result.Data.Status = request.Status;
 
@@ -216,14 +216,14 @@ namespace PortalProvider.Providers.Accounts
 				// 파라미터가 유효하지 않은 경우
 				if (!request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-				
+
 				// 사용자 계정을 가져온다.
 				user = await this.GetUserById(id, includeDeletedUser);
 
 				// 해당 계정을 찾을 수 없는 경우
 				if (user == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
-			
+
 				oldUser.Email = user.Email;
 				oldUser.LoginId = user.LoginId;
 				oldUser.Name = user.Name;
@@ -248,7 +248,7 @@ namespace PortalProvider.Providers.Accounts
 
 				// 사용자 정보 변경
 				IdentityResult identityResult = await m_userManager.UpdateAsync(user);
-				
+
 				// 사용자 정보 변경에 실패한 경우
 				if (!identityResult.Succeeded)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_FAIL_TO_UPDATE, identityResult.Errors.FirstOrDefault() == null ? "" : identityResult.Errors.FirstOrDefault()?.Description);
@@ -258,27 +258,27 @@ namespace PortalProvider.Providers.Accounts
 				{
 					// 잠김인 경우
 					case EnumUserStatus.Locked:
-					{
-						// 잠금 일시를 100년 뒤까지로 수정
-						await m_userManager.SetLockoutEndDateAsync(user, DateTime.Now.AddYears(100));
-					}
+						{
+							// 잠금 일시를 100년 뒤까지로 수정
+							await m_userManager.SetLockoutEndDateAsync(user, DateTime.Now.AddYears(100));
+						}
 						break;
 					case EnumUserStatus.VerifyingEmail:
-					{
-						// 잠금 상태 해제
-						await m_userManager.SetLockoutEndDateAsync(user, null);
-					}
+						{
+							// 잠금 상태 해제
+							await m_userManager.SetLockoutEndDateAsync(user, null);
+						}
 						break;
 					case EnumUserStatus.Activated:
-					{
-						// 확인 메일 발송을 위한 토큰을 가져온다.
-						string mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(user);
-						// 이메일 확인 처리
-						await m_userManager.ConfirmEmailAsync(user, mailConfirmToken);
+						{
+							// 확인 메일 발송을 위한 토큰을 가져온다.
+							string mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(user);
+							// 이메일 확인 처리
+							await m_userManager.ConfirmEmailAsync(user, mailConfirmToken);
 
-						// 잠금 상태 해제
-						await m_userManager.SetLockoutEndDateAsync(user, null);
-					}
+							// 잠금 상태 해제
+							await m_userManager.SetLockoutEndDateAsync(user, null);
+						}
 						break;
 				}
 
@@ -292,7 +292,7 @@ namespace PortalProvider.Providers.Accounts
 				}
 
 				// DB 변경 내용이 존재하는 경우
-				if(m_dbContext.HasChanges())
+				if (m_dbContext.HasChanges())
 					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 				result.Result = EnumResponseResult.Success;
@@ -334,7 +334,7 @@ namespace PortalProvider.Providers.Accounts
 				// 해당 계정을 찾을 수 없는 경우
 				if (user == null || user.IsDeleted)
 					return new ResponseData(EnumResponseResult.Warning, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
-				
+
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -401,12 +401,12 @@ namespace PortalProvider.Providers.Accounts
 				// 해당 계정을 찾을수 없는 경우
 				if (manager == null || manager.IsDeleted)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NEED_LOGIN, Resource.EM_COMMON__NEED_LOGIN);
-				
+
 				// // 사용자 수정 권한이 존재하는 경우
 				// ResponseData responseClaim = await this.HasClaim(manager, "common.account.users.update");
 				// if(responseClaim.Result == EnumResponseResult.Error)
 				// 	return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_HAVE_PERMISSION, Resource.EM_COMMON__NOT_HAVE_PERMISSION);
-				
+
 				// 이메일로 해당 회원 정보를 가져온다.
 				user = await m_userManager.FindByIdAsync(id);
 
@@ -510,7 +510,7 @@ namespace PortalProvider.Providers.Accounts
 
 				if (exist == null)
 					return null;
-				
+
 				// 로그인 ID로 해당 사용자 정보를 반환한다.
 				NNApplicationUser user = await m_userManager.FindByIdAsync(exist.Id.ToString());
 
@@ -534,7 +534,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				Guid searchId;
-				
+
 				// 파라미터가 유효하지 않은 경우
 				if (id.IsEmpty() || !Guid.TryParse(id, out searchId))
 				{
@@ -625,7 +625,7 @@ namespace PortalProvider.Providers.Accounts
 				if (!searchRoleName.IsEmpty())
 				{
 					// 일반 사용자 역할이 아닌 경우
-					if(searchRoleName != PredefinedRoleNames.RoleNameUser)
+					if (searchRoleName != PredefinedRoleNames.RoleNameUser)
 					{
 						// 해당 역할명의 역할 정보를 가져온다.
 						NNApplicationRole role = await m_roleManager.FindByNameAsync(searchRoleName);
@@ -634,7 +634,7 @@ namespace PortalProvider.Providers.Accounts
 							searchRoleId = role.Id;
 					}
 					// 일반 사용자 역할인 경우
-					else if (userRole != null) 
+					else if (userRole != null)
 						searchRoleId = userRole.Id;
 				}
 
@@ -643,12 +643,13 @@ namespace PortalProvider.Providers.Accounts
 													.Where(i => i.IsDeleted == false
 														&& (searchRoleId == Guid.Empty || i.UserRoles.Any(j => j.RoleId == searchRoleId))
 														&& (searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-														    || (searchFields.Contains("loginid") && i.LoginId.Contains(searchKeyword))
+															|| (searchFields.Contains("loginid") && i.LoginId.Contains(searchKeyword))
 															|| (searchFields.Contains("email") && i.Email.Contains(searchKeyword))
 															|| (searchFields.Contains("name") && i.Name.Contains(searchKeyword))
 														)
 													)
-													.Select(i => new {
+													.Select(i => new
+													{
 														Id = i.Id.ToString(),
 														i.LoginId,
 														i.Email,
@@ -725,12 +726,12 @@ namespace PortalProvider.Providers.Accounts
 															(
 																m_dbContext.RoleClaims
 																	.Any(j => roleNames.Contains(j.Role.Name)
-																	          && j.ClaimType == "Permission"
-																	          && j.ClaimValue == i.ClaimValue)
+																			  && j.ClaimType == "Permission"
+																			  && j.ClaimValue == i.ClaimValue)
 																|| m_dbContext.UserClaims
 																	.Any(j => j.UserId == user.Id
-																	          && j.ClaimType == "Permission"
-																	          && j.ClaimValue == i.ClaimValue)
+																			  && j.ClaimType == "Permission"
+																			  && j.ClaimValue == i.ClaimValue)
 															)
 															&& (searchKeyword.IsEmpty() || i.ClaimValue.Contains(searchKeyword))
 														)
@@ -799,7 +800,7 @@ namespace PortalProvider.Providers.Accounts
 														.Where(i =>
 															(
 																m_dbContext.UserClaims
-																	.Any(j => 
+																	.Any(j =>
 																		j.UserId == user.Id
 																		&& j.ClaimType == "Permission"
 																		&& j.ClaimValue == i.ClaimValue
@@ -1046,7 +1047,7 @@ namespace PortalProvider.Providers.Accounts
 					result.Message = Resource.EM_COMMON__NOT_HAVE_PERMISSION;
 
 					// 검사할 권한 목록 작성
-					string[] needClaimArray = needClaim.Split(new [] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] needClaimArray = needClaim.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
 					if (needClaimArray.Length > 0)
 						needClaims.AddRange(needClaimArray);
 

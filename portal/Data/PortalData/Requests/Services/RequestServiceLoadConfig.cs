@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -17,7 +17,7 @@ namespace PortalData.Requests.Services
 	{
 		/// <summary>서비스 아이디</summary>
 		public string Id { get; set; }
-		
+
 		/// <summary>서비스명</summary>
 		public string Name { get; set; }
 
@@ -27,7 +27,7 @@ namespace PortalData.Requests.Services
 		/// <summary>생성자</summary>
 		public RequestServiceLoadConfig()
 		{
-			
+
 		}
 
 		/// <summary>생성자</summary>
@@ -38,7 +38,7 @@ namespace PortalData.Requests.Services
 		{
 			Id = id;
 			Name = name;
-			if(ips != null && ips.Count > 0)
+			if (ips != null && ips.Count > 0)
 				IpAddresses.AddRange(ips);
 		}
 	}

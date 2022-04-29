@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -12,55 +12,55 @@ using System;
 
 namespace PortalModels
 {
-    /// <summary>서비스 사용 디스크 정보</summary>
-    public partial class ServiceDisk {
+	/// <summary> 서비스 사용 디스크 정보 </summary>
+	public partial class ServiceDisk
+	{
+		public ServiceDisk()
+		{
+			OnCreated();
+		}
 
-        public ServiceDisk()
-        {
-            OnCreated();
-        }
+		/// <summary> 서비스 아이디 </summary>
+		public virtual Guid ServiceId { get; set; }
 
-        /// <summary>서비스 아이디</summary>
-        public virtual Guid ServiceId { get; set; }
+		/// <summary> 디스크 아이디 </summary>
+		public virtual Guid DiskId { get; set; }
 
-        /// <summary>디스크 아이디</summary>
-        public virtual Guid DiskId { get; set; }
+		/// <summary> 서비스 정보 </summary>
+		public virtual Service Service { get; set; }
 
-        /// <summary>서비스 정보</summary>
-        public virtual Service Service { get; set; }
+		/// <summary> 디스크 정보 </summary>
+		public virtual Disk Disk { get; set; }
 
-        /// <summary>디스크 정보</summary>
-        public virtual Disk Disk { get; set; }
+		#region Extensibility Method Definitions
 
-        #region Extensibility Method Definitions
+		partial void OnCreated();
 
-        partial void OnCreated();
+		public override bool Equals(object obj)
+		{
+			ServiceDisk toCompare = obj as ServiceDisk;
+			if (toCompare == null)
+			{
+				return false;
+			}
 
-        public override bool Equals(object obj)
-        {
-          ServiceDisk toCompare = obj as ServiceDisk;
-          if (toCompare == null)
-          {
-            return false;
-          }
+			if (!Object.Equals(this.ServiceId, toCompare.ServiceId))
+				return false;
+			if (!Object.Equals(this.DiskId, toCompare.DiskId))
+				return false;
 
-          if (!Object.Equals(this.ServiceId, toCompare.ServiceId))
-            return false;
-          if (!Object.Equals(this.DiskId, toCompare.DiskId))
-            return false;
+			return true;
+		}
 
-          return true;
-        }
+		public override int GetHashCode()
+		{
+			int hashCode = 13;
+			hashCode = (hashCode * 7) + ServiceId.GetHashCode();
+			hashCode = (hashCode * 7) + DiskId.GetHashCode();
+			return hashCode;
+		}
 
-        public override int GetHashCode()
-        {
-          int hashCode = 13;
-          hashCode = (hashCode * 7) + ServiceId.GetHashCode();
-          hashCode = (hashCode * 7) + DiskId.GetHashCode();
-          return hashCode;
-        }
-
-        #endregion
-    }
+		#endregion
+	}
 
 }

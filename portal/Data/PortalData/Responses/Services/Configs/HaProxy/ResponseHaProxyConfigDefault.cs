@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -43,15 +43,15 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 					{
 						// 한줄을 읽어 들인다.
 						line = reader.ReadLine();
-					
+
 						// 빈 문자열이 아닌 경우
 						if (line != null && !line.IsEmpty())
 						{
 							// 이름과 값으로 분리한다.
-							string[] items = line.Trim().Split(new [] {' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+							string[] items = line.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
-							if(items.Length == 0) continue;
-							
+							if (items.Length == 0) continue;
+
 							// 해당 라인이 섹션명과 동일한 경우
 							if (items[0] == SectionName)
 							{
@@ -63,8 +63,8 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 								// 섹션이 시작된 경우
 								if (isBegin)
 								{
-									
-									// 지정된 헤더로 시작되는 경우 
+
+									// 지정된 헤더로 시작되는 경우
 									if (Headers.Any(i => line.StartsWith(i)))
 										break;
 
@@ -94,7 +94,7 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 							}
 						}
 					} while (line != null);
-					
+
 					reader.Close();
 				}
 
@@ -104,7 +104,7 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-		
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}

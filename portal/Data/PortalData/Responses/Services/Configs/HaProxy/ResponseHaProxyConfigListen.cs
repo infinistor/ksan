@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -50,15 +50,15 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 					{
 						// 한줄을 읽어 들인다.
 						line = reader.ReadLine();
-					
+
 						// 빈 문자열이 아닌 경우
 						if (line != null && !line.IsEmpty())
 						{
 							// 이름과 값으로 분리한다.
-							string[] items = line.Trim().Split(new [] {' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+							string[] items = line.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
-							if(items.Length == 0) continue;
-							
+							if (items.Length == 0) continue;
+
 							// 해당 라인이 섹션명과 동일한 경우
 							if (items[0] == SectionName)
 							{
@@ -73,16 +73,16 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 								// 섹션이 시작된 경우
 								if (isBegin)
 								{
-									// 지정된 헤더로 시작되는 경우 
+									// 지정된 헤더로 시작되는 경우
 									if (Headers.Any(i => line.StartsWith(i)))
 										break;
 
 									config.AppendLine(line);
-									
+
 									switch (items[0])
 									{
 										case "bind":
-											this.BindPort = (uint) this.GetIntValue(items.Length >= 2 ? items[1].Replace("*:", "") : "", 80);
+											this.BindPort = (uint)this.GetIntValue(items.Length >= 2 ? items[1].Replace("*:", "") : "", 80);
 											break;
 										case "mode":
 											if (items.Length >= 2)
@@ -123,11 +123,11 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 											{
 												RequestHaProxyConfigServer server = new RequestHaProxyConfigServer();
 												server.Host = items[1];
-												string[] ipAndPort = items[2].Split(new [] {':'}, StringSplitOptions.RemoveEmptyEntries);
-												if(ipAndPort.Length >= 1)
+												string[] ipAndPort = items[2].Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+												if (ipAndPort.Length >= 1)
 													server.IpAddress = ipAndPort[0];
-												if(ipAndPort.Length >= 2)
-													server.Port = (uint) this.GetIntValue(ipAndPort[1], 80);
+												if (ipAndPort.Length >= 2)
+													server.Port = (uint)this.GetIntValue(ipAndPort[1], 80);
 												if (items.Length >= 4)
 												{
 													List<string> paramItems = items.Skip(3).ToList();
@@ -141,17 +141,17 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 							}
 						}
 					} while (line != null);
-					
+
 					reader.Close();
 				}
-				
+
 				this.Config = config.ToString();
 				result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-		
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
@@ -161,7 +161,7 @@ namespace PortalData.Responses.Services.Configs.HaProxy
 
 		/// <summary>리슨명</summary>
 		public string Name { get; set; } = "";
-		
+
 		/// <summary>바인드 포트</summary>
 		public uint BindPort { get; set; }
 

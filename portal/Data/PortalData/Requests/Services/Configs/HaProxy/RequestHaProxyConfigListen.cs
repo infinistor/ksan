@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -30,7 +30,7 @@ namespace PortalData.Requests.Services.Configs.HaProxy
 		public override ResponseData<string> Serialize()
 		{
 			ResponseData<string> result = new ResponseData<string>();
-			StringBuilder config = new StringBuilder(); 
+			StringBuilder config = new StringBuilder();
 
 			try
 			{
@@ -64,16 +64,16 @@ namespace PortalData.Requests.Services.Configs.HaProxy
 				foreach (RequestHaProxyConfigServer server in this.Servers)
 				{
 					List<string> serverItem = new List<string>();
-					
+
 					serverItem.Add($"{server.Host}");
-					if(server.Port == null)
+					if (server.Port == null)
 						serverItem.Add($"{server.IpAddress}");
 					else
 						serverItem.Add($"{server.IpAddress}:{server.Port}");
 					serverItem.Add($"{server.Param}");
 
 					string serverContent = serverItem.Aggregate((cur, next) => cur + " " + next);
-					
+
 					config.AppendLine($"\tserver {serverContent}");
 				}
 
@@ -83,7 +83,7 @@ namespace PortalData.Requests.Services.Configs.HaProxy
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-		
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
@@ -93,7 +93,7 @@ namespace PortalData.Requests.Services.Configs.HaProxy
 
 		/// <summary>리슨명</summary>
 		public string Name { get; set; } = "";
-		
+
 		/// <summary>바인드 포트</summary>
 		public uint BindPort { get; set; } = 0;
 

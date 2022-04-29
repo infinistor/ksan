@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -28,7 +28,7 @@ namespace PortalSvr.Services
 	{
 		/// <summary>API KEY 인증 헤더명</summary>
 		public static string AuthorizationHeaderName = "Authorization";
-	
+
 		/// <summary>권한 확인</summary>
 		/// <param name="context"></param>
 		public async void OnAuthorization(AuthorizationFilterContext context)
@@ -36,19 +36,19 @@ namespace PortalSvr.Services
 			// 인증된 상태인 경우
 			if (context.HttpContext.User.Identity != null && context.HttpContext.User.Identity.IsAuthenticated)
 				return;
-			
+
 			// API Key 관련 헤더가 존재하는 경우
 			if (context.HttpContext.Request.Headers.ContainsKey(AuthorizationHeaderName) || context.HttpContext.Request.Headers.ContainsKey(AuthorizationHeaderName.ToLower()))
 			{
 				// API Key 프로바이더 객체를 가져온다.
 				IApiKeyProvider apiKeyProvider = context.HttpContext.RequestServices.GetService<IApiKeyProvider>();
 
-				// API Key 프로바이더 객체가 존재하는 경우	
+				// API Key 프로바이더 객체가 존재하는 경우
 				if (apiKeyProvider != null)
 				{
 					// API Key 관련 헤더 값을 가져온다.
 					string authorizationHeader = context.HttpContext.Request.Headers[AuthorizationHeaderName];
-					if(authorizationHeader.IsEmpty())
+					if (authorizationHeader.IsEmpty())
 						authorizationHeader = context.HttpContext.Request.Headers[AuthorizationHeaderName.ToLower()];
 
 					// API Key 정보를 가져온다.
@@ -63,25 +63,25 @@ namespace PortalSvr.Services
 						SignInManager<NNApplicationUser> signInManager = context.HttpContext.RequestServices.GetService<SignInManager<NNApplicationUser>>();
 						// Claims Principal Factory
 						IUserClaimsPrincipalFactory<NNApplicationUser> claimsPrincipalFactory = context.HttpContext.RequestServices.GetService<IUserClaimsPrincipalFactory<NNApplicationUser>>();
-						
+
 						// 사용자/로그인 관리자가 유효한 경우
 						if (userManager != null && signInManager != null && claimsPrincipalFactory != null)
 						{
 							// API 키에 대한 사용자 정보를 가져온다.
 							NNApplicationUser user = await userManager.FindByIdAsync(responseApiKey.Data.UserId);
-							
+
 							// 해당 사용자로 로그인 처리
 							await signInManager.SignInAsync(user, false);
 
 							// 로그인 정보를 저장한다. (이번 요청부터 로그인된 상태를 처리하기 하기 위해서)
 							context.HttpContext.User = await claimsPrincipalFactory.CreateAsync(user);
-						
+
 							return;
 						}
 					}
 				}
 			}
-			
+
 			// 로그인이 필요로 설정
 			ResponseData response = new ResponseData();
 			response.IsNeedLogin = true;
@@ -96,14 +96,14 @@ namespace PortalSvr.Services
 		protected string ParseApiKeyFromHeader(string authorizationHeader)
 		{
 			string result = "";
-			
+
 			// 인증 정보가 유효한 경우
 			if (!authorizationHeader.IsEmpty())
 			{
 				const string prefix = "bearer ";
 
 				result = authorizationHeader;
-				
+
 				// bearer로 시작하는 경우
 				if (authorizationHeader.ToLower().StartsWith(prefix))
 				{

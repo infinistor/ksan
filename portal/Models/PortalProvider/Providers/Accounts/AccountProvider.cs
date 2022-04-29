@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -255,7 +255,7 @@ namespace PortalProvider.Providers.Accounts
 							// 프로토콜과 호스트 저장
 							string protocol = request.Protocol.IsEmpty() ? httpRequest.Scheme : request.Protocol;
 							string host = request.Host.IsEmpty() ? httpRequest.Host.ToString() : request.Host;
-							
+
 							// 확인 메일 발송
 							ResponseData sendResult = await SendConfirmEmail(user, protocol, host);
 
@@ -400,7 +400,7 @@ namespace PortalProvider.Providers.Accounts
 						{
 							// 로그인
 							SignInResult signInResult = await m_signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: false);
-							
+
 							// 로그인 성공 시
 							if (signInResult.Succeeded)
 							{
@@ -480,7 +480,7 @@ namespace PortalProvider.Providers.Accounts
 
 						return new ResponseData<ResponseLogin>(EnumResponseResult.Error, Resource.EC_COMMON__ACCESS_DENIED, Resource.EM_COMMON__ACCESS_DENIED, false, true);
 					}
-					
+
 					// 로그인 로그 저장
 					await this.m_systemLogProvider.Add(
 						EnumLogLevel.Information
@@ -748,7 +748,7 @@ namespace PortalProvider.Providers.Accounts
 					else
 					{
 						// 이메일 확인 처리된 회원인 경우
-						if(user.EmailConfirmed)
+						if (user.EmailConfirmed)
 						{
 							result.Result = EnumResponseResult.Success;
 							result.Code = Resource.SC_COMMON__SUCCESS;
@@ -913,7 +913,7 @@ namespace PortalProvider.Providers.Accounts
 							// 프로토콜과 호스트 저장
 							string protocol = request.Protocol.IsEmpty() ? httpRequest.Scheme : request.Protocol;
 							string host = request.Host.IsEmpty() ? httpRequest.Host.ToString() : request.Host;
-							
+
 							// 메일 내용 중 이메일 주소 확인 버튼 클릭 시 돌아올 콜백 URL
 							string callbackUrl;
 							callbackUrl = string.Format("{0}://{1}/{2}?userId={3}&code={4}", protocol, host, "Account/ResetPassword", WebUtility.UrlEncode(user.LoginId), WebUtility.UrlEncode(code));
@@ -1225,12 +1225,12 @@ namespace PortalProvider.Providers.Accounts
 														(
 															m_dbContext.RoleClaims
 																.Any(j => roleNames.Contains(j.Role.Name)
-																          && j.ClaimType == "Permission"
-																          && j.ClaimValue == i.ClaimValue)
+																		  && j.ClaimType == "Permission"
+																		  && j.ClaimValue == i.ClaimValue)
 															|| m_dbContext.UserClaims
 																.Any(j => j.UserId == user.Id
-																          && j.ClaimType == "Permission"
-																          && j.ClaimValue == i.ClaimValue)
+																		  && j.ClaimType == "Permission"
+																		  && j.ClaimValue == i.ClaimValue)
 														)
 													)
 													.OrderByWithDirection(i => i.ClaimValue)

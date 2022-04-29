@@ -1,1742 +1,1847 @@
 <?xml version="1.0" encoding="utf-8"?>
-<efcore namespace="PortalModels" p1:name="PortalModel" p1:Guid="1b7061d3-21c8-437d-90a3-092a8162c136" xmlns:p1="http://devart.com/schemas/EntityDeveloper/1.0">
-  <class name="$EnumTypes">
-    <EnumType Name="EnumDbNetworkLinkState" class="EnumDbNetworkLinkState" p1:Guid="21216a37-040d-4012-b6b0-100c696ecb64">
-      <Documentation>
-        <Summary>네트워크 연결 상태</Summary>
-      </Documentation>
-      <Member Name="Unknown" Value="-1" p1:Guid="dbe47833-512b-4528-87a6-91ff3491b7ed" />
-      <Member Name="Down" Value="0" p1:Guid="3502a96f-0b49-4f28-8a09-239887461498" />
-      <Member Name="Up" Value="1" p1:Guid="ec551ed4-f3ca-481d-a847-70fea07c145a" />
-    </EnumType>
-    <EnumType Name="EnumDbYesNo" class="EnumDbYesNo" p1:Guid="e16773f0-656a-43e4-bf3a-b1b839ee7794">
-      <Documentation>
-        <Summary>예/아니오</Summary>
-      </Documentation>
-      <Member Name="No" p1:Guid="dbff09a4-99e1-4a6e-aa18-ec40db5eca35" />
-      <Member Name="Yes" p1:Guid="9fbd93c0-0ae0-4648-9f88-881a1fac513b" />
-    </EnumType>
-    <EnumType Name="EnumDbOnOff" class="EnumDbOnOff" p1:Guid="fe64a3c9-abc2-4683-b20b-b8bcdaad3aa5">
-      <Documentation>
-        <Summary>On/Off</Summary>
-      </Documentation>
-      <Member Name="Off" p1:Guid="8eab358e-814b-4bcf-b434-188ea291c252" />
-      <Member Name="On" p1:Guid="f9a6e2f3-bafe-4978-8305-2d5a1b375dca" />
-    </EnumType>
-    <EnumType Name="EnumDbHaAction" class="EnumDbHaAction" p1:Guid="eec76826-2321-4d0a-bb3d-7c3d6d9af333">
-      <Documentation>
-        <Summary>동기화 작업 구분</Summary>
-      </Documentation>
-      <Member Name="Unknown" Value="-1" p1:Guid="b09fee20-465a-43bf-a010-22e54014173c" />
-      <Member Name="Initializing" p1:Guid="a32af0cb-6c13-412d-b072-518f8107221a" />
-      <Member Name="Standby" p1:Guid="12e3dbc2-594a-446a-8a70-a1bc687ca317" />
-      <Member Name="Active" p1:Guid="cb88c65a-4c90-41f1-89cc-3326d6aa3d14" />
-      <Member Name="Sync" p1:Guid="dca746b3-d0c0-40a3-b5bc-ad097be635e9" />
-    </EnumType>
-    <EnumType Name="EnumDbServiceType" class="EnumDbServiceType" p1:Guid="4d202c8a-e7b5-4e65-b28e-242afd5e786b">
-      <Documentation>
-        <Summary>서비스 타입</Summary>
-      </Documentation>
-      <Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
-      <Member Name="Mds" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
-      <Member Name="Osd" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
-      <Member Name="Dir" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
-      <Member Name="Mgs" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
-      <Member Name="WssRest" p1:Guid="72436072-c58a-4629-8ce7-de5141fd45a1" />
-      <Member Name="WssAuth" p1:Guid="2a8840a7-38ba-498c-924e-a8fa9896c9aa" />
-      <Member Name="LogServer" p1:Guid="e5069ff3-a3a5-4777-9f45-189159633619" />
-      <Member Name="S3" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
-      <Member Name="Smb" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
-      <Member Name="Samba" p1:Guid="e7122140-5d0e-4ebf-b41b-920d91d37f80" />
-      <Member Name="HaProxy" p1:Guid="b5d29545-32e3-43ce-8c13-40409a530125" />
-    </EnumType>
-    <EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
-      <Documentation>
-        <Summary>서비스 그룹 모드</Summary>
-      </Documentation>
-      <Member Name="Single" p1:Guid="86b9f23a-2ac4-4c62-b9d2-2593d09158dd" />
-      <Member Name="LoadBalance" p1:Guid="6f6091da-1728-4663-a7b9-a54bbf5ad7fb" />
-    </EnumType>
-    <EnumType Name="EnumDbLogLevel" UnderlyingType="Int16" class="EnumDbLogLevel" p1:Guid="e16e25f7-9797-40de-bfd0-c110c5536468">
-      <Documentation>
-        <Summary>로그 레벨</Summary>
-      </Documentation>
-      <Member Name="Debug" p1:Guid="607a0968-c54c-4e9d-8613-3374d9d00090" />
-      <Member Name="Information" p1:Guid="6ca7492e-33b7-4f31-ad01-dd6a5fb83e99" />
-      <Member Name="Warning" p1:Guid="fe0203eb-c65b-473f-b68d-d2f205e2abf8" />
-      <Member Name="Error" p1:Guid="a8ee7f33-c90c-473e-8336-873b8e553b0d" />
-    </EnumType>
-    <EnumType Name="EnumDbServerState" class="EnumDbServerState" p1:Guid="24da7ac5-2b23-410d-8431-5b397cf0d8d3">
-      <Documentation>
-        <Summary>서버 상태</Summary>
-      </Documentation>
-      <Member Name="Unknown" Value="-2" p1:Guid="76153b4c-a123-43b5-ad90-927e21973762" />
-      <Member Name="Timeout" Value="-1" p1:Guid="16b2a0fe-f60c-4faf-bf3d-10cbafccb389" />
-      <Member Name="Offline" Value="0" p1:Guid="81af0746-3037-42c1-a422-1c9b9842c8eb" />
-      <Member Name="Online" Value="1" p1:Guid="f35fb8f3-1df6-4d20-9df9-a5b8c767aa6e" />
-    </EnumType>
-    <EnumType Name="EnumDbServiceState" class="EnumDbServiceState" p1:Guid="909cce18-cd60-419b-afd0-0c394db7aa7c">
-      <Documentation>
-        <Summary>서비스 상태</Summary>
-      </Documentation>
-      <Member Name="Unknown" Value="-2" p1:Guid="3f75db24-969a-4fc1-9029-53610bfb5ee4" />
-      <Member Name="Timeout" Value="-1" p1:Guid="0c8b7535-2c34-45ed-a1d3-01347a821e5b" />
-      <Member Name="Offline" Value="0" p1:Guid="b08eb7b7-a2fb-4f27-a42f-cc38a23fd7cf" />
-      <Member Name="Online" Value="1" p1:Guid="4921d343-edb2-45ad-ae77-738cd97303ad" />
-    </EnumType>
-    <EnumType Name="EnumDbDiskRwMode" class="EnumDbDiskRwMode" p1:Guid="e6583a8d-61e3-4578-a376-28843a41fa9b">
-      <Documentation>
-        <Summary>디스크 읽기/쓰기 모드</Summary>
-      </Documentation>
-      <Member Name="ReadOnly" p1:Guid="e65510cd-e66e-4d56-87b6-6af4f02add81" />
-      <Member Name="ReadWrite" p1:Guid="75cff32a-af96-4d67-afc3-5b9d3728bb94" />
-    </EnumType>
-    <EnumType Name="EnumDbDiskState" class="EnumDbDiskState" p1:Guid="384e8a83-27a5-4988-9f4a-d141ba29b974">
-      <Documentation>
-        <Summary>서비스 상태</Summary>
-      </Documentation>
-      <Member Name="Bad" Value="-2" p1:Guid="a951ff4b-5268-4169-8550-cf534cbe0285" />
-      <Member Name="Disable" Value="-1" p1:Guid="d27f79ba-c969-49f2-abb6-12b6f38d9edf" />
-      <Member Name="Stop" Value="0" p1:Guid="42415f85-c192-47b4-b8c2-9910570eccdd" />
-      <Member Name="Weak" Value="1" p1:Guid="7aa8f8b6-61f2-43f9-a563-60e7aeca63a4" />
-      <Member Name="Good" Value="2" p1:Guid="6b38cde3-95fb-4f82-b43d-ee7e19f75759" />
-    </EnumType>
-  </class>
-  <class name="NetworkInterface" entity-set="NetworkInterfaces" p1:Guid="01514607-0e35-415a-9894-ccc4e0c2a488">
-    <Documentation>
-      <Summary>네트워크 인터페이스 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="d21fa384-eb16-4d5d-9801-1b652e24199d">
-      <Documentation>
-        <Summary>네트워크 인터페이스 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="116ee260-b9d7-4325-bd45-6e74b9cb2726">
-      <Documentation>
-        <Summary>서버 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="28ef35b4-4db5-499c-94a6-11c9a07816ca">
-      <Documentation>
-        <Summary>인터페이스명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f44befbf-46d8-4141-8e89-56077287fc75">
-      <Documentation>
-        <Summary>설명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(4000)" />
-    </property>
-    <property name="Dhcp" type="PortalModels.EnumDbYesNo" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6cb1771f-3638-4c2b-84d2-7b6e4f3e5987">
-      <Documentation>
-        <Summary>DHCP 사용 여부</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="MacAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
-      <Documentation>
-        <Summary>맥주소</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(18)" />
-    </property>
-    <property name="LinkState" type="PortalModels.EnumDbNetworkLinkState" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="96fd6bed-304e-453f-bfa8-2a6ee78a30bc">
-      <Documentation>
-        <Summary>네트워크 연결 상태</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="IpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="af6f5760-2161-42f9-8545-e55de356b439">
-      <Documentation>
-        <Summary>아이피 주소</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a92fa543-6e75-40e4-a36e-896cb44e0a19">
-      <Documentation>
-        <Summary>서브넷 마스크</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="Gateway" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ee2eaecf-db82-4ea8-8e3a-fec5c3d32ed2">
-      <Documentation>
-        <Summary>게이트웨이</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="Dns1" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e037942d-1a69-4118-a200-58e2ecebfcd6">
-      <Documentation>
-        <Summary>DNS #1</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="Dns2" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="04f58a2d-89f5-4ad1-9866-f83ed57228c1">
-      <Documentation>
-        <Summary>DNS #2</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8a60916b-4cc7-450b-b19e-3102e1559ae7">
-      <Documentation>
-        <Summary>네트워크 BandWidth</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-    <property name="IsManagement" type="Boolean" p1:ValidateRequired="true" p1:Guid="eae88172-37ca-4806-981e-ba0ed8435f6f">
-      <Documentation>
-        <Summary>관리용 인터페이스인지 여부</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4f6df853-ed24-4911-ac0a-42e3584b6be4">
-      <Documentation>
-        <Summary>수신 속도</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-    <property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="d174b830-9bcd-4ce2-abd7-fa4ab1a4a32a">
-      <Documentation>
-        <Summary>송신 속도</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1b830739-9af8-4549-8fcf-46d1d4a7b3cb">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9560a47d-557b-43ec-9a03-538f24513d64">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8ad516ee-e460-4793-b3ce-f9354a268c6c">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1c977d3e-d84a-456a-9154-f0911854dc28">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8de3eb81-6470-476d-8c82-9f77095c672a">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="NetworkInterfaceVlan" entity-set="NetworkInterfaceVlans" p1:Guid="8e5a1197-1384-426e-9db0-e0ecda8acfcc">
-    <Documentation>
-      <Summary>네트워크 인터페이스 VLAN 설정</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="c0c0d1ee-a504-41d8-b9a2-8fb9d960fb41">
-      <Documentation>
-        <Summary>네트워크 인터페이스 VLAN 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="InterfaceId" type="Guid" p1:ValidateRequired="true" p1:Guid="ad379f5b-f5e8-490d-a2f7-76ba32069aef">
-      <Documentation>
-        <Summary>네트워크 인터페이스 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="Tag" type="Int32" p1:ValidateRequired="true" p1:Guid="abd10bd6-894b-4b46-add3-e4543d68ce63">
-      <Documentation>
-        <Summary>VLAN 태그</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="IpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ffb0325a-addd-4fb5-889d-5b2f4d861ec0">
-      <Documentation>
-        <Summary>아이피 주소</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="75222423-b6c9-4cb1-9b14-4b210bc165ed">
-      <Documentation>
-        <Summary>서브넷 마스크</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="Gateway" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="cf106266-fcdc-4741-b411-0df42f2d4d1f">
-      <Documentation>
-        <Summary>게이트웨이</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="fcb0d894-6e9d-4bc3-9068-256c2f2b33c9">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b3eefb1f-27d2-4485-a971-4672c3041716">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f4368581-d50e-478b-a30d-53ffdd9c433f">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="037e1266-8ed6-40a3-a028-8a97cfdea7f5">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="dca9afd0-bf4e-4452-a219-b0b8360ad65b">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="Service" entity-set="Services" p1:Guid="a3098151-a299-44ba-bc7d-08d2475f3f16">
-    <Documentation>
-      <Summary>서비스 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b25c6555-1f7d-4085-9bd1-c634686f6f94">
-      <Documentation>
-        <Summary>서비스 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="GroupId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7384f57d-6cf0-4af2-a077-4a7452b293db">
-      <Documentation>
-        <Summary>서비스 그룹 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="14ee003a-a8cc-4a2d-b793-810d3d9a4ddb">
-      <Documentation>
-        <Summary>서비스명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dd6944d1-0590-4128-bbdb-7e99a47b57db">
-      <Documentation>
-        <Summary>설명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(4000)" />
-    </property>
-    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="f2f8f0c0-747f-4232-93ac-defd10b1f985">
-      <Documentation>
-        <Summary>서비스 타입</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="HaAction" type="PortalModels.EnumDbHaAction" p1:ValidateRequired="true" p1:Guid="cc5ec635-8aff-47c4-adde-a912f44994a2">
-      <Documentation>
-        <Summary>HA 작업</Summary>
-      </Documentation>
-      <column name="" default="-1" />
-    </property>
-    <property name="State" type="PortalModels.EnumDbServiceState" p1:ValidateRequired="true" p1:Guid="9c3600fc-cd36-4fc4-ad79-50b47fd750ce">
-      <Documentation>
-        <Summary>서비스 상태</Summary>
-      </Documentation>
-      <column name="" default="-2" />
-    </property>
-    <property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="04b73d58-d043-4cda-a699-d451b6d1944d">
-      <Documentation>
-        <Summary>CPU 사용률</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4d16eca3-8e5b-4c68-8d34-c348a99c78a8">
-      <Documentation>
-        <Summary>전체 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c08615ab-d3c0-4c5c-8847-906de69078fc">
-      <Documentation>
-        <Summary>사용 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="059bd7af-6238-45c0-9f60-75a35b3b8242">
-      <Documentation>
-        <Summary>스레드수</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="456c4974-fc4e-4de3-a532-5bac2e457e73">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="2d50e6ba-49c9-4c6b-8b81-952a5f1066fb">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfac6811-ffb5-4e12-b217-52df3a1ea780">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e2f1323b-275e-45a1-863a-2d017dc6ca1d">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="132c62e1-18ad-4829-b200-d718030e599f">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="ServiceNetworkInterfaceVlan" entity-set="ServiceNetworkInterfaceVlans" p1:Guid="1b113066-08a9-4c83-8caf-6335db5ee000">
-    <Documentation>
-      <Summary>서비스 사용 네트워크 인터페이스 정보</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="401a743e-7403-4e3a-8964-acdf53d48710">
-        <Documentation>
-          <Summary>서비스 아이디</Summary>
-        </Documentation>
-        <column name="" sql-type="char(36)" />
-      </key-property>
-      <key-property name="VlanId" type="Guid" p1:ValidateRequired="true" p1:Guid="15778b0b-225f-4387-a5b5-51f9b01e0744">
-        <Documentation>
-          <Summary>네트워크 인터페이스 VLAN 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-    </composite-id>
-  </class>
-  <class name="Server" entity-set="Servers" p1:Guid="555a8930-6513-4003-91db-f64fed8d4612">
-    <Documentation>
-      <Summary>서버 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="26ec250d-d888-4a4a-a3f6-5ceb610e0b87">
-      <Documentation>
-        <Summary>서버 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="ec1f3b0a-d41b-464e-9451-15a218467a58">
-      <Documentation>
-        <Summary>서버명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
-      <Documentation>
-        <Summary>설명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(4000)" />
-    </property>
-    <property name="CpuModel" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="539bf8e6-bd81-4df0-8f05-63fdfef37748">
-      <Documentation>
-        <Summary>CPU 모델</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(1000)" />
-    </property>
-    <property name="Clock" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
-      <Documentation>
-        <Summary>CPU 클럭</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="State" type="PortalModels.EnumDbServerState" p1:ValidateRequired="true" p1:Guid="692fcb9d-c9a6-41e6-9f12-c84441c4a458">
-      <Documentation>
-        <Summary>서버 상태</Summary>
-      </Documentation>
-      <column name="" default="-2" />
-    </property>
-    <property name="Rack" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="bd177d40-403f-4b09-a57f-ef276abec1da">
-      <Documentation>
-        <Summary>Rack 정보</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4fbb7e8a-803e-4387-8165-8055326e99a7">
-      <Documentation>
-        <Summary>1분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="99b6a280-781c-4097-bb8f-61c753cb2598">
-      <Documentation>
-        <Summary>5분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="efcff39d-a5bb-44f3-8e15-ff796a604ce8">
-      <Documentation>
-        <Summary>15분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5ff657be-9cec-4665-b857-72d121fcbc62">
-      <Documentation>
-        <Summary>전체 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="25b10afb-c246-4357-86fa-672a97608b53">
-      <Documentation>
-        <Summary>사용 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfd7af48-d9e8-47dc-b103-577a1a8879f6">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="716c34ba-5707-4fcf-8cf8-ca05e76cae71">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="ServiceGroup" entity-set="ServiceGroups" p1:Guid="1fce8713-ca26-446b-a57f-d769f01a4b18">
-    <Documentation>
-      <Summary>서비스 그룹</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="55e0902c-88e5-4f1d-8706-d35018b14415">
-      <Documentation>
-        <Summary>서비스 그룹 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e7242d9c-985a-4d47-82c6-5b909e993c75">
-      <Documentation>
-        <Summary>서비스 그룹명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a276786e-8aa1-4844-8840-7190a6467737">
-      <Documentation>
-        <Summary>설명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(4000)" />
-    </property>
-    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="c326c13e-8b72-4056-be47-22b8538fedb1">
-      <Documentation>
-        <Summary>서비스 타입</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="ServiceIpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8d2a8821-8ac6-4281-b572-8bb974644006">
-      <Documentation>
-        <Summary>서비스 아이피 주소</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="2dedf590-6a7f-42d6-b65b-5bd60e54630d">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="4bcdb2d7-2d3e-4079-aa30-dd5e1a64f2be">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5e9db057-a8a6-4122-bf38-910ffa48feb7">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e93f9e55-3aa2-4376-aaf2-bb4546001b25">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="474b573b-0d81-4b7a-afab-0bb7b8c995cc">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="ApiKey" entity-set="ApiKeys" p1:Guid="9e27b4a7-7510-4ff7-836b-f3c643b4b5c4">
-    <Documentation>
-      <Summary>API 키 정보</Summary>
-    </Documentation>
-    <id name="KeyId" type="Guid" p1:ValidateRequired="true" p1:Guid="d91be1ee-6cf5-480a-989a-43ab2b93912a">
-      <Documentation>
-        <Summary>API 키 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="c65ce74b-9b0b-4f8d-83af-f81bd227306c">
-      <Documentation>
-        <Summary>사용자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="KeyName" type="String" p1:ValidateRequired="true" p1:Guid="819d1e71-2b49-4fb1-8797-97a001c5f5e3">
-      <Documentation>
-        <Summary>키명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="ExpireDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="503d2561-0585-4112-b3fa-ea5a5e1aeeed">
-      <Documentation>
-        <Summary>만료일</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="KeyValue" type="String" p1:ValidateRequired="true" p1:Guid="9320f63b-31c0-483a-b764-de0d0b9e03a5">
-      <Documentation>
-        <Summary>키 값</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(200)" />
-    </property>
-  </class>
-  <class name="Config" entity-set="Configs" p1:Guid="c069a1b0-993f-45d8-ba77-874523766762">
-    <Documentation>
-      <Summary>설정 정보 테이블</Summary>
-    </Documentation>
-    <id name="Key" type="String" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="c082124a-dd34-4e89-8129-25f8330bb151">
-      <Documentation>
-        <Summary>설정 키</Summary>
-      </Documentation>
-      <column name="`KEY`" not-null="True" length="255" sql-type="varchar" p1:unicode="True" />
-    </id>
-    <property name="Value" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="1092bb99-8c77-4f93-a10f-076b5b29cc4b">
-      <Documentation>
-        <Summary>설정 값</Summary>
-      </Documentation>
-      <column name="VALUE" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-  </class>
-  <class name="SystemLog" entity-set="SystemLogs" p1:Guid="3ae3c588-d841-4d93-bd77-0a81250030f7">
-    <Documentation>
-      <Summary>시스템 로그</Summary>
-    </Documentation>
-    <id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ab84ebf6-ba1c-4443-b731-e821a62c8f18">
-      <Documentation>
-        <Summary>로그 아이디</Summary>
-      </Documentation>
-      <column name="LOG_ID" not-null="True" precision="20" scale="0" sql-type="bigint" unique="True" p1:unicode="False" />
-    </id>
-    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="67430571-742f-4751-a781-ef4acc2b84c3">
-      <Documentation>
-        <Summary>로그 레벨</Summary>
-      </Documentation>
-      <column name="LOG_LEVEL" not-null="True" precision="6" scale="0" sql-type="smallint" p1:unicode="False" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="REG_DATE" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="42005bf6-06cd-4cab-9568-850fd48b52e9">
-      <Documentation>
-        <Summary>메세지</Summary>
-      </Documentation>
-      <column name="MESSAGE" not-null="True" sql-type="text" p1:unicode="True" />
-    </property>
-  </class>
-  <class name="AllowedConnectionIp" entity-set="AllowedConnectionIps" p1:Guid="3e2faf56-37db-4a9e-9a52-536c0992e322">
-    <Documentation>
-      <Summary>접속이 허용된 아이피</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="f6d09c66-6afc-41fa-90de-94aad8ffbd40">
-      <Documentation>
-        <Summary>접속 허용 아이피 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="RoleId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="de92668d-06a5-4e0d-8304-715df360d6d6">
-      <Documentation>
-        <Summary>역할(권한그룹) 아이디</Summary>
-      </Documentation>
-      <column name="" not-null="False" sql-type="char(36)" p1:unicode="True" />
-    </property>
-    <property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="9ce5191a-3e8d-48a6-ae80-0459a8f1b9c9">
-      <Documentation>
-        <Summary>아이피 주소 문자열</Summary>
-      </Documentation>
-      <column name="" length="50" sql-type="varchar" />
-    </property>
-    <property name="StartAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="d9d7de94-c788-47c6-969f-e91244ff3f4d">
-      <Documentation>
-        <Summary>아이피 범위 시작 숫자값</Summary>
-      </Documentation>
-      <column name="" not-null="True" precision="20" scale="0" sql-type="bigint" p1:unicode="False" />
-    </property>
-    <property name="EndAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="3514781f-7169-4329-a0d3-923871857f21">
-      <Documentation>
-        <Summary>아이피 범위 종료 숫자값</Summary>
-      </Documentation>
-      <column name="" not-null="True" precision="20" scale="0" sql-type="bigint" p1:unicode="False" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1861822e-617c-45c6-9fce-4009665dffb5">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" not-null="False" sql-type="char(36)" p1:unicode="True" />
-    </property>
-    <property name="RegName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="cf4c0bdf-7e19-4067-b77e-a77e80be691c">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" not-null="True" length="1000" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="UserLoginHistory" entity-set="UserLoginHistories" p1:Guid="647d66fd-8c77-4eee-b497-9c75d1db97c5">
-    <Documentation>
-      <Summary>사용자 로그인 기록</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b6fd68dd-da63-4bcb-9243-12ce9102dad9">
-        <Documentation>
-          <Summary>사용자 아이디</Summary>
-        </Documentation>
-        <column name="ID" not-null="True" sql-type="char(36)" p1:unicode="True" />
-      </key-property>
-      <key-property name="LoginDate" type="DateTime" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="35fc010b-488b-45ee-a43a-8b567f4fa088">
-        <Documentation>
-          <Summary>로그인 일시</Summary>
-        </Documentation>
-        <column name="LOGIN_DATE" not-null="True" sql-type="datetime" p1:unicode="False" />
-      </key-property>
-    </composite-id>
-  </class>
-  <class name="UserClaim" entity-set="UserClaims" p1:Guid="8a76a73b-56e7-4642-8127-1f373e28f78d">
-    <Documentation>
-      <Summary>사용자 권한</Summary>
-    </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="3693629b-6b2b-437d-b13f-2d131b28299e">
-      <Documentation>
-        <Summary>권한 아이디</Summary>
-      </Documentation>
-      <column name="Id" precision="11" scale="0" sql-type="int" unique="True" />
-    </id>
-    <property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="419fd237-aa1b-46cc-9767-e9437363ab73">
-      <Documentation>
-        <Summary>권한 타입</Summary>
-      </Documentation>
-      <column name="ClaimType" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0555e1ad-df99-4648-8f49-0098ac483ab7">
-      <Documentation>
-        <Summary>권한 값</Summary>
-      </Documentation>
-      <column name="ClaimValue" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="79ac33b6-f420-4adf-bc7d-c07154a0dd19">
-      <Documentation>
-        <Summary>사용자 아이디</Summary>
-      </Documentation>
-      <column name="UserId" not-null="True" sql-type="char(36)" p1:unicode="True" />
-    </property>
-  </class>
-  <class name="Role" entity-set="Roles" p1:Guid="3d957c3a-332e-4613-b9ef-808cb9d023ce">
-    <Documentation>
-      <Summary>역할(권한 그룹)</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1f9ce801-99d0-4a8a-af6e-e6c5cd53cd51">
-      <Documentation>
-        <Summary>역할(권한그룹) 아이디</Summary>
-      </Documentation>
-      <column name="Id" not-null="True" sql-type="char(36)" p1:unicode="True" />
-    </id>
-    <property name="ConcurrencyStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8f173c45-af78-4e5c-b315-01e4630e37bf">
-      <Documentation>
-        <Summary>병행지문</Summary>
-      </Documentation>
-      <column name="ConcurrencyStamp" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="cd0ee09d-9c67-4564-9883-e6724536fc85">
-      <Documentation>
-        <Summary>역할(권한 그룹)명</Summary>
-      </Documentation>
-      <column name="Name" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="NormalizedName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b136d6bb-7884-4698-abd6-358ecbacdbdb">
-      <Documentation>
-        <Summary>표준화 된 역할(권한 그룹)명</Summary>
-      </Documentation>
-      <column name="NormalizedName" not-null="False" length="255" sql-type="varchar" unique="True" p1:unicode="True" />
-    </property>
-  </class>
-  <class name="RoleClaim" entity-set="RoleClaims" p1:Guid="6da899ad-c5d5-4973-a301-73c06a08793c">
-    <Documentation>
-      <Summary>역할(권한그룹) 권한</Summary>
-    </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="f7ac25e0-4b6f-451b-9963-e972f025d8ed">
-      <Documentation>
-        <Summary>권한 아이디</Summary>
-      </Documentation>
-      <column name="Id" not-null="True" precision="11" scale="0" sql-type="int" unique="True" p1:unicode="False" />
-    </id>
-    <property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0524010f-762a-4df6-a378-3d70c84045d7">
-      <Documentation>
-        <Summary>권한 타입</Summary>
-      </Documentation>
-      <column name="ClaimType" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="59318e33-5c0c-4c8e-8fcf-fa30fc74b43a">
-      <Documentation>
-        <Summary>권한 값</Summary>
-      </Documentation>
-      <column name="ClaimValue" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RoleId" type="Guid" p1:ValidateRequired="true" p1:Guid="9494b656-03ce-4e14-b97f-fe7dd66bf5e0">
-      <Documentation>
-        <Summary>역할(권한그룹) 아이디</Summary>
-      </Documentation>
-      <column name="RoleId" not-null="True" sql-type="char(36)" p1:unicode="True" />
-    </property>
-  </class>
-  <class name="ClaimName" entity-set="ClaimNames" p1:Guid="70317721-a562-40ce-a8e9-4ba78c332cb7">
-    <Documentation>
-      <Summary>권한명</Summary>
-    </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="730acb2b-b7fe-4460-b1f7-9cf52e59a736">
-      <Documentation>
-        <Summary>권한명 아이디</Summary>
-      </Documentation>
-      <column name="" not-null="True" precision="11" scale="0" sql-type="int" unique="True" p1:unicode="False" />
-    </id>
-    <property name="ClaimTitle" type="String" p1:ValidateMaxLength="2000" p1:ValidateRequired="true" p1:Guid="e4dbf958-0766-43d9-8f27-080bd1d31f62">
-      <Documentation>
-        <Summary>권한 제목</Summary>
-      </Documentation>
-      <column name="" not-null="True" length="2000" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ClaimType" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="4f345480-a4df-4bcc-a2c2-1902c60208d8">
-      <Documentation>
-        <Summary>권한 타입</Summary>
-      </Documentation>
-      <column name="" not-null="True" length="200" sql-type="varchar" unique-key="KEY1" p1:unicode="True" />
-    </property>
-    <property name="ClaimValue" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="629dffbd-1164-4f89-9316-b5b765543718">
-      <Documentation>
-        <Summary>권한 값</Summary>
-      </Documentation>
-      <column name="" not-null="True" length="200" sql-type="varchar" unique-key="KEY1" p1:unicode="True" />
-    </property>
-    <property name="Depth" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="9242b586-2588-4899-9b38-4c0e0d78e8ac">
-      <Documentation>
-        <Summary>뎁스</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="OrderNo" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7fd84af3-b483-4aa2-996d-c0e9f26d4e2d">
-      <Documentation>
-        <Summary>순서</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(20)" />
-    </property>
-  </class>
-  <class name="UserRole" entity-set="UserRoles" p1:Guid="4f342c95-3e31-40a2-919b-d5d0d1e68fe6">
-    <Documentation>
-      <Summary>역할(권한그룹) 내 사용자</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="3ff09bca-8206-492d-a9a1-7248fdc9480d">
-        <Documentation>
-          <Summary>사용자 아이디</Summary>
-        </Documentation>
-        <column name="UserId" not-null="True" sql-type="char(36)" p1:unicode="True" />
-      </key-property>
-      <key-property name="RoleId" type="Guid" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="4e6d7f40-193a-491e-aeb2-a74098a18eea">
-        <Documentation>
-          <Summary>역할(권한그룹) 아이디</Summary>
-        </Documentation>
-        <column name="RoleId" not-null="True" sql-type="char(36)" p1:unicode="True" />
-      </key-property>
-    </composite-id>
-  </class>
-  <class name="User" entity-set="Users" p1:Guid="43560174-36b9-4474-ab2c-fb9c24014d50">
-    <Documentation>
-      <Summary>사용자 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="9e38e0af-a9f3-4383-8c6f-738401c1bc1d">
-      <Documentation>
-        <Summary>사용자 아이디</Summary>
-      </Documentation>
-      <column name="Id" sql-type="char(36)" />
-    </id>
-    <property name="AccessFailedCount" type="Int32" p1:ValidateRequired="true" p1:Guid="d3c34024-74ee-4440-9c87-e95b65f7e976">
-      <Documentation>
-        <Summary>접속 실패 회수</Summary>
-      </Documentation>
-      <column name="AccessFailedCount" precision="11" scale="0" sql-type="int" />
-    </property>
-    <property name="Code" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8c8a61c3-2f43-4d6e-911d-742c677cf072">
-      <Documentation>
-        <Summary>사번 등 식별 코드</Summary>
-      </Documentation>
-      <column name="Code" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ConcurrencyStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="19dac510-3ff4-4515-bfd9-9d6e98f55532">
-      <Documentation>
-        <Summary>병행지문</Summary>
-      </Documentation>
-      <column name="ConcurrencyStamp" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="Email" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="c25b2d04-46f3-4c24-add6-18f172ee0a8d">
-      <Documentation>
-        <Summary>이메일</Summary>
-      </Documentation>
-      <column name="Email" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="EmailConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="bd3a3b5f-157b-43ae-a244-5017768f4f9b">
-      <Documentation>
-        <Summary>이메일 승인여부</Summary>
-      </Documentation>
-      <column name="EmailConfirmed" not-null="True" precision="1" sql-type="bit" p1:unicode="False" />
-    </property>
-    <property name="LockoutEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="5694b41f-411b-4287-ac02-95ae8a499179">
-      <Documentation>
-        <Summary>잠금 활성화 여부</Summary>
-      </Documentation>
-      <column name="LockoutEnabled" not-null="True" precision="1" sql-type="bit" p1:unicode="False" />
-    </property>
-    <property name="LockoutEnd" type="DateTime" p1:nullable="True" value-generated="OnAdd" p1:ValidateRequired="false" p1:Guid="0bba1730-7f17-4764-8121-b328b3ecfad1">
-      <Documentation>
-        <Summary>잠금 만료 시간</Summary>
-      </Documentation>
-      <column name="LockoutEnd" not-null="False" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="421b0ce8-75ef-45e2-a836-33194be07914">
-      <Documentation>
-        <Summary>사용자명</Summary>
-      </Documentation>
-      <column name="Name" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="NormalizedEmail" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="46bee43d-2e1e-466a-bfbe-244a3911c109">
-      <Documentation>
-        <Summary>표준화 된 이메일</Summary>
-      </Documentation>
-      <column name="NormalizedEmail" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="NormalizedUserName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="e3c859b0-2219-4dcc-81b3-32b3b2ce1d8c">
-      <Documentation>
-        <Summary>표준화 된 로그인 아이디</Summary>
-      </Documentation>
-      <column name="NormalizedUserName" not-null="False" length="255" sql-type="varchar" unique="True" p1:unicode="True" />
-    </property>
-    <property name="PasswordHash" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="5f4a55b0-ae2a-49b7-8932-f91ded9095d8">
-      <Documentation>
-        <Summary>비밀번호 해쉬</Summary>
-      </Documentation>
-      <column name="PasswordHash" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="PhoneNumber" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="89fa30d1-4276-4980-9f25-a7c135ad03a9">
-      <Documentation>
-        <Summary>전화번호</Summary>
-      </Documentation>
-      <column name="PhoneNumber" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="PhoneNumberConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="5afe02a6-6a9a-4eae-8658-06f1bad99933">
-      <Documentation>
-        <Summary>전화번호 확인 여부</Summary>
-      </Documentation>
-      <column name="PhoneNumberConfirmed" not-null="True" precision="1" sql-type="bit" p1:unicode="False" />
-    </property>
-    <property name="SecurityStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="54713b98-9407-4d4f-90f4-81993b60bd74">
-      <Documentation>
-        <Summary>보안 지문</Summary>
-      </Documentation>
-      <column name="SecurityStamp" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="TwoFactorEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="24e11c04-011b-4cc2-827a-5f5cc4da298d">
-      <Documentation>
-        <Summary>2차 인증 활성화 여부</Summary>
-      </Documentation>
-      <column name="TwoFactorEnabled" not-null="True" precision="1" sql-type="bit" p1:unicode="False" />
-    </property>
-    <property name="LoginId" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6f19ea20-95d1-4908-8c75-edbb1db2d67f">
-      <Documentation>
-        <Summary>로그인 아이디</Summary>
-      </Documentation>
-      <column name="LoginId" not-null="False" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="IsDeleted" type="Boolean" p1:ValidateRequired="true" p1:Guid="fc8c56c6-d1ab-4823-bb66-ae8b5554cd85">
-      <Documentation>
-        <Summary>삭제 여부</Summary>
-      </Documentation>
-      <column name="IsDeleted" default="0" not-null="True" precision="1" scale="0" sql-type="tinyint" p1:unicode="False" />
-    </property>
-    <property name="PasswordChangeDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eddb0418-8cd7-4628-a969-dac29eb6fa32">
-      <Documentation>
-        <Summary>비밀번호 변경 일시</Summary>
-      </Documentation>
-      <column name="PasswordChangeDate" not-null="False" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="UserActionLog" entity-set="UserActionLogs" p1:Guid="526c898b-6793-4c7c-8522-584e3129aefd">
-    <Documentation>
-      <Summary>사용자 행동 로그</Summary>
-    </Documentation>
-    <id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ee22087c-3aa0-44d3-bb29-249b3ad55fd5">
-      <Documentation>
-        <Summary>로그 아이디</Summary>
-      </Documentation>
-      <column name="LOG_ID" not-null="True" precision="20" scale="0" sql-type="bigint" unique="True" p1:unicode="False" />
-    </id>
-    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="722a6812-0f59-455e-90b4-f9d2bcef3d66">
-      <Documentation>
-        <Summary>로그 레벨</Summary>
-      </Documentation>
-      <column name="LOG_LEVEL" not-null="True" precision="6" scale="0" sql-type="smallint" p1:unicode="False" />
-    </property>
-    <property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14d6c052-2864-49c5-ab18-868d4fd06bda">
-      <Documentation>
-        <Summary>접속아이피</Summary>
-      </Documentation>
-      <column name="IP_ADDRESS" not-null="True" length="50" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="fa88437d-54e9-432d-950c-e681ac66cf8f">
-      <Documentation>
-        <Summary>메세지</Summary>
-      </Documentation>
-      <column name="MESSAGE" not-null="True" sql-type="text" p1:unicode="True" />
-    </property>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="8f046ed7-7996-41f0-93c4-8626f0684a80">
-      <Documentation>
-        <Summary>사용자 아이디</Summary>
-      </Documentation>
-      <column name="USER_ID" not-null="True" sql-type="char(36)" p1:unicode="True" />
-    </property>
-    <property name="UserName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="78a024ad-f137-4d00-9a0a-a83ad760364c">
-      <Documentation>
-        <Summary>사용자명</Summary>
-      </Documentation>
-      <column name="USER_NAME" not-null="True" length="1000" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="REG_DATE" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="Disk" entity-set="Disks" p1:Guid="50aa3a79-7621-42e1-9871-879ef7fb207b">
-    <Documentation>
-      <Summary>디스크 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="be060a5d-43fa-47d3-a1d7-8da0e8de1c9f">
-      <Documentation>
-        <Summary>디스크 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="DiskPoolId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="385f2a84-c2ee-48e4-be77-213b63d98cfe">
-      <Documentation>
-        <Summary>디스크 Pool 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="DiskNo" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
-      <Documentation>
-        <Summary>디스크 번호 (디스크 아이디의 HashCode)</Summary>
-      </Documentation>
-      <column name="" sql-type="char(10)" />
-    </property>
-    <property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
-      <Documentation>
-        <Summary>서버 아이디</Summary>
-      </Documentation>
-      <column name="" not-null="False" sql-type="char(36)" />
-    </property>
-    <property name="Path" type="String" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
-      <Documentation>
-        <Summary>마운트 경로</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(200)" />
-    </property>
-    <property name="State" type="PortalModels.EnumDbDiskState" p1:ValidateRequired="true" p1:Guid="e471acd6-993f-4576-8f60-a4f9d6ec31c2">
-      <Documentation>
-        <Summary>서비스 상태</Summary>
-      </Documentation>
-      <column name="" default="-2" />
-    </property>
-    <property name="TotalInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="b477c167-bcd1-4bec-b6c8-dc3e888a50e9">
-      <Documentation>
-        <Summary>전체 inode 수</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="ReservedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="387eda8e-4a17-45c7-83d3-59b1c78b8b7f">
-      <Documentation>
-        <Summary>예약/시스템 inode 수</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="UsedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="4c522b2a-4e67-491f-8280-74b1ed84af95">
-      <Documentation>
-        <Summary>사용된 inode 수</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="TotalSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="472f44a9-f1bf-43d1-8987-5ad67f9ff080">
-      <Documentation>
-        <Summary>전체 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="ReservedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="4f158913-4db9-4ce8-930f-71d440a33a6e">
-      <Documentation>
-        <Summary>예약/시스템 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="UsedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="0c560220-c09e-4925-8da3-bb05e119e7fe">
-      <Documentation>
-        <Summary>사용된 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(24)" />
-    </property>
-    <property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
-      <Documentation>
-        <Summary>디스크 읽기/쓰기 모드</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-  </class>
-  <class name="ServiceDisk" entity-set="ServiceDisks" p1:Guid="877659ce-b722-4da3-8feb-01dd6028c715">
-    <Documentation>
-      <Summary>서비스 사용 디스크 정보</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="72a45164-2db7-4a0a-80de-5730034ab0e1">
-        <Documentation>
-          <Summary>서비스 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-      <key-property name="DiskId" type="Guid" p1:ValidateRequired="true" p1:Guid="16897381-f09a-4d44-9232-2f33d919a58e">
-        <Documentation>
-          <Summary>디스크 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-    </composite-id>
-  </class>
-  <class name="DiskPool" entity-set="DiskPools" p1:Guid="ea6bfc23-fbe0-4269-a7fc-b996a1572ffb">
-    <Documentation>
-      <Summary>디스크 Pool 정보</Summary>
-    </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="083df896-ac81-4566-833f-7986a994ca32">
-      <Documentation>
-        <Summary>디스크 Pool 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="63656ce8-9cb6-428b-884d-13789eb9f458">
-      <Documentation>
-        <Summary>디스크 Pool 명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(100)" />
-    </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a8f71709-ee54-4da7-8725-23fb3a63d00a">
-      <Documentation>
-        <Summary>디스크 Pool 설명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(4000)" />
-    </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="549b5140-d6b0-4f01-aee4-a2b197a151de">
-      <Documentation>
-        <Summary>등록자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9e471714-c9b3-4f91-ad5a-e37a9418cd99">
-      <Documentation>
-        <Summary>등록자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="243157e8-5245-45bf-90cf-b85c78297d4e">
-      <Documentation>
-        <Summary>등록일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ed399653-79c6-4a94-9be4-10101f733d77">
-      <Documentation>
-        <Summary>수정자 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="char(36)" />
-    </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6bd66f36-403c-4ef4-8994-150013c13333">
-      <Documentation>
-        <Summary>수정자명</Summary>
-      </Documentation>
-      <column name="" length="255" sql-type="varchar" p1:unicode="True" />
-    </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
-      <Documentation>
-        <Summary>수정일시</Summary>
-      </Documentation>
-      <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-    </property>
-  </class>
-  <class name="ServerUsage" entity-set="ServerUsages" p1:Guid="15e5f3ac-4577-4673-b411-47bac199d611">
-    <Documentation>
-      <Summary>서버 사용 정보</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="a20bc4e8-02b3-41da-8e2e-b4867d19d5bc">
-        <Documentation>
-          <Summary>서버 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
-        <Documentation>
-          <Summary>등록일시</Summary>
-        </Documentation>
-        <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-      </key-property>
-    </composite-id>
-    <property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e6ff2054-004f-458c-93e7-7032c47fbb2b">
-      <Documentation>
-        <Summary>1분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="90775705-f5c2-4cbc-86aa-53e3e609f76b">
-      <Documentation>
-        <Summary>5분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6d0cba36-07d2-4a29-aa53-89649e5a88e6">
-      <Documentation>
-        <Summary>15분 Load Average</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="df17a0e1-97b1-43f3-ba53-9dc97c776579">
-      <Documentation>
-        <Summary>전체 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eb691589-17f3-456c-bdbb-8d10ed03e248">
-      <Documentation>
-        <Summary>사용 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-  </class>
-  <class name="NetworkInterfaceUsage" entity-set="NetworkInterfaceUsages" p1:Guid="f47c2645-d412-454a-94d8-9f5c158bb306">
-    <Documentation>
-      <Summary>네트워크 인터페이스 사용 정보</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="15aaec8c-2fe5-45a3-bbed-c0647cbf71d5">
-        <Documentation>
-          <Summary>네트워크 인터페이스 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
-        <Documentation>
-          <Summary>등록일시</Summary>
-        </Documentation>
-        <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-      </key-property>
-    </composite-id>
-    <property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ac739e4f-b305-4b8c-a161-0a486fbc9eec">
-      <Documentation>
-        <Summary>네트워크 BandWidth</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-    <property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dda996e0-5bed-4cda-93d5-f2199a4f3606">
-      <Documentation>
-        <Summary>수신 속도</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-    <property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5f52f407-5688-458b-9ac5-f9c16aeefd15">
-      <Documentation>
-        <Summary>송신 속도</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(12)" />
-    </property>
-  </class>
-  <class name="ServiceUsage" entity-set="ServiceUsages" p1:Guid="c3235388-819a-47bb-9922-ca9d88f9a867">
-    <Documentation>
-      <Summary>서비스 사용 정보</Summary>
-    </Documentation>
-    <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="becc9a14-3748-4863-8e33-73aa0a4bffed">
-        <Documentation>
-          <Summary>서비스 아이디</Summary>
-        </Documentation>
-        <column name="" not-null="False" sql-type="char(36)" />
-      </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
-        <Documentation>
-          <Summary>등록일시</Summary>
-        </Documentation>
-        <column name="" not-null="True" sql-type="datetime" p1:unicode="False" />
-      </key-property>
-    </composite-id>
-    <property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a161a18b-3d52-4f67-b97f-cfd7316fef55">
-      <Documentation>
-        <Summary>CPU 사용률</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ce8eab24-adde-4c02-a4af-7c79031ce72e">
-      <Documentation>
-        <Summary>전체 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eabcef83-0c2c-41c5-87a3-01af7a40c9e1">
-      <Documentation>
-        <Summary>사용 메모리 크기</Summary>
-      </Documentation>
-      <column name="" default="0" sql-type="decimal(15)" />
-    </property>
-    <property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="f7b5cad1-df78-48bc-8b1e-61a8ec6e4cc0">
-      <Documentation>
-        <Summary>스레드수</Summary>
-      </Documentation>
-      <column name="" default="0" />
-    </property>
-  </class>
-  <associations>
-    <association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
-      <end1 multiplicity="One" name="Service" class="ServiceNetworkInterfaceVlan" relation-class="Service" constrained="True" lazy="False" p1:Guid="bb0c2d17-10ca-44ed-9c5c-fa47ed882f4e">
-        <Documentation>
-          <Summary>서비스 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="Vlans" class="Service" relation-class="ServiceNetworkInterfaceVlan" lazy="False" p1:Guid="58bc7937-0a89-40f7-a705-cb438b7a4361">
-        <Documentation>
-          <Summary>VLAN 목록</Summary>
-        </Documentation>
-        <property name="ServiceId" />
-      </end2>
-    </association>
-    <association name="Server_NetworkInterface" cardinality="OneToMany" p1:Guid="5d47c83f-78c8-4173-9ea6-57e002128e7f">
-      <end1 multiplicity="One" name="Server" class="NetworkInterface" relation-class="Server" constrained="True" lazy="False" p1:Guid="608f65e7-f94b-4285-a6b7-7f5e7604f6d8">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="NetworkInterfaces" class="Server" relation-class="NetworkInterface" lazy="False" p1:Guid="b773f016-5bbb-4983-88f3-8740b9b41624">
-        <Documentation>
-          <Summary>네트워크 인터페이스 목록</Summary>
-        </Documentation>
-        <property name="ServerId" />
-      </end2>
-    </association>
-    <association name="ServiceGroup_Service" cardinality="OneToMany" p1:Guid="f31ea148-a609-4c16-9fd0-ac9705f573ca">
-      <end1 multiplicity="ZeroOrOne" name="ServiceGroup" class="Service" relation-class="ServiceGroup" constrained="True" lazy="False" p1:Guid="6c1b326d-2e85-4a4f-9f62-718577a8380e">
-        <Documentation>
-          <Summary>서비스 그룹 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="Services" class="ServiceGroup" relation-class="Service" lazy="False" p1:Guid="d3e063e4-3e48-4383-b488-848dbec8e645">
-        <Documentation>
-          <Summary>서비스 목록</Summary>
-        </Documentation>
-        <property name="GroupId" />
-      </end2>
-    </association>
-    <association name="Role_RoleClaim" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ca921b70-d28d-4e2a-85d9-e7fb4c966443">
-      <end1 multiplicity="One" name="Role" class="RoleClaim" relation-class="Role" constrained="True" lazy="False" p1:Guid="b495c097-b86b-4318-aa56-1c367bc72bea">
-        <Documentation>
-          <Summary>역할 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RoleClaims" class="Role" relation-class="RoleClaim" lazy="False" p1:Guid="c9155c1d-f945-4ba6-a296-df05070b13b0">
-        <Documentation>
-          <Summary>역할 권한 목록</Summary>
-        </Documentation>
-        <property name="RoleId" />
-      </end2>
-    </association>
-    <association name="Role_AllowedConnectionIp" cardinality="OneToMany" on-delete="Restrict" p1:Guid="4ffd09c3-7dba-4d52-b95b-ba5b79095b02">
-      <end1 multiplicity="ZeroOrOne" name="Role" class="AllowedConnectionIp" relation-class="Role" constrained="True" lazy="False" p1:Guid="c75f4985-523d-46f9-a6c9-7ef34a3edb8b">
-        <Documentation>
-          <Summary>역할 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="AllowedConnectionIps" class="Role" relation-class="AllowedConnectionIp" lazy="False" p1:Guid="25f3afa4-3c64-4a66-b35e-79259e876ca2">
-        <Documentation>
-          <Summary>접속 허용 아이피 목록</Summary>
-        </Documentation>
-        <property name="RoleId" />
-      </end2>
-    </association>
-    <association name="User_AllowedConnectionIp" cardinality="OneToMany" on-delete="Cascade" p1:Guid="c8def0da-289f-4093-8f06-d4c8c7686734">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="AllowedConnectionIp" relation-class="User" constrained="True" lazy="False" p1:Guid="b39b5f95-f86c-4121-ab2e-d87e312cbcd9">
-        <Documentation>
-          <Summary>등록 사용자</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegAllowedConnectionIps" class="User" relation-class="AllowedConnectionIp" lazy="False" p1:Guid="078b3984-6426-4430-a630-d2967a440a6f">
-        <Documentation>
-          <Summary>등록한 접속 아이피 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
-    <association name="Role_UserRole" cardinality="OneToMany" on-delete="Cascade" p1:Guid="529d51fc-2a99-4cfb-b5e6-980ffc6f1b33">
-      <end1 multiplicity="One" name="Role" class="UserRole" relation-class="Role" constrained="True" lazy="False" p1:Guid="c1dc0f6e-031b-4284-abcc-aabb5d04edcb">
-        <Documentation>
-          <Summary>역할 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="UserRoles" class="Role" relation-class="UserRole" lazy="False" p1:Guid="cd3266ff-aa88-42e3-ac31-1ac88a6ca6b1">
-        <Documentation>
-          <Summary>역할(권한그룹) 내 사용자 목록</Summary>
-        </Documentation>
-        <property name="RoleId" />
-      </end2>
-    </association>
-    <association name="User_UserRole" cardinality="OneToMany" on-delete="Cascade" p1:Guid="8f002e41-d6a2-4466-b4ac-083741d953c7">
-      <end1 multiplicity="One" name="User" class="UserRole" relation-class="User" constrained="True" lazy="False" p1:Guid="8314c880-ce49-4e98-8fd4-98dde270e7a2">
-        <Documentation>
-          <Summary>사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="UserRoles" class="User" relation-class="UserRole" lazy="False" p1:Guid="94373001-772d-4046-b4e2-c73cdc50a5c6">
-        <Documentation>
-          <Summary>사용자 역할 목록</Summary>
-        </Documentation>
-        <property name="UserId" />
-      </end2>
-    </association>
-    <association name="User_UserActionLog" cardinality="OneToMany" on-delete="Cascade" p1:Guid="e63dfba0-3715-4ea8-875a-2eb61b78a5c5">
-      <end1 multiplicity="One" name="User" class="UserActionLog" relation-class="User" constrained="True" lazy="False" p1:Guid="8872ba19-1833-4759-9d81-440c496d41e9">
-        <Documentation>
-          <Summary>사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="UserActionLogs" class="User" relation-class="UserActionLog" lazy="False" p1:Guid="ab9a952e-3f65-4e31-bd6b-04a9bd95f22f">
-        <Documentation>
-          <Summary>등록한 사용자 행동 로그 목록</Summary>
-        </Documentation>
-        <property name="UserId" />
-      </end2>
-    </association>
-    <association name="User_UserClaim" cardinality="OneToMany" on-delete="Cascade" p1:Guid="e6f6a4e7-587e-4730-85d4-8a6e651631df">
-      <end1 multiplicity="One" name="User" class="UserClaim" relation-class="User" constrained="True" lazy="False" p1:Guid="65f45261-1330-4b15-b59d-3f6719d266ca">
-        <Documentation>
-          <Summary>사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="UserClaims" class="User" relation-class="UserClaim" lazy="False" p1:Guid="f46002bd-17ce-4d5b-8f4d-ce2f8e35466a">
-        <Documentation>
-          <Summary>사용자 권한 목록</Summary>
-        </Documentation>
-        <property name="UserId" />
-      </end2>
-    </association>
-    <association name="User_UserLoginHistory" cardinality="OneToMany" p1:Guid="d941e14c-d117-498e-933f-b89be58090b5">
-      <end1 multiplicity="One" name="User" class="UserLoginHistory" relation-class="User" constrained="True" lazy="False" p1:Guid="e532e5b8-3055-46f8-bf0d-751224e9eea8">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="UserLoginHistories" class="User" relation-class="UserLoginHistory" lazy="False" p1:Guid="9c53cb43-3e18-488a-9048-4075b248d770">
-        <Documentation>
-          <Summary>사용자 로그인 내역</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end2>
-    </association>
-    <association name="User_ServiceGroup" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="52cdbfeb-c7f9-4ab0-8f0e-1cda484d3aec">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegServiceGroups" class="User" relation-class="ServiceGroup" lazy="False" p1:Guid="087dde4d-99f4-4a70-9962-602142818a61">
-        <Documentation>
-          <Summary>등록 서비스 그룹 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
-    <association name="User_ServiceGroup1" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
-      <end1 multiplicity="ZeroOrOne" name="ModUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="1e0ba52c-da8c-4ce4-8e57-6bdd777dbe6a">
-        <Documentation>
-          <Summary>수정 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ModServiceGroups" class="User" relation-class="ServiceGroup" lazy="False" p1:Guid="17d883d9-6923-43d6-81e6-538eacf8d0f0">
-        <Documentation>
-          <Summary>수정 서비스 그룹 목록</Summary>
-        </Documentation>
-        <property name="ModId" />
-      </end2>
-    </association>
-    <association name="User_Service" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="f66d6e6c-fed6-4fe0-8462-357b97c09326">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegServices" class="User" relation-class="Service" lazy="False" p1:Guid="9d872981-b043-418b-97cb-7c044bef4def">
-        <Documentation>
-          <Summary>등록 서비스 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
-    <association name="User_Service1" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
-      <end1 multiplicity="ZeroOrOne" name="ModUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="9892cf5a-5d6e-4087-b861-d68b554a7558">
-        <Documentation>
-          <Summary>수정 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ModServices" class="User" relation-class="Service" lazy="False" p1:Guid="506fb73a-b685-4639-897d-9e2fe7847781">
-        <Documentation>
-          <Summary>수정 서비스 목록</Summary>
-        </Documentation>
-        <property name="ModId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterfaceVlan" cardinality="OneToMany" p1:Guid="4ed7dec9-ffc6-4cba-a21e-c8f1eecc6673">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterfaceVlan" relation-class="User" constrained="True" lazy="False" p1:Guid="426c626d-bb62-412a-b03e-f6ccf9ef63cd">
-        <Documentation>
-          <Summary>등록 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegNetworkInterfaceVlans" class="User" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="15c251bc-94d9-49cc-9c55-2a84ba9f22a1">
-        <Documentation>
-          <Summary>등록 네트워크 인터페이스 VLAN 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterfaceVlan1" cardinality="OneToMany" p1:Guid="1fce065d-7f16-45be-90ac-ec021a4e8a89">
-      <end1 multiplicity="ZeroOrOne" name="ModUser" class="NetworkInterfaceVlan" relation-class="User" constrained="True" lazy="False" p1:Guid="292a1d7c-197d-4d25-bad1-48c5e52bf081">
-        <Documentation>
-          <Summary>수정 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ModNetworkInterfaceVlans" class="User" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="e138337b-ea24-46ac-8cd6-f3fe5f5f369d">
-        <Documentation>
-          <Summary>수정 네트워크 인터페이스 VLAN 목록</Summary>
-        </Documentation>
-        <property name="ModId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterface" cardinality="OneToMany" p1:Guid="241235f1-88a3-400b-82fe-a3b0b3848d64">
-      <end1 multiplicity="ZeroOrOne" name="ModUser" class="NetworkInterface" relation-class="User" constrained="True" lazy="False" p1:Guid="cde238f3-1f3f-421a-b5b7-375b444d2ed9">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ModNetworkInterfaces" class="User" relation-class="NetworkInterface" lazy="False" p1:Guid="89eb591f-4478-44f9-838b-955393bf5913">
-        <Documentation>
-          <Summary>수정 네트워크 인터페이스 목록</Summary>
-        </Documentation>
-        <property name="ModId" />
-      </end2>
-    </association>
-    <association name="User_Server" cardinality="OneToMany" p1:Guid="49b30a55-0c3a-4abd-9fde-0677e7208966">
-      <end1 multiplicity="ZeroOrOne" name="ModUser" class="Server" relation-class="User" constrained="True" lazy="False" p1:Guid="498ac5ed-c22f-4119-a4e7-62d810497fb0">
-        <Documentation>
-          <Summary>수정한 사용자 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ModServers" class="User" relation-class="Server" lazy="False" p1:Guid="a8fb827c-9115-4cbe-bc49-e816b555d929">
-        <Documentation>
-          <Summary>수정 서버 목록</Summary>
-        </Documentation>
-        <property name="ModId" />
-      </end2>
-    </association>
-    <association name="NetworkInterface_NetworkInterfaceVlan" cardinality="OneToMany" p1:Guid="c2c1584b-0b25-4d90-9a15-c64f8746ce42">
-      <end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceVlan" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="f85a2c05-743e-48cd-9b2d-064351540b71">
-        <Documentation>
-          <Summary>네트워크 인터페이스 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="NetworkInterfaceVlans" class="NetworkInterface" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="01110ca7-6aa3-4858-be7b-917f760591ea">
-        <property name="InterfaceId" />
-      </end2>
-    </association>
-    <association name="NetworkInterfaceVlan_ServiceNetworkInterface" cardinality="OneToMany" p1:Guid="6a0aa416-dc8f-41e1-ba28-140cd2145ef3">
-      <end1 multiplicity="One" name="NetworkInterfaceVlan" class="ServiceNetworkInterfaceVlan" relation-class="NetworkInterfaceVlan" constrained="True" lazy="False" p1:Guid="56a7f21a-66db-46f7-9007-797bee06f1c5">
-        <Documentation>
-          <Summary>네트워크 인터페이스 VLAN 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ServiceNetworkInterfaceVlans" class="NetworkInterfaceVlan" relation-class="ServiceNetworkInterfaceVlan" lazy="False" p1:Guid="2d517d7b-307e-4a17-9642-e5733a10f506">
-        <Documentation>
-          <Summary>서비스 네트워크 인터페이스 VLAN 목록</Summary>
-        </Documentation>
-        <property name="VlanId" />
-      </end2>
-    </association>
-    <association name="User_NetworkInterface1" cardinality="OneToMany" p1:Guid="f98a38b3-817e-4ee3-957e-e5e8ec4f3ec3">
-      <end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterface" relation-class="User" constrained="True" lazy="False" p1:Guid="b59b13da-0806-42c7-bb26-5cab903b9fef">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="RegNetworkInterfaces" class="User" relation-class="NetworkInterface" lazy="False" p1:Guid="e3af8bc0-6f2a-41a8-b854-44c20df32b01">
-        <Documentation>
-          <Summary>등록 네트워크 인터페이스 목록</Summary>
-        </Documentation>
-        <property name="RegId" />
-      </end2>
-    </association>
-    <association name="Server_Disk" cardinality="OneToMany" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
-      <end1 multiplicity="One" name="Server" class="Disk" relation-class="Server" constrained="True" lazy="False" p1:Guid="a92818b6-8f39-4f11-99eb-452a48615d7e">
-        <Documentation>
-          <Summary>서버 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="Disks" class="Server" relation-class="Disk" lazy="False" p1:Guid="782b5cd0-3b63-4163-8325-8632e6ce0b39">
-        <Documentation>
-          <Summary>디스크 목록</Summary>
-        </Documentation>
-        <property name="ServerId" />
-      </end2>
-    </association>
-    <association name="Service_ServiceDisk" cardinality="OneToMany" p1:Guid="a4478423-7385-4fc1-b845-9cdb8f97ad93">
-      <end1 multiplicity="One" name="Service" class="ServiceDisk" relation-class="Service" constrained="True" lazy="False" p1:Guid="1607eab9-d9af-4464-b61d-1c26f0cd3e78">
-        <Documentation>
-          <Summary>서비스 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ServiceDisks" class="Service" relation-class="ServiceDisk" lazy="False" p1:Guid="f459e10a-8674-4147-b301-735c7dfaa3a0">
-        <Documentation>
-          <Summary>서비스 디스크 정보 목록</Summary>
-        </Documentation>
-        <property name="ServiceId" />
-      </end2>
-    </association>
-    <association name="Disk_ServiceDisk" cardinality="OneToMany" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
-      <end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
-        <Documentation>
-          <Summary>디스크 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ServiceDisks" class="Disk" relation-class="ServiceDisk" lazy="False" p1:Guid="07dbefd3-48b5-4681-b806-53c9aa417fc9">
-        <Documentation>
-          <Summary>서비스 디스크 목록</Summary>
-        </Documentation>
-        <property name="DiskId" />
-      </end2>
-    </association>
-    <association name="DiskPool_Disk" cardinality="OneToMany" p1:Guid="9432ec0d-4ae7-4ca7-9334-660f926e5447">
-      <end1 multiplicity="ZeroOrOne" name="DiskPool" class="Disk" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="24adca67-209e-4a95-bdd7-a9e883cd76d9">
-        <Documentation>
-          <Summary>디스크 풀 정보</Summary>
-        </Documentation>
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="Disks" class="DiskPool" relation-class="Disk" lazy="False" p1:Guid="a7214806-9cfb-44d4-845d-fe13daf06dd3">
-        <Documentation>
-          <Summary>디스크 목록</Summary>
-        </Documentation>
-        <property name="DiskPoolId" />
-      </end2>
-    </association>
-    <association name="Server_ServerUsage" cardinality="OneToMany" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
-      <end1 multiplicity="One" name="Server" class="ServerUsage" relation-class="Server" constrained="True" lazy="False" p1:Guid="8ae27611-0428-4874-81e0-eb4f616d6d27">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ServerUsages" class="Server" relation-class="ServerUsage" lazy="False" p1:Guid="ff0ecaf1-adc2-43df-ab28-54e4bbed7715">
-        <property name="Id" />
-      </end2>
-    </association>
-    <association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
-      <end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceUsage" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="dd2c125d-8c87-4786-ac8e-b65ccce1f5eb">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="NetworkInterfaceUsages" class="NetworkInterface" relation-class="NetworkInterfaceUsage" lazy="False" p1:Guid="8618853a-5ee3-4833-a0fe-5f23cdfbb711">
-        <property name="Id" />
-      </end2>
-    </association>
-    <association name="Service_ServiceUsage" cardinality="OneToMany" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
-      <end1 multiplicity="One" name="Service" class="ServiceUsage" relation-class="Service" constrained="True" lazy="False" p1:Guid="a955c72c-b674-4bea-9c2b-9951a1f5f098">
-        <property name="Id" />
-      </end1>
-      <end2 multiplicity="Many" name="ServiceUsages" class="Service" relation-class="ServiceUsage" lazy="False" p1:Guid="1496669b-ed1d-40cc-867a-091f0bfa8eee">
-        <property name="Id" />
-      </end2>
-    </association>
-  </associations>
+<efcore namespace="PortalModels" p1:name="PortalModel" p1:Guid="1b7061d3-21c8-437d-90a3-092a8162c136"
+	xmlns:p1="http://devart.com/schemas/EntityDeveloper/1.0">
+	<class name="$EnumTypes">
+		<EnumType Name="EnumDbNetworkLinkState" class="EnumDbNetworkLinkState" p1:Guid="21216a37-040d-4012-b6b0-100c696ecb64">
+			<Documentation>
+				<Summary>네트워크 연결 상태</Summary>
+			</Documentation>
+			<Member Name="Unknown" Value="-1" p1:Guid="dbe47833-512b-4528-87a6-91ff3491b7ed" />
+			<Member Name="Down" Value="0" p1:Guid="3502a96f-0b49-4f28-8a09-239887461498" />
+			<Member Name="Up" Value="1" p1:Guid="ec551ed4-f3ca-481d-a847-70fea07c145a" />
+		</EnumType>
+		<EnumType Name="EnumDbYesNo" class="EnumDbYesNo" p1:Guid="e16773f0-656a-43e4-bf3a-b1b839ee7794">
+			<Documentation>
+				<Summary>예/아니오</Summary>
+			</Documentation>
+			<Member Name="No" p1:Guid="dbff09a4-99e1-4a6e-aa18-ec40db5eca35" />
+			<Member Name="Yes" p1:Guid="9fbd93c0-0ae0-4648-9f88-881a1fac513b" />
+		</EnumType>
+		<EnumType Name="EnumDbOnOff" class="EnumDbOnOff" p1:Guid="fe64a3c9-abc2-4683-b20b-b8bcdaad3aa5">
+			<Documentation>
+				<Summary>On/Off</Summary>
+			</Documentation>
+			<Member Name="Off" p1:Guid="8eab358e-814b-4bcf-b434-188ea291c252" />
+			<Member Name="On" p1:Guid="f9a6e2f3-bafe-4978-8305-2d5a1b375dca" />
+		</EnumType>
+		<EnumType Name="EnumDbHaAction" class="EnumDbHaAction" p1:Guid="eec76826-2321-4d0a-bb3d-7c3d6d9af333">
+			<Documentation>
+				<Summary>동기화 작업 구분</Summary>
+			</Documentation>
+			<Member Name="Unknown" Value="-1" p1:Guid="b09fee20-465a-43bf-a010-22e54014173c" />
+			<Member Name="Initializing" p1:Guid="a32af0cb-6c13-412d-b072-518f8107221a" />
+			<Member Name="Standby" p1:Guid="12e3dbc2-594a-446a-8a70-a1bc687ca317" />
+			<Member Name="Active" p1:Guid="cb88c65a-4c90-41f1-89cc-3326d6aa3d14" />
+			<Member Name="Sync" p1:Guid="dca746b3-d0c0-40a3-b5bc-ad097be635e9" />
+		</EnumType>
+		<EnumType Name="EnumDbServiceType" class="EnumDbServiceType" p1:Guid="4d202c8a-e7b5-4e65-b28e-242afd5e786b">
+			<Documentation>
+				<Summary>서비스 타입</Summary>
+			</Documentation>
+			<Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
+			<Member Name="OSD" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
+			<Member Name="S3" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
+			<Member Name="S3Backend" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
+			<Member Name="HaProxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
+			<Member Name="Monitor" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
+			<Member Name="Edge" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
+		</EnumType>
+		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
+			<Documentation>
+				<Summary>서비스 그룹 모드</Summary>
+			</Documentation>
+			<Member Name="Single" p1:Guid="86b9f23a-2ac4-4c62-b9d2-2593d09158dd" />
+			<Member Name="LoadBalance" p1:Guid="6f6091da-1728-4663-a7b9-a54bbf5ad7fb" />
+		</EnumType>
+		<EnumType Name="EnumDbLogLevel" UnderlyingType="Int16" class="EnumDbLogLevel" p1:Guid="e16e25f7-9797-40de-bfd0-c110c5536468">
+			<Documentation>
+				<Summary>로그 레벨</Summary>
+			</Documentation>
+			<Member Name="Debug" p1:Guid="607a0968-c54c-4e9d-8613-3374d9d00090" />
+			<Member Name="Information" p1:Guid="6ca7492e-33b7-4f31-ad01-dd6a5fb83e99" />
+			<Member Name="Warning" p1:Guid="fe0203eb-c65b-473f-b68d-d2f205e2abf8" />
+			<Member Name="Error" p1:Guid="a8ee7f33-c90c-473e-8336-873b8e553b0d" />
+		</EnumType>
+		<EnumType Name="EnumDbServerState" class="EnumDbServerState" p1:Guid="24da7ac5-2b23-410d-8431-5b397cf0d8d3">
+			<Documentation>
+				<Summary>서버 상태</Summary>
+			</Documentation>
+			<Member Name="Unknown" Value="-2" p1:Guid="76153b4c-a123-43b5-ad90-927e21973762" />
+			<Member Name="Timeout" Value="-1" p1:Guid="16b2a0fe-f60c-4faf-bf3d-10cbafccb389" />
+			<Member Name="Offline" Value="0" p1:Guid="81af0746-3037-42c1-a422-1c9b9842c8eb" />
+			<Member Name="Online" Value="1" p1:Guid="f35fb8f3-1df6-4d20-9df9-a5b8c767aa6e" />
+		</EnumType>
+		<EnumType Name="EnumDbServiceState" class="EnumDbServiceState" p1:Guid="909cce18-cd60-419b-afd0-0c394db7aa7c">
+			<Documentation>
+				<Summary>서비스 상태</Summary>
+			</Documentation>
+			<Member Name="Unknown" Value="-2" p1:Guid="3f75db24-969a-4fc1-9029-53610bfb5ee4" />
+			<Member Name="Timeout" Value="-1" p1:Guid="0c8b7535-2c34-45ed-a1d3-01347a821e5b" />
+			<Member Name="Offline" Value="0" p1:Guid="b08eb7b7-a2fb-4f27-a42f-cc38a23fd7cf" />
+			<Member Name="Online" Value="1" p1:Guid="4921d343-edb2-45ad-ae77-738cd97303ad" />
+		</EnumType>
+		<EnumType Name="EnumDbDiskRwMode" class="EnumDbDiskRwMode" p1:Guid="e6583a8d-61e3-4578-a376-28843a41fa9b">
+			<Documentation>
+				<Summary>디스크 읽기/쓰기 모드</Summary>
+			</Documentation>
+			<Member Name="ReadOnly" p1:Guid="e65510cd-e66e-4d56-87b6-6af4f02add81" />
+			<Member Name="ReadWrite" p1:Guid="75cff32a-af96-4d67-afc3-5b9d3728bb94" />
+		</EnumType>
+		<EnumType Name="EnumDbDiskState" class="EnumDbDiskState" p1:Guid="384e8a83-27a5-4988-9f4a-d141ba29b974">
+			<Documentation>
+				<Summary>서비스 상태</Summary>
+			</Documentation>
+			<Member Name="Bad" Value="-2" p1:Guid="a951ff4b-5268-4169-8550-cf534cbe0285" />
+			<Member Name="Disable" Value="-1" p1:Guid="d27f79ba-c969-49f2-abb6-12b6f38d9edf" />
+			<Member Name="Stop" Value="0" p1:Guid="42415f85-c192-47b4-b8c2-9910570eccdd" />
+			<Member Name="Weak" Value="1" p1:Guid="7aa8f8b6-61f2-43f9-a563-60e7aeca63a4" />
+			<Member Name="Good" Value="2" p1:Guid="6b38cde3-95fb-4f82-b43d-ee7e19f75759" />
+		</EnumType>
+		<EnumType Name="EnumDbDiskPoolType" class="EnumDbDiskPoolType" p1:Guid="de2a7c59-7520-42db-ac21-d61b4759b3b7">
+			<Documentation>
+				<Summary>디스크풀 저장 타입</Summary>
+			</Documentation>
+			<Member Name="STANDARD" Value="1" p1:Guid="6c61d516-1a0a-487c-abc8-cd439a62d870" />
+			<Member Name="ARCHIVE" p1:Guid="99f31c1a-52b5-4e1e-a5d0-a4d9fa42dad2" />
+		</EnumType>
+		<EnumType Name="EnumDbDiskPoolReplicaType" class="EnumDbDiskPoolReplicaType" p1:Guid="5ce1a070-1280-4e36-ab20-8b324ed70db5">
+			<Documentation>
+				<Summary>디스크풀 복제 설정</Summary>
+			</Documentation>
+			<Member Name="OnePulsZero" Value="1" p1:Guid="bcb76aed-20b4-4fea-b412-5a7a04f7a6cf" />
+			<Member Name="OnePulsOne" p1:Guid="1d298d1d-45ae-4a42-be53-d51c554244d1" />
+			<Member Name="OnePulsTwo" p1:Guid="3442acff-12a7-4fed-8d29-47587931d509" />
+		</EnumType>
+	</class>
+	<class name="NetworkInterface" entity-set="NetworkInterfaces" p1:Guid="01514607-0e35-415a-9894-ccc4e0c2a488">
+		<Documentation>
+			<Summary>네트워크 인터페이스 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="d21fa384-eb16-4d5d-9801-1b652e24199d">
+			<Documentation>
+				<Summary>네트워크 인터페이스 아이디</Summary>
+			</Documentation>
+			<column name="" length="36" p1:fixed-length="True" />
+		</id>
+		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="116ee260-b9d7-4325-bd45-6e74b9cb2726">
+			<Documentation>
+				<Summary>서버 아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="char(36)" />
+		</property>
+		<property name="Name" type="String" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="28ef35b4-4db5-499c-94a6-11c9a07816ca">
+			<Documentation>
+				<Summary>인터페이스명</Summary>
+			</Documentation>
+			<column name="" length="100" />
+		</property>
+		<property name="Description" type="String" p1:nullable="True" p1:ValidateMaxLength="4000" p1:ValidateRequired="false" p1:Guid="f44befbf-46d8-4141-8e89-56077287fc75">
+			<Documentation>
+				<Summary>설명</Summary>
+			</Documentation>
+			<column name="" length="4000" />
+		</property>
+		<property name="Dhcp" type="PortalModels.EnumDbYesNo" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6cb1771f-3638-4c2b-84d2-7b6e4f3e5987">
+			<Documentation>
+				<Summary>DHCP 사용 여부</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MacAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="15" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
+			<Documentation>
+				<Summary>맥주소</Summary>
+			</Documentation>
+			<column name="" length="15" />
+		</property>
+		<property name="LinkState" type="PortalModels.EnumDbNetworkLinkState" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="96fd6bed-304e-453f-bfa8-2a6ee78a30bc">
+			<Documentation>
+				<Summary>네트워크 연결 상태</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="IpAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="af6f5760-2161-42f9-8545-e55de356b439">
+			<Documentation>
+				<Summary>아이피 주소</Summary>
+			</Documentation>
+			<column name="" length="20" />
+		</property>
+		<property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="a92fa543-6e75-40e4-a36e-896cb44e0a19">
+			<Documentation>
+				<Summary>서브넷 마스크</Summary>
+			</Documentation>
+			<column name="" length="20" />
+		</property>
+		<property name="Gateway" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="ee2eaecf-db82-4ea8-8e3a-fec5c3d32ed2">
+			<Documentation>
+				<Summary>게이트웨이</Summary>
+			</Documentation>
+			<column name="" length="20" />
+		</property>
+		<property name="Dns1" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="e037942d-1a69-4118-a200-58e2ecebfcd6">
+			<Documentation>
+				<Summary>DNS #1</Summary>
+			</Documentation>
+			<column name="" length="20" />
+		</property>
+		<property name="Dns2" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="04f58a2d-89f5-4ad1-9866-f83ed57228c1">
+			<Documentation>
+				<Summary>DNS #2</Summary>
+			</Documentation>
+			<column name="" length="20" />
+		</property>
+		<property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8a60916b-4cc7-450b-b19e-3102e1559ae7">
+			<Documentation>
+				<Summary>네트워크 BandWidth</Summary>
+			</Documentation>
+			<column name="" default="0" length="12" />
+		</property>
+		<property name="IsManagement" type="Boolean" p1:ValidateRequired="true" p1:Guid="eae88172-37ca-4806-981e-ba0ed8435f6f">
+			<Documentation>
+				<Summary>관리용 인터페이스인지 여부</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4f6df853-ed24-4911-ac0a-42e3584b6be4">
+			<Documentation>
+				<Summary>수신 속도</Summary>
+			</Documentation>
+			<column name="" default="0" length="12" />
+		</property>
+		<property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="d174b830-9bcd-4ce2-abd7-fa4ab1a4a32a">
+			<Documentation>
+				<Summary>송신 속도</Summary>
+			</Documentation>
+			<column name="" default="0" length="12" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1b830739-9af8-4549-8fcf-46d1d4a7b3cb">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9560a47d-557b-43ec-9a03-538f24513d64">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8ad516ee-e460-4793-b3ce-f9354a268c6c">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1c977d3e-d84a-456a-9154-f0911854dc28">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8de3eb81-6470-476d-8c82-9f77095c672a">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="NetworkInterfaceVlan" entity-set="NetworkInterfaceVlans" p1:Guid="8e5a1197-1384-426e-9db0-e0ecda8acfcc">
+		<Documentation>
+			<Summary>네트워크 인터페이스 VLAN 설정</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="c0c0d1ee-a504-41d8-b9a2-8fb9d960fb41">
+			<Documentation>
+				<Summary>네트워크 인터페이스 VLAN 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="InterfaceId" type="Guid" p1:ValidateRequired="true" p1:Guid="ad379f5b-f5e8-490d-a2f7-76ba32069aef">
+			<Documentation>
+				<Summary>네트워크 인터페이스 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Tag" type="Int32" p1:ValidateRequired="true" p1:Guid="abd10bd6-894b-4b46-add3-e4543d68ce63">
+			<Documentation>
+				<Summary>VLAN 태그</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="IpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ffb0325a-addd-4fb5-889d-5b2f4d861ec0">
+			<Documentation>
+				<Summary>아이피 주소</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="75222423-b6c9-4cb1-9b14-4b210bc165ed">
+			<Documentation>
+				<Summary>서브넷 마스크</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Gateway" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="cf106266-fcdc-4741-b411-0df42f2d4d1f">
+			<Documentation>
+				<Summary>게이트웨이</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="fcb0d894-6e9d-4bc3-9068-256c2f2b33c9">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b3eefb1f-27d2-4485-a971-4672c3041716">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f4368581-d50e-478b-a30d-53ffdd9c433f">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="037e1266-8ed6-40a3-a028-8a97cfdea7f5">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="dca9afd0-bf4e-4452-a219-b0b8360ad65b">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="Service" entity-set="Services" p1:Guid="a3098151-a299-44ba-bc7d-08d2475f3f16">
+		<Documentation>
+			<Summary>서비스 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b25c6555-1f7d-4085-9bd1-c634686f6f94">
+			<Documentation>
+				<Summary>서비스 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="GroupId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7384f57d-6cf0-4af2-a077-4a7452b293db">
+			<Documentation>
+				<Summary>서비스 그룹 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="14ee003a-a8cc-4a2d-b793-810d3d9a4ddb">
+			<Documentation>
+				<Summary>서비스명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dd6944d1-0590-4128-bbdb-7e99a47b57db">
+			<Documentation>
+				<Summary>설명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="f2f8f0c0-747f-4232-93ac-defd10b1f985">
+			<Documentation>
+				<Summary>서비스 타입</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="HaAction" type="PortalModels.EnumDbHaAction" p1:ValidateRequired="true" p1:Guid="cc5ec635-8aff-47c4-adde-a912f44994a2">
+			<Documentation>
+				<Summary>HA 작업</Summary>
+			</Documentation>
+			<column name="" default="-1" />
+		</property>
+		<property name="State" type="PortalModels.EnumDbServiceState" p1:ValidateRequired="true" p1:Guid="9c3600fc-cd36-4fc4-ad79-50b47fd750ce">
+			<Documentation>
+				<Summary>서비스 상태</Summary>
+			</Documentation>
+			<column name="" default="-2" />
+		</property>
+		<property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="04b73d58-d043-4cda-a699-d451b6d1944d">
+			<Documentation>
+				<Summary>CPU 사용률</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4d16eca3-8e5b-4c68-8d34-c348a99c78a8">
+			<Documentation>
+				<Summary>전체 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c08615ab-d3c0-4c5c-8847-906de69078fc">
+			<Documentation>
+				<Summary>사용 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="059bd7af-6238-45c0-9f60-75a35b3b8242">
+			<Documentation>
+				<Summary>스레드수</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="456c4974-fc4e-4de3-a532-5bac2e457e73">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="2d50e6ba-49c9-4c6b-8b81-952a5f1066fb">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfac6811-ffb5-4e12-b217-52df3a1ea780">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e2f1323b-275e-45a1-863a-2d017dc6ca1d">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="132c62e1-18ad-4829-b200-d718030e599f">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="ServiceNetworkInterfaceVlan" entity-set="ServiceNetworkInterfaceVlans" p1:Guid="1b113066-08a9-4c83-8caf-6335db5ee000">
+		<Documentation>
+			<Summary>서비스 사용 네트워크 인터페이스 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="401a743e-7403-4e3a-8964-acdf53d48710">
+				<Documentation>
+					<Summary>서비스 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="VlanId" type="Guid" p1:ValidateRequired="true" p1:Guid="15778b0b-225f-4387-a5b5-51f9b01e0744">
+				<Documentation>
+					<Summary>네트워크 인터페이스 VLAN 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+	</class>
+	<class name="Server" entity-set="Servers" p1:Guid="555a8930-6513-4003-91db-f64fed8d4612">
+		<Documentation>
+			<Summary>서버 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="26ec250d-d888-4a4a-a3f6-5ceb610e0b87">
+			<Documentation>
+				<Summary>서버 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="ec1f3b0a-d41b-464e-9451-15a218467a58">
+			<Documentation>
+				<Summary>서버명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
+			<Documentation>
+				<Summary>설명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="CpuModel" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="539bf8e6-bd81-4df0-8f05-63fdfef37748">
+			<Documentation>
+				<Summary>CPU 모델</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Clock" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
+			<Documentation>
+				<Summary>CPU 클럭</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="State" type="PortalModels.EnumDbServerState" p1:ValidateRequired="true" p1:Guid="692fcb9d-c9a6-41e6-9f12-c84441c4a458">
+			<Documentation>
+				<Summary>서버 상태</Summary>
+			</Documentation>
+			<column name="" default="-2" />
+		</property>
+		<property name="Rack" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="bd177d40-403f-4b09-a57f-ef276abec1da">
+			<Documentation>
+				<Summary>Rack 정보</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4fbb7e8a-803e-4387-8165-8055326e99a7">
+			<Documentation>
+				<Summary>1분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="99b6a280-781c-4097-bb8f-61c753cb2598">
+			<Documentation>
+				<Summary>5분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="efcff39d-a5bb-44f3-8e15-ff796a604ce8">
+			<Documentation>
+				<Summary>15분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5ff657be-9cec-4665-b857-72d121fcbc62">
+			<Documentation>
+				<Summary>전체 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="25b10afb-c246-4357-86fa-672a97608b53">
+			<Documentation>
+				<Summary>사용 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfd7af48-d9e8-47dc-b103-577a1a8879f6">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="716c34ba-5707-4fcf-8cf8-ca05e76cae71">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="ServiceGroup" entity-set="ServiceGroups" p1:Guid="1fce8713-ca26-446b-a57f-d769f01a4b18">
+		<Documentation>
+			<Summary>서비스 그룹</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="55e0902c-88e5-4f1d-8706-d35018b14415">
+			<Documentation>
+				<Summary>서비스 그룹 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e7242d9c-985a-4d47-82c6-5b909e993c75">
+			<Documentation>
+				<Summary>서비스 그룹명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a276786e-8aa1-4844-8840-7190a6467737">
+			<Documentation>
+				<Summary>설명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="c326c13e-8b72-4056-be47-22b8538fedb1">
+			<Documentation>
+				<Summary>서비스 타입</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ServiceIpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8d2a8821-8ac6-4281-b572-8bb974644006">
+			<Documentation>
+				<Summary>서비스 아이피 주소</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="2dedf590-6a7f-42d6-b65b-5bd60e54630d">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="4bcdb2d7-2d3e-4079-aa30-dd5e1a64f2be">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5e9db057-a8a6-4122-bf38-910ffa48feb7">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e93f9e55-3aa2-4376-aaf2-bb4546001b25">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="474b573b-0d81-4b7a-afab-0bb7b8c995cc">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="ApiKey" entity-set="ApiKeys" p1:Guid="9e27b4a7-7510-4ff7-836b-f3c643b4b5c4">
+		<Documentation>
+			<Summary>API 키 정보</Summary>
+		</Documentation>
+		<id name="KeyId" type="Guid" p1:ValidateRequired="true" p1:Guid="d91be1ee-6cf5-480a-989a-43ab2b93912a">
+			<Documentation>
+				<Summary>API 키 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="c65ce74b-9b0b-4f8d-83af-f81bd227306c">
+			<Documentation>
+				<Summary>사용자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="KeyName" type="String" p1:ValidateRequired="true" p1:Guid="819d1e71-2b49-4fb1-8797-97a001c5f5e3">
+			<Documentation>
+				<Summary>키명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ExpireDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="503d2561-0585-4112-b3fa-ea5a5e1aeeed">
+			<Documentation>
+				<Summary>만료일</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="KeyValue" type="String" p1:ValidateRequired="true" p1:Guid="9320f63b-31c0-483a-b764-de0d0b9e03a5">
+			<Documentation>
+				<Summary>키 값</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+	</class>
+	<class name="Config" entity-set="Configs" p1:Guid="c069a1b0-993f-45d8-ba77-874523766762">
+		<Documentation>
+			<Summary>설정 정보 테이블</Summary>
+		</Documentation>
+		<id name="Key" type="String" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="c082124a-dd34-4e89-8129-25f8330bb151">
+			<Documentation>
+				<Summary>설정 키</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</id>
+		<property name="Value" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="1092bb99-8c77-4f93-a10f-076b5b29cc4b">
+			<Documentation>
+				<Summary>설정 값</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+	</class>
+	<class name="SystemLog" entity-set="SystemLogs" p1:Guid="3ae3c588-d841-4d93-bd77-0a81250030f7">
+		<Documentation>
+			<Summary>시스템 로그</Summary>
+		</Documentation>
+		<id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ab84ebf6-ba1c-4443-b731-e821a62c8f18">
+			<Documentation>
+				<Summary>로그 아이디</Summary>
+			</Documentation>
+			<column name="" precision="20" scale="0" unique="True" p1:unicode="False" />
+		</id>
+		<property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="67430571-742f-4751-a781-ef4acc2b84c3">
+			<Documentation>
+				<Summary>로그 레벨</Summary>
+			</Documentation>
+			<column name="" precision="6" scale="0" p1:unicode="False" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="42005bf6-06cd-4cab-9568-850fd48b52e9">
+			<Documentation>
+				<Summary>메세지</Summary>
+			</Documentation>
+			<column name="" p1:unicode="True" />
+		</property>
+	</class>
+	<class name="AllowedConnectionIp" entity-set="AllowedConnectionIps" p1:Guid="3e2faf56-37db-4a9e-9a52-536c0992e322">
+		<Documentation>
+			<Summary>접속이 허용된 아이피</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="f6d09c66-6afc-41fa-90de-94aad8ffbd40">
+			<Documentation>
+				<Summary>접속 허용 아이피 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="RoleId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="de92668d-06a5-4e0d-8304-715df360d6d6">
+			<Documentation>
+				<Summary>역할(권한그룹) 아이디</Summary>
+			</Documentation>
+			<column name="" p1:unicode="True" />
+		</property>
+		<property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="9ce5191a-3e8d-48a6-ae80-0459a8f1b9c9">
+			<Documentation>
+				<Summary>아이피 주소 문자열</Summary>
+			</Documentation>
+			<column name="" length="50" />
+		</property>
+		<property name="StartAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="d9d7de94-c788-47c6-969f-e91244ff3f4d">
+			<Documentation>
+				<Summary>아이피 범위 시작 숫자값</Summary>
+			</Documentation>
+			<column name="" precision="20" scale="0" p1:unicode="False" />
+		</property>
+		<property name="EndAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="3514781f-7169-4329-a0d3-923871857f21">
+			<Documentation>
+				<Summary>아이피 범위 종료 숫자값</Summary>
+			</Documentation>
+			<column name="" precision="20" scale="0" p1:unicode="False" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1861822e-617c-45c6-9fce-4009665dffb5">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" p1:unicode="True" />
+		</property>
+		<property name="RegName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="cf4c0bdf-7e19-4067-b77e-a77e80be691c">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="1000" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="UserLoginHistory" entity-set="UserLoginHistories" p1:Guid="647d66fd-8c77-4eee-b497-9c75d1db97c5">
+		<Documentation>
+			<Summary>사용자 로그인 기록</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b6fd68dd-da63-4bcb-9243-12ce9102dad9">
+				<Documentation>
+					<Summary>사용자 아이디</Summary>
+				</Documentation>
+				<column name="" p1:unicode="True" />
+			</key-property>
+			<key-property name="LoginDate" type="DateTime" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="35fc010b-488b-45ee-a43a-8b567f4fa088">
+				<Documentation>
+					<Summary>로그인 일시</Summary>
+				</Documentation>
+				<column name="" p1:unicode="False" />
+			</key-property>
+		</composite-id>
+	</class>
+	<class name="UserClaim" entity-set="UserClaims" p1:Guid="8a76a73b-56e7-4642-8127-1f373e28f78d">
+		<Documentation>
+			<Summary>사용자 권한</Summary>
+		</Documentation>
+		<id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="3693629b-6b2b-437d-b13f-2d131b28299e">
+			<Documentation>
+				<Summary>권한 아이디</Summary>
+			</Documentation>
+			<column name="Id" precision="11" scale="0" unique="True" />
+		</id>
+		<property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="419fd237-aa1b-46cc-9767-e9437363ab73">
+			<Documentation>
+				<Summary>권한 타입</Summary>
+			</Documentation>
+			<column name="ClaimType" length="255" p1:unicode="True" />
+		</property>
+		<property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0555e1ad-df99-4648-8f49-0098ac483ab7">
+			<Documentation>
+				<Summary>권한 값</Summary>
+			</Documentation>
+			<column name="ClaimValue" length="255" p1:unicode="True" />
+		</property>
+		<property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="79ac33b6-f420-4adf-bc7d-c07154a0dd19">
+			<Documentation>
+				<Summary>사용자 아이디</Summary>
+			</Documentation>
+			<column name="UserId" p1:unicode="True" />
+		</property>
+	</class>
+	<class name="Role" entity-set="Roles" p1:Guid="3d957c3a-332e-4613-b9ef-808cb9d023ce">
+		<Documentation>
+			<Summary>역할(권한 그룹)</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1f9ce801-99d0-4a8a-af6e-e6c5cd53cd51">
+			<Documentation>
+				<Summary>역할(권한그룹) 아이디</Summary>
+			</Documentation>
+			<column name="Id" sql-type="char(36)" p1:unicode="True" />
+		</id>
+		<property name="ConcurrencyStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8382bc4e-cc5d-4ce1-bb85-e5e5a6a3c48a">
+			<Documentation>
+				<Summary>병행지문</Summary>
+			</Documentation>
+			<column name="ConcurrencyStamp" length="255" sql-type="varchar" />
+		</property>
+		<property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="cd0ee09d-9c67-4564-9883-e6724536fc85">
+			<Documentation>
+				<Summary>역할(권한 그룹)명</Summary>
+			</Documentation>
+			<column name="Name" length="255" p1:unicode="True" />
+		</property>
+		<property name="NormalizedName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b136d6bb-7884-4698-abd6-358ecbacdbdb">
+			<Documentation>
+				<Summary>표준화 된 역할(권한 그룹)명</Summary>
+			</Documentation>
+			<column name="NormalizedName" length="255" unique="True" p1:unicode="True" />
+		</property>
+	</class>
+	<class name="RoleClaim" entity-set="RoleClaims" p1:Guid="6da899ad-c5d5-4973-a301-73c06a08793c">
+		<Documentation>
+			<Summary>역할(권한그룹) 권한</Summary>
+		</Documentation>
+		<id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="f7ac25e0-4b6f-451b-9963-e972f025d8ed">
+			<Documentation>
+				<Summary>권한 아이디</Summary>
+			</Documentation>
+			<column name="Id" precision="11" scale="0" unique="True" p1:unicode="False" />
+		</id>
+		<property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0524010f-762a-4df6-a378-3d70c84045d7">
+			<Documentation>
+				<Summary>권한 타입</Summary>
+			</Documentation>
+			<column name="ClaimType" length="255" p1:unicode="True" />
+		</property>
+		<property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="59318e33-5c0c-4c8e-8fcf-fa30fc74b43a">
+			<Documentation>
+				<Summary>권한 값</Summary>
+			</Documentation>
+			<column name="ClaimValue" length="255" p1:unicode="True" />
+		</property>
+		<property name="RoleId" type="Guid" p1:ValidateRequired="true" p1:Guid="9494b656-03ce-4e14-b97f-fe7dd66bf5e0">
+			<Documentation>
+				<Summary>역할(권한그룹) 아이디</Summary>
+			</Documentation>
+			<column name="RoleId" p1:unicode="True" />
+		</property>
+	</class>
+	<class name="ClaimName" entity-set="ClaimNames" p1:Guid="70317721-a562-40ce-a8e9-4ba78c332cb7">
+		<Documentation>
+			<Summary>권한명</Summary>
+		</Documentation>
+		<id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="730acb2b-b7fe-4460-b1f7-9cf52e59a736">
+			<Documentation>
+				<Summary>권한명 아이디</Summary>
+			</Documentation>
+			<column name="Id" precision="11" scale="0" unique="True" p1:unicode="False" />
+		</id>
+		<property name="ClaimTitle" type="String" p1:ValidateMaxLength="2000" p1:ValidateRequired="true" p1:Guid="e4dbf958-0766-43d9-8f27-080bd1d31f62">
+			<Documentation>
+				<Summary>권한 제목</Summary>
+			</Documentation>
+			<column name="ClaimTitle" length="2000" p1:unicode="True" />
+		</property>
+		<property name="ClaimType" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="4f345480-a4df-4bcc-a2c2-1902c60208d8">
+			<Documentation>
+				<Summary>권한 타입</Summary>
+			</Documentation>
+			<column name="ClaimType" length="200" unique-key="KEY1" p1:unicode="True" />
+		</property>
+		<property name="ClaimValue" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="629dffbd-1164-4f89-9316-b5b765543718">
+			<Documentation>
+				<Summary>권한 값</Summary>
+			</Documentation>
+			<column name="ClaimValue" length="200" unique-key="KEY1" p1:unicode="True" />
+		</property>
+		<property name="Depth" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="9242b586-2588-4899-9b38-4c0e0d78e8ac">
+			<Documentation>
+				<Summary>뎁스</Summary>
+			</Documentation>
+			<column name="Depth" />
+		</property>
+		<property name="OrderNo" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7fd84af3-b483-4aa2-996d-c0e9f26d4e2d">
+			<Documentation>
+				<Summary>순서</Summary>
+			</Documentation>
+			<column name="OrderNo" />
+		</property>
+	</class>
+	<class name="UserRole" entity-set="UserRoles" p1:Guid="4f342c95-3e31-40a2-919b-d5d0d1e68fe6">
+		<Documentation>
+			<Summary>역할(권한그룹) 내 사용자</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="3ff09bca-8206-492d-a9a1-7248fdc9480d">
+				<Documentation>
+					<Summary>사용자 아이디</Summary>
+				</Documentation>
+				<column name="UserId" p1:unicode="True" />
+			</key-property>
+			<key-property name="RoleId" type="Guid" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="4e6d7f40-193a-491e-aeb2-a74098a18eea">
+				<Documentation>
+					<Summary>역할(권한그룹) 아이디</Summary>
+				</Documentation>
+				<column name="RoleId" p1:unicode="True" />
+			</key-property>
+		</composite-id>
+	</class>
+	<class name="User" entity-set="Users" p1:Guid="43560174-36b9-4474-ab2c-fb9c24014d50">
+		<Documentation>
+			<Summary>사용자 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="9e38e0af-a9f3-4383-8c6f-738401c1bc1d">
+			<Documentation>
+				<Summary>사용자 아이디</Summary>
+			</Documentation>
+			<column name="Id" />
+		</id>
+		<property name="AccessFailedCount" type="Int32" p1:ValidateRequired="true" p1:Guid="578e9234-d409-4e9d-8616-03bd04c95473">
+			<column name="AccessFailedCount" />
+		</property>
+		<property name="Code" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8c8a61c3-2f43-4d6e-911d-742c677cf072">
+			<Documentation>
+				<Summary>사번 등 식별 코드</Summary>
+			</Documentation>
+			<column name="Code" length="255" p1:unicode="True" />
+		</property>
+		<property name="ConcurrencyStamp" type="String" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="adc46e96-f77c-4b12-a1b9-e9d274dc5342">
+			<column name="ConcurrencyStamp" length="255" />
+		</property>
+		<property name="Email" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="c25b2d04-46f3-4c24-add6-18f172ee0a8d">
+			<Documentation>
+				<Summary>이메일</Summary>
+			</Documentation>
+			<column name="Email" length="255" p1:unicode="True" />
+		</property>
+		<property name="EmailConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="bd3a3b5f-157b-43ae-a244-5017768f4f9b">
+			<Documentation>
+				<Summary>이메일 승인여부</Summary>
+			</Documentation>
+			<column name="EmailConfirmed" precision="1" p1:unicode="False" />
+		</property>
+		<property name="LockoutEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="5694b41f-411b-4287-ac02-95ae8a499179">
+			<Documentation>
+				<Summary>잠금 활성화 여부</Summary>
+			</Documentation>
+			<column name="LockoutEnabled" precision="1" p1:unicode="False" />
+		</property>
+		<property name="LockoutEnd" type="DateTime" p1:nullable="True" value-generated="OnAdd" p1:ValidateRequired="false" p1:Guid="0bba1730-7f17-4764-8121-b328b3ecfad1">
+			<Documentation>
+				<Summary>잠금 만료 시간</Summary>
+			</Documentation>
+			<column name="LockoutEnd" p1:unicode="False" />
+		</property>
+		<property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="421b0ce8-75ef-45e2-a836-33194be07914">
+			<Documentation>
+				<Summary>사용자명</Summary>
+			</Documentation>
+			<column name="Name" length="255" p1:unicode="True" />
+		</property>
+		<property name="NormalizedEmail" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="46bee43d-2e1e-466a-bfbe-244a3911c109">
+			<Documentation>
+				<Summary>표준화 된 이메일</Summary>
+			</Documentation>
+			<column name="NormalizedEmail" length="255" p1:unicode="True" />
+		</property>
+		<property name="NormalizedUserName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="e3c859b0-2219-4dcc-81b3-32b3b2ce1d8c">
+			<Documentation>
+				<Summary>표준화 된 로그인 아이디</Summary>
+			</Documentation>
+			<column name="NormalizedUserName" length="255" unique="True" p1:unicode="True" />
+		</property>
+		<property name="PasswordHash" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="5f4a55b0-ae2a-49b7-8932-f91ded9095d8">
+			<Documentation>
+				<Summary>비밀번호 해쉬</Summary>
+			</Documentation>
+			<column name="PasswordHash" length="255" p1:unicode="True" />
+		</property>
+		<property name="PhoneNumber" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="89fa30d1-4276-4980-9f25-a7c135ad03a9">
+			<Documentation>
+				<Summary>전화번호</Summary>
+			</Documentation>
+			<column name="PhoneNumber" length="255" p1:unicode="True" />
+		</property>
+		<property name="PhoneNumberConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="5afe02a6-6a9a-4eae-8658-06f1bad99933">
+			<Documentation>
+				<Summary>전화번호 확인 여부</Summary>
+			</Documentation>
+			<column name="PhoneNumberConfirmed" precision="1" p1:unicode="False" />
+		</property>
+		<property name="SecurityStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="54713b98-9407-4d4f-90f4-81993b60bd74">
+			<Documentation>
+				<Summary>보안 지문</Summary>
+			</Documentation>
+			<column name="SecurityStamp" length="255" p1:unicode="True" />
+		</property>
+		<property name="TwoFactorEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="24e11c04-011b-4cc2-827a-5f5cc4da298d">
+			<Documentation>
+				<Summary>2차 인증 활성화 여부</Summary>
+			</Documentation>
+			<column name="TwoFactorEnabled" precision="1" p1:unicode="False" />
+		</property>
+		<property name="LoginId" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6f19ea20-95d1-4908-8c75-edbb1db2d67f">
+			<Documentation>
+				<Summary>로그인 아이디</Summary>
+			</Documentation>
+			<column name="LoginId" length="255" p1:unicode="True" />
+		</property>
+		<property name="IsDeleted" type="Boolean" p1:ValidateRequired="true" p1:Guid="fc8c56c6-d1ab-4823-bb66-ae8b5554cd85">
+			<Documentation>
+				<Summary>삭제 여부</Summary>
+			</Documentation>
+			<column name="IsDeleted" default="0" precision="1" scale="0" p1:unicode="False" />
+		</property>
+		<property name="PasswordChangeDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eddb0418-8cd7-4628-a969-dac29eb6fa32">
+			<Documentation>
+				<Summary>비밀번호 변경 일시</Summary>
+			</Documentation>
+			<column name="PasswordChangeDate" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="UserActionLog" entity-set="UserActionLogs" p1:Guid="526c898b-6793-4c7c-8522-584e3129aefd">
+		<Documentation>
+			<Summary>사용자 행동 로그</Summary>
+		</Documentation>
+		<id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ee22087c-3aa0-44d3-bb29-249b3ad55fd5">
+			<Documentation>
+				<Summary>로그 아이디</Summary>
+			</Documentation>
+			<column name="" precision="20" scale="0" unique="True" p1:unicode="False" />
+		</id>
+		<property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="722a6812-0f59-455e-90b4-f9d2bcef3d66">
+			<Documentation>
+				<Summary>로그 레벨</Summary>
+			</Documentation>
+			<column name="" precision="6" scale="0" p1:unicode="False" />
+		</property>
+		<property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14d6c052-2864-49c5-ab18-868d4fd06bda">
+			<Documentation>
+				<Summary>접속아이피</Summary>
+			</Documentation>
+			<column name="" length="50" p1:unicode="True" />
+		</property>
+		<property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="fa88437d-54e9-432d-950c-e681ac66cf8f">
+			<Documentation>
+				<Summary>메세지</Summary>
+			</Documentation>
+			<column name="" p1:unicode="True" />
+		</property>
+		<property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="8f046ed7-7996-41f0-93c4-8626f0684a80">
+			<Documentation>
+				<Summary>사용자 아이디</Summary>
+			</Documentation>
+			<column name="" p1:unicode="True" />
+		</property>
+		<property name="UserName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="78a024ad-f137-4d00-9a0a-a83ad760364c">
+			<Documentation>
+				<Summary>사용자명</Summary>
+			</Documentation>
+			<column name="" length="1000" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+	</class>
+	<class name="Disk" entity-set="Disks" p1:Guid="50aa3a79-7621-42e1-9871-879ef7fb207b">
+		<Documentation>
+			<Summary>디스크 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="be060a5d-43fa-47d3-a1d7-8da0e8de1c9f">
+			<Documentation>
+				<Summary>디스크 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="DiskPoolId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="385f2a84-c2ee-48e4-be77-213b63d98cfe">
+			<Documentation>
+				<Summary>디스크 Pool 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="DiskNo" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
+			<Documentation>
+				<Summary>디스크 번호 (디스크 아이디의 HashCode)</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
+			<Documentation>
+				<Summary>서버 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Path" type="String" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
+			<Documentation>
+				<Summary>마운트 경로</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="State" type="PortalModels.EnumDbDiskState" p1:ValidateRequired="true" p1:Guid="e471acd6-993f-4576-8f60-a4f9d6ec31c2">
+			<Documentation>
+				<Summary>서비스 상태</Summary>
+			</Documentation>
+			<column name="" default="-2" />
+		</property>
+		<property name="TotalInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="b477c167-bcd1-4bec-b6c8-dc3e888a50e9">
+			<Documentation>
+				<Summary>전체 inode 수</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ReservedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="387eda8e-4a17-45c7-83d3-59b1c78b8b7f">
+			<Documentation>
+				<Summary>예약/시스템 inode 수</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="UsedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="4c522b2a-4e67-491f-8280-74b1ed84af95">
+			<Documentation>
+				<Summary>사용된 inode 수</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="TotalSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="472f44a9-f1bf-43d1-8987-5ad67f9ff080">
+			<Documentation>
+				<Summary>전체 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ReservedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="4f158913-4db9-4ce8-930f-71d440a33a6e">
+			<Documentation>
+				<Summary>예약/시스템 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="UsedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="0c560220-c09e-4925-8da3-bb05e119e7fe">
+			<Documentation>
+				<Summary>사용된 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
+			<Documentation>
+				<Summary>디스크 읽기/쓰기 모드</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+	</class>
+	<class name="ServiceDisk" entity-set="ServiceDisks" p1:Guid="877659ce-b722-4da3-8feb-01dd6028c715">
+		<Documentation>
+			<Summary>서비스 사용 디스크 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="72a45164-2db7-4a0a-80de-5730034ab0e1">
+				<Documentation>
+					<Summary>서비스 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="DiskId" type="Guid" p1:ValidateRequired="true" p1:Guid="16897381-f09a-4d44-9232-2f33d919a58e">
+				<Documentation>
+					<Summary>디스크 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+	</class>
+	<class name="DiskPool" entity-set="DiskPools" p1:Guid="ea6bfc23-fbe0-4269-a7fc-b996a1572ffb">
+		<Documentation>
+			<Summary>디스크 Pool 정보</Summary>
+		</Documentation>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="083df896-ac81-4566-833f-7986a994ca32">
+			<Documentation>
+				<Summary>디스크 Pool 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="63656ce8-9cb6-428b-884d-13789eb9f458">
+			<Documentation>
+				<Summary>디스크 Pool 명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a8f71709-ee54-4da7-8725-23fb3a63d00a">
+			<Documentation>
+				<Summary>디스크 Pool 설명</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="549b5140-d6b0-4f01-aee4-a2b197a151de">
+			<Documentation>
+				<Summary>등록자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9e471714-c9b3-4f91-ad5a-e37a9418cd99">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="243157e8-5245-45bf-90cf-b85c78297d4e">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ed399653-79c6-4a94-9be4-10101f733d77">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6bd66f36-403c-4ef4-8994-150013c13333">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ClassTypeId" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
+			<Documentation>
+				<Summary>디스크풀 타입</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ReplicationType" type="PortalModels.EnumDbDiskPoolReplicaType" p1:ValidateRequired="true" p1:Guid="e7ae1a03-18f3-4246-8b6e-73ed8dd85891">
+			<column name="" default="1" />
+		</property>
+	</class>
+	<class name="ServerUsage" entity-set="ServerUsages" p1:Guid="15e5f3ac-4577-4673-b411-47bac199d611">
+		<Documentation>
+			<Summary>서버 사용 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="a20bc4e8-02b3-41da-8e2e-b4867d19d5bc">
+				<Documentation>
+					<Summary>서버 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
+				<Documentation>
+					<Summary>등록일시</Summary>
+				</Documentation>
+				<column name="" p1:unicode="False" />
+			</key-property>
+		</composite-id>
+		<property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e6ff2054-004f-458c-93e7-7032c47fbb2b">
+			<Documentation>
+				<Summary>1분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="90775705-f5c2-4cbc-86aa-53e3e609f76b">
+			<Documentation>
+				<Summary>5분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6d0cba36-07d2-4a29-aa53-89649e5a88e6">
+			<Documentation>
+				<Summary>15분 Load Average</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="df17a0e1-97b1-43f3-ba53-9dc97c776579">
+			<Documentation>
+				<Summary>전체 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eb691589-17f3-456c-bdbb-8d10ed03e248">
+			<Documentation>
+				<Summary>사용 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+	</class>
+	<class name="NetworkInterfaceUsage" entity-set="NetworkInterfaceUsages" p1:Guid="f47c2645-d412-454a-94d8-9f5c158bb306">
+		<Documentation>
+			<Summary>네트워크 인터페이스 사용 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="15aaec8c-2fe5-45a3-bbed-c0647cbf71d5">
+				<Documentation>
+					<Summary>네트워크 인터페이스 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
+				<Documentation>
+					<Summary>등록일시</Summary>
+				</Documentation>
+				<column name="" p1:unicode="False" />
+			</key-property>
+		</composite-id>
+		<property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ac739e4f-b305-4b8c-a161-0a486fbc9eec">
+			<Documentation>
+				<Summary>네트워크 BandWidth</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dda996e0-5bed-4cda-93d5-f2199a4f3606">
+			<Documentation>
+				<Summary>수신 속도</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5f52f407-5688-458b-9ac5-f9c16aeefd15">
+			<Documentation>
+				<Summary>송신 속도</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+	</class>
+	<class name="ServiceUsage" entity-set="ServiceUsages" p1:Guid="c3235388-819a-47bb-9922-ca9d88f9a867">
+		<Documentation>
+			<Summary>서비스 사용 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="becc9a14-3748-4863-8e33-73aa0a4bffed">
+				<Documentation>
+					<Summary>서비스 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
+				<Documentation>
+					<Summary>등록일시</Summary>
+				</Documentation>
+				<column name="" p1:unicode="False" />
+			</key-property>
+		</composite-id>
+		<property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a161a18b-3d52-4f67-b97f-cfd7316fef55">
+			<Documentation>
+				<Summary>CPU 사용률</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ce8eab24-adde-4c02-a4af-7c79031ce72e">
+			<Documentation>
+				<Summary>전체 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eabcef83-0c2c-41c5-87a3-01af7a40c9e1">
+			<Documentation>
+				<Summary>사용 메모리 크기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="f7b5cad1-df78-48bc-8b1e-61a8ec6e4cc0">
+			<Documentation>
+				<Summary>스레드수</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+	</class>
+	<class name="ServiceConfig" entity-set="ServiceConfigs" p1:Guid="17347e03-7e03-4c4f-850c-f828cbc18550">
+		<Documentation>
+			<Summary>서비스 설정 정보</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Type" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="b78e7380-57b5-4704-b813-cd3bab343318">
+				<Documentation>
+					<Summary>서비스 종류</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="Version" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="e961d958-2dae-4299-8679-dc28a8cc989a">
+				<Documentation>
+					<Summary>설정 버전</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+		<property name="Config" type="String" p1:ValidateRequired="true" p1:Guid="ae7f0dc0-ff6f-4107-9663-eeb8cc5e7139">
+			<Documentation>
+				<Summary>설정 정보</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="9e9c88b4-ace6-4341-a52f-2ff45fb3c7c0">
+			<Documentation>
+				<Summary>추가 일자</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="LastVersion" type="Boolean" p1:ValidateRequired="true" p1:Guid="464500ad-d539-4521-a579-205fca3bb42d">
+			<Documentation>
+				<Summary>최신 버전 여부</Summary>
+			</Documentation>
+			<column name="" default="1" precision="1" scale="0" />
+		</property>
+	</class>
+	<class name="S3User" entity-set="S3Users" p1:Guid="169b761c-fe63-4a2c-9d34-bce199767f58">
+		<composite-id>
+			<key-property name="AccessKey" type="String" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
+				<column name="" length="20" p1:fixed-length="True" />
+			</key-property>
+			<key-property name="SecretKey" type="String" p1:ValidateMaxLength="40" p1:ValidateRequired="true" p1:Guid="cea1bd36-ad49-4b4d-a8cd-307ca8d3d598">
+				<column name="" length="40" p1:fixed-length="True" />
+			</key-property>
+		</composite-id>
+		<property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
+			<column name="" unique="True" />
+		</property>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
+			<column name="" />
+		</property>
+		<property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
+			<column name="" />
+		</property>
+	</class>
+	<class name="UserDiskPool" entity-set="UserDiskPools" p1:Guid="d69a1a22-3560-4c3e-aa2f-13570f3cc256">
+		<Documentation>
+			<Summary>유저 디스크풀 목록</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="67b2f29b-0d4d-4cb4-b15d-364b4be07a32">
+				<Documentation>
+					<Summary>유저 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="97480699-57c9-4e5c-a6fa-73451591af0e">
+				<Documentation>
+					<Summary>디스크풀 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+	</class>
+	<associations>
+		<association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
+			<end1 multiplicity="One" name="Service" class="ServiceNetworkInterfaceVlan" relation-class="Service" constrained="True" lazy="False" p1:Guid="bb0c2d17-10ca-44ed-9c5c-fa47ed882f4e">
+				<Documentation>
+					<Summary>서비스 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="Vlans" class="Service" relation-class="ServiceNetworkInterfaceVlan" lazy="False" p1:Guid="58bc7937-0a89-40f7-a705-cb438b7a4361">
+				<Documentation>
+					<Summary>VLAN 목록</Summary>
+				</Documentation>
+				<property name="ServiceId" />
+			</end2>
+		</association>
+		<association name="Server_NetworkInterface" cardinality="OneToMany" p1:Guid="5d47c83f-78c8-4173-9ea6-57e002128e7f">
+			<end1 multiplicity="One" name="Server" class="NetworkInterface" relation-class="Server" constrained="True" lazy="False" p1:Guid="608f65e7-f94b-4285-a6b7-7f5e7604f6d8">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="NetworkInterfaces" class="Server" relation-class="NetworkInterface" lazy="False" p1:Guid="b773f016-5bbb-4983-88f3-8740b9b41624">
+				<Documentation>
+					<Summary>네트워크 인터페이스 목록</Summary>
+				</Documentation>
+				<property name="ServerId" />
+			</end2>
+		</association>
+		<association name="ServiceGroup_Service" cardinality="OneToMany" p1:Guid="f31ea148-a609-4c16-9fd0-ac9705f573ca">
+			<end1 multiplicity="ZeroOrOne" name="ServiceGroup" class="Service" relation-class="ServiceGroup" constrained="True" lazy="False" p1:Guid="6c1b326d-2e85-4a4f-9f62-718577a8380e">
+				<Documentation>
+					<Summary>서비스 그룹 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="Services" class="ServiceGroup" relation-class="Service" lazy="False" p1:Guid="d3e063e4-3e48-4383-b488-848dbec8e645">
+				<Documentation>
+					<Summary>서비스 목록</Summary>
+				</Documentation>
+				<property name="GroupId" />
+			</end2>
+		</association>
+		<association name="Role_RoleClaim" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ca921b70-d28d-4e2a-85d9-e7fb4c966443">
+			<end1 multiplicity="One" name="Role" class="RoleClaim" relation-class="Role" constrained="True" lazy="False" p1:Guid="b495c097-b86b-4318-aa56-1c367bc72bea">
+				<Documentation>
+					<Summary>역할 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RoleClaims" class="Role" relation-class="RoleClaim" lazy="False" p1:Guid="c9155c1d-f945-4ba6-a296-df05070b13b0">
+				<Documentation>
+					<Summary>역할 권한 목록</Summary>
+				</Documentation>
+				<property name="RoleId" />
+			</end2>
+		</association>
+		<association name="Role_AllowedConnectionIp" cardinality="OneToMany" on-delete="Restrict" p1:Guid="4ffd09c3-7dba-4d52-b95b-ba5b79095b02">
+			<end1 multiplicity="ZeroOrOne" name="Role" class="AllowedConnectionIp" relation-class="Role" constrained="True" lazy="False" p1:Guid="c75f4985-523d-46f9-a6c9-7ef34a3edb8b">
+				<Documentation>
+					<Summary>역할 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="AllowedConnectionIps" class="Role" relation-class="AllowedConnectionIp" lazy="False" p1:Guid="25f3afa4-3c64-4a66-b35e-79259e876ca2">
+				<Documentation>
+					<Summary>접속 허용 아이피 목록</Summary>
+				</Documentation>
+				<property name="RoleId" />
+			</end2>
+		</association>
+		<association name="User_AllowedConnectionIp" cardinality="OneToMany" on-delete="Cascade" p1:Guid="c8def0da-289f-4093-8f06-d4c8c7686734">
+			<end1 multiplicity="ZeroOrOne" name="RegUser" class="AllowedConnectionIp" relation-class="User" constrained="True" lazy="False" p1:Guid="b39b5f95-f86c-4121-ab2e-d87e312cbcd9">
+				<Documentation>
+					<Summary>등록 사용자</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RegAllowedConnectionIps" class="User" relation-class="AllowedConnectionIp" lazy="False" p1:Guid="078b3984-6426-4430-a630-d2967a440a6f">
+				<Documentation>
+					<Summary>등록한 접속 아이피 목록</Summary>
+				</Documentation>
+				<property name="RegId" />
+			</end2>
+		</association>
+		<association name="Role_UserRole" cardinality="OneToMany" on-delete="Cascade" p1:Guid="529d51fc-2a99-4cfb-b5e6-980ffc6f1b33">
+			<end1 multiplicity="One" name="Role" class="UserRole" relation-class="Role" constrained="True" lazy="False" p1:Guid="c1dc0f6e-031b-4284-abcc-aabb5d04edcb">
+				<Documentation>
+					<Summary>역할 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserRoles" class="Role" relation-class="UserRole" lazy="False" p1:Guid="cd3266ff-aa88-42e3-ac31-1ac88a6ca6b1">
+				<Documentation>
+					<Summary>역할(권한그룹) 내 사용자 목록</Summary>
+				</Documentation>
+				<property name="RoleId" />
+			</end2>
+		</association>
+		<association name="User_UserRole" cardinality="OneToMany" on-delete="Cascade" p1:Guid="8f002e41-d6a2-4466-b4ac-083741d953c7">
+			<end1 multiplicity="One" name="User" class="UserRole" relation-class="User" constrained="True" lazy="False" p1:Guid="8314c880-ce49-4e98-8fd4-98dde270e7a2">
+				<Documentation>
+					<Summary>사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserRoles" class="User" relation-class="UserRole" lazy="False" p1:Guid="94373001-772d-4046-b4e2-c73cdc50a5c6">
+				<Documentation>
+					<Summary>사용자 역할 목록</Summary>
+				</Documentation>
+				<property name="UserId" />
+			</end2>
+		</association>
+		<association name="User_UserActionLog" cardinality="OneToMany" on-delete="Cascade" p1:Guid="e63dfba0-3715-4ea8-875a-2eb61b78a5c5">
+			<end1 multiplicity="One" name="User" class="UserActionLog" relation-class="User" constrained="True" lazy="False" p1:Guid="8872ba19-1833-4759-9d81-440c496d41e9">
+				<Documentation>
+					<Summary>사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserActionLogs" class="User" relation-class="UserActionLog" lazy="False" p1:Guid="ab9a952e-3f65-4e31-bd6b-04a9bd95f22f">
+				<Documentation>
+					<Summary>등록한 사용자 행동 로그 목록</Summary>
+				</Documentation>
+				<property name="UserId" />
+			</end2>
+		</association>
+		<association name="User_UserClaim" cardinality="OneToMany" on-delete="Cascade" p1:Guid="e6f6a4e7-587e-4730-85d4-8a6e651631df">
+			<end1 multiplicity="One" name="User" class="UserClaim" relation-class="User" constrained="True" lazy="False" p1:Guid="65f45261-1330-4b15-b59d-3f6719d266ca">
+				<Documentation>
+					<Summary>사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserClaims" class="User" relation-class="UserClaim" lazy="False" p1:Guid="f46002bd-17ce-4d5b-8f4d-ce2f8e35466a">
+				<Documentation>
+					<Summary>사용자 권한 목록</Summary>
+				</Documentation>
+				<property name="UserId" />
+			</end2>
+		</association>
+		<association name="User_UserLoginHistory" cardinality="OneToMany" p1:Guid="d941e14c-d117-498e-933f-b89be58090b5">
+			<end1 multiplicity="One" name="User" class="UserLoginHistory" relation-class="User" constrained="True" lazy="False" p1:Guid="e532e5b8-3055-46f8-bf0d-751224e9eea8">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserLoginHistories" class="User" relation-class="UserLoginHistory" lazy="False" p1:Guid="9c53cb43-3e18-488a-9048-4075b248d770">
+				<Documentation>
+					<Summary>사용자 로그인 내역</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end2>
+		</association>
+		<association name="User_ServiceGroup" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
+			<end1 multiplicity="ZeroOrOne" name="RegUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="52cdbfeb-c7f9-4ab0-8f0e-1cda484d3aec">
+				<Documentation>
+					<Summary>등록 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RegServiceGroups" class="User" relation-class="ServiceGroup" lazy="False" p1:Guid="087dde4d-99f4-4a70-9962-602142818a61">
+				<Documentation>
+					<Summary>등록 서비스 그룹 목록</Summary>
+				</Documentation>
+				<property name="RegId" />
+			</end2>
+		</association>
+		<association name="User_ServiceGroup1" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
+			<end1 multiplicity="ZeroOrOne" name="ModUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="1e0ba52c-da8c-4ce4-8e57-6bdd777dbe6a">
+				<Documentation>
+					<Summary>수정 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ModServiceGroups" class="User" relation-class="ServiceGroup" lazy="False" p1:Guid="17d883d9-6923-43d6-81e6-538eacf8d0f0">
+				<Documentation>
+					<Summary>수정 서비스 그룹 목록</Summary>
+				</Documentation>
+				<property name="ModId" />
+			</end2>
+		</association>
+		<association name="User_Service" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
+			<end1 multiplicity="ZeroOrOne" name="RegUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="f66d6e6c-fed6-4fe0-8462-357b97c09326">
+				<Documentation>
+					<Summary>등록 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RegServices" class="User" relation-class="Service" lazy="False" p1:Guid="9d872981-b043-418b-97cb-7c044bef4def">
+				<Documentation>
+					<Summary>등록 서비스 목록</Summary>
+				</Documentation>
+				<property name="RegId" />
+			</end2>
+		</association>
+		<association name="User_Service1" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
+			<end1 multiplicity="ZeroOrOne" name="ModUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="9892cf5a-5d6e-4087-b861-d68b554a7558">
+				<Documentation>
+					<Summary>수정 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ModServices" class="User" relation-class="Service" lazy="False" p1:Guid="506fb73a-b685-4639-897d-9e2fe7847781">
+				<Documentation>
+					<Summary>수정 서비스 목록</Summary>
+				</Documentation>
+				<property name="ModId" />
+			</end2>
+		</association>
+		<association name="User_NetworkInterfaceVlan" cardinality="OneToMany" p1:Guid="4ed7dec9-ffc6-4cba-a21e-c8f1eecc6673">
+			<end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterfaceVlan" relation-class="User" constrained="True" lazy="False" p1:Guid="426c626d-bb62-412a-b03e-f6ccf9ef63cd">
+				<Documentation>
+					<Summary>등록 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RegNetworkInterfaceVlans" class="User" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="15c251bc-94d9-49cc-9c55-2a84ba9f22a1">
+				<Documentation>
+					<Summary>등록 네트워크 인터페이스 VLAN 목록</Summary>
+				</Documentation>
+				<property name="RegId" />
+			</end2>
+		</association>
+		<association name="User_NetworkInterfaceVlan1" cardinality="OneToMany" p1:Guid="1fce065d-7f16-45be-90ac-ec021a4e8a89">
+			<end1 multiplicity="ZeroOrOne" name="ModUser" class="NetworkInterfaceVlan" relation-class="User" constrained="True" lazy="False" p1:Guid="292a1d7c-197d-4d25-bad1-48c5e52bf081">
+				<Documentation>
+					<Summary>수정 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ModNetworkInterfaceVlans" class="User" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="e138337b-ea24-46ac-8cd6-f3fe5f5f369d">
+				<Documentation>
+					<Summary>수정 네트워크 인터페이스 VLAN 목록</Summary>
+				</Documentation>
+				<property name="ModId" />
+			</end2>
+		</association>
+		<association name="User_NetworkInterface" cardinality="OneToMany" p1:Guid="241235f1-88a3-400b-82fe-a3b0b3848d64">
+			<end1 multiplicity="ZeroOrOne" name="ModUser" class="NetworkInterface" relation-class="User" constrained="True" lazy="False" p1:Guid="cde238f3-1f3f-421a-b5b7-375b444d2ed9">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ModNetworkInterfaces" class="User" relation-class="NetworkInterface" lazy="False" p1:Guid="89eb591f-4478-44f9-838b-955393bf5913">
+				<Documentation>
+					<Summary>수정 네트워크 인터페이스 목록</Summary>
+				</Documentation>
+				<property name="ModId" />
+			</end2>
+		</association>
+		<association name="User_Server" cardinality="OneToMany" p1:Guid="49b30a55-0c3a-4abd-9fde-0677e7208966">
+			<end1 multiplicity="ZeroOrOne" name="ModUser" class="Server" relation-class="User" constrained="True" lazy="False" p1:Guid="498ac5ed-c22f-4119-a4e7-62d810497fb0">
+				<Documentation>
+					<Summary>수정한 사용자 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ModServers" class="User" relation-class="Server" lazy="False" p1:Guid="a8fb827c-9115-4cbe-bc49-e816b555d929">
+				<Documentation>
+					<Summary>수정 서버 목록</Summary>
+				</Documentation>
+				<property name="ModId" />
+			</end2>
+		</association>
+		<association name="NetworkInterface_NetworkInterfaceVlan" cardinality="OneToMany" p1:Guid="c2c1584b-0b25-4d90-9a15-c64f8746ce42">
+			<end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceVlan" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="f85a2c05-743e-48cd-9b2d-064351540b71">
+				<Documentation>
+					<Summary>네트워크 인터페이스 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="NetworkInterfaceVlans" class="NetworkInterface" relation-class="NetworkInterfaceVlan" lazy="False" p1:Guid="01110ca7-6aa3-4858-be7b-917f760591ea">
+				<property name="InterfaceId" />
+			</end2>
+		</association>
+		<association name="NetworkInterfaceVlan_ServiceNetworkInterface" cardinality="OneToMany" p1:Guid="6a0aa416-dc8f-41e1-ba28-140cd2145ef3">
+			<end1 multiplicity="One" name="NetworkInterfaceVlan" class="ServiceNetworkInterfaceVlan" relation-class="NetworkInterfaceVlan" constrained="True" lazy="False" p1:Guid="56a7f21a-66db-46f7-9007-797bee06f1c5">
+				<Documentation>
+					<Summary>네트워크 인터페이스 VLAN 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServiceNetworkInterfaceVlans" class="NetworkInterfaceVlan" relation-class="ServiceNetworkInterfaceVlan" lazy="False" p1:Guid="2d517d7b-307e-4a17-9642-e5733a10f506">
+				<Documentation>
+					<Summary>서비스 네트워크 인터페이스 VLAN 목록</Summary>
+				</Documentation>
+				<property name="VlanId" />
+			</end2>
+		</association>
+		<association name="User_NetworkInterface1" cardinality="OneToMany" p1:Guid="f98a38b3-817e-4ee3-957e-e5e8ec4f3ec3">
+			<end1 multiplicity="ZeroOrOne" name="RegUser" class="NetworkInterface" relation-class="User" constrained="True" lazy="False" p1:Guid="b59b13da-0806-42c7-bb26-5cab903b9fef">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="RegNetworkInterfaces" class="User" relation-class="NetworkInterface" lazy="False" p1:Guid="e3af8bc0-6f2a-41a8-b854-44c20df32b01">
+				<Documentation>
+					<Summary>등록 네트워크 인터페이스 목록</Summary>
+				</Documentation>
+				<property name="RegId" />
+			</end2>
+		</association>
+		<association name="Server_Disk" cardinality="OneToMany" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
+			<end1 multiplicity="One" name="Server" class="Disk" relation-class="Server" constrained="True" lazy="False" p1:Guid="a92818b6-8f39-4f11-99eb-452a48615d7e">
+				<Documentation>
+					<Summary>서버 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="Disks" class="Server" relation-class="Disk" lazy="False" p1:Guid="782b5cd0-3b63-4163-8325-8632e6ce0b39">
+				<Documentation>
+					<Summary>디스크 목록</Summary>
+				</Documentation>
+				<property name="ServerId" />
+			</end2>
+		</association>
+		<association name="Service_ServiceDisk" cardinality="OneToMany" p1:Guid="a4478423-7385-4fc1-b845-9cdb8f97ad93">
+			<end1 multiplicity="One" name="Service" class="ServiceDisk" relation-class="Service" constrained="True" lazy="False" p1:Guid="1607eab9-d9af-4464-b61d-1c26f0cd3e78">
+				<Documentation>
+					<Summary>서비스 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServiceDisks" class="Service" relation-class="ServiceDisk" lazy="False" p1:Guid="f459e10a-8674-4147-b301-735c7dfaa3a0">
+				<Documentation>
+					<Summary>서비스 디스크 정보 목록</Summary>
+				</Documentation>
+				<property name="ServiceId" />
+			</end2>
+		</association>
+		<association name="Disk_ServiceDisk" cardinality="OneToMany" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
+			<end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
+				<Documentation>
+					<Summary>디스크 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServiceDisks" class="Disk" relation-class="ServiceDisk" lazy="False" p1:Guid="07dbefd3-48b5-4681-b806-53c9aa417fc9">
+				<Documentation>
+					<Summary>서비스 디스크 목록</Summary>
+				</Documentation>
+				<property name="DiskId" />
+			</end2>
+		</association>
+		<association name="DiskPool_Disk" cardinality="OneToMany" p1:Guid="9432ec0d-4ae7-4ca7-9334-660f926e5447">
+			<end1 multiplicity="ZeroOrOne" name="DiskPool" class="Disk" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="24adca67-209e-4a95-bdd7-a9e883cd76d9">
+				<Documentation>
+					<Summary>디스크 풀 정보</Summary>
+				</Documentation>
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="Disks" class="DiskPool" relation-class="Disk" lazy="False" p1:Guid="a7214806-9cfb-44d4-845d-fe13daf06dd3">
+				<Documentation>
+					<Summary>디스크 목록</Summary>
+				</Documentation>
+				<property name="DiskPoolId" />
+			</end2>
+		</association>
+		<association name="Server_ServerUsage" cardinality="OneToMany" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
+			<end1 multiplicity="One" name="Server" class="ServerUsage" relation-class="Server" constrained="True" lazy="False" p1:Guid="8ae27611-0428-4874-81e0-eb4f616d6d27">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServerUsages" class="Server" relation-class="ServerUsage" lazy="False" p1:Guid="ff0ecaf1-adc2-43df-ab28-54e4bbed7715">
+				<property name="Id" />
+			</end2>
+		</association>
+		<association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
+			<end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceUsage" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="dd2c125d-8c87-4786-ac8e-b65ccce1f5eb">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="NetworkInterfaceUsages" class="NetworkInterface" relation-class="NetworkInterfaceUsage" lazy="False" p1:Guid="8618853a-5ee3-4833-a0fe-5f23cdfbb711">
+				<property name="Id" />
+			</end2>
+		</association>
+		<association name="Service_ServiceUsage" cardinality="OneToMany" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
+			<end1 multiplicity="One" name="Service" class="ServiceUsage" relation-class="Service" constrained="True" lazy="False" p1:Guid="a955c72c-b674-4bea-9c2b-9951a1f5f098">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServiceUsages" class="Service" relation-class="ServiceUsage" lazy="False" p1:Guid="1496669b-ed1d-40cc-867a-091f0bfa8eee">
+				<property name="Id" />
+			</end2>
+		</association>
+		<association name="S3User_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
+			<end1 multiplicity="One" name="S3User" class="UserDiskPool" relation-class="S3User" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserDiskPools" class="S3User" relation-class="UserDiskPool" lazy="False" p1:Guid="82a163a7-4cb0-4583-b7aa-78eb9d6d9e01">
+				<property name="UserId" />
+			</end2>
+		</association>
+		<association name="DiskPool_UserDiskPool" cardinality="OneToMany" p1:Guid="61d373b0-0767-4e28-a766-11015ab7154d">
+			<end1 multiplicity="One" name="DiskPool" class="UserDiskPool" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="1ca0035f-b931-4790-8239-ca34ee168109">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="UserDiskPools" class="DiskPool" relation-class="UserDiskPool" lazy="False" p1:Guid="79111c8b-930d-4090-be78-4878d54cecab">
+				<property name="DiskPoolId" />
+			</end2>
+		</association>
+	</associations>
 </efcore>

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -40,7 +40,7 @@ namespace PortalData.Responses.Services.Configs
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				ResponseServiceConfigForGW request = new ResponseServiceConfigForGW();
-				
+
 				// 메인 설정을 읽어온다.
 				ResponseData response = request.Database.Deserialize(config);
 				if (response.Result == EnumResponseResult.Error)
@@ -59,7 +59,7 @@ namespace PortalData.Responses.Services.Configs
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-		
+
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -25,21 +25,21 @@ namespace PortalProviderInterface
 		/// <param name="request">디스크 등록 요청 객체</param>
 		/// <returns>디스크 등록 결과 객체</returns>
 		Task<ResponseData<ResponseDiskWithServer>> Add(string serverId, RequestDisk request);
-		
+
 		/// <summary>디스크 수정</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="id">디스크 아이디</param>
 		/// <param name="request">디스크 수정 요청 객체</param>
 		/// <returns>디스크 수정 결과 객체</returns>
 		Task<ResponseData> Update(string serverId, string id, RequestDisk request);
-	
+
 		/// <summary>디스크 상태 수정</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="id">디스크 아이디</param>
 		/// <param name="state">디스크 상태</param>
 		/// <returns>디스크 상태 수정 결과 객체</returns>
 		Task<ResponseData> UpdateState(string serverId, string id, EnumDiskState state);
-	
+
 		/// <summary>디스크 상태 수정</summary>
 		/// <param name="request">상태 수정 요청 객체</param>
 		/// <returns>디스크 상태 수정 결과 객체</returns>
@@ -61,13 +61,13 @@ namespace PortalProviderInterface
 		/// <param name="request">디스크 읽기/쓰기 모드 수정 요청 객체</param>
 		/// <returns>디스크 읽기/쓰기 모드 수정 결과 객체</returns>
 		Task<ResponseData> UpdateRwMode(RequestDiskRwMode request);
-	
+
 		/// <summary>디스크 삭제</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="id">디스크 아이디</param>
 		/// <returns>디스크 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string serverId, string id);
-		
+
 		/// <summary>특정 서버의 디스크 목록을 가져온다.</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="searchStates">검색할 디스크 상태 목록</param>
@@ -86,7 +86,7 @@ namespace PortalProviderInterface
 			List<string> orderFields = null, List<string> orderDirections = null,
 			List<string> searchFields = null, string searchKeyword = ""
 		);
-			
+
 		/// <summary>전체 디스크 목록을 가져온다.</summary>
 		/// <param name="searchStates">검색할 디스크 상태 목록</param>
 		/// <param name="searchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
@@ -103,13 +103,13 @@ namespace PortalProviderInterface
 			List<string> orderFields = null, List<string> orderDirections = null,
 			List<string> searchFields = null, string searchKeyword = ""
 		);
-	
+
 		/// <summary>디스크 정보를 가져온다.</summary>
 		/// <param name="serverId">서버 아이디</param>
 		/// <param name="id">디스크 아이디</param>
 		/// <returns>디스크 정보 객체</returns>
 		Task<ResponseData<ResponseDiskWithServices>> Get(string serverId, string id);
-		
+
 		/// <summary>DiskNo로 디스크 ID를 가져온다.</summary>
 		/// <param name="diskNo">디스크 No</param>
 		/// <returns>디스크 아이디 응답 객체</returns>

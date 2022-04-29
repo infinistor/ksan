@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -14,25 +14,25 @@ using MTLib.Core;
 
 namespace PortalData.ValidationAttributes
 {
-    /// <summary>해당 문자열이 아이피 주소에 해당하는지에 대한 유효성 검사 속성 클래스</summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class IpAddressAttribute : ValidationAttribute
-    {
-        /// <summary>유효한지 여부 검사</summary>
-        /// <param name="value">검사할 값</param>
-        /// <returns>유효한지 여부</returns>
-        public override bool IsValid(object value)
-        {
-            bool result = false;
+	/// <summary>해당 문자열이 아이피 주소에 해당하는지에 대한 유효성 검사 속성 클래스</summary>
+	[AttributeUsage(AttributeTargets.Property)]
+	public class IpAddressAttribute : ValidationAttribute
+	{
+		/// <summary>유효한지 여부 검사</summary>
+		/// <param name="value">검사할 값</param>
+		/// <returns>유효한지 여부</returns>
+		public override bool IsValid(object value)
+		{
+			bool result = false;
 
-            // 값이 문자열인 경우
-            if (value == null || value is string)
-            {
-                if (value == null || ((string)value).IsEmpty() || ((string)value).IsIpAddress())
-                    result = true;
-            }
+			// 값이 문자열인 경우
+			if (value == null || value is string)
+			{
+				if (value == null || ((string)value).IsEmpty() || ((string)value).IsIpAddress())
+					result = true;
+			}
 
-            return result;
-        }
-    }
+			return result;
+		}
+	}
 }

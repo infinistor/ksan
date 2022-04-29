@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -40,7 +40,7 @@ namespace PortalSvr.Services
 
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
-		
+
 		/// <summary>생성자</summary>
 		/// <param name="userProvider">사용자에 대한 프로바이더 객체</param>
 		/// <param name="apiKeyProvider">API Key에 대한 프로바이더 객체</param>
@@ -73,7 +73,7 @@ namespace PortalSvr.Services
 						Status = EnumUserStatus.Activated,
 						Roles = new List<string>() { PredefinedRoleNames.RoleNameSupervisor }
 					}, "qwe123", "qwe123");
-					
+
 					// "internalservice" 계정을 생성하고, "InternalService" 역할에 추가한다.
 					// 해당 계정으로는 로그인 불가하며, API 키만 사용 가능하다.
 					ResponseData<ResponseUserWithRoles> response = await m_userProvider.Add(new RequestUserRegist()
@@ -98,8 +98,8 @@ namespace PortalSvr.Services
 								KeyValue = PredefinedApiKey.InternalSystemApiKey
 							}
 						);
-						
-						if(responseApiKey.Result == EnumResponseResult.Success)
+
+						if (responseApiKey.Result == EnumResponseResult.Success)
 							m_logger.LogInformation("API KEY has been created. : {KeyValue}", responseApiKey.Data.KeyValue);
 					}
 				}

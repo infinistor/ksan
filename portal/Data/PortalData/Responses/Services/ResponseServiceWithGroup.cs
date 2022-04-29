@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -12,8 +12,8 @@ namespace PortalData.Responses.Services
 {
 	/// <summary>서비스 정보 응답 클래스</summary>
 	public class ResponseServiceWithGroup : ResponseService
-	{ 
+	{
 		/// <summary>서비스 그룹 정보</summary>
-        public ResponseServiceGroup ServiceGroup { get; set; } = new ResponseServiceGroup();
+		public ResponseServiceGroup ServiceGroup { get; set; } = new ResponseServiceGroup();
 	}
 }

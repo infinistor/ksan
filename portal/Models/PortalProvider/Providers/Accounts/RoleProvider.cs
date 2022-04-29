@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -84,7 +84,7 @@ namespace PortalProvider.Providers.Accounts
 				// 해당 역할이 존재하지 않는 경우 생성
 				if (!await m_roleManager.RoleExistsAsync(request.Name))
 				{
-					NNApplicationRole role = new NNApplicationRole {Id = Guid.NewGuid(), Name = request.Name};
+					NNApplicationRole role = new NNApplicationRole { Id = Guid.NewGuid(), Name = request.Name };
 					await m_roleManager.CreateAsync(role);
 					result.Data = new ResponseRole();
 					result.Data.Id = role.Id;
@@ -138,7 +138,7 @@ namespace PortalProvider.Providers.Accounts
 					{
 						// 수정할 Role이 미리 정의된 역할인 경우
 						if (role.Name == PredefinedRoleNames.RoleNameSupervisor
-						    || role.Name == PredefinedRoleNames.RoleNameInternalService)
+							|| role.Name == PredefinedRoleNames.RoleNameInternalService)
 						{
 							result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
 							result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
@@ -195,7 +195,7 @@ namespace PortalProvider.Providers.Accounts
 					{
 						// 삭제할 Role이 미리 정의된 역할인 경우
 						if (role.Name == PredefinedRoleNames.RoleNameSupervisor
-						    || role.Name == PredefinedRoleNames.RoleNameInternalService)
+							|| role.Name == PredefinedRoleNames.RoleNameInternalService)
 						{
 							result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
 							result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
@@ -247,19 +247,19 @@ namespace PortalProvider.Providers.Accounts
 					Role supervisorRole = roles.FirstOrDefault(i => i.Name == "Supervisor");
 					if (supervisorRole != null)
 						responseRoles.Add(new ResponseRole()
-							{Id = supervisorRole.Id, Name = supervisorRole.Name, ClaimCount = supervisorRole.RoleClaims.Count, UserCount = supervisorRole.UserRoles.Count});
+						{ Id = supervisorRole.Id, Name = supervisorRole.Name, ClaimCount = supervisorRole.RoleClaims.Count, UserCount = supervisorRole.UserRoles.Count });
 
 					Role adminRole = roles.FirstOrDefault(i => i.Name == "Admin");
 					if (adminRole != null)
-						responseRoles.Add(new ResponseRole() {Id = adminRole.Id, Name = adminRole.Name, ClaimCount = adminRole.RoleClaims.Count, UserCount = adminRole.UserRoles.Count});
+						responseRoles.Add(new ResponseRole() { Id = adminRole.Id, Name = adminRole.Name, ClaimCount = adminRole.RoleClaims.Count, UserCount = adminRole.UserRoles.Count });
 
 					Role userRole = roles.FirstOrDefault(i => i.Name == "User");
 					if (userRole != null)
-						responseRoles.Add(new ResponseRole() {Id = userRole.Id, Name = userRole.Name, ClaimCount = userRole.RoleClaims.Count, UserCount = userRole.UserRoles.Count});
+						responseRoles.Add(new ResponseRole() { Id = userRole.Id, Name = userRole.Name, ClaimCount = userRole.RoleClaims.Count, UserCount = userRole.UserRoles.Count });
 
 					// 모든 역할에 대해서 처리
 					foreach (Role role in roles.Where(i => i.Name != "Supervisor" && i.Name != "Admin" && i.Name != "User"))
-						responseRoles.Add(new ResponseRole() {Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count});
+						responseRoles.Add(new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count });
 				}
 
 				// 목록으로 변환
@@ -306,7 +306,7 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 역할 정보가 존재하는 경우
 					if (role != null)
 					{
-						result.Data = new ResponseRole() {Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count};
+						result.Data = new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count };
 						result.Result = EnumResponseResult.Success;
 					}
 					// 해당 역할 정보가 존재하지 않는 경우
@@ -355,7 +355,7 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 역할 정보가 존재하는 경우
 					if (role != null)
 					{
-						result.Data = new ResponseRole() {Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count};
+						result.Data = new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count };
 						result.Result = EnumResponseResult.Success;
 					}
 					// 해당 역할 정보가 존재하지 않는 경우
@@ -402,7 +402,7 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 역할의 권한들을 가져온다.
 					result.Data = await m_dbContext.RoleClaims.AsNoTracking()
 						.Where(i => i.RoleId == searchId
-						            && (searchKeyword.IsEmpty() || i.ClaimValue.Contains(searchKeyword)))
+									&& (searchKeyword.IsEmpty() || i.ClaimValue.Contains(searchKeyword)))
 						.CreateListAsync<RoleClaim, ResponseClaim>(skip, countPerPage);
 
 					result.Result = EnumResponseResult.Success;
@@ -443,14 +443,14 @@ namespace PortalProvider.Providers.Accounts
 				{
 					// 해당 역할의 사용자를 가져온다.
 					result.Data = await m_dbContext.UserRoles.AsNoTracking()
-						.Join(m_dbContext.Users, i => i.UserId, i => i.Id, (i, j) => new {Role = i, User = j})
+						.Join(m_dbContext.Users, i => i.UserId, i => i.Id, (i, j) => new { Role = i, User = j })
 						.Where(i => i.Role.RoleId == searchId
-						            && i.User.IsDeleted == false
-						            && (searchKeyword.IsEmpty()
-						                || i.User.LoginId.Contains(searchKeyword)
-						                || i.User.Email.Contains(searchKeyword)
-						                || i.User.Name.Contains(searchKeyword)
-						            ))
+									&& i.User.IsDeleted == false
+									&& (searchKeyword.IsEmpty()
+										|| i.User.LoginId.Contains(searchKeyword)
+										|| i.User.Email.Contains(searchKeyword)
+										|| i.User.Name.Contains(searchKeyword)
+									))
 						//.Select(i => i.User)
 						.Select(i => new
 						{
@@ -1078,7 +1078,7 @@ namespace PortalProvider.Providers.Accounts
 					if (!await m_dbContext.ClaimNames.AsNoTracking().Where(i => i.ClaimType == claimType && i.ClaimValue == claimValue).AnyAsync())
 					{
 						// 권한 제목 등록
-						await m_dbContext.ClaimNames.AddAsync(new ClaimName() {ClaimType = claimType, ClaimValue = claimValue, ClaimTitle = claimTitle, Depth = depth, OrderNo = orderNo});
+						await m_dbContext.ClaimNames.AddAsync(new ClaimName() { ClaimType = claimType, ClaimValue = claimValue, ClaimTitle = claimTitle, Depth = depth, OrderNo = orderNo });
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 					}
 				}

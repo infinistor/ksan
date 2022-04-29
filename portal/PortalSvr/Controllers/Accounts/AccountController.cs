@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -57,7 +57,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("Register")]
 		[AllowAnonymous]
-		public async Task<JsonResult> Register([FromBody]RequestRegister request)
+		public async Task<JsonResult> Register([FromBody] RequestRegister request)
 		{
 			return Json(await m_dataProvider.Create(request, HttpContext.Request));
 		}
@@ -67,7 +67,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ConfirmEmail")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ConfirmEmail([FromBody]RequestConfirmEmail request)
+		public async Task<JsonResult> ConfirmEmail([FromBody] RequestConfirmEmail request)
 		{
 			return Json(await m_dataProvider.ConfirmEmail(request));
 		}
@@ -77,7 +77,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("Login")]
 		[AllowAnonymous]
-		public async Task<JsonResult> Login([FromBody]RequestLogin request)
+		public async Task<JsonResult> Login([FromBody] RequestLogin request)
 		{
 			return Json(await m_dataProvider.Login(request, this.Request));
 		}
@@ -113,7 +113,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <param name="request">비밀번호 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ChangePassword")]
-		public async Task<JsonResult> ChangePassword([FromBody]RequestChangePassword request)
+		public async Task<JsonResult> ChangePassword([FromBody] RequestChangePassword request)
 		{
 			return Json(await m_dataProvider.ChangePassword(User, request));
 		}
@@ -123,7 +123,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ForgotPassword")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ForgotPassword([FromBody]RequestForgetPassword request)
+		public async Task<JsonResult> ForgotPassword([FromBody] RequestForgetPassword request)
 		{
 			return Json(await m_dataProvider.ForgotPassword(request, HttpContext.Request));
 		}
@@ -133,7 +133,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ResetPassword")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ResetPassword([FromBody]RequestResetPassword request)
+		public async Task<JsonResult> ResetPassword([FromBody] RequestResetPassword request)
 		{
 			return Json(await m_dataProvider.ResetPassword(request));
 		}
@@ -142,7 +142,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <param name="request">비밀번호 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPut("Update")]
-		public async Task<JsonResult> Update([FromBody]RequestUpdate request)
+		public async Task<JsonResult> Update([FromBody] RequestUpdate request)
 		{
 			return Json(await m_dataProvider.Update(User, request));
 		}

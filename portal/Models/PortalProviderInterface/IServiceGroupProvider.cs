@@ -17,18 +17,18 @@ namespace PortalProviderInterface
 		/// <param name="request">서비스 그룹 등록 요청 객체</param>
 		/// <returns>서비스 그룹 등록 결과 객체</returns>
 		Task<ResponseData<ResponseServiceGroupWithServices>> Add(RequestServiceGroup request);
-		
+
 		/// <summary>서비스 그룹 수정</summary>
 		/// <param name="id">서비스 그룹 아이디</param>
 		/// <param name="request">서비스 그룹 수정 요청 객체</param>
 		/// <returns>서비스 그룹 수정 결과 객체</returns>
 		Task<ResponseData> Update(string id, RequestServiceGroup request);
-		
+
 		/// <summary>서비스 그룹 삭제</summary>
 		/// <param name="id">서비스 그룹 아이디</param>
 		/// <returns>서비스 그룹 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string id);
-		
+
 		/// <summary>서비스 그룹 목록을 가져온다.</summary>
 		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
@@ -42,7 +42,7 @@ namespace PortalProviderInterface
 			, List<string> orderFields = null, List<string> orderDirections = null
 			, List<string> searchFields = null, string searchKeyword = ""
 		);
-		
+
 		/// <summary>서비스 그룹 정보를 가져온다.</summary>
 		/// <param name="id">서비스 그룹 아이디</param>
 		/// <returns>서비스 그룹 정보 객체</returns>

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -25,13 +25,13 @@ namespace PortalData.Responses.Services.Configs
 	{
 		/// <summary>전역 설정</summary>
 		public ResponseHaProxyConfigGlobal ConfigGlobal { get; } = new ResponseHaProxyConfigGlobal();
-	
+
 		/// <summary>기본 설정</summary>
 		public ResponseHaProxyConfigDefault ConfigDefault { get; } = new ResponseHaProxyConfigDefault();
 
 		/// <summary>서비스 리슨 설정</summary>
 		public List<ResponseHaProxyConfigListen> ConfigListens { get; } = new List<ResponseHaProxyConfigListen>();
-		
+
 		/// <summary>설정 문자열을 설정 객체로 변환한다.</summary>
 		/// <param name="config">설정 문자열</param>
 		/// <returns>설정 문자열을 반영한 설정 객체</returns>
@@ -55,7 +55,7 @@ namespace PortalData.Responses.Services.Configs
 				using (StringReader reader = new StringReader(config))
 				{
 					string line;
-					
+
 					do
 					{
 						// 한줄을 읽어 들인다.
@@ -65,19 +65,19 @@ namespace PortalData.Responses.Services.Configs
 						if (line != null && !line.IsEmpty())
 						{
 							// 이름과 값으로 분리한다.
-							string[] items = line.Trim().Split(new [] {' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+							string[] items = line.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
-							// 지정된 헤더로 시작되는 경우 
+							// 지정된 헤더로 시작되는 경우
 							if (ResponseHaProxyConfigBase.Headers.Any(i => items[0] == i))
 							{
 								// 현재 처리 중인 섹션명이 존재하는 경우, 지금까지의 내용 저장
 								if (!currentSectionName.IsEmpty())
 									sectionContents.Add(new KeyValuePair<string, string>(currentSectionName, currentSection.ToString()));
-								
+
 								currentSection.Clear();
 								currentSectionName = items[0];
 								currentSection.AppendLine(line);
-								
+
 								// 해당 라인이 섹션명과 동일한 경우
 								if (items.Length >= 3 && items[1] == "stats")
 									currentSectionName = items[0] + " stats";
@@ -89,7 +89,7 @@ namespace PortalData.Responses.Services.Configs
 						// 빈 문자열인 경우
 						else
 						{
-							if(!currentSectionName.IsEmpty())
+							if (!currentSectionName.IsEmpty())
 								currentSection.AppendLine("");
 						}
 					} while (line != null);
@@ -97,7 +97,7 @@ namespace PortalData.Responses.Services.Configs
 					// 현재 처리 중인 섹션명이 존재하는 경우, 지금까지의 내용 저장
 					if (!currentSectionName.IsEmpty())
 						sectionContents.Add(new KeyValuePair<string, string>(currentSectionName, currentSection.ToString()));
-					
+
 					reader.Close();
 				}
 
@@ -107,28 +107,28 @@ namespace PortalData.Responses.Services.Configs
 					switch (section.Key)
 					{
 						case "global":
-						{
-							// global 설정을 읽어온다.
-							ResponseData response = ConfigGlobal.Deserialize(section.Value);
-							if (response.Result == EnumResponseResult.Error)
-								return new ResponseData(response.Result, response.Code, response.Message);
-						}
+							{
+								// global 설정을 읽어온다.
+								ResponseData response = ConfigGlobal.Deserialize(section.Value);
+								if (response.Result == EnumResponseResult.Error)
+									return new ResponseData(response.Result, response.Code, response.Message);
+							}
 							break;
 						case "defaults":
-						{
-							// default 설정을 읽어온다.
-							ResponseData response = ConfigDefault.Deserialize(section.Value);
-							if (response.Result == EnumResponseResult.Error)
-								return new ResponseData(response.Result, response.Code, response.Message);
-						}
+							{
+								// default 설정을 읽어온다.
+								ResponseData response = ConfigDefault.Deserialize(section.Value);
+								if (response.Result == EnumResponseResult.Error)
+									return new ResponseData(response.Result, response.Code, response.Message);
+							}
 							break;
 						case "listen":
-						{
-							ResponseHaProxyConfigListen listenConfig = new ResponseHaProxyConfigListen();
-							ResponseData response = listenConfig.Deserialize(section.Value);
-							if (response.Result == EnumResponseResult.Success)
-								ConfigListens.Add(listenConfig);
-						}
+							{
+								ResponseHaProxyConfigListen listenConfig = new ResponseHaProxyConfigListen();
+								ResponseData response = listenConfig.Deserialize(section.Value);
+								if (response.Result == EnumResponseResult.Success)
+									ConfigListens.Add(listenConfig);
+							}
 							break;
 					}
 				}
@@ -143,7 +143,7 @@ namespace PortalData.Responses.Services.Configs
 				result.Code = Resource.EC_COMMON__EXCEPTION;
 				result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			
+
 			return result;
 		}
 

@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -118,7 +118,7 @@ namespace PortalSvr.RabbitMqReceivers
 				// 모든 바인딩 키 처리
 				if (m_bindingKeys != null)
 				{
-					foreach(string bindingKey in m_bindingKeys)
+					foreach (string bindingKey in m_bindingKeys)
 						m_channel.QueueBind(queue: m_queueName, exchange: m_exchangeName, routingKey: bindingKey);
 				}
 			}
@@ -153,7 +153,7 @@ namespace PortalSvr.RabbitMqReceivers
 							if (responseHandleMessage.IsProcessed)
 							{
 								m_logger.LogDebug($"[Process] MQ Message Received on [{{0}}] : {{1}}, data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
-							
+
 								// 응답 연관 아이디가 존재하는 경우
 								IBasicProperties properties = ea.BasicProperties;
 								if (properties != null && !properties.CorrelationId.IsEmpty())
@@ -179,7 +179,7 @@ namespace PortalSvr.RabbitMqReceivers
 							else
 							{
 								m_logger.LogDebug($"[Reject] MQ Message Received on [{{0}}] : {{1}}, data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
-							
+
 								// 처리 거부
 								m_channel.BasicReject(ea.DeliveryTag, false);
 							}
@@ -190,7 +190,7 @@ namespace PortalSvr.RabbitMqReceivers
 						NNException.Log(ex);
 					}
 				};
-				
+
 				// 이벤트 설정
 				consumer.Registered += OnConsumerRegistered;
 				consumer.Unregistered += OnConsumerUnregistered;

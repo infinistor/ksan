@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -62,7 +62,7 @@ namespace PortalProvider.Providers.RabbitMq
 				m_config.CopyValueFrom(rabbitMqOptions.Value);
 				// 로거
 				m_logger = logger;
-				
+
 				// Rabbit MQ 초기화
 				InitializeRabbitMqListener();
 
@@ -72,7 +72,7 @@ namespace PortalProvider.Providers.RabbitMq
 				m_properties.CorrelationId = correlationId;
 				m_receiverQueueName = m_channel.QueueDeclare().QueueName;
 				m_properties.ReplyTo = m_receiverQueueName;
-				
+
 				// 결과 수신 객체 생성
 				m_receiver = new EventingBasicConsumer(m_channel);
 				m_receiver.Received += (_, ea) =>
@@ -127,7 +127,7 @@ namespace PortalProvider.Providers.RabbitMq
 		public ResponseData<string> Send(string exchange, string routingKey, object sendingObject, int waitForResponseTimeoutSec)
 		{
 			ResponseData<string> result = new ResponseData<string>();
-			
+
 			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 			try
 			{

@@ -12,44 +12,52 @@ using System;
 
 namespace PortalModels
 {
-	/// <summary> 사용자 행동 로그 </summary>
-	public partial class UserActionLog
+	/// <summary> 유저 디스크풀 목록 </summary>
+	public partial class UserDiskPool
 	{
-
-		public UserActionLog()
+		public UserDiskPool()
 		{
 			OnCreated();
 		}
 
-		/// <summary> 로그 아이디 </summary>
-		public virtual long LogId { get; set; }
-
-		/// <summary> 로그 레벨 </summary>
-		public virtual EnumDbLogLevel LogLevel { get; set; }
-
-		/// <summary> 접속아이피 </summary>
-		public virtual string IpAddress { get; set; }
-
-		/// <summary> 메세지 </summary>
-		public virtual string Message { get; set; }
-
-		/// <summary> 사용자 아이디 </summary>
+		/// <summary> 유저 아이디 </summary>
 		public virtual Guid UserId { get; set; }
 
-		/// <summary> 사용자명 </summary>
-		public virtual string UserName { get; set; }
+		/// <summary> 디스크풀 아이디 </summary>
+		public virtual Guid DiskPoolId { get; set; }
 
-		/// <summary> 등록일시 </summary>
-		public virtual DateTime RegDate { get; set; }
+		public virtual S3User S3User { get; set; }
 
-		/// <summary> 사용자 정보 </summary>
-		public virtual User User { get; set; }
+		public virtual DiskPool DiskPool { get; set; }
 
 		#region Extensibility Method Definitions
 
 		partial void OnCreated();
 
+		public override bool Equals(object obj)
+		{
+			UserDiskPool toCompare = obj as UserDiskPool;
+			if (toCompare == null)
+			{
+				return false;
+			}
+
+			if (!Object.Equals(this.UserId, toCompare.UserId))
+				return false;
+			if (!Object.Equals(this.DiskPoolId, toCompare.DiskPoolId))
+				return false;
+
+			return true;
+		}
+
+		public override int GetHashCode()
+		{
+			int hashCode = 13;
+			hashCode = (hashCode * 7) + UserId.GetHashCode();
+			hashCode = (hashCode * 7) + DiskPoolId.GetHashCode();
+			return hashCode;
+		}
+
 		#endregion
 	}
-
 }
