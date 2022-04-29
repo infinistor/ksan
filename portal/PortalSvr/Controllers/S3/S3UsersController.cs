@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -26,13 +26,13 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace PortalSvr.Controllers.Accounts
 {
-    /// <summary>사용자 관련 컨트롤러</summary>
-    [EnableCors("CorsPolicy")]
+	/// <summary>사용자 관련 컨트롤러</summary>
+	[EnableCors("CorsPolicy")]
 	[Produces("application/json")]
 	[Route("api/v1/[controller]")]
 	[ApiKeyAuthorize]
 	public class S3UsersController : BaseController
-    {
+	{
 		/// <summary>데이터 프로바이더</summary>
 		private readonly IS3UserProvider m_dataProvider;
 
@@ -61,7 +61,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <param name="searchKeyword">검색어 (옵션)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.list")]
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseAddS3User>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseS3User>))]
 		[HttpGet]
 		public async Task<ActionResult> Get(int skip = 0, int countPerPage = 100,
 			List<string> orderFields = null, List<string> orderDirections = null,
@@ -75,7 +75,7 @@ namespace PortalSvr.Controllers.Accounts
 		/// <param name="id">사용자 식별자</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseAddS3User>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseS3User>))]
 		[HttpGet("{id}")]
 		public async Task<ActionResult> Get([FromRoute] string id)
 		{
@@ -86,9 +86,9 @@ namespace PortalSvr.Controllers.Accounts
 		/// <param name="request">사용자 등록 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add")]
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseAddS3User>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseS3User>))]
 		[HttpPost]
-		public async Task<ActionResult> Post([FromBody]RequestAddS3User request)
+		public async Task<ActionResult> Post([FromBody] RequestS3User request)
 		{
 			return Json(await m_dataProvider.Add(request));
 		}
@@ -100,7 +100,7 @@ namespace PortalSvr.Controllers.Accounts
 		// [ClaimRequirement("Permission", "common.account.users.update")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("{id}")]
-		public async Task<ActionResult> Put([FromRoute] string id, [FromBody]RequestAddS3User request)
+		public async Task<ActionResult> Put([FromRoute] string id, [FromBody] RequestS3User request)
 		{
 			return Json(await m_dataProvider.Update(id, request));
 		}

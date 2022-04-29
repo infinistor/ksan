@@ -1,7 +1,7 @@
 ﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -13,21 +13,22 @@ using System.Threading.Tasks;
 using PortalData;
 using PortalData.Requests.Accounts;
 using PortalData.Responses.Accounts;
+
 namespace PortalProviderInterface
 {
-    /// <summary>S3 사용자 프로바이더 인터페이스</summary>
-    public interface IS3UserProvider : IBaseProvider
+	/// <summary>S3 사용자 프로바이더 인터페이스</summary>
+	public interface IS3UserProvider : IBaseProvider
 	{
 		/// <summary>S3 사용자를 추가한다.</summary>
 		/// <param name="request">S3 사용자 정보</param>
 		/// <returns>S3 사용자 등록 결과</returns>
-		Task<ResponseData<ResponseAddS3User>> Add(RequestAddS3User request);
+		Task<ResponseData<ResponseS3User>> Add(RequestS3User request);
 
 		/// <summary>S3 사용자를 수정한다.</summary>
 		/// <param name="id">S3 사용자 식별자</param>
 		/// <param name="request">S3 사용자 정보</param>
 		/// <returns>S3 사용자 수정 결과</returns>
-		Task<ResponseData> Update(string id, RequestAddS3User request);
+		Task<ResponseData> Update(string id, RequestS3User request);
 
 		/// <summary>S3 사용자를 삭제한다.</summary>
 		/// <param name="id">S3 사용자 식별자</param>
@@ -37,12 +38,12 @@ namespace PortalProviderInterface
 		/// <summary>특정 로그인 이메일에 대한 사용자 정보 객체를 가져온다.</summary>
 		/// <param name="email">이메일 주소</param>
 		/// <returns>S3 사용자 정보 객체</returns>
-		Task<ResponseData<ResponseAddS3User>> GetUserByEmail(string email);
+		Task<ResponseData<ResponseS3User>> GetUserByEmail(string email);
 
 		/// <summary>S3 사용자 식별자로 특정 사용자를 가져온다.</summary>
 		/// <param name="id">S3 사용자 식별자</param>
 		/// <returns>해당 사용자 데이터</returns>
-		Task<ResponseData<ResponseAddS3User>> GetUserById(string id);
+		Task<ResponseData<ResponseS3User>> GetUserById(string id);
 
 		/// <summary>전체 사용자를 가져온다.</summary>
 		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
@@ -52,7 +53,7 @@ namespace PortalProviderInterface
 		/// <param name="searchFields">검색필드목록 (Id, Email, Name)</param>
 		/// <param name="searchKeyword">검색어 (옵션)</param>
 		/// <returns>S3 사용자 목록</returns>
-		Task<ResponseList<ResponseAddS3User>> GetUsers(int skip = 0, int countPerPage = 100,
+		Task<ResponseList<ResponseS3User>> GetUsers(int skip = 0, int countPerPage = 100,
 			List<string> orderFields = null, List<string> orderDirections = null,
 			List<string> searchFields = null, string searchKeyword = "");
 
@@ -60,7 +61,7 @@ namespace PortalProviderInterface
 		/// <param name="userName">사용자 이름</param>
 		/// <returns>검사 결과 객체</returns>
 		Task<ResponseData> CheckUserNameDuplicated(string userName);
-		
+
 		/// <summary>이메일 중복 여부를 검사한다.</summary>
 		/// <param name="email">이메일</param>
 		/// <returns>검사 결과 객체</returns>
