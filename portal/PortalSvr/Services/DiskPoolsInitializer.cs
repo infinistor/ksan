@@ -1,7 +1,7 @@
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -16,8 +16,8 @@ using MTLib.Core;
 
 namespace PortalSvr.Services
 {
-    /// <summary>디스크풀 초기화 인터페이스</summary>
-    public interface IDiskPoolsInitializer
+	/// <summary>디스크풀 초기화 인터페이스</summary>
+	public interface IDiskPoolsInitializer
 	{
 		/// <summary>디스크풀이 하나도 없을 경우 기본 디스크풀을 생성한다.</summary>
 		Task Initialize();
@@ -42,18 +42,18 @@ namespace PortalSvr.Services
 			try
 			{
 				// 디스크풀 목록을 가져온다.
-                var Response = await m_provider.GetList();
+				var Response = await m_provider.GetList();
 
-                // 목록이 비어있지 않는 경우 종료
-                if(Response.Data.Items.Count > 0) return;
-    
-                RequestDiskPool request = new RequestDiskPool()
-                {
-                    Name = "Default",
-                    Description = "Default disk pool"
-                };
+				// 목록이 비어있지 않는 경우 종료
+				if (Response.Data.Items.Count > 0) return;
 
-                await m_provider.Add(request);
+				RequestDiskPool request = new RequestDiskPool()
+				{
+					Name = "Default",
+					Description = "Default disk pool"
+				};
+
+				await m_provider.Add(request);
 			}
 			catch (Exception ex)
 			{
