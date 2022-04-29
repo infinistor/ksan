@@ -32,8 +32,8 @@ using MTLib.Reflection;
 
 namespace PortalProvider.Providers.Accounts
 {
-    /// <summary>Ksan 사용자 프로바이더 클래스</summary>
-    public class KsanUserProvider : BaseProvider<PortalModel>, IKsanUserProvider
+    /// <summary>S3 사용자 프로바이더 클래스</summary>
+    public class S3UserProvider : BaseProvider<PortalModel>, IS3UserProvider
     {
         /// <summary>역할 매니져</summary>
         protected readonly RoleManager<NNApplicationRole> m_roleManager;
@@ -50,14 +50,14 @@ namespace PortalProvider.Providers.Accounts
         /// <param name="serviceScopeFactory">서비스 팩토리</param>
         /// <param name="logger">로거</param>
         /// <param name="roleManager">역할 관리자</param>
-        public KsanUserProvider(
+        public S3UserProvider(
             PortalModel dbContext,
             IConfiguration configuration,
             UserManager<NNApplicationUser> userManager,
             ISystemLogProvider systemLogProvider,
             IUserActionLogProvider userActionLogProvider,
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<KsanUserProvider> logger,
+            ILogger<S3UserProvider> logger,
             RoleManager<NNApplicationRole> roleManager
             )
             : base(dbContext, configuration, userManager, systemLogProvider, userActionLogProvider, serviceScopeFactory, logger)
@@ -65,25 +65,25 @@ namespace PortalProvider.Providers.Accounts
             m_roleManager = roleManager;
         }
 
-        /// <summary>Ksan 사용자를 추가한다.</summary>
-        /// <param name="request">Ksan 사용자 정보</param>
-        /// <returns>Ksan 사용자 등록 결과</returns>
-        public async Task<ResponseData<ResponseAddKsanUser>> Add(RequestAddKsanUser request)
+        /// <summary>S3 사용자를 추가한다.</summary>
+        /// <param name="request">S3 사용자 정보</param>
+        /// <returns>S3 사용자 등록 결과</returns>
+        public async Task<ResponseData<ResponseAddS3User>> Add(RequestAddS3User request)
         {
-            ResponseData<ResponseAddKsanUser> result = new ResponseData<ResponseAddKsanUser>();
+            ResponseData<ResponseAddS3User> result = new ResponseData<ResponseAddS3User>();
 
             try
             {
                 // 사용자명이 없는 경우
                 if (request.Name.IsEmpty())
-                    return new ResponseData<ResponseAddKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
+                    return new ResponseData<ResponseAddS3User>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
 
                 // 이름 중복 검사
                 ResponseData responseDuplicatedName = await CheckUserNameDuplicated(request.Name);
 
                 // 중복검사 실패시
                 if (responseDuplicatedName.Result != EnumResponseResult.Success)
-                    return new ResponseData<ResponseAddKsanUser>(EnumResponseResult.Error, responseDuplicatedName.Code, responseDuplicatedName.Message);
+                    return new ResponseData<ResponseAddS3User>(EnumResponseResult.Error, responseDuplicatedName.Code, responseDuplicatedName.Message);
 
                 //이메일 체크				
                 string Email = null;
@@ -96,15 +96,15 @@ namespace PortalProvider.Providers.Accounts
 
                     // 이메일이 중복된 경우
                     if (responseDuplicatedEmail.Result != EnumResponseResult.Success)
-                        return new ResponseData<ResponseAddKsanUser>(EnumResponseResult.Error, responseDuplicatedEmail.Code, responseDuplicatedEmail.Message);
+                        return new ResponseData<ResponseAddS3User>(EnumResponseResult.Error, responseDuplicatedEmail.Code, responseDuplicatedEmail.Message);
                     Email = request.Email;
                 }
 
                 // 요청이 유효한 경우
                 try
                 {
-                    // Ksan 사용자 객체를 생성한다.
-                    KsanUser user = new KsanUser
+                    // S3 사용자 객체를 생성한다.
+                    S3User user = new S3User
                     {
                         Id = Guid.NewGuid().ToString().Replace("-", ""),
                         Name = request.Name,
@@ -113,8 +113,8 @@ namespace PortalProvider.Providers.Accounts
                         SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
                     };
 
-                    //Ksan 사용자 등록
-                    await m_dbContext.KsanUsers.AddAsync(user);
+                    //S3 사용자 등록
+                    await m_dbContext.S3Users.AddAsync(user);
                     await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
                     result.Data.CopyValueFrom(user);
@@ -138,11 +138,11 @@ namespace PortalProvider.Providers.Accounts
             return result;
         }
 
-        /// <summary>Ksan 사용자를 수정한다.</summary>
-        /// <param name="id">Ksan 사용자 식별자</param>
-        /// <param name="request">Ksan 사용자 정보</param>
-        /// <returns>Ksan 사용자 수정 결과</returns>
-        public async Task<ResponseData> Update(string id, RequestAddKsanUser request)
+        /// <summary>S3 사용자를 수정한다.</summary>
+        /// <param name="id">S3 사용자 식별자</param>
+        /// <param name="request">S3 사용자 정보</param>
+        /// <returns>S3 사용자 수정 결과</returns>
+        public async Task<ResponseData> Update(string id, RequestAddS3User request)
         {
             ResponseData result = new ResponseData();
 
@@ -157,7 +157,7 @@ namespace PortalProvider.Providers.Accounts
                     return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
 
                 // 사용자 계정을 가져온다.
-                KsanUser user = await m_dbContext.KsanUsers.Where(i => i.Id == id).FirstOrDefaultAsync();
+                S3User user = await m_dbContext.S3Users.Where(i => i.Id == id).FirstOrDefaultAsync();
 
                 // 해당 계정을 찾을 수 없는 경우
                 if (user == null)
@@ -218,9 +218,9 @@ namespace PortalProvider.Providers.Accounts
             return result;
         }
 
-        /// <summary>Ksan 사용자를 삭제한다.</summary>
-        /// <param name="id">Ksan 사용자 식별자</param>
-        /// <returns>Ksan 사용자 삭제 결과</returns>
+        /// <summary>S3 사용자를 삭제한다.</summary>
+        /// <param name="id">S3 사용자 식별자</param>
+        /// <returns>S3 사용자 삭제 결과</returns>
         public async Task<ResponseData> Remove(string id)
         {
             ResponseData result = new ResponseData();
@@ -232,7 +232,7 @@ namespace PortalProvider.Providers.Accounts
                     return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_INVALID_USERID);
 
                 // 사용자 계정을 가져온다.
-                KsanUser user = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == id).FirstOrDefaultAsync();
+                S3User user = await m_dbContext.S3Users.AsNoTracking().Where(i => i.Id == id).FirstOrDefaultAsync();
 
                 // 해당 계정을 찾을 수 없는 경우
                 if (user == null)
@@ -241,7 +241,7 @@ namespace PortalProvider.Providers.Accounts
                 //계정 삭제
                 try
                 {
-                    m_dbContext.KsanUsers.Remove(user);
+                    m_dbContext.S3Users.Remove(user);
                     await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
                     result.Result = EnumResponseResult.Success;
@@ -271,12 +271,12 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
 		/// <param name="searchFields">검색필드목록 (Id, Email, Name)</param>
 		/// <param name="searchKeyword">검색어 (옵션)</param>
-		/// <returns>Ksan 사용자 목록</returns>
-		public async Task<ResponseList<ResponseAddKsanUser>> GetUsers(int skip = 0, int countPerPage = 100,
+		/// <returns>S3 사용자 목록</returns>
+		public async Task<ResponseList<ResponseAddS3User>> GetUsers(int skip = 0, int countPerPage = 100,
 			List<string> orderFields = null, List<string> orderDirections = null,
 			List<string> searchFields = null, string searchKeyword = "")
 		{
-			ResponseList<ResponseAddKsanUser> result = new ResponseList<ResponseAddKsanUser>();
+			ResponseList<ResponseAddS3User> result = new ResponseList<ResponseAddS3User>();
 
 			try{
 				
@@ -289,12 +289,12 @@ namespace PortalProvider.Providers.Accounts
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref searchFields);
 
-				result.Data = await m_dbContext.KsanUsers.AsNoTracking().Where(i =>
+				result.Data = await m_dbContext.S3Users.AsNoTracking().Where(i =>
 						searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
 						|| (searchFields.Contains("email") && i.Email.Contains(searchKeyword))
 						|| (searchFields.Contains("name") && i.Name.Contains(searchKeyword)))
 					.OrderByWithDirection(orderFields, orderDirections)
-					.CreateListAsync<dynamic, ResponseAddKsanUser>(skip, countPerPage);
+					.CreateListAsync<dynamic, ResponseAddS3User>(skip, countPerPage);
 
 				result.Result = EnumResponseResult.Success;
 
@@ -309,8 +309,8 @@ namespace PortalProvider.Providers.Accounts
 		}
         /************************************************************************************************************/
 
-        /// <summary>Ksan 사용자 이름 중복 여부를 검사한다.</summary>
-        /// <param name="userName">Ksan 사용자 이름</param>
+        /// <summary>S3 사용자 이름 중복 여부를 검사한다.</summary>
+        /// <param name="userName">S3 사용자 이름</param>
         /// <returns>검사 결과 객체</returns>
         public async Task<ResponseData> CheckUserNameDuplicated(string userName)
         {
@@ -328,7 +328,7 @@ namespace PortalProvider.Providers.Accounts
                 else
                 {
                     // 해당 사용자 이름이 존재하는 경우
-                    if (await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == userName).AnyAsync())
+                    if (await m_dbContext.S3Users.AsNoTracking().Where(i => i.Name == userName).AnyAsync())
                     {
                         result.Code = Resource.EC_COMMON__DUPLICATED_DATA;
                         result.Message = Resource.EM_COMMON_NAME_ALREADY_EXIST;
@@ -374,8 +374,8 @@ namespace PortalProvider.Providers.Accounts
                 // 요청이 유효한 경우
                 else
                 {
-                    // Ksan 사용자중 해당 이메일이 존재하는 경우
-                    if (await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Email == email).AnyAsync())
+                    // S3 사용자중 해당 이메일이 존재하는 경우
+                    if (await m_dbContext.S3Users.AsNoTracking().Where(i => i.Email == email).AnyAsync())
                     {
                         result.Code = Resource.EC_COMMON__DUPLICATED_DATA;
                         result.Message = Resource.EM_COMMON_ACCOUNT_ALREADY_AUTH_EMAIL;
@@ -401,9 +401,9 @@ namespace PortalProvider.Providers.Accounts
         /// <param name="id">사용자 식별자</param>
         /// <param name="includeDeletedUser">삭제된 사용자도 포함할지 여부</param>
         /// <returns>사용자 정보 객체</returns>
-        public async Task<ResponseData<ResponseAddKsanUser>> GetUserById(string id)
+        public async Task<ResponseData<ResponseAddS3User>> GetUserById(string id)
         {
-            ResponseData<ResponseAddKsanUser> result = new ResponseData<ResponseAddKsanUser>();
+            ResponseData<ResponseAddS3User> result = new ResponseData<ResponseAddS3User>();
             try
             {
                 // 사용자 식별자가 유효하지 않은 경우
@@ -415,7 +415,7 @@ namespace PortalProvider.Providers.Accounts
                 }
 
 				// 사용자 ID로 해당 사용자 정보를 반환한다.
-				ResponseAddKsanUser user = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == id).FirstOrDefaultAsync<KsanUser, ResponseAddKsanUser>();
+				ResponseAddS3User user = await m_dbContext.S3Users.AsNoTracking().Where(i => i.Id == id).FirstOrDefaultAsync<S3User, ResponseAddS3User>();
 
 				// 해당 계정을 찾을 수 없는 경우
 				if (user == null)
@@ -445,9 +445,9 @@ namespace PortalProvider.Providers.Accounts
         /// <summary>특정 사용자 식별자에 대한 사용자 정보 객체를 가져온다.</summary>
         /// <param name="id">사용자 식별자</param>
         /// <returns>사용자 정보 객체</returns>
-        public async Task<ResponseData<ResponseAddKsanUser>> GetUserByName(string name)
+        public async Task<ResponseData<ResponseAddS3User>> GetUserByName(string name)
         {
-            ResponseData<ResponseAddKsanUser> result = new ResponseData<ResponseAddKsanUser>();
+            ResponseData<ResponseAddS3User> result = new ResponseData<ResponseAddS3User>();
             try
             {
                 // 사용자 식별자가 유효하지 않은 경우
@@ -459,7 +459,7 @@ namespace PortalProvider.Providers.Accounts
                 }
                     
 				// 사용자 이름으로 해당 사용자 정보를 반환한다.
-				ResponseAddKsanUser user = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == name).FirstOrDefaultAsync<KsanUser, ResponseAddKsanUser>();
+				ResponseAddS3User user = await m_dbContext.S3Users.AsNoTracking().Where(i => i.Name == name).FirstOrDefaultAsync<S3User, ResponseAddS3User>();
 
 				// 해당 계정을 찾을 수 없는 경우
 				if (user == null)
@@ -487,16 +487,16 @@ namespace PortalProvider.Providers.Accounts
         /// <summary>특정 로그인 이메일에 대한 사용자 정보 객체를 가져온다.</summary>
         /// <param name="email">이메일 주소</param>
         /// <returns>사용자 정보 객체</returns>
-        public async Task<ResponseData<ResponseAddKsanUser>> GetUserByEmail(string email)
+        public async Task<ResponseData<ResponseAddS3User>> GetUserByEmail(string email)
         {
-            ResponseData<ResponseAddKsanUser> result = new ResponseData<ResponseAddKsanUser>();
+            ResponseData<ResponseAddS3User> result = new ResponseData<ResponseAddS3User>();
             try
             {
                 // 사용자 식별자가 유효하지 않은 경우
                 if (email.IsEmpty())
-                    return new ResponseData<ResponseAddKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_EMAIL);
+                    return new ResponseData<ResponseAddS3User>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_EMAIL);
 				// 사용자 이메일로 해당 사용자 정보를 반환한다.
-				ResponseAddKsanUser user = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Email == email).FirstOrDefaultAsync<KsanUser, ResponseAddKsanUser>();
+				ResponseAddS3User user = await m_dbContext.S3Users.AsNoTracking().Where(i => i.Email == email).FirstOrDefaultAsync<S3User, ResponseAddS3User>();
 				
 				// 해당 계정을 찾을 수 없는 경우
 				if (user == null)

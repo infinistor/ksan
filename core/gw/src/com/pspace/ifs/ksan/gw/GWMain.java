@@ -10,7 +10,11 @@
 */
 package com.pspace.ifs.ksan.gw;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -42,7 +46,7 @@ public class GWMain {
 		}
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
-
+		writePID();
 		gw = new GW(new GWConfig());
 
 		try {
@@ -99,4 +103,24 @@ public class GWMain {
 			}
 		}
 	}
+
+	public static void writePID() {
+        File file = new File(GWConstants.PID_PATH);
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileWriter fw = new FileWriter(file);
+
+			Long pid = ProcessHandle.current().pid();
+
+            logger.debug(GWConstants.LOG_GW_PID, pid);
+            fw.write(String.valueOf(pid));
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            System.exit(-1);
+        }
+    }
 }

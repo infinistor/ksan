@@ -10,10 +10,13 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import com.pspace.ifs.ksan.gw.data.DataPutObjectRetention;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,24 @@ public class PutObjectRetention extends S3Request {
 	@Override
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_PUT_OBJECT_RETENTION_START);
+		String bucket = s3Parameter.getBucketName();
+		initBucketInfo(bucket);
+		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setCors(getBucketInfo().getCors());
+		s3Bucket.setAccess(getBucketInfo().getAccess());
+		s3Parameter.setBucket(s3Bucket);
+		GWUtils.checkCors(s3Parameter);
+
+		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		}
+		
+		DataPutObjectRetention dataPutObjectRetention = new DataPutObjectRetention(s3Parameter);
+		dataPutObjectRetention.extract();
+		
+		String versionId = dataPutObjectRetention.getVersionId();
+
+		
 		throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 	}
 }

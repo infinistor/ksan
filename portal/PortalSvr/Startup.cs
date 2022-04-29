@@ -81,11 +81,7 @@ namespace PortalSvr
 			        sessionTimeoutMins:Configuration.GetValue<int>("AppSettings:ExpireMinutes")
 		        );
 
-		        IList<CultureInfo> supportedCultures = new[]
-		        {
-			        new CultureInfo("en"),
-			        new CultureInfo("ko"),
-		        };
+		        IList<CultureInfo> supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("ko") };
 
 		        ConfigurationOptions.Localization.DefaultRequestCulture = new RequestCulture("ko");
 		        ConfigurationOptions.Localization.SupportedCultures = supportedCultures;
@@ -161,28 +157,11 @@ namespace PortalSvr
 				services.AddTransient<IDiskPoolProvider, DiskPoolProvider>();
 				services.AddTransient<PortalProviderInterface.IServiceProvider, PortalProvider.Providers.Services.ServiceProvider>();
 				services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
-				services.AddTransient<IKsanUserProvider, KsanUserProvider>();
+				services.AddTransient<IS3UserProvider, S3UserProvider>();
 				
 				services.AddSwaggerGen(c =>
 				{
-					c.SwaggerDoc("v1", new OpenApiInfo
-					{
-						Title = "KSAN",
-						Version = "v1"
-						// Description = "A simple example ASP.NET Core Web API",
-						// TermsOfService = new Uri("https://example.com/terms"),
-						// Contact = new OpenApiContact
-						// {
-						// 	Name = "Shayne Boyer",
-						// 	Email = string.Empty,
-						// 	Url = new Uri("https://twitter.com/spboyer"),
-						// },
-						// License = new OpenApiLicense
-						// {
-						// 	Name = "Use under LICX",
-						// 	Url = new Uri("https://example.com/license"),
-						// }
-					});
+					c.SwaggerDoc("v1", new OpenApiInfo { Title = "KSAN", Version = "v1" });
 					c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 					{
 						Description = @"Bearer 체계를 사용하는 JWT Authorization 헤더.<br/>'Bearer'[공백]을 입력 한 다음 아래 텍스트 입력에 토큰을 입력하십시오.<br/>예 : '5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8'",

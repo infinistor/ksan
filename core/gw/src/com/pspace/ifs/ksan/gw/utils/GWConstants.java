@@ -15,10 +15,16 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
+	public static final String PID_PATH = "/var/run/ksanGw.pid";
+	public static final String JVM = "jvm";
+    public static final String GET_PROCESS_ID = "getProcessId";
+	public static final String LOG_GW_PID = "pid : {}";
+
 	public static final String S3 = "S3";
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
+	public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
 	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksan-gw.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
@@ -793,12 +799,15 @@ public final class GWConstants {
 
 	// CopyObject
 	public static final String LOG_COPY_OBJECT_START = "CopyObject ...";
+	public static final String LOG_COPY_OBJECT_SOURCE_CUSTOMER_KEY_NO_MATCH = "source encryption-customer-key does not match";
+	public static final String LOG_COPY_OBJECT_SOURCE_CUSTOMER_KEY_IS_NULL = "encryption-customer-key is null";
 	public static final String LOG_COPY_OBJECT_METADATA_DIRECTIVE = "metadataDirective : {}";
 	public static final String LOG_COPY_OBJECT_USER_METADATA = "user meta data : {}, {}";
 	public static final String LOG_COPY_OBJECT_REPLACE_USER_METADATA = "replace user metadata : {}";
 	public static final String LOG_COPY_OBJECT_META = "meta : {}";
 	public static final String LOG_COPY_OBJECT_FAILED = "object insert failed(CopyObject). bucket={}, object={}";
 	public static final String LOG_COPY_OBJECT_INFO = "pub object : {}/{}, size={}, etag={}, tag={}, acl={}, versionId={}";
+	public static final String LOG_COPY_OBJECT_ENCRYPTION = "bucket encryption : {}";
 
 	// CreateBucket
 	public static final String LOG_CREATE_BUCKET_START = "CreateBucket ...";
@@ -1125,6 +1134,7 @@ public final class GWConstants {
 
 	// OSDClient
 	public static final String LOG_OSDCLIENT_SOCKET_INFO = "socket : {}";
+	public static final String LOG_OSDCLIENT_CLOSE_SOCKET_INFO = "close socket : {}";
 	public static final String LOG_OSDCLIENT_SOCKET_ERROR = "socket error, {}";
 	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
 	public static final String LOG_OSDCLIENT_READ = "read {} bytes";
