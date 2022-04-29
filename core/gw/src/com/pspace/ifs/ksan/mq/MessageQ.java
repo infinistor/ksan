@@ -98,7 +98,6 @@ public abstract class MessageQ{
     }
         
     private int connect() throws Exception{
-        /* comment to disable
         int prefetchCount = 1;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(this.host);
@@ -107,12 +106,10 @@ public abstract class MessageQ{
         Connection connection = factory.newConnection();
         this.channel = connection.createChannel();
         this.channel.basicQos(prefetchCount);
-        */
         return 0;
     }
     
     private int createQ(boolean durable) throws Exception{
-       /* comment to disable
        if (!this.qname.isEmpty()){
            try{
               this.channel.queueDeclarePassive(this.qname);
@@ -122,23 +119,19 @@ public abstract class MessageQ{
                 this.channel.queueDeclare(this.qname, durable, false, false, null);  
            } 
        }
-       */
        return 0;
     }
     
     public void deleteQ(){
-        /* comment to disable
         try{
          if (!this.qname.isEmpty())
              this.channel.queueDelete(this.qname);
         } catch(IOException e){
             System.out.println(e);
         }
-      */
     }
     
     private void createExchange(String option) throws Exception{
-        /* comment to disable
         if (!this.exchangeName.isEmpty()){
             try{
                this.channel.exchangeDeclarePassive(this.exchangeName);
@@ -149,31 +142,27 @@ public abstract class MessageQ{
                 this.channel.exchangeDeclare(this.exchangeName, option);
             }
         }
-       */
     }
     
     public void deleteExchange(){
-        /* comment to disable
         try{
             if (!this.exchangeName.isEmpty())
                 this.channel.exchangeDelete(this.exchangeName);
         } catch(IOException e){
             System.out.println(e);
         }
-      */
     }
     
     private void bindExchange() throws Exception{
-        /* comment to disable
         if (!this.qname.isEmpty() && !this.exchangeName.isEmpty()){
             this.channel.queueBind(this.qname, this.exchangeName, this.bindingKey);
             System.out.println(" Queue Name : " + this.qname + " exchange name : " + this.exchangeName);
         } 
-       */
+       
     }    
     
     public int sendToQueue(String mesg) throws Exception{
-        /* comment to disable
+        
         String replyQueueName = channel.queueDeclare().getQueue();
         
         BasicProperties props = new BasicProperties
@@ -185,12 +174,12 @@ public abstract class MessageQ{
             this.connect();
         
         this.channel.basicPublish("", this.qname, props, mesg.getBytes());
-       */
+       
         return 0;
     }
     
     public int sendToExchange(String mesg, String routingKey) throws Exception{
-        /* comment to disable
+        
         if (!this.channel.isOpen())
             this.connect();
         
@@ -203,7 +192,6 @@ public abstract class MessageQ{
         
         this.bindExchange();
         this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());
-        */
         return 0;
     }
     
@@ -242,7 +230,6 @@ public abstract class MessageQ{
     };
     
     private void readFromQueue()throws Exception{
-        /* comment to disable
         if (!this.channel.isOpen()){
             this.connect();
         }
@@ -251,7 +238,6 @@ public abstract class MessageQ{
             channel.basicConsume(this.qname, false, deliverCallback, consumerTag -> { });
         else
             channel.basicConsume(this.qname, true, deliverCallback, consumerTag -> { });
-       */
     }
       
     public String getQueueName(){
@@ -263,22 +249,20 @@ public abstract class MessageQ{
     }
     
     public String get() throws Exception{
-        /* comment to disable
         if (this.readerattached == false){
             this.readFromQueue();
             this.readerattached = true;
         }
-        */
+       
         String m = this.message;
         this.message="";
         return m;
     }
     
     public void addCallback(MQCallback callback) throws Exception{
-        /* comment to disable
         this.callback = callback;
         this.readFromQueue();
-       */
+     
     }
     
     public void removeCallback(){
@@ -287,34 +271,29 @@ public abstract class MessageQ{
     
     // positively acknowledge a single delivery, the message will be discarded
     public void okAckSingle(long deliveryTag) throws IOException{
-        /* comment to disable
+       
         this.channel.basicAck(deliveryTag, false);
-       */
     }
     
     // positively acknowledge all deliveries up to this delivery tag
     public void okAck(long deliveryTag) throws IOException{
-        /* comment to disable
+        
         this.channel.basicAck(deliveryTag, true);
-        */
     }
     // requeue the delivery
     public void rejectAckWithRequeue(long deliveryTag)throws IOException{
-        /* comment to disable
+        
         this.channel.basicReject(deliveryTag, true);
-        */
     }
      // negatively acknowledge, the message will be discarded
     public void rejectAckWithDequeue(long deliveryTag)throws IOException{
-        /* comment to disable
+       
         this.channel.basicReject(deliveryTag, false);
-       */
     }
     
     // requeue all unacknowledged deliveries up to this delivery tag
     public void getBackNack(long deliveryTag) throws IOException{
-        /* comment to disable
+        
         this.channel.basicNack(deliveryTag, true, true);
-        */
     }
 }

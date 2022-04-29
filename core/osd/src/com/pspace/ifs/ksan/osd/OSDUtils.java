@@ -113,23 +113,8 @@ public class OSDUtils {
                 file.createNewFile();
             }
             FileWriter fw = new FileWriter(file);
-            int pid = 0;
 
-            java.lang.management.RuntimeMXBean runtime = 
-            java.lang.management.ManagementFactory.getRuntimeMXBean();
-            java.lang.reflect.Field jvm;
-            try {
-                jvm = runtime.getClass().getDeclaredField(OSDConstants.JVM);
-                jvm.setAccessible(true);
-                sun.management.VMManagement mgmt =  (sun.management.VMManagement) jvm.get(runtime);
-                java.lang.reflect.Method pid_method =  
-                mgmt.getClass().getDeclaredMethod(OSDConstants.GET_PROCESS_ID);
-                pid_method.setAccessible(true);
-
-                pid = (Integer) pid_method.invoke(mgmt);
-            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                logger.error(e.getMessage());
-            }
+			Long pid = ProcessHandle.current().pid();
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_PID, pid);
             fw.write(String.valueOf(pid));
@@ -247,18 +232,18 @@ public class OSDUtils {
         return diskpoolList;
     }
 
-    public void setAttributeFileReplication(File file, String value, String replicaDiskID) {
-        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
-        try {
-            view.write(OSDConstants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(value));
-            view.write(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(replicaDiskID));
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            for ( StackTraceElement k : e.getStackTrace() ) {
-                logger.error(k.toString());
-            }
-        }
-    }
+    // public void setAttributeFileReplication(File file, String value, String replicaDiskID) {
+    //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+    //     try {
+    //         view.write(OSDConstants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(value));
+    //         view.write(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(replicaDiskID));
+    //     } catch (IOException e) {
+    //         logger.error(e.getMessage());
+    //         for ( StackTraceElement k : e.getStackTrace() ) {
+    //             logger.error(k.toString());
+    //         }
+    //     }
+    // }
 
     public String getAttributeFileReplication(File file) {
         UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
@@ -347,5 +332,12 @@ public class OSDUtils {
 		CtrCryptoInputStream cipherIn = new CtrCryptoInputStream(property, in, key, iv);
 
 		return cipherIn;
+	}
+
+    public static void logging(Logger log, Exception e) {
+		log.error(e.getMessage());
+		for ( StackTraceElement k : e.getStackTrace() ) {
+			log.error(k.toString());
+		}
 	}
 }
