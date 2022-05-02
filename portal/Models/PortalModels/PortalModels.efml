@@ -147,11 +147,11 @@
 			</Documentation>
 			<column name="" default="0" />
 		</property>
-		<property name="MacAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="15" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
+		<property name="MacAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
 			<Documentation>
 				<Summary>맥주소</Summary>
 			</Documentation>
-			<column name="" length="15" />
+			<column name="" length="20" />
 		</property>
 		<property name="LinkState" type="PortalModels.EnumDbNetworkLinkState" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="96fd6bed-304e-453f-bfa8-2a6ee78a30bc">
 			<Documentation>
@@ -1416,23 +1416,38 @@
 		</property>
 	</class>
 	<class name="S3User" entity-set="S3Users" p1:Guid="169b761c-fe63-4a2c-9d34-bce199767f58">
-		<composite-id>
-			<key-property name="AccessKey" type="String" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
-				<column name="" length="20" p1:fixed-length="True" />
-			</key-property>
-			<key-property name="SecretKey" type="String" p1:ValidateMaxLength="40" p1:ValidateRequired="true" p1:Guid="cea1bd36-ad49-4b4d-a8cd-307ca8d3d598">
-				<column name="" length="40" p1:fixed-length="True" />
-			</key-property>
-		</composite-id>
 		<property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
+			<Documentation>
+				<Summary>유저 아이디</Summary>
+			</Documentation>
 			<column name="" unique="True" />
 		</property>
 		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
+			<Documentation>
+				<Summary>유저명</Summary>
+			</Documentation>
 			<column name="" />
 		</property>
 		<property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
+			<Documentation>
+				<Summary>이메일</Summary>
+			</Documentation>
 			<column name="" />
 		</property>
+		<composite-id>
+			<key-property name="AccessKey" type="String" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
+				<Documentation>
+					<Summary>엑세스 키</Summary>
+				</Documentation>
+				<column name="" length="20" p1:fixed-length="True" />
+			</key-property>
+			<key-property name="SecretKey" type="String" p1:ValidateMaxLength="40" p1:ValidateRequired="true" p1:Guid="cea1bd36-ad49-4b4d-a8cd-307ca8d3d598">
+				<Documentation>
+					<Summary>비밀 키</Summary>
+				</Documentation>
+				<column name="" length="40" p1:fixed-length="True" />
+			</key-property>
+		</composite-id>
 	</class>
 	<class name="UserDiskPool" entity-set="UserDiskPools" p1:Guid="d69a1a22-3560-4c3e-aa2f-13570f3cc256">
 		<Documentation>

@@ -179,7 +179,7 @@ namespace PortalModels
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever().HasMaxLength(100);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever().HasMaxLength(4000);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Dhcp).HasColumnName(@"DHCP").ValueGeneratedNever().HasDefaultValueSql(@"0");
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.MacAddress).HasColumnName(@"MAC_ADDRESS").ValueGeneratedNever().HasMaxLength(15);
+			modelBuilder.Entity<NetworkInterface>().Property(x => x.MacAddress).HasColumnName(@"MAC_ADDRESS").ValueGeneratedNever().HasMaxLength(20);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.LinkState).HasColumnName(@"LINK_STATE").ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.IpAddress).HasColumnName(@"IP_ADDRESS").ValueGeneratedNever().HasMaxLength(20);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.SubnetMask).HasColumnName(@"SUBNET_MASK").ValueGeneratedNever().HasMaxLength(20);
@@ -677,11 +677,11 @@ namespace PortalModels
 		private void S3UserMapping(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<S3User>().ToTable(@"S3USERS");
-			modelBuilder.Entity<S3User>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(20);
-			modelBuilder.Entity<S3User>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(40);
 			modelBuilder.Entity<S3User>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<S3User>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<S3User>().Property(x => x.Email).HasColumnName(@"EMAIL").ValueGeneratedNever();
+			modelBuilder.Entity<S3User>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(20);
+			modelBuilder.Entity<S3User>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(40);
 			modelBuilder.Entity<S3User>().HasKey(@"AccessKey", @"SecretKey");
 			modelBuilder.Entity<S3User>().HasIndex(@"Id").IsUnique(true);
 		}
