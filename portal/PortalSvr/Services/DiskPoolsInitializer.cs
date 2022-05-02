@@ -41,19 +41,19 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				// 디스크풀 목록을 가져온다.
-				var Response = await m_provider.GetList();
+				// // 디스크풀 목록을 가져온다.
+				// var Response = await m_provider.GetList();
 
-				// 목록이 비어있지 않는 경우 종료
-				if (Response.Data.Items.Count > 0) return;
+				// // 목록이 비어있지 않는 경우 종료
+				// if (Response.Data.Items.Count > 0) return;
 
-				RequestDiskPool request = new RequestDiskPool()
-				{
-					Name = "Default",
-					Description = "Default disk pool"
-				};
+				// RequestDiskPool request = new RequestDiskPool()
+				// {
+				// 	Name = "Default",
+				// 	Description = "Default disk pool"
+				// };
 
-				await m_provider.Add(request);
+				// await m_provider.Add(request);
 			}
 			catch (Exception ex)
 			{

@@ -121,7 +121,9 @@ namespace PortalProvider.Providers.Disks
 							RegDate = DateTime.Now,
 							ModId = LoginUserId,
 							ModName = LoginUserName,
-							ModDate = DateTime.Now
+							ModDate = DateTime.Now,
+							ClassTypeId = (EnumDbDiskPoolType)request.ClassTypeId,
+							ReplicationType = (EnumDbDiskPoolReplicaType)request.ReplicationType
 						};
 						await m_dbContext.DiskPools.AddAsync(newData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -447,15 +449,15 @@ namespace PortalProvider.Providers.Disks
 					var Data = await m_dbContext.Servers.AsNoTracking()
 						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolId))
 						.Include(i => i.NetworkInterfaces)
-						.ThenInclude(i => i.NetworkInterfaceVlans)
 						.CreateListAsync<Server, ResponseServerDetail>();
 
 					if (Data.Items.Count != 0)
 					{
-						for (int n = Data.Items.Count; n <= 0; n--)
+						var DiskPools = new List<ResponseServerDetail>();
+						for (int n = Data.Items.Count - 1; n >= 0; n--)
 						{
-							if (Data.Items[n].Disks.Count == 0)
-								Data.Items.RemoveAt(n);
+							if (Data.Items[n].Disks == null) Data.Items.RemoveAt(n);
+							else if (Data.Items[n].Disks.Count == 0) Data.Items.RemoveAt(n);
 						}
 						DiskPool.Servers.AddRange(Data.Items);
 					}

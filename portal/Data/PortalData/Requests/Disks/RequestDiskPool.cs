@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
+using PortalData.Enums;
 
 namespace PortalData.Requests.Disks
 {
@@ -33,5 +34,11 @@ namespace PortalData.Requests.Disks
 
 		/// <summary>디스크 목록</summary>
 		public List<string> DiskIds { get; set; } = new List<string>();
+
+		/// <summary> 디스크풀 타입 </summary>
+		public EnumDiskPoolType ClassTypeId { get; set; }
+		
+		/// <summary> 복제 타입 </summary>
+		public EnumDiskPoolReplicaType ReplicationType { get; set; }
 	}
 }

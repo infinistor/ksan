@@ -23,7 +23,7 @@ namespace PortalData.Responses.Disks
 		/// <summary>디스크 Pool 설명</summary>
 		public virtual string Description { get; set; }
 
-		/// <summary> 풀 타입 </summary>
+		/// <summary> 디스크풀 타입 </summary>
 		public EnumDiskPoolType ClassTypeId { get; set; }
 
 		/// <summary> 복제 타입 </summary>
