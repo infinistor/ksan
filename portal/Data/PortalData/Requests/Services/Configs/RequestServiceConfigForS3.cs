@@ -10,44 +10,42 @@
 */
 using System;
 using System.Text;
+using PortalData.Requests.Services.Configs.S3;
 using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
 
-namespace PortalData.Requests.Services.Configs.GW
+namespace PortalData.Requests.Services.Configs
 {
-	/// <summary>GW 데이터베이스 설정 요청 객체</summary>
-	public class RequestGWConfigDatabase : RequestGWConfigBase
+	/// <summary>S3 서비스에 대한 설정 요청 객체</summary>
+	public class RequestServiceConfigForS3 : CommonRequestData, IRequestServiceConfig
 	{
-		/// <summary>Host</summary>
-		public string Host { get; set; } = "";
+		/// <summary>데이터베이스 설정</summary>
+		public RequestS3ConfigDatabase Database { get; } = new RequestS3ConfigDatabase();
 
-		/// <summary>Port</summary>
-		public int Port { get; set; } = 0;
-
-		/// <summary>Name</summary>
-		public string Name { get; set; } = "";
-
-		/// <summary>User Name</summary>
-		public string UserName { get; set; } = "";
-
-		/// <summary>Password</summary>
-		public string Password { get; set; } = "";
+		/// <summary>메시지 큐 설정</summary>
+		public RequestS3ConfigMessageQueue MessageQueue { get; } = new RequestS3ConfigMessageQueue();
 
 		/// <summary>설정 객체의 내용을 문자열로 변환한다.</summary>
-		/// <returns>설정 문자열 응답 객체</returns>
-		public override ResponseData<string> Serialize()
+		/// <returns>설정 문자열</returns>
+		public ResponseData<string> Serialize()
 		{
 			ResponseData<string> result = new ResponseData<string>();
 			StringBuilder config = new StringBuilder();
 
 			try
 			{
-				config.AppendLine($"db.host={this.Host}");
-				config.AppendLine($"db.port={this.Port}");
-				config.AppendLine($"db.name={this.Name}");
-				config.AppendLine($"db.username={this.UserName}");
-				config.AppendLine($"db.password={this.Password}");
+				// Database 설정을 읽어온다.
+				ResponseData<string> responseMain = Database.Serialize();
+				if (responseMain.Result == EnumResponseResult.Error)
+					return new ResponseData<string>(responseMain.Result, responseMain.Code, responseMain.Message);
+				config.AppendLine(responseMain.Data);
+
+				// Message Queue 설정을 읽어온다.
+				ResponseData<string> responseProxy = MessageQueue.Serialize();
+				if (responseProxy.Result == EnumResponseResult.Error)
+					return new ResponseData<string>(responseProxy.Result, responseProxy.Code, responseProxy.Message);
+				config.AppendLine(responseProxy.Data);
 
 				result.Data = config.ToString();
 				result.Result = EnumResponseResult.Success;
@@ -62,5 +60,6 @@ namespace PortalData.Requests.Services.Configs.GW
 
 			return result;
 		}
+
 	}
 }

@@ -15,10 +15,10 @@ using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
 
-namespace PortalData.Responses.Services.Configs.GW
+namespace PortalData.Responses.Services.Configs.S3
 {
 	/// <summary>S3 Proxy 메시지 큐 설정 응답 객체</summary>
-	public class ResponseGWConfigMessageQueue : ResponseGWConfigBase
+	public class ResponseS3ConfigMessageQueue : ResponseS3ConfigBase
 	{
 		/// <summary>Host</summary>
 		public string Host { get; set; } = "";

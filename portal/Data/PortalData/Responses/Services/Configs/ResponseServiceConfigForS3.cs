@@ -9,7 +9,7 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 using System;
-using PortalData.Responses.Services.Configs.GW;
+using PortalData.Responses.Services.Configs.S3;
 using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
@@ -18,13 +18,13 @@ using MTLib.Reflection;
 namespace PortalData.Responses.Services.Configs
 {
 	/// <summary>S3 Proxy 서비스에 대한 설정 응답 객체</summary>
-	public class ResponseServiceConfigForGW : IResponseServiceConfig
+	public class ResponseServiceConfigForS3 : IResponseServiceConfig
 	{
 		/// <summary>데이터베이스 설정</summary>
-		public ResponseGWConfigDatabase Database { get; } = new ResponseGWConfigDatabase();
+		public ResponseS3ConfigDatabase Database { get; } = new ResponseS3ConfigDatabase();
 
 		/// <summary>메시지 큐 설정</summary>
-		public ResponseGWConfigMessageQueue MessageQueue { get; } = new ResponseGWConfigMessageQueue();
+		public ResponseS3ConfigMessageQueue MessageQueue { get; } = new ResponseS3ConfigMessageQueue();
 
 		/// <summary>설정 문자열을 설정 객체로 변환한다.</summary>
 		/// <param name="config">설정 문자열</param>
@@ -39,7 +39,7 @@ namespace PortalData.Responses.Services.Configs
 				if (config.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				ResponseServiceConfigForGW request = new ResponseServiceConfigForGW();
+				ResponseServiceConfigForS3 request = new ResponseServiceConfigForS3();
 
 				// 메인 설정을 읽어온다.
 				ResponseData response = request.Database.Deserialize(config);

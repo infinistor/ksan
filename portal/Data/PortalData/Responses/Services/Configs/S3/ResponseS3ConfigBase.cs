@@ -8,13 +8,18 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-namespace PortalData.Requests.Services.Configs.GW
+
+namespace PortalData.Responses.Services.Configs.S3
 {
-	/// <summary>GW 설정 기본 요청 객체</summary>
-	public abstract class RequestGWConfigBase : IRequestServiceConfig
+	/// <summary>S3 Proxy 설정 기본 응답 객체</summary>
+	public abstract class ResponseS3ConfigBase : IResponseServiceConfig
 	{
-		/// <summary>설정 객체의 내용을 문자열로 변환한다.</summary>
-		/// <returns>설정 문자열 응답 객체</returns>
-		public abstract ResponseData<string> Serialize();
+		/// <summary>설정을 읽어 들인다.</summary>
+		/// <param name="configContent">설정 내용</param>
+		/// <returns>읽기 결과 응답 객체</returns>
+		public abstract ResponseData Deserialize(string configContent);
+
+		/// <summary>설정 내용 문자열</summary>
+		public virtual string Config { get; set; } = "";
 	}
 }

@@ -312,12 +312,12 @@ namespace PortalSvr.Controllers.Services
 				return Json(new ResponseData(EnumResponseResult.Error, response.Code, response.Message));
 		}
 
-		/// <summary>GW 서비스의 설정 정보를 가져온다.</summary>
+		/// <summary>S3 서비스의 설정 정보를 가져온다.</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfigForGW>))]
-		[HttpGet("{id}/Config/GW")]
-		public async Task<ActionResult> GetConfigForGW([FromRoute] string id)
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfigForS3>))]
+		[HttpGet("{id}/Config/S3")]
+		public async Task<ActionResult> GetConfigForS3([FromRoute] string id)
 		{
 			// 해당 서비스 정보를 가져온다.
 			ResponseData<ResponseServiceWithVlans> response = await m_dataProvider.Get(id);
@@ -327,23 +327,23 @@ namespace PortalSvr.Controllers.Services
 			{
 				// HA Proxy 타입인 경우
 				if (response.Data.ServiceType == EnumServiceType.S3)
-					return Json(await m_dataProvider.GetConfig<ResponseServiceConfigForGW>(id));
+					return Json(await m_dataProvider.GetConfig<ResponseServiceConfigForS3>(id));
 
 				// 그 외
-				return Json(new ResponseData<ResponseServiceConfigForGW>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST));
+				return Json(new ResponseData<ResponseServiceConfigForS3>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST));
 			}
 			// 해당 서비스 정보를 가져오는데 실패한 경우
 			else
-				return Json(new ResponseData<ResponseServiceConfigForGW>(EnumResponseResult.Error, response.Code, response.Message));
+				return Json(new ResponseData<ResponseServiceConfigForS3>(EnumResponseResult.Error, response.Code, response.Message));
 		}
 
-		/// <summary>GW 설정 정보를 특정 서비스에 저장한다.</summary>
+		/// <summary>S3 설정 정보를 특정 서비스에 저장한다.</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <param name="config">서비스 설정 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPost("{id}/Config/GW")]
-		public async Task<ActionResult> SetConfigForGW([FromRoute] string id, [FromBody] RequestServiceConfigForGW config)
+		[HttpPost("{id}/Config/S3")]
+		public async Task<ActionResult> SetConfigForS3([FromRoute] string id, [FromBody] RequestServiceConfigForS3 config)
 		{
 			// 해당 서비스 정보를 가져온다.
 			ResponseData<ResponseServiceWithVlans> response = await m_dataProvider.Get(id);
@@ -363,13 +363,13 @@ namespace PortalSvr.Controllers.Services
 				return Json(new ResponseData(EnumResponseResult.Error, response.Code, response.Message));
 		}
 
-		/// <summary>GW 설정 정보를 특정 서비스에 저장한다.</summary>
+		/// <summary>S3 설정 정보를 특정 서비스에 저장한다.</summary>
 		/// <param name="id">서비스 아이디</param>
 		/// <param name="requestConfig">서비스 설정 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPost("{id}/Config/GW/String")]
-		public async Task<ActionResult> SetConfigForGW([FromRoute] string id, [FromBody] RequestServiceConfigFromString requestConfig)
+		[HttpPost("{id}/Config/S3/String")]
+		public async Task<ActionResult> SetConfigForS3([FromRoute] string id, [FromBody] RequestServiceConfigFromString requestConfig)
 		{
 			// 해당 서비스 정보를 가져온다.
 			ResponseData<ResponseServiceWithVlans> response = await m_dataProvider.Get(id);
@@ -378,12 +378,12 @@ namespace PortalSvr.Controllers.Services
 			if (response.Result == EnumResponseResult.Success)
 			{
 				// 설정 문자열로 부터 설정 객체를 가져온다.
-				ResponseServiceConfigForGW config = new ResponseServiceConfigForGW();
+				ResponseServiceConfigForS3 config = new ResponseServiceConfigForS3();
 				ResponseData responseLoadConfig = config.Deserialize(requestConfig.Config);
 				// 설정 객체을 로드하는데 성공한 경우
 				if (responseLoadConfig.Result == EnumResponseResult.Success)
 				{
-					RequestServiceConfigForGW request = new RequestServiceConfigForGW();
+					RequestServiceConfigForS3 request = new RequestServiceConfigForS3();
 					request.Database.CopyValueFrom(config.Database);
 					request.MessageQueue.CopyValueFrom(config.MessageQueue);
 					return Json(await m_dataProvider.SetConfig(id, request));
@@ -415,11 +415,11 @@ namespace PortalSvr.Controllers.Services
 					return Json(await m_dataProvider.GetConfig<ResponseServiceConfigForOsd>(id));
 
 				// 그 외
-				return Json(new ResponseData<ResponseServiceConfigForGW>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST));
+				return Json(new ResponseData<ResponseServiceConfigForS3>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST));
 			}
 			// 해당 서비스 정보를 가져오는데 실패한 경우
 			else
-				return Json(new ResponseData<ResponseServiceConfigForGW>(EnumResponseResult.Error, response.Code, response.Message));
+				return Json(new ResponseData<ResponseServiceConfigForS3>(EnumResponseResult.Error, response.Code, response.Message));
 		}
 
 		/// <summary>OSD 설정 정보를 특정 서비스에 저장한다.</summary>

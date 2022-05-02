@@ -14,10 +14,10 @@ using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
 
-namespace PortalData.Requests.Services.Configs.GW
+namespace PortalData.Requests.Services.Configs.S3
 {
-	/// <summary>GW 메시지 큐 설정 요청 객체</summary>
-	public class RequestGWConfigMessageQueue : RequestGWConfigBase
+	/// <summary>S3 메시지 큐 설정 요청 객체</summary>
+	public class RequestS3ConfigMessageQueue : RequestS3ConfigBase
 	{
 		/// <summary>Host</summary>
 		public string Host { get; set; } = "";
