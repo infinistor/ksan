@@ -10,15 +10,19 @@
 */
 package com.pspace.ifs.ksan.gw.object.objmanager;
 
+import java.util.Set;
+
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 
+import org.apache.commons.pool2.impl.DefaultPooledObjectInfo;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ObjManagerHelper {
     private static Logger logger;
+    private static ObjManagerFactory factory;
     private static ObjManagerPool pool;
     
     public static ObjManagerHelper getInstance() {
@@ -39,7 +43,7 @@ public class ObjManagerHelper {
         config.setMinIdle(count);
         config.setMaxIdle(count);
         config.setMaxTotal(count);
-        ObjManagerFactory factory = new ObjManagerFactory();
+        factory = new ObjManagerFactory();
         pool = new ObjManagerPool(factory, config);
         pool.preparePool();
     }
@@ -59,5 +63,13 @@ public class ObjManagerHelper {
 
     public void returnObjManager(ObjManager objManager) throws Exception {
         pool.returnObject(objManager);
+    }
+
+    public static void updateAllConfig() {
+        factory.notifyChangeConfig();
+    }
+
+    public static void updateAllDiskpools() {
+        factory.notifyChangeDiskpools();
     }
 }

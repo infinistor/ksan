@@ -19,9 +19,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.pspace.ifs.ksan.gw.utils.DiskManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.disk.Server;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST;
 import com.pspace.ifs.ksan.osd.OSDConstants;
 import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class OSDClientManager {
     private static Logger logger;
-    private static DISKPOOLLIST diskpoolList;
+    // private static DISKPOOLLIST diskpoolList;
     private static Map<String, OSDClientPool> pools = new HashMap<>();
     
     public static OSDClientManager getInstance() {
@@ -45,25 +47,25 @@ public class OSDClientManager {
 
     private OSDClientManager() {
         logger = LoggerFactory.getLogger(OSDClientManager.class);
-        try {
-            logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
-			XmlMapper xmlMapper = new XmlMapper();
-			InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
-			byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-			try {
-				is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
-                is.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-			}
-			String xml = new String(buffer);
+        // try {
+        //     logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
+		// 	XmlMapper xmlMapper = new XmlMapper();
+		// 	InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+		// 	byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+		// 	try {
+		// 		is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+        //         is.close();
+		// 	} catch (IOException e) {
+		// 		logger.error(e.getMessage());
+		// 	}
+		// 	String xml = new String(buffer);
 			
-			diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
-			logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
-			logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
-		} catch (JsonProcessingException | FileNotFoundException e) {
-			logger.error(e.getMessage());
-		}
+		// 	diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+		// 	logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
+		// 	logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
+		// } catch (JsonProcessingException | FileNotFoundException e) {
+		// 	logger.error(e.getMessage());
+		// }
     }
 
     public void init(int port, int osdClientCount) throws Exception {
@@ -72,7 +74,7 @@ public class OSDClientManager {
         config.setTestOnReturn(true);
         config.setMaxTotal(osdClientCount);
 
-        for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+        for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
             if (!GWUtils.getLocalIP().equals(server.getIp())) {
                 logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
                 OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
@@ -81,12 +83,24 @@ public class OSDClientManager {
                 pools.put(server.getIp(), pool);
             }
         }
+        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+        //     if (!GWUtils.getLocalIP().equals(server.getIp())) {
+        //         logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
+        //         OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
+        //         OSDClientPool pool = new OSDClientPool(factory, config);
+        //         pool.preparePool();
+        //         pools.put(server.getIp(), pool);
+        //     }
+        // }
     }
 
     public void shutDown() {
-        for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+        for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
             pools.remove(server.getIp());
         }
+        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+        //     pools.remove(server.getIp());
+        // }
     }
 
     public OSDClient getOSDClient(String host) throws Exception {

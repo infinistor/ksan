@@ -14,10 +14,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
-import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 
@@ -47,7 +45,8 @@ public class GWMain {
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
 		writePID();
-		gw = new GW(new GWConfig());
+
+		gw = new GW();
 
 		try {
 			gw.init();

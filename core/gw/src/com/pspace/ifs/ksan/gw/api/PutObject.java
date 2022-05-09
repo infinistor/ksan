@@ -331,7 +331,7 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
-			if (GWConfig.getReplicaCount() > 1) {
+			if (GWConfig.getInstance().getReplicaCount() > 1) {
 				objMeta = create(bucket, object);
 			} else {
 				objMeta = createLocal(bucket, object);

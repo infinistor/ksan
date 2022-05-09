@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 import org.eclipse.jetty.server.Request;
@@ -36,8 +37,8 @@ public class GWHandlerJetty extends AbstractHandler {
     private static final Logger logger = LoggerFactory.getLogger(GWHandlerJetty.class);
     private final GWHandler handler;
 
-    public GWHandlerJetty(GWConfig config) {
-        handler = new GWHandler(config);
+    public GWHandlerJetty() {
+        handler = new GWHandler();
     }
 
     private void sendS3Exception(HttpServletRequest request, HttpServletResponse response, GWException e)

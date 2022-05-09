@@ -75,11 +75,10 @@ import com.pspace.ifs.ksan.gw.format.CORSConfiguration.CORSRule;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3Encryption;
-import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER;
-import com.pspace.ifs.ksan.gw.utils.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
+import com.pspace.ifs.ksan.gw.utils.disk.Disk;
+import com.pspace.ifs.ksan.gw.utils.disk.DiskPool;
+import com.pspace.ifs.ksan.gw.utils.disk.Server;
 import com.pspace.ifs.ksan.objmanager.Bucket;
-import com.pspace.ifs.ksan.osd.OSDConstants;
 
 public class GWUtils {
 
@@ -268,7 +267,7 @@ public class GWUtils {
 	}
 	
 	public static GWDB getDBInstance() {
-		if (GWConfig.getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
+		if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
 			return MariaDB.getInstance();
 		} else {
 			logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
@@ -950,7 +949,8 @@ public class GWUtils {
 			if (checkAcl.aclList.grants != null) {
 				for (Grant user : checkAcl.aclList.grants) {
 					if (!Strings.isNullOrEmpty(user.grantee.displayName)
-							&& GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName, s3Parameter) == null) {
+							// && GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName, s3Parameter) == null) {
+							&& S3UserManager.getInstance().getUserByName(user.grantee.displayName) == null) {
 						logger.info(user.grantee.displayName);
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
@@ -960,7 +960,8 @@ public class GWUtils {
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
-					if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
+					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
+					if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
 						logger.info(user.grantee.id);
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
@@ -990,24 +991,12 @@ public class GWUtils {
 	}
 
 	public static void initCache(String cacheDisk) {
-		if (cacheDisk != null) {
-			try {
-				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
-				XmlMapper xmlMapper = new XmlMapper();
-				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
-				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-				try {
-					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
-					is.close();
-				} catch (IOException e) {
-					logger.error(e.getMessage());
-				}
-				String xml = new String(buffer);
-				
-				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
-				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+		if (!Strings.isNullOrEmpty(cacheDisk)) {
+			logger.debug(GWConstants.LOG_UTILS_INIT_CACHE);
+			for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
-						for (DISK disk : server.getDisks()) {
+						for (Disk disk : server.getDiskList()) {
 							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
 							file.mkdirs();
 							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
@@ -1023,27 +1012,13 @@ public class GWUtils {
 						}
 					}
 				}
-			} catch (JsonProcessingException | FileNotFoundException e) {
-				logger.error(e.getMessage());
 			}
 		} else {
-			try {
-				logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE);
-				XmlMapper xmlMapper = new XmlMapper();
-				InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
-				byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-				try {
-					is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
-					is.close();
-				} catch (IOException e) {
-					logger.error(e.getMessage());
-				}
-				String xml = new String(buffer);
-				
-				DISKPOOLLIST diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
-				for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+			logger.debug(GWConstants.LOG_UTILS_INIT_DIR);
+			for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
-						for (DISK disk : server.getDisks()) {
+						for (Disk disk : server.getDiskList()) {
 							File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
 							file.mkdirs();
 							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
@@ -1053,8 +1028,6 @@ public class GWUtils {
 						}
 					}
 				}
-			} catch (JsonProcessingException | FileNotFoundException e) {
-				logger.error(e.getMessage());
 			}
 		}
 	}

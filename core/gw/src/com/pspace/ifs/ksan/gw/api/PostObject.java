@@ -211,7 +211,7 @@ public class PostObject extends S3Request {
 		String serversideEncryption = dataPostObject.getServerSideEncryption();
 
 		S3Metadata s3Metadata = new S3Metadata();
-		s3Metadata.setOwnerId(Long.toString(s3Parameter.getUser().getUserId()));
+		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataPostObject.getUserMetadata());
 
@@ -325,7 +325,7 @@ public class PostObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
-			if (GWConfig.getReplicaCount() > 1) {
+			if (GWConfig.getInstance().getReplicaCount() > 1) {
 				objMeta = create(bucket, object);
 			} else {
 				objMeta = createLocal(bucket, object);

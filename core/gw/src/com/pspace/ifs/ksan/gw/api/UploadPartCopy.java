@@ -37,8 +37,8 @@ import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.gw.utils.DiskManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
-import com.pspace.ifs.ksan.gw.utils.GWDiskConfig;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -249,7 +249,7 @@ public class UploadPartCopy extends S3Request {
 		
 		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
 
-		String path = GWDiskConfig.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
 		if (path == null) {
 			logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

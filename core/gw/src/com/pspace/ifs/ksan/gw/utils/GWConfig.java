@@ -12,73 +12,303 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Properties;
 
-import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.google.common.base.Strings;
+
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GWConfig {
-	private Properties properties;
+    private String version;
 
-	private static String dbRepository;
-	private static int replicaCount;
-	private static String cacheDisk;
-	private static String performanceMode;
-	private static long cacheFileSize;
+    private String dbRepository;
+	private long replicaCount;
+	private String cacheDisk;
+	private String performanceMode;
+	private long cacheFileSize;
 
 	private URI endpoint;
 	private URI secureEndpoint;
 	private String authorizationString;
 	private String keyStorePath;
 	private String keyStorePassword;
-	private int jettyMaxThreads = GWConstants.JETTY_MAX_THREADS;
-	private int jettyMaxIdleTimeout = GWConstants.JETTY_MAX_IDLE_TIMEOUT;
+	private long jettyMaxThreads = GWConstants.JETTY_MAX_THREADS;
+	private long jettyMaxIdleTimeout = GWConstants.JETTY_MAX_IDLE_TIMEOUT;
 	private long maxFileSize = GWConstants.MAX_FILE_SIZE;
 	private long maxListSize = GWConstants.MAX_LIST_SIZE;
-	private int maxTimeSkew = GWConstants.MAX_TIME_SKEW;
-	private int osdPort = GWConstants.DEFAULT_OSD_PORT;
-	private int osdClientCount = GWConstants.DEFAULT_OSD_CLIENT_SIZE;
-	private int objManagerCount = GWConstants.DEFAULT_OBJMANAGER_SIZE;
+	private long maxTimeSkew = GWConstants.MAX_TIME_SKEW;
+	private long osdPort = GWConstants.DEFAULT_OSD_PORT;
+	private long osdClientCount = GWConstants.DEFAULT_OSD_CLIENT_SIZE;
+	private long objManagerCount = GWConstants.DEFAULT_OBJMANAGER_SIZE;
 	private String dbHost;
 	private String database;
-	private String dbPort;
+	private long dbPort;
 	private String dbUser;
 	private String dbPass;
-	private int dbPoolSize;
+	private long dbPoolSize;
 	
-	private static boolean isNoOption;
-	private static boolean isNoIO;
-	private static boolean isNoDisk;
-	private static boolean isNoReplica;
+	private boolean isNoOption;
+	private boolean isNoIO;
+	private boolean isNoDisk;
+	private boolean isNoReplica;
 
-	private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
-	
-	public GWConfig() {
-		String path = System.getProperty("configure");
-		if (path == null) {
-			path = GWConstants.CONFIG_PATH;
-		}
+    private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
-		properties = new Properties();
-		try (InputStream myis = new FileInputStream(path)) {
-			properties.load(myis);
-		} catch (FileNotFoundException e) {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_NOT_EXIST);
-		} catch (IOException e) {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_FAILED_LOADING);
-		}
-	}
-	
-	public void configure() throws URISyntaxException, GWException {
-		String endpoint = properties.getProperty(GWConstants.PROPERTY_ENDPOINT);
-		String secureEndpoint = properties.getProperty(GWConstants.PROPERTY_SECURE_ENDPOINT);
+    public static GWConfig getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+
+    private static class LazyHolder {
+        private static GWConfig INSTANCE = new GWConfig();
+    }
+
+    private GWConfig() {
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getDbRepository() {
+        return dbRepository;
+    }
+
+    public void setDbRepository(String dbRepository) {
+        this.dbRepository = dbRepository;
+    }
+
+    public long getReplicaCount() {
+        return replicaCount;
+    }
+
+    public void setReplicaCount(long replicaCount) {
+        this.replicaCount = replicaCount;
+    }
+
+    public String getCacheDisk() {
+        return cacheDisk;
+    }
+
+    public void setCacheDisk(String cacheDisk) {
+        this.cacheDisk = cacheDisk;
+    }
+
+    public String getPerformanceMode() {
+        return performanceMode;
+    }
+
+    public void setPerformanceMode(String performanceMode) {
+        this.performanceMode = performanceMode;
+    }
+
+    public long getCacheFileSize() {
+        return cacheFileSize;
+    }
+
+    public void setCacheFileSize(long cacheFileSize) {
+        this.cacheFileSize = cacheFileSize;
+    }
+
+    public URI getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(URI endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public URI getSecureEndpoint() {
+        return secureEndpoint;
+    }
+
+    public void setSecureEndpoint(URI secureEndpoint) {
+        this.secureEndpoint = secureEndpoint;
+    }
+
+    public String getAuthorizationString() {
+        return authorizationString;
+    }
+
+    public void setAuthorizationString(String authorizationString) {
+        this.authorizationString = authorizationString;
+    }
+
+    public String getKeyStorePath() {
+        return keyStorePath;
+    }
+
+    public void setKeyStorePath(String keyStorePath) {
+        this.keyStorePath = keyStorePath;
+    }
+
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+
+    public long getJettyMaxThreads() {
+        return jettyMaxThreads;
+    }
+
+    public void setJettyMaxThreads(long jettyMaxThreads) {
+        this.jettyMaxThreads = jettyMaxThreads;
+    }
+
+    public long getJettyMaxIdleTimeout() {
+        return jettyMaxIdleTimeout;
+    }
+
+    public void setJettyMaxIdleTimeout(long jettyMaxIdleTimeout) {
+        this.jettyMaxIdleTimeout = jettyMaxIdleTimeout;
+    }
+
+    public long getMaxFileSize() {
+        return maxFileSize;
+    }
+
+    public void setMaxFileSize(long maxFileSize) {
+        this.maxFileSize = maxFileSize;
+    }
+
+    public long getMaxListSize() {
+        return maxListSize;
+    }
+
+    public void setMaxListSize(long maxListSize) {
+        this.maxListSize = maxListSize;
+    }
+
+    public long getMaxTimeSkew() {
+        return maxTimeSkew;
+    }
+
+    public void setMaxTimeSkew(long maxTimeSkew) {
+        this.maxTimeSkew = maxTimeSkew;
+    }
+
+    public long getOsdPort() {
+        return osdPort;
+    }
+
+    public void setOsdPort(long osdPort) {
+        this.osdPort = osdPort;
+    }
+
+    public long getOsdClientCount() {
+        return osdClientCount;
+    }
+
+    public void setOsdClientCount(long osdClientCount) {
+        this.osdClientCount = osdClientCount;
+    }
+
+    public long getObjManagerCount() {
+        return objManagerCount;
+    }
+
+    public void setObjManagerCount(long objManagerCount) {
+        this.objManagerCount = objManagerCount;
+    }
+
+    public String getDbHost() {
+        return dbHost;
+    }
+
+    public void setDbHost(String dbHost) {
+        this.dbHost = dbHost;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public long getDbPort() {
+        return dbPort;
+    }
+
+    public void setDbPort(long dbPort) {
+        this.dbPort = dbPort;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public void setDbUser(String dbUser) {
+        this.dbUser = dbUser;
+    }
+
+    public String getDbPass() {
+        return dbPass;
+    }
+
+    public void setDbPass(String dbPass) {
+        this.dbPass = dbPass;
+    }
+
+    public long getDbPoolSize() {
+        return dbPoolSize;
+    }
+
+    public void setDbPoolSize(long dbPoolSize) {
+        this.dbPoolSize = dbPoolSize;
+    }
+
+    public boolean isNoOption() {
+        return isNoOption;
+    }
+
+    public void setNoOption(boolean isNoOption) {
+        this.isNoOption = isNoOption;
+    }
+
+    public boolean isNoIO() {
+        return isNoIO;
+    }
+
+    public void setNoIO(boolean isNoIO) {
+        this.isNoIO = isNoIO;
+    }
+
+    public boolean isNoDisk() {
+        return isNoDisk;
+    }
+
+    public void setNoDisk(boolean isNoDisk) {
+        this.isNoDisk = isNoDisk;
+    }
+
+    public boolean isNoReplica() {
+        return isNoReplica;
+    }
+
+    public void setNoReplica(boolean isNoReplica) {
+        this.isNoReplica = isNoReplica;
+    }
+
+    public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
+        JSONObject jsonDB = (JSONObject)jsonConfig.get("db");
+        JSONObject jsonCache = (JSONObject)jsonConfig.get("cache");
+
+        setAuthorizationString((String)jsonConfig.get("authorization"));
+        String endpoint = (String)jsonConfig.get("endpoint");
+		String secureEndpoint = (String)jsonConfig.get("secure-endpoint");
 		if (endpoint == null && secureEndpoint == null) {
 			throw new IllegalArgumentException(
 					GWConstants.LOG_CONFIG_MUST_CONTAIN +
@@ -87,237 +317,121 @@ public class GWConfig {
 		}
 
 		if (endpoint != null) {
-			this.endpoint = requireNonNull(new URI(endpoint));
+			setEndpoint(requireNonNull(new URI(endpoint)));
 		}
-
 		if (secureEndpoint != null) {
-			this.secureEndpoint = requireNonNull(new URI(secureEndpoint));
+			setSecureEndpoint(requireNonNull(new URI(secureEndpoint)));
 		}
 
-		keyStorePath = properties.getProperty(GWConstants.PROPERTY_KEYSTORE_PATH);
-		keyStorePassword = properties.getProperty(GWConstants.PROPERTY_KEYSTORE_PASSWORD);
+        setKeyStorePath((String)jsonConfig.get("keystore-path"));
+        setKeyStorePassword((String)jsonConfig.get("keystore-password"));
+        setMaxFileSize((long)jsonConfig.get("max-file-size"));
+        setMaxListSize((long)jsonConfig.get("max-list-size"));
+        setMaxTimeSkew((long)jsonConfig.get("max-time-skew"));
+        setReplicaCount((long)jsonConfig.get("replication"));
+        setOsdPort((long)jsonConfig.get("osd-port"));
+        setJettyMaxThreads((long)jsonConfig.get("jetty-max-threads"));
+        setOsdClientCount((long)jsonConfig.get("osd-client-count"));
+        setObjManagerCount((long)jsonConfig.get("objmanager-count"));
 
-		String jettyMaxThreads = properties.getProperty(GWConstants.PROPERTY_JETTY_MAX_THREADS);
-		if (jettyMaxThreads != null) {
-			this.jettyMaxThreads = Integer.parseInt(jettyMaxThreads);
-		}
-
-		String jettyMaxIdleTimeout = properties.getProperty(GWConstants.PROPERTY_JETTY_MAX_IDLE_TIMEOUT);
-		if (jettyMaxIdleTimeout != null) {
-			this.jettyMaxIdleTimeout = Integer.parseInt(jettyMaxIdleTimeout);
-		}
-
-		this.authorizationString = properties.getProperty(GWConstants.PROPERTY_AUTHORIZATION);
-		
-		if (this.authorizationString == null) {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_AUTHORIZATION);
-		}
-		
-		String maxTimeSkew = properties.getProperty(GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
-	    if (maxTimeSkew != null) {
-	        this.maxTimeSkew = Integer.parseInt(maxTimeSkew);
-	    } else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_MAXIMUM_TIME_SKEW);
-		}
-
-		String osdPort = properties.getProperty(GWConstants.PROPERTY_OSD_PORT);
-		if (osdPort != null) {
-			this.osdPort = Integer.parseInt(osdPort);
+        setPerformanceMode((String)jsonConfig.get("performance-mode"));
+        if (Strings.isNullOrEmpty(getPerformanceMode())) {
+			setPerformanceMode(GWConstants.PERFORMANCE_MODE_NO_OPTION);
+            setNoOption(true);
+            setNoIO(false);
+            setNoDisk(false);
+            setNoReplica(false);
 		} else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_PORT);
-		}
-
-		String osdClientCount = properties.getProperty(GWConstants.PROPERTY_OSD_CLIENT_COUNT);
-		if (osdClientCount != null) {
-			this.osdClientCount = Integer.parseInt(osdClientCount);
-		} else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OSD_CLIENT_COUNT);
-		}
-
-		String objManagerCount = properties.getProperty(GWConstants.PROPERTY_OBJMANAGER_COUNT);
-		if (objManagerCount != null) {
-			this.objManagerCount = Integer.parseInt(objManagerCount);
-		} else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_OBJMANAGER_COUNT);
-		}
-	    
-		setDbRepository(properties.getProperty(GWConstants.PROPERTY_DB_REPOSITORY));
-		if (getDbRepository() == null || getDbRepository().isEmpty()) {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_REPOSITORY);
-		}
-
-	    this.dbHost = properties.getProperty(GWConstants.PROPERTY_DB_HOST);
-	    if (this.dbHost == null) {
-	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_HOST);
-	    }
-	    
-	    this.database = properties.getProperty(GWConstants.PROPERTY_DB_NAME);
-	    if (this.database == null) {
-	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_NAME);
-	    }
-	    
-	    this.dbPort = properties.getProperty(GWConstants.PROPERTY_DB_PORT);
-	    if (this.dbPort == null) {
-	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PORT);
-	    }
-	    
-	    this.dbUser = properties.getProperty(GWConstants.PROPERTY_DB_USER);
-	    if (this.dbUser == null) {
-	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_USER);
-	    }
-	    
-	    this.dbPass = properties.getProperty(GWConstants.PROPERTY_DB_PASS);
-	    if (this.dbPass == null) {
-	    	throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_PASS);
-	    }
-
-		String dbPoolSize = properties.getProperty(GWConstants.PROPERTY_DB_POOL_SIZE);
-		if (dbPoolSize != null) {
-			this.dbPoolSize = Integer.parseInt(dbPoolSize);
-		} else {
-			throw new IllegalArgumentException(GWConstants.LOG_CONFIG_MUST_CONTAIN + GWConstants.PROPERTY_DB_POOL_SIZE);
-		}
-
-		String replicaCountStr = properties.getProperty(GWConstants.PROPERTY_REPLICA_COUNT);
-		if (replicaCountStr != null) {
-			replicaCount = Integer.parseInt(replicaCountStr);
-		}
-
-		cacheDisk = properties.getProperty(GWConstants.PROPERTY_CACHE_DISK);
-
-		String cacheFileSizeStr = properties.getProperty(GWConstants.PROPERTY_CACHE_FILE_SIZE);
-		cacheFileSize = Long.parseLong(cacheFileSizeStr);
-
-		isNoOption = false;
-		isNoIO = false;
-		isNoDisk = false;
-		isNoReplica = false;
-		performanceMode = properties.getProperty(GWConstants.PROPERTY_PERFORMANCE_MODE);
-		if (performanceMode == null) {
-			performanceMode = GWConstants.PERFORMANCE_MODE_NO_OPTION;
-			isNoOption = true;
-		} else {
-			if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_OPTION)) {
-				isNoOption = true;
-			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
-				isNoIO = true;
-			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
-				isNoDisk = true;
-			} else if (performanceMode.equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
-				isNoReplica = true;
+			if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_OPTION)) {
+				setPerformanceMode(GWConstants.PERFORMANCE_MODE_NO_OPTION);
+                setNoOption(true);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(false);
+			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
+				setNoOption(false);
+                setNoIO(true);
+                setNoDisk(false);
+                setNoReplica(false);
+			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
+				setNoOption(false);
+                setNoIO(false);
+                setNoDisk(true);
+                setNoReplica(false);
+			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
+				setNoOption(false);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(true);
 			}
 		}
-	}
-	
-	public URI endpoint() {
-		return this.endpoint;
-	}
-	
-	public URI secureEndpoint() {
-		return this.secureEndpoint;
-	}
-	
-	public String keyStorePath() {
-		return this.keyStorePath;
-	}
-	
-	public String keyStorePassword() {
-		return this.keyStorePassword;
-	}
-	
-	public int jettyMaxThreads() {
-		return this.jettyMaxThreads;
-	}
 
-	public int jettyMaxIdleTimeout() {
-		return this.jettyMaxIdleTimeout;
-	}
+        setDbRepository((String)jsonDB.get("repository"));
+        setDbHost((String)jsonDB.get("host"));
+        setDatabase((String)jsonDB.get("database"));
+        setDbPort((long)jsonDB.get("port"));
+        setDbUser((String)jsonDB.get("user"));
+        setDbPass((String)jsonDB.get("pass"));
+        setDbPoolSize((long)jsonDB.get("poolsize"));
 
-	public long maxFileSize() {
-		return this.maxFileSize;
-	}
-	
-	public long maxListSize() {
-		return this.maxListSize;
-	}
-	
-	public int maxTimeSkew() {
-		return this.maxTimeSkew;
-	}
+        setCacheDisk((String)jsonCache.get("path"));
+        setCacheFileSize((long)jsonCache.get("file-size"));
 
-	public int osdPort() {
-		return osdPort;
-	}
+        logger.debug(getAuthorizationString());
+        logger.debug(getEndpoint().toString());
+        logger.debug(getSecureEndpoint().toString());
+        logger.debug(getKeyStorePath());
+        logger.debug(getKeyStorePassword());
+        logger.debug("{}", getMaxFileSize());
+        logger.debug("{}", getMaxListSize());
+        logger.debug("{}", getMaxTimeSkew());
+        logger.debug("{}", getReplicaCount());
+        logger.debug("{}", getOsdPort());
+        logger.debug("{}", getJettyMaxThreads());
+        logger.debug("{}", getOsdClientCount());
+        logger.debug("{}", getObjManagerCount());
+        logger.debug(getPerformanceMode());
+        logger.debug(getDbRepository());
+        logger.debug(getDbHost());
+        logger.debug(getDatabase());
+        logger.debug("{}", getDbPort());
+        logger.debug(getDbUser());
+        logger.debug(getDbPass());
+        logger.debug("{}", getDbPoolSize());
+        logger.debug(getCacheDisk());
+        logger.debug("{}", getCacheFileSize());
+    }
 
-	public int osdClientCount() {
-		return osdClientCount;
-	}
-
-	public int objManagerCount() {
-		return objManagerCount;
-	}
-	
-	public static String getDbRepository() {
-		return dbRepository;
-	}
-
-	public void setDbRepository(String db) {
-		GWConfig.dbRepository = db;
-	}
-
-	public String dbHost() {
-		return this.dbHost;
-	}
-	
-	public String database() {
-		return this.database;
-	}
-	
-	public String dbPort() {
-		return this.dbPort;
-	}
-	
-	public String dbUser() {
-		return this.dbUser;
-	}
-	
-	public String dbPass() {
-		return this.dbPass;
-	}
-
-	public int dbPoolSize() {
-		return this.dbPoolSize;
-	}
-
-	public static int getReplicaCount() {
-		return replicaCount;
-	}
-
-	public static String getCacheDisk() {
-		return cacheDisk;
-	}
-
-	public static long getCacheFileSize() {
-		return cacheFileSize;
-	}
-
-	public static String getPerformanceMode() {
-		return performanceMode;
-	}
-
-	public static boolean isNoOption() {
-		return isNoOption;
-	}
-
-	public static boolean isNoIO() {
-		return isNoIO;
-	}
-
-	public static boolean isNoDisk() {
-		return isNoDisk;
-	}
-
-	public static boolean isNoReplica() {
-		return isNoReplica;
-	}
+    public void saveConfigFile() throws IOException {
+        try {
+            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH + "2", false);
+            fileWriter.write("version=" + version + "\n");
+            fileWriter.write("gw.authorization=" + authorizationString + "\n");
+            fileWriter.write("gw.endpoint=" + endpoint.toString() + "\n");
+            fileWriter.write("gw.secure-endpoint=" + secureEndpoint.toString() + "\n");
+            fileWriter.write("gw.keystore-path=" + keyStorePath + "\n");
+            fileWriter.write("gw.keystore-password=" + keyStorePassword + "\n");
+            fileWriter.write("gw.max-file-size=" + maxFileSize + "\n");
+            fileWriter.write("gw.max-list-size=" + maxListSize + "\n");
+            fileWriter.write("gw.max-time-skew=" + maxTimeSkew + "\n");
+            fileWriter.write("gw.replication=" + replicaCount + "\n");
+            fileWriter.write("gw.osd-port=" + osdPort + "\n");
+            fileWriter.write("gw.jetty-max-threads=" + jettyMaxThreads + "\n");
+            fileWriter.write("gw.osd-client-count=" + osdClientCount + "\n");
+            fileWriter.write("gw.objmanager-count=" + objManagerCount + "\n");
+            fileWriter.write("gw.performance-mode=" + performanceMode + "\n");
+            fileWriter.write("db.repository=" + dbRepository + "\n");
+            fileWriter.write("db.host=" + dbHost + "\n");
+            fileWriter.write("db.database=" + database + "\n");
+            fileWriter.write("db.port=" + dbPort + "\n");
+            fileWriter.write("db.user=" + dbUser + "\n");
+            fileWriter.write("db.pass=" + dbPass + "\n");
+            fileWriter.write("db.poolsize=" + dbPoolSize + "\n");
+            fileWriter.write("cache.path=" + cacheDisk + "\n");
+            fileWriter.write("cache.file-size=" + cacheFileSize + "\n");
+            fileWriter.close();
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
+    }
 }

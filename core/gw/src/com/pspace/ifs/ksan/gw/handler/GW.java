@@ -12,17 +12,29 @@ package com.pspace.ifs.ksan.gw.handler;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
-import java.net.URISyntaxException;
 
 import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.MonConfig;
+import com.pspace.ifs.ksan.gw.utils.Portal;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -38,44 +50,52 @@ import org.slf4j.LoggerFactory;
 
 public class GW {
     private static final Logger logger = LoggerFactory.getLogger(GW.class);
-    private GWConfig config;
+    // private GWConfig GWConfig2.getInstance();
     private Server server;
     private GWHandlerJetty handler;
-
-    public GW(GWConfig config) {
-        this.config = config;
+	
+    public GW(/*GWConfig GWConfig2.getInstance()*/) {
+        // this.GWConfig2.getInstance() = GWConfig2.getInstance();
     }
 
+	public void configure() throws GWException {
+		Portal.getInstance().getConfig();
+		Portal.getInstance().getS3Users();
+		Portal.getInstance().getDiskPoolsDetails();
+	}
+
     public void init() throws GWException {
-		try {
-			config.configure();	
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		configure();
+
+		// try {
+		// 	GWConfig2.getInstance().configure();	
+		// } catch (Exception e) {
+		// 	throw new RuntimeException(e);
+		// }
 		
-		checkArgument(config.endpoint() != null || config.secureEndpoint() != null,
+		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,
 				GWConstants.LOG_GW_MUST_ENDPOINT);
 		
-		if (config.endpoint() != null) {
-			checkArgument(config.endpoint().getPath().isEmpty(),
-					GWConstants.LOG_GW_MUST_ENDPOINT_PATH,	config.endpoint().getPath());
+		if (GWConfig.getInstance().getEndpoint() != null) {
+			checkArgument(GWConfig.getInstance().getEndpoint().getPath().isEmpty(),
+					GWConstants.LOG_GW_MUST_ENDPOINT_PATH,	GWConfig.getInstance().getEndpoint().getPath());
 		}
 		
-		if (config.secureEndpoint() != null) {
-			checkArgument(config.secureEndpoint().getPath().isEmpty(),
+		if (GWConfig.getInstance().getSecureEndpoint() != null) {
+			checkArgument(GWConfig.getInstance().getSecureEndpoint().getPath().isEmpty(),
 					GWConstants.LOG_GW_MUST_SECURE_ENDPOINT_PATH,
-					config.secureEndpoint().getPath());
-			requireNonNull(config.keyStorePath(), GWConstants.LOG_GW_MUST_KEYSTORE_PATH);
-			requireNonNull(config.keyStorePassword(), GWConstants.LOG_GW_MUST_KEYSTORE_PASSWORD);
+					GWConfig.getInstance().getSecureEndpoint().getPath());
+			requireNonNull(GWConfig.getInstance().getKeyStorePath(), GWConstants.LOG_GW_MUST_KEYSTORE_PATH);
+			requireNonNull(GWConfig.getInstance().getKeyStorePassword(), GWConstants.LOG_GW_MUST_KEYSTORE_PASSWORD);
 		}
 
-		ExecutorThreadPool pool = new ExecutorThreadPool(config.jettyMaxThreads());
+		ExecutorThreadPool pool = new ExecutorThreadPool((int)GWConfig.getInstance().getJettyMaxThreads());
 		pool.setName(GWConstants.S3);
 		server = new Server(pool);
 
-		// if (config.servicePath() != null && !config.servicePath().isEmpty()) {
+		// if (GWConfig2.getInstance().servicePath() != null && !GWConfig2.getInstance().servicePath().isEmpty()) {
 		// 	ContextHandler context = new ContextHandler();
-		// 	context.setContextPath(config.servicePath());
+		// 	context.setContextPath(GWConfig2.getInstance().servicePath());
 		// }
 
 		// The HTTP configuration object.
@@ -91,14 +111,15 @@ public class GW {
 		//httpConnectionFactory.getHttpConfiguration().setUriCompliance(UriCompliance.RFC3986);
 
 		ServerConnector connector;
-		if (config.endpoint() != null) {
+		if (GWConfig.getInstance().getEndpoint() != null) {
 			ProxyConnectionFactory httpProxyConnectionFactory = new ProxyConnectionFactory(httpConnectionFactory.getProtocol());
 			connector = new ServerConnector(server, httpProxyConnectionFactory, httpConnectionFactory);
-			connector.setHost(config.endpoint().getHost());
-			connector.setPort(config.endpoint().getPort());
+			logger.debug("host={}, port={}", GWConfig.getInstance().getEndpoint().getHost(), GWConfig.getInstance().getEndpoint().getPort());
+			connector.setHost(GWConfig.getInstance().getEndpoint().getHost());
+			connector.setPort(GWConfig.getInstance().getEndpoint().getPort());
 			
-			// if(config.jettyMaxIdleTimeout() > 30000) {
-				connector.setIdleTimeout(config.jettyMaxIdleTimeout());
+			// if(GWConfig2.getInstance().jettyMaxIdleTimeout() > 30000) {
+				connector.setIdleTimeout(GWConfig.getInstance().getJettyMaxIdleTimeout());
 			// }
 			
 			connector.setReuseAddress(true);
@@ -107,15 +128,15 @@ public class GW {
 			logger.info(GWConstants.LOG_GW_ENDPOINT_IS_NULL);
 		}
 
-		if (config.secureEndpoint() != null) {
+		if (GWConfig.getInstance().getSecureEndpoint() != null) {
 			SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-			sslContextFactory.setKeyStorePath(config.keyStorePath());
-			sslContextFactory.setKeyStorePassword(config.keyStorePassword());
+			sslContextFactory.setKeyStorePath(GWConfig.getInstance().getKeyStorePath());
+			sslContextFactory.setKeyStorePassword(GWConfig.getInstance().getKeyStorePassword());
 			connector = new ServerConnector(server, sslContextFactory, httpConnectionFactory);
-			connector.setHost(config.secureEndpoint().getHost());
-			connector.setPort(config.secureEndpoint().getPort());
-			if(config.jettyMaxIdleTimeout() > 30000) {
-				connector.setIdleTimeout(config.jettyMaxIdleTimeout());
+			connector.setHost(GWConfig.getInstance().getSecureEndpoint().getHost());
+			connector.setPort(GWConfig.getInstance().getSecureEndpoint().getPort());
+			if(GWConfig.getInstance().getJettyMaxIdleTimeout() > 30000) {
+				connector.setIdleTimeout(GWConfig.getInstance().getJettyMaxIdleTimeout());
 			}
 
 			connector.setReuseAddress(true);
@@ -124,29 +145,29 @@ public class GW {
 			logger.info(GWConstants.LOG_GW_SECURE_ENDPOINT_IS_NULL);
 		}
 
-		handler = new GWHandlerJetty(config);
+		handler = new GWHandlerJetty();
 		server.setHandler(handler);
 
 		GWDB s3DB = GWUtils.getDBInstance();
 		try {
-			s3DB.init(config.dbHost(), config.dbPort(), config.database(), config.dbUser(), config.dbPass(), config.dbPoolSize());
+			s3DB.init(GWConfig.getInstance().getDbHost(), String.valueOf(GWConfig.getInstance().getDbPort()), GWConfig.getInstance().getDatabase(), GWConfig.getInstance().getDbUser(), GWConfig.getInstance().getDbPass(), (int)GWConfig.getInstance().getDbPoolSize());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
 
 		try {
-			OSDClientManager.getInstance().init(config.osdPort(), config.osdClientCount());
+			OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
 
 		try {
-			ObjManagerHelper.getInstance().init(config.objManagerCount());
+			ObjManagerHelper.getInstance().init((int)GWConfig.getInstance().getObjManagerCount());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
 
-		GWUtils.initCache(config.getCacheDisk());
+		GWUtils.initCache(GWConfig.getInstance().getCacheDisk());
 	}
 
 	public void start() throws Exception {
@@ -159,5 +180,7 @@ public class GW {
 
 	public void stop() throws Exception {
 		server.stop();
+		OSDClientManager.getInstance().shutDown();
+		ObjManagerHelper.getInstance().shutDown();
 	}
 }

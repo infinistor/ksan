@@ -35,6 +35,7 @@ import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.AsyncHandler;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
@@ -58,9 +59,9 @@ public class GWHandler {
 	private S3RequestFactory s3RequestFactory;
 	
 
-    public GWHandler(GWConfig config) {
-        maxFileSize = config.maxFileSize();
-        maxTimeSkew = config.maxTimeSkew();
+    public GWHandler() {
+        maxFileSize = GWConfig.getInstance().getMaxFileSize();
+        maxTimeSkew = (int)GWConfig.getInstance().getMaxTimeSkew();
         // virtualHost = config.virtualHost();
 
 		s3RequestFactory = new S3RequestFactory();
@@ -128,6 +129,7 @@ public class GWHandler {
 		}
 
 		S3Parameter s3Parameter = new S3Parameter();
+		s3Parameter.setURI(uri);
 		s3Parameter.setRequestSize(requestSize);
 		s3Parameter.setRequestID(requestID);
 		s3Parameter.setRequest(request);

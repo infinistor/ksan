@@ -10,6 +10,9 @@
 */
 package com.pspace.ifs.ksan.gw.object.objmanager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 
 import org.apache.commons.pool2.PooledObject;
@@ -17,11 +20,12 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
-
-    public ObjManagerFactory() {}    
+    private List<ObjManager> objManagerList = new ArrayList<ObjManager>();
+    public ObjManagerFactory() {}
 
     private ObjManager create() throws Exception {
         ObjManager objManager = new ObjManager();
+        objManagerList.add(objManager);
         return objManager;
     }
 
@@ -54,4 +58,11 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
         return p.getObject().isValid();
     }
     
+    public void notifyChangeConfig() {
+        objManagerList.forEach(objManager -> objManager.updateConfig());
+    }
+
+    public void notifyChangeDiskpools() {
+        objManagerList.forEach(objManager -> objManager.updateDiskpools());
+    }
 }

@@ -21,12 +21,31 @@ public final class GWConstants {
 	public static final String LOG_GW_PID = "pid : {}";
 
 	public static final String S3 = "S3";
+	public static final String HTTPS = "https://";
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
 	public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
-	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksan-gw.conf";
+	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
+
+	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure";
+	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.config.s3.*";
+	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool";
+	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
+	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user";
+	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.s3.user.*";
+
+	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
+	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
+	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
+	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
+	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortal";
+	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
+	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
+	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
+
     public static final String PROPERTY_ENDPOINT = "gw.endpoint";
     public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
     public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
@@ -533,6 +552,7 @@ public final class GWConstants {
 	public static final String INITATE_MULTIPART_UPLOAD_RESULT = "InitiateMultipartUploadResult";
 	public static final String SSE_ALGORITHM = "SSEAlgorithm";
 	public static final String KMS_MASTERKEY_ID = "KMSMasterKeyID";
+	public static final String BUCKET_KEY_ENABLED = "BucketKeyEnabled";
 	public static final String OBJECT_LOCK_ENABLED = "ObjectLockEnabled";
 	public static final String DEFAULT_RETENTION = "DefaultRetention";
 	public static final String ACCESS_CONTROL_LIST = "AccessControlList";
@@ -1089,6 +1109,8 @@ public final class GWConstants {
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
 
 	// GWUtils
+	public static final String LOG_UTILS_INIT_CACHE = "init disk for cache and dir ...";
+	public static final String LOG_UTILS_INIT_DIR = "init disk for dir ...";
 	public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
 	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 	public static final String LOG_UTILS_USER_META_DATA = "user metadata ==> {} : {}";
@@ -1152,7 +1174,6 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_DESACTIVATE_SOCKET = "desactivate socket...";
 
 	// OSDClientManager
-	public static final String LOG_OSDCLIENT_MANAGER_DISKPOOLS_CONFIGURE = "configure diskpools ...";
 	public static final String LOG_OSDCLIENT_MANAGER_DISKPOOL_INFO = "disk pool id : {}, name = {}";
 	public static final String LOG_OSDCLIENT_MANAGER_SERVER_SIZE = "server size : {}";
 	public static final String LOG_OSDCLIENT_MANAGER_CLIENT_COUNT = "client count : {}";
@@ -1214,7 +1235,7 @@ public final class GWConstants {
 
 	// S3Signature
 	public static final String LOG_S3SIGNATURE_EXPIRES = "expires : {}";
-	public static final String LOG_S3SIGNATURE_DATE = "Date1 : {}";
+	public static final String LOG_S3SIGNATURE_DATE = "No Date Header : {}";
 	public static final String LOG_S3SIGNATURE_SIGN = "stringToSign: {}";
 
 	// S3Signing
