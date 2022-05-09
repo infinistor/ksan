@@ -16,9 +16,9 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 
 public interface GWDB {
     public void init(String dbUrl, String dbPort, String dbName, String userName, String passwd, int poolSize) throws GWException;
-    public void loadUser() throws GWException;
-    public S3User getIdentity(String requestIdentity, S3Parameter s3Parameter) throws GWException;
-    public S3User getIdentityByID(String userId, S3Parameter s3Parameter) throws GWException;
-    public S3User getIdentityByName(String userName, S3Parameter s3Parameter) throws GWException;
+    // public void loadUser() throws GWException;
+    // public S3User getIdentity(String requestIdentity, S3Parameter s3Parameter) throws GWException;
+    // public S3User getIdentityByID(String userId, S3Parameter s3Parameter) throws GWException;
+    // public S3User getIdentityByName(String userName, S3Parameter s3Parameter) throws GWException;
     public void putS3logging(S3Parameter s3Parameter) throws GWException;
 }

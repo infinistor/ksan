@@ -13,21 +13,24 @@ package com.pspace.ifs.ksan.gw.identity;
 import com.google.common.base.Strings;
 
 public class S3User {
-    private long userId;
+    private String userId;
     private String userName;
+    private String userEmail;
 	private String accessKey;
 	private String accessSecret;
 
     public S3User() {
-        userId = 0L;
+        userId = "";
         userName = "";
+        userEmail = "";
         accessKey = "";
         accessSecret = "";
     }
 
-    public S3User(long id, String name, String access, String secret) {
+    public S3User(String id, String name, String email, String access, String secret) {
         this.userId = id;
         this.userName = name;
+        this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
     }
@@ -38,11 +41,17 @@ public class S3User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    public long getUserId() {
+    public String getUserId() {
         return userId;
     }
-    public void setUserId(long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
+    }
+    public String getUserEmail() {
+        return Strings.nullToEmpty(userEmail);
+    }
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
     public String getAccessKey() {
         return Strings.nullToEmpty(accessKey);

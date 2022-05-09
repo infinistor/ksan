@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class MariaDB implements GWDB {
 	protected Logger logger;
-	private static Set<S3User> userSet = new HashSet<S3User>();
+	private PoolingDriver driver = null;
 
 	private MariaDB() {
         logger = LoggerFactory.getLogger(MariaDB.class);
@@ -59,6 +59,9 @@ public class MariaDB implements GWDB {
     @Override
     public void init(String dbUrl, String dbPort, String dbName, String userName, String passwd,  int poolSize) throws GWException {				
 		try {
+			if (driver != null) {
+				driver.closePool(GWConstants.CONNECTION_POOL);
+			}
 			Class.forName(GWConstants.JDBC_MARIADB_DRIVER);
 			String jdbcUrl = GWConstants.MARIADB_URL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + dbName + GWConstants.MARIADB_OPTIONS;
 			ConnectionFactory connFactory = new DriverManagerConnectionFactory(jdbcUrl, userName, passwd);
@@ -76,7 +79,7 @@ public class MariaDB implements GWDB {
 			GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnFactory, poolConfig);
 			poolableConnFactory.setPool(connectionPool);
 			Class.forName(GWConstants.DBCP2_DRIVER);
-			PoolingDriver driver = (PoolingDriver) DriverManager.getDriver(GWConstants.JDBC_DRIVER_DBCP);
+			driver = (PoolingDriver) DriverManager.getDriver(GWConstants.JDBC_DRIVER_DBCP);
 			driver.registerPool(GWConstants.CONNECTION_POOL, connectionPool);
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(GWConstants.LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER, e);
@@ -87,7 +90,7 @@ public class MariaDB implements GWDB {
 		createDB(dbName, userName, passwd);
 
 		createTable();
-		loadUser();
+		// loadUser();
     }
     
 	private void createDB(String dbname, String userName, String userPasswd) throws GWException {
@@ -96,9 +99,9 @@ public class MariaDB implements GWDB {
     }
 
     private void createTable() throws GWException {
-		String query = GWConstants.CREATE_TABLE_USERS;
-		execute(query, null, null);
-		query = GWConstants.CREATE_TABLE_S3LOGGING;
+		// String query = GWConstants.CREATE_TABLE_USERS;
+		// execute(query, null, null);
+		String query = GWConstants.CREATE_TABLE_S3LOGGING;
 		execute(query, null, null);
 	}
     
@@ -176,109 +179,109 @@ public class MariaDB implements GWDB {
 		}
     }
 
-    @Override
-    public S3User getIdentity(String requestIdentity, S3Parameter s3Parameter) throws GWException {
-		for (S3User user : userSet) {
-			if (user.getAccessKey().equals(requestIdentity)) {
-				return user;
-			}
-		}
+    // @Override
+    // public S3User getIdentity(String requestIdentity, S3Parameter s3Parameter) throws GWException {
+	// 	for (S3User user : userSet) {
+	// 		if (user.getAccessKey().equals(requestIdentity)) {
+	// 			return user;
+	// 		}
+	// 	}
 
-		S3User user = null;
+	// 	S3User user = null;
 
-		String query = GWConstants.SELECT_USERS_ACCESS_KEY;
-		List<HashMap<String, Object>> resultList = null;
-		List<Object> params = new ArrayList<Object>();
-		params.add(requestIdentity);
+	// 	String query = GWConstants.SELECT_USERS_ACCESS_KEY;
+	// 	List<HashMap<String, Object>> resultList = null;
+	// 	List<Object> params = new ArrayList<Object>();
+	// 	params.add(requestIdentity);
 
-		resultList = select(query, params, s3Parameter);
+	// 	resultList = select(query, params, s3Parameter);
 		
-		if (resultList != null) {
-			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
-			user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
-							requestIdentity, 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
-			userSet.add(user);
-		}
+	// 	if (resultList != null) {
+	// 		logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
+	// 		// user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
+	// 		// 				requestIdentity, 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
+	// 		// userSet.add(user);
+	// 	}
 
-        return user;
-    }
+    //     return user;
+    // }
 
-	@Override
-	public void loadUser() throws GWException {
-		String query = GWConstants.SELECT_USERS;
-		List<HashMap<String, Object>> resultList = null;
-		List<Object> params = new ArrayList<Object>();
+	// @Override
+	// public void loadUser() throws GWException {
+	// 	String query = GWConstants.SELECT_USERS;
+	// 	List<HashMap<String, Object>> resultList = null;
+	// 	List<Object> params = new ArrayList<Object>();
 
-		resultList = select(query, params, null);
-		if (resultList != null) {
-			for (HashMap<String, Object> result : resultList) {
-				S3User user = new S3User((long)result.get(GWConstants.USERS_TABLE_USER_ID), 
-									(String)result.get(GWConstants.USERS_TABLE_USER_NAME), 
-									(String)result.get(GWConstants.USERS_TABLE_ACCESS_KEY), 
-									(String)result.get(GWConstants.USERS_TABLE_ACCESS_SECRET));
-				userSet.add(user);
-			}
-		}
-	}
+	// 	resultList = select(query, params, null);
+	// 	if (resultList != null) {
+	// 		for (HashMap<String, Object> result : resultList) {
+	// 			// S3User user = new S3User((long)result.get(GWConstants.USERS_TABLE_USER_ID), 
+	// 			// 					(String)result.get(GWConstants.USERS_TABLE_USER_NAME), 
+	// 			// 					(String)result.get(GWConstants.USERS_TABLE_ACCESS_KEY), 
+	// 			// 					(String)result.get(GWConstants.USERS_TABLE_ACCESS_SECRET));
+	// 			// userSet.add(user);
+	// 		}
+	// 	}
+	// }
 
-	@Override
-	public S3User getIdentityByID(String userId, S3Parameter s3Parameter) throws GWException {
-		long id = Long.parseLong(userId);
-		for (S3User user : userSet) {
-			if (user.getUserId() == id) {
-				return user;
-			}
-		}
-		S3User user = null;
+	// @Override
+	// public S3User getIdentityByID(String userId, S3Parameter s3Parameter) throws GWException {
+	// 	long id = Long.parseLong(userId);
+	// 	for (S3User user : userSet) {
+	// 		// if (user.getUserId() == id) {
+	// 		// 	return user;
+	// 		// }
+	// 	}
+	// 	S3User user = null;
 
-		String query = GWConstants.SELECT_USERS_USER_ID;
-		List<HashMap<String, Object>> resultList = null;
-		List<Object> params = new ArrayList<Object>();
-		params.add(userId);
+	// 	String query = GWConstants.SELECT_USERS_USER_ID;
+	// 	List<HashMap<String, Object>> resultList = null;
+	// 	List<Object> params = new ArrayList<Object>();
+	// 	params.add(userId);
 
-		resultList = select(query, params, s3Parameter);
+	// 	resultList = select(query, params, s3Parameter);
 		
-		if (resultList != null) {
-			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
-			user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_KEY), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
-			userSet.add(user);
-		}
+	// 	if (resultList != null) {
+	// 		logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
+	// 		// user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_KEY), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
+	// 		// userSet.add(user);
+	// 	}
 
-        return user;
-	}
+    //     return user;
+	// }
 
-	@Override
-	public S3User getIdentityByName(String userName, S3Parameter s3Parameter) throws GWException {
-		for (S3User user : userSet) {
-			if (user.getUserName().equals(userName)) {
-				return user;
-			}
-		}
-		S3User user = null;
+	// @Override
+	// public S3User getIdentityByName(String userName, S3Parameter s3Parameter) throws GWException {
+	// 	for (S3User user : userSet) {
+	// 		if (user.getUserName().equals(userName)) {
+	// 			return user;
+	// 		}
+	// 	}
+	// 	S3User user = null;
 
-		String query = GWConstants.SELECT_USERS_USER_NAME;
-		List<HashMap<String, Object>> resultList = null;
-		List<Object> params = new ArrayList<Object>();
-		params.add(userName);
+	// 	String query = GWConstants.SELECT_USERS_USER_NAME;
+	// 	List<HashMap<String, Object>> resultList = null;
+	// 	List<Object> params = new ArrayList<Object>();
+	// 	params.add(userName);
 
-		resultList = select(query, params, s3Parameter);
+	// 	resultList = select(query, params, s3Parameter);
 		
-		if (resultList != null) {
-			logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
-			user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_KEY), 
-							(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
-			userSet.add(user);
-		}
+	// 	if (resultList != null) {
+	// 		logger.info(GWConstants.RESULT, resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID));
+	// 		// user = new S3User((long)resultList.get(0).get(GWConstants.USERS_TABLE_USER_ID), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_USER_NAME), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_KEY), 
+	// 		// 				(String)resultList.get(0).get(GWConstants.USERS_TABLE_ACCESS_SECRET));
+	// 		// userSet.add(user);
+	// 	}
 
-        return user;
-	}
+    //     return user;
+	// }
 
 	@Override
 	public void putS3logging(S3Parameter s3Parameter) throws GWException {
