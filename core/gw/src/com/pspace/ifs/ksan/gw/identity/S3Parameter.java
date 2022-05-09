@@ -57,6 +57,7 @@ public class S3Parameter {
     private long requestSize;
     private long responseSize;
     private String signVersion;
+    private String uri;
 
     public S3Parameter() {
         request = null;
@@ -81,6 +82,7 @@ public class S3Parameter {
         statusCode = 0;
         requestSize = 0L;
         responseSize = 0L;
+        uri = "";
     }
 
     public HttpServletRequest getRequest() {
@@ -401,5 +403,13 @@ public class S3Parameter {
 
     public void setSignVersion(String signVersion) {
         this.signVersion = signVersion;
+    }
+
+    public String getURI() {
+        return uri;
+    }
+
+    public void setURI(String uri) {
+        this.uri = uri;
     }
 }

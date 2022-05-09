@@ -41,8 +41,10 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.Portal;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
@@ -138,7 +140,9 @@ public class S3Signing {
 		if (bucketInfo == null) {
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
-		S3User user = GWUtils.getDBInstance().getIdentityByID(bucketInfo.getUserId(), s3Parameter);
+
+		// S3User user = GWUtils.getDBInstance().getIdentityByID(bucketInfo.getUserId(), s3Parameter);
+		S3User user = S3UserManager.getInstance().getUserById(bucketInfo.getUserId());
 		if (user == null) {
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
@@ -177,7 +181,7 @@ public class S3Signing {
 			haveBothDateHeader = true;
 		}
 		
-		String uri = s3Parameter.getRequest().getRequestURI();
+		String uri = s3Parameter.getURI();
 		String hostHeader = s3Parameter.getRequest().getHeader(HttpHeaders.HOST);
 		boolean headernull = false;
 		
@@ -245,10 +249,22 @@ public class S3Signing {
 		}
 
 		String preuri = uriReconstructer(uri, hostHeader, Optional.fromNullable(null));
-		S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
+		// S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
+		S3User user = S3UserManager.getInstance().getUserByKey(requestIdentity);
 		if (user == null) {
-			logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+			String userId = S3UserManager.getInstance().findUserIdWithAccessKey(requestIdentity);
+			if (userId == null) {
+				logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+				throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+			} else {
+				user = Portal.getInstance().getS3User(userId);
+				if (user == null) {
+					logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+					throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+				} else {
+					S3UserManager.getInstance().addUser(user);
+				}
+			}
 		}
 
 		logger.info(GWConstants.LOG_S3SIGNING_USER, user.getUserName());
@@ -509,10 +525,26 @@ public class S3Signing {
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
 		
-		S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
+		// S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
+		// if (user == null) {
+		// 	logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+		// 	throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+		// }
+		S3User user = S3UserManager.getInstance().getUserByKey(requestIdentity);
 		if (user == null) {
-			logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
-			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+			String userId = S3UserManager.getInstance().findUserIdWithAccessKey(requestIdentity);
+			if (userId == null) {
+				logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+				throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+			} else {
+				user = Portal.getInstance().getS3User(userId);
+				if (user == null) {
+					logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
+					throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
+				} else {
+					S3UserManager.getInstance().addUser(user);
+				}
+			}
 		}
 
 		// Entry<String, S3User> provider = s3Parameter.locator.locateIdentity(requestIdentity);

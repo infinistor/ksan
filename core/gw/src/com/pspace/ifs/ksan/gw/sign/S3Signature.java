@@ -51,18 +51,11 @@ final public class S3Signature {
     
     private final Set<String> SIGNED_SUBRESOURCES = ImmutableSet.of(
             GWConstants.PARAMETER_ACL,
-            GWConstants.PARAMETER_DELETE,
             GWConstants.PARAMETER_LIFECYCLE,
             GWConstants.PARAMETER_LOCATION,
             GWConstants.PARAMETER_LOGGING,
-            GWConstants.PARAMETER_NOTIFICATION,
-            GWConstants.PARAMETER_OBJECT_LOCK,
-            GWConstants.PARAMETER_RETENTION,
-            GWConstants.PARAMETER_LEGAL_HOLD,
-            GWConstants.PARAMETER_ENCRYPTION,
             GWConstants.PART_NUMBER,
             GWConstants.PARAMETER_POLICY,
-            GWConstants.PARAMETER_POLICY_STATUS,
             GWConstants.PARAMETER_REQUEST_PAYMENT,
             GWConstants.RESPONSE_CACHE_CONTROL,
             GWConstants.RESPONSE_CONTENT_DISPOSITION,
@@ -79,7 +72,8 @@ final public class S3Signature {
             GWConstants.PARAMETER_WEBSITE,
             GWConstants.PARAMETER_CORS,
             GWConstants.PARAMETER_TAGGING,
-            GWConstants.PARAMETER_REPLICATION
+            GWConstants.PARAMETER_REPLICATION,
+            GWConstants.PARAMETER_DELETE
     );
 
     S3Signature() { 
@@ -311,6 +305,18 @@ final public class S3Signature {
                 method = corsMethod;
             }
         }
+
+        logger.info("pre  : " + uri);
+        uri = uri.replaceAll("\\$", "%24");
+        uri = uri.replaceAll("'", "%27");
+        uri = uri.replaceAll("!", "%21");
+        uri = uri.replaceAll("\\(", "%28");
+        uri = uri.replaceAll("\\)", "%29");
+        uri = uri.replaceAll("\\*", "%2A");
+        uri = uri.replaceAll(":", "%3A");
+        uri = uri.replaceAll("\\[", "%5B");
+        uri = uri.replaceAll("\\]", "%5D");
+        logger.info("post : " + uri);
         
         String canonicalRequest = "";
         if(digest == null) {
@@ -329,6 +335,8 @@ final public class S3Signature {
                     Joiner.on(GWConstants.CHAR_SEMICOLON).join(signedHeaders),
                     digest);
         }
+
+        logger.info(canonicalRequest);
        
         return getMessageDigest(
                 canonicalRequest.getBytes(StandardCharsets.UTF_8),

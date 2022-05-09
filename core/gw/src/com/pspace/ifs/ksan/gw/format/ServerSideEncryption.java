@@ -38,6 +38,10 @@ public final class ServerSideEncryption {
 			public
 			String KMSMasterKeyID;
 		}
+
+		@JacksonXmlProperty(localName = GWConstants.OBJECT_LOCK_ENABLED)
+		public
+		String BucketKeyEnabled;
 	}
 }
 //CHECKSTYLE:ON
