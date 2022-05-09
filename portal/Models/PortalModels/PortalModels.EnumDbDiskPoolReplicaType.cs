@@ -14,8 +14,8 @@ namespace PortalModels
 	/// <summary> 디스크풀 복제 설정 </summary>
 	public enum EnumDbDiskPoolReplicaType : int
 	{
-		OnePulsZero = 1,
-		OnePulsOne,
-		OnePulsTwo
+		OnePlusZero = 1,
+		OnePlusOne,
+		OnePlusTwo
 	}
 }

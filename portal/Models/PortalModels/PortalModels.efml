@@ -108,9 +108,9 @@
 			<Documentation>
 				<Summary>디스크풀 복제 설정</Summary>
 			</Documentation>
-			<Member Name="OnePulsZero" Value="1" p1:Guid="bcb76aed-20b4-4fea-b412-5a7a04f7a6cf" />
-			<Member Name="OnePulsOne" p1:Guid="1d298d1d-45ae-4a42-be53-d51c554244d1" />
-			<Member Name="OnePulsTwo" p1:Guid="3442acff-12a7-4fed-8d29-47587931d509" />
+			<Member Name="OnePlusZero" Value="1" p1:Guid="bcb76aed-20b4-4fea-b412-5a7a04f7a6cf" />
+			<Member Name="OnePlusOne" p1:Guid="1d298d1d-45ae-4a42-be53-d51c554244d1" />
+			<Member Name="OnePlusTwo" p1:Guid="3442acff-12a7-4fed-8d29-47587931d509" />
 		</EnumType>
 	</class>
 	<class name="NetworkInterface" entity-set="NetworkInterfaces" p1:Guid="01514607-0e35-415a-9894-ccc4e0c2a488">

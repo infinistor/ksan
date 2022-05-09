@@ -21,12 +21,12 @@ namespace PortalData.Enums
 	{
 		/// <summary> 1+0 </summary>
 		[Display(Name = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ZERO", Description = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ZERO", GroupName = "UL_DISKPOOL_REPLICA_TYPE", ShortName = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ZERO", Prompt = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ZERO", ResourceType = typeof(Resource))]
-		OnePulsZero = 1,
+		OnePlusZero = 1,
 		/// <summary> 1+1 </summary>
 		[Display(Name = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ONE", Description = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ONE", GroupName = "UL_DISKPOOL_REPLICA_TYPE", ShortName = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ONE", Prompt = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ONE", ResourceType = typeof(Resource))]
-		OnePulsOne,
+		OnePlusOne,
 		/// <summary> 1+2 </summary>
 		[Display(Name = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", Description = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", GroupName = "UL_DISKPOOL_REPLICA_TYPE", ShortName = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", Prompt = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", ResourceType = typeof(Resource))]
-		OnePulsTwo
+		OnePlusTwo
 	}
 }
