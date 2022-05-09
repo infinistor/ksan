@@ -158,7 +158,9 @@ namespace PortalProvider.Providers.Disks
 						result.Data = (await this.Get(serverId, newData.Id.ToString())).Data;
 
 						// 추가된 디스크 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.added", result.Data);
+						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.added", result.Data);
+						// 디스크풀에 추가된 디스크일 경우 추가된 디스크 정보 전송
+						if (newData.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", result.Data);
 					}
 					catch (Exception ex)
 					{
@@ -276,8 +278,11 @@ namespace PortalProvider.Providers.Disks
 						// 상세 정보를 가져온다.
 						ResponseDiskWithServices response = (await this.Get(serverId, id)).Data;
 
-						// 수정된 디스크 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.updated", response);
+						// // 수정된 디스크 정보 전송
+						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.updated", response);
+
+						// 디스크풀에 추가된 디스크일 경우 수정된 디스크 정보 전송
+						if (exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", response);
 					}
 					catch (Exception ex)
 					{
@@ -346,15 +351,11 @@ namespace PortalProvider.Providers.Disks
 
 						result.Result = EnumResponseResult.Success;
 
-						// 디스크 상태 수정 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", new
-						{
-							exist.Id,
-							exist.ServerId,
-							exist.DiskPoolId,
-							exist.DiskNo,
-							State = (EnumDiskState)exist.State
-						});
+						// // 디스크 상태 수정 전송
+						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", new { exist.Id, exist.ServerId, exist.DiskPoolId, exist.DiskNo, State = (EnumDiskState)exist.State});
+
+						// 디스크풀에 추가된 디스크일 경우 디스크 상태 수정 전송
+						if (exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new { exist.Id, exist.ServerId, exist.DiskPoolId, exist.DiskNo, State = (EnumDiskState)exist.State});
 					}
 					catch (Exception ex)
 					{
@@ -596,8 +597,11 @@ namespace PortalProvider.Providers.Disks
 
 						result.Result = EnumResponseResult.Success;
 
-						// 수정된 R/W 모드 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(exist));
+						// // 수정된 R/W 모드 정보 전송
+						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(exist));
+						
+						// 디스크풀에 추가된 디스크일 경우 수정된 R/W 모드 정보 전송
+						if (exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new ResponseDiskRwMode().CopyValueFrom(exist));
 					}
 					catch (Exception ex)
 					{
@@ -719,8 +723,11 @@ namespace PortalProvider.Providers.Disks
 
 						result.Result = EnumResponseResult.Success;
 
-						// 삭제된 디스크 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.removed", new ResponseDisk().CopyValueFrom(exist));
+						// // 삭제된 디스크 정보 전송
+						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.removed", new ResponseDisk().CopyValueFrom(exist));
+
+						// 디스크풀에 추가된 디스크일 경우 삭제된 디스크 정보 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new ResponseDisk().CopyValueFrom(exist));
 					}
 					catch (Exception ex)
 					{
