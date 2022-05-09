@@ -167,33 +167,45 @@ namespace PortalProvider.Providers.Services
 
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
-					// LastVersion을 모두 false 로 변경한다
-					var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)request.Type).CreateListAsync();
-					foreach (var Item in Items.Items) Item.LastVersion = false;
-
-					// 정보를 생성한다.
-					var newData = new ServiceConfig()
+					try
 					{
-						Type = (EnumDbServiceType)request.Type,
-						Config = request.Config,
-						RegDate = DateTime.Now
-					};
+						// LastVersion을 모두 false 로 변경한다
+						var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)request.Type).CreateListAsync();
+						foreach (var Item in Items.Items) Item.LastVersion = false;
 
-					// 저장
-					await m_dbContext.ServiceConfigs.AddAsync(newData);
-					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-					await transaction.CommitAsync();
+						// 정보를 생성한다.
+						var newData = new ServiceConfig()
+						{
+							Type = (EnumDbServiceType)request.Type,
+							Config = request.Config,
+							RegDate = DateTime.Now
+						};
 
-					// 최신 버전 번호를 가져온다.
-					Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
-					.Where(i => i.Type == (EnumDbServiceType)request.Type && i.LastVersion == true)
-					.OrderByDescending(i => i.Version)
-					.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+						// 저장
+						await m_dbContext.ServiceConfigs.AddAsync(newData);
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						await transaction.CommitAsync();
 
-					// Config 변경 알림
-					SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{request.Type.ToString().ToLower()}.update", Result.Data);
+						// 최신 버전 번호를 가져온다.
+						Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+						.Where(i => i.Type == (EnumDbServiceType)request.Type && i.LastVersion == true)
+						.OrderByDescending(i => i.Version)
+						.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
 
-					Result.Result = EnumResponseResult.Success;
+						// Config 변경 알림
+						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{request.Type.ToString().ToLower()}.update", Result.Data);
+
+						Result.Result = EnumResponseResult.Success;
+					}
+					catch (Exception ex)
+					{
+						transaction.Rollback();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
 				}
 
 			}
@@ -220,33 +232,45 @@ namespace PortalProvider.Providers.Services
 			{
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
-
-					var IsChange = false;
-					// 특정 버전을 제외한 나머지 버전을 이전버전으로 변경
-					var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)ServiceType).CreateListAsync();
-					foreach (var Item in Items.Items)
+					try
 					{
-						if (Version == Item.Version) { Item.LastVersion = true; IsChange = true; }
-						else Item.LastVersion = false;
-					}
 
-					if (IsChange)
+						var IsChange = false;
+						// 특정 버전을 제외한 나머지 버전을 이전버전으로 변경
+						var Items = await m_dbContext.ServiceConfigs.Where(i => i.Type == (EnumDbServiceType)ServiceType).CreateListAsync();
+						foreach (var Item in Items.Items)
+						{
+							if (Version == Item.Version) { Item.LastVersion = true; IsChange = true; }
+							else Item.LastVersion = false;
+						}
+
+						if (IsChange)
+						{
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+							await transaction.CommitAsync();
+							Result.Result = EnumResponseResult.Success;
+
+							// 최신 버전 번호를 가져온다.
+							Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+							.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
+							.OrderByDescending(i => i.Version)
+							.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+
+							// Config 변경 알림
+							SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", Result.Data);
+						}
+						else
+							Result.Result = EnumResponseResult.Error;
+					}
+					catch (Exception ex)
 					{
-						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await transaction.CommitAsync();
-						Result.Result = EnumResponseResult.Success;
+						transaction.Rollback();
 
-						// 최신 버전 번호를 가져온다.
-						Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
-						.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
-						.OrderByDescending(i => i.Version)
-						.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+						NNException.Log(ex);
 
-						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", Result.Data);
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
-					else
-						Result.Result = EnumResponseResult.Error;
 				}
 
 			}
@@ -281,34 +305,46 @@ namespace PortalProvider.Providers.Services
 
 				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
-					var LastVersion = exist.LastVersion;
-
-					// 해당 데이터 삭제
-					m_dbContext.ServiceConfigs.Remove(exist);
-					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-					// 해당 데이터가 최신 버전이었을 경우 이전버전중 가장 마지막 버전을 최신 버전으로 변경한다.
-					if (LastVersion)
+					try
 					{
-						var Item = await m_dbContext.ServiceConfigs.OrderByDescending(i => i.Version).FirstOrDefaultAsync(i => i.Type == (EnumDbServiceType)ServiceType);
-						Item.LastVersion = true;
+						var LastVersion = exist.LastVersion;
+
+						// 해당 데이터 삭제
+						m_dbContext.ServiceConfigs.Remove(exist);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						// 해당 데이터가 최신 버전이었을 경우 이전버전중 가장 마지막 버전을 최신 버전으로 변경한다.
+						if (LastVersion)
+						{
+							var Item = await m_dbContext.ServiceConfigs.OrderByDescending(i => i.Version).FirstOrDefaultAsync(i => i.Type == (EnumDbServiceType)ServiceType);
+							Item.LastVersion = true;
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						}
+						// 저장
+						await transaction.CommitAsync();
+						Result.Result = EnumResponseResult.Success;
+
+						// 해당 데이터가 마지막 버전이었을 경우 Config 변경 알림을 전송한다.
+						if (LastVersion)
+						{
+							// 최신 버전 번호를 가져온다.
+							var Update = await m_dbContext.ServiceConfigs.AsNoTracking()
+							.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
+							.OrderByDescending(i => i.Version)
+							.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+
+							// Config 변경 알림
+							SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", Update);
+						}
 					}
-					// 저장
-					await transaction.CommitAsync();
-					Result.Result = EnumResponseResult.Success;
-
-					// 해당 데이터가 마지막 버전이었을 경우 Config 변경 알림을 전송한다.
-					if (LastVersion)
+					catch (Exception ex)
 					{
-						// 최신 버전 번호를 가져온다.
-						var Update = await m_dbContext.ServiceConfigs.AsNoTracking()
-						.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
-						.OrderByDescending(i => i.Version)
-						.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
+						transaction.Rollback();
 
-						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", Update);
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 
