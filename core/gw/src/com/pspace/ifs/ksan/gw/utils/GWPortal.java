@@ -125,7 +125,7 @@ public class GWPortal {
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_CONFIG, GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_CONFIG_ROUTING_KEY, configureCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_CONFIG + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_CONFIG_ROUTING_KEY, configureCB);
 			mq1ton.addCallback(configureCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
@@ -133,7 +133,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_DISKPOOL, GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY, diskpoolsCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_DISKPOOL + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY, diskpoolsCB);
 			mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
@@ -141,7 +141,7 @@ public class GWPortal {
 
 		try {
 			MQCallback userCB = new UserUpdateCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_USER, GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_USER_ROUTING_KEY, userCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_USER + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_USER_ROUTING_KEY, userCB);
 			mq1ton.addCallback(userCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
