@@ -23,6 +23,9 @@ import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
 import com.pspace.ifs.ksan.gw.utils.ObjectManagerConfig;
+import com.pspace.ifs.ksan.gw.utils.disk.Disk;
+import com.pspace.ifs.ksan.gw.utils.disk.DiskPool;
+import com.pspace.ifs.ksan.gw.utils.disk.Server;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
