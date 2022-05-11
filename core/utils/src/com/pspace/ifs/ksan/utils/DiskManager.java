@@ -8,17 +8,16 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.utils;
-
+package com.pspace.ifs.ksan.utils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.pspace.ifs.ksan.gw.utils.disk.Disk;
-import com.pspace.ifs.ksan.gw.utils.disk.DiskPool;
-import com.pspace.ifs.ksan.gw.utils.disk.Server;
+import com.pspace.ifs.ksan.utils.disk.Disk;
+import com.pspace.ifs.ksan.utils.disk.DiskPool;
+import com.pspace.ifs.ksan.utils.disk.Server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ public class DiskManager {
     }
 
     private DiskManager() {
-        localHost = GWUtils.getLocalIP();
+        localHost = KsanUtils.getLocalIP();
         diskPoolList = new ArrayList<DiskPool>();
     }
 
@@ -54,8 +53,26 @@ public class DiskManager {
         }
     }
 
+    public HashMap<String, String> getLocalDiskInfo() {
+        return localDiskInfoMap;
+    }
+
     public String getLocalPath(String diskID) {
         return localDiskInfoMap.get(diskID);
+    }
+
+    public String getPath(String diskID) {
+        for (DiskPool pool : diskPoolList) {
+            for (Server server : diskPoolList.get(0).getServerList()) {
+                for (Disk disk : server.getDiskList()) {
+                    if (diskID.equals(disk.getId())) {
+                        return disk.getPath();
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     public String getOSDIP(String diskID) {

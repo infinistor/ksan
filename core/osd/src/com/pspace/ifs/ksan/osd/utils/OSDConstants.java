@@ -9,11 +9,13 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 
-package com.pspace.ifs.ksan.osd;
+package com.pspace.ifs.ksan.osd.utils;
 
 public final class OSDConstants {
+    public static final String HTTPS = "https://";
     public static final String CHARSET_UTF_8 = "UTF-8";
-    public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksan-osd.conf";
+    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
+    public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanOsd.conf";
     public static final String PID_PATH = "/var/run/ksanOsd.pid";
     public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
     public static final String POOL_SIZE = "pool_size";
@@ -56,20 +58,20 @@ public final class OSDConstants {
     public static final long ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     public static final int INDICATOR_SIZE = 2;
-    public static final String STOP = "ST";
-    public static final String GET = "GE";
-    public static final String PUT = "PU";
-    public static final String DELETE = "DE";
-    public static final String DELETE_REPLICA = "DR";
-    public static final String COPY = "CO";
-    public static final String PART = "PA";
-    public static final String PART_COPY = "PC";
-    public static final String COMPLETE_MULTIPART = "CM";
-    public static final String ABORT_MULTIPART = "AB";
-    public static final String GET_PART = "GP";
-    public static final String DELETE_PART = "DP";
+    // public static final String STOP = "ST";
+    // public static final String GET = "GE";
+    // public static final String PUT = "PU";
+    // public static final String DELETE = "DE";
+    // public static final String DELETE_REPLICA = "DR";
+    // public static final String COPY = "CO";
+    // public static final String PART = "PA";
+    // public static final String PART_COPY = "PC";
+    // public static final String COMPLETE_MULTIPART = "CM";
+    // public static final String ABORT_MULTIPART = "AB";
+    // public static final String GET_PART = "GP";
+    // public static final String DELETE_PART = "DP";
 
-    public static final String FILE = "FILE";
+    // public static final String FILE = "FILE";
 
     public static final int PATH_INDEX = 1;
     public static final int OBJID_INDEX = 2;
@@ -110,10 +112,10 @@ public final class OSDConstants {
     public static final char CHAR_SLASH = '/';
     public static final String SLASH = "/";
     public static final String UNDERSCORE = "_";
-    public static final String DELIMITER = ":";
     public static final String COMMA = ",";
     public static final String POINT = ".";
     public static final String SPACE = " ";
+    public static final String COLON = ":";
     public static final String MD5 = "MD5";
 
     public static final String JVM = "jvm";
@@ -121,6 +123,25 @@ public final class OSDConstants {
 
     public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
 	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
+
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_NAME_OSD_CONFIG = "ksan-osd-configure";
+	public static final String MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY = "*.services.config.osd.*";
+	public static final String MQUEUE_NAME_OSD_DISKPOOL = "ksan-osd-diskpool";
+	public static final String MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
+    public static final String PORTAL_REST_API_CONFIG_OSD = "/api/v1/Config/Osd";
+	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
+
+    // MonConfig
+	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
+	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
+	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
+    public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
+	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortal";
+	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
+	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
+	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
 
     // DISKPOOLLIST
     public static final String DISKPOOLLIST = "DISKPOOLLIST";

@@ -14,6 +14,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 
+import com.pspace.ifs.ksan.osd.utils.OSDConfig;
+import com.pspace.ifs.ksan.osd.utils.OSDConstants;
+import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +28,7 @@ public class DoMoveCacheToDisk implements Runnable {
     public void run() {
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
         while (true) {
-            recursiveMove(OSDUtils.getInstance().getCacheDisk());
+            recursiveMove(OSDConfig.getInstance().getCacheDisk());
 
             try {
                 Thread.sleep(1000 * 60);
@@ -60,7 +64,7 @@ public class DoMoveCacheToDisk implements Runnable {
             } else if (files[i].isFile()) {
                 long diff = (now - files[i].lastModified()) / OSDConstants.ONE_MINUTE_MILLISECONDS;
 
-                if (diff >= OSDUtils.getInstance().getCacheLimitMinutes()) {
+                if (diff >= OSDConfig.getInstance().getCacheLimitMinutes()) {
                     move(files[i]);
                 }
             }
@@ -68,7 +72,7 @@ public class DoMoveCacheToDisk implements Runnable {
     }
 
     private void move(File file) {
-        String targetPath = file.getAbsolutePath().substring(OSDUtils.getInstance().getCacheDisk().length());
+        String targetPath = file.getAbsolutePath().substring(OSDConfig.getInstance().getCacheDisk().length());
 
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH, targetPath);
         File target = new File(targetPath);

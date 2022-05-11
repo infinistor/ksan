@@ -11,34 +11,45 @@
 package com.pspace.ifs.ksan.osd;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
+import com.pspace.ifs.ksan.osd.utils.OSDConfig;
+import com.pspace.ifs.ksan.osd.utils.OSDConstants;
+import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.KsanUtils;
 
 public class DoEmptyTrash implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);
-    private static DISKPOOLLIST diskpoolList;
 
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
-        diskpoolList = OSDUtils.getInstance().getDiskPoolList();
-
-        if (OSDUtils.getInstance().getCacheDisk() != null) {
-            recursiveEmptyCache(OSDUtils.getInstance().getCacheDisk());
+        
+        if (OSDConfig.getInstance().getCacheDisk() != null) {
+            recursiveEmptyCache(OSDConfig.getInstance().getCacheDisk());
         }
 
-        for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-            if (OSDUtils.getInstance().getLocalIP().equals(server.getIp())) {
-                for (DISK disk : server.getDisks()) {
-                    String trashDir = disk.getPath() + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
-                    empty(trashDir);
-                }
-            }
-        }
+        logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, KsanUtils.getLocalIP());
+        HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
+        diskInfoMap.forEach((diskId, diskPath) -> {
+            String trashDir = diskPath + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
+            empty(trashDir);
+        });
+        
+        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
+        //     if (OSDUtils.getInstance().getLocalIP().equals(server.getIp())) {
+        //         for (DISK disk : server.getDisks()) {
+        //             String trashDir = disk.getPath() + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
+        //             empty(trashDir);
+        //         }
+        //     }
+        // }
     }
 
     private void recursiveEmptyCache(String dirPath) {

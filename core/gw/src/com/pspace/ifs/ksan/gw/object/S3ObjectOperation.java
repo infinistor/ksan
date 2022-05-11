@@ -45,15 +45,15 @@ import com.pspace.ifs.ksan.gw.object.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClient;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
-import com.pspace.ifs.ksan.gw.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.osd.OSDData;
+import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.data.OsdData;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -1608,7 +1608,7 @@ public class S3ObjectOperation {
         OSDClient client = null;
         String srcKey = srcEncryption.getCustomerKey();
         long actualSize = 0L;
-        OSDData osdData = new OSDData();
+        OsdData osdData = new OsdData();
         CtrCryptoOutputStream encryptOS = null;
         OutputStream outputStream = null;
 
@@ -1692,8 +1692,8 @@ public class S3ObjectOperation {
         return s3Object;
     }
 
-    private OSDData uploadPartCopyLocal(OutputStream outputStream, String path, String objId, String sourceRange, String key) throws IOException, GWException, InvalidKeyException, NoSuchAlgorithmException {
-        OSDData osdData = new OSDData();
+    private OsdData uploadPartCopyLocal(OutputStream outputStream, String path, String objId, String sourceRange, String key) throws IOException, GWException, InvalidKeyException, NoSuchAlgorithmException {
+        OsdData osdData = new OsdData();
         MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
         File ecFile = new File(makeECPath(path, objId, versionId));

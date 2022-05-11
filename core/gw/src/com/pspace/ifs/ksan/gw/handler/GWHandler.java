@@ -38,7 +38,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 
 import org.apache.http.HttpHeaders;
 import org.eclipse.jetty.server.Request;

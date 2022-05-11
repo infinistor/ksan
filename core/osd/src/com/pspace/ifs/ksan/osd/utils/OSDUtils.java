@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.osd;
+package com.pspace.ifs.ksan.osd.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +32,6 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -54,101 +52,70 @@ public class OSDUtils {
     }
 
     private OSDUtils() {
-        String path = System.getProperty("configure");
-        if (path == null) {
-            path = OSDConstants.CONFIG_PATH;
-        }
-        config = new OSDConfig(path);
-        try {
-            config.configure();
-        } catch (URISyntaxException e) {
-            logger.error(e.getMessage());
-            System.exit(-1);
-        }
     }
 
-    public int getPoolSize() {
-        return Integer.parseInt(config.getPoolSize());
-    }
+    // public int getPoolSize() {
+    //     return Integer.parseInt(config.getPoolSize());
+    // }
 
-    public int getPort() {
-        return Integer.parseInt(config.getPort());
-    }
+    // public int getPort() {
+    //     return Integer.parseInt(config.getPort());
+    // }
 
-    public long getECFileSize() {
-        return Long.parseLong(config.getECFileSize());
-    }
+    // public long getECFileSize() {
+    //     return Long.parseLong(config.getECFileSize());
+    // }
 
-    public int getECScheduleMinutes() {
-        return Integer.parseInt(config.getECScheduleMinutes());
-    }
+    // public int getECScheduleMinutes() {
+    //     return Integer.parseInt(config.getECScheduleMinutes());
+    // }
 
-    public int getECApplyMinutes() {
-        return Integer.parseInt(config.getECApplyMinutes());
-    }
+    // public int getECApplyMinutes() {
+    //     return Integer.parseInt(config.getECApplyMinutes());
+    // }
 
-    public String getCacheDisk() {
-        return config.getCacheDisk();
-    }
+    // public String getCacheDisk() {
+    //     return config.getCacheDisk();
+    // }
 
-    public int getCacheScheduleMinutes() {
-        return Integer.parseInt(config.getCacheScheduleMinutes());
-    }
-    public long getCacheFileSize() {
-        return Long.parseLong(config.getCacheFileSize());
-    }
+    // public int getCacheScheduleMinutes() {
+    //     return Integer.parseInt(config.getCacheScheduleMinutes());
+    // }
+    // public long getCacheFileSize() {
+    //     return Long.parseLong(config.getCacheFileSize());
+    // }
 
-    public int getCacheLimitMinutes() {
-        return Integer.parseInt(config.getCacheLimitMinutes());
-    }
+    // public int getCacheLimitMinutes() {
+    //     return Integer.parseInt(config.getCacheLimitMinutes());
+    // }
 
-    public int getTrashScheduleMinutes() {
-        return Integer.parseInt(config.getTrashScheduleMinutes());
-    }
+    // public int getTrashScheduleMinutes() {
+    //     return Integer.parseInt(config.getTrashScheduleMinutes());
+    // }
 
-    public void writePID() {
-        File file = new File(OSDConstants.PID_PATH);
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            FileWriter fw = new FileWriter(file);
+    // public String getOSDIP(DISKPOOLLIST diskPoolList, String diskID) {
+    //     for (SERVER server : diskPoolList.getDiskpool().getServers()) {
+    //         for (DISK disk : server.getDisks()) {
+    //             if (disk.getId().equals(diskID)) {
+    //                 return server.getIp();
+    //             }
+    //         }
+    //     }
 
-			Long pid = ProcessHandle.current().pid();
+    //     return null;
+    // }
 
-            logger.debug(OSDConstants.LOG_OSD_SERVER_PID, pid);
-            fw.write(String.valueOf(pid));
-            fw.flush();
-            fw.close();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            System.exit(-1);
-        }
-    }
+    // public String getPath(DISKPOOLLIST diskPoolList, String diskID) {
+    //     for (SERVER server : diskPoolList.getDiskpool().getServers()) {
+    //         for (DISK disk : server.getDisks()) {
+    //             if (disk.getId().equals(diskID)) {
+    //                 return disk.getPath();
+    //             }
+    //         }
+    //     }
 
-    public String getOSDIP(DISKPOOLLIST diskPoolList, String diskID) {
-        for (SERVER server : diskPoolList.getDiskpool().getServers()) {
-            for (DISK disk : server.getDisks()) {
-                if (disk.getId().equals(diskID)) {
-                    return server.getIp();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public String getPath(DISKPOOLLIST diskPoolList, String diskID) {
-        for (SERVER server : diskPoolList.getDiskpool().getServers()) {
-            for (DISK disk : server.getDisks()) {
-                if (disk.getId().equals(diskID)) {
-                    return disk.getPath();
-                }
-            }
-        }
-
-        return null;
-    }
+    //     return null;
+    // }
 
     private String makeDirectoryName(String objId) {
         byte[] path = new byte[6];
@@ -188,7 +155,7 @@ public class OSDUtils {
     }
 
     public String makeCachePath(String path) {
-        String fullPath = getCacheDisk() + path;
+        String fullPath = OSDConfig.getInstance().getCacheDisk() + path;
         return fullPath;
     }
 
@@ -207,30 +174,30 @@ public class OSDUtils {
         return fullPath;
     }
 
-    public DISKPOOLLIST getDiskPoolList() {
-        DISKPOOLLIST diskpoolList = null;
-        try {
-            // logger.debug(OSDConstants.LOG_OSD_SERVER_CONFIGURE_DISPOOLS);
-			XmlMapper xmlMapper = new XmlMapper();
-			InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
-			byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-			try {
-				is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-			}
-			String xml = new String(buffer);
+    // public DISKPOOLLIST getDiskPoolList() {
+    //     DISKPOOLLIST diskpoolList = null;
+    //     try {
+    //         // logger.debug(OSDConstants.LOG_OSD_SERVER_CONFIGURE_DISPOOLS);
+	// 		XmlMapper xmlMapper = new XmlMapper();
+	// 		InputStream is = new FileInputStream(OSDConstants.DISKPOOL_CONF_PATH);
+	// 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+	// 		try {
+	// 			is.read(buffer, 0, OSDConstants.MAXBUFSIZE);
+	// 		} catch (IOException e) {
+	// 			logger.error(e.getMessage());
+	// 		}
+	// 		String xml = new String(buffer);
 			
-			// logger.debug(xml);
-			diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
-			// logger.debug(OSDConstants.LOG_OSD_SERVER_DISK_POOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
-			// logger.debug(OSDConstants.LOG_OSD_SERVER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
-		} catch (JsonProcessingException | FileNotFoundException e) {
-			logger.error(e.getMessage());
-		}
+	// 		// logger.debug(xml);
+	// 		diskpoolList = xmlMapper.readValue(xml, DISKPOOLLIST.class);
+	// 		// logger.debug(OSDConstants.LOG_OSD_SERVER_DISK_POOL_INFO, diskpoolList.getDiskpool().getId(), diskpoolList.getDiskpool().getName());
+	// 		// logger.debug(OSDConstants.LOG_OSD_SERVER_SERVER_SIZE, diskpoolList.getDiskpool().getServers().size());
+	// 	} catch (JsonProcessingException | FileNotFoundException e) {
+	// 		logger.error(e.getMessage());
+	// 	}
 
-        return diskpoolList;
-    }
+    //     return diskpoolList;
+    // }
 
     // public void setAttributeFileReplication(File file, String value, String replicaDiskID) {
     //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
@@ -281,20 +248,20 @@ public class OSDUtils {
         return Charset.defaultCharset().decode(buf).toString();
     }
 
-    public String getLocalIP() {
-		if (!Strings.isNullOrEmpty(localIP)) {
-			return localIP;
-		} else {
-			InetAddress local = null;
-			try {
-				local = InetAddress.getLocalHost();
-				localIP = local.getHostAddress();
-			} catch (UnknownHostException e) {
-				logger.error(e.getMessage());
-			}
-			return localIP;
-		}
-	}
+    // public String getLocalIP() {
+	// 	if (!Strings.isNullOrEmpty(localIP)) {
+	// 		return localIP;
+	// 	} else {
+	// 		InetAddress local = null;
+	// 		try {
+	// 			local = InetAddress.getLocalHost();
+	// 			localIP = local.getHostAddress();
+	// 		} catch (UnknownHostException e) {
+	// 			logger.error(e.getMessage());
+	// 		}
+	// 		return localIP;
+	// 	}
+	// }
 
     public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };

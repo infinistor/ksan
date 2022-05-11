@@ -16,7 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Metadata;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

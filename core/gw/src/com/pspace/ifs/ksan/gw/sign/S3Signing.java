@@ -40,11 +40,11 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.Portal;
+import com.pspace.ifs.ksan.gw.utils.GWPortal;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
@@ -257,7 +257,7 @@ public class S3Signing {
 				logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
 				throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 			} else {
-				user = Portal.getInstance().getS3User(userId);
+				user = GWPortal.getInstance().getS3User(userId);
 				if (user == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
 					throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
@@ -537,7 +537,7 @@ public class S3Signing {
 				logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
 				throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 			} else {
-				user = Portal.getInstance().getS3User(userId);
+				user = GWPortal.getInstance().getS3User(userId);
 				if (user == null) {
 					logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
 					throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);

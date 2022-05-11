@@ -18,7 +18,7 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Versioning;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 import org.slf4j.Logger;

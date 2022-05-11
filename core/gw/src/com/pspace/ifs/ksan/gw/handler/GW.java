@@ -18,23 +18,11 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
-import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.MonConfig;
-import com.pspace.ifs.ksan.gw.utils.Portal;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.gw.utils.GWPortal;
+import com.pspace.ifs.ksan.utils.PrintStack;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -42,7 +30,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.ProxyConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.slf4j.Logger;
@@ -50,28 +37,20 @@ import org.slf4j.LoggerFactory;
 
 public class GW {
     private static final Logger logger = LoggerFactory.getLogger(GW.class);
-    // private GWConfig GWConfig2.getInstance();
     private Server server;
     private GWHandlerJetty handler;
 	
-    public GW(/*GWConfig GWConfig2.getInstance()*/) {
-        // this.GWConfig2.getInstance() = GWConfig2.getInstance();
+    public GW() {
     }
 
 	public void configure() throws GWException {
-		Portal.getInstance().getConfig();
-		Portal.getInstance().getS3Users();
-		Portal.getInstance().getDiskPoolsDetails();
+		GWPortal.getInstance().getConfig();
+		GWPortal.getInstance().getS3Users();
+		GWPortal.getInstance().getDiskPoolsDetails();
 	}
 
     public void init() throws GWException {
 		configure();
-
-		// try {
-		// 	GWConfig2.getInstance().configure();	
-		// } catch (Exception e) {
-		// 	throw new RuntimeException(e);
-		// }
 		
 		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,
 				GWConstants.LOG_GW_MUST_ENDPOINT);

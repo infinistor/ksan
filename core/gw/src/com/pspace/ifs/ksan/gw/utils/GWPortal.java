@@ -10,16 +10,18 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
-import com.pspace.ifs.ksan.gw.GWMain;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
-import com.pspace.ifs.ksan.gw.utils.disk.Disk;
-import com.pspace.ifs.ksan.gw.utils.disk.DiskPool;
-import com.pspace.ifs.ksan.gw.utils.disk.Server;
 import com.pspace.ifs.ksan.mq.MQCallback;
 import com.pspace.ifs.ksan.mq.MQReceiver;
 import com.pspace.ifs.ksan.mq.MQResponse;
 import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.config.MonConfig;
+import com.pspace.ifs.ksan.utils.disk.Disk;
+import com.pspace.ifs.ksan.utils.disk.DiskPool;
+import com.pspace.ifs.ksan.utils.disk.Server;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -44,7 +46,7 @@ class ConfigUpdateCallback implements MQCallback{
 		logger.info("receive config change ...");
 		logger.info("BiningKey : {}, body : {}}", routingKey, body);
 
-		Portal.getInstance().getConfig();
+		GWPortal.getInstance().getConfig();
 		ObjManagerHelper.updateAllConfig();
 		
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
@@ -58,7 +60,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		logger.info("receive diskpools change ...");
 		logger.info("BiningKey : {}, body : {}}", routingKey, body);
 
-		Portal.getInstance().getDiskPoolsDetails();
+		GWPortal.getInstance().getDiskPoolsDetails();
 		ObjManagerHelper.updateAllDiskpools();
 
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
@@ -103,20 +105,20 @@ class UserUpdateCallBack implements MQCallback{
 	}
 }
 
-public class Portal {
+public class GWPortal {
 	private MonConfig config;
 
-    private static final Logger logger = LoggerFactory.getLogger(Portal.class);
+    private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
 
-    public static Portal getInstance() {
+    public static GWPortal getInstance() {
         return LazyHolder.INSTANCE;
     }
 
     private static class LazyHolder {
-        private static final Portal INSTANCE = new Portal();
+        private static final GWPortal INSTANCE = new GWPortal();
     }
 
-    private Portal() {
+    private GWPortal() {
         config = new MonConfig(); 
         config.configure();
 

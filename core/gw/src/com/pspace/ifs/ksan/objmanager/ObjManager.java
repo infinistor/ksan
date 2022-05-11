@@ -22,6 +22,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
+import com.pspace.ifs.ksan.gw.utils.ObjectManagerConfig;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -850,5 +851,35 @@ public class ObjManager {
     
     public void deactivate(){
         
+    }
+
+    public void updateConfig() {
+        logger.debug("update config ...");
+        // use ObjectManagerConfig
+        ObjectManagerConfig.getInstance().getDbRepository();
+        // ObjectManagerConfig.getInstance().getDbHost();
+        // ObjectManagerConfig.getInstance().getDbName();
+        // ObjectManagerConfig.getInstance().getDbPort();
+        // ObjectManagerConfig.getInstance().getDbUserName();
+        // ObjectManagerConfig.getInstance().getDbPassword();
+        // ObjectManagerConfig.getInstance().getMqHost();
+        // ObjectManagerConfig.getInstance().getMqDiskPoolQueueName();
+        // ObjectManagerConfig.getInstance().getMqDiskPoolExchangeName();
+        // ObjectManagerConfig.getInstance().getMqOSDExchangeName();
+    }
+
+    public void updateDiskpools() {
+        logger.debug("update diskpools ...");
+        // for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+        //     diskpool.getClassTypeId();
+        //     diskpool.getReplicationType();
+        //     for (Server server : diskpool.getServerList()) {
+        //         server.getStatus();
+        //         for (Disk disk : server.getDiskList()) {
+        //             disk.getMode();
+        //             disk.getStatus();
+        //         }
+        //     }
+        // }
     }
 }

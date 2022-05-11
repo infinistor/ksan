@@ -16,37 +16,38 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER.DISK;
+import com.pspace.ifs.ksan.osd.utils.OSDConfig;
+import com.pspace.ifs.ksan.osd.utils.OSDConstants;
+import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.KsanUtils;
+import com.pspace.ifs.ksan.utils.data.OsdData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DoECPriObject implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);
+    private String localIP = KsanUtils.getLocalIP();
     private long fileLength;
     private int ecApplyMinutes;
-    private DISKPOOLLIST diskPoolList;
 
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
-        String ip = OSDUtils.getInstance().getLocalIP();
-        fileLength = OSDUtils.getInstance().getECFileSize() * OSDConstants.MEGABYTES;
-        ecApplyMinutes = OSDUtils.getInstance().getECApplyMinutes();
+        fileLength = OSDConfig.getInstance().getECFileSize() * OSDConstants.MEGABYTES;
+        ecApplyMinutes = OSDConfig.getInstance().getECApplyMinutes();
 
         List<String> diskList = new ArrayList<String>();
-        logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, ip);
-        diskPoolList = OSDUtils.getInstance().getDiskPoolList();
-        for (SERVER server : diskPoolList.getDiskpool().getServers()) {
-            if (ip.equals(server.getIp())) {
-                for (DISK disk : server.getDisks()) {
-                    diskList.add(disk.getPath());
-                }
-            }
-        }
+        logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, localIP);
+        HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
+        diskInfoMap.forEach((diskId, diskPath) -> {
+            diskList.add(diskPath);
+        });
+
         logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_DISKLIST_SIZE, diskList.size());
         for (String diskPath : diskList) {
             String objPath = diskPath + OSDConstants.SLASH + OSDConstants.OBJ_DIR;
@@ -109,11 +110,11 @@ public class DoECPriObject implements Runnable {
             if (!OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL.equals(replicaDiskID)) {
                 // delete replica disk
                 logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID, replicaDiskID);
-                String ip = OSDUtils.getInstance().getOSDIP(diskPoolList, replicaDiskID);
-                String diskPath = OSDUtils.getInstance().getPath(diskPoolList, replicaDiskID);
+                String ip = DiskManager.getInstance().getOSDIP(replicaDiskID);
+                String diskPath = DiskManager.getInstance().getPath(replicaDiskID);
                 String replicaPath = OSDUtils.getInstance().makePath(diskPath, file.getName());
                 if (ip != null && diskPath != null) {
-                    if (OSDUtils.getInstance().getLocalIP().equals(ip)) {
+                    if (localIP.equals(ip)) {
                         // local replica
                         File replicaFile = new File(replicaPath);
                         if (replicaFile.exists()) {
@@ -144,9 +145,9 @@ public class DoECPriObject implements Runnable {
     private void deleteReplica(String ipAddress, String replicaPath) {
 		Socket socket = null;
         try {
-            socket = new Socket(ipAddress, OSDUtils.getInstance().getPort());
+            socket = new Socket(ipAddress, OSDConfig.getInstance().getPort());
             socket.setTcpNoDelay(true);
-            String header = OSDConstants.DELETE_REPLICA + OSDConstants.DELIMITER + replicaPath;
+            String header = OsdData.DELETE_REPLICA + OsdData.DELIMITER + replicaPath;
             logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_HEADER, header);
             byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
             int size = buffer.length;

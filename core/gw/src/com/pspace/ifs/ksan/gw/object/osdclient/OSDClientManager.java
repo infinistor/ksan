@@ -19,14 +19,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.utils.DiskManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.disk.Server;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST;
-import com.pspace.ifs.ksan.osd.OSDConstants;
-import com.pspace.ifs.ksan.osd.DISKPOOLLIST.DISKPOOL.SERVER;
+import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.utils.disk.Server;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;

@@ -41,7 +41,7 @@ import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;

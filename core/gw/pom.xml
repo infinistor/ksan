@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.pspace.ifs.ksan.gw</groupId>
 	<artifactId>ksan</artifactId>
-	<version>0.7.1-SNAPSHOT</version>
+	<version>0.7.1</version>
 	<packaging>jar</packaging>
 	<name>ksan-gw</name>
 	
@@ -14,9 +14,9 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>com.pspace.ifs.ksan.osd</groupId>
-			<artifactId>ksanOsd</artifactId>
-			<version>0.8.1</version>
+			<groupId>com.pspace.ifs.ksan.utils</groupId>
+			<artifactId>ksan-utils</artifactId>
+			<version>0.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

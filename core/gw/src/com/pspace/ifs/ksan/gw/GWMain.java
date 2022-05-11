@@ -17,7 +17,7 @@ import java.io.PrintStream;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

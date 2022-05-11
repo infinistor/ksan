@@ -40,7 +40,7 @@ import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.PrintStack;
+import com.pspace.ifs.ksan.utils.PrintStack;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.LoggerFactory;

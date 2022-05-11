@@ -15,6 +15,16 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.pspace.ifs.ksan.utils</groupId>
+			<artifactId>ksan-utils</artifactId>
+			<version>0.7.1</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>com.pspace.ifs.ksan.gw</groupId>
+			<artifactId>ksan</artifactId>
+			<version>0.7.1</version>
+		</dependency> -->
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
