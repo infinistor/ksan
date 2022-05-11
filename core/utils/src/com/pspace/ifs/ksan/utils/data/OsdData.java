@@ -16,6 +16,38 @@ public class OsdData {
     public static final String FILE = "FILE";
     public static final String DELIMITER = ":";
 
+    public static final int INDICATOR_SIZE = 2;
+    public static final int PATH_INDEX = 1;
+    public static final int OBJID_INDEX = 2;
+    public static final int VERSIONID_INDEX = 3;
+    public static final int SOURCE_RANGE_INDEX = 4;
+    public static final int KEY_INDEX = 5;
+    public static final int DEST_PATH_INDEX = 4;
+    public static final int DEST_OBJID_INDEX = 5;
+    public static final int DEST_VERSIONID_INDEX = 6;
+    public static final int DEST_PARTNO_INDEX = 6;
+    public static final int SRC_RANAGE_INDEX = 7;
+    public static final int SOURCE_PATH_INDEX = 1;
+    public static final int SOURCE_OBJID_INDEX = 2;
+    public static final int TARGET_PATH_INDEX = 3;
+    public static final int TARGET_OBJID_INDEX = 4;
+    public static final int OFFSET_INDEX = 4;
+    public static final int GET_LENGTH_INDEX = 5;
+    public static final int PUT_LENGTH_INDEX = 4;
+    public static final int PUT_REPLICATION_INDEX = 5;
+    public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
+    public static final int PUT_KEY_INDEX = 7;
+    public static final int PUT_MODE_INDEX = 8;
+    public static final int PARTNO_INDEX = 3;
+    public static final int COMPLETE_MULTIPART_PARTNOS = 4;
+    public static final int ABORT_MULTIPART_PARTNOS = 3;
+    public static final int PART_NO_INDEX = 3;
+    public static final int PARTNOS_INDEX = 3;
+    public static final int PART_COPY_OFFSET_INDEX = 7;
+    public static final int PART_COPY_LENGTH_INDEX = 8;
+    public static final int COPY_REPLICATION_INDED = 7;
+    public static final int COPY_REPLICA_DISK_ID_INDEX = 8;
+
     private String ETag;
     private long fileSize;
 

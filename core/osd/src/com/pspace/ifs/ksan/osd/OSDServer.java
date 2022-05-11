@@ -132,7 +132,7 @@ public class OSDServer {
                     // }
 
                     socket.getInputStream().read(buffer, 0, length);
-                    String indicator = new String(buffer, 0, OSDConstants.INDICATOR_SIZE);
+                    String indicator = new String(buffer, 0, OsdData.INDICATOR_SIZE);
                     String header = new String(buffer, 0, length);
                     String[] headers = header.split(OsdData.DELIMITER, -1);
                     
@@ -216,11 +216,11 @@ public class OSDServer {
 
         private void get(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String versionId = headers[OSDConstants.VERSIONID_INDEX];
-            String sourceRange = headers[OSDConstants.SOURCE_RANGE_INDEX];
-            String key = headers[OSDConstants.KEY_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String versionId = headers[OsdData.VERSIONID_INDEX];
+            String sourceRange = headers[OsdData.SOURCE_RANGE_INDEX];
+            String key = headers[OsdData.KEY_INDEX];
             long readTotal = 0L;
             CtrCryptoInputStream encryptIS = null;
             
@@ -333,14 +333,14 @@ public class OSDServer {
     
         private void put(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String versionId = headers[OSDConstants.VERSIONID_INDEX];
-            long length = Longs.tryParse(headers[OSDConstants.PUT_LENGTH_INDEX]);
-            String replication = headers[OSDConstants.PUT_REPLICATION_INDEX];
-            String replicaDiskID = headers[OSDConstants.PUT_REPLICA_DISK_ID_INDEX];
-            String key = headers[OSDConstants.PUT_KEY_INDEX];
-            String mode  = headers[OSDConstants.PUT_MODE_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String versionId = headers[OsdData.VERSIONID_INDEX];
+            long length = Longs.tryParse(headers[OsdData.PUT_LENGTH_INDEX]);
+            String replication = headers[OsdData.PUT_REPLICATION_INDEX];
+            String replicaDiskID = headers[OsdData.PUT_REPLICA_DISK_ID_INDEX];
+            String key = headers[OsdData.PUT_KEY_INDEX];
+            String mode  = headers[OsdData.PUT_MODE_INDEX];
             CtrCryptoOutputStream encryptOS = null;
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication, mode);
@@ -445,9 +445,9 @@ public class OSDServer {
     
         private void delete(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String versionId = headers[OSDConstants.VERSIONID_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String versionId = headers[OsdData.VERSIONID_INDEX];
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_INFO, path, objId, versionId);
             boolean isCache = false;
             File file = null;
@@ -478,9 +478,9 @@ public class OSDServer {
 
         private void deletePart(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_PART_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String partNo = headers[OSDConstants.PARTNO_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String partNo = headers[OsdData.PARTNO_INDEX];
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_PART_INFO, path, objId, partNo);
 
             File file = new File(OSDUtils.getInstance().makeTempPath(path, objId, partNo));
@@ -494,7 +494,7 @@ public class OSDServer {
 
         private void deleteReplica(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_REPLICA_START);
-            String path = headers[OSDConstants.PATH_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_REPLICA_PATH, path);
 
             File file = new File(path);
@@ -507,14 +507,14 @@ public class OSDServer {
     
         private void copy(String[] headers) throws IOException, NoSuchAlgorithmException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_START);
-            String srcPath = headers[OSDConstants.PATH_INDEX];
-            String srcObjId = headers[OSDConstants.OBJID_INDEX];
-            String srcVersionId = headers[OSDConstants.VERSIONID_INDEX];
-            String destPath = headers[OSDConstants.DEST_PATH_INDEX];
-            String destObjId = headers[OSDConstants.DEST_OBJID_INDEX];
-            String destVersionId = headers[OSDConstants.DEST_VERSIONID_INDEX];
-            String replication = headers[OSDConstants.COPY_REPLICATION_INDED];
-            String replicaDiskID = headers[OSDConstants.COPY_REPLICA_DISK_ID_INDEX];
+            String srcPath = headers[OsdData.PATH_INDEX];
+            String srcObjId = headers[OsdData.OBJID_INDEX];
+            String srcVersionId = headers[OsdData.VERSIONID_INDEX];
+            String destPath = headers[OsdData.DEST_PATH_INDEX];
+            String destObjId = headers[OsdData.DEST_OBJID_INDEX];
+            String destVersionId = headers[OsdData.DEST_VERSIONID_INDEX];
+            String replication = headers[OsdData.COPY_REPLICATION_INDED];
+            String replicaDiskID = headers[OsdData.COPY_REPLICA_DISK_ID_INDEX];
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_INFO, srcPath, srcObjId, srcVersionId, destPath, destObjId, destVersionId);
 
@@ -583,9 +583,9 @@ public class OSDServer {
     
         private void getPart(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String partNo = headers[OSDConstants.PART_NO_INDEX];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String partNo = headers[OsdData.PART_NO_INDEX];
 
             long readTotal = 0L;
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_INFO, path, objId, partNo);
@@ -622,10 +622,10 @@ public class OSDServer {
 
         private void part(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String partNo = headers[OSDConstants.PARTNO_INDEX];
-            long length = Longs.tryParse(headers[OSDConstants.PUT_LENGTH_INDEX]);
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String partNo = headers[OsdData.PARTNO_INDEX];
+            long length = Longs.tryParse(headers[OsdData.PUT_LENGTH_INDEX]);
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_INFO, path, objId, partNo, length);
 
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
@@ -653,13 +653,13 @@ public class OSDServer {
     
         private void partCopy(String[] headers) throws IOException, NoSuchAlgorithmException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_COPY_START);
-            String srcPath = headers[OSDConstants.PATH_INDEX];
-            String srcObjId = headers[OSDConstants.OBJID_INDEX];
-            String srcVersionId = headers[OSDConstants.VERSIONID_INDEX];
-            String destPath = headers[OSDConstants.DEST_PATH_INDEX];
-            String destObjId = headers[OSDConstants.DEST_OBJID_INDEX];
-            String destPartNo = headers[OSDConstants.DEST_PARTNO_INDEX];
-            String copySourceRange = headers[OSDConstants.SRC_RANAGE_INDEX];
+            String srcPath = headers[OsdData.PATH_INDEX];
+            String srcObjId = headers[OsdData.OBJID_INDEX];
+            String srcVersionId = headers[OsdData.VERSIONID_INDEX];
+            String destPath = headers[OsdData.DEST_PATH_INDEX];
+            String destObjId = headers[OsdData.DEST_OBJID_INDEX];
+            String destPartNo = headers[OsdData.DEST_PARTNO_INDEX];
+            String copySourceRange = headers[OsdData.SRC_RANAGE_INDEX];
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_COPY_INFO, srcPath, srcObjId, srcVersionId, destPath, destObjId, destPartNo, copySourceRange);
 
@@ -743,10 +743,10 @@ public class OSDServer {
     
         private void completeMultipart(String[] headers) throws IOException, NoSuchAlgorithmException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String versionId = headers[OSDConstants.VERSIONID_INDEX];
-            String partNos = headers[OSDConstants.COMPLETE_MULTIPART_PARTNOS];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String versionId = headers[OsdData.VERSIONID_INDEX];
+            String partNos = headers[OsdData.COMPLETE_MULTIPART_PARTNOS];
             logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO, path, objId, partNos);
             String[] arrayPartNos = partNos.split(OSDConstants.COMMA);
             Arrays.sort(arrayPartNos);
@@ -796,9 +796,9 @@ public class OSDServer {
     
         private void abortMultipart(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_ABORE_MULTIPART_START);
-            String path = headers[OSDConstants.PATH_INDEX];
-            String objId = headers[OSDConstants.OBJID_INDEX];
-            String partNos = headers[OSDConstants.ABORT_MULTIPART_PARTNOS];
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String partNos = headers[OsdData.ABORT_MULTIPART_PARTNOS];
             logger.debug(OSDConstants.LOG_OSD_SERVER_ABORE_MULTIPART_INFO, path, objId, partNos);
             String[] arrayPartNos = partNos.split(OSDConstants.COMMA);
 
