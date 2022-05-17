@@ -738,12 +738,12 @@ public class ListObject{
 
         query1 = makeQueryWithDiskId(diskid, offset);
         if (query1 != null){
-            return dbm.getObjectList(bucketName, query1, maxKeys);
+            return dbm.getObjectList(bucketName, query1, maxKeys, offset);
         }
         else{
             String sql = (String)query1;
             PreparedStatement stmt = (PreparedStatement)dbm.getStatement(sql);
-            return dbm.getObjectList(bucketName, stmt, maxKeys);
+            return dbm.getObjectList(bucketName, stmt, maxKeys, offset);
         }
     }
     
@@ -762,10 +762,10 @@ public class ListObject{
              if (!diskid.isEmpty()){
                 BasicDBObject or[] = new BasicDBObject[2];
 
-                or[0] = new BasicDBObject("pdiskId", new BasicDBObject("$eq", diskid));
-                or[1] = new BasicDBObject("rdiskId", new BasicDBObject("$eq", diskid));
+                or[0] = new BasicDBObject("pdiskid", new BasicDBObject("$eq", diskid));
+                or[1] = new BasicDBObject("rdiskid", new BasicDBObject("$eq", diskid));
                
-                orObjQuery  = new BasicDBObject("$or", or);   
+                orObjQuery  = new BasicDBObject("$or", or);
              }
              else {
                  orObjQuery = new BasicDBObject();
@@ -983,7 +983,7 @@ public class ListObject{
         }
 
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
     }
     
     private List<Metadata> bindAndExcuteV2() throws SQLException{
@@ -1006,7 +1006,7 @@ public class ListObject{
 	}
         
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
     }
     
     private List<Metadata> bindAndExcuteVersion() throws SQLException{
@@ -1031,13 +1031,13 @@ public class ListObject{
         }
 
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
     }
     
     private List<Metadata> bindAndExcute() throws SQLException{
         if (dbm instanceof MongoDataRepository){
             logger.debug(">> bucketName : {} >>mongo query : {}  maxKeys : {}", bucketName, mongoQuery.toString(), maxKeys);
-            return dbm.getObjectList(bucketName, mongoQuery, maxKeys + 1);
+            return dbm.getObjectList(bucketName, mongoQuery, maxKeys + 1, offset);
         }
         if (listType.equalsIgnoreCase("listObject")) 
             return bindAndExcuteV1();

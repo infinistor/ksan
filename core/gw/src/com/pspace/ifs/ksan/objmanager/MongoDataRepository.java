@@ -247,17 +247,15 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public int updateDisks(Metadata md) {
-       try {
-            MongoCollection<Document> objects;
-            objects = database.getCollection(md.getBucket());
-            objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(PDISKID, md.getPrimaryDisk().getId()));
-            if (md.isReplicaExist())
-                objects.updateOne(Filters.eq(OBJID, md.getObjId()), Updates.set(RDISKID, md.getReplicaDisk().getId()));
-       } catch (ResourceNotFoundException ex) {
-            Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-       }
-       return 0; 
+    public int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
+        MongoCollection<Document> objects;
+        objects = database.getCollection(md.getBucket());
+        System.out.format("objId :%s versionid : %s pdiskid : %s newDiskid : %s \n", md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), newDisk.getId());
+       
+        UpdateResult res = objects.updateOne(Filters.and(Filters.eq(OBJID, md.getObjId()), eq(VERSIONID, md.getVersionId())), Updates.set(updatePrimary ? PDISKID : RDISKID, newDisk.getId()));
+       System.out.println("after update!");
+       
+       return (int)res.getModifiedCount(); 
     }
 
     @Override
@@ -288,7 +286,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
         
-        long lastModified = doc.getLong(LASTMODIFIED);
+        long lastModified = doc.getDate(LASTMODIFIED).getTime();
         String key       = (String)doc.get(OBJKEY);
         String etag         = doc.getString(ETAG);
         String meta         = doc.getString(META);
@@ -330,6 +328,11 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objId) throws ResourceNotFoundException {
         return selectSingleObjectInternal(bucketName, objId, ""); 
+    }
+    
+    @Override
+    public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objId, String versionId) throws ResourceNotFoundException {
+        return selectSingleObjectInternal(bucketName, objId, versionId); 
     }
     
     @Override
@@ -1147,7 +1150,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys) throws SQLException {
+    public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys, long offset) throws SQLException {
         String diskPoolId = "1";
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
@@ -1159,7 +1162,7 @@ public class MongoDataRepository implements DataRepository{
             sortBy.append("_id", -1);
         }
         
-        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy);
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         Bucket bt = obmCache.getBucketFromCache(bucketName);
@@ -1178,7 +1181,7 @@ public class MongoDataRepository implements DataRepository{
             boolean lastversion = doc.getBoolean(LASTVERSION);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
-            long lastModified  = doc.getLong(LASTMODIFIED);
+            long lastModified  = doc.getDate(LASTMODIFIED).getTime();
             long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
             mt.setVersionId(versionid, deletem, lastversion);

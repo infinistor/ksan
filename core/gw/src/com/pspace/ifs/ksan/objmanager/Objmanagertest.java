@@ -263,10 +263,10 @@ public class Objmanagertest {
         try {
             String bucketName = "testvol1";
             String key = "parentDir1/subDir/test11";
-            ObjManager om = new ObjManager();;
-            Metadata md = om.open(bucketName, key);
-            DISK replica = om.allocReplicaDisk(bucketName, md.getPrimaryDisk().getPath(), md.getPrimaryDisk().getId());
-            om.replaceDisk(bucketName, md.getObjId(), md.getPrimaryDisk().getId(), replica.getId());
+            ObjManagerUtil om = new ObjManagerUtil();;
+            Metadata md = om.getObjectWithPath(bucketName, key);
+            DISK replica = om.allocReplicaDisk(bucketName, md.getPrimaryDisk().getId(), md.getReplicaDisk().getId());
+            om.replaceDisk(bucketName, md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), replica.getId());
         } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
@@ -465,11 +465,11 @@ public class Objmanagertest {
     }
     
     static void testListObjectV3(){
-        String bucketName = "testvol3";
-        String delimiter = "/";
-        String marker = "parentDir1/subDir_Thread_101/test26";
-        int maxKeys = 10; 
-        String prefix = "parentDir1/subDir";
+        String bucketName = "my-test-java-v14lovqrhb1pd6g-fj4k6";//testvol3";
+        String delimiter = "";//"/";
+        String marker = "";//parentDir1/subDir_Thread_101/test26";
+        int maxKeys = 2; 
+        String prefix = "";//parentDir1/subDir";
         String diskid = "4";
         
         try {

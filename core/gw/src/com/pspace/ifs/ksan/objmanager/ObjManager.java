@@ -623,7 +623,7 @@ public class ObjManager {
         }
         
         String dskPoolId = bt.getDiskPoolId();
-        return dAlloc.allocDisk(dskPoolId, primary);
+        return dAlloc.allocDisk(dskPoolId, primary, null);
     }
     
     /**
@@ -635,7 +635,7 @@ public class ObjManager {
      * @return -1 if it is failed, 0 if nothing is updated or 1 if it is successful
      * @throws ResourceNotFoundException if the disk provided is not valid or exist in the system
      */
-    public int replaceDisk(String bucketName, String objid, String pdiskid, String rdiskid) throws ResourceNotFoundException{
+    /*public int replaceDisk(String bucketName, String objid, String pdiskid, String rdiskid) throws ResourceNotFoundException{
         String diskpoolid;
         DISK primary;
         DISK replica;
@@ -655,7 +655,7 @@ public class ObjManager {
         md.setPrimaryDisk(primary);
         md.setReplicaDISK(replica);
         return dbm.updateDisks(md);
-    }
+    }*/
     
     public int putBucketVersioning(String bucketName, String versionState) throws ResourceNotFoundException, SQLException{
         int ret;
@@ -853,32 +853,10 @@ public class ObjManager {
     }
 
     public void updateConfig() {
-        logger.debug("update config ...");
-        // use ObjectManagerConfig
-        // ObjectManagerConfig.getInstance().getDbRepository();
-        // ObjectManagerConfig.getInstance().getDbHost();
-        // ObjectManagerConfig.getInstance().getDbName();
-        // ObjectManagerConfig.getInstance().getDbPort();
-        // ObjectManagerConfig.getInstance().getDbUserName();
-        // ObjectManagerConfig.getInstance().getDbPassword();
-        // ObjectManagerConfig.getInstance().getMqHost();
-        // ObjectManagerConfig.getInstance().getMqDiskPoolQueueName();
-        // ObjectManagerConfig.getInstance().getMqDiskPoolExchangeName();
-        // ObjectManagerConfig.getInstance().getMqOSDExchangeName();
+   
     }
 
     public void updateDiskpools() {
-        logger.debug("update diskpools ...");
-        // for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
-        //     diskpool.getClassTypeId();
-        //     diskpool.getReplicationType();
-        //     for (Server server : diskpool.getServerList()) {
-        //         server.getStatus();
-        //         for (Disk disk : server.getDiskList()) {
-        //             disk.getMode();
-        //             disk.getStatus();
-        //         }
-        //     }
-        // }
+
     }
 }
