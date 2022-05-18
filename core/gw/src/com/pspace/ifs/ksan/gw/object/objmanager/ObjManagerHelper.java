@@ -69,7 +69,7 @@ public class ObjManagerHelper {
         factory.notifyChangeConfig();
     }
 
-    public static void updateAllDiskpools() {
-        factory.notifyChangeDiskpools();
+    public static void updateAllDiskpools(String routingKey) {
+        factory.notifyChangeDiskpools(routingKey);
     }
 }

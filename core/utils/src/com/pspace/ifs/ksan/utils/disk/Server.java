@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
+    public static final String ID = "Id";
+    public static final String STATE = "State";
+    public static final String DISKS = "Disks";
+    public static final String NETWORK_INTERFACES = "NetworkInterfaces";
+    public static final String IP_ADDRESS = "IpAddress";
+
     private String id;
     private String ip;
     private String status;  // "Unknown", "Timeout", "Offline", "Online"

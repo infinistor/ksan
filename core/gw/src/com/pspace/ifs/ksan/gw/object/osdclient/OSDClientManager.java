@@ -91,6 +91,12 @@ public class OSDClientManager {
         // }
     }
 
+    public void update(int port, int osdClientCount) throws Exception {
+        pools.forEach((ip, pool) -> {
+            pool.getMaxTotal();
+        });
+    }
+
     public void shutDown() {
         for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
             pools.remove(server.getIp());

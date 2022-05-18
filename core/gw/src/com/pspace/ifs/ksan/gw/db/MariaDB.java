@@ -11,39 +11,30 @@
 package com.pspace.ifs.ksan.gw.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import org.apache.commons.dbcp2.ConnectionFactory;
-import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp2.PoolableConnection;
-import org.apache.commons.dbcp2.PoolableConnectionFactory;
-import org.apache.commons.dbcp2.PoolingDriver;
-import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MariaDB implements GWDB {
 	protected Logger logger;
-	private PoolingDriver driver = null;
-
+	private static HikariConfig config = new HikariConfig();
+	private static HikariDataSource ds;
+	
 	private MariaDB() {
         logger = LoggerFactory.getLogger(MariaDB.class);
 	}
@@ -58,34 +49,21 @@ public class MariaDB implements GWDB {
 
     @Override
     public void init(String dbUrl, String dbPort, String dbName, String userName, String passwd,  int poolSize) throws GWException {				
-		try {
-			if (driver != null) {
-				driver.closePool(GWConstants.CONNECTION_POOL);
-			}
-			Class.forName(GWConstants.JDBC_MARIADB_DRIVER);
-			String jdbcUrl = GWConstants.MARIADB_URL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + dbName + GWConstants.MARIADB_OPTIONS;
-			ConnectionFactory connFactory = new DriverManagerConnectionFactory(jdbcUrl, userName, passwd);
-			PoolableConnectionFactory poolableConnFactory = new PoolableConnectionFactory(connFactory, null);
-			poolableConnFactory.setValidationQuery(GWConstants.MARIADB_VALIDATION_QUERY);
-			
-			GenericObjectPoolConfig<PoolableConnection> poolConfig = new GenericObjectPoolConfig<PoolableConnection>();
-			Duration timeBetweenEvictionRuns = Duration.ofMinutes(60);
-			poolConfig.setTimeBetweenEvictionRuns(timeBetweenEvictionRuns);
-			poolConfig.setTestWhileIdle(true);
-			poolConfig.setMinIdle(poolSize / 2);
-			poolConfig.setMaxTotal(poolSize);
-			poolConfig.setTestOnBorrow(true);
-			poolConfig.setTestWhileIdle(true);
-			GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnFactory, poolConfig);
-			poolableConnFactory.setPool(connectionPool);
-			Class.forName(GWConstants.DBCP2_DRIVER);
-			driver = (PoolingDriver) DriverManager.getDriver(GWConstants.JDBC_DRIVER_DBCP);
-			driver.registerPool(GWConstants.CONNECTION_POOL, connectionPool);
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(GWConstants.LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER, e);
-		} catch (SQLException e) {
-			throw new RuntimeException(GWConstants.LOG_MARIA_DB_FAIL_TO_LOAD_DRIVER, e);
-		}
+		String jdbcUrl = GWConstants.MARIADB_URL + dbUrl + GWConstants.COLON + dbPort + GWConstants.SLASH + dbName + GWConstants.MARIADB_OPTIONS;
+
+		config.setJdbcUrl(jdbcUrl);
+		config.setUsername(userName);
+		config.setPassword(passwd);
+		config.setDriverClassName(GWConstants.JDBC_DRIVER);
+		config.addDataSourceProperty("useServerPrepStmts" , "true" );
+		config.addDataSourceProperty("maxPoolSize" , poolSize );
+		config.addDataSourceProperty("minPoolSize" , poolSize );
+		config.addDataSourceProperty("prepStmtCacheSqlLimit" , "2048" );
+		config.setPoolName("ksan");
+		config.setMaximumPoolSize(poolSize);
+		config.setMinimumIdle(poolSize);
+
+		ds = new HikariDataSource(config);
 		
 		createDB(dbName, userName, passwd);
 
@@ -112,7 +90,7 @@ public class MariaDB implements GWDB {
 		PreparedStatement pstmt = null;
 		ResultSet rset = null;
         try {
-			conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
+			conn = ds.getConnection();
 			pstmt = conn.prepareStatement(query);
 
             int index = 1;
@@ -158,7 +136,7 @@ public class MariaDB implements GWDB {
     }
 
 	private void execute(String query, List<Object> params, S3Parameter s3Parameter) throws GWException {
-        try (Connection conn = DriverManager.getConnection(GWConstants.JDBC_DRIVER);
+        try (Connection conn = ds.getConnection();
 			 PreparedStatement pstmt = conn.prepareStatement(query);
 			) {
 

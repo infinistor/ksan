@@ -62,7 +62,7 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
         objManagerList.forEach(objManager -> objManager.updateConfig());
     }
 
-    public void notifyChangeDiskpools() {
+    public void notifyChangeDiskpools(String routingKey) {
         objManagerList.forEach(objManager -> objManager.updateDiskpools());
     }
 }

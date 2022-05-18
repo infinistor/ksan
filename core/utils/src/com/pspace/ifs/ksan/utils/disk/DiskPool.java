@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DiskPool {
+    public static final String ID = "Id";
+    public static final String NAME = "Name";
+    public static final String CLASS_TYPE_ID = "ClassTypeId";
+    public static final String REPLICATION_TYPE = "ReplicationType";
+    public static final String SERVERS = "Servers";
+
     private String id;
     private String name;
     private String classTypeId; // "STANDARD", "ARCHIVE"

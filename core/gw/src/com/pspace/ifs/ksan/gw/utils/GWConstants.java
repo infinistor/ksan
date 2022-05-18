@@ -134,13 +134,14 @@ public final class GWConstants {
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	
 	public static final String MARIADB = "MariaDB";
-	public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:gwcp";
-	public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
-	public static final String CONNECTION_POOL = "gwcp";
-	public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
-	public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
+	// public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:gwcp";
+	// public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
+	// public static final String CONNECTION_POOL = "gwcp";
+	// public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
+	// public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
-	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true";
+	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8";
+	public static final String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final String OBJ_DIR = "obj";
@@ -1283,4 +1284,16 @@ public final class GWConstants {
 	// S3ObjectEncryption
 	public static final String S3OBJECT_ENCRYPTION_ENABLE_SSE_SERVER = "enableSSEServer : {}";
 	public static final String S3OBJECT_ENCRYPTION_ENABLE_SSE_CUSTOMER = "enableSSECustomer : {}";
+
+	// GWPortal
+	public static final String GWPORTAL_RECEIVED_CONFIG_CHANGE = "receive config change ...";
+	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
+	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";
+	public static final String LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA = "BiningKey : {}, body : {}";
+
+	public static final String GWPORTAL_RECEIVED_USER_ADDED = "added";
+	public static final String GWPORTAL_RECEIVED_USER_UPDATED = "updated";
+	public static final String GWPORTAL_RECEIVED_USER_REMOVED = "removed";
+	public static final String LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY = "wrong routingKey : {}";
+	public static final String LOG_GWPORTAL_RECEIVED_USER_DATA = "Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}";
 }
