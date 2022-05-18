@@ -23,6 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DiskManager {
+    public static final String DATA = "Data";
+    public static final String ITEMS = "Items";
+
     private static final Logger logger = LoggerFactory.getLogger(DiskManager.class);
     private List<DiskPool> diskPoolList;
     private String localHost;

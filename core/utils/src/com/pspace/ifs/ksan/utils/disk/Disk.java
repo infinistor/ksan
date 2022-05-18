@@ -11,6 +11,11 @@
 package com.pspace.ifs.ksan.utils.disk;
 
 public class Disk {
+    public static final String ID = "Id";
+    public static final String RW_MODE = "RwMode";
+    public static final String PATH = "Path";
+    public static final String STATE = "State";
+
     private String id;
     private String mode;    // "ReadOnly", "ReadWrite"
     private String path;

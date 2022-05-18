@@ -16,6 +16,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.pspace.ifs.ksan.gw</groupId>
+			<artifactId>ksan</artifactId>
+			<version>0.7.1</version>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
@@ -114,69 +119,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	<!-- <build>
-		<sourceDirectory>src</sourceDirectory>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainclass>com.pspace.ifs.ksan.osd.OSDServer</mainclass>
-						</manifest>
-					</archive>
-					<source>${jdk.version}</source>
-					<target>${jdk.version}</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<mainClass>com.pspace.ifs.ksan.osd.OSDServer</mainClass>
-							<packageName>ksanOsd</packageName>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-          		<groupId>org.skife.maven</groupId>
-         		<artifactId>really-executable-jar-maven-plugin</artifactId>
-          		<version>1.4.1</version>
-          		<configuration>
-            		<programFile>ksan-osd.jar</programFile>
-          		</configuration>
-          		<executions>
-            		<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>really-executable-jar</goal>
-						</goals>
-            		</execution>
-          		</executions>
-        	</plugin>
-		</plugins>
-	</build> -->
+
 </project>

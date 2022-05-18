@@ -43,8 +43,8 @@ class ConfigUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(ConfigUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info("receive config change ...");
-		logger.info("BiningKey : {}, body : {}}", routingKey, body);
+		logger.info(GWConstants.GWPORTAL_RECEIVED_CONFIG_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getConfig();
 		ObjManagerHelper.updateAllConfig();
@@ -57,11 +57,11 @@ class DiskpoolsUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info("receive diskpools change ...");
-		logger.info("BiningKey : {}, body : {}}", routingKey, body);
+		logger.info(GWConstants.GWPORTAL_RECEIVED_DISKPOOLS_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getDiskPoolsDetails();
-		ObjManagerHelper.updateAllDiskpools();
+		ObjManagerHelper.updateAllDiskpools(routingKey);
 
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}    
@@ -71,8 +71,8 @@ class UserUpdateCallBack implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info("receive s3user change ...");
-		logger.info("BiningKey : {}, body : {}}", routingKey, body);
+		logger.info(GWConstants.GWPORTAL_RECEIVED_USER_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 		JSONParser parser = new JSONParser();
 		JSONObject data = null;
 		try {
@@ -81,24 +81,32 @@ class UserUpdateCallBack implements MQCallback{
 			PrintStack.logging(logger, e);
 		}
 		
-		if (routingKey.contains("added")) {
-			S3User user = new S3User((String)data.get("Id"), (String)data.get("Name"), (String)data.get("Email"), (String)data.get("AccessKey"), (String)data.get("SecretKey"));
+		if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_ADDED)) {
+			S3User user = new S3User((String)data.get(S3User.USER_ID), 
+									 (String)data.get(S3User.USER_NAME), 
+									 (String)data.get(S3User.USER_EMAIL), 
+									 (String)data.get(S3User.ACCESS_KEY), 
+									 (String)data.get(S3User.ACCESS_SECRET));
 			S3UserManager.getInstance().addUser(user);
-			logger.info("Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}", user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 			S3UserManager.getInstance().printUsers();
-		} else if (routingKey.contains("updated")) {
-			S3User user = S3UserManager.getInstance().getUserById((String)data.get("Id"));
+		} else if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_UPDATED)) {
+			S3User user = S3UserManager.getInstance().getUserById((String)data.get(S3User.USER_ID));
 			S3UserManager.getInstance().removeUser(user);
-			user = new S3User((String)data.get("Id"), (String)data.get("Name"), (String)data.get("Email"), (String)data.get("AccessKey"), (String)data.get("SecretKey"));
+			user = new S3User((String)data.get(S3User.USER_ID), 
+							  (String)data.get(S3User.USER_NAME), 
+							  (String)data.get(S3User.USER_EMAIL), 
+							  (String)data.get(S3User.ACCESS_KEY), 
+							  (String)data.get(S3User.ACCESS_SECRET));
 			S3UserManager.getInstance().addUser(user);
-			logger.info("Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}", user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 			S3UserManager.getInstance().printUsers();
-		} else if (routingKey.contains("removed")) {
-			S3User user = S3UserManager.getInstance().getUserById((String)data.get("Id"));
+		} else if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_REMOVED)) {
+			S3User user = S3UserManager.getInstance().getUserById((String)data.get(S3User.USER_ID));
 			S3UserManager.getInstance().removeUser(user);
 			S3UserManager.getInstance().printUsers();
 		} else {
-			logger.info("wrong routingKey : {}", routingKey);
+			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		}
 
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
@@ -125,7 +133,13 @@ public class GWPortal {
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_CONFIG + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_CONFIG_ROUTING_KEY, configureCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_CONFIG + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false,
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_CONFIG_ROUTING_KEY, 
+											   configureCB);
 			mq1ton.addCallback(configureCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
@@ -133,7 +147,13 @@ public class GWPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_DISKPOOL + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY, diskpoolsCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISKPOOL + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY, 
+											   diskpoolsCB);
 			mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
@@ -141,7 +161,13 @@ public class GWPortal {
 
 		try {
 			MQCallback userCB = new UserUpdateCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), GWConstants.MQUEUE_NAME_GW_USER + config.getServerId(), GWConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", GWConstants.MQUEUE_NAME_GW_USER_ROUTING_KEY, userCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_USER + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_USER_ROUTING_KEY, 
+											   userCB);
 			mq1ton.addCallback(userCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
@@ -210,27 +236,30 @@ public class GWPortal {
 				logger.info(body);
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-				JSONObject jsonData = (JSONObject)jsonObject.get("Data");
-				JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+				JSONObject jsonData = (JSONObject)jsonObject.get(DiskManager.DATA);
+				JSONArray jsonItems = (JSONArray)jsonData.get(DiskManager.ITEMS);
 				DiskManager.getInstance().clearDiskPoolList();
 
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					DiskPool diskPool = new DiskPool((String)item.get("Id"), (String)item.get("Name"), (String)item.get("ClassTypeId"), (String)item.get("ReplicationType"));
-					JSONArray jsonServers = (JSONArray)item.get("Servers");
+					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), 
+													 (String)item.get(DiskPool.NAME), 
+													 (String)item.get(DiskPool.CLASS_TYPE_ID), 
+													 (String)item.get(DiskPool.REPLICATION_TYPE));
+					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					for (int j = 0; j < jsonServers.size(); j++) {
 						JSONObject jsonServer = (JSONObject)jsonServers.get(j);
-						JSONArray jsonNetwork = (JSONArray)jsonServer.get("NetworkInterfaces");
+						JSONArray jsonNetwork = (JSONArray)jsonServer.get(Server.NETWORK_INTERFACES);
 						String ipAddress = null;
 						for (int k = 0; k < jsonNetwork.size(); k++) {
 							JSONObject network = (JSONObject)jsonNetwork.get(k);
-							ipAddress = (String)network.get("IpAddress");
+							ipAddress = (String)network.get(Server.IP_ADDRESS);
 						}
-						JSONArray jsonDisks = (JSONArray)jsonServer.get("Disks");
-						Server server = new Server((String)jsonServer.get("Id"), ipAddress, (String)jsonServer.get("State"));
+						JSONArray jsonDisks = (JSONArray)jsonServer.get(Server.DISKS);
+						Server server = new Server((String)jsonServer.get(Server.ID), ipAddress, (String)jsonServer.get(Server.STATE));
 						for (int l = 0; l < jsonDisks.size(); l++) {
 							JSONObject jsonDisk = (JSONObject)jsonDisks.get(l);
-							Disk disk = new Disk((String)jsonDisk.get("Id"), (String)jsonDisk.get("RwMode"), (String)jsonDisk.get("Path"), (String)jsonDisk.get("State"));
+							Disk disk = new Disk((String)jsonDisk.get(Disk.ID), (String)jsonDisk.get(Disk.RW_MODE), (String)jsonDisk.get(Disk.PATH), (String)jsonDisk.get(Disk.STATE));
 							server.addDisk(disk);
 						}
 						diskPool.addServer(server);
@@ -266,11 +295,15 @@ public class GWPortal {
 				
 				JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get("Data");
-                JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+                JSONObject jsonData = (JSONObject)jsonObject.get(S3User.DATA);
+                JSONArray jsonItems = (JSONArray)jsonData.get(S3User.ITEMS);
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					S3User user = new S3User((String)item.get("Id"), (String)item.get("Name"), (String)item.get("Email"), (String)item.get("AccessKey"), (String)item.get("SecretKey"));
+					S3User user = new S3User((String)item.get(S3User.USER_ID), 
+											 (String)item.get(S3User.USER_NAME), 
+											 (String)item.get(S3User.USER_EMAIL), 
+											 (String)item.get(S3User.ACCESS_KEY), 
+											 (String)item.get(S3User.ACCESS_SECRET));
 					S3UserManager.getInstance().addUser(user);
 				}
 				S3UserManager.getInstance().printUsers();
@@ -300,10 +333,14 @@ public class GWPortal {
 				String body = handler.handleResponse(response);
 				JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get("Data");
+                JSONObject jsonData = (JSONObject)jsonObject.get(S3User.DATA);
 
-				S3User user = new S3User((String)jsonData.get("Id"), (String)jsonData.get("Name"), (String)jsonData.get("Email"), (String)jsonData.get("AccessKey"), (String)jsonData.get("SecretKey"));
-				logger.info("get Portal user info -> Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}", user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+				S3User user = new S3User((String)jsonData.get(S3User.USER_ID), 
+										 (String)jsonData.get(S3User.USER_NAME), 
+										 (String)jsonData.get(S3User.USER_EMAIL), 
+										 (String)jsonData.get(S3User.ACCESS_KEY), 
+										 (String)jsonData.get(S3User.ACCESS_SECRET));
+				logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 				return user;
 			}
 			throw new RuntimeException(new RuntimeException());

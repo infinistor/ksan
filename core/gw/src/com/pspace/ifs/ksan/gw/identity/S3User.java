@@ -13,6 +13,15 @@ package com.pspace.ifs.ksan.gw.identity;
 import com.google.common.base.Strings;
 
 public class S3User {
+    public static final String DATA = "Data";
+    public static final String ITEMS = "Items";
+
+    public static final String USER_ID = "Id";
+    public static final String USER_NAME = "Name";
+    public static final String USER_EMAIL = "Email";
+    public static final String ACCESS_KEY = "AccessKey";
+    public static final String ACCESS_SECRET = "SecretKey";
+
     private String userId;
     private String userName;
     private String userEmail;

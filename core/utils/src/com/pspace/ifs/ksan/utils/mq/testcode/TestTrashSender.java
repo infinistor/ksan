@@ -13,8 +13,8 @@ package com.pspace.ifs.ksan.utils.mq.testcode;
 import java.util.Date;
 
 import com.pspace.ifs.ksan.utils.mq.*;
-// import com.pspace.ifs.ksan.objmanager.Metadata;
-// import com.pspace.ifs.ksan.objmanager.ObjManager;
+import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.objmanager.ObjManager;
 /**
  *
  * @author legesse
@@ -25,32 +25,32 @@ public class TestTrashSender {
      */
     
     public static void main(String[] args) {
-    //     int i = 0;
-    //    //String queueName = "osdThrashQueue";
-    //     String exchange = "OSDExchange";
-    //     String option = "";
-    //     String msg;
-    //     String fileName;
-    //     Metadata mt;
-    //     int idx = 0;
+        int i = 0;
+       //String queueName = "osdThrashQueue";
+        String exchange = "OSDExchange";
+        String option = "";
+        String msg;
+        String fileName;
+        Metadata mt;
+        int idx = 0;
         
-    //     try{ 
-    //         MQSender mq1ton = new MQSender("192.168.11.76", exchange, option, "");
-    //         ObjManager om = new ObjManager();
-    //         while (true){
-    //             Date dt = new Date();
-    //             fileName = "testfile" + idx +".txt";
-    //             mt =om.create("testv1", fileName);
+        try{ 
+            MQSender mq1ton = new MQSender("192.168.11.76", exchange, option, "");
+            ObjManager om = new ObjManager();
+            while (true){
+                Date dt = new Date();
+                fileName = "testfile" + idx +".txt";
+                mt =om.create("testv1", fileName);
                 
-    //             msg = "{id : "+dt.getTime()+" path: "+ fileName+" diskpath1 : "+ mt.getPrimaryDisk().getPath() +" diskpath2 : "+ mt.getReplicaDisk().getPath()+"}";
-    //             mq1ton.send(msg, "");
-    //             System.out.format("Sent Message (to %s) :-> %s\n", mq1ton.getExchangeName(), msg);
-    //             Thread.sleep(10000);
-    //             idx++;
-    //         }
+                msg = "{id : "+dt.getTime()+" path: "+ fileName+" diskpath1 : "+ mt.getPrimaryDisk().getPath() +" diskpath2 : "+ mt.getReplicaDisk().getPath()+"}";
+                mq1ton.send(msg, "");
+                System.out.format("Sent Message (to %s) :-> %s\n", mq1ton.getExchangeName(), msg);
+                Thread.sleep(10000);
+                idx++;
+            }
             
-    //     } catch (Exception ex){
-    //          System.out.println("--->Error : " + ex.getMessage() + " L. msg :" + ex.getLocalizedMessage());
-    //     }
+        } catch (Exception ex){
+             System.out.println("--->Error : " + ex.getMessage() + " L. msg :" + ex.getLocalizedMessage());
+        }
     }
 }
