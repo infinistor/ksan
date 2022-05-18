@@ -29,17 +29,18 @@ import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
 public interface DataRepository {
     // for object
     public int insertObject(Metadata md) throws ResourceNotFoundException;
-    public int updateDisks(Metadata md);
+    public int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk);
     public int updateSizeTime(Metadata md);
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path) throws ResourceNotFoundException;
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId) throws ResourceNotFoundException;
     public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException; 
+    public Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid, String versionId) throws ResourceNotFoundException; 
     public void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException;
     public int deleteObject(String bucketName, String path, String versionId);
     public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException;
     public List<String> getAllUsedDiskId() throws SQLException;
     public Object getStatement(String query) throws SQLException;
-    public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys) throws SQLException;
+    public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys, long offset) throws SQLException;
     //public void updateObjectMeta(String bucket, String objkey, String versionid, String meta) throws SQLException;
     public void updateObjectMeta(Metadata mt) throws SQLException;
     public void updateObjectTagging(Metadata mt) throws SQLException;

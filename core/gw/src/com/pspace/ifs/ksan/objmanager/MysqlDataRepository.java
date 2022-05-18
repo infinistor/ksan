@@ -49,7 +49,8 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstSelectOne;
     private PreparedStatement pstSelectOneWithVersionId;
     private PreparedStatement pstSelectList;
-    private PreparedStatement pstupdateDisks;
+    private PreparedStatement pstupdatePDisks;
+    private PreparedStatement pstupdateRDisks;
     private PreparedStatement pstupdateSizeTime;
     private PreparedStatement pstupdateLastVersion;
     private PreparedStatement pstupdateLastVersionDelete;
@@ -134,7 +135,8 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateDeleteMarker=con.prepareStatement("UPDATE MDSDBTable SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=? AND lastversion=true");
             
             pstSelectList = con.prepareStatement("SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM MDSDBTable WHERE objKey LIKE ?");
-            pstupdateDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=?, rdiskid=? WHERE objid=?");
+            pstupdatePDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=? WHERE objid=? AND versionid=?");
+            pstupdateRDisks = con.prepareStatement("UPDATE MDSDBTable SET rdiskid=? WHERE objid=? AND versionid=?");
             pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
             pstupdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
             pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1");
@@ -427,17 +429,28 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public synchronized int updateDisks(Metadata md) {
+    public synchronized int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         try {
-            pstupdateDisks.clearParameters();
-            pstupdateDisks.setString(1, md.getPrimaryDisk().getId());
-            try {
-                pstupdateDisks.setString(2, md.getReplicaDisk().getId());
-            } catch (ResourceNotFoundException ex) {
-                pstupdateDisks.setString(2, "");
+            if (updatePrimary){
+                pstupdatePDisks.clearParameters();
+                pstupdatePDisks.setString(1, newDisk.getId());
+                pstupdatePDisks.setString(2, md.getObjId());
+                pstupdatePDisks.setString(3, md.getVersionId());
+                //pstupdatePDisks.setString(4, md.getPrimaryDisk().getId());
             }
-            pstupdateDisks.setString(3, md.getObjId());
-            return pstupdateDisks.executeUpdate();
+            else{
+                pstupdateRDisks.clearParameters();
+                pstupdateRDisks.setString(1, newDisk.getId());
+                pstupdateRDisks.setString(2, md.getObjId());
+                pstupdateRDisks.setString(3, md.getVersionId());
+                /*try {
+                    pstupdateRDisks.setString(4, md.getReplicaDisk().getId()); 
+                } catch (ResourceNotFoundException ex) {
+                    return -1; 
+                }*/
+            }
+            
+            return updatePrimary ? pstupdatePDisks.executeUpdate() : pstupdateRDisks.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -549,6 +562,10 @@ public class MysqlDataRepository implements DataRepository{
        return selectSingleObjectInternal(diskPoolId, objid); 
     }
     
+    @Override
+    public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid, String versionId) throws ResourceNotFoundException {
+       return selectSingleObjectInternal(diskPoolId, objid, versionId); 
+    }
     @Override
     public synchronized void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
         String key;
@@ -2151,7 +2168,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys) throws SQLException{
+    public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys, long offset) throws SQLException{
         List<Metadata> list = new ArrayList();
         ResultSet rs = null;
         DISK pdsk = null;

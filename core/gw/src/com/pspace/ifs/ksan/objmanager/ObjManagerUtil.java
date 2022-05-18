@@ -78,6 +78,18 @@ public class ObjManagerUtil {
         return dbm.selectSingleObjectWithObjId(bt.getDiskPoolId(), bucketName, objid);
     }
     
+    public Metadata getObject(String bucketName, String objid, String versionId) throws ResourceNotFoundException{
+        Bucket bt;
+        
+        try {
+            bt = this.getBucket(bucketName);
+        } catch (SQLException ex) {
+            throw new ResourceNotFoundException(ex.getMessage());
+        }
+        
+        return dbm.selectSingleObjectWithObjId(bt.getDiskPoolId(), bucketName, objid, versionId);
+    }
+    
     public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
         Bucket bt;
         try {
@@ -92,7 +104,7 @@ public class ObjManagerUtil {
         int ret = 0;
         
         if (updateCtrl == 1)
-            ret = dbm.updateDisks(mt);
+            ret = 0; //dbm.updateDisks(mt);
         else if (updateCtrl == 2)
             ret= dbm.updateSizeTime(mt);
         
@@ -110,28 +122,29 @@ public class ObjManagerUtil {
     /**
      * It will allocate a replica disk for recovery of failed replica object
      * @param bucketName   bucket name
-     * @param dpath        primary disk path 
-     * @param diskid       primary disk disk Id number
+     * @param pdiskId   primary diskid
+     * @param rdiskId   replica diskid
      * @return new DISK object
      * @throws ResourceNotFoundException if there is no server or disk available
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
-    public DISK allocReplicaDisk(String bucketName, String dpath, String diskid) throws ResourceNotFoundException, AllServiceOfflineException{
-        DISK primary = new DISK();
-        
-        if (dpath == null && diskid == null)
-            return null;
+    public DISK allocReplicaDisk(String bucketName, String pdiskId, String rdiskId) throws ResourceNotFoundException, AllServiceOfflineException{
+       
+        if (pdiskId == null && rdiskId == null)
+             throw new ResourceNotFoundException("null diskid provided!");
 
-        if (dpath != null && diskid != null){
-            if (dpath.isEmpty() && diskid.isEmpty())
-                return null;
+        if (pdiskId != null && rdiskId != null){
+            if (pdiskId.isEmpty() && rdiskId.isEmpty())
+                throw new ResourceNotFoundException("empty diskid provided!");
         }
         
-        primary.setPath(dpath);
-        primary.setId(diskid);
+        DISK rsrcDisk = null;
         String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-        return dAlloc.allocDisk(dskPoolId, primary);
+        DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
+        if (rdiskId != null)
+            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);
+        return dAlloc.allocDisk(dskPoolId, psrcDisk, rsrcDisk);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
@@ -145,24 +158,34 @@ public class ObjManagerUtil {
      * Replace replica disk with new one after recovery
      * @param bucketName  bucket name
      * @param objid       object id
-     * @param pdiskid     primary disk id
-     * @param rdiskid     new replica disk id
+     * @param versionId   the version id of the object
+     * @param oldDiskid   the diskId going to be replaced
+     * @param newDiskid   the new diskId
      * @return -1 if it is failed, 0 if nothing is updated or 1 if it is successful
      * @throws ResourceNotFoundException if the disk provided is not valid or exist in the system
      */
-    public int replaceDisk(String bucketName, String objid, String pdiskid, String rdiskid) throws ResourceNotFoundException{
+    public int replaceDisk(String bucketName, String objid, String versionId, String oldDiskid, String newDiskid) throws ResourceNotFoundException{
         String diskpoolid;
-        DISK primary;
-        DISK replica;
+        DISK newDisk;
+        boolean updatePrimary = false;
         diskpoolid = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-        primary = obmCache.getDiskWithId(diskpoolid, pdiskid);
-        replica = obmCache.getDiskWithId(diskpoolid, rdiskid);
-        System.out.println(" PRIMARY > " + pdiskid + ", " + primary + " REPLICA >" + rdiskid + " ," + replica);
-        Metadata md = new Metadata();
-        md.setObjid(objid);
-        md.setPrimaryDisk(primary);
-        md.setReplicaDISK(replica);
-        return dbm.updateDisks(md);
+        newDisk = obmCache.getDiskWithId(diskpoolid, newDiskid);
+       
+        Metadata md = dbm.selectSingleObjectWithObjId(diskpoolid, bucketName, objid, versionId);
+        if (md.getPrimaryDisk().getId().equals(oldDiskid))
+            updatePrimary = true;
+        else if(md.isReplicaExist()){
+            if (!md.getReplicaDisk().getId().equals(oldDiskid)){
+                System.out.println("Replica problem");
+                return -1; // invalide update
+            }
+        }
+        else {
+             System.out.println("Replica problem 2");
+            return -1; // invalide update
+        }
+        System.out.println("call update db");
+        return dbm.updateDisks(md, updatePrimary, newDisk);
     }
     
     public List<Bucket> getExistedBucketList(){
