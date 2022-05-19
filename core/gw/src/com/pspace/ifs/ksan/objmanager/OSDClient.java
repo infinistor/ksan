@@ -22,6 +22,10 @@ public class OSDClient {
         mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
     }
     
+    public OSDClient(MQSender mqSender){
+        this.mqSender = mqSender;
+    }
+    
     public int removeObject(Metadata mt) throws Exception{
         JSONObject obj;
         String bindingKey;

@@ -39,28 +39,19 @@ public class ObjManager {
     private ObjManagerConfig config;
     private DiskMonitor diskM;
     private MQSender mqSender;
-    // private OMLogger logger;
+    private OSDClient osdc;
     private static Logger logger;
    
-    // public static ObjManager getInstance() {
-    //     return LazyHolder.INSTANCE;
-    // }
-
-    // private static class LazyHolder {
-    //     private static ObjManager INSTANCE = new ObjManager();
-    // }
-
     public ObjManager() throws Exception {
-        //try {
+       
             logger = LoggerFactory.getLogger(ObjManager.class);
 
             config = new ObjManagerConfig();
             obmCache = new ObjManagerCache();
-            //dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
+            
             if (config.dbRepository.equalsIgnoreCase("MYSQL"))
                 dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
             else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-                
                 dbm = new MongoDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
             else 
                 logger.debug("ObjManger initalization error :  there is no db storage configured!");
@@ -76,17 +67,13 @@ public class ObjManager {
             
             //obmCache.displayDiskPoolList();
             dAlloc = new DiskAllocation(obmCache);
+            
             diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
-            // logger = new OMLogger(ObjManager.class.getName());
+            
             mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
-        /*} catch(UnknownHostException e){
-            logger.error("ObjManger initalization error : " + e);
-            System.out.println(e);
-        }
-        catch(IOException e){
-            logger.error("ObjManger initalization error : " + e);
-            System.out.println(e);
-        }*/
+            
+            osdc = new OSDClient(mqSender);
+       
     }
    private Metadata _open(String bucket, String path, String versionId)
             throws ResourceNotFoundException{
@@ -165,11 +152,6 @@ public class ObjManager {
             throw new ResourceNotFoundException("Bucket(" + bucketName +") not found due to " + ex);
         }
         
-        /*if (bt == null){    
-            throw new ResourceNotFoundException("Bucket(" + bucketName +") not exist!");
-        }*/
-
-        //System.out.format("create bucketName : %s path : %s diskpoolId : %s \n", bucketName, path, bt.getDiskPoolId());
         logger.debug(" bucket : {} bucketId : {} diskPoolId : {} ", bt.getName(), bt.getId(), bt.getDiskPoolId());
         Metadata mt = new Metadata(bucketName, path);
 
@@ -236,31 +218,7 @@ public class ObjManager {
             cpy_mt.setReplicaDISK(mt.getReplicaDisk());
         return cpy_mt;
     }
-  
-    private int sendDeletedObjectToOSD(Metadata mt) throws Exception{
-        /*
-        JSONObject obj;
-        String bindingKey;
-        String bindingKeyPref = "*.servers.unlink.";
-        
-        
-        obj = new JSONObject();
-        obj.put("ObjId", mt.getObjId());
-        obj.put("Path", mt.getPath());
-        obj.put("DiskId", mt.getPrimaryDisk().getId());
-        obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-        bindingKey = bindingKeyPref + mt.getPrimaryDisk().getId();
-        mqSender.send(obj.toString(), bindingKey);
-
-        if (mt.isReplicaExist()){
-            obj.replace("DiskId", mt.getReplicaDisk().getId());
-            obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-            bindingKey = bindingKeyPref + mt.getReplicaDisk().getId();
-            mqSender.send(obj.toString(), bindingKey);
-        }*/
-        return 0;
-    }
-    
+   
     private int removeObject(String bucket, String path, String  versionId){
              
         try {
@@ -269,23 +227,7 @@ public class ObjManager {
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucket, path, versionId);
             // remove from DB or mark
             dbm.deleteObject(bucket, path, versionId);
-            sendDeletedObjectToOSD(mt);
-            /*if (versionId.equalsIgnoreCase("null")){
-                dbm.deleteObject(bucket, path, versionId);
-                sendDeletedObjectToOSD(mt);
-            }
-            else if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
-                dbm.deleteObject(bucket, path, versionId);
-                sendDeletedObjectToOSD(mt);
-            } 
-            else{
-                if (mt.getLastVersion())
-                    dbm.markDeletedObject(bucket, path, versionId, "mark");
-                else{
-                   dbm.deleteObject(bucket, path, versionId);
-                   sendDeletedObjectToOSD(mt);   
-                }     
-            }*/
+            //osdc.removeObject(mt);
             return 0;
         } catch (ResourceNotFoundException ex) {
             logger.debug(ex.getMessage());
@@ -364,44 +306,6 @@ public class ObjManager {
      
         mt.setReplicaCount(bt.getReplicaCount());
         return this.close(bucketName, path, mt);
-        /*try {
-            if (path.isEmpty())
-               throw new InvalidParameterException("empty path not allowed!"); 
-            
-            if (!obmCache.validateDisk(bt.getDiskPoolId(), "", pdskPath))
-                throw new InvalidParameterException("primary disk("+pdskPath+") not exist in the system!");
-            
-            if (isreplicaExist){
-                if (!obmCache.validateDisk(bt.getDiskPoolId(), "", rdskPath)){
-                    logger.debug("bucket : {} path : {} there replica disk provided", bucketName, path);
-                    //throw new InvalidParameterException("Replica disk not exist in the system!");
-                }
-            }
-            
-            mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path);
-            if (!bt.getVersioning().equalsIgnoreCase("Enabled"))
-                dbm.deleteObject(bucketName, path, "null");
-            mt.setPrimaryDisk(pdsk);
-            if (isreplicaExist)
-                mt.setReplicaDISK(rdsk);
-            mt.setEtag(etag);
-            mt.setTag(tag);
-            mt.setMeta(meta); 
-            mt.setSize(size);
-            mt.setAcl(acl);
-            mt.setVersionId(versionId, deleteMarker, true);
-        } catch(ResourceNotFoundException ex){
-            // create meta
-            mt = new Metadata(bucketName, path, etag, meta, tag, size, acl, pdsk.getId(), 
-                    pdsk.getPath(), isreplicaExist?  rdsk.getId() : "", 
-
-                    isreplicaExist ? rdsk.getPath() : "", versionId, deleteMarker); 
- 
-            mt.setVersionId(versionId, deleteMarker, true);
-        }
-    
-        // inseret to db
-        return dbm.insertObject(mt);*/
     }
     
     public int close(String bucketName, String path, Metadata mt) throws ResourceNotFoundException{
@@ -434,62 +338,7 @@ public class ObjManager {
         mt.updateLastmodified(); // to update last modified time to now
         return dbm.insertObject(mt); 
     }
-    /**
-     *
-     * @param bucketName  name of the bucket containing the objects. 
-     * @param delimiter   A string used to group objects keys
-     * @param startAfter  key to start with when listing objects in a bucket.
-     * @param maxKeys     maximum number of keys returned.
-     * @param prefix      return keys that begin with the prefix
-     * @return
-     */
-    /*public Document listObjects(String bucketName, String delimiter, String startAfter, int maxKeys, String prefix){
-        Document res;
-        ListObject lo = new ListObject(dbm, bucketName, delimiter, startAfter, maxKeys, prefix);
-        res = lo.excute();
-        //Element root = res.getDocumentElement();
-        //logger.debug("res : >" + root.getTagName());
-        logger.debug("result : >" + lo);
-        return res;
-    }*/
-
-    /**
-     *
-     * @param bucketName  name of the bucket containing the objects. 
-     * @param delimiter   A string used to group objects keys
-     * @param startAfter  key to start with when listing objects in a bucket.
-     * @param maxKeys     maximum number of keys returned.
-     * @param prefix      return keys that begin with the prefix
-     * @return
-     */
-    /*public ObjectListParameter getListObjects(String bucketName, String delimiter, String startAfter, int maxKeys, String prefix) {
-        ObjectListParameter objectListParameter = null;
-        
-        ListObject lo = new ListObject(dbm, bucketName, delimiter, startAfter, maxKeys, prefix);
-        objectListParameter = lo.executeDirect();
-        
-        return objectListParameter;
-    }*/
     
-    /**
-     *
-     * @param bucketName  name of the bucket containing the objects. 
-     * @param delimiter   A string used to group objects keys
-     * @param startAfter  key to start with when listing objects in a bucket.
-     * @param maxKeys     maximum number of keys returned.
-     * @param prefix      return keys that begin with the prefix
-     * @return
-     */
-    /*public ObjectListParameter getListObjectsVersions(String bucketName, String delimiter, String startAfter, String startAfterVersionId, int maxKeys, String prefix) {
-        ObjectListParameter objectListParameter = null;
-        
-        ListObject lo = new ListObject(dbm, bucketName, delimiter, startAfter, startAfterVersionId, maxKeys, prefix);
-        objectListParameter = lo.executeDirect();
-        
-        return objectListParameter;
-    }*/
-
-
     /**
      * Create bucket if it is not exist
      * @param bucketName bucket name
@@ -557,13 +406,6 @@ public class ObjManager {
      */
     public List<S3BucketSimpleInfo> listBucketSimpleInfo(String userName, String userId) {
         return obmCache.getBucketSimpleList();
-        
-        // 2021-11-18 temporary fix
-        // obmCache.resetBucketList();
-        // dbm.loadBucketList();
-        // List<S3BucketSimpleInfo> list = obmCache.getBucketSimpleList();
-
-        // return list;
     }
 
     /**
@@ -583,13 +425,6 @@ public class ObjManager {
             return true;
         }
         return isExist;
-        // try {
-        //     Bucket bt = dbm.selectBucket(bucketName);
-        // } catch (ResourceNotFoundException | SQLException e) {
-        //     return false;
-        // }
-
-        // return true;
     }
     
     /**
@@ -626,37 +461,6 @@ public class ObjManager {
         return dAlloc.allocDisk(dskPoolId, primary, null);
     }
     
-    /**
-     * Replace replica disk with new one after recovery
-     * @param bucketName  bucket name
-     * @param objid       object id
-     * @param pdiskid     primary disk id
-     * @param rdiskid     new replica disk id
-     * @return -1 if it is failed, 0 if nothing is updated or 1 if it is successful
-     * @throws ResourceNotFoundException if the disk provided is not valid or exist in the system
-     */
-    /*public int replaceDisk(String bucketName, String objid, String pdiskid, String rdiskid) throws ResourceNotFoundException{
-        String diskpoolid;
-        DISK primary;
-        DISK replica;
-        Bucket bt;
-        
-        try {
-            bt = getBucket(bucketName);
-        } catch (SQLException ex) {
-            throw new ResourceNotFoundException("unable to get buckt " + bucketName + " in the system!");
-        }
-        diskpoolid = bt.getDiskPoolId();
-        primary = obmCache.getDiskWithId(diskpoolid, pdiskid);
-        replica = obmCache.getDiskWithId(diskpoolid, rdiskid);
-        logger.debug(" PRIMARY > " + pdiskid + ", " + primary + " REPLICA >" + rdiskid + " ," + replica);
-        Metadata md = new Metadata();
-        md.setObjid(objid);
-        md.setPrimaryDisk(primary);
-        md.setReplicaDISK(replica);
-        return dbm.updateDisks(md);
-    }*/
-    
     public int putBucketVersioning(String bucketName, String versionState) throws ResourceNotFoundException, SQLException{
         int ret;
         Bucket bt = dbm.selectBucket(bucketName);
@@ -671,24 +475,6 @@ public class ObjManager {
         return bt.getVersioning();
     }
     
-    /*public Document listObjectsVersion(String bucketName, String delimiter, String startAfter, String startAfterVersionId, int maxKeys, String prefix){
-        Document res;
-        ListObject lo = new ListObject(dbm, bucketName, delimiter, startAfter, startAfterVersionId, maxKeys, prefix);
-        res = lo.excute();
-        //Element root = res.getDocumentElement();
-        //logger.debug("res : >" + root.getTagName());
-        logger.debug("result : >" + lo);
-        return res;
-    }*/
-
-    /*public ObjectListParameter getListObjectsVersion(String bucketName, String delimiter, String startAfter, String startAfterVersionId, int maxKeys, String prefix){
-        ObjectListParameter objectListParameter = null;
-        ListObject lo = new ListObject(dbm, bucketName, delimiter, startAfter, startAfterVersionId, maxKeys, prefix);
-        objectListParameter = lo.executeDirect();
-
-        return objectListParameter;
-    }*/
-
     public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException, SQLException{
         return _open(bucketName, key, null); 
     }
@@ -708,7 +494,6 @@ public class ObjManager {
         return bt;
     }
 
-    /*public void updateObjectMeta(String bucketName, String objKey, String versionId, String meta) throws SQLException {*/
     public void updateObjectMeta(Metadata mt) throws SQLException {
         dbm.updateObjectMeta(mt);
     }
@@ -816,19 +601,16 @@ public class ObjManager {
        
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         return list.getList();
-        //return dbm.listObject(bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
     }
 
     public ObjectListParameter listObjectV2(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         return list.getList();
-         //return dbm.listObjectV2(bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
     }
 
     public ObjectListParameter listObjectVersions(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix(), true);
         return list.getList();
-        //return dbm.listObjectVersions(bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
     }
 
     public List<Metadata> listObject(String bucketName, String delimiter, String keyMarker, String versionIdMarker, String continuationToken, int maxKeys, String prefix) throws SQLException{
@@ -841,22 +623,13 @@ public class ObjManager {
         return true;
     }
     
-    public void close() throws SQLException {
-    }
+    public void close() throws SQLException {}
     
-    public void activate(){
-        
-    }
+    public void activate(){}
     
-    public void deactivate(){
-        
-    }
+    public void deactivate(){}
 
-    public void updateConfig() {
-   
-    }
+    public void updateConfig(){}
 
-    public void updateDiskpools() {
-
-    }
+    public void updateDiskpools(){}
 }
