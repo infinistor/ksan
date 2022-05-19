@@ -23,7 +23,6 @@ import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
 
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,42 +39,49 @@ public class ObjManager {
     private DiskMonitor diskM;
     private MQSender mqSender;
     private OSDClient osdc;
+    private ObjManagerSharedResource obmsr;
     private static Logger logger;
    
-    public ObjManager() throws Exception {
-       
-            logger = LoggerFactory.getLogger(ObjManager.class);
+    private void init(ObjManagerConfig config) throws Exception {
+        logger = LoggerFactory.getLogger(ObjManager.class);
 
-            config = new ObjManagerConfig();
-            obmCache = new ObjManagerCache();
-            
-            if (config.dbRepository.equalsIgnoreCase("MYSQL"))
-                dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-            else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-                dbm = new MongoDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
-            else 
-                logger.debug("ObjManger initalization error :  there is no db storage configured!");
+        this.config = config;
 
-            obmCache.setDBManager(dbm);
-            
-            config.loadDiskPools(obmCache);
-            //config.loadBucketList(obmCache);
-            logger.debug(config.toString());
+        obmsr = ObjManagerSharedResource.getInstance(config);
 
-            dbm.loadBucketList();
-            //obmCache.displayBucketList();
-            
-            //obmCache.displayDiskPoolList();
-            dAlloc = new DiskAllocation(obmCache);
-            
-            diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
-            
-            mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
-            
-            osdc = new OSDClient(mqSender);
-       
+        obmCache = obmsr.obmCache;
+
+        dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
+
+        obmCache.setDBManager(dbm);
+
+        config.loadDiskPools(obmCache);
+
+        //config.loadBucketList(obmCache);
+        logger.debug(config.toString());
+
+        dbm.loadBucketList();
+        //obmCache.displayBucketList();
+
+        //obmCache.displayDiskPoolList();
+        dAlloc = new DiskAllocation(obmCache);
+
+        diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
+
+        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
+
+        osdc = new OSDClient(mqSender);
     }
-   private Metadata _open(String bucket, String path, String versionId)
+    
+    public ObjManager() throws Exception {
+        init(new ObjManagerConfig());
+    }
+    
+    public ObjManager(ObjManagerConfig config) throws Exception {
+        init(config);
+    }
+  
+    private Metadata _open(String bucket, String path, String versionId)
             throws ResourceNotFoundException{
         Metadata mt;
         Bucket bt;

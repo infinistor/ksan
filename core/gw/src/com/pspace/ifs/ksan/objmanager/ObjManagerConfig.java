@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
  * @author legesse
  */
 public class ObjManagerConfig {
-    private final Properties prop;
+    private Properties prop = null;
     public String dbHost;
     public long dbport;
     public String dbName;
@@ -63,6 +63,23 @@ public class ObjManagerConfig {
         return Long.parseLong(value);
     }
     
+    public ObjManagerConfig(String dbRepository, String dbHost, long dbport, 
+            String dbName, String dbUsername, String dbPassword, 
+            String mqHost, String mqQueeuname, String mqExchangename, 
+            String mqOsdExchangename){
+        this.dbRepository = dbRepository;
+        this.dbHost = dbHost;
+        this.dbport = dbport;
+        this.dbName = dbName;
+        this.dbUsername = dbUsername;
+        this.dbPassword = dbPassword;
+        this.mqHost = mqHost;
+        this.mqQueeuname = mqQueeuname;
+        this.mqExchangename = mqExchangename;
+        this.mqOsdExchangename = mqOsdExchangename;
+        logger = LoggerFactory.getLogger(ObjManager.class);
+    }
+    
     public ObjManagerConfig() throws IOException {
         prop = new Properties();
         InputStream is = new FileInputStream("/usr/local/ksan/etc/objmanger.conf");
@@ -85,8 +102,7 @@ public class ObjManagerConfig {
         //mqRoutingkey4remove = prop.getProperty("mq.routingkey.remove");
         //allocAlgorithm = prop.getProperty("alloc.algorithm");
 
-        logger = LoggerFactory.getLogger(ObjManager.class);
-        
+        logger = LoggerFactory.getLogger(ObjManager.class);   
     }
     
     /*public void loadBucketList(ObjManagerCache omc){

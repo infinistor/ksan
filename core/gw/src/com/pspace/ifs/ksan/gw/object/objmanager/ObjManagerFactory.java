@@ -14,17 +14,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManager;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
+import java.io.IOException;
 
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
+    private ObjManagerConfig config;
     private List<ObjManager> objManagerList = new ArrayList<ObjManager>();
-    public ObjManagerFactory() {}
+    public ObjManagerFactory() throws IOException {
+        // this is temporatry and it is read from the config file
+        config = new ObjManagerConfig();
+        // replace with this after you got information from portal
+        /*config = new ObjManagerConfig(String dbRepository, String dbHost, 
+                        long dbport, String dbName, String dbUsername, 
+                        String dbPassword, String mqHost, String mqQueeuname, 
+                        String mqExchangename, String mqOsdExchangename);*/
+    }
 
     private ObjManager create() throws Exception {
-        ObjManager objManager = new ObjManager();
+        ObjManager objManager = new ObjManager(config);
         objManagerList.add(objManager);
         return objManager;
     }
