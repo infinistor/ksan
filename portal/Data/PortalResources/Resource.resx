@@ -1760,4 +1760,12 @@
     <value>Standard</value>
     <comment>기본</comment>
   </data>
+  <data name="EM_CONFIGS_ALREADY_LAST_VERSION" xml:space="preserve">
+    <value>The version is already set to the latest version.</value>
+    <comment>해당버전이 이미 최신버전으로 설정되어 있습니다.</comment>
+  </data>
+  <data name="EM_CONFIGS_LIST_VERSION_CANNOT_DELETE" xml:space="preserve">
+    <value>The last version cannot be deleted.</value>
+    <comment>마지막 버전은 삭제할 수 없습니다.</comment>
+  </data>
 </root>
