@@ -25,6 +25,10 @@ public class KsanUtils {
     private static final Logger logger = LoggerFactory.getLogger(KsanUtils.class);
     private static String localIP = null;
 
+    private KsanUtils() {
+        throw new illegalStateException("Utility class");
+    }
+    
     public static void writePID(String path) {
         File file = new File(path);
         try {

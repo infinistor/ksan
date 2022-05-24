@@ -13,6 +13,10 @@ package com.pspace.ifs.ksan.libs;
 import org.slf4j.Logger;
 
 public class PrintStack {
+	private PrintStack() {
+		throw new illegalStateException("Utility class");
+	}
+	
     public static void logging(Logger log, Exception e) {
 		log.error(e.getMessage());
 		for ( StackTraceElement k : e.getStackTrace() ) {
