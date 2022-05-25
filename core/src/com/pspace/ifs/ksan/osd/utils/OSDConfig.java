@@ -37,6 +37,19 @@ public class OSDConfig {
     private int cacheLimitMinutes;
     private int trashScheduleMinutes;
 
+    private static final String VERSION = "version";
+    private static final String POOL_SIZE = "osd.pool_size";
+    private static final String PORT = "osd.port";
+    private static final String EC_SCHEDULE_MINUTES = "osd.ec_schedule_minutes";
+    private static final String EC_APPLY_MINUTES = "osd.ec_apply_minutes";
+    private static final String EC_FILE_SIZE = "osd.ec_file_size";
+    private static final String CACHE_DISK = "osd.cache_disk";
+    private static final String CACHE_SCHEDULE_MINUTES = "osd.cache_schedule_minutes";
+    private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
+    private static final String CACHE_LIMIT_MINUTES = "osd.cache_limit_minutes";
+    private static final String TRASH_SCHEDULE_MINUTES = "osd.trash_schedule_minutes";
+    private static final String EQUAL = "=";
+
     private static final Logger logger = LoggerFactory.getLogger(OSDConfig.class);
 
     public static OSDConfig getInstance() {
@@ -139,21 +152,18 @@ public class OSDConfig {
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
-        JSONObject jsonEC = (JSONObject)jsonConfig.get("ec");
-        JSONObject jsonCache = (JSONObject)jsonConfig.get("cache");
+        setPoolSize((int)(long)jsonConfig.get(POOL_SIZE));
+        setPort((int)(long)jsonConfig.get(PORT));
+        setTrashScheduleMinutes((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
 
-        setPoolSize((int)(long)jsonConfig.get("pool-size"));
-        setPort((int)(long)jsonConfig.get("port"));
-        setTrashScheduleMinutes((int)(long)jsonConfig.get("trash-schedule-minutes"));
+        setECScheduleMinutes((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
+        setECApplyMinutes((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
+        setECFileSize((long)jsonConfig.get(EC_FILE_SIZE));
 
-        setECScheduleMinutes((int)(long)jsonEC.get("schedule-minutes"));
-        setECApplyMinutes((int)(long)jsonEC.get("apply-minutes"));
-        setECFileSize((long)jsonEC.get("file-size"));
-
-        setCacheDisk((String)jsonCache.get("disk"));
-        setCacheScheduleMinutes((int)(long)jsonCache.get("schedule-minutes"));
-        setCacheFileSize((long)jsonCache.get("file-size"));
-        setCacheLimitMinutes((int)(long)jsonCache.get("limit-minutes"));
+        setCacheDisk((String)jsonConfig.get(CACHE_DISK));
+        setCacheScheduleMinutes((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
+        setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
+        setCacheLimitMinutes((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
 
         logger.debug("pool size : {}", getPoolSize());
         logger.debug("port : {}", getPort());
@@ -170,17 +180,17 @@ public class OSDConfig {
     public void saveConfigFile() throws IOException {
         try {
             FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, false);
-            fileWriter.write("version=" + version + "\n");
-            fileWriter.write("pool_size=" + poolSize + "\n");
-            fileWriter.write("port=" + port + "\n");
-            fileWriter.write("ec_schedule_minutes=" + ecScheduleMinutes + "\n");
-            fileWriter.write("ec_apply_minutes=" + ecApplyMinutes + "\n");
-            fileWriter.write("ec_file_size=" + ecFileSize + "\n");
-            fileWriter.write("cache_disk=" + cacheDisk + "\n");
-            fileWriter.write("cache_schedule_minutes=" + cacheScheduleMinutes + "\n");
-            fileWriter.write("cache_file_size=" + cacheFileSize + "\n");
-            fileWriter.write("cache_limit_minutes=" + cacheLimitMinutes + "\n");
-            fileWriter.write("trash_schedule_minutes=" + trashScheduleMinutes + "\n");
+            fileWriter.write(VERSION + EQUAL + version + "\n");
+            fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
+            fileWriter.write(PORT + EQUAL + port + "\n");
+            fileWriter.write(EC_SCHEDULE_MINUTES + EQUAL + ecScheduleMinutes + "\n");
+            fileWriter.write(EC_APPLY_MINUTES + EQUAL + ecApplyMinutes + "\n");
+            fileWriter.write(EC_FILE_SIZE + EQUAL + ecFileSize + "\n");
+            fileWriter.write(CACHE_DISK + EQUAL + cacheDisk + "\n");
+            fileWriter.write(CACHE_SCHEDULE_MINUTES + EQUAL + cacheScheduleMinutes + "\n");
+            fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+            fileWriter.write(CACHE_LIMIT_MINUTES + EQUAL + cacheLimitMinutes + "\n");
+            fileWriter.write(TRASH_SCHEDULE_MINUTES + EQUAL + trashScheduleMinutes + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

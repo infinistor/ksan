@@ -193,20 +193,18 @@ public class GWPortal {
 
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get("Data");
-				String version = String.valueOf(jsonData.get("Version"));
-                String config = (String)jsonData.get("Config");
+                JSONObject jsonData = (JSONObject)jsonObject.get(MonConfig.DATA);
+				String version = String.valueOf(jsonData.get(MonConfig.VERSION));
+                String config = (String)jsonData.get(MonConfig.CONFIG);
                 logger.info(config);
 
                 JSONObject jsonConfig = (JSONObject)parser.parse(config);
                 
-                JSONObject jsonGW = (JSONObject)jsonConfig.get("gw");
-                GWConfig.getInstance().setConfig(jsonGW);
+                GWConfig.getInstance().setConfig(jsonConfig);
 				GWConfig.getInstance().setVersion(version);
                 GWConfig.getInstance().saveConfigFile();
 
-                JSONObject jsonObjM = (JSONObject)jsonConfig.get("objmanager");
-                ObjectManagerConfig.getInstance().setConfig(jsonObjM);
+                ObjectManagerConfig.getInstance().setConfig(jsonConfig);
 				ObjectManagerConfig.getInstance().setVersion(version);
                 ObjectManagerConfig.getInstance().saveConfigFile();
 				return;
