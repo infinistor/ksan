@@ -1,7 +1,0 @@
-com\pspace\ifs\ksan\utils\getattr\GetObjectMetadata.class
-com\pspace\ifs\ksan\utils\cbalance\CBalance.class
-com\pspace\ifs\ksan\utils\fsck\FSCK.class
-com\pspace\ifs\ksan\utils\getattr\CommandParser.class
-com\pspace\ifs\ksan\utils\recovery\Recovery$RecoveryObjectCallback.class
-com\pspace\ifs\ksan\utils\recovery\Recovery.class
-com\pspace\ifs\ksan\utils\ObjectMover.class

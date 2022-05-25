@@ -1,12 +1,7 @@
 *.classpath
 *.project
 *.prefs
-core/src/com/ifs/ksan/gw/target/
-core/src/com/ifs/ksan/osd/target/
-core/src/com/ifs/ksan/objmanager/target/
-core/src/com/ifs/ksan/libs/target/
-core/src/com/ifs/ksan/utils/target/
-core/backend/ifswatcher/target/
+*/target/
 *.class
 *.jar
 .factorypath
