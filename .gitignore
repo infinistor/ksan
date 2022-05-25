@@ -1,7 +1,7 @@
 *.classpath
 *.project
 *.prefs
-*/target/
+**/target/
 *.class
 *.jar
 .factorypath
