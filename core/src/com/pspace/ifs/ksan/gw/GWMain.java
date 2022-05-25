@@ -55,8 +55,10 @@ public class GWMain {
 			logger.error(GWConstants.STOP_KSAN_GW);
 		} catch (IllegalStateException e) {
 			PrintStack.logging(logger, e);
+			System.exit(1);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
+			System.exit(1);
 		}
 	}
 

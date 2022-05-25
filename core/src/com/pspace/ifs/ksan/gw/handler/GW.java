@@ -43,13 +43,14 @@ public class GW {
     public GW() {
     }
 
-	public void configure() throws GWException {
+	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getDiskPoolsDetails();
 	}
 
-    public void init() throws GWException {
+    public void init() throws Exception {
+		
 		configure();
 		
 		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,
