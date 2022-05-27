@@ -128,16 +128,17 @@ public class ObjManagerCache {
         return bucketMap.keySet().toArray(new String[0]);
     }
     
-    public List<S3BucketSimpleInfo> getBucketSimpleList() {
+    public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
         for (String key : bucketMap.keySet()) {
             Bucket bt = bucketMap.get(key);
-            S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
-            bsi.setBucketName(bt.getName());
-            bsi.setCreateDate(bt.getCreateTime());
-
-            btList.add(bsi);
+            if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
+            	S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
+            	bsi.setBucketName(bt.getName());
+            	bsi.setCreateDate(bt.getCreateTime());
+            	btList.add(bsi);
+	    }
         }
 
         return btList;

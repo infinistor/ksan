@@ -151,7 +151,7 @@ public class MysqlDataRepository implements DataRepository{
                     + "name VARCHAR(256) NOT NULL, "
                     + "id VARCHAR(80) NOT NULL, "
                     + "diskPoolId CHAR(36) NOT NULL, "
-                    + " userId CHAR(32), userName VARCHAR(200), "
+                    + " userId CHAR(36), userName VARCHAR(200), "
                     + "acl TEXT, web TEXT, cors TEXT, "
                     + "lifecycle TEXT, access TEXT, "
                     + "tagging TEXT, replication TEXT, "

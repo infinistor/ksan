@@ -411,7 +411,7 @@ public class ObjManager {
      * @return list of bucket names or null if no bucket exist     
      */
     public List<S3BucketSimpleInfo> listBucketSimpleInfo(String userName, String userId) {
-        return obmCache.getBucketSimpleList();
+        return obmCache.getBucketSimpleList(userName, userId);
     }
 
     /**
