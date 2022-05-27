@@ -10,7 +10,7 @@
 */
 package com.pspace.ifs.ksan.utility.Recovery;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 import org.json.simple.JSONObject;
 

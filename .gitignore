@@ -1,0 +1,8 @@
+*.classpath
+*.project
+*.prefs
+**/target/
+*.class
+*.jar
+.factorypath
+.vscode/settings.json

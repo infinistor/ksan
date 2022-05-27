@@ -1616,4 +1616,10 @@
   <data name="UL_DISKPOOL_CLASS_TYPE" xml:space="preserve">
     <value>클래스 설정</value>
   </data>
+  <data name="EM_CONFIGS_ALREADY_LAST_VERSION" xml:space="preserve">
+    <value>해당버전이 이미 최신버전으로 설정되어 있습니다.</value>
+  </data>
+  <data name="EM_CONFIGS_LIST_VERSION_CANNOT_DELETE" xml:space="preserve">
+    <value>마지막 버전은 삭제할 수 없습니다.</value>
+  </data>
 </root>
