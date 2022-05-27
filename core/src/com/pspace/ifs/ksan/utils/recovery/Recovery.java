@@ -21,7 +21,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
-import com.pspace.ifs.ksan.util.ObjectMover;
+import com.pspace.ifs.ksan.utils.ObjectMover;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
