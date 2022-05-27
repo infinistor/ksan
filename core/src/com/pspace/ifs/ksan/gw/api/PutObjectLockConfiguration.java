@@ -50,7 +50,7 @@ public class PutObjectLockConfiguration extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
+		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
 		
 		DataPutBucketObjectLock dataPutBucketObjectLock = new DataPutBucketObjectLock(s3Parameter);
 		dataPutBucketObjectLock.extract();

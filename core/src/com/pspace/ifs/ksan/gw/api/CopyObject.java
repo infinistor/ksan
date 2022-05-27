@@ -73,7 +73,7 @@ public class CopyObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		try {
 			object = URLDecoder.decode(object, GWConstants.CHARSET_UTF_8);
@@ -166,7 +166,7 @@ public class CopyObject extends S3Request {
 		s3Parameter.setSrcPath(srcObjectName);
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 		
-		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// get metadata
 		S3Metadata srcMetadata = null;
@@ -250,7 +250,7 @@ public class CopyObject extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
@@ -259,7 +259,7 @@ public class CopyObject extends S3Request {
 										  null, 
 										  dataCopyObject.getAcl(),
 										  getBucketInfo(),
-										  String.valueOf(s3Parameter.getUser().getUserId()),
+										  s3Parameter.getUser().getUserId(),
 										  s3Parameter.getUser().getUserName(),
 										  dataCopyObject.getGrantRead(),
 										  dataCopyObject.getGrantWrite(), 
@@ -275,7 +275,7 @@ public class CopyObject extends S3Request {
             bReplaceMetadata = true;
 		}
 		
-        s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+        s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
         s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 
         if (userMetadata.size() > 0) {

@@ -67,13 +67,13 @@ public class PutObjectAcl extends S3Request {
 
 		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
+        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
 
 		accessControlPolicy = new AccessControlPolicy();
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
 										null, 
@@ -81,7 +81,7 @@ public class PutObjectAcl extends S3Request {
 										dataPutObjectAcl.getAclXml(), 
 										dataPutObjectAcl.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataPutObjectAcl.getGrantRead(),
 										dataPutObjectAcl.getGrantWrite(), 

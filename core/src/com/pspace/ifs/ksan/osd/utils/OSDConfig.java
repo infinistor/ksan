@@ -152,18 +152,61 @@ public class OSDConfig {
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
-        setPoolSize((int)(long)jsonConfig.get(POOL_SIZE));
-        setPort((int)(long)jsonConfig.get(PORT));
-        setTrashScheduleMinutes((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
+        try {
+            setPoolSize((int)(long)jsonConfig.get(POOL_SIZE));
+        } catch (Exception e) {
+            setPoolSize(Integer.parseInt((String)jsonConfig.get(POOL_SIZE)));
+        }
+        
+        try {
+            setPort((int)(long)jsonConfig.get(PORT));
+        } catch (Exception e) {
+            setPort(Integer.parseInt((String)jsonConfig.get(PORT)));
+        }
 
-        setECScheduleMinutes((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
-        setECApplyMinutes((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
-        setECFileSize((long)jsonConfig.get(EC_FILE_SIZE));
+        try {
+            setTrashScheduleMinutes((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
+        } catch (Exception e) {
+            setTrashScheduleMinutes(Integer.parseInt((String)jsonConfig.get(TRASH_SCHEDULE_MINUTES)));
+        }
+
+        try {
+            setECScheduleMinutes((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
+        } catch (Exception e) {
+            setECScheduleMinutes(Integer.parseInt((String)jsonConfig.get(EC_SCHEDULE_MINUTES)));
+        }
+
+        try {
+            setECApplyMinutes((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
+        } catch (Exception e) {
+            setECApplyMinutes(Integer.parseInt((String)jsonConfig.get(EC_APPLY_MINUTES)));
+        }
+
+        try {
+            setECFileSize((long)jsonConfig.get(EC_FILE_SIZE));
+        } catch (Exception e) {
+            setECFileSize(Long.parseLong((String)jsonConfig.get(EC_FILE_SIZE)));
+        }
 
         setCacheDisk((String)jsonConfig.get(CACHE_DISK));
-        setCacheScheduleMinutes((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
-        setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
-        setCacheLimitMinutes((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
+        
+        try {
+            setCacheScheduleMinutes((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
+        } catch (Exception e) {
+            setCacheScheduleMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_SCHEDULE_MINUTES)));
+        }
+        
+        try {
+            setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
+        } catch (Exception e) {
+            setCacheFileSize(Long.parseLong((String)jsonConfig.get(CACHE_FILE_SIZE)));
+        }
+        
+        try {
+            setCacheLimitMinutes((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
+        } catch (Exception e) {
+            setCacheLimitMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_LIMIT_MINUTES)));
+        }
 
         logger.debug("pool size : {}", getPoolSize());
         logger.debug("port : {}", getPort());

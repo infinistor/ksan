@@ -50,7 +50,7 @@ public class GetObjectLockConfiguration extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ_ACP);
+		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
 		String objectLock = getBucketInfo().getObjectLock();
 		logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);

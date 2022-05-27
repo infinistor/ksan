@@ -56,7 +56,7 @@ public class ListObjects extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		DataListBuckets dataListBuckets = new DataListBuckets(s3Parameter);
 		dataListBuckets.extract();

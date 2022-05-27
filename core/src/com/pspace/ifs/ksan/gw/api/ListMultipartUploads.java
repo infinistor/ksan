@@ -56,7 +56,7 @@ public class ListMultipartUploads extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		DataListMultipartUploads dataListMultipartUploads = new DataListMultipartUploads(s3Parameter);
 		dataListMultipartUploads.extract();

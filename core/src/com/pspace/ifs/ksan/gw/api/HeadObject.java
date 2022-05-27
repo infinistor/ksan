@@ -73,7 +73,7 @@ public class HeadObject extends S3Request {
 		}
 
 		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// meta info
 		ObjectMapper objectMapper = new ObjectMapper();

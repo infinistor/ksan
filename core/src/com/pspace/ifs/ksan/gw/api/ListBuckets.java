@@ -39,7 +39,7 @@ public class ListBuckets extends S3Request {
     public void process() throws GWException {
         logger.info(GWConstants.LOG_LIST_BUCKETS_START);
 
-        List<S3BucketSimpleInfo> bucketList = listBucketSimpleInfo(s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()));
+        List<S3BucketSimpleInfo> bucketList = listBucketSimpleInfo(s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId());
         
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 				
@@ -51,7 +51,7 @@ public class ListBuckets extends S3Request {
 			xmlStreamWriter.writeStartElement(GWConstants.LIST_ALL_MY_BUCKETS_RESULT);
 			xmlStreamWriter.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 
-			writeOwnerInfini(xmlStreamWriter, String.valueOf(s3Parameter.getUser().getUserId()), s3Parameter.getUser().getUserName());
+			writeOwnerInfini(xmlStreamWriter, s3Parameter.getUser().getUserId(), s3Parameter.getUser().getUserName());
 			xmlStreamWriter.writeStartElement(GWConstants.XML_BUCKETS);
 
 			if (bucketList != null) {

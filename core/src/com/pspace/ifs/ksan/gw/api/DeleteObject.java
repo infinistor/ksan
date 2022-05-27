@@ -59,14 +59,14 @@ public class DeleteObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataDeleteObject dataDeleteObject = new DataDeleteObject(s3Parameter);
 		dataDeleteObject.extract();
 
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setName(object);
-		s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		
 		String versionId = dataDeleteObject.getVersionId();

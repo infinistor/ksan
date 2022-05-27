@@ -48,7 +48,7 @@ public class CreateBucket extends S3Request {
 		if (isExistBucket(bucket) || bucket.equalsIgnoreCase(GWConstants.WEBSITE)) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_EXIST, bucket);
 			initBucketInfo(bucket);
-			if (isBucketOwner(String.valueOf(s3Parameter.getUser().getUserId()))) {
+			if (isBucketOwner(s3Parameter.getUser().getUserId())) {
 				throw new GWException(GWErrorCode.BUCKET_ALREADY_OWNED_BY_YOU, s3Parameter);
 			}
             throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);
@@ -61,7 +61,7 @@ public class CreateBucket extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 		
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
@@ -70,7 +70,7 @@ public class CreateBucket extends S3Request {
 										null, 
 										dataCreateBucket.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataCreateBucket.getGrantRead(),
 										dataCreateBucket.getGrantWrite(), 
@@ -84,10 +84,10 @@ public class CreateBucket extends S3Request {
 		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", objectLockXml);
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", objectLockXml);
 			putBucketVersioning(bucket, GWConstants.STATUS_ENABLED);
 		} else {
-			result = createBucket(bucket, s3Parameter.getUser().getUserName(), String.valueOf(s3Parameter.getUser().getUserId()), xml, "", "");
+			result = createBucket(bucket, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", "");
 		}
 
 		if (result != 0) {

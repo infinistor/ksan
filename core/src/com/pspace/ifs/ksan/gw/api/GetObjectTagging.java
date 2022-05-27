@@ -66,7 +66,7 @@ public class GetObjectTagging extends S3Request {
 		
 		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		String taggingInfo = objMeta.getTag();
 		logger.info(GWConstants.LOG_TAGGING, taggingInfo);

@@ -53,7 +53,7 @@ public class PutBucketAcl extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE_ACP);
+		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
 
 		DataPutBucketAcl dataPutBucketAcl = new DataPutBucketAcl(s3Parameter);
 		dataPutBucketAcl.extract();
@@ -75,7 +75,7 @@ public class PutBucketAcl extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
@@ -84,7 +84,7 @@ public class PutBucketAcl extends S3Request {
 										dataPutBucketAcl.getAclXml(), 
 										dataPutBucketAcl.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataPutBucketAcl.getGrantRead(),
 										dataPutBucketAcl.getGrantWrite(), 

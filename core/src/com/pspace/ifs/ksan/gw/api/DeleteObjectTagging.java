@@ -62,7 +62,7 @@ public class DeleteObjectTagging extends S3Request {
 		}
 		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 
-		checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		objMeta.setTag("");
 		updateObjectTagging(objMeta);

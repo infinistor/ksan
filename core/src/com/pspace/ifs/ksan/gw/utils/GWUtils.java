@@ -945,10 +945,11 @@ public class GWUtils {
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
-					if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
-						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
+					// KSAN은 userId가 숫자로만 될 필요가 없음
+					// if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
+					// 	logger.info(user.grantee.id);
+					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					// }
 
 					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
 					if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {

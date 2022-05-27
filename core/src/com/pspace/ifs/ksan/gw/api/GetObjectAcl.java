@@ -66,7 +66,7 @@ public class GetObjectAcl extends S3Request {
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
         objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ_ACP);
+        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
         String aclInfo = objMeta.getAcl();
 

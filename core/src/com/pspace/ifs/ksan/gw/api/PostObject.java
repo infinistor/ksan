@@ -189,7 +189,7 @@ public class PostObject extends S3Request {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.validatePost(dataPostObject);
 
-			if (!isGrantBucket(String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE)) {
+			if (!isGrantBucket(s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		} else {
@@ -255,7 +255,7 @@ public class PostObject extends S3Request {
 										null, 
 										dataPostObject.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataPostObject.getGrantRead(),
 										dataPostObject.getGrantWrite(), 

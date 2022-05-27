@@ -35,7 +35,8 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
             ObjectManagerConfig.getInstance().getDbName(),
             ObjectManagerConfig.getInstance().getDbUserName(),
             ObjectManagerConfig.getInstance().getDbPassword(),
-            null, null, null, null);
+            "192.168.31.231", "disk", "disk", "OSDExchange");
+            // null, null, null, null);
     }
 
     private ObjManager create() throws Exception {
