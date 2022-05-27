@@ -40,4 +40,12 @@ public class MQSender extends MessageQ{
         super.sendToExchange(mesg, routingKey);
         return 0;
     }
+    
+    public String sendWithResponse(String mesg, String routingKey) throws Exception{
+        return super.sendToExchangeWithResponse(mesg, routingKey);
+    }
+    
+    public String sendWithResponse(String mesg) throws Exception{
+        return super.sendToQueueWithResponse(mesg);
+    }
 }

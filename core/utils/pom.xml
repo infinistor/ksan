@@ -30,11 +30,11 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.2.3</version>
 	    </dependency>
-        <dependency>
+            <dependency>
 			<groupId>args4j</groupId>
 			<artifactId>args4j</artifactId>
 			<version>2.33</version>
-        </dependency>
+            </dependency>
 		<dependency>
       		<groupId>com.google.guava</groupId>
        		<artifactId>guava</artifactId>
@@ -85,6 +85,22 @@
 			<artifactId>amqp-client</artifactId>
 			<version>5.9.0</version>
 		</dependency>
+                <dependency>
+                        <groupId>org.mongodb</groupId>
+                        <artifactId>mongo-java-driver</artifactId>
+                        <version>3.12.8</version>
+                </dependency>
+                <dependency>
+                	<groupId>org.mariadb.jdbc</groupId>
+                	<artifactId>mariadb-java-client</artifactId>
+                	<version>2.7.4</version>
+        	</dependency>
+                <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>8.0.28</version>
+                </dependency>
+
                 <dependency>
                         <groupId>com.pspace.ifs.ksan.gw</groupId>
                         <artifactId>ksan</artifactId>
@@ -184,6 +200,25 @@
 						</goals>
 					</execution>
                                         <execution>
+                                                <id>ksanRecovery</id>
+                                                <configuration>
+                                                        <archive>
+                                                                <manifest>
+                                                                        <mainClass>com.pspace.ifs.ksan.utils.recovery.RecoveryMain</mainClass>
+                                                                </manifest>
+                                                        </archive>
+                                                        <descriptorRefs>
+                                                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                                                        </descriptorRefs>
+                                                        <finalName>ksanRecovery</finalName>
+                                                </configuration>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                        </execution>
+
+                                        <execution>
 						<id>ksanOSDDummy</id>
 						<configuration>
 							<archive>
@@ -195,6 +230,24 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanOSDDummy</finalName>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+                                        <execution>
+						<id>ksanTestRecovery</id>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>com.pspace.ifs.ksan.utils.recovery.TestRecovery</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<finalName>ksanTestRecovery</finalName>
 						</configuration>
 						<phase>package</phase>
 						<goals>

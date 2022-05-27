@@ -51,6 +51,8 @@ public class ObjManagerUtil {
            
             dbm.loadBucketList();
             
+            obmCache.setDBManager(dbm);
+            
             //obmCache.displayBucketList();
             
             //obmCache.displayDiskPoolList();
@@ -64,6 +66,10 @@ public class ObjManagerUtil {
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
             bt = dbm.selectBucket(bucketName);
+        
+        if (bt == null)
+            throw new ResourceNotFoundException( "BucketName : " + bucketName + " not exist in the system!");  
+        
         return bt;
     }
     
