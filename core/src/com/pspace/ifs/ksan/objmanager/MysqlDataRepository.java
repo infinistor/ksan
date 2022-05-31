@@ -40,7 +40,6 @@ public class MysqlDataRepository implements DataRepository{
     private String passwd;
     private Connection con;
     private ObjManagerCache  obmCache;
-    private DataRepositoryQuery Query;
     
     // for buckets
     private PreparedStatement pstCreateBucket;
@@ -102,55 +101,55 @@ public class MysqlDataRepository implements DataRepository{
             this.connect();
            
             // for bucket
-            pstCreateBucket = con.prepareStatement(Query.createBucketQuery);
-            pstInsertBucket = con.prepareStatement(Query.insertBucketQuery);
-            pstDeleteBucket = con.prepareStatement(Query.deleteBucketQuery);
-            pstSelectBucket = con.prepareStatement(Query.selectBucketQuery);
-            pstSelectAllBucket = con.prepareStatement(Query.selectAllBucketQuery);
-            pstUpdateBucket = con.prepareStatement(Query.updateBucketQuery);
+            pstCreateBucket = con.prepareStatement(DataRepositoryQuery.createBucketQuery);
+            pstInsertBucket = con.prepareStatement(DataRepositoryQuery.insertBucketQuery);
+            pstDeleteBucket = con.prepareStatement(DataRepositoryQuery.deleteBucketQuery);
+            pstSelectBucket = con.prepareStatement(DataRepositoryQuery.selectBucketQuery);
+            pstSelectAllBucket = con.prepareStatement(DataRepositoryQuery.selectAllBucketQuery);
+            pstUpdateBucket = con.prepareStatement(DataRepositoryQuery.updateBucketQuery);
             
-            pstUpdateBucketAcl = con.prepareStatement(Query.updateBucketAclQuery);
-            pstUpdateBucketWeb = con.prepareStatement(Query.updateBucketWebQuery);
-            pstUpdateBucketCors = con.prepareStatement(Query.updateBucketCorsQuery);
-            pstUpdateBucketLifecycle = con.prepareStatement(Query.updateBucketLifecycleQuery);
-            pstUpdateBucketAccess = con.prepareStatement(Query.updateBucketAccessQuery);
-            pstUpdateBucketTagging = con.prepareStatement(Query.updateBucketTaggingQuery);
-            pstUpdateBucketReplication = con.prepareStatement(Query.updateBucketReplicationQuery);
-            pstUpdateBucketEncryption = con.prepareStatement(Query.updateBucketEncryptionQuery);
-            pstUpdateBucketObjectLock = con.prepareStatement(Query.updateBucketObjectLockQuery);
-            pstUpdateBucketPolicy = con.prepareStatement(Query.updateBucketPolicyQuery);
-            pstUpdateBucketFilecount = con.prepareStatement(Query.updateBucketFilecountQuery);
-            pstUpdateBucketUsedSpace = con.prepareStatement(Query.updateBucketUsedSpaceQuery);
+            pstUpdateBucketAcl = con.prepareStatement(DataRepositoryQuery.updateBucketAclQuery);
+            pstUpdateBucketWeb = con.prepareStatement(DataRepositoryQuery.updateBucketWebQuery);
+            pstUpdateBucketCors = con.prepareStatement(DataRepositoryQuery.updateBucketCorsQuery);
+            pstUpdateBucketLifecycle = con.prepareStatement(DataRepositoryQuery.updateBucketLifecycleQuery);
+            pstUpdateBucketAccess = con.prepareStatement(DataRepositoryQuery.updateBucketAccessQuery);
+            pstUpdateBucketTagging = con.prepareStatement(DataRepositoryQuery.updateBucketTaggingQuery);
+            pstUpdateBucketReplication = con.prepareStatement(DataRepositoryQuery.updateBucketReplicationQuery);
+            pstUpdateBucketEncryption = con.prepareStatement(DataRepositoryQuery.updateBucketEncryptionQuery);
+            pstUpdateBucketObjectLock = con.prepareStatement(DataRepositoryQuery.updateBucketObjectLockQuery);
+            pstUpdateBucketPolicy = con.prepareStatement(DataRepositoryQuery.updateBucketPolicyQuery);
+            pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
+            pstUpdateBucketUsedSpace = con.prepareStatement(DataRepositoryQuery.updateBucketUsedSpaceQuery);
             
             // for multipart
-            pstCreateMultiPart= con.prepareStatement(Query.createMultiPartQuery);
-            pstInsertMultiPart = con.prepareStatement(Query.insertMultiPartQuery);
-            pstUpdateMultiPart = con.prepareStatement(Query.updateMultiPartQuery);
-            pstDeleteMultiPart = con.prepareStatement(Query.deleteMultiPartQuery);
-            pstSelectMultiPart = con.prepareStatement(Query.selectMultiPartQuery);
+            pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
+            pstInsertMultiPart = con.prepareStatement(DataRepositoryQuery.insertMultiPartQuery);
+            pstUpdateMultiPart = con.prepareStatement(DataRepositoryQuery.updateMultiPartQuery);
+            pstDeleteMultiPart = con.prepareStatement(DataRepositoryQuery.deleteMultiPartQuery);
+            pstSelectMultiPart = con.prepareStatement(DataRepositoryQuery.selectMultiPartQuery);
 
-            pstGetMultiPart = con.prepareStatement(Query.getMultiPartQuery);
-            pstGetParts = con.prepareStatement(Query.getPartsQuery);
-            pstGetPartsMax = con.prepareStatement(Query.getPartsMaxQuery);
-            pstGetUploads = con.prepareStatement(Query.getUploadsQuery);
-            pstIsUpload = con.prepareStatement(Query.isUploadQuery);
-            pstIsUploadPartNo = con.prepareStatement(Query.isUploadPartNoQuery);
+            pstGetMultiPart = con.prepareStatement(DataRepositoryQuery.getMultiPartQuery);
+            pstGetParts = con.prepareStatement(DataRepositoryQuery.getPartsQuery);
+            pstGetPartsMax = con.prepareStatement(DataRepositoryQuery.getPartsMaxQuery);
+            pstGetUploads = con.prepareStatement(DataRepositoryQuery.getUploadsQuery);
+            pstIsUpload = con.prepareStatement(DataRepositoryQuery.isUploadQuery);
+            pstIsUploadPartNo = con.prepareStatement(DataRepositoryQuery.isUploadPartNoQuery);
 
            // for utility
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
-            pstCreateUJob = con.prepareStatement(Query.createUJobQuery);
-            pstInsertUJob = con.prepareStatement(Query.insertUJobQuery);
-            pstUpdateUJob1 = con.prepareStatement(Query.updateUJob1Query);
-            pstUpdateUJob2 = con.prepareStatement(Query.updateUJob2Query);
-            pstSelectUJob = con.prepareStatement(Query.selectUJobQuery);
+            pstCreateUJob = con.prepareStatement(DataRepositoryQuery.createUJobQuery);
+            pstInsertUJob = con.prepareStatement(DataRepositoryQuery.insertUJobQuery);
+            pstUpdateUJob1 = con.prepareStatement(DataRepositoryQuery.updateUJob1Query);
+            pstUpdateUJob2 = con.prepareStatement(DataRepositoryQuery.updateUJob2Query);
+            pstSelectUJob = con.prepareStatement(DataRepositoryQuery.selectUJobQuery);
 
             // for user disk pool table
-            pstCreateUserDiskPool = con.prepareStatement(Query.createUserDiskPoolQuery);
-            pstInsertUserDiskPool = con.prepareStatement(Query.insertUserDiskPoolQuery);
+            pstCreateUserDiskPool = con.prepareStatement(DataRepositoryQuery.createUserDiskPoolQuery);
+            pstInsertUserDiskPool = con.prepareStatement(DataRepositoryQuery.insertUserDiskPoolQuery);
             
-            pstSelectUserDiskPool = con.prepareStatement(Query.selectUserDiskPoolQuery);
+            pstSelectUserDiskPool = con.prepareStatement(DataRepositoryQuery.selectUserDiskPoolQuery);
             
-            pstDeleteUserDiskPool = con.prepareStatement(Query.deleteUserDiskPoolQuery);
+            pstDeleteUserDiskPool = con.prepareStatement(DataRepositoryQuery.deleteUserDiskPoolQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -217,12 +216,12 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private void createObjectTable(String bucketName) throws SQLException{
-        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, Query.objCreateQuery);
+        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
         pstStmt.execute();
     }
     
     private int updateVersion(String bucketName, String key) throws SQLException{ 
-        PreparedStatement pstupdateLastVersion = getObjPreparedStmt(bucketName, Query.objUpdateLastVersionQuery);
+        PreparedStatement pstupdateLastVersion = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionQuery);
         pstupdateLastVersion.clearParameters();
         pstupdateLastVersion.setString(1, key);
         pstupdateLastVersion.execute();
@@ -232,7 +231,7 @@ public class MysqlDataRepository implements DataRepository{
 
     private int updateMetadata(Metadata md){
         try {
-            PreparedStatement pstupdateMetadata = getObjPreparedStmt(md.getBucket(), Query.objUpdateMetadataQuery);
+            PreparedStatement pstupdateMetadata = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateMetadataQuery);
             pstupdateMetadata.clearParameters();
             pstupdateMetadata.setString(1, md.getEtag());
             pstupdateMetadata.setString(2, md.getMeta());
@@ -319,7 +318,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int insertObject(Metadata md) throws ResourceNotFoundException{
         try{
-            PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), Query.objInsertQuery);
+            PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objInsertQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, md.getBucket());
             pstStmt.setString(2, md.getPath());
@@ -361,7 +360,7 @@ public class MysqlDataRepository implements DataRepository{
             PreparedStatement pstupdatePDisks;
             PreparedStatement pstupdateRDisks;
             if (updatePrimary){
-                pstupdatePDisks = getObjPreparedStmt(md.getBucket(), Query.objUpdatePDisksQuery);
+                pstupdatePDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdatePDisksQuery);
                 pstupdatePDisks.clearParameters();
                 pstupdatePDisks.setString(1, newDisk.getId());
                 pstupdatePDisks.setString(2, md.getObjId());
@@ -370,7 +369,7 @@ public class MysqlDataRepository implements DataRepository{
                 return pstupdatePDisks.executeUpdate();
             }
             else{
-                pstupdateRDisks = getObjPreparedStmt(md.getBucket(), Query.objUpdateRDisksQuery);
+                pstupdateRDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateRDisksQuery);
                 pstupdateRDisks.clearParameters();
                 pstupdateRDisks.setString(1, newDisk.getId());
                 pstupdateRDisks.setString(2, md.getObjId());
@@ -386,7 +385,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateSizeTime(Metadata md) {
         try {
-            PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), Query.objUpdateSizeTimeQuery);
+            PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateSizeTimeQuery);
             pstupdateSizeTime.clearParameters();
             pstupdateSizeTime.setLong(1, md.getSize());
             pstupdateSizeTime.setLong(2, md.getLastModified());
@@ -431,7 +430,7 @@ public class MysqlDataRepository implements DataRepository{
     
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId) throws ResourceNotFoundException {
         try{
-            PreparedStatement pstStmt = getObjPreparedStmt(bucketName, Query.objSelectOneQuery);
+            PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
@@ -445,7 +444,7 @@ public class MysqlDataRepository implements DataRepository{
 
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
         try{
-            PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, Query.objSelectOneWithVersionIdQuery);
+            PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery);
             pstSelectOneWithVersionId.clearParameters();
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
@@ -523,7 +522,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), Query.objUpdateTaggingQuery);
+        PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery);
         pstUpdateTagging.clearParameters();
         pstUpdateTagging.setString(1, mt.getTag());
         pstUpdateTagging.setString(2, mt.getMeta());
@@ -534,7 +533,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectAcl(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), Query.objUpdateAclQuery);
+        PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateAclQuery);
         pstUpdateAcl.clearParameters();
         pstUpdateAcl.setString(1, mt.getAcl());
         pstUpdateAcl.setString(2, mt.getObjId());
@@ -544,7 +543,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectMeta(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), Query.objUpdateObjectMetaQuery);
+        PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateObjectMetaQuery);
         pstUpdateObjectMeta.clearParameters();
         pstUpdateObjectMeta.setString(1, mt.getMeta());
         pstUpdateObjectMeta.setString(2, mt.getObjId());
@@ -553,7 +552,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int updateVersionDelete(String bucketName, String objId) throws SQLException{ 
-        PreparedStatement pstupdateLastVersionDelete = getObjPreparedStmt(bucketName, Query.objUpdateLastVersionDeleteQuery);
+        PreparedStatement pstupdateLastVersionDelete = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionDeleteQuery);
         pstupdateLastVersionDelete.clearParameters();
         pstupdateLastVersionDelete.setString(1, objId);
         pstupdateLastVersionDelete.execute();
@@ -564,7 +563,7 @@ public class MysqlDataRepository implements DataRepository{
     public int deleteObject(String bucketName, String path, String versionId) {
         try{
             String objId = new Metadata(bucketName, path).getObjId();
-            PreparedStatement pststmt = getObjPreparedStmt(bucketName, Query.objDeleteQuery);
+            PreparedStatement pststmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objDeleteQuery);
             pststmt.clearParameters();
             pststmt.setString(1, objId);
             pststmt.setString(2, versionId);
@@ -586,7 +585,7 @@ public class MysqlDataRepository implements DataRepository{
     public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
         int ret;
         String objId = new Metadata(bucketName, path).getObjId();
-        PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, Query.objUpdateDeleteMarkerQuery);
+        PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateDeleteMarkerQuery);
         pstUpdateDeleteMarker.clearParameters();
         pstUpdateDeleteMarker.setString(1, markDelete);
         pstUpdateDeleteMarker.setBoolean(2, false);
