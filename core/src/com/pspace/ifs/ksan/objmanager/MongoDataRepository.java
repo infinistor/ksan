@@ -424,6 +424,7 @@ public class MongoDataRepository implements DataRepository{
             index.append(VERSIONID, 1);
             index.append(LASTVERSION, 1);
             index.append(DELETEMARKER, 1);
+            index.append(OBJKEY, 1);
             database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
             //bt = new Bucket(bucketName, bucketName, diskPoolId);
             getUserDiskPool(bt);
