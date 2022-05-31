@@ -210,8 +210,9 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private PreparedStatement getObjPreparedStmt(String bucketName, String format) throws SQLException{
-        String query = String.format(format, bucketName);
+        String query = String.format(format, "`" + bucketName + "`");
         PreparedStatement pstStmt = con.prepareStatement(query);
+        //System.out.println("Query :>" + pstStmt);
         return pstStmt;
     }
     
