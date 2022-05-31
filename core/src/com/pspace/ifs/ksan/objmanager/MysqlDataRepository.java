@@ -619,6 +619,7 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.executeUpdate();
             getUserDiskPool(bt); // get diskpoolId and replicaCount
         } catch(SQLException ex){
+            System.out.println("SQLException:>" + ex);
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", bt.getName()), ex);
         }
         return bt;
@@ -857,7 +858,7 @@ public class MysqlDataRepository implements DataRepository{
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
             throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-        return selectSingleObjectInternal(diskPoolId, mt.getObjId(), versionId); 
+        return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId(), versionId); 
     }
 
     /***********************START*******************************************************************/

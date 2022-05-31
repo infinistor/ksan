@@ -11,7 +11,7 @@ package com.pspace.ifs.ksan.objmanager;
  */
 public final class DataRepositoryQuery {
     // for objects
-    public static String objCreateQuery = "CREATE TABLE IF NOT EXISTS '%s'("
+    public static String objCreateQuery = "CREATE TABLE IF NOT EXISTS %s("
             + "bucket VARCHAR(256) NOT NULL, objKey VARCHAR(2048) NOT NULL, size BIGINT NOT NULL default 0,"
             + "etag TEXT NOT NULL, meta TEXT NOT NULL, tag TEXT NOT NULL, "
             + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
@@ -19,25 +19,25 @@ public final class DataRepositoryQuery {
             + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
             + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";  
     
-    public  static String objInsertQuery = "INSERT INTO '%s'(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)";
-    public  static String objDeleteQuery = "DELETE FROM '%s' WHERE objid=? AND (versionid=? OR versionid is NULL)";
+    public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)";
+    public  static String objDeleteQuery = "DELETE FROM %s WHERE objid=? AND (versionid=? OR versionid is NULL)";
 
-    public  static  String objSelectOneQuery = "SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM '%s' WHERE objid=? AND lastversion=true";
-    public  static String objSelectOneWithVersionIdQuery = "SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM '%s' WHERE objid=? AND versionid=?";
-    public  static String objUpdateMetadataQuery = "UPDATE '%s' SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?"; 
-    public  static String objUpdateDeleteMarkerQuery ="UPDATE '%s' SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=? AND lastversion=true";
+    public  static  String objSelectOneQuery = "SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM %s WHERE objid=? AND lastversion=true";
+    public  static String objSelectOneWithVersionIdQuery = "SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM %s WHERE objid=? AND versionid=?";
+    public  static String objUpdateMetadataQuery = "UPDATE %s SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?"; 
+    public  static String objUpdateDeleteMarkerQuery ="UPDATE %s SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=? AND lastversion=true";
 
-    public  static  String objSelectListQuery = "SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM '%s' WHERE objKey LIKE ?";
-    public  static String objUpdatePDisksQuery = "UPDATE '%s' SET pdiskid=? WHERE objid=? AND versionid=?";
-    public  static String objUpdateRDisksQuery = "UPDATE '%s' SET rdiskid=? WHERE objid=? AND versionid=?";
-    public  static  String objUpdateSizeTimeQuery = "UPDATE '%s' SET size=?, lastModified=? WHERE objid=?";
-    public  static  String objUpdateLastVersionQuery = "UPDATE '%s' SET lastversion=false WHERE objid=? AND lastversion=true";
-    public  static String objUpdateLastVersionDeleteQuery = "UPDATE '%s' SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1";
-    public  static String objSelectUsedDisksQuery = "SELECT pdiskid as diskid FROM '%s' UNION DISTINCT SELECT rdiskid FROM '%s';";
-    public  static String objIsDeleteBucketQuery = "SELECT objKey FROM '%s' WHERE bucket=? LIMIT 1";
-    public  static  String objUpdateObjectMetaQuery = "UPDATE '%s' SET meta=? WHERE objid=? AND versionid=?";
-    public  static String objUpdateTaggingQuery = "UPDATE '%s' SET tag=?, meta=? WHERE objid=? AND versionid=?";
-    public  static  String objUpdateAclQuery = "UPDATE '%s' SET acl=? WHERE objid=? AND versionid=?";
+    public  static  String objSelectListQuery = "SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM %s WHERE objKey LIKE ?";
+    public  static String objUpdatePDisksQuery = "UPDATE %s SET pdiskid=? WHERE objid=? AND versionid=?";
+    public  static String objUpdateRDisksQuery = "UPDATE %s SET rdiskid=? WHERE objid=? AND versionid=?";
+    public  static  String objUpdateSizeTimeQuery = "UPDATE %s SET size=?, lastModified=? WHERE objid=?";
+    public  static  String objUpdateLastVersionQuery = "UPDATE %s SET lastversion=false WHERE objid=? AND lastversion=true";
+    public  static String objUpdateLastVersionDeleteQuery = "UPDATE %s SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1";
+    public  static String objSelectUsedDisksQuery = "SELECT pdiskid as diskid FROM %s UNION DISTINCT SELECT rdiskid FROM %s;";
+    public  static String objIsDeleteBucketQuery = "SELECT objKey FROM %s WHERE bucket=? LIMIT 1";
+    public  static  String objUpdateObjectMetaQuery = "UPDATE %s SET meta=? WHERE objid=? AND versionid=?";
+    public  static String objUpdateTaggingQuery = "UPDATE %s SET tag=?, meta=? WHERE objid=? AND versionid=?";
+    public  static  String objUpdateAclQuery = "UPDATE %s SET acl=? WHERE objid=? AND versionid=?";
     
     // for bucket
     public  static String createBucketQuery = "CREATE TABLE IF NOT EXISTS BUCKETS("
