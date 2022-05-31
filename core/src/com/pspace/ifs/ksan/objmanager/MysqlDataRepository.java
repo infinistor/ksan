@@ -40,26 +40,8 @@ public class MysqlDataRepository implements DataRepository{
     private String passwd;
     private Connection con;
     private ObjManagerCache  obmCache;
+    private DataRepositoryQuery Query;
     
-    // for objects
-    private PreparedStatement pstCreate;
-    private PreparedStatement pstInsert;
-    private PreparedStatement pstDelete;
-    private PreparedStatement pstupdateMetadata;
-    private PreparedStatement pstSelectOne;
-    private PreparedStatement pstSelectOneWithVersionId;
-    private PreparedStatement pstSelectList;
-    private PreparedStatement pstupdatePDisks;
-    private PreparedStatement pstupdateRDisks;
-    private PreparedStatement pstupdateSizeTime;
-    private PreparedStatement pstupdateLastVersion;
-    private PreparedStatement pstupdateLastVersionDelete;
-    private PreparedStatement pstUpdateObjectMeta;
-    private PreparedStatement pstUpdateTagging;
-    private PreparedStatement pstUpdateAcl;
-    private PreparedStatement pstUpdateDeleteMarker;
-    
-
     // for buckets
     private PreparedStatement pstCreateBucket;
     private PreparedStatement pstInsertBucket;
@@ -118,114 +100,57 @@ public class MysqlDataRepository implements DataRepository{
         try{
             this.createDB(host, dbname);
             this.connect();
-            pstCreate = con.prepareStatement("CREATE TABLE IF NOT EXISTS MDSDBTable("
-                    + "bucket VARCHAR(256) NOT NULL, objKey VARCHAR(2048) NOT NULL, size BIGINT NOT NULL default 0,"
-                    + "etag TEXT NOT NULL, meta TEXT NOT NULL, tag TEXT NOT NULL, "
-                    + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
-                    + "acl TEXT NOT NULL, "
-                    + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-                    + "PRIMARY KEY(objid, versionid, deleteMarker)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");  
-            pstInsert = con.prepareStatement("INSERT INTO MDSDBTable(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)");
-            pstDelete = con.prepareStatement("DELETE FROM MDSDBTable WHERE objid=? AND (versionid=? OR versionid is NULL)");
-            //pstDeleteWithVersionId = con.prepareStatement("DELETE FROM MDSDBTable WHERE bucket=? AND objKey=? AND versionid=?");
-            pstSelectOne = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND lastversion=true");
-            pstSelectOneWithVersionId = con.prepareStatement("SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM MDSDBTable WHERE objid=? AND versionid=?");
-            pstupdateMetadata = con.prepareStatement("UPDATE MDSDBTable SET etag=?, meta=?, tag=?, acl=?, size=?, lastModified=?, pdiskid=?, rdiskid=?, versionid=?, deleteMarker=?, lastversion=? WHERE objid=?");
-                 
-            pstUpdateDeleteMarker=con.prepareStatement("UPDATE MDSDBTable SET deleteMarker=?, lastversion=? WHERE objid=? AND versionid=? AND lastversion=true");
-            
-            pstSelectList = con.prepareStatement("SELECT bucket, objid, etag, tag, meta, pdiskid, rdiskid FROM MDSDBTable WHERE objKey LIKE ?");
-            pstupdatePDisks = con.prepareStatement("UPDATE MDSDBTable SET pdiskid=? WHERE objid=? AND versionid=?");
-            pstupdateRDisks = con.prepareStatement("UPDATE MDSDBTable SET rdiskid=? WHERE objid=? AND versionid=?");
-            pstupdateSizeTime = con.prepareStatement("UPDATE MDSDBTable SET size=?, lastModified=? WHERE objid=?");
-            pstupdateLastVersion = con.prepareStatement("UPDATE MDSDBTable SET lastversion=false WHERE objid=? AND lastversion=true");
-            pstupdateLastVersionDelete = con.prepareStatement("UPDATE MDSDBTable SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1");
-            pstSelectUsedDisks = con.prepareStatement("SELECT pdiskid as diskid FROM MDSDBTable UNION DISTINCT SELECT rdiskid FROM MDSDBTable;");
-            pstIsDeleteBucket = con.prepareStatement("SELECT objKey FROM MDSDBTable WHERE bucket=? LIMIT 1");
-            pstUpdateObjectMeta = con.prepareStatement("UPDATE MDSDBTable SET meta=? WHERE objid=? AND versionid=?");
-            pstUpdateTagging = con.prepareStatement("UPDATE MDSDBTable SET tag=?, meta=? WHERE objid=? AND versionid=?");
-            pstUpdateAcl = con.prepareStatement("UPDATE MDSDBTable SET acl=? WHERE objid=? AND versionid=?");
-
+           
             // for bucket
-            pstCreateBucket = con.prepareStatement("CREATE TABLE IF NOT EXISTS BUCKETS("
-                    + "name VARCHAR(256) NOT NULL, "
-                    + "id VARCHAR(80) NOT NULL, "
-                    + "diskPoolId CHAR(36) NOT NULL, "
-                    + " userId CHAR(36), userName VARCHAR(200), "
-                    + "acl TEXT, web TEXT, cors TEXT, "
-                    + "lifecycle TEXT, access TEXT, "
-                    + "tagging TEXT, replication TEXT, "
-                    + "encryption TEXT,   objectlock TEXT,  policy TEXT, "
-                    + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
-                    + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-                    + "replicaCount INT DEFAULT 2, "
-                    + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
-                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertBucket = con.prepareStatement("INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            pstDeleteBucket = con.prepareStatement("DELETE FROM BUCKETS WHERE id=?");
-            pstSelectBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS WHERE id=?");
-            pstSelectAllBucket = con.prepareStatement("SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS");
-            pstUpdateBucket = con.prepareStatement("UPDATE BUCKETS SET versioning=? WHERE id=?");
+            pstCreateBucket = con.prepareStatement(Query.createBucketQuery);
+            pstInsertBucket = con.prepareStatement(Query.insertBucketQuery);
+            pstDeleteBucket = con.prepareStatement(Query.deleteBucketQuery);
+            pstSelectBucket = con.prepareStatement(Query.selectBucketQuery);
+            pstSelectAllBucket = con.prepareStatement(Query.selectAllBucketQuery);
+            pstUpdateBucket = con.prepareStatement(Query.updateBucketQuery);
             
-            pstUpdateBucketAcl = con.prepareStatement("UPDATE BUCKETS SET acl=? WHERE id=?");
-            pstUpdateBucketWeb = con.prepareStatement("UPDATE BUCKETS SET web=? WHERE id=?");
-            pstUpdateBucketCors = con.prepareStatement("UPDATE BUCKETS SET cors=? WHERE id=?");
-            pstUpdateBucketLifecycle = con.prepareStatement("UPDATE BUCKETS SET lifecycle=? WHERE id=?");
-            pstUpdateBucketAccess = con.prepareStatement("UPDATE BUCKETS SET access=? WHERE id=?");
-            pstUpdateBucketTagging = con.prepareStatement("UPDATE BUCKETS SET tagging=? WHERE id=?");
-            pstUpdateBucketReplication = con.prepareStatement("UPDATE BUCK SET replication=? WHERE id=?");
-            pstUpdateBucketEncryption = con.prepareStatement("UPDATE BUCKETS SET encryption=? WHERE id=?");
-            pstUpdateBucketObjectLock = con.prepareStatement("UPDATE BUCKETS SET objectlock=? WHERE id=?");
-            pstUpdateBucketPolicy = con.prepareStatement("UPDATE BUCKETS SET policy=? WHERE id=?");
-            pstUpdateBucketFilecount = con.prepareStatement("UPDATE BUCKETS SET fileCount = fileCount + ? WHERE id=?");
-            pstUpdateBucketUsedSpace = con.prepareStatement("UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?");
+            pstUpdateBucketAcl = con.prepareStatement(Query.updateBucketAclQuery);
+            pstUpdateBucketWeb = con.prepareStatement(Query.updateBucketWebQuery);
+            pstUpdateBucketCors = con.prepareStatement(Query.updateBucketCorsQuery);
+            pstUpdateBucketLifecycle = con.prepareStatement(Query.updateBucketLifecycleQuery);
+            pstUpdateBucketAccess = con.prepareStatement(Query.updateBucketAccessQuery);
+            pstUpdateBucketTagging = con.prepareStatement(Query.updateBucketTaggingQuery);
+            pstUpdateBucketReplication = con.prepareStatement(Query.updateBucketReplicationQuery);
+            pstUpdateBucketEncryption = con.prepareStatement(Query.updateBucketEncryptionQuery);
+            pstUpdateBucketObjectLock = con.prepareStatement(Query.updateBucketObjectLockQuery);
+            pstUpdateBucketPolicy = con.prepareStatement(Query.updateBucketPolicyQuery);
+            pstUpdateBucketFilecount = con.prepareStatement(Query.updateBucketFilecountQuery);
+            pstUpdateBucketUsedSpace = con.prepareStatement(Query.updateBucketUsedSpaceQuery);
             
             // for multipart
-            pstCreateMultiPart= con.prepareStatement("CREATE TABLE IF NOT EXISTS MULTIPARTS("
-                    + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
-                    + " objKey VARCHAR(2048) COMMENT 'Object key'," 
-                    + " changeTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time upload started',"
-                    + " completed BOOLEAN DEFAULT false COMMENT 'job completed or in-progress',"
-                    + " uploadid VARCHAR(80) NOT NULL COMMENT 'multi-part upload Id',"
-                    + " acl TEXT,"
-                    + " meta TEXT,"
-                    + " etag TEXT,"
-                    + " size bigint(20),"
-                    + " partNo INT NOT NULL COMMENT 'part sequence number',"
-                    + " pdiskid VARCHAR(80) NOT NULL, "
-                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertMultiPart = con.prepareStatement("INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())");
-            pstUpdateMultiPart = con.prepareStatement("UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?");
-            pstDeleteMultiPart = con.prepareStatement("DELETE FROM MULTIPARTS WHERE uploadid=?");
-            pstSelectMultiPart = con.prepareStatement("SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ");
+            pstCreateMultiPart= con.prepareStatement(Query.createMultiPartQuery);
+            pstInsertMultiPart = con.prepareStatement(Query.insertMultiPartQuery);
+            pstUpdateMultiPart = con.prepareStatement(Query.updateMultiPartQuery);
+            pstDeleteMultiPart = con.prepareStatement(Query.deleteMultiPartQuery);
+            pstSelectMultiPart = con.prepareStatement(Query.selectMultiPartQuery);
 
-            pstGetMultiPart = con.prepareStatement("SELECT bucket, objKey, changeTime, uploadid, acl, meta, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0");
-            pstGetParts = con.prepareStatement("SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0");
-            pstGetPartsMax = con.prepareStatement("SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?");
-            pstGetUploads = con.prepareStatement("SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ");
-            pstIsUpload = con.prepareStatement("SELECT bucket FROM MULTIPARTS WHERE uploadid=?");
-            pstIsUploadPartNo = con.prepareStatement("SELECT bucket, objKey, acl, meta, etag, size, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo=?");
+            pstGetMultiPart = con.prepareStatement(Query.getMultiPartQuery);
+            pstGetParts = con.prepareStatement(Query.getPartsQuery);
+            pstGetPartsMax = con.prepareStatement(Query.getPartsMaxQuery);
+            pstGetUploads = con.prepareStatement(Query.getUploadsQuery);
+            pstIsUpload = con.prepareStatement(Query.isUploadQuery);
+            pstIsUploadPartNo = con.prepareStatement(Query.isUploadPartNoQuery);
 
-           
+           // for utility
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
-            pstCreateUJob = con.prepareStatement("CREATE TABLE IF NOT EXISTS UTILJOBS(Id VARCHAR(15) NOT NULL PRIMARY KEY, "
-                    + "status VARCHAR(20) NOT NULL, TotalNumObject BIGINT NOT NULL default 0, "
-                    + "NumJobDone BIGINT NOT NULL default 0, checkOnly BOOLEAN DEFAULT false, "
-                    + "utilName VARCHAR(256) NOT NULL, startTime DATETIME )");
-            pstInsertUJob = con.prepareStatement("INSERT INTO UTILJOBS(Id, status, TotalNumObject, checkOnly, utilName, startTime) VALUES(?, ?, ?, ?, ?, now())");
-            pstUpdateUJob1 = con.prepareStatement("UPDATE UTILJOBS SET status=? WHERE Id=?");
-            pstUpdateUJob2 = con.prepareStatement("UPDATE UTILJOBS SET TotalNumObject=?, NumJobDone=? WHERE Id=?");
-            pstSelectUJob = con.prepareStatement("SELECT status, TotalNumObject, NumJobDone, checkOnly, utilName, startTime FROM UTILJOBS WHERE Id=?");
+            pstCreateUJob = con.prepareStatement(Query.createUJobQuery);
+            pstInsertUJob = con.prepareStatement(Query.insertUJobQuery);
+            pstUpdateUJob1 = con.prepareStatement(Query.updateUJob1Query);
+            pstUpdateUJob2 = con.prepareStatement(Query.updateUJob2Query);
+            pstSelectUJob = con.prepareStatement(Query.selectUJobQuery);
 
             // for user disk pool table
-            pstCreateUserDiskPool = con.prepareStatement("CREATE TABLE IF NOT EXISTS USERSDISKPOOL(userId VARCHAR(50) NOT NULL, "
-                    + "credential VARCHAR(80) NOT NULL COMMENT 'access key _ secret key', diskpoolId VARCHAR(50) NOT NULL, "
-                    + "replcaCount INT NOT NULL, PRIMARY KEY(userId, credential)) ENGINE=INNODB DEFAULT CHARSET=UTF8;");
-            pstInsertUserDiskPool = con.prepareStatement("INSERT INTO USERSDISKPOOL(userId, credential, diskpoolId, replcaCount) VALUES(?, ?, ?, ?)");
+            pstCreateUserDiskPool = con.prepareStatement(Query.createUserDiskPoolQuery);
+            pstInsertUserDiskPool = con.prepareStatement(Query.insertUserDiskPoolQuery);
             
-            pstSelectUserDiskPool = con.prepareStatement("SELECT diskpoolId, replcaCount FROM USERSDISKPOOL WHERE userId=?");
+            pstSelectUserDiskPool = con.prepareStatement(Query.selectUserDiskPoolQuery);
             
-            pstDeleteUserDiskPool = con.prepareStatement("DELETE FROM USERSDISKPOOL WHERE userId=? AND diskpoolId=?");
+            pstDeleteUserDiskPool = con.prepareStatement(Query.deleteUserDiskPoolQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -278,20 +203,26 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int createTable() throws SQLException{
-        //try{
-            this.pstCreate.execute();
-            this.pstCreateBucket.execute();
-            this.pstCreateMultiPart.execute();
-            pstCreateUJob.execute();
-            pstCreateUserDiskPool.execute();
-        /*} catch(SQLException ex){
-            this.ex_message(ex);
-            return -ex.getErrorCode();
-        }*/
+        this.pstCreateBucket.execute();
+        this.pstCreateMultiPart.execute();
+        pstCreateUJob.execute();
+        pstCreateUserDiskPool.execute();
         return 0;
     }
     
-    private int updateVersion(String bucketName, String key) throws SQLException{        
+    private PreparedStatement getObjPreparedStmt(String bucketName, String format) throws SQLException{
+        String query = String.format(format, bucketName);
+        PreparedStatement pstStmt = con.prepareStatement(query);
+        return pstStmt;
+    }
+    
+    private void createObjectTable(String bucketName) throws SQLException{
+        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, Query.objCreateQuery);
+        pstStmt.execute();
+    }
+    
+    private int updateVersion(String bucketName, String key) throws SQLException{ 
+        PreparedStatement pstupdateLastVersion = getObjPreparedStmt(bucketName, Query.objUpdateLastVersionQuery);
         pstupdateLastVersion.clearParameters();
         pstupdateLastVersion.setString(1, key);
         pstupdateLastVersion.execute();
@@ -301,6 +232,7 @@ public class MysqlDataRepository implements DataRepository{
 
     private int updateMetadata(Metadata md){
         try {
+            PreparedStatement pstupdateMetadata = getObjPreparedStmt(md.getBucket(), Query.objUpdateMetadataQuery);
             pstupdateMetadata.clearParameters();
             pstupdateMetadata.setString(1, md.getEtag());
             pstupdateMetadata.setString(2, md.getMeta());
@@ -362,7 +294,7 @@ public class MysqlDataRepository implements DataRepository{
         if(rs.next()){
             res = getUtilJobObject(Id, rs.getString(1), rs.getLong(2), rs.getLong(3), 
                     rs.getBoolean(4), rs.getString(5), rs.getString(6));
-                System.out.format("==>Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, rs.getString(1), rs.getLong(2), rs.getBoolean(4), rs.getString(5)); 
+            //System.out.format("==>Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, rs.getString(1), rs.getLong(2), rs.getBoolean(4), rs.getString(5)); 
         }
         return res;
     }
@@ -387,41 +319,36 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int insertObject(Metadata md) throws ResourceNotFoundException{
         try{
-            this.pstInsert.clearParameters();
-            this.pstInsert.setString(1, md.getBucket());
-            this.pstInsert.setString(2, md.getPath());
-            this.pstInsert.setString(3, md.getEtag());
-            this.pstInsert.setString(4, md.getMeta());
-            this.pstInsert.setString(5, md.getTag());
-            this.pstInsert.setString(6, md.getAcl());
-            this.pstInsert.setLong(7, md.getSize());
-            this.pstInsert.setLong(8, md.getLastModified());
-            this.pstInsert.setString(9, md.getPrimaryDisk().getId());
+            PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), Query.objInsertQuery);
+            pstStmt.clearParameters();
+            pstStmt.setString(1, md.getBucket());
+            pstStmt.setString(2, md.getPath());
+            pstStmt.setString(3, md.getEtag());
+            pstStmt.setString(4, md.getMeta());
+            pstStmt.setString(5, md.getTag());
+            pstStmt.setString(6, md.getAcl());
+            pstStmt.setLong(7, md.getSize());
+            pstStmt.setLong(8, md.getLastModified());
+            pstStmt.setString(9, md.getPrimaryDisk().getId());
             if (md.isReplicaExist()){
-                this.pstInsert.setString(10, md.getReplicaDisk().getId());
+                pstStmt.setString(10, md.getReplicaDisk().getId());
             } else {
-                this.pstInsert.setString(10, "");
+                pstStmt.setString(10, "");
             }
-            this.pstInsert.setString(11, md.getObjId());
-            this.pstInsert.setString(12, md.getVersionId());
-            this.pstInsert.setString(13, md.getDeleteMarker());
+            pstStmt.setString(11, md.getObjId());
+            pstStmt.setString(12, md.getVersionId());
+            pstStmt.setString(13, md.getDeleteMarker());
             
             // If the same object exists, change lastversion to false.
             updateVersion(md.getBucket(), md.getObjId());
-            
-            //this.pstInsert.setBoolean(12, true);
-            // if (md.getVersionId().isEmpty())
-            //     updateVersion(md.getBucket(), md.getObjId());
-            
-            if (pstInsert.executeUpdate() > 0)
+                     
+            if (pstStmt.executeUpdate() > 0)
                 updateBucketFileCount(md.getBucket(), 1);
             
         } catch(SQLException ex){
             if (ex.getErrorCode() == 1062)
                 return updateMetadata(md);
             
-            System.out.println(this.pstInsert.toString());
-            System.out.println("=> Path : " + md.getPath() + " objid : " + md.getObjId() + " len " + md.getObjId().length());
             this.ex_message(ex);
             return -1;
         }
@@ -431,26 +358,25 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         try {
+            PreparedStatement pstupdatePDisks;
+            PreparedStatement pstupdateRDisks;
             if (updatePrimary){
+                pstupdatePDisks = getObjPreparedStmt(md.getBucket(), Query.objUpdatePDisksQuery);
                 pstupdatePDisks.clearParameters();
                 pstupdatePDisks.setString(1, newDisk.getId());
                 pstupdatePDisks.setString(2, md.getObjId());
                 pstupdatePDisks.setString(3, md.getVersionId());
                 //pstupdatePDisks.setString(4, md.getPrimaryDisk().getId());
+                return pstupdatePDisks.executeUpdate();
             }
             else{
+                pstupdateRDisks = getObjPreparedStmt(md.getBucket(), Query.objUpdateRDisksQuery);
                 pstupdateRDisks.clearParameters();
                 pstupdateRDisks.setString(1, newDisk.getId());
                 pstupdateRDisks.setString(2, md.getObjId());
                 pstupdateRDisks.setString(3, md.getVersionId());
-                /*try {
-                    pstupdateRDisks.setString(4, md.getReplicaDisk().getId()); 
-                } catch (ResourceNotFoundException ex) {
-                    return -1; 
-                }*/
+                return pstupdateRDisks.executeUpdate();
             }
-            
-            return updatePrimary ? pstupdatePDisks.executeUpdate() : pstupdateRDisks.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -460,6 +386,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateSizeTime(Metadata md) {
         try {
+            PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), Query.objUpdateSizeTimeQuery);
             pstupdateSizeTime.clearParameters();
             pstupdateSizeTime.setLong(1, md.getSize());
             pstupdateSizeTime.setLong(2, md.getLastModified());
@@ -470,29 +397,7 @@ public class MysqlDataRepository implements DataRepository{
         }
         return -1;
     }
-    
-    public synchronized int selectMultiple(String bucketName, String path, String[] objid, String[] etag, String[] tag, String[] meta, long[] pdiskid, long[] rdiskid){
-        int idx  = 0;
-        try{
-            this.pstSelectList.setString(1, path);
-            ResultSet rs = this.pstSelectList.executeQuery();
-            while(rs.next()){
-                objid[idx]   = rs.getString(1);
-                etag[idx]    = rs.getString(2);
-                tag[idx]     = rs.getString(3);
-                meta[idx]    = rs.getString(4);
-                pdiskid[idx] = rs.getLong(5);
-                rdiskid[idx] = rs.getLong(6);
-                idx++;
-            }
-            
-        } catch(SQLException ex){
-            this.ex_message(ex);
-           return -ex.getErrorCode();
-        }
-        return 0;
-    }
-    
+     
     private Metadata getSelectObjectResult(String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
@@ -524,11 +429,12 @@ public class MysqlDataRepository implements DataRepository{
         throw new ResourceNotFoundException("path not found in the db");
     }
     
-    private synchronized Metadata selectSingleObjectInternal(String diskPoolId, String objId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId) throws ResourceNotFoundException {
         try{
-            this.pstSelectOne.clearParameters();
-            this.pstSelectOne.setString(1, objId);
-            ResultSet rs = this.pstSelectOne.executeQuery();
+            PreparedStatement pstStmt = getObjPreparedStmt(bucketName, Query.objSelectOneQuery);
+            pstStmt.clearParameters();
+            pstStmt.setString(1, objId);
+            ResultSet rs = pstStmt.executeQuery();
             return getSelectObjectResult(diskPoolId, rs);
         } catch(SQLException ex){
             System.out.println(" error : " + ex.getMessage());
@@ -537,34 +443,35 @@ public class MysqlDataRepository implements DataRepository{
         }
     }
 
-    private synchronized Metadata selectSingleObjectInternal(String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
         try{
-            this.pstSelectOneWithVersionId.clearParameters();
-            this.pstSelectOneWithVersionId.setString(1, objId);
-            this.pstSelectOneWithVersionId.setString(2, versionId);
-            ResultSet rs = this.pstSelectOneWithVersionId.executeQuery();
+            PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, Query.objSelectOneWithVersionIdQuery);
+            pstSelectOneWithVersionId.clearParameters();
+            pstSelectOneWithVersionId.setString(1, objId);
+            pstSelectOneWithVersionId.setString(2, versionId);
+            ResultSet rs = pstSelectOneWithVersionId.executeQuery();
             return getSelectObjectResult(diskPoolId, rs);      
         } catch(SQLException ex){
-            System.out.println(" error : " + ex.getMessage());
+            //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
-            throw new ResourceNotFoundException("path not found in the db : " + ex.getMessage());
+            throw new ResourceNotFoundException("Object not found in the db : " + ex.getMessage());
         }
     }
     
     @Override
     public synchronized Metadata selectSingleObject(String diskPoolId, String bucketName, String path) throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-       return selectSingleObjectInternal(diskPoolId, mt.getObjId()); 
+       return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId()); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(diskPoolId, objid); 
+       return selectSingleObjectInternal(bucketName, diskPoolId, objid); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid, String versionId) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(diskPoolId, objid, versionId); 
+       return selectSingleObjectInternal(bucketName, diskPoolId, objid, versionId); 
     }
     @Override
     public synchronized void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
@@ -616,6 +523,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
+        PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), Query.objUpdateTaggingQuery);
         pstUpdateTagging.clearParameters();
         pstUpdateTagging.setString(1, mt.getTag());
         pstUpdateTagging.setString(2, mt.getMeta());
@@ -626,17 +534,79 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectAcl(Metadata mt) throws SQLException {
+        PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), Query.objUpdateAclQuery);
         pstUpdateAcl.clearParameters();
         pstUpdateAcl.setString(1, mt.getAcl());
         pstUpdateAcl.setString(2, mt.getObjId());
         pstUpdateAcl.setString(3, mt.getVersionId());
         pstUpdateAcl.executeUpdate();
     }
+    
+    @Override
+    public void updateObjectMeta(Metadata mt) throws SQLException {
+        PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), Query.objUpdateObjectMetaQuery);
+        pstUpdateObjectMeta.clearParameters();
+        pstUpdateObjectMeta.setString(1, mt.getMeta());
+        pstUpdateObjectMeta.setString(2, mt.getObjId());
+        pstUpdateObjectMeta.setString(3, mt.getVersionId());
+        pstUpdateObjectMeta.executeUpdate();
+    }
+    
+    private int updateVersionDelete(String bucketName, String objId) throws SQLException{ 
+        PreparedStatement pstupdateLastVersionDelete = getObjPreparedStmt(bucketName, Query.objUpdateLastVersionDeleteQuery);
+        pstupdateLastVersionDelete.clearParameters();
+        pstupdateLastVersionDelete.setString(1, objId);
+        pstupdateLastVersionDelete.execute();
+        return 0;
+    }
 
+    @Override
+    public int deleteObject(String bucketName, String path, String versionId) {
+        try{
+            String objId = new Metadata(bucketName, path).getObjId();
+            PreparedStatement pststmt = getObjPreparedStmt(bucketName, Query.objDeleteQuery);
+            pststmt.clearParameters();
+            pststmt.setString(1, objId);
+            pststmt.setString(2, versionId);
+            if (pststmt.executeUpdate()> 0)
+                updateBucketFileCount(bucketName, -1);
+            
+            if (versionId != null){
+                if (!versionId.isEmpty())
+                    updateVersionDelete(bucketName, objId);
+            }
+        } catch(SQLException ex){
+            this.ex_message(ex);
+            return -ex.getErrorCode();
+        }
+        return 0;
+    }
+
+    @Override
+    public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
+        int ret;
+        String objId = new Metadata(bucketName, path).getObjId();
+        PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, Query.objUpdateDeleteMarkerQuery);
+        pstUpdateDeleteMarker.clearParameters();
+        pstUpdateDeleteMarker.setString(1, markDelete);
+        pstUpdateDeleteMarker.setBoolean(2, false);
+        pstUpdateDeleteMarker.setString(3, objId);
+        pstUpdateDeleteMarker.setString(4, versionId);
+        ret= pstUpdateDeleteMarker.executeUpdate();
+        if (ret  > 0){
+            if (versionId != null){
+                if (!versionId.isEmpty())
+                    updateVersionDelete(bucketName, objId);
+            }
+        }
+        return ret;
+    }
+    
     @Override
     public synchronized Bucket insertBucket(Bucket bt) 
             throws ResourceAlreadyExistException{
         try{
+            createObjectTable(bt.getName());
             this.pstInsertBucket.clearParameters();
             this.pstInsertBucket.setString(1, bt.getName());
             this.pstInsertBucket.setString(2, bt.getId());
@@ -883,93 +853,6 @@ public class MysqlDataRepository implements DataRepository{
         
         return mt;
     }
-    /*@Override
-    public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
-        PreparedStatement stmt = this.con.prepareStatement(query.toString());
-        //stmt.setLargeMaxRows(1000);
-        ResultSet rs = stmt.executeQuery();
-        
-        int numRows = 0;
-        ObjectListParameter list = new ObjectListParameter();
-
-        list.setIstruncated(false);
-
-        while(rs.next()){
-            numRows++;
-            if (numRows > maxKeys) {
-                list.setNextMarker(rs.getString(1));
-                list.setIstruncated(true);
-                break;
-            }
-            
-            S3Metadata meta = null;
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                meta = objectMapper.readValue(rs.getString(9), S3Metadata.class);
-            } catch (Exception e) {
-                return null;
-            }
-            
-            // S3Metadata meta = new S3Metadata();
-            meta.setName(rs.getString(1));
-            meta.setETag(rs.getString(2));
-            meta.setLastModified((Date)rs.getObject(3));
-            // meta.setSize(rs.getLong(4));
-            meta.setVersionId(rs.getString(5));
-            meta.setIsLatest(rs.getBoolean(8) ? "true" : "false");
-
-            list.getObjects().add(meta);
-        }
-
-        return list;
-    }*/
-
-    private int updateVersionDelete(String objId) throws SQLException{        
-        pstupdateLastVersionDelete.clearParameters();
-        pstupdateLastVersionDelete.setString(1, objId);
-        pstupdateLastVersionDelete.execute();
-        return 0;
-    }
-
-    @Override
-    public int deleteObject(String bucketName, String path, String versionId) {
-        try{
-            String objId = new Metadata(bucketName, path).getObjId();
-            pstDelete.clearParameters();
-            pstDelete.setString(1, objId);
-            pstDelete.setString(2, versionId);
-            if (pstDelete.executeUpdate()> 0)
-                updateBucketFileCount(bucketName, -1);
-            
-            if (versionId != null){
-                if (!versionId.isEmpty())
-                    updateVersionDelete(objId);
-            }
-        } catch(SQLException ex){
-            this.ex_message(ex);
-            return -ex.getErrorCode();
-        }
-        return 0;
-    }
-
-    @Override
-    public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
-        int ret;
-        String objId = new Metadata(bucketName, path).getObjId();
-        pstUpdateDeleteMarker.clearParameters();
-        pstUpdateDeleteMarker.setString(1, markDelete);
-        pstUpdateDeleteMarker.setBoolean(2, false);
-        pstUpdateDeleteMarker.setString(3, objId);
-        pstUpdateDeleteMarker.setString(4, versionId);
-        ret= pstUpdateDeleteMarker.executeUpdate();
-        if (ret  > 0){
-            if (versionId != null){
-                if (!versionId.isEmpty())
-                    updateVersionDelete(objId);
-            }
-        }
-        return ret;
-    }
     
     @Override
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
@@ -1083,14 +966,7 @@ public class MysqlDataRepository implements DataRepository{
         return resultUploads;
     }
 /***********************************************END*****************************************************************************/
-    @Override
-    public void updateObjectMeta(Metadata mt) throws SQLException {
-        pstUpdateObjectMeta.clearParameters();
-        pstUpdateObjectMeta.setString(1, mt.getMeta());
-        pstUpdateObjectMeta.setString(2, mt.getObjId());
-        pstUpdateObjectMeta.setString(3, mt.getVersionId());
-        pstUpdateObjectMeta.executeUpdate();
-    }
+
 
     @Override
     public void updateBucketAcl(Bucket bt) throws SQLException {
@@ -1206,862 +1082,6 @@ public class MysqlDataRepository implements DataRepository{
         }
         return success;
     }
-
-    /*@Override
-    public ObjectListParameter listObject(String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException {       
-        ObjectListParameter objectListParameter;
-        boolean bBucketListParameterPrefix = false;
-		boolean bMarker = false;
-		boolean bDelimiter = false;
-		boolean bDelForceGte = false;
-		boolean bDelimiterMarker = false;
-
-		int prepareOrder = 0;
-		
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		if (!Strings.isNullOrEmpty(prefix)) {
-			bBucketListParameterPrefix = true;
-		}
-
-		if (!Strings.isNullOrEmpty(marker)) {
-			bMarker = true;
-		}
-
-		if (!Strings.isNullOrEmpty(delimiter)) {
-			bDelimiter = true;
-		}
-
-		if (bMarker && bDelimiter) {
-			if (marker.substring(marker.length() - delimiter.length(), marker.length()).compareTo(delimiter) == 0) {
-				StringBuilder delimiterp2 = new StringBuilder(); 
-				delimiterp2.append(marker.substring(0, marker.length() - 1));
-				delimiterp2.append(Character.getNumericValue(marker.charAt(marker.length() - 1)) + 1);
-				marker = delimiterp2.toString();
-				bDelimiterMarker = true;
-			}
-		}
-
-		String delmarker = "";  //delimiter marker
-		objectListParameter = new ObjectListParameter();
-		objectListParameter.setIstruncated(true);
-
-		// 1.1. Excute query
-		try {
-			
-			if (maxKeys == 0) {
-				objectListParameter.setIstruncated(false);
-			}
-			
-			while (objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size() < maxKeys) {
-				prepareOrder = 0;
-				
-				String query = "SELECT objKey, meta FROM MDSDBTable WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
-
-				if (bBucketListParameterPrefix)
-					query += " AND objKey LIKE ?";
-
-				if (bMarker) {
-					if (bDelimiterMarker) {
-						query += " AND objKey >= ?";
-					} else {
-						query += " AND objKey > ?";
-					}
-				}
-
-				if (bDelForceGte) {
-					query += " AND objKey >= ?";
-				}
-
-				query  += " ORDER BY objKey ASC LIMIT " + (maxKeys + 1);
-
-				pstmt = this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-				if (bBucketListParameterPrefix) {
-					pstmt.setString(++prepareOrder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
-				}
-
-				if (bMarker)
-					pstmt.setString(++prepareOrder, marker);
-
-				if (bDelForceGte) {
-					pstmt.setString(++prepareOrder, delmarker);
-					bDelForceGte = false;
-				}
-
-				System.out.println(pstmt.toString());
-				rs = pstmt.executeQuery();
-
-				if (!bDelimiter) {
-					rs.last();     
-					int rowcount = rs.getRow();
-					rs.beforeFirst();
-
-					if (rowcount < maxKeys + 1 || maxKeys == 0) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					while (rs.next()) {
-						S3Metadata s3Metadata = new S3Metadata();
-						ObjectMapper jsonMapper = new ObjectMapper();
-						try {
-							s3Metadata = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-						} catch (Exception e) {
-                            System.out.println(e.getMessage());
-						}
-
-						s3Metadata.setName(rs.getString("objKey"));
-
-						objectListParameter.getObjects().add(s3Metadata);
-						if (objectListParameter.getObjects().size() == Integer.valueOf(maxKeys)) {
-							if (objectListParameter.isTruncated()) {
-								objectListParameter.setNextMarker(rs.getString("objKey"));
-							}
-
-							break;
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-
-				} else {
-					rs.last();     
-					int rowcount = rs.getRow();
-					rs.beforeFirst();
-
-					if (rowcount < maxKeys+1 || maxKeys == 0) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					int end = 0;
-					if (bBucketListParameterPrefix) {
-						end = prefix.length();
-					}
-
-					while (rs.next()) {
-						String objectName = rs.getString("objKey");
-						String subName = objectName.substring(end, objectName.length());
-
-						String endPrefix = "";
-						if (bBucketListParameterPrefix) {
-							endPrefix = prefix;
-						}
-
-						int find = 0;
-						int match = 0;
-
-						// delimiter를 발견하면 common prefix
-						// 아니라면 object
-						while ((find = subName.indexOf(delimiter)) >= 0) {
-							endPrefix += subName.substring(0, find + delimiter.length());
-							match++;
-							break;
-						}
-
-						// delimiter가 발견
-						if (match > 0) {
-							// common prefix 등록
-							objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
-
-							if(objectListParameter.isTruncated()) {
-								StringBuilder delimiterp1 = new StringBuilder(); 
-								delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
-								delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
-								delmarker = delimiterp1.toString();
-								bDelForceGte = true;
-								
-								if (objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size() == Integer.valueOf(maxKeys)) {
-									int isTruncatePrepareOrder = 0;
-									ResultSet truncateRS = null;
-									PreparedStatement truncatePSTMT = null;
-									
-									// istruncate check
-									String truncateQuery = "SELECT objKey, meta FROM MDSDBTable WHERE lastversion=true AND deleteMarker <> 'mark' ";
-
-									if (bBucketListParameterPrefix)
-										truncateQuery += " AND objKey LIKE ?";
-
-									if (bMarker) {
-										if (bDelimiterMarker) {
-											truncateQuery += " AND objKey >= ?";
-										} else {
-											truncateQuery += " AND objKey > ?";
-										}
-									}
-
-									if (bDelForceGte) {
-										truncateQuery += " AND objKey >= ?";
-									}
-
-									truncateQuery  += " ORDER BY objKey ASC LIMIT " + (maxKeys+1);
-
-									truncatePSTMT = this.con.prepareStatement(truncateQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-									if (bBucketListParameterPrefix) {
-										truncatePSTMT.setString(++isTruncatePrepareOrder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
-									}
-
-									if (bMarker)
-										truncatePSTMT.setString(++isTruncatePrepareOrder, marker);
-
-									if (bDelForceGte) {
-										truncatePSTMT.setString(++isTruncatePrepareOrder, delmarker);
-									}
-
-									System.out.println(truncatePSTMT.toString());
-									truncateRS = truncatePSTMT.executeQuery();
-									int truncateMatchCount = 0;
-									
-									while (truncateRS.next()) {
-										String truncateObjectName = rs.getString("objKey");
-										String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
-
-										String truncateEndPrefix = "";
-										if (bBucketListParameterPrefix) {
-											truncateEndPrefix = prefix;
-										}
-
-										int istruncatefind = 0;
-										int istruncatematch = 0;
-
-										// delimiter를 발견하면 common prefix
-										// 아니라면 object
-										while ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
-											truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
-											istruncatematch++;
-											break;
-										}
-										
-										if (istruncatematch > 0) {
-											truncateMatchCount++;
-											objectListParameter.setNextMarker(truncateEndPrefix);
-											break;
-										}
-									}
-									
-									if (truncateMatchCount == 0) {
-										objectListParameter.setIstruncated(false);
-									}
-
-                                    truncateRS.close();
-                                    truncatePSTMT.close();
-								}
-								
-								break;
-							}
-						} else {
-							S3Metadata s3Metadata = new S3Metadata();
-							ObjectMapper jsonMapper = new ObjectMapper();
-							try {
-								s3Metadata = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-							} catch (Exception e) {
-								System.out.println(e.getMessage());
-							}
-
-							s3Metadata.setName(rs.getString("objKey"));
-
-							objectListParameter.getObjects().add(s3Metadata);
-							if (objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size() == Integer.valueOf(maxKeys)) {
-								if(objectListParameter.isTruncated()) {
-									objectListParameter.setNextMarker(rs.getString("objKey"));
-								}
-
-								break;
-							}
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			throw new SQLException();
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			throw new SQLException();
-		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-
-				if (pstmt != null)
-					pstmt.close();
-
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			    throw new SQLException();
-			}
-		}
-
-        return objectListParameter;
-    }
-
-    @Override
-    public ObjectListParameter listObjectV2(String bucketName, String delimiter, String startAfter, String continuationToken, int maxKeys, String prefix) throws SQLException {
-        ObjectListParameter objectListParameter;
-        boolean bBucketListParameterRefix = false;
-		boolean bMarker = false;
-		boolean bContinuationToken = false;
-		boolean bDelimiter = false;
-		boolean bDelForceGte = false;
-		boolean bDelimitermarker = false;
-		boolean bDelimitertoken = false;
-
-		int prepareOrder = 0;
-		
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		if (!Strings.isNullOrEmpty(prefix)) {
-			bBucketListParameterRefix = true;
-		}
-
-		if (!Strings.isNullOrEmpty(startAfter)) {
-			bMarker = true;
-		}
-
-		if (!Strings.isNullOrEmpty(continuationToken)) {
-			bContinuationToken = true;
-		}
-
-		if (!Strings.isNullOrEmpty(delimiter)) {
-			bDelimiter = true;
-		}
-		
-		if (bMarker && bDelimiter) {
-			if (startAfter.substring(startAfter.length() - delimiter.length(), startAfter.length()).compareTo(delimiter) == 0) {
-				StringBuilder delimiterp2 = new StringBuilder(); 
-				delimiterp2.append(startAfter.substring(0, startAfter.length()-1));
-				delimiterp2.append(Character.getNumericValue(startAfter.charAt(startAfter.length()-1)) + 1);
-				startAfter = delimiterp2.toString();
-				bDelimitermarker = true;
-			}
-		}
-		
-		if (bContinuationToken && bDelimiter) {
-			if (continuationToken.substring(continuationToken.length() - delimiter.length(), continuationToken.length()).compareTo(delimiter) == 0) {
-				StringBuilder delimiterp2 = new StringBuilder(); 
-				delimiterp2.append(continuationToken.substring(0, continuationToken.length()-1));
-				delimiterp2.append(Character.getNumericValue(continuationToken.charAt(continuationToken.length()-1)) + 1);
-				continuationToken = delimiterp2.toString();
-				bDelimitertoken = true;
-			}
-		}
-		
-		String delMarker = "";  //delimiter marker
-		objectListParameter = new ObjectListParameter();
-		objectListParameter.setIstruncated(true);
-
-		// 1.1. Excute query
-		try {			
-			if (maxKeys == 0) {
-				objectListParameter.setIstruncated(false);
-			}
-			
-			while (objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size() < maxKeys) {
-				prepareOrder = 0;
-				String query = "SELECT objKey, meta FROM MDSDBTable WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
-
-				if (bBucketListParameterRefix)
-					query += " AND objKey LIKE ?";
-
-				if (bMarker) {
-					if (bDelimitermarker) {
-						query += " AND objKey >= ?";
-					} else {
-						query += " AND objKey > ?";
-					}
-				}
-				
-				if (bContinuationToken) {
-					if (bDelimitertoken) {
-						query += " AND objKey >= ?";
-					} else {
-						query += " AND objKey > ?";
-					}
-				}
-				
-				if (bDelForceGte) {
-					query += " AND objKey >= ?";
-				}
-
-				query  += " ORDER BY objKey ASC LIMIT " + (maxKeys + 1);
-
-				pstmt = this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-				if (bBucketListParameterRefix) {
-					pstmt.setString(++prepareOrder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
-				}
-
-				if (bMarker)
-					pstmt.setString(++prepareOrder, startAfter);
-				
-				if (bContinuationToken)
-					pstmt.setString(++prepareOrder, continuationToken);
-
-				if (bDelForceGte) {
-					pstmt.setString(++prepareOrder, delMarker);
-					bDelForceGte = false;
-				}
-
-				System.out.println(pstmt.toString());
-				rs = pstmt.executeQuery();
-
-				if (!bDelimiter) {
-					rs.last();     
-					int rowcount = rs.getRow();
-					rs.beforeFirst();
-
-					if (rowcount < maxKeys + 1 || maxKeys == 0) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					while (rs.next()) {
-						S3Metadata s3Metadata = new S3Metadata();
-						ObjectMapper jsonMapper = new ObjectMapper();
-						try {
-							s3Metadata = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-						} catch (Exception e) {
-							System.out.println(e.getMessage());
-                            throw new Exception(e.getMessage());
-						}
-						
-						s3Metadata.setName(rs.getString("objKey"));
-						objectListParameter.getObjects().add(s3Metadata);
-						if (objectListParameter.getObjects().size() == maxKeys) {
-							if (objectListParameter.isTruncated()) {
-								objectListParameter.setNextMarker(rs.getString("objKey")); 	
-							}
-
-							break;
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-
-				} else {
-					rs.last();     
-					int rowCount = rs.getRow();
-					rs.beforeFirst();
-
-					if (rowCount < maxKeys + 1 || maxKeys == 0) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					int end = 0;
-					if (bBucketListParameterRefix) {
-						end = prefix.length();
-					}
-
-					while (rs.next()) {
-						String objectName = rs.getString("objKey");
-						String subName = objectName.substring(end, objectName.length());
-
-						int find = 0;
-						int match = 0;
-
-						String endPrefix = "";
-						if (bBucketListParameterRefix) {
-							endPrefix = prefix;
-						}
-
-						// delimiter를 발견하면 common prefix
-						// 아니라면 object
-						while ((find = subName.indexOf(delimiter)) >= 0) {
-							endPrefix += subName.substring(0, find + delimiter.length());
-							match++;
-							break;
-						}
-
-						// delimiter가 발견
-						if (match > 0) {
-							// common prefix 등록
-							objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
-
-							// object 등록
-							if (objectListParameter.isTruncated()) {
-								StringBuilder delimiterp1 = new StringBuilder(); 
-								delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
-								delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
-								delMarker = delimiterp1.toString();
-								bDelForceGte = true;
-								
-								if (objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size() == maxKeys) {
-									int truncatePrepareOrder = 0;
-									ResultSet truncateRS = null;
-									PreparedStatement truncatePSTMT = null;
-									
-									// istruncate check
-									String truncateQuery = "SELECT objKey, meta FROM MDSDBTable WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
-
-									if (bBucketListParameterRefix)
-										truncateQuery += " AND objKey LIKE ?";
-
-									if (bMarker) {
-										if (bDelimitermarker) {
-											truncateQuery += " AND objKey >= ?";
-										} else {
-											truncateQuery += " AND objKey > ?";
-										}
-									}
-									
-									if (bContinuationToken) {
-										if (bDelimitertoken) {
-											truncateQuery += " AND objKey >= ?";
-										} else {
-											truncateQuery += " AND objKey > ?";
-										}
-									}
-
-									if (bDelForceGte) {
-										truncateQuery += " AND objKey >= ?";
-									}
-
-									truncateQuery  += " ORDER BY objKey ASC LIMIT " + (maxKeys + 1);
-
-									truncatePSTMT = this.con.prepareStatement(truncateQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-									if (bBucketListParameterRefix) {
-										truncatePSTMT.setString(++truncatePrepareOrder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
-									}
-
-									if (bMarker)
-										truncatePSTMT.setString(++truncatePrepareOrder, startAfter);
-									
-									if (bContinuationToken)
-										truncatePSTMT.setString(++truncatePrepareOrder, continuationToken);
-
-									if (bDelForceGte) {
-										truncatePSTMT.setString(++truncatePrepareOrder, delMarker);
-									}
-									
-									System.out.println(truncatePSTMT.toString());
-									truncateRS = truncatePSTMT.executeQuery();
-									int truncateMatchCount=0;
-									
-									while (truncateRS.next()) {
-										String truncateObjectName = rs.getString("objKey");
-										String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
-
-										String truncateEndPrefix = "";
-										if (bBucketListParameterRefix) {
-											truncateEndPrefix = prefix;
-										}
-
-										int truncateFind = 0;
-										int truncateMatch = 0;
-
-										// delimiter를 발견하면 common prefix
-										// 아니라면 object
-										while ((truncateFind = truncateSubName.indexOf(delimiter)) >= 0) {
-											truncateEndPrefix += truncateSubName.substring(0, truncateFind + delimiter.length());
-											truncateMatch++;
-											break;
-										}
-										
-										if (truncateMatch > 0) {
-											truncateMatchCount++;
-											objectListParameter.setNextMarker(truncateEndPrefix);
-											break;
-										}
-									}
-									
-                                    truncateRS.close();
-                                    truncatePSTMT.close();
-
-									if (truncateMatchCount == 0) {
-										objectListParameter.setIstruncated(false);
-									}
-								}
-
-								
-								break;
-							}
-
-						} else {
-							S3Metadata im = new S3Metadata();
-							ObjectMapper jsonMapper = new ObjectMapper();
-							try {
-								im = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-							} catch (Exception e) {
-								System.out.println(e.getMessage());
-			                    throw new SQLException(e.getMessage());
-							}
-
-							im.setName(rs.getString("objKey"));
-
-							objectListParameter.getObjects().add(im);
-							if (objectListParameter.getObjects().size() == maxKeys) {
-								if (objectListParameter.isTruncated()) {
-									objectListParameter.setNextMarker(rs.getString("objKey")); 	
-								}
-
-								break;
-							}
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			throw new SQLException(e.getMessage());
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			throw new SQLException(e.getMessage());
-		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-
-				if (pstmt != null)
-					pstmt.close();
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			    throw new SQLException(e.getMessage());
-			}
-		}
-
-        return objectListParameter;
-    }
-
-    @Override
-    public ObjectListParameter listObjectVersions(String bucketName, String delimiter, String keyMarker, String versionIdMarker, int maxKeys, String prefix) throws SQLException {
-        ObjectListParameter objectListParameter;
-        boolean bBucketListParameterRefix = false;
-		boolean bKeyMarker = false;
-		boolean bVersionIdMarker = false;
-		boolean bDelimiter = false;
-		boolean bDelForceGte = false;
-
-		int prepareorder = 0;
-		
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		if (!Strings.isNullOrEmpty(prefix)) {
-			bBucketListParameterRefix = true;
-		}
-
-		if (!Strings.isNullOrEmpty(keyMarker)) {
-			bKeyMarker = true;
-		}
-
-		if (!Strings.isNullOrEmpty(versionIdMarker))  {
-			bVersionIdMarker = true;
-		}
-
-		if (!Strings.isNullOrEmpty(delimiter)) {
-			bDelimiter = true;
-		}
-
-		String delMarker = "";  //delimiter marker
-		objectListParameter = new ObjectListParameter();
-		objectListParameter.setIstruncated(true);
-
-		// 1.1. Excute query
-		try {
-			while (objectListParameter.getObjects().size() < maxKeys) {
-				prepareorder = 0;
-				
-				String query = "SELECT objKey, meta, versionid, lastversion FROM MDSDBTable WHERE bucket='" + bucketName + "' ";
-
-				if (bBucketListParameterRefix)
-					query += " AND objKey LIKE ?";
-
-				if (bKeyMarker && !bVersionIdMarker)
-					query += " AND objKey > ?";
-
-				if (bVersionIdMarker)
-					query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
-
-				if (bDelForceGte) {
-					query += " AND objKey >= ?";
-				}
-
-				query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1);
-
-				pstmt = this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-				if (bBucketListParameterRefix) {
-					pstmt.setString(++prepareorder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
-				}
-
-				if (bKeyMarker)
-					pstmt.setString(++prepareorder, keyMarker);
-
-				if (bVersionIdMarker) {
-					pstmt.setString(++prepareorder, keyMarker);
-					pstmt.setString(++prepareorder, versionIdMarker);
-				}
-
-				if (bDelForceGte) {
-					pstmt.setString(++prepareorder, delMarker);
-					bDelForceGte = false;
-				}
-
-				System.out.println(pstmt.toString());
-				rs = pstmt.executeQuery();
-
-				if (!bDelimiter) {
-					rs.last();     
-					int rowCount = rs.getRow();
-					rs.beforeFirst();
-
-					if (rowCount < maxKeys + 1) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					while (rs.next()) {
-						S3Metadata s3Metadata = new S3Metadata();
-						ObjectMapper jsonMapper = new ObjectMapper();
-						try {
-							s3Metadata = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-						} catch (Exception e) {
-							System.out.println("mata : " + rs.getString(2));
-							throw new Exception(e.getMessage());
-						}
-
-						s3Metadata.setName(rs.getString("objKey"));
-						String versionid = rs.getString("versionid");
-						s3Metadata.setVersionId(versionid);
-						if(rs.getBoolean("lastversion")) {
-							s3Metadata.setIsLatest("true");
-						} else { 
-							s3Metadata.setIsLatest("false");
-						}
-
-						objectListParameter.getObjects().add(s3Metadata);
-						if(objectListParameter.getObjects().size() == maxKeys) {
-							if(objectListParameter.isTruncated()) {
-								objectListParameter.setNextMarker(rs.getString("objKey")); 	
-								objectListParameter.setNextVersion(rs.getString("versionid"));
-							}
-
-							break;
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-
-				} else {
-					rs.last();     
-					int rowCount = rs.getRow();
-					rs.beforeFirst();
-
-					if(rowCount < maxKeys + 1) {
-						objectListParameter.setIstruncated(false);
-					}
-
-					int end=0;
-					if (bBucketListParameterRefix) {
-						end = prefix.length();
-					}
-
-					while (rs.next()) {
-						String objectName = rs.getString("objKey");
-						String subName = objectName.substring(end, objectName.length());
-
-						int find = 0;
-						int match = 0;
-
-						String endPrefix = "";
-						if(bBucketListParameterRefix) {
-							endPrefix = prefix;
-						}
-
-						// delimiter를 발견하면 common prefix
-						// 아니라면 object
-						while ((find = subName.indexOf(delimiter)) >= 0) {
-							endPrefix += subName.substring(0, find + delimiter.length());
-							match++;
-							break;
-						}
-
-						// delimiter가 발견
-						if (match > 0) {
-							// common prefix 등록
-							objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
-
-							if (objectListParameter.isTruncated()) {
-								StringBuilder delimiterp1 = new StringBuilder(); 
-								delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
-								delimiterp1.append(endPrefix.charAt(endPrefix.length()) + 1);
-								delMarker = delimiterp1.toString();
-								bDelForceGte = true;
-								break;
-							}
-                                                        // there is differce here
-
-						} else {
-							S3Metadata s3Metadata = new S3Metadata();
-							ObjectMapper jsonMapper = new ObjectMapper();
-							try {
-								s3Metadata = jsonMapper.readValue(rs.getString(2), S3Metadata.class);
-							} catch (Exception e) {
-								System.out.println("mata : " + rs.getString(2));
-							    throw new Exception(e.getMessage());
-							}
-
-							s3Metadata.setName(rs.getString("objKey"));
-							String versionid = rs.getString("versionid");
-							s3Metadata.setVersionId(versionid);
-							if (rs.getBoolean("lastversion")) {
-								s3Metadata.setIsLatest("true");
-							} else { 
-								s3Metadata.setIsLatest("false");
-							}
-
-							objectListParameter.getObjects().add(s3Metadata);
-							if (objectListParameter.getObjects().size() == maxKeys) {
-								if (objectListParameter.isTruncated()) {
-									objectListParameter.setNextMarker(rs.getString("objKey")); 	
-								}
-
-								break;
-							}
-						}
-					}
-
-					if (!objectListParameter.isTruncated()) {
-						break;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			throw new SQLException(e.getMessage());
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			throw new SQLException(e.getMessage());
-		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-
-				if (pstmt != null)
-					pstmt.close();
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			    throw new SQLException(e.getMessage());
-			}
-		}
-
-        return objectListParameter;
-    }*/
     
     @Override
     public  List<Object> utilJobMgt(String operation, List<Object> in){
