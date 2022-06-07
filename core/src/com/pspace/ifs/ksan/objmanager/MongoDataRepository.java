@@ -286,7 +286,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
         
-        long lastModified = doc.getDate(LASTMODIFIED).getTime();
+        long lastModified = doc.getLong(LASTMODIFIED);
         String key       = (String)doc.get(OBJKEY);
         String etag         = doc.getString(ETAG);
         String meta         = doc.getString(META);
@@ -1182,7 +1182,7 @@ public class MongoDataRepository implements DataRepository{
             boolean lastversion = doc.getBoolean(LASTVERSION);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
-            long lastModified  = doc.getDate(LASTMODIFIED).getTime();
+            long lastModified  = doc.getLong(LASTMODIFIED);
             long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
             mt.setVersionId(versionid, deletem, lastversion);

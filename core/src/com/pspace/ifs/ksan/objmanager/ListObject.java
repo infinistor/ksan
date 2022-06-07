@@ -654,10 +654,10 @@ public class ListObject{
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            throw new SQLException();
+            throw new SQLException(e);
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new SQLException();
+            throw new SQLException(e);
         }
     }
 }
