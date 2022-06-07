@@ -12,7 +12,7 @@ package com.pspace.ifs.ksan.objmanager;
 public final class DataRepositoryQuery {
     // for objects
     public static String objCreateQuery = "CREATE TABLE IF NOT EXISTS %s("
-            + "bucket VARCHAR(256) NOT NULL, objKey VARCHAR(2048) NOT NULL, size BIGINT NOT NULL default 0,"
+            + "bucket VARCHAR(256) NOT NULL, objKey VARBINARY(2048) NOT NULL, size BIGINT NOT NULL default 0,"
             + "etag TEXT NOT NULL, meta TEXT NOT NULL, tag TEXT NOT NULL, "
             + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
             + "acl TEXT NOT NULL, "

@@ -228,8 +228,8 @@ public class ListObject{
          }else{
             String sql; 
             if (!diskid.isEmpty()){
-                sql = "SELECT * FROM '" + bucketName + "'"
-                        + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
+                sql = "SELECT * FROM `" + bucketName + "`"
+                        + "WHERE bucket=`" + bucketName + "` AND (pdiskid like '" + diskid 
                         + "' OR rdiskid like '" + diskid + "') ORDER BY objKey LIMIT " 
                         + maxKeys + " OFFSET " + offset;
             }
@@ -244,7 +244,7 @@ public class ListObject{
     
     private void makeQueryV1(){
         
-        query = "SELECT * FROM '" + bucketName + "' WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+        query = "SELECT * FROM `" + bucketName + "` WHERE bucket=`" + bucketName + "` AND lastversion=true AND deleteMarker <> 'mark' ";
 
         if (bBucketListParameterPrefix)
             query += " AND objKey LIKE ?";
@@ -266,7 +266,7 @@ public class ListObject{
     
     private void makeQueryV2(){
         
-       query = "SELECT * FROM '"+ bucketName +"' WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+       query = "SELECT * FROM `"+ bucketName +"` WHERE bucket=`" + bucketName + "` AND lastversion=true AND deleteMarker <> 'mark' ";
        
        if (bBucketListParameterPrefix)
            query += " AND objKey LIKE ?";
@@ -295,7 +295,7 @@ public class ListObject{
     
     private void makeQueryWithVersion(){
         
-        query = "SELECT * FROM '"+ bucketName +"' WHERE bucket='" + bucketName + "' ";
+        query = "SELECT * FROM `"+ bucketName +"` WHERE bucket=`" + bucketName + "` ";
 
 	if (bBucketListParameterPrefix)
             query += " AND objKey LIKE ?";
