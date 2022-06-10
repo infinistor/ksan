@@ -260,3 +260,74 @@ docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 --restart=unless-stopp
 - 서버주소 : http://<ip>:15672
 - username : guest
 - password : guest
+
+## 업데이트 가이드
+
+### API 업데이트
+``` shell
+# 서비스 정지
+# docker로 시작했을 경우
+docker stop ksanapi
+# service로 시작했을 경우
+systemctl stop ksanapi
+
+# 기존 설정 백업
+docker cp ksanapi:/app/appsettings.json .
+
+# 기존 컨테이너, 이미지 제거
+docker rm ksanapi
+docker rmi pspace/ksanapi
+
+# 새 이미지 업로드 및 컨테이너 생성
+docker load -i ksanapi.tar
+docker create -i -t \
+--net ksannet \
+--ip 172.10.0.21 \
+-v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/logs:/app/logs \
+-v /home/ksan/share:/home/share \
+-v /home/ksan/custom:/app/wwwroot/custom \
+-v /home/ksan/data:/app/wwwroot/data \
+-v /home/ksan/session:/home/session \
+--workdir="/app" \
+--name ksanapi \
+pspace/ksanapi:latest
+
+# 설정 복구
+docker cp appsettings.json ksanapi:/app
+
+# 서비스 시작
+# docker로 시작했을 경우
+docker start ksanapi
+# service로 시작했을 경우
+systemctl start ksanapi
+```
+
+### Portal 업데이트
+``` shell
+# 서비스 정지
+# docker로 시작했을 경우
+docker stop ksanportal
+# service로 시작했을 경우
+systemctl stop ksanportal
+
+# 기존 컨테이너, 이미지 제거
+docker rm ksanportal
+docker rmi pspace/ksanportal
+
+# 새 이미지 업로드 및 컨테이너 생성
+docker load -i ksanportal.tar
+docker create --net=host \
+-p 80:80 \
+-p 443:443 \
+-v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/share:/home/share \
+--name ksangateway \
+pspace/ksangateway:latest
+
+# 서비스 시작
+# docker로 시작했을 경우
+docker start ksanportal
+# service로 시작했을 경우
+systemctl start ksanportal
+```
