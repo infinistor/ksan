@@ -35,12 +35,12 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet;
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
-import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -78,7 +78,7 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
@@ -98,7 +98,7 @@ public class PutObject extends S3Request {
 		String customerKeyMD5 = dataPutObject.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = dataPutObject.getServerSideEncryption();
 
-		s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataPutObject.getUserMetadata());
 		
@@ -173,7 +173,7 @@ public class PutObject extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
@@ -182,7 +182,7 @@ public class PutObject extends S3Request {
 										null, 
 										dataPutObject.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataPutObject.getGrantRead(),
 										dataPutObject.getGrantWrite(), 

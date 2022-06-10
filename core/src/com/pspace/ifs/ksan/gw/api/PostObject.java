@@ -31,7 +31,7 @@ import com.pspace.ifs.ksan.gw.format.Tagging;
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet;
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
@@ -40,7 +40,7 @@ import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.LoggerFactory;
@@ -189,7 +189,7 @@ public class PostObject extends S3Request {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.validatePost(dataPostObject);
 
-			if (!isGrantBucket(String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE)) {
+			if (!isGrantBucket(s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		} else {
@@ -255,7 +255,7 @@ public class PostObject extends S3Request {
 										null, 
 										dataPostObject.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataPostObject.getGrantRead(),
 										dataPostObject.getGrantWrite(), 

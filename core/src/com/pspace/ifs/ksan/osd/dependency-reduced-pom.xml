@@ -6,7 +6,7 @@
   <name>ksanOsd</name>
   <version>0.8.1</version>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>./</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

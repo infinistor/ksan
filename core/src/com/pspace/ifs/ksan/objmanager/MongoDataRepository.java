@@ -25,12 +25,12 @@ import com.mongodb.client.model.Updates;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
-import com.pspace.ifs.ksan.gw.object.multipart.Upload;
+// import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.libs.multipart.Multipart;
+import com.pspace.ifs.ksan.libs.multipart.Part;
+import com.pspace.ifs.ksan.libs.multipart.ResultParts;
+import com.pspace.ifs.ksan.libs.multipart.ResultUploads;
+import com.pspace.ifs.ksan.libs.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -286,7 +286,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           throw new   ResourceNotFoundException("There is not object with a bucket name " + bucketName + " and objid " + objId);
         
-        long lastModified = doc.getDate(LASTMODIFIED).getTime();
+        long lastModified = doc.getLong(LASTMODIFIED);
         String key       = (String)doc.get(OBJKEY);
         String etag         = doc.getString(ETAG);
         String meta         = doc.getString(META);
@@ -424,7 +424,11 @@ public class MongoDataRepository implements DataRepository{
             index.append(VERSIONID, 1);
             index.append(LASTVERSION, 1);
             index.append(DELETEMARKER, 1);
+            //index.append(OBJKEY, 1);
             database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+            // wild index for listobjects
+            Document wildIndex = new Document(OBJID + ".$**", 1);
+            database.getCollection(bt.getName()).createIndex(wildIndex); 
             //bt = new Bucket(bucketName, bucketName, diskPoolId);
             getUserDiskPool(bt);
         } catch(SQLException ex){
@@ -848,7 +852,7 @@ public class MongoDataRepository implements DataRepository{
 
     // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
     @Override
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<>());
         resultUploads.setTruncated(false);
@@ -1181,7 +1185,7 @@ public class MongoDataRepository implements DataRepository{
             boolean lastversion = doc.getBoolean(LASTVERSION);
             String pdiskid     = doc.getString(PDISKID);
             String rdiskid     = doc.getString(RDISKID);
-            long lastModified  = doc.getDate(LASTMODIFIED).getTime();
+            long lastModified  = doc.getLong(LASTMODIFIED);
             long size           = doc.getLong(SIZE);
             Metadata mt = new Metadata(bucketName, key);
             mt.setVersionId(versionid, deletem, lastversion);

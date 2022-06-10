@@ -5,7 +5,8 @@
  */
 package com.pspace.ifs.ksan.objmanager;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import java.io.IOException;
 import org.json.simple.JSONObject;
 
@@ -66,5 +67,28 @@ public class OSDClient {
         System.out.println("bindingKey :> " + bindingKey);
         mqSender.send(obj.toString(), bindingKey);    
         return 0;
+    }
+    
+    public String getObjectAttr(String bucket, String objId, String versionId, String diskId) throws Exception{
+        JSONObject obj;
+        String bindingKey;
+        String bindingKeyPref = "*.servers.getattr.";
+        
+        
+        obj = new JSONObject();
+        obj.put("BucketName", bucket);
+        obj.put("ObjId", objId);
+        obj.put("diskId", diskId);
+        obj.put("versionId", versionId);
+      
+        bindingKey = bindingKeyPref + diskId;
+        
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        if (res.isEmpty())
+            return res;
+        
+        MQResponse ret = new MQResponse(res);
+        //System.out.println("[getObjectAttr] bindingKey :> " + bindingKey + " res :> " + res + " >Message :>" + ret.getMessage());
+        return ret.getMessage();
     }
 }

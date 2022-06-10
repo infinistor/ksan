@@ -14,7 +14,7 @@ package com.pspace.ifs.ksan.utils.fsck;
 import java.util.Iterator;
 import java.util.List;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.DISK;
 import com.pspace.ifs.ksan.objmanager.Metadata;

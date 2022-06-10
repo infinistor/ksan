@@ -21,7 +21,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.GWPortal;
-import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
@@ -43,13 +43,14 @@ public class GW {
     public GW() {
     }
 
-	public void configure() throws GWException {
+	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getDiskPoolsDetails();
 	}
 
-    public void init() throws GWException {
+    public void init() throws Exception {
+		
 		configure();
 		
 		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,

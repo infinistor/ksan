@@ -22,8 +22,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.disk.Server;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.disk.Server;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;

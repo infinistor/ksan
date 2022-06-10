@@ -26,10 +26,15 @@ public class ObjectManagerConfig {
     private long dbPort;
     private String dbUserName;
     private String dbPassword;
-    private String mqHost;
-    private String mqDiskPoolQueueName;
-    private String mqDiskPoolExchangeName;
-    private String mqOSDExchangeName;
+
+    private static final String VERSION = "version";
+    private static final String DB_REPOSITORY = "objM.db_repository";
+    private static final String DB_HOST = "objM.db_host";
+    private static final String DB_NAME = "objM.db_name";
+    private static final String DB_PORT = "objM.db_port";
+    private static final String DB_USER = "objM.db_user";
+    private static final String DB_PASSWORD = "objM.db_password";
+    private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(ObjectManagerConfig.class);
 
@@ -99,52 +104,14 @@ public class ObjectManagerConfig {
         this.dbPassword = dbPassword;
     }
 
-    public String getMqHost() {
-        return mqHost;
-    }
-
-    public void setMqHost(String mqHost) {
-        this.mqHost = mqHost;
-    }
-
-    public String getMqDiskPoolQueueName() {
-        return mqDiskPoolQueueName;
-    }
-
-    public void setMqDiskPoolQueueName(String mqDiskPoolQueueName) {
-        this.mqDiskPoolQueueName = mqDiskPoolQueueName;
-    }
-
-    public String getMqDiskPoolExchangeName() {
-        return mqDiskPoolExchangeName;
-    }
-
-    public void setMqDiskPoolExchangeName(String mqDiskPoolExchangeName) {
-        this.mqDiskPoolExchangeName = mqDiskPoolExchangeName;
-    }
-
-    public String getMqOSDExchangeName() {
-        return mqOSDExchangeName;
-    }
-
-    public void setMqOSDExchangeName(String mqOSDExchangeName) {
-        this.mqOSDExchangeName = mqOSDExchangeName;
-    }
-
     public void setConfig(JSONObject jsonConfig) {
-        JSONObject jsonDB = (JSONObject)jsonConfig.get("db");
-        JSONObject jsonMQ = (JSONObject)jsonConfig.get("mq");
 
-        setDbRepository((String)jsonDB.get("repository"));
-        setDbHost((String)jsonDB.get("host"));
-        setDbName((String)jsonDB.get("name"));
-        setDbPort((long)jsonDB.get("port"));
-        setDbUserName((String)jsonDB.get("username"));
-        setDbPassword((String)jsonDB.get("password"));
-        setMqHost((String)jsonMQ.get("host"));
-        setMqDiskPoolQueueName((String)jsonMQ.get("diskpool-queue-name"));
-        setMqDiskPoolExchangeName((String)jsonMQ.get("diskpool-exchange-name"));
-        setMqOSDExchangeName((String)jsonMQ.get("osd-exchange-name"));
+        setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
+        setDbHost((String)jsonConfig.get(DB_HOST));
+        setDbName((String)jsonConfig.get(DB_NAME));
+        setDbPort((long)jsonConfig.get(DB_PORT));
+        setDbUserName((String)jsonConfig.get(DB_USER));
+        setDbPassword((String)jsonConfig.get(DB_PASSWORD));
 
         logger.debug(getDbRepository());
         logger.debug(getDbHost());
@@ -152,26 +119,18 @@ public class ObjectManagerConfig {
         logger.debug("{}", getDbPort());
         logger.debug(getDbUserName());
         logger.debug(getDbPassword());
-        logger.debug(getMqHost());
-        logger.debug(getMqDiskPoolQueueName());
-        logger.debug(getMqDiskPoolExchangeName());
-        logger.debug(getMqOSDExchangeName());
     }
 
     public void saveConfigFile() throws IOException {
         try {
-            FileWriter fileWriter = new FileWriter("/usr/local/ksan/etc/objmanger.conf2", false);
-            fileWriter.write("version=" + version + "\n");
-            fileWriter.write("db.repository=" + dbRepository + "\n");
-            fileWriter.write("db.host=" + dbHost + "\n");
-            fileWriter.write("db.name=" + dbName + "\n");
-            fileWriter.write("db.port=" + dbPort + "\n");
-            fileWriter.write("db.username=" + dbUserName + "\n");
-            fileWriter.write("db.password=" + dbPassword + "\n");
-            fileWriter.write("mq.host=" + mqHost + "\n");
-            fileWriter.write("mq.diskpool-queue-name=" + mqDiskPoolQueueName + "\n");
-            fileWriter.write("mq.diskpool-exchange-name=" + mqDiskPoolExchangeName + "\n");
-            fileWriter.write("mq.osd-exchange-name=" + mqOSDExchangeName + "\n");
+            FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, false);
+            fileWriter.write(VERSION + EQUAL + version + "\n");
+            fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
+            fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
+            fileWriter.write(DB_NAME + EQUAL + dbName + "\n");
+            fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
+            fileWriter.write(DB_USER + EQUAL + dbUserName + "\n");
+            fileWriter.write(DB_PASSWORD + EQUAL + dbPassword + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

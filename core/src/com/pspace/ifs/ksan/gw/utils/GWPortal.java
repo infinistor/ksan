@@ -12,16 +12,16 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
-import com.pspace.ifs.ksan.mq.MQCallback;
-import com.pspace.ifs.ksan.mq.MQReceiver;
-import com.pspace.ifs.ksan.mq.MQResponse;
-import com.pspace.ifs.ksan.mq.MQResponseType;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.PrintStack;
-import com.pspace.ifs.ksan.utils.config.MonConfig;
-import com.pspace.ifs.ksan.utils.disk.Disk;
-import com.pspace.ifs.ksan.utils.disk.DiskPool;
-import com.pspace.ifs.ksan.utils.disk.Server;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.ifs.ksan.libs.mq.MQReceiver;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.disk.Disk;
+import com.pspace.ifs.ksan.libs.disk.DiskPool;
+import com.pspace.ifs.ksan.libs.disk.Server;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -193,20 +193,18 @@ public class GWPortal {
 
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get("Data");
-				String version = String.valueOf(jsonData.get("Version"));
-                String config = (String)jsonData.get("Config");
+                JSONObject jsonData = (JSONObject)jsonObject.get(MonConfig.DATA);
+				String version = String.valueOf(jsonData.get(MonConfig.VERSION));
+                String config = (String)jsonData.get(MonConfig.CONFIG);
                 logger.info(config);
 
                 JSONObject jsonConfig = (JSONObject)parser.parse(config);
                 
-                JSONObject jsonGW = (JSONObject)jsonConfig.get("gw");
-                GWConfig.getInstance().setConfig(jsonGW);
+                GWConfig.getInstance().setConfig(jsonConfig);
 				GWConfig.getInstance().setVersion(version);
                 GWConfig.getInstance().saveConfigFile();
 
-                JSONObject jsonObjM = (JSONObject)jsonConfig.get("objmanager");
-                ObjectManagerConfig.getInstance().setConfig(jsonObjM);
+                ObjectManagerConfig.getInstance().setConfig(jsonConfig);
 				ObjectManagerConfig.getInstance().setVersion(version);
                 ObjectManagerConfig.getInstance().saveConfigFile();
 				return;

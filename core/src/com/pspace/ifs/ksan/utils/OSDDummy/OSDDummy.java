@@ -10,10 +10,10 @@
 */
 package com.pspace.ifs.ksan.utils.OSDDummy;
 
-import com.pspace.ifs.ksan.mq.MQCallback;
-import com.pspace.ifs.ksan.mq.MQReceiver;
-import com.pspace.ifs.ksan.mq.MQResponse;
-import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.ifs.ksan.libs.mq.MQReceiver;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,18 +41,35 @@ import org.json.simple.parser.ParseException;
 class OsdReceiverCallback implements MQCallback{
         @Override
         public MQResponse call(String routingKey, String body) {
+             String res = "";
             System.out.format("BiningKey : %s body : %s\n", routingKey, body);
             
             if (routingKey.contains(".servers.move."))
                 moveObject(body);
             else if (routingKey.contains(".servers.unlink."))
                 removeObject(body);
+            else if (routingKey.contains(".servers.getattr.")){
+                res = getAttr(body);
+            }
             
-            return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+            return new MQResponse(MQResponseType.SUCCESS, "", res, 0);
         }
         
-        private String getMD5(){
-            return "";
+        private String getAttr(String body){
+            try {
+                Message request = new Message(body);
+                JSONObject res = new JSONObject();
+                res.put("BucketName", request.getBucketName());
+                res.put("objId" ,  request.getObjId());
+                res.put("versionId" ,  request.getVersionId());
+                res.put("md5", "md5value1111");
+                res.put("size", String.valueOf(10));
+                return res.toString();
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(OsdReceiverCallback.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return ""; 
         }
         
         private int moveObject(String body){
@@ -178,7 +195,7 @@ class Message{
     }
     
     public String getVersionId(){
-        return get("VersionUd");
+        return get("VersionId");
     }
     
     private String makeDirectoryName(String objId) {

@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.pspace.ifs.ksan</groupId>
-	<artifactId>ksan</artifactId>
+	<groupId>com.pspace.ifs.ksan.gw</groupId>
+	<artifactId>ksan-gw</artifactId>
 	<version>0.7.1</version>
 	<packaging>jar</packaging>
-	<name>ksan</name>
+	<name>ksan-gw</name>
 	
 	<properties>
    		<slf4j.version>1.7.32</slf4j.version>
@@ -13,6 +13,16 @@
   	</properties>
 	
 	<dependencies>
+		<dependency>
+			<groupId>com.pspace.ifs.ksan.libs</groupId>
+			<artifactId>ksan-libs</artifactId>
+			<version>0.7.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.pspace.ifs.ksan.objmanager</groupId>
+			<artifactId>ksan-objmanager</artifactId>
+			<version>0.7.1</version>
+		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -140,16 +150,8 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-					<exclude>src/mgmt/*</exclude>
-				</excludes>
-			</resource>
-		</resources>
+		<sourceDirectory>.</sourceDirectory>
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

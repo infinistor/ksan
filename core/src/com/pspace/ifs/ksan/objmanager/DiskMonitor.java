@@ -14,10 +14,10 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.pspace.ifs.ksan.mq.MQCallback;
-import com.pspace.ifs.ksan.mq.MQReceiver;
-import com.pspace.ifs.ksan.mq.MQResponse;
-import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.ifs.ksan.libs.mq.MQReceiver;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.json.simple.JSONArray;

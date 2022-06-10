@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.libs.mq.testcode;
 //import java.util.Random;
 import java.util.Date;
 
-import com.pspace.ifs.ksan.mq.*;
+import com.pspace.ifs.ksan.libs.mq.*;
 
 /**
  *

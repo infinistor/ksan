@@ -26,8 +26,8 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
+import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 
 /**
  *

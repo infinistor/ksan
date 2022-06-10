@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.libs.mq.testcode;
 import java.io.File;
 import java.util.Date;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 import org.json.simple.JSONObject;
 

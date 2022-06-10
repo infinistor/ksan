@@ -29,15 +29,15 @@ import com.pspace.ifs.ksan.gw.data.DataUploadPartCopy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3Range;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.utils.PrintStack;
-import com.pspace.ifs.ksan.utils.DiskManager;
+import com.pspace.ifs.ksan.libs.multipart.Multipart;
+import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -70,7 +70,7 @@ public class UploadPartCopy extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataUploadPartCopy dataUploadPartCopy = new DataUploadPartCopy(s3Parameter);
 		dataUploadPartCopy.extract();
@@ -153,7 +153,7 @@ public class UploadPartCopy extends S3Request {
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
 		srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_READ);
+		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// get metadata
 		S3Metadata s3SrcMetadata = new S3Metadata();

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -128,16 +128,17 @@ public class ObjManagerCache {
         return bucketMap.keySet().toArray(new String[0]);
     }
     
-    public List<S3BucketSimpleInfo> getBucketSimpleList() {
+    public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
         for (String key : bucketMap.keySet()) {
             Bucket bt = bucketMap.get(key);
-            S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
-            bsi.setBucketName(bt.getName());
-            bsi.setCreateDate(bt.getCreateTime());
-
-            btList.add(bsi);
+            if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
+            	S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
+            	bsi.setBucketName(bt.getName());
+            	bsi.setCreateDate(bt.getCreateTime());
+            	btList.add(bsi);
+	    }
         }
 
         return btList;

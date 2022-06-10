@@ -27,6 +27,7 @@ public final class GWConstants {
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
 	public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
 	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
+	public static final String OBJMANAGER_CONFIG_PATH = "/usr/local/ksan/etc/objmanger.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
 
 	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";

@@ -34,9 +34,10 @@ import com.google.common.primitives.Longs;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.KsanUtils;
-import com.pspace.ifs.ksan.utils.data.OsdData;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.KsanUtils;
+import com.pspace.ifs.ksan.libs.data.OsdData;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -59,8 +60,14 @@ public class OSDServer {
     public void start() {
         logger.info(OSDConstants.LOG_OSD_SERVER_START);
         KsanUtils.writePID(OSDConstants.PID_PATH);
-        OSDPortal.getInstance().getConfig();
-		OSDPortal.getInstance().getDiskPoolsDetails();
+
+        try {
+            OSDPortal.getInstance().getConfig();
+            OSDPortal.getInstance().getDiskPoolsDetails();
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            System.exit(1);
+        }
 
         int poolSize = OSDConfig.getInstance().getPoolSize();
         localIP = KsanUtils.getLocalIP();

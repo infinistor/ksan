@@ -10,10 +10,10 @@
 */
 package com.pspace.ifs.ksan.utility.OSDDummy;
 
-import com.pspace.ifs.ksan.mq.MQCallback;
-import com.pspace.ifs.ksan.mq.MQReceiver;
-import com.pspace.ifs.ksan.mq.MQResponse;
-import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.ifs.ksan.libs.mq.MQReceiver;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
 /**
  *

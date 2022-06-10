@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Range.Range;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;

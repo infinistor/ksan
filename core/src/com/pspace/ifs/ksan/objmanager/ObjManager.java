@@ -15,13 +15,13 @@ import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.gw.identity.ObjectListParameter;
-import com.pspace.ifs.ksan.gw.identity.S3BucketSimpleInfo;
-import com.pspace.ifs.ksan.gw.identity.S3ObjectList;
+import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
+import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -411,7 +411,7 @@ public class ObjManager {
      * @return list of bucket names or null if no bucket exist     
      */
     public List<S3BucketSimpleInfo> listBucketSimpleInfo(String userName, String userId) {
-        return obmCache.getBucketSimpleList();
+        return obmCache.getBucketSimpleList(userName, userId);
     }
 
     /**

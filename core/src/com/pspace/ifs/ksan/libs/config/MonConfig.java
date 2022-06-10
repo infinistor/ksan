@@ -30,6 +30,10 @@ public class MonConfig {
     private String portalKey;
     private String mqPort;
 
+    public static final String DATA = "Data";
+    public static final String VERSION = "Version";
+    public static final String CONFIG = "Config";
+
     private static final Logger logger = LoggerFactory.getLogger(MonConfig.class);
 
     public MonConfig() {

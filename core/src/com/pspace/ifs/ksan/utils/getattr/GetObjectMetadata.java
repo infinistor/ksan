@@ -20,7 +20,7 @@ import java.util.Set;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.gw.utils.GWConstants;
+// import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -125,7 +125,8 @@ public class GetObjectMetadata {
                objPath = arg.split("=")[1];
             if (arg.startsWith("--type")){
                type = arg.split("=")[1];
-               isFile = type.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE) || type.equalsIgnoreCase("f");
+            //    isFile = type.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE) || type.equalsIgnoreCase("f");
+               isFile = type.equalsIgnoreCase("file") || type.equalsIgnoreCase("f");
             }
         }
         

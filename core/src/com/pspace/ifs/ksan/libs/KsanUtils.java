@@ -26,7 +26,7 @@ public class KsanUtils {
     private static String localIP = null;
 
     private KsanUtils() {
-        throw new illegalStateException("Utility class");
+        throw new IllegalStateException("Utility class");
     }
     
     public static void writePID(String path) {

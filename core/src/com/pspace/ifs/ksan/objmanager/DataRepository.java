@@ -16,11 +16,11 @@ import java.util.SortedMap;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+// import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.libs.multipart.Multipart;
+import com.pspace.ifs.ksan.libs.multipart.Part;
+import com.pspace.ifs.ksan.libs.multipart.ResultParts;
+import com.pspace.ifs.ksan.libs.multipart.ResultUploads;
 
 /**
  *
@@ -76,7 +76,7 @@ public interface DataRepository {
     public Multipart getMulipartUpload(String uploadid) throws SQLException;
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException;
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException;
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException;
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException;
     public boolean isUploadId(String uploadid) throws SQLException;
     public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException;
     

@@ -18,7 +18,7 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
-import com.pspace.ifs.ksan.utils.data.OsdData;
+import com.pspace.ifs.ksan.libs.data.OsdData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

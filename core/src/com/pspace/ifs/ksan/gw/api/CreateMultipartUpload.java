@@ -30,9 +30,9 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -66,7 +66,7 @@ public class CreateMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), String.valueOf(s3Parameter.getUser().getUserId()), GWConstants.GRANT_WRITE);
+		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
@@ -75,7 +75,7 @@ public class CreateMultipartUpload extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = String.valueOf(s3Parameter.getUser().getUserId());
+		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
@@ -84,7 +84,7 @@ public class CreateMultipartUpload extends S3Request {
 										null, 
 										dataCreateMultipartUpload.getAcl(),
 										getBucketInfo(),
-										String.valueOf(s3Parameter.getUser().getUserId()),
+										s3Parameter.getUser().getUserId(),
 										s3Parameter.getUser().getUserName(),
 										dataCreateMultipartUpload.getGrantRead(),
 										dataCreateMultipartUpload.getGrantWrite(), 
@@ -106,7 +106,7 @@ public class CreateMultipartUpload extends S3Request {
 		}
 		
 		S3Metadata s3Metadata = new S3Metadata();
-		s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setServersideEncryption(serverSideEncryption);
 		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
@@ -121,7 +121,7 @@ public class CreateMultipartUpload extends S3Request {
 		String contentType = dataCreateMultipartUpload.getContentType();
 		String serversideEncryption = dataCreateMultipartUpload.getServerSideEncryption();
 
-		s3Metadata.setOwnerId(String.valueOf(s3Parameter.getUser().getUserId()));
+		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataCreateMultipartUpload.getUserMetadata());
 		

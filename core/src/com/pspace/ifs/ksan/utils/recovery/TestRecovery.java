@@ -10,7 +10,7 @@
 */
 package com.pspace.ifs.ksan.utils.recovery;
 
-import com.pspace.ifs.ksan.mq.MQSender;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 import org.json.simple.JSONObject;
 
@@ -23,9 +23,9 @@ public class TestRecovery {
     static String getDataToSend(){
         JSONObject JO = new JSONObject();
         JO.put("bucket",   "testbucket1");
-        JO.put("pdiskId",  "1");
-        JO.put("objId",    "dadadadadasdasdas");
-        JO.put("fdiskId",  "2");
+        JO.put("diskId",  "1");
+        JO.put("objId",    "dadadadadasdasdas_" + System.nanoTime());
+        JO.put("versionId",  "null");
         return JO.toJSONString();
     }
     /**

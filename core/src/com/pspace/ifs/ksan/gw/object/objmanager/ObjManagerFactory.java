@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.object.objmanager;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pspace.ifs.ksan.gw.utils.ObjectManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import java.io.IOException;
@@ -26,12 +27,16 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
     private List<ObjManager> objManagerList = new ArrayList<ObjManager>();
     public ObjManagerFactory() throws IOException {
         // this is temporatry and it is read from the config file
-        config = new ObjManagerConfig();
+        // config = new ObjManagerConfig();
         // replace with this after you got information from portal
-        /*config = new ObjManagerConfig(String dbRepository, String dbHost, 
-                        long dbport, String dbName, String dbUsername, 
-                        String dbPassword, String mqHost, String mqQueeuname, 
-                        String mqExchangename, String mqOsdExchangename);*/
+        config = new ObjManagerConfig(ObjectManagerConfig.getInstance().getDbRepository(),
+            ObjectManagerConfig.getInstance().getDbHost(),
+            ObjectManagerConfig.getInstance().getDbPort(),
+            ObjectManagerConfig.getInstance().getDbName(),
+            ObjectManagerConfig.getInstance().getDbUserName(),
+            ObjectManagerConfig.getInstance().getDbPassword(),
+            "192.168.31.231", "disk", "disk", "OSDExchange");
+            // null, null, null, null);
     }
 
     private ObjManager create() throws Exception {

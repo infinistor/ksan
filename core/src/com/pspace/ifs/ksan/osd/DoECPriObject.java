@@ -22,9 +22,9 @@ import java.util.List;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.KsanUtils;
-import com.pspace.ifs.ksan.utils.data.OsdData;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.KsanUtils;
+import com.pspace.ifs.ksan.libs.data.OsdData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

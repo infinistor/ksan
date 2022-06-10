@@ -5,7 +5,7 @@ import java.security.NoSuchAlgorithmException;
 
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 

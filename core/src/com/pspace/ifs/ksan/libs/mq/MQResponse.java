@@ -11,6 +11,9 @@
 package com.pspace.ifs.ksan.libs.mq;
 
 import java.io.UnsupportedEncodingException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -34,6 +37,26 @@ public class MQResponse {
         this.code = Integer.toString(code);
         this.message = message;
         this.qAck = qAck;
+    }
+    
+    public MQResponse(String res){
+        JSONParser parser = new JSONParser();
+        JSONObject obj;
+        
+        result = "";
+        code = "";
+        message = "";
+        qAck = -1;
+        try {
+            obj = (JSONObject) parser.parse(res);
+            result = (String)obj.get("Result");
+            code = (String)obj.get("Code");
+            message = (String)obj.get("Message");
+            String qackStr = (String)obj.get("qAck");
+            qAck = Integer.parseInt(qackStr);
+        } catch (ParseException ex) {
+            // do nothing
+        }
     }
     
     private void setResult(MQResponseType res){
@@ -73,6 +96,10 @@ public class MQResponse {
         return this.toString();
     }
     
+    public boolean isResponeDataExist(){
+        return !message.isEmpty();
+    }
+    
     public byte[] getResponseInByte(){
         try {
             return this.toString().getBytes("UTF-8");
@@ -83,7 +110,13 @@ public class MQResponse {
     
     @Override
     public String toString(){
-        return String.format("{ Result : '%s', Code : '%s', Message : '%s'}"
-                , result, code, message);
+         JSONObject obj = new JSONObject();
+         obj.put("Result", result);
+         obj.put("Code", code);
+         obj.put("qAck", String.valueOf(qAck));
+         obj.put("Message", message);
+         return obj.toString();
+        /*return String.format("{ Result : '%s', Code : '%s', Message : '%s',  qAck : %d}"
+                , result, code, message, qAck);*/
     }
 }

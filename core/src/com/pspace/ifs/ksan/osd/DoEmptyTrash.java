@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.KsanUtils;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.KsanUtils;
 
 public class DoEmptyTrash implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);

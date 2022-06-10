@@ -10,13 +10,17 @@
 */
 package com.pspace.ifs.ksan.utils.recovery;
 
-import com.pspace.ifs.ksan.mq.MQCallback;
-import com.pspace.ifs.ksan.mq.MQReceiver;
-import com.pspace.ifs.ksan.mq.MQResponse;
-import com.pspace.ifs.ksan.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.ifs.ksan.libs.mq.MQReceiver;
+import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
+import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.objmanager.OSDClient;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.utils.ObjectMover;
 
 import org.json.simple.JSONObject;
@@ -29,9 +33,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author legesse
  */
-
-
-
 public class Recovery {
     private String queueN;
     private String exchange; 
@@ -40,53 +41,105 @@ public class Recovery {
     private MQReceiver mqReceiver;
     private ObjectMover om;
     private static Logger logger;
+    private ObjManagerUtil obmu;
+    private OSDClient osdc;
     
+    class DataParser{
+        public String bucketName;
+        public String diskId;
+        public String objId;
+        public String versionId;
+        public String md5;
+        public long size;
+        private JSONParser parser;
+        
+        public DataParser(String body){
+            String value;
+            parser = new JSONParser();
+            try{
+                diskId = "";
+                md5 = "";
+                size = 0;
+                JSONObject JO = (JSONObject) parser.parse(body);
+                bucketName = (String)JO.get("bucket");
+                objId   = (String)JO.get("objId");
+                versionId = (String)JO.get("versionId");
+                if (JO.containsKey("diskId"))
+                    diskId = (String)JO.get("diskId");
+                
+                if (JO.containsKey("md5"))
+                    md5 = (String)JO.get("md5");
+                
+                if (JO.containsKey("size")){
+                    value = (String)JO.get("size");
+                    size = Long.parseLong(value);
+                }
+            } catch (ParseException ex) {
+                bucketName ="";
+                diskId = "";
+                objId = "";
+                versionId = "";
+            }
+        }
+    }
     class RecoveryObjectCallback implements MQCallback{
         
         @Override
         public MQResponse call(String routingKey, String body) {
-            String bucketName;
-            String pdiskId;
-            String objId;
-            String fdiskId;
-            String versionId;
-            JSONParser parser = new JSONParser();
-            System.out.format("BiningKey : %s body : %s\n", routingKey, body);
+            int ret;
+            System.out.format(">>BiningKey : %s body : %s\n", routingKey, body);
             
             try {
-                JSONObject JO = (JSONObject) parser.parse(body);
-                bucketName = (String)JO.get("bucket");
-                pdiskId = (String)JO.get("pdiskId");
-                objId   = (String)JO.get("objId");
-                fdiskId = (String)JO.get("fdiskId");
-                versionId = (String)JO.get("versionId");
-                
-                om.moveObject(bucketName, pdiskId, objId, versionId);
-            } catch (ParseException ex) {
-               logger.debug("unable to parse : {}", body);
-            } catch (ResourceNotFoundException ex) {
-               logger.debug("Object {} to recover not exist!", body);
-            } catch (AllServiceOfflineException ex) {
-               logger.error("All osd servers are offline while processing {}", body);
-               return new MQResponse(MQResponseType.ERROR, "", "", 0);
+                ret = fixObject(body);
+                if (ret ==  0) 
+                    return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
             } catch(Exception ex){
                 logger.error(ex.getMessage());
+                System.out.println(ex);
             }
-            
-            return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
-        }    
+            return new MQResponse(MQResponseType.ERROR, "", "", 0); 
+        }
+        
+       
+        private int fixObject(String body) throws Exception{
+           DataParser rp = new DataParser(body);
+           try{
+                // get object metadata
+                Metadata mt = obmu.getObject(rp.bucketName, rp.objId, rp.versionId);
+                // get size and md5 from osd
+                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId);
+                if (res.isEmpty())
+                    return 0; // ignore because object not exist in osd
+                
+                DataParser resP = new DataParser(res);
+                if (mt.getSize() == resP.size && mt.getEtag().equals(resP.md5))
+                    return 0; // the object is normal
+                
+                om.moveObject(rp.bucketName, rp.diskId, rp.objId, rp.versionId);
+                return 0;
+           } catch(ResourceNotFoundException ex){
+               logger.debug("Object {} to recover not exist!", body);
+               return 0;
+           } catch (AllServiceOfflineException ex) {
+               logger.error("All osd servers are offline while processing {}", body);
+           }
+           return -1;
+        }
     }
     
     public Recovery() throws Exception{
-        logger = LoggerFactory.getLogger(Recovery.class);
-        ObjManagerConfig config = new ObjManagerConfig();
         queueN = "recoveryQueue";
         exchange = "UtilityExchange"; 
         option ="fanout";
         bindingKey = "*.utility.recovery.*";
+        
+        logger = LoggerFactory.getLogger(Recovery.class);
+        ObjManagerConfig config = new ObjManagerConfig();
+        obmu = new ObjManagerUtil();
         om = new ObjectMover(false, "RECOVERY");
         MQCallback mq = new RecoveryObjectCallback();
         mqReceiver = new MQReceiver(config.mqHost, queueN, exchange, false, option, bindingKey, mq);
+        osdc = new OSDClient(new MQSender(config.mqHost, "OSDExchange", option, "*.servers.getattr.*"));
     }
           
 }

@@ -57,6 +57,33 @@ public class GWConfig {
 	private boolean isNoDisk;
 	private boolean isNoReplica;
 
+    private static final String VERSION = "version";
+    private static final String AUTHORIZATION = "gw.authorization";
+    private static final String ENDPOINT = "gw.endpoint";
+    private static final String SECURE_ENDPOINT = "gw.secure_endpoint";
+    private static final String KEYSTORE_PATH = "gw.keystore_path";
+    private static final String KEYSTORE_PASSWORD = "gw.keystore_password";
+    private static final String MAX_FILE_SIZE = "gw.max_file_size";
+    private static final String MAX_LIST_SIZE = "gw.max_list_size";
+    private static final String MAX_TIMESKEW = "gw.max_timeskew";
+    private static final String REPLICATION = "gw.replication";
+    private static final String OSD_PORT = "gw.osd_port";
+    private static final String JETTY_MAX_THREADS = "gw.jetty_max_threads";
+    private static final String OSD_CLIENT_COUNT = "gw.osd_client_count";
+    private static final String OBJMANAGER_COUNT = "gw.objmanager_count";
+    private static final String PERFORMANCE_MODE = "gw.performance_mode";
+    private static final String DB_REPOSITORY = "gw.db_repository";
+    private static final String DB_HOST = "gw.db_host";
+    private static final String DB_NAME = "gw.db_name";
+    private static final String DB_PORT = "gw.db_port";
+    private static final String DB_USER = "gw.db_user";
+    private static final String DB_PASSWORD = "gw.db_password";
+    private static final String DB_POOL_SIZE = "gw.db_pool_size";
+    private static final String CACHE_PATH = "gw.cache_path";
+    private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
+
+    private static final String EQUAL = "=";
+
     private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
     public static GWConfig getInstance() {
@@ -303,12 +330,9 @@ public class GWConfig {
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
-        JSONObject jsonDB = (JSONObject)jsonConfig.get("db");
-        JSONObject jsonCache = (JSONObject)jsonConfig.get("cache");
-
-        setAuthorizationString((String)jsonConfig.get("authorization"));
-        String endpoint = (String)jsonConfig.get("endpoint");
-		String secureEndpoint = (String)jsonConfig.get("secure-endpoint");
+        setAuthorizationString((String)jsonConfig.get(AUTHORIZATION));
+        String endpoint = (String)jsonConfig.get(ENDPOINT);
+		String secureEndpoint = (String)jsonConfig.get(SECURE_ENDPOINT);
 		if (endpoint == null && secureEndpoint == null) {
 			throw new IllegalArgumentException(
 					GWConstants.LOG_CONFIG_MUST_CONTAIN +
@@ -323,18 +347,18 @@ public class GWConfig {
 			setSecureEndpoint(requireNonNull(new URI(secureEndpoint)));
 		}
 
-        setKeyStorePath((String)jsonConfig.get("keystore-path"));
-        setKeyStorePassword((String)jsonConfig.get("keystore-password"));
-        setMaxFileSize((long)jsonConfig.get("max-file-size"));
-        setMaxListSize((long)jsonConfig.get("max-list-size"));
-        setMaxTimeSkew((long)jsonConfig.get("max-time-skew"));
-        setReplicaCount((long)jsonConfig.get("replication"));
-        setOsdPort((long)jsonConfig.get("osd-port"));
-        setJettyMaxThreads((long)jsonConfig.get("jetty-max-threads"));
-        setOsdClientCount((long)jsonConfig.get("osd-client-count"));
-        setObjManagerCount((long)jsonConfig.get("objmanager-count"));
+        setKeyStorePath((String)jsonConfig.get(KEYSTORE_PATH));
+        setKeyStorePassword((String)jsonConfig.get(KEYSTORE_PASSWORD));
+        setMaxFileSize((long)jsonConfig.get(MAX_FILE_SIZE));
+        setMaxListSize((long)jsonConfig.get(MAX_LIST_SIZE));
+        setMaxTimeSkew((long)jsonConfig.get(MAX_TIMESKEW));
+        setReplicaCount((long)jsonConfig.get(REPLICATION));
+        setOsdPort((long)jsonConfig.get(OSD_PORT));
+        setJettyMaxThreads((long)jsonConfig.get(JETTY_MAX_THREADS));
+        setOsdClientCount((long)jsonConfig.get(OSD_CLIENT_COUNT));
+        setObjManagerCount((long)jsonConfig.get(OBJMANAGER_COUNT));
 
-        setPerformanceMode((String)jsonConfig.get("performance-mode"));
+        setPerformanceMode((String)jsonConfig.get(PERFORMANCE_MODE));
         if (Strings.isNullOrEmpty(getPerformanceMode())) {
 			setPerformanceMode(GWConstants.PERFORMANCE_MODE_NO_OPTION);
             setNoOption(true);
@@ -366,16 +390,16 @@ public class GWConfig {
 			}
 		}
 
-        setDbRepository((String)jsonDB.get("repository"));
-        setDbHost((String)jsonDB.get("host"));
-        setDatabase((String)jsonDB.get("database"));
-        setDbPort((long)jsonDB.get("port"));
-        setDbUser((String)jsonDB.get("user"));
-        setDbPass((String)jsonDB.get("pass"));
-        setDbPoolSize((long)jsonDB.get("poolsize"));
+        setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
+        setDbHost((String)jsonConfig.get(DB_HOST));
+        setDatabase((String)jsonConfig.get(DB_NAME));
+        setDbPort((long)jsonConfig.get(DB_PORT));
+        setDbUser((String)jsonConfig.get(DB_USER));
+        setDbPass((String)jsonConfig.get(DB_PASSWORD));
+        setDbPoolSize((long)jsonConfig.get(DB_POOL_SIZE));
 
-        setCacheDisk((String)jsonCache.get("path"));
-        setCacheFileSize((long)jsonCache.get("file-size"));
+        setCacheDisk((String)jsonConfig.get(CACHE_PATH));
+        setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
 
         logger.debug(getAuthorizationString());
         logger.debug(getEndpoint().toString());
@@ -404,31 +428,31 @@ public class GWConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH + "2", false);
-            fileWriter.write("version=" + version + "\n");
-            fileWriter.write("gw.authorization=" + authorizationString + "\n");
-            fileWriter.write("gw.endpoint=" + endpoint.toString() + "\n");
-            fileWriter.write("gw.secure-endpoint=" + secureEndpoint.toString() + "\n");
-            fileWriter.write("gw.keystore-path=" + keyStorePath + "\n");
-            fileWriter.write("gw.keystore-password=" + keyStorePassword + "\n");
-            fileWriter.write("gw.max-file-size=" + maxFileSize + "\n");
-            fileWriter.write("gw.max-list-size=" + maxListSize + "\n");
-            fileWriter.write("gw.max-time-skew=" + maxTimeSkew + "\n");
-            fileWriter.write("gw.replication=" + replicaCount + "\n");
-            fileWriter.write("gw.osd-port=" + osdPort + "\n");
-            fileWriter.write("gw.jetty-max-threads=" + jettyMaxThreads + "\n");
-            fileWriter.write("gw.osd-client-count=" + osdClientCount + "\n");
-            fileWriter.write("gw.objmanager-count=" + objManagerCount + "\n");
-            fileWriter.write("gw.performance-mode=" + performanceMode + "\n");
-            fileWriter.write("db.repository=" + dbRepository + "\n");
-            fileWriter.write("db.host=" + dbHost + "\n");
-            fileWriter.write("db.database=" + database + "\n");
-            fileWriter.write("db.port=" + dbPort + "\n");
-            fileWriter.write("db.user=" + dbUser + "\n");
-            fileWriter.write("db.pass=" + dbPass + "\n");
-            fileWriter.write("db.poolsize=" + dbPoolSize + "\n");
-            fileWriter.write("cache.path=" + cacheDisk + "\n");
-            fileWriter.write("cache.file-size=" + cacheFileSize + "\n");
+            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, false);
+            fileWriter.write(VERSION + EQUAL + version + "\n");
+            fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
+            fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");
+            fileWriter.write(SECURE_ENDPOINT + EQUAL + secureEndpoint.toString() + "\n");
+            fileWriter.write(KEYSTORE_PATH + EQUAL + keyStorePath + "\n");
+            fileWriter.write(KEYSTORE_PASSWORD + EQUAL + keyStorePassword + "\n");
+            fileWriter.write(MAX_FILE_SIZE + EQUAL + maxFileSize + "\n");
+            fileWriter.write(MAX_LIST_SIZE + EQUAL + maxListSize + "\n");
+            fileWriter.write(MAX_TIMESKEW + EQUAL + maxTimeSkew + "\n");
+            fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
+            fileWriter.write(OSD_PORT + EQUAL + osdPort + "\n");
+            fileWriter.write(JETTY_MAX_THREADS + EQUAL + jettyMaxThreads + "\n");
+            fileWriter.write(OSD_CLIENT_COUNT + EQUAL + osdClientCount + "\n");
+            fileWriter.write(OBJMANAGER_COUNT + EQUAL + objManagerCount + "\n");
+            fileWriter.write(PERFORMANCE_MODE + EQUAL + performanceMode + "\n");
+            fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
+            fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
+            fileWriter.write(DB_NAME + EQUAL + database + "\n");
+            fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
+            fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
+            fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
+            fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
+            fileWriter.write(CACHE_PATH + EQUAL + cacheDisk + "\n");
+            fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

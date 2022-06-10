@@ -61,14 +61,14 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant.Grantee;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration.CORSRule;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
-import com.pspace.ifs.ksan.gw.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.objmanager.Bucket;
-import com.pspace.ifs.ksan.utils.DiskManager;
-import com.pspace.ifs.ksan.utils.PrintStack;
-import com.pspace.ifs.ksan.utils.disk.Disk;
-import com.pspace.ifs.ksan.utils.disk.DiskPool;
-import com.pspace.ifs.ksan.utils.disk.Server;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.disk.Disk;
+import com.pspace.ifs.ksan.libs.disk.DiskPool;
+import com.pspace.ifs.ksan.libs.disk.Server;
 
 public class GWUtils {
 
@@ -945,10 +945,11 @@ public class GWUtils {
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
-					if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
-						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
+					// KSAN은 userId가 숫자로만 될 필요가 없음
+					// if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
+					// 	logger.info(user.grantee.id);
+					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					// }
 
 					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
 					if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {

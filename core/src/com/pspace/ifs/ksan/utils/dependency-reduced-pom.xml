@@ -3,11 +3,10 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.pspace.ifs.ksan.utils</groupId>
   <artifactId>ksan-utils</artifactId>
-  <name>ksanUtils</name>
+  <name>ksan-utils</name>
   <version>0.7.1</version>
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <finalName>${project.artifactId}-${project.version}</finalName>
+    <sourceDirectory>.</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -16,6 +15,26 @@
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
           <encoding>UTF-8</encoding>
+          <excludes>
+            <exclude>**/cbalance/CBalanceMain.java</exclude>
+            <exclude>**/fsck/FSCKMAIN.java</exclude>
+            <exclude>**/getattr/GetAttr.java</exclude>
+            <exclude>**/OSDDummy/OSDDummy.java</exclude>
+            <exclude>**/recovery/RecoveryMain.java</exclude>
+            <exclude>**/recovery/TestRecovery.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <packageName>ksan-utils</packageName>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
       <plugin>
@@ -28,83 +47,6 @@
               <goal>shade</goal>
             </goals>
             <configuration />
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>ksanGetAttr</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>com.pspace.ifs.ksan.utils.getattr.GetAttr</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>ksanGetAttr</finalName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>ksancbalance</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>com.pspace.ifs.ksan.utils.cbalance.CBalanceMain</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>ksancbalance</finalName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>ksanfsck</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>com.pspace.ifs.ksan.utils.fsck.FSCKMain</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>ksanFsck</finalName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>ksanOSDDummy</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>com.pspace.ifs.ksan.utils.OSDDummy.OSDDummy</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <finalName>ksanOSDDummy</finalName>
-            </configuration>
           </execution>
         </executions>
       </plugin>

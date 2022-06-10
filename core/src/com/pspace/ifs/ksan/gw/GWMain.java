@@ -17,7 +17,7 @@ import java.io.PrintStream;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
-import com.pspace.ifs.ksan.utils.PrintStack;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +55,10 @@ public class GWMain {
 			logger.error(GWConstants.STOP_KSAN_GW);
 		} catch (IllegalStateException e) {
 			PrintStack.logging(logger, e);
+			System.exit(1);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
+			System.exit(1);
 		}
 	}
 

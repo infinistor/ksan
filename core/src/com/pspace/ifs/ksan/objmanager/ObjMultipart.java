@@ -13,11 +13,11 @@ package com.pspace.ifs.ksan.objmanager;
 import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 
-import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.object.multipart.Multipart;
-import com.pspace.ifs.ksan.gw.object.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultParts;
-import com.pspace.ifs.ksan.gw.object.multipart.ResultUploads;
+// import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.libs.multipart.Multipart;
+import com.pspace.ifs.ksan.libs.multipart.Part;
+import com.pspace.ifs.ksan.libs.multipart.ResultParts;
+import com.pspace.ifs.ksan.libs.multipart.ResultUploads;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import java.net.UnknownHostException;
@@ -214,7 +214,7 @@ public class ObjMultipart{
         return dbm.getParts(uploadId, partNumberMarkerDec, maxParts);
     }
 
-    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException, GWException {
+    public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         try {
             return dbm.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, maxUploads);
         } catch (SQLException e) {

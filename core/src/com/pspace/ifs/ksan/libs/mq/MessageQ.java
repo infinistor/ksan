@@ -16,6 +16,9 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  *
@@ -30,6 +33,8 @@ public abstract class MessageQ{
     private String message;
     private boolean readerattached;
     private MQCallback callback;
+    private long responseDeliveryTag;
+    private BasicProperties delivaryProp = null;
     
     // for 1-1 sender
     public MessageQ(String host, String qname, boolean qdurablity) throws Exception{
@@ -191,42 +196,72 @@ public abstract class MessageQ{
                 .build();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());  
         return 0;
     }
     
+    public String sendToExchangeWithResponse(String mesg, String routingKey) throws Exception{
+        final String corrId = UUID.randomUUID().toString();
+        String replyQueueName = channel.queueDeclare().getQueue();
+        BasicProperties props = new BasicProperties
+                .Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+        
+        if (!this.channel.isOpen())
+            this.connect();
+        
+        this.bindExchange();
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());  
+        String res = this.getReplay(replyQueueName);
+        return res;
+    }
+    
+    public String sendToQueueWithResponse(String mesg) throws Exception{
+        final String corrId = UUID.randomUUID().toString();
+        String replyQueueName = channel.queueDeclare().getQueue();
+        BasicProperties props = new BasicProperties
+                .Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+        
+        if (!this.channel.isOpen())
+            this.connect();
+        
+        this.channel.basicPublish("", this.qname, props, mesg.getBytes());
+        String res = this.getReplay(replyQueueName);
+        return res; 
+    }
+    
     private DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-        long deliveryTag;
         MQResponse response;
-        BasicProperties prop;
         
         message = new String(delivery.getBody(), "UTF-8");
-        
-        deliveryTag = delivery.getEnvelope().getDeliveryTag();
-        prop = delivery.getProperties();
-        //System.out.println("[START]  >" + message);
+       
+        responseDeliveryTag = delivery.getEnvelope().getDeliveryTag();
+        delivaryProp = delivery.getProperties();
+      
         if (this.callback != null){
-            //System.out.println("bindingKey : " + delivery.getEnvelope().getRoutingKey() + " message : " + message);
             response = this.callback.call(delivery.getEnvelope().getRoutingKey(), message);
-            if (prop != null){
-                String cid = prop.getCorrelationId();
+            if (delivaryProp != null){
+                String cid = delivaryProp.getCorrelationId();
                 if (cid != null){
                     if(!cid.isEmpty()) {
-                        this.channel.basicPublish("", prop.getReplyTo(), prop, response.getResponseInByte());     
+                        this.channel.basicPublish("", delivaryProp.getReplyTo(), delivaryProp, response.getResponseInByte()); 
                     }
                 }
             }
-            //bindingKey :
-            if ( response.getQAck()== 0) {              
-                this.okAck(deliveryTag);
+    
+            if ( response.getQAck()== 0) {  
+                this.okAck(responseDeliveryTag);
             }
             else if (response.getQAck() < 0)
-                this.rejectAckWithDequeue(deliveryTag);
+                this.rejectAckWithDequeue(responseDeliveryTag);
             else
-                this.rejectAckWithRequeue(deliveryTag);
+                this.rejectAckWithRequeue(responseDeliveryTag);
         }
-        //System.out.println("[END]");
-        //System.out.println("Recived : " + delivery.getEnvelope().getRoutingKey() + " : " + this.message);
     };
     
     private void readFromQueue()throws Exception{
@@ -295,5 +330,18 @@ public abstract class MessageQ{
     public void getBackNack(long deliveryTag) throws IOException{
         
         this.channel.basicNack(deliveryTag, true, true);
+    }
+       
+    private String getReplay(String replyQueueName) throws IOException, InterruptedException{
+        final BlockingQueue<String> response = new ArrayBlockingQueue<>(1);
+
+        String ctag = channel.basicConsume(replyQueueName, true, (consumerTag, delivery) -> {
+            response.offer(new String(delivery.getBody(), "UTF-8"));
+        }, consumerTag -> {
+        });
+
+        String result = response.take();
+        channel.basicCancel(ctag);
+        return result;
     }
 }

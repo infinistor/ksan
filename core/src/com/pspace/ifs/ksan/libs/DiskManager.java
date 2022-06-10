@@ -26,6 +26,23 @@ public class DiskManager {
     public static final String DATA = "Data";
     public static final String ITEMS = "Items";
 
+    public static final String FILE_DISKPOOL_LIST_START = "<DISKPOOLLIST>\n";
+    public static final String FILE_DISKPOOL_LIST_END = "</DISKPOOLLIST>";
+    public static final String FILE_DISKPOOL_ID = "\t<DISKPOOL id=\"";
+    public static final String FILE_DISKPOOL_END = "\t</DISKPOOL>\n";
+    public static final String FILE_DISKPOOL_NAME = "\" name=\"";
+    public static final String FILE_DISKPOOL_REPLICATION_TYPE =  "\" replicationType=\"";
+    public static final String FILE_DISKPOOL_NEWLINE = "\">\n";
+    public static final String FILE_SERVER_ID = "\t\t<SERVER id=\"";
+    public static final String FILE_SERVER_IP = "\" ip=\"";
+    public static final String FILE_SERVER_STATUS = "\" status=\"";
+    public static final String FILE_SERVER_END = "\t\t</SERVER>\n";
+    public static final String FILE_DISK_ID = "\t\t\t<DISK id=\"";
+    public static final String FILE_DISK_PATH = "\" path=\"";
+    public static final String FILE_DISK_MODE = "\" mode=\"";
+    public static final String FILE_DISK_STATUS = "\" status=\"";
+    public static final String FILE_DISK_END = "\" />\n";
+
     private static final Logger logger = LoggerFactory.getLogger(DiskManager.class);
     private List<DiskPool> diskPoolList;
     private String localHost;
@@ -120,18 +137,18 @@ public class DiskManager {
 
     public void saveFile() throws IOException {
         try {
-            FileWriter fileWriter = new FileWriter("/usr/local/ksan/etc/diskpools.xml2", false);
-            fileWriter.write("<DISKPOOLLIST>" + "\n");
-            fileWriter.write("\t<DISKPOOL id=\"" + diskPoolList.get(0).getId() + "\" name=\"" + diskPoolList.get(0).getName() + "\" replicationType=\"" + diskPoolList.get(0).getReplicationType() + "\">\n");
+            FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, false);
+            fileWriter.write(FILE_DISKPOOL_LIST_START);
+            fileWriter.write(FILE_DISKPOOL_ID + diskPoolList.get(0).getId() + FILE_DISKPOOL_NAME + diskPoolList.get(0).getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPoolList.get(0).getReplicationType() + FILE_DISKPOOL_NEWLINE);
             for (Server server : diskPoolList.get(0).getServerList()) {
-                fileWriter.write("\t\t<SERVER id=\"" + server.getId() + "\" ip=\"" + server.getIp() + "\" status=\"" + server.getStatus() + "\">\n");
+                fileWriter.write(FILE_SERVER_ID + server.getId() + FILE_SERVER_IP + server.getIp() + FILE_SERVER_STATUS + server.getStatus() + FILE_DISKPOOL_NEWLINE);
                 for (Disk disk : server.getDiskList()) {
-                    fileWriter.write("\t\t\t<DISK id=\"" + disk.getId() + "\" path=\"" + disk.getPath() + "\" mode=\"" + disk.getMode() + "\" status=\"" + disk.getStatus() + "\" />\n");
+                    fileWriter.write(FILE_DISK_ID + disk.getId() + FILE_DISK_PATH + disk.getPath() + FILE_DISK_MODE + disk.getMode() + FILE_DISK_STATUS + disk.getStatus() + FILE_DISK_END);
                 }
-                fileWriter.write("\t\t</SERVER>\n");
+                fileWriter.write(FILE_SERVER_END);
             }
-            fileWriter.write("\t</DISKPOOL>\n");
-            fileWriter.write("</DISKPOOLLIST>");
+            fileWriter.write(FILE_DISKPOOL_END);
+            fileWriter.write(FILE_DISKPOOL_LIST_END);
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

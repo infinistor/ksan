@@ -16,6 +16,7 @@ public class Constants {
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
     public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
+	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
 	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortalPort";
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
@@ -27,6 +28,6 @@ public class Constants {
 	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
 
 	private Constants() {
-		throw new illegalStateException("Utility class");
+		throw new IllegalStateException("Utility class");
 	}
 }
