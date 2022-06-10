@@ -49,6 +49,8 @@ public class Recovery {
         public String diskId;
         public String objId;
         public String versionId;
+        public String diskPath;
+        public String osdIP;
         public String md5;
         public long size;
         private JSONParser parser;
@@ -61,17 +63,24 @@ public class Recovery {
                 md5 = "";
                 size = 0;
                 JSONObject JO = (JSONObject) parser.parse(body);
-                bucketName = (String)JO.get("bucket");
-                objId   = (String)JO.get("objId");
-                versionId = (String)JO.get("versionId");
-                if (JO.containsKey("diskId"))
-                    diskId = (String)JO.get("diskId");
+                bucketName = (String)JO.get("bucketName");
+                objId   = (String)JO.get("ObjId");
+                versionId = (String)JO.get("VersionId");
                 
-                if (JO.containsKey("md5"))
-                    md5 = (String)JO.get("md5");
+                if (JO.containsKey("DiskId"))
+                   diskId = (String)JO.get("DiskId");
                 
-                if (JO.containsKey("size")){
-                    value = (String)JO.get("size");
+                if (JO.containsKey("DiskPath"))
+                    diskPath = (String)JO.get("DiskPath");
+                
+                if (JO.containsKey("osdIP"))
+                    osdIP = (String)JO.get("osdIP");
+                
+                if (JO.containsKey("MD5"))
+                    md5 = (String)JO.get("MD5");
+                
+                if (JO.containsKey("Size")){
+                    value = (String)JO.get("Size");
                     size = Long.parseLong(value);
                 }
             } catch (ParseException ex) {
@@ -79,6 +88,8 @@ public class Recovery {
                 diskId = "";
                 objId = "";
                 versionId = "";
+                diskPath = "";
+                osdIP = "";
             }
         }
     }
@@ -107,7 +118,7 @@ public class Recovery {
                 // get object metadata
                 Metadata mt = obmu.getObject(rp.bucketName, rp.objId, rp.versionId);
                 // get size and md5 from osd
-                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId);
+                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, rp.osdIP);
                 if (res.isEmpty())
                     return 0; // ignore because object not exist in osd
                 

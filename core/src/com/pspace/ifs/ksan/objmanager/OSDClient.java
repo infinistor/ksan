@@ -30,59 +30,63 @@ public class OSDClient {
     public int removeObject(Metadata mt) throws Exception{
         JSONObject obj;
         String bindingKey;
-        String bindingKeyPref = "*.servers.unlink.";
-        
         
         obj = new JSONObject();
         obj.put("ObjId", mt.getObjId());
-        obj.put("Path", mt.getPath());
+        obj.put("VersionId", mt.getVersionId());
         obj.put("DiskId", mt.getPrimaryDisk().getId());
         obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-        bindingKey = bindingKeyPref + mt.getPrimaryDisk().getId();
+        bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getPrimaryDisk().getOsdIp());
         mqSender.send(obj.toString(), bindingKey);
 
         if (mt.isReplicaExist()){
             obj.replace("DiskId", mt.getReplicaDisk().getId());
             obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-            bindingKey = bindingKeyPref + mt.getReplicaDisk().getId();
+            bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getReplicaDisk().getOsdIp());
             mqSender.send(obj.toString(), bindingKey);
         }    
         return 0;
     }
     
-    public int moveObject(String bucket, String objId, String srcDIskId, DISK desDisk) throws Exception{
+    public int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws Exception{
         JSONObject obj;
         String bindingKey;
-        String bindingKeyPref = "*.servers.move.";
-        
         
         obj = new JSONObject();
-        obj.put("BucketName", bucket);
         obj.put("ObjId", objId);
-        obj.put("SRCDiskId", srcDIskId);
-        obj.put("DESDiskId", desDisk.getId());
-        obj.put("DESPath", desDisk.getPath());
-        obj.put("DESOSD", desDisk.getOsdIp());
-        bindingKey = bindingKeyPref + srcDIskId;
+        obj.put("VersionId", versionId);
+        obj.put("SourceDiskId", srcDisk.getId());
+        obj.put("SourceDiskPath", srcDisk.getPath());
+        obj.put("TargetDiskId", desDisk.getId());
+        obj.put("TargetDiskPath", desDisk.getPath());
+        obj.put("TargetOSDIP", desDisk.getOsdIp());
+        bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOsdIp());
         System.out.println("bindingKey :> " + bindingKey);
-        mqSender.send(obj.toString(), bindingKey);    
-        return 0;
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        MQResponse ret;
+        if (!res.isEmpty())
+            ret = new MQResponse(res);
+        else
+            return -1;
+        
+        if (ret.getResult().equalsIgnoreCase("Success"))
+            return 0;
+        else
+            return -1;
     }
     
-    public String getObjectAttr(String bucket, String objId, String versionId, String diskId) throws Exception{
+    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdIP) throws Exception{
         JSONObject obj;
-        String bindingKey;
-        String bindingKeyPref = "*.servers.getattr.";
-        
+        String bindingKey; 
         
         obj = new JSONObject();
         obj.put("BucketName", bucket);
         obj.put("ObjId", objId);
-        obj.put("diskId", diskId);
-        obj.put("versionId", versionId);
-      
-        bindingKey = bindingKeyPref + diskId;
-        
+        obj.put("DiskId", diskId);
+        obj.put("DiskPath", diskPath);
+        obj.put("VersionId", versionId);
+        bindingKey = String.format("*.services.osd.%s.object.getattr", osdIP);
+       
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         if (res.isEmpty())
             return res;
