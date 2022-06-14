@@ -39,10 +39,10 @@ public class GetAttr {
     @Option(name="--objId", usage="Specify the object Id if you with to display with Id rather than object key")
     private String objId = "";
     
-    @Option(name="--version", usage="Specify the object version Id if you wish particula version of the object")
+    @Option(name="--versionId", usage="Specify the object version Id if you wish particula version of the object")
     private String version = "";
     
-    @Option(name="--isBucket", usage="set it if you wish to display the attribute of a bucket")
+   // @Option(name="--isBucket", usage="set it if you wish to display the attribute of a bucket")
     private boolean isFile = true;
     
     @Option(name="--help",usage="To display this help menu")
@@ -57,7 +57,7 @@ public class GetAttr {
  
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --bucketName <bucket Name> [--key <object path> |--objId <object id>] [--version <versionId>]\n", getProgramName());
+           System.err.format("%s --bucketName <bucket Name> [--key <object path> |--objId <object id>] [--versionId <versionId>]\n", getProgramName());
            return -1;
         }
         
@@ -74,7 +74,9 @@ public class GetAttr {
     }
 
     static String getProgramName(){
-        return new File(GetAttr.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName().replaceFirst("[.][^.]+$", "");
+        return new File(GetAttr.class.getProtectionDomain()
+                .getCodeSource().getLocation().getPath())
+                .getName().replaceFirst("[.][^.]+$", "").replaceFirst("-jar-with-dependencies", "");
     }
      
     void howToUse(){
@@ -84,7 +86,9 @@ public class GetAttr {
         parser.printUsage(System.err);
         System.err.println();
         System.err.format("  Example: %s --bucketName bucket1 --key file1.txt \n", getProgramName());
+        System.err.format("  Example: %s --bucketName bucket1 --key file1.txt --versionId fgsddasas \n", getProgramName());
         System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af --versionId fgsddasas \n", getProgramName());
         System.err.println();
     }
      

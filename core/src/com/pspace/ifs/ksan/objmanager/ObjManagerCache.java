@@ -270,7 +270,7 @@ public class ObjManagerCache {
                 //SERVER s;
                 Node dpoolNode = nList.item(idx);
                 dp = new DISKPOOL(((Element)dpoolNode).getAttribute("id"), ((Element)dpoolNode).getAttribute("name"));
-                logger.debug("disk pool : id {}, name {}", dp.getId(), dp.getName());
+                //logger.debug("disk pool : id {}, name {}", dp.getId(), dp.getName());
                 NodeList serverNodeList = ((Element)dpoolNode).getElementsByTagName("SERVER");
                 int sidx = 0;
                 SERVER s[] = new SERVER[serverNodeList.getLength()];
@@ -285,7 +285,7 @@ public class ObjManagerCache {
                         Element elemD = ((Element)diskNodeList.item(didx));
                         s[sidx].addDisk(elemD.getAttribute("path"), elemD.getAttribute("id"), 0, DiskStatus.GOOD);
                         //System.out.format("Disk id : %s path : %s status : %s\n",  elemD.getAttribute("id"), elemD.getAttribute("path"), elemD.getAttribute("status"));
-                        logger.debug("disk id : {}, path : {}", elemD.getAttribute("id"), elemD.getAttribute("path"));
+                       // logger.debug("disk id : {}, path : {}", elemD.getAttribute("id"), elemD.getAttribute("path"));
                         didx++; 
                     }
                     dp.addServer(s[sidx]);

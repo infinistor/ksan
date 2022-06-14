@@ -162,7 +162,7 @@ public class MysqlDataRepository implements DataRepository{
         Connection connC = null;
         Statement stmt = null;
         try {    
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
             connC= DriverManager.getConnection("jdbc:mysql://" + host+"/", this.username, this.passwd);
             stmt = connC.createStatement();
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS "+ dbname+ ";");
@@ -184,8 +184,7 @@ public class MysqlDataRepository implements DataRepository{
     
     private int connect(){
         try{
-           Class.forName("com.mysql.jdbc.Driver");
-           //System.out.println(">>>url" + this.url);
+           Class.forName("com.mysql.cj.jdbc.Driver");
            this.con = DriverManager.getConnection(this.url, this.username, this.passwd); 
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -709,7 +708,7 @@ public class MysqlDataRepository implements DataRepository{
             
             while(rs.next()){
                 bt = parseBucket(rs);
-                System.out.println("bucketList>>" + bt);
+                //System.out.println("bucketList>>" + bt);
                 obmCache.setBucketInCache(bt);
             }
         } catch (SQLException ex) {

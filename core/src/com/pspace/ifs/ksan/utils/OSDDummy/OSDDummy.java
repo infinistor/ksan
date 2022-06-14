@@ -49,7 +49,7 @@ class OsdReceiverCallback implements MQCallback{
             else if (routingKey.contains(".servers.unlink."))
                 removeObject(body);
             else if (routingKey.contains(".servers.getattr.")){
-                res = getAttr(body);
+                //res = getAttr(body);
             }
             
             return new MQResponse(MQResponseType.SUCCESS, "", res, 0);
@@ -61,9 +61,9 @@ class OsdReceiverCallback implements MQCallback{
                 JSONObject res = new JSONObject();
                 res.put("BucketName", request.getBucketName());
                 res.put("objId" ,  request.getObjId());
-                res.put("versionId" ,  request.getVersionId());
-                res.put("md5", "md5value1111");
-                res.put("size", String.valueOf(10));
+                res.put("VersionId" ,  request.getVersionId());
+                res.put("MD5", "md5value1111");
+                res.put("Size", String.valueOf(10));
                 return res.toString();
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(OsdReceiverCallback.class.getName()).log(Level.SEVERE, null, ex);
@@ -401,7 +401,7 @@ public class OSDDummy {
      */
     public static void main(String[] args) {
         String exchange = "OSDExchange";
-        String queueName = "osdThrashQueue";
+        String queueName = "osdThrashQueue1";
         String host = "192.168.11.76";
         String option = "";   
         MQReceiver mq1ton;  
@@ -414,7 +414,7 @@ public class OSDDummy {
             }
             
             callback = new OsdReceiverCallback();
-            mq1ton = new MQReceiver(host, queueName, exchange, false, option, "*.servers.*." + searchDiskIdStr, callback);
+            mq1ton = new MQReceiver(host, queueName, exchange, false, option, " *.services.osd.*", callback); //"*.servers.*."
             SimpleFileServer fs = new SimpleFileServer();
         } catch (Exception ex){
              System.out.println("--->Error : " + ex.getMessage() + " L. msg :" + ex.getLocalizedMessage());

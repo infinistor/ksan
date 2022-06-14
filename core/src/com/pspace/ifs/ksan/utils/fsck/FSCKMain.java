@@ -23,7 +23,7 @@ import org.kohsuke.args4j.CmdLineException;
  *
  * @author legesse
  */
-public class FSCKMAIN {
+public class FSCKMain {
    
     @Option(name="--target", usage="Specify the target of the operation as either bucket or disk")
     private String target = "";
@@ -83,13 +83,13 @@ public class FSCKMAIN {
                 job_done = ofsk.checkEachOneDiskAllBucket(diskId);
             }
         } catch (Exception ex) {
-            Logger.getLogger(FSCKMAIN.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FSCKMain.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.out.println("Total job done : " + job_done);
     }
     
     static String getProgramName(){
-        return new File(FSCKMAIN.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName().replaceFirst("[.][^.]+$", "");
+        return new File(FSCKMain.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getName().replaceFirst("[.][^.]+$", "");
     }
     
     void howToUse(){
@@ -110,7 +110,7 @@ public class FSCKMAIN {
      */
     public static void main(String[] args) {
         
-        FSCKMAIN fmain = new FSCKMAIN();
+        FSCKMain fmain = new FSCKMain();
         if (fmain.parseArgs(args) != 0){
             fmain.howToUse();
           return;

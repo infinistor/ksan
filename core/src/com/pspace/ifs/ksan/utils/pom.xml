@@ -127,14 +127,14 @@
 					<source>${jdk.version}</source>
 					<target>${jdk.version}</target>
 					<encoding>UTF-8</encoding>
-                    <excludes>
+                    <!-- <excludes>
                         <exclude>**/cbalance/CBalanceMain.java</exclude>
 						<exclude>**/fsck/FSCKMAIN.java</exclude>
 						<exclude>**/getattr/GetAttr.java</exclude>
 						<exclude>**/OSDDummy/OSDDummy.java</exclude>
 						<exclude>**/recovery/RecoveryMain.java</exclude>
 						<exclude>**/recovery/TestRecovery.java</exclude>
-                    </excludes>
+                    </excludes> -->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -181,6 +181,10 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanGetAttr</finalName>
+                                                       <includes>
+                                                       		<include>**/OSDDummy/*</include>
+                                                       </includes>
+                                                     <executable>MakeExcuteScript.sh ksanGetAttr</executable>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -247,6 +251,7 @@
 						<configuration>
 							<archive>
 								<manifest>
+                                                                        <addClasspath>true</addClasspath>
 									<mainClass>com.pspace.ifs.ksan.utils.OSDDummy.OSDDummy</mainClass>
 								</manifest>
 							</archive>

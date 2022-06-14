@@ -20,7 +20,7 @@ public class OSDClient {
     public OSDClient() throws IOException, Exception{
         ObjManagerConfig config = new ObjManagerConfig();
         System.out.format(" hosts : %s exchange %s\n", config.mqHost, config.mqOsdExchangename);
-        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
+        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "fanout", ""); 
     }
     
     public OSDClient(MQSender mqSender){
@@ -61,7 +61,7 @@ public class OSDClient {
         obj.put("TargetDiskPath", desDisk.getPath());
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOsdIp());
-        System.out.println("bindingKey :> " + bindingKey);
+        System.out.println("[moveObject] bindingKey :> " + bindingKey);
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         MQResponse ret;
         if (!res.isEmpty())
@@ -87,7 +87,9 @@ public class OSDClient {
         obj.put("VersionId", versionId);
         bindingKey = String.format("*.services.osd.%s.object.getattr", osdIP);
        
+        System.out.format("[getObjectAttr] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        //String res = ""; mqSender.send(obj.toString(), bindingKey);
         if (res.isEmpty())
             return res;
         

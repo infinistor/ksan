@@ -50,7 +50,7 @@ public class Recovery {
         public String objId;
         public String versionId;
         public String diskPath;
-        public String osdIP;
+        public String osdIP = "";
         public String md5;
         public long size;
         private JSONParser parser;
@@ -61,7 +61,7 @@ public class Recovery {
             try{
                 diskId = "";
                 md5 = "";
-                size = 0;
+                size = 0;       
                 JSONObject JO = (JSONObject) parser.parse(body);
                 bucketName = (String)JO.get("bucketName");
                 objId   = (String)JO.get("ObjId");
@@ -97,7 +97,7 @@ public class Recovery {
         
         @Override
         public MQResponse call(String routingKey, String body) {
-            int ret;
+            int ret = 0;
             System.out.format(">>BiningKey : %s body : %s\n", routingKey, body);
             
             try {
@@ -150,7 +150,7 @@ public class Recovery {
         om = new ObjectMover(false, "RECOVERY");
         MQCallback mq = new RecoveryObjectCallback();
         mqReceiver = new MQReceiver(config.mqHost, queueN, exchange, false, option, bindingKey, mq);
-        osdc = new OSDClient(new MQSender(config.mqHost, "OSDExchange", option, "*.servers.getattr.*"));
+        osdc = new OSDClient(new MQSender(config.mqHost, config.mqOsdExchangename, option, "")); // *.servers.getattr.*
     }
           
 }

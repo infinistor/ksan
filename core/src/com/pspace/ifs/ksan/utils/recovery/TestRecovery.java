@@ -22,10 +22,12 @@ public class TestRecovery {
     
     static String getDataToSend(){
         JSONObject JO = new JSONObject();
-        JO.put("bucket",   "testbucket1");
-        JO.put("diskId",  "1");
+        JO.put("bucketName",   "testvol3vers");
+        JO.put("DiskId",  "1");
+        JO.put("DiskPath",  "/DISK1");
         JO.put("objId",    "dadadadadasdasdas_" + System.nanoTime());
-        JO.put("versionId",  "null");
+        JO.put("VersionId",  "null");
+        JO.put("osdIP", "192.168.11.76");
         return JO.toJSONString();
     }
     /**
