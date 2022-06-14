@@ -241,14 +241,21 @@ systemctl start ksangateway
 
 ### Mariadb 설치 (docker 이용)
 ``` shell
-# [ mariadb 이미지 다운로드 ]
+# mariadb 이미지 다운로드
 docker pull mariadb
-# [mariadb container 실행] 
+# mariadb container 실행 
 docker container run -d -p 3306:3306 \
 -e MYSQL_ROOT_HOST=root@'%' \
 -e MYSQL_ROOT_PASSWORD=qwe123 \
 -e MYSQL_DATABASE=ksan \
 -v /MYSQL:/var/lib/mysql --name mariadb mariadb 
+# mariadb 외부 접속 권한 설정
+# 컨테이너 접속
+docker exec -it mariadb /bin/bash
+mysql -uroot -pqwe123
+use mysql;
+grant all privileges on *.* to 'root'@'%' identified by 'qwe123' with grant option;
+
 ```
 
 ### rabbitmq 설치(docker 이용)
