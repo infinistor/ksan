@@ -14,9 +14,26 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
+import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLContextBuilder;
+import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClients;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +58,9 @@ public class ObjManagerConfig {
     public String mqQueeuname;
     public String mqExchangename;
     public String mqOsdExchangename;
-    //public String mqRoutingkey4add;
-    //public String mqRoutingkey4update;
-    //public String mqRoutingkey4remove;
-    //public String allocAlgorithm;
+    public String portalHost;
+    public long portalPort;
+    public String portalKey;
     private Logger logger;
     
     private String getStringConfig(String key, String def){
@@ -77,10 +93,10 @@ public class ObjManagerConfig {
         this.mqQueeuname = mqQueeuname;
         this.mqExchangename = mqExchangename;
         this.mqOsdExchangename = mqOsdExchangename;
-        logger = LoggerFactory.getLogger(ObjManager.class);
+        logger = LoggerFactory.getLogger(ObjManagerConfig.class);
     }
     
-    public ObjManagerConfig() throws IOException {
+    /*public ObjManagerConfig() throws IOException, NoSuchAlgorithmException {
         prop = new Properties();
         InputStream is = new FileInputStream("/usr/local/ksan/etc/objmanger.conf");
         prop.load(is);
@@ -103,31 +119,20 @@ public class ObjManagerConfig {
         //allocAlgorithm = prop.getProperty("alloc.algorithm");
 
         logger = LoggerFactory.getLogger(ObjManager.class);   
-    }
-    
-    /*public void loadBucketList(ObjManagerCache omc){
-        try{ 
-            File fXmlFile = new File("/usr/local/pspace/etc/bucketList.xml");
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(fXmlFile);
-            doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("BUCKET");
-            for (int idx = 0; idx < nList.getLength(); idx++) {
-                Bucket bt;
-           
-                Node dpoolNode = nList.item(idx);
-                bt = new Bucket(((Element)dpoolNode).getAttribute("name"), 
-                        ((Element)dpoolNode).getAttribute("id"),
-                        ((Element)dpoolNode).getAttribute("diskPoolId"));
-                
-                omc.setBucketInCache(bt);
-            }
-        }catch (Exception e){
-            System.out.println("Error-->" + e);
-        }
     }*/
-    
+    public ObjManagerConfig() throws IOException {
+        prop = new Properties();
+        getPortaConfig();
+        logger = LoggerFactory.getLogger(ObjManagerConfig.class);
+        try {
+            if (getConfigFromPortal()!= 0){
+                throw new IOException("Unable to get configuration from portal!!!");
+            }
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | ParseException ex) {
+            throw new IOException(ex);
+        }
+    }
+        
     public void loadDiskPools(ObjManagerCache omc){
         try{ 
             File fXmlFile = new File("/usr/local/ksan/etc/diskpools.xml");
@@ -169,6 +174,74 @@ public class ObjManagerConfig {
         }
     }
     
+    private void getPortaConfig() throws IOException{
+        prop = new Properties();
+        InputStream is = new FileInputStream("/usr/local/ksan/etc/ksanMon.conf");
+        prop.load(is);
+        portalHost = getStringConfig("MgsIp", "127.0.0.1");
+        portalPort = getLongConfig("IfsPortalPort", 5443);
+        portalKey = getStringConfig("IfsPortalKey", "");
+        mqHost = portalHost;
+    }
+    
+  
+    private JSONObject parseResponse(String response) throws ParseException{
+        if (response.isEmpty())
+            return null;
+        
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject)parser.parse(response);
+        if (jsonObject == null)
+            return null;
+        
+        JSONObject jsonData = (JSONObject)jsonObject.get("Data");
+        if (jsonData == null)
+            return null;
+        
+        if (jsonData.isEmpty())
+            return null;
+        
+        JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+        if (jsonItems.isEmpty())
+            return null;
+        
+        JSONObject jsonItem = (JSONObject)jsonItems.get(0);
+        String config = (String)jsonItem.get("Config");
+        if (config.isEmpty())
+            return null;
+        return (JSONObject)parser.parse(config);
+    }
+    
+    private int getConfigFromPortal() throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{
+        HttpClient client = HttpClients.custom()
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                .build();
+	
+        HttpGet getRequest = new HttpGet("https://" + portalHost + ":" + portalPort + "/api/v1/Config/List/S3");
+			getRequest.addHeader("Authorization", portalKey);
+
+	HttpResponse response = client.execute(getRequest);
+	if (response.getStatusLine().getStatusCode() == 200) {
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            String content = handler.handleResponse(response);
+            JSONObject jsonConfig = parseResponse(content);
+            if (jsonConfig == null)
+                return -1;
+            
+            dbRepository = (String)jsonConfig.get("objM.db_repository");
+            dbHost = (String)jsonConfig.get("objM.db_host");
+            dbport = Long.valueOf(jsonConfig.get("objM.db_port").toString());
+            dbName = (String)jsonConfig.get("objM.db_name");
+            dbUsername = (String)jsonConfig.get("objM.db_user");
+            dbPassword = (String)jsonConfig.get("objM.db_password");
+            mqOsdExchangename = "osdExchange"; //Fixme
+            mqExchangename = "diskPoolExchange"; //Fime
+            mqQueeuname = "diskPoolQueeu";
+            return 0;
+        }
+        return -1;
+    }
     @Override
     public String toString(){
         return String.format(
