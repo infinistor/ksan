@@ -114,11 +114,16 @@ public class Recovery {
        
         private int fixObject(String body) throws Exception{
            DataParser rp = new DataParser(body);
+           String serverId;
            try{
                 // get object metadata
                 Metadata mt = obmu.getObject(rp.bucketName, rp.objId, rp.versionId);
                 // get size and md5 from osd
-                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, rp.osdIP);
+                if (mt.getPrimaryDisk().getOsdIp().equals(rp.osdIP) )
+                    serverId = mt.getPrimaryDisk().getOSDServerId();
+                else
+                    serverId = mt.getReplicaDisk().getOSDServerId();
+                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, serverId);
                 if (res.isEmpty())
                     return 0; // ignore because object not exist in osd
                 

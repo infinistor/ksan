@@ -36,13 +36,13 @@ public class OSDClient {
         obj.put("VersionId", mt.getVersionId());
         obj.put("DiskId", mt.getPrimaryDisk().getId());
         obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-        bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getPrimaryDisk().getOsdIp());
+        bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getPrimaryDisk().getOSDServerId());
         mqSender.send(obj.toString(), bindingKey);
 
         if (mt.isReplicaExist()){
             obj.replace("DiskId", mt.getReplicaDisk().getId());
             obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-            bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getReplicaDisk().getOsdIp());
+            bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getReplicaDisk().getOSDServerId());
             mqSender.send(obj.toString(), bindingKey);
         }    
         return 0;
@@ -60,7 +60,7 @@ public class OSDClient {
         obj.put("TargetDiskId", desDisk.getId());
         obj.put("TargetDiskPath", desDisk.getPath());
         obj.put("TargetOSDIP", desDisk.getOsdIp());
-        bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOsdIp());
+        bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOSDServerId());
         System.out.println("[moveObject] bindingKey :> " + bindingKey);
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         MQResponse ret;

@@ -82,6 +82,7 @@ public class DiskAllocation {
          } */
          dsk = replica.getNextDisk();
          dsk.setOSDIP(replica.getName());
+         dsk.setOSDServerId(replica.getId());
          return dsk;
     }
     
@@ -117,6 +118,7 @@ public class DiskAllocation {
              SERVER primary = this.allocPrimaryServer(algorithm, dskPool);
              primaryDisk = primary.getNextDisk();
              primaryDisk.setOSDIP(primary.getName());
+             primaryDisk.setOSDServerId(primary.getId());
              md.setPrimaryDisk(primaryDisk);
              md.setReplicaCount(replicaCount);
              if (replicaCount == 1){
@@ -157,6 +159,7 @@ public class DiskAllocation {
         
         replicaDisk = this.allocReplicaDisk(dskPool, svr, rsvr);
         replicaDisk.setOSDIP(svr.getName());
+        replicaDisk.setOSDServerId(svr.getId());
         return replicaDisk;
     }
     

@@ -205,6 +205,7 @@ public class DISKPOOL {
                 if (srv.diskExistWithPath(dpath)){
                     dsk = srv.getDiskByPath(dpath);
                     dsk.setOSDIP(srv.getName());
+                    dsk.setOSDServerId(serverId);
                     return dsk;
                 }
             }
@@ -212,6 +213,7 @@ public class DISKPOOL {
                 if (srv.diskExistWithId(diskid)){
                     dsk = srv.getDiskById(diskid);
                     dsk.setOSDIP(srv.getName());
+                    dsk.setOSDServerId(serverId);
                     return dsk;
                 }
             }

@@ -19,6 +19,7 @@ public class DISK{
     private double totalInode;
     private double usedInode;
     private String osdIp;
+    private String osdServerId;
     private int role; // primary or replica
     private DiskMode mode;
     private DiskStatus status; // GOOD, STOPPED, BROKEN, UNKNOWN;
@@ -66,6 +67,14 @@ public class DISK{
     
     public double getFreeInode(){
         return totalInode - usedInode;
+    }
+    
+    public String getOSDServerId(){
+        return osdServerId;
+    }
+    
+    public void setOSDServerId(String osdServerId){
+        this.osdServerId = osdServerId;
     }
     
     public void setId(String diskid){
