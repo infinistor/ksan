@@ -166,10 +166,28 @@
 				</executions>
 			</plugin>
                        <!-- for utility build -->
+                        <plugin>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <version>3.0.0</version>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <executions>
+                                <execution>
+                                   <id>Execution-script-Maker</id>
+                                        <phase>package</phase>
+                                        <goals>
+                                             <goal>exec</goal>
+                                        </goals>
+                                        <configuration>
+                                              <executable>bash</executable>
+                                              <commandlineArgs>${basedir}/scripts/MakeExcuteScript.sh</commandlineArgs>
+                                        </configuration>
+                                   </execution>
+                            </executions>
+                        </plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
-					<execution>
+                                      <execution>
 						<id>ksanGetAttr</id>
 						<configuration>
 							<archive>
@@ -181,6 +199,7 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanGetAttr</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
                                                        <includes>
                                                        		<include>**/OSDDummy/*</include>
                                                        </includes>
@@ -202,6 +221,7 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksancbalance</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -220,6 +240,7 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanFsck</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -238,6 +259,7 @@
                                                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                                                         </descriptorRefs>
                                                         <finalName>ksanRecovery</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
                                                 </configuration>
                                                 <phase>package</phase>
                                                 <goals>
@@ -258,6 +280,7 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanOSDDummy</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -276,6 +299,7 @@
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
 							<finalName>ksanTestRecovery</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 						<phase>package</phase>
 						<goals>
