@@ -40,6 +40,7 @@ public class ObjManager {
     private MQSender mqSender;
     private OSDClient osdc;
     private ObjManagerSharedResource obmsr;
+    private ObjMultipart multipart;
     private static Logger logger;
    
     private void init(ObjManagerConfig config) throws Exception {
@@ -71,6 +72,8 @@ public class ObjManager {
         mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
 
         osdc = new OSDClient(mqSender);
+        
+        multipart = new ObjMultipart(dbm);
     }
     
     public ObjManager() throws Exception {
@@ -622,6 +625,11 @@ public class ObjManager {
     public List<Metadata> listObject(String bucketName, String delimiter, String keyMarker, String versionIdMarker, String continuationToken, int maxKeys, String prefix) throws SQLException{
         ListObject list = new ListObject(dbm, bucketName, delimiter, keyMarker, versionIdMarker, continuationToken, maxKeys, prefix);
         return list.getUnformatedList();
+    }
+    
+    public ObjMultipart getMultipartInsatance(String Bucket){
+        multipart.setBucket(Bucket);
+        return multipart;
     }
     
     // for pool

@@ -39,7 +39,7 @@ public class ObjMultipart{
     //private String uploadId;
     private int defaultMaxUpkoads;
     private DataRepository dbm;
-    private ObjManagerConfig config;
+    //private ObjManagerConfig config;
     private List<ListResult> list;
     
     class ListMultipartCallBack implements DBCallBack{
@@ -56,19 +56,17 @@ public class ObjMultipart{
         }  
     }
     
-    public ObjMultipart(String bucket) throws UnknownHostException, Exception{
-        config = new ObjManagerConfig();
-        if (config.dbRepository.equalsIgnoreCase("MYSQL"))
-             dbm = new MysqlDataRepository(null, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-        else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-             dbm = new MongoDataRepository(null, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
-        else 
-            System.out.println("ObjManger initalization error :  there is no db storage configured!");
+    public ObjMultipart(DataRepository dbm) throws UnknownHostException, Exception{
+        this.dbm = dbm;
         list = new ArrayList<>();
         defaultMaxUpkoads = 1000;
-        this.bucket=bucket;
+        //this.bucket=bucket;
     }
  
+    public void setBucket(String bucket){
+        this.bucket=bucket;
+    }
+    
     private String getNewUploadId(){
         int leftLimit = 48; // number '0'
         int rightLimit = 122; // letter 'z'

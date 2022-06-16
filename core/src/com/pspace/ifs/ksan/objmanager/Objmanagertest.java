@@ -420,7 +420,7 @@ public class Objmanagertest {
         String vers;
         int ret;
         
-        ObjManager om = new ObjManager();;
+        ObjManager om = new ObjManager();
         try {
             sleep(3);
         } catch (InterruptedException ex) {
@@ -433,7 +433,7 @@ public class Objmanagertest {
                 System.out.println("Bucket already exist!");
             }
             
-            ObjMultipart mp = new ObjMultipart(bucket);
+            ObjMultipart mp = om.getMultipartInsatance(bucket);
             int idx;
             int idx1;
             for(idx=0; idx < 10; idx++){
