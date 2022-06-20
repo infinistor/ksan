@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="OSD_LOGS_PATH" value="/var/log/ksan/osd" />
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern> %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="OSD" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${OSD_LOGS_PATH}/osd.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${OSD_LOGS_PATH}/osd.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxHistory>30</maxHistory>
+                <maxFileSize>1000MB</maxFileSize>
+                <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+            <encoder>
+                <pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS}[%thread{5}][%logger{10}.%method:%line]: %msg%n</pattern>
+            </encoder>
+    </appender>
+
+    <logger name="com.pspace.ifs.ksan.osd" level="DEBUG">
+        <appender-ref ref="OSD"/>
+    </logger>
+</configuration>
