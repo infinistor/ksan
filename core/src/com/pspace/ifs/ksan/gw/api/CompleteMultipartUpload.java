@@ -113,7 +113,8 @@ public class CompleteMultipartUpload extends S3Request {
 		SortedMap<Integer, Part> listPart = null;
 		ObjMultipart objMultipart = null;
 		try {
-			objMultipart = new ObjMultipart(bucket);
+			setObjManager();
+			objMultipart = objManager.getMultipartInsatance(bucket);
 			listPart = objMultipart.getParts(uploadId);
 		} catch (UnknownHostException e) {
 			PrintStack.logging(logger, e);
@@ -121,6 +122,13 @@ public class CompleteMultipartUpload extends S3Request {
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
 		}
 		
 		logger.info(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_XML_PARTS_SIZE, completeMultipartUpload.parts.size());
@@ -154,7 +162,6 @@ public class CompleteMultipartUpload extends S3Request {
 		// get Acl, Meta data
 		Multipart multipart = null;
 		try {
-			// objMultipart = new ObjMultipart(bucket);
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
