@@ -59,7 +59,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<mainClass>com.pspace.ifs.ksan.utils.cbalance.CBalanceMain</mainClass>
-							<packageName>ksanOsd</packageName>
+							<packageName>com.pspace.ifs.ksan.utils.cbalance</packageName>
 						</manifest>
 					</archive>
 				</configuration>
@@ -84,7 +84,7 @@
          		<artifactId>really-executable-jar-maven-plugin</artifactId>
           		<version>1.4.1</version>
           		<configuration>
-            		<programFile>ksan-osd.jar</programFile>
+            		<programFile>CBalanceMain.jar</programFile>
           		</configuration>
           		<executions>
             		<execution>
