@@ -336,7 +336,7 @@ public class ListObject{
 
                 if (bVersionIdMarker){
                     and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
-                    and.add(new BasicDBObject("versionid", new BasicDBObject("$gt", versionIdMarker).append("$options", "i")));
+                    and.add(new BasicDBObject("versionid", new BasicDBObject("$gt", versionIdMarker)));//.append("$options", "i")
                 }
            }
            else{
