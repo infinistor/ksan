@@ -1306,21 +1306,19 @@ public class S3ObjectOperation {
                 MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
                 byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
                 int readLength = 0;
-                long remainLength = length;
-                int bufferSize = (int)(remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
+                long totalReads = 0L;
     
                 File tmpFile = new File(makeTempPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
                 com.google.common.io.Files.createParentDirs(tmpFile);
                 try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
                     encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, bufferSize)) != -1) {
-                        remainLength -= readLength;
+                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                        totalReads += readLength;
                         encryptOS.write(buffer, 0, readLength);
                         md5er.update(buffer, 0, readLength);
-                        if (remainLength <= 0) {
+                        if (totalReads >= length) {
                             break;
                         }
-                        bufferSize = (int)(remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                     }
                     encryptOS.flush();
                     encryptOS.close();
@@ -1342,23 +1340,24 @@ public class S3ObjectOperation {
                 MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
                 byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
                 int readLength = 0;
-                long remainLength = length;
-                int bufferSize = (int)(remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
+                long totalReads = 0L;
     
                 File tmpFile = new File(makeTempPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                logger.debug("tmpFile: " + tmpFile.getAbsolutePath());
                 com.google.common.io.Files.createParentDirs(tmpFile);
                 try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, bufferSize)) != -1) {
-                        remainLength -= readLength;
+                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                        totalReads += readLength;
                         fos.write(buffer, 0, readLength);
                         md5er.update(buffer, 0, readLength);
-                        if (remainLength <= 0) {
+                        if (totalReads >= length) {
                             break;
                         }
-                        bufferSize = (int)(remainLength < GWConstants.BUFSIZE ? remainLength : GWConstants.BUFSIZE);
                     }
                     fos.flush();
                 }
+
+                logger.debug("Total read : {}", totalReads);
     
                 byte[] digest = md5er.digest();
                 String eTag = base16().lowerCase().encode(digest);
@@ -1371,6 +1370,13 @@ public class S3ObjectOperation {
                 PrintStack.logging(logger, e);
                 throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
             }
+        }
+
+        try {
+            s3Parameter.getInputStream().close();
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
         
         return s3Object;
@@ -1439,8 +1445,10 @@ public class S3ObjectOperation {
                             }
                         }
                     } else {
-                        OSDClient client = OSDClientManager.getInstance().getOSDClient(entry.getValue().getDiskID());
-                        client.getPartInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), encryptOS, md5er);
+                        partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
+                        String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
+                        OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+                        client.getPartInit(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), encryptOS, md5er);
                         totalLength += client.getPart();
                         OSDClientManager.getInstance().returnOSDClient(client);
                     }
@@ -1467,8 +1475,10 @@ public class S3ObjectOperation {
                             }
                         }
                     } else {
-                        OSDClient client = OSDClientManager.getInstance().getOSDClient(entry.getValue().getDiskID());
-                        client.getPartInit(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut, md5er);
+                        partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
+                        String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
+                        OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+                        client.getPartInit(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut, md5er);
                         totalLength += client.getPart();
                         OSDClientManager.getInstance().returnOSDClient(client);
                     }
