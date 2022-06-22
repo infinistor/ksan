@@ -1371,13 +1371,6 @@ public class S3ObjectOperation {
                 throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
             }
         }
-
-        try {
-            s3Parameter.getInputStream().close();
-        } catch (IOException e) {
-            PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-        }
         
         return s3Object;
     }

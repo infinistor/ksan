@@ -41,6 +41,7 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import org.slf4j.Logger;
 
@@ -1226,6 +1227,26 @@ public abstract class S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
+	}
+
+	protected ObjMultipart getInstanceObjMultipart(String bucket) throws GWException {
+		ObjMultipart objMultipart = null;
+		try {
+			setObjManager();
+			objMultipart = objManager.getMultipartInsatance(bucket);
+		}catch(Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		return objMultipart;
 	}
 
 	protected boolean isGrantBucketOwner(String id, String s3grant) throws GWException {
