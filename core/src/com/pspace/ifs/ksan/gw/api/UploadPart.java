@@ -94,27 +94,16 @@ public class UploadPart extends S3Request {
 		ObjMultipart objMultipart = null;
 		Multipart multipart = null;
 		try {
-			setObjManager();
-			objMultipart = objManager.getMultipartInsatance(bucket);
+			objMultipart = getInstanceObjMultipart(bucket);
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
 				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		}
+		} 
 
 		// get metadata
 		S3Metadata s3Metadata = new S3Metadata();

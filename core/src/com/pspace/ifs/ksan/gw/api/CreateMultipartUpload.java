@@ -180,22 +180,11 @@ public class CreateMultipartUpload extends S3Request {
 
 		String uploadId = null;
 		try {
-			setObjManager();
-			ObjMultipart objMultipart = objManager.getMultipartInsatance(bucket);
+			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
 			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId()); 
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();

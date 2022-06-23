@@ -87,8 +87,7 @@ public class ListParts extends S3Request {
 		ObjMultipart objMultipart = null;
 		Multipart multipart = null;
 		try {
-			setObjManager();
-			objMultipart = objManager.getMultipartInsatance(bucket);
+			objMultipart = getInstanceObjMultipart(bucket);
 			multipart = objMultipart.getMultipart(uploadId);
 			if (multipart == null) {
 				logger.error(GWConstants.LOG_UPLOAD_NOT_FOUND, uploadId);
@@ -96,19 +95,9 @@ public class ListParts extends S3Request {
 			}
 			// check acl use multipart acl
 			resultPart = objMultipart.getParts(uploadId, partNumberMarker, maxPartsValue);
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 
 		String meta = multipart.getMeta();

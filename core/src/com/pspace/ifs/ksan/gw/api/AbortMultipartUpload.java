@@ -66,8 +66,7 @@ public class AbortMultipartUpload extends S3Request {
 		SortedMap<Integer, Part> listPart = null;
 		boolean isUploadId = true;
 		try {
-			setObjManager();
-			objMultipart = objManager.getMultipartInsatance(bucket);
+			objMultipart = getInstanceObjMultipart(bucket);
 			if (!objMultipart.isUploadId(uploadId)) {
 				isUploadId = false;
 				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
@@ -79,13 +78,6 @@ public class AbortMultipartUpload extends S3Request {
 			}
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 
 		// get Paths

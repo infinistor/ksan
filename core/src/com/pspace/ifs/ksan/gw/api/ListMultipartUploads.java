@@ -79,22 +79,11 @@ public class ListMultipartUploads extends S3Request {
 		ResultUploads resultUploads = null;
 		ObjMultipart objMultipart = null;
 		try {
-			setObjManager();
-			objMultipart = objManager.getMultipartInsatance(bucket);
+			objMultipart = getInstanceObjMultipart(bucket);
 			resultUploads = objMultipart.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, Integer.valueOf(maxUploads));
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 		
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);

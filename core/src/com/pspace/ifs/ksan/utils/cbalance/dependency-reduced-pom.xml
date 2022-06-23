@@ -7,7 +7,6 @@
   <version>0.7.1</version>
   <build>
     <sourceDirectory>.</sourceDirectory>
-    <finalName>cbalanceMain</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -25,7 +24,8 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <packageName>cbalance-main</packageName>
+              <mainClass>com.pspace.ifs.ksan.utils.cbalance.CBalanceMain</mainClass>
+              <packageName>com.pspace.ifs.ksan.utils.cbalance</packageName>
             </manifest>
           </archive>
         </configuration>
@@ -42,6 +42,22 @@
             <configuration />
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.skife.maven</groupId>
+        <artifactId>really-executable-jar-maven-plugin</artifactId>
+        <version>1.4.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>really-executable-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <programFile>CBalanceMain.jar</programFile>
+        </configuration>
       </plugin>
     </plugins>
   </build>

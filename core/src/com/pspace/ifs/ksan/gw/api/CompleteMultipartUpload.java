@@ -113,22 +113,11 @@ public class CompleteMultipartUpload extends S3Request {
 		SortedMap<Integer, Part> listPart = null;
 		ObjMultipart objMultipart = null;
 		try {
-			setObjManager();
-			objMultipart = objManager.getMultipartInsatance(bucket);
+			objMultipart = getInstanceObjMultipart(bucket);
 			listPart = objMultipart.getParts(uploadId);
-		} catch (UnknownHostException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 		
 		logger.info(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_XML_PARTS_SIZE, completeMultipartUpload.parts.size());
@@ -193,15 +182,6 @@ public class CompleteMultipartUpload extends S3Request {
 		String versionId = null;
 		Metadata objMeta = null;
 		try {
-			// check exist object
-			objMeta = open(bucket, object);
-			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-				versionId = String.valueOf(System.nanoTime());
-			} else {
-				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-			}
-		} catch (GWException e) {
-			logger.info(e.getMessage());
 			objMeta = createLocal(bucket, object);
 
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
@@ -209,7 +189,29 @@ public class CompleteMultipartUpload extends S3Request {
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 			}
+		} catch (GWException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
+
+		// try {
+		// 	// check exist object
+		// 	objMeta = open(bucket, object);
+		// 	if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+		// 		versionId = String.valueOf(System.nanoTime());
+		// 	} else {
+		// 		versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+		// 	}
+		// } catch (GWException e) {
+		// 	logger.info(e.getMessage());
+		// 	objMeta = createLocal(bucket, object);
+
+		// 	if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+		// 		versionId = String.valueOf(System.nanoTime());
+		// 	} else {
+		// 		versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+		// 	}
+		// }
 
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			logger.info(GWConstants.LOG_COMPLETE_MULTIPART_VERSION_ID, versionId);
@@ -305,7 +307,9 @@ public class CompleteMultipartUpload extends S3Request {
 		
 			int result = 0;
 			try {
-				remove(bucket, object);
+				if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+					remove(bucket, object);
+				}
 				objMeta.set(s3Object.get().getEtag(), "", jsonmeta, acl, s3Object.get().getFileSize());
 				objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 				result = insertObject(bucket, object, objMeta);
