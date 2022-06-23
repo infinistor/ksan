@@ -130,6 +130,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String STARTTIME = "startTime";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
+        System.out.format(">>[MongoDataRepository] hosts : %s username : %s dbname : %s\n", hosts, username, dbname);
         parseDBHostNames2URL(hosts, port);
         this.username = username;
         this.passwd = passwd;
