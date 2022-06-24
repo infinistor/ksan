@@ -21,98 +21,103 @@ namespace PortalProviderInterface
 	public interface IDiskProvider : IBaseProvider
 	{
 		/// <summary>디스크 등록</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="request">디스크 등록 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Request">디스크 등록 요청 객체</param>
 		/// <returns>디스크 등록 결과 객체</returns>
-		Task<ResponseData<ResponseDiskWithServer>> Add(string serverId, RequestDisk request);
+		Task<ResponseData<ResponseDiskWithServer>> Add(string ServerId, RequestDisk Request);
 
 		/// <summary>디스크 수정</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">디스크 아이디</param>
-		/// <param name="request">디스크 수정 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">디스크 아이디</param>
+		/// <param name="Request">디스크 수정 요청 객체</param>
 		/// <returns>디스크 수정 결과 객체</returns>
-		Task<ResponseData> Update(string serverId, string id, RequestDisk request);
+		Task<ResponseData> Update(string ServerId, string Id, RequestDisk Request);
 
 		/// <summary>디스크 상태 수정</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">디스크 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">디스크 아이디</param>
 		/// <param name="state">디스크 상태</param>
 		/// <returns>디스크 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(string serverId, string id, EnumDiskState state);
+		Task<ResponseData> UpdateState(string ServerId, string Id, EnumDiskState state);
 
 		/// <summary>디스크 상태 수정</summary>
-		/// <param name="request">상태 수정 요청 객체</param>
+		/// <param name="Request">상태 수정 요청 객체</param>
 		/// <returns>디스크 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(RequestDiskState request);
+		Task<ResponseData> UpdateState(RequestDiskState Request);
 
 		/// <summary>디스크 크기 수정</summary>
-		/// <param name="request">디스크 크기 수정 요청 객체</param>
+		/// <param name="Request">디스크 크기 수정 요청 객체</param>
 		/// <returns>디스크 크기 수정 결과 객체</returns>
-		Task<ResponseData> UpdateSize(RequestDiskSize request);
+		Task<ResponseData> UpdateSize(RequestDiskSize Request);
+
+		/// <summary>디스크 사용 정보 수정</summary>
+		/// <param name="Request">디스크 사용 정보 수정 요청 객체</param>
+		/// <returns>디스크 사용 정보 수정 결과 객체</returns>
+		Task<ResponseData> UpdateUsage(RequestDiskUsage Request);
 
 		/// <summary>디스크 읽기/쓰기 모드 수정</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">디스크 아이디</param>
-		/// <param name="diskRwMode">디스크 읽기/쓰기 모드</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">디스크 아이디</param>
+		/// <param name="DiskRwMode">디스크 읽기/쓰기 모드</param>
 		/// <returns>디스크 읽기/쓰기 모드 수정 결과 객체</returns>
-		Task<ResponseData> UpdateRwMode(string serverId, string id, EnumDiskRwMode diskRwMode);
+		Task<ResponseData> UpdateRwMode(string ServerId, string Id, EnumDiskRwMode DiskRwMode);
 
 		/// <summary>디스크 읽기/쓰기 모드 수정</summary>
-		/// <param name="request">디스크 읽기/쓰기 모드 수정 요청 객체</param>
+		/// <param name="Request">디스크 읽기/쓰기 모드 수정 요청 객체</param>
 		/// <returns>디스크 읽기/쓰기 모드 수정 결과 객체</returns>
-		Task<ResponseData> UpdateRwMode(RequestDiskRwMode request);
+		Task<ResponseData> UpdateRwMode(RequestDiskRwMode Request);
 
 		/// <summary>디스크 삭제</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">디스크 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">디스크 아이디</param>
 		/// <returns>디스크 삭제 결과 객체</returns>
-		Task<ResponseData> Remove(string serverId, string id);
+		Task<ResponseData> Remove(string ServerId, string Id);
 
 		/// <summary>특정 서버의 디스크 목록을 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="searchStates">검색할 디스크 상태 목록</param>
-		/// <param name="searchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode) (기본정렬 State desc, Path asc, HaAction desc)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="SearchStates">검색할 디스크 상태 목록</param>
+		/// <param name="SearchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode) (기본정렬 State desc, Path asc, HaAction desc)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetList(
-			string serverId,
-			List<EnumDiskState> searchStates, List<EnumDiskRwMode> searchRwModes,
-			int skip = 0, int countPerPage = 100,
-			List<string> orderFields = null, List<string> orderDirections = null,
-			List<string> searchFields = null, string searchKeyword = ""
+			string ServerId,
+			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		);
 
 		/// <summary>전체 디스크 목록을 가져온다.</summary>
-		/// <param name="searchStates">검색할 디스크 상태 목록</param>
-		/// <param name="searchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode) (기본정렬 State desc, Path asc, HaAction desc)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="SearchStates">검색할 디스크 상태 목록</param>
+		/// <param name="SearchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode) (기본정렬 State desc, Path asc, HaAction desc)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDiskWithServer>> GetList(
-			List<EnumDiskState> searchStates, List<EnumDiskRwMode> searchRwModes,
-			int skip = 0, int countPerPage = 100,
-			List<string> orderFields = null, List<string> orderDirections = null,
-			List<string> searchFields = null, string searchKeyword = ""
+			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		);
 
 		/// <summary>디스크 정보를 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">디스크 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">디스크 아이디</param>
 		/// <returns>디스크 정보 객체</returns>
-		Task<ResponseData<ResponseDiskWithServices>> Get(string serverId, string id);
+		Task<ResponseData<ResponseDiskWithServices>> Get(string ServerId, string Id);
 
 		/// <summary>DiskNo로 디스크 ID를 가져온다.</summary>
-		/// <param name="diskNo">디스크 No</param>
+		/// <param name="DiskNo">디스크 No</param>
 		/// <returns>디스크 아이디 응답 객체</returns>
-		Task<ResponseData<ResponseDiskId>> Get(string diskNo);
+		Task<ResponseData<ResponseDiskId>> Get(string DiskNo);
 	}
 }
