@@ -37,7 +37,7 @@ namespace PortalModels
 				(!optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().Any(ext => !string.IsNullOrEmpty(ext.ConnectionString) || ext.Connection != null) &&
 				 !optionsBuilder.Options.Extensions.Any(ext => !(ext is RelationalOptionsExtension) && !(ext is CoreOptionsExtension))))
 			{
-				optionsBuilder.UseMySql(GetConnectionString("PortalDatabase"));
+				optionsBuilder.UseMySql(GetConnectionString("PortalDatabase"), MySqlServerVersion.LatestSupportedServerVersion);
 			}
 			CustomizeConfiguration(ref optionsBuilder);
 			base.OnConfiguring(optionsBuilder);
@@ -77,8 +77,10 @@ namespace PortalModels
 		public virtual DbSet<NetworkInterfaceUsage> NetworkInterfaceUsages { get; set; }
 		public virtual DbSet<ServiceUsage> ServiceUsages { get; set; }
 		public virtual DbSet<ServiceConfig> ServiceConfigs { get; set; }
-		public virtual DbSet<S3User> S3Users { get; set; }
+		public virtual DbSet<KsanUser> KsanUsers { get; set; }
 		public virtual DbSet<UserDiskPool> UserDiskPools { get; set; }
+		public virtual DbSet<DiskUsage> DiskUsages { get; set; }
+		public virtual DbSet<Region> Regions { get; set; }
 		
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -159,11 +161,17 @@ namespace PortalModels
 			this.ServiceConfigMapping(modelBuilder);
 			this.CustomizeServiceConfigMapping(modelBuilder);
 
-			this.S3UserMapping(modelBuilder);
-			this.CustomizeS3UserMapping(modelBuilder);
+			this.KsanUserMapping(modelBuilder);
+			this.CustomizeKsanUserMapping(modelBuilder);
 
 			this.UserDiskPoolMapping(modelBuilder);
 			this.CustomizeUserDiskPoolMapping(modelBuilder);
+
+			this.DiskUsageMapping(modelBuilder);
+			this.CustomizeDiskUsageMapping(modelBuilder);
+
+			this.RegionMapping(modelBuilder);
+			this.CustomizeRegionMapping(modelBuilder);
 
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
@@ -250,6 +258,7 @@ namespace PortalModels
 			modelBuilder.Entity<Service>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
 			modelBuilder.Entity<Service>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<Service>().HasKey(@"Id");
+			modelBuilder.Entity<Service>().HasIndex(@"Name").IsUnique(true);
 		}
 
 		partial void CustomizeServiceMapping(ModelBuilder modelBuilder);
@@ -291,6 +300,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
 			modelBuilder.Entity<Server>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().HasKey(@"Id");
+			modelBuilder.Entity<Server>().HasIndex(@"Name").IsUnique(true);
 		}
 
 		partial void CustomizeServerMapping(ModelBuilder modelBuilder);
@@ -425,7 +435,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<Role>().ToTable(@"ROLES");
 			modelBuilder.Entity<Role>().Property(x => x.Id).HasColumnName(@"Id").HasColumnType(@"char(36)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<Role>().Property(x => x.ConcurrencyStamp).HasColumnName(@"ConcurrencyStamp").HasColumnType(@"varchar").ValueGeneratedNever().HasMaxLength(255);
+			modelBuilder.Entity<Role>().Property(x => x.ConcurrencyStamp).HasColumnName(@"ConcurrencyStamp").HasColumnType(@"varchar(255)").ValueGeneratedNever().HasMaxLength(255);
 			modelBuilder.Entity<Role>().Property(x => x.Name).HasColumnName(@"Name").ValueGeneratedNever().HasMaxLength(255);
 			modelBuilder.Entity<Role>().Property(x => x.NormalizedName).HasColumnName(@"NormalizedName").ValueGeneratedNever().HasMaxLength(255);
 			modelBuilder.Entity<Role>().HasKey(@"Id");
@@ -556,6 +566,8 @@ namespace PortalModels
 			modelBuilder.Entity<Disk>().Property(x => x.TotalSize).HasColumnName(@"TOTAL_SIZE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Disk>().Property(x => x.ReservedSize).HasColumnName(@"RESERVED_SIZE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Disk>().Property(x => x.UsedSize).HasColumnName(@"USED_SIZE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<Disk>().Property(x => x.Read).HasColumnName(@"READ").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<Disk>().Property(x => x.Write).HasColumnName(@"WRITE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Disk>().Property(x => x.RwMode).HasColumnName(@"RW_MODE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().HasKey(@"Id");
 		}
@@ -595,6 +607,7 @@ namespace PortalModels
 			modelBuilder.Entity<DiskPool>().Property(x => x.ClassTypeId).HasColumnName(@"CLASS_TYPE_ID").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<DiskPool>().Property(x => x.ReplicationType).HasColumnName(@"REPLICATION_TYPE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"1");
 			modelBuilder.Entity<DiskPool>().HasKey(@"Id");
+			modelBuilder.Entity<DiskPool>().HasIndex(@"Name").IsUnique(true);
 		}
 
 		partial void CustomizeDiskPoolMapping(ModelBuilder modelBuilder);
@@ -672,21 +685,21 @@ namespace PortalModels
 
 		#endregion
 
-		#region S3User Mapping
+		#region KsanUser Mapping
 
-		private void S3UserMapping(ModelBuilder modelBuilder)
+		private void KsanUserMapping(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<S3User>().ToTable(@"S3USERS");
-			modelBuilder.Entity<S3User>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3User>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3User>().Property(x => x.Email).HasColumnName(@"EMAIL").ValueGeneratedNever();
-			modelBuilder.Entity<S3User>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(20);
-			modelBuilder.Entity<S3User>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(40);
-			modelBuilder.Entity<S3User>().HasKey(@"AccessKey", @"SecretKey");
-			modelBuilder.Entity<S3User>().HasIndex(@"Id").IsUnique(true);
+			modelBuilder.Entity<KsanUser>().ToTable(@"KSAN_USERS");
+			modelBuilder.Entity<KsanUser>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(20);
+			modelBuilder.Entity<KsanUser>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").IsRequired().ValueGeneratedNever().HasMaxLength(40);
+			modelBuilder.Entity<KsanUser>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<KsanUser>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<KsanUser>().Property(x => x.Email).HasColumnName(@"EMAIL").ValueGeneratedNever();
+			modelBuilder.Entity<KsanUser>().HasKey(@"AccessKey", @"SecretKey");
+			modelBuilder.Entity<KsanUser>().HasIndex(@"Id").IsUnique(true);
 		}
 
-		partial void CustomizeS3UserMapping(ModelBuilder modelBuilder);
+		partial void CustomizeKsanUserMapping(ModelBuilder modelBuilder);
 
 		#endregion
 
@@ -697,10 +710,47 @@ namespace PortalModels
 			modelBuilder.Entity<UserDiskPool>().ToTable(@"USER_DISK_POOLS");
 			modelBuilder.Entity<UserDiskPool>().Property(x => x.UserId).HasColumnName(@"USER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<UserDiskPool>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<UserDiskPool>().HasKey(@"UserId", @"DiskPoolId");
+			modelBuilder.Entity<UserDiskPool>().Property(x => x.StorageClass).HasColumnName(@"STORAGE_CLASS").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<UserDiskPool>().HasKey(@"UserId", @"DiskPoolId", @"StorageClass");
 		}
 
 		partial void CustomizeUserDiskPoolMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region DiskUsage Mapping
+
+		private void DiskUsageMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<DiskUsage>().ToTable(@"DISK_USAGES");
+			modelBuilder.Entity<DiskUsage>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskUsage>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskUsage>().Property(x => x.UsedInode).HasColumnName(@"USED_INODE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<DiskUsage>().Property(x => x.UsedSize).HasColumnName(@"USED_SIZE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<DiskUsage>().Property(x => x.Read).HasColumnName(@"READ").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<DiskUsage>().Property(x => x.Write).HasColumnName(@"WRITE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<DiskUsage>().HasKey(@"Id", @"RegDate");
+		}
+
+		partial void CustomizeDiskUsageMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region Region Mapping
+
+		private void RegionMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<Region>().ToTable(@"REGIONS");
+			modelBuilder.Entity<Region>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever().HasMaxLength(50);
+			modelBuilder.Entity<Region>().Property(x => x.Address).HasColumnName(@"ADDRESS").IsRequired().ValueGeneratedNever().HasMaxLength(15);
+			modelBuilder.Entity<Region>().Property(x => x.Port).HasColumnName(@"PORT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Region>().Property(x => x.SSLPort).HasColumnName(@"SSLPORT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Region>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").HasColumnType(@"char(20)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Region>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").HasColumnType(@"char(40)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Region>().HasKey(@"Name");
+		}
+
+		partial void CustomizeRegionMapping(ModelBuilder modelBuilder);
 
 		#endregion
 
@@ -772,6 +822,7 @@ namespace PortalModels
 			modelBuilder.Entity<Disk>().HasOne(x => x.Server).WithMany(op => op.Disks).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Disk>().HasMany(x => x.ServiceDisks).WithOne(op => op.Disk).HasForeignKey(@"DiskId").IsRequired(true);
 			modelBuilder.Entity<Disk>().HasOne(x => x.DiskPool).WithMany(op => op.Disks).HasForeignKey(@"DiskPoolId").IsRequired(false);
+			modelBuilder.Entity<Disk>().HasMany(x => x.DiskUsages).WithOne(op => op.Disk).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Service).WithMany(op => op.ServiceDisks).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Disk).WithMany(op => op.ServiceDisks).HasForeignKey(@"DiskId").IsRequired(true);
@@ -785,10 +836,12 @@ namespace PortalModels
 
 			modelBuilder.Entity<ServiceUsage>().HasOne(x => x.Service).WithMany(op => op.ServiceUsages).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<S3User>().HasMany(x => x.UserDiskPools).WithOne(op => op.S3User).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
+			modelBuilder.Entity<KsanUser>().HasMany(x => x.UserDiskPools).WithOne(op => op.S3User).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
 
 			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.S3User).WithMany(op => op.UserDiskPools).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
 			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.DiskPool).WithMany(op => op.UserDiskPools).HasForeignKey(@"DiskPoolId").IsRequired(true);
+
+			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).HasForeignKey(@"Id").IsRequired(true);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);

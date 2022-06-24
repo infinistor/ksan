@@ -9,31 +9,35 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 using System;
+using System.Collections.Generic;
 
 namespace PortalModels
 {
-	/// <summary>
-	/// 역할(권한그룹) 내 사용자
-	/// </summary>
-	public partial class UserRole
+	public partial class KsanUser
 	{
 
-		public UserRole()
+		public KsanUser()
 		{
+			this.UserDiskPools = new List<UserDiskPool>();
 			OnCreated();
 		}
 
-		/// <summary> 사용자 아이디 </summary>
-		public virtual Guid UserId { get; set; }
+		/// <summary> 엑세스 키 </summary>
+		public virtual string AccessKey { get; set; }
 
-		/// <summary> 역할(권한그룹) 아이디 </summary>
-		public virtual Guid RoleId { get; set; }
+		/// <summary> 비밀 키 </summary>
+		public virtual string SecretKey { get; set; }
 
-		/// <summary> 역할 정보 </summary>
-		public virtual Role Role { get; set; }
+		/// <summary> 유저 아이디 </summary>
+		public virtual Guid Id { get; set; }
 
-		/// <summary> 사용자 정보 </summary>
-		public virtual User User { get; set; }
+		/// <summary> 유저명 </summary>
+		public virtual string Name { get; set; }
+
+		/// <summary> 이메일 </summary>
+		public virtual string Email { get; set; }
+
+		public virtual IList<UserDiskPool> UserDiskPools { get; set; }
 
 		#region Extensibility Method Definitions
 
@@ -41,15 +45,15 @@ namespace PortalModels
 
 		public override bool Equals(object obj)
 		{
-			UserRole toCompare = obj as UserRole;
+			KsanUser toCompare = obj as KsanUser;
 			if (toCompare == null)
 			{
 				return false;
 			}
 
-			if (!Object.Equals(this.UserId, toCompare.UserId))
+			if (!Object.Equals(this.AccessKey, toCompare.AccessKey))
 				return false;
-			if (!Object.Equals(this.RoleId, toCompare.RoleId))
+			if (!Object.Equals(this.SecretKey, toCompare.SecretKey))
 				return false;
 
 			return true;
@@ -58,8 +62,8 @@ namespace PortalModels
 		public override int GetHashCode()
 		{
 			int hashCode = 13;
-			hashCode = (hashCode * 7) + UserId.GetHashCode();
-			hashCode = (hashCode * 7) + RoleId.GetHashCode();
+			hashCode = (hashCode * 7) + AccessKey.GetHashCode();
+			hashCode = (hashCode * 7) + SecretKey.GetHashCode();
 			return hashCode;
 		}
 

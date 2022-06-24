@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 서버 정보 </summary>
 	public partial class Server
 	{
+
 		public Server()
 		{
 			this.State = (PortalModels.EnumDbServerState)Enum.Parse(typeof(PortalModels.EnumDbServerState), "-2");

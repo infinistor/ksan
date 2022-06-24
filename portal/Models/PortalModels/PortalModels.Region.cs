@@ -11,20 +11,31 @@
 
 namespace PortalModels
 {
-	/// <summary> 설정 정보 테이블 </summary>
-	public partial class Config
+	public partial class Region
 	{
 
-		public Config()
+		public Region()
 		{
 			OnCreated();
 		}
 
-		/// <summary> 설정 키 </summary>
-		public virtual string Key { get; set; }
+		/// <summary> 리전명 </summary>
+		public virtual string Name { get; set; }
 
-		/// <summary> 설정 값 </summary>
-		public virtual string Value { get; set; }
+		/// <summary> 리전 주소 </summary>
+		public virtual string Address { get; set; }
+
+		/// <summary> 포트 </summary>
+		public virtual int Port { get; set; }
+
+		/// <summary> SSL포트 </summary>
+		public virtual int SSLPort { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string AccessKey { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string SecretKey { get; set; }
 
 		#region Extensibility Method Definitions
 
