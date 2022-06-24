@@ -25,29 +25,29 @@ namespace PortalData
 		}
 
 		/// <summary>생성자</summary>
-		/// <param name="result">응답 결과</param>
-		/// <param name="code">응답 코드</param>
-		/// <param name="message">응답 메세지</param>
-		/// <param name="isNeedLogin">로그인 필요 여부</param>
-		/// <param name="accessDenied">권한 없음 여부</param>
-		public ResponseMqData(EnumResponseResult result, string code, string message, bool isNeedLogin, bool accessDenied)
-			: base(result, code, message, isNeedLogin, accessDenied)
+		/// <param name="Result">응답 결과</param>
+		/// <param name="Code">응답 코드</param>
+		/// <param name="Message">응답 메세지</param>
+		/// <param name="IsNeedLogin">로그인 필요 여부</param>
+		/// <param name="AccessDenied">권한 없음 여부</param>
+		public ResponseMqData(EnumResponseResult Result, string Code, string Message, bool IsNeedLogin, bool AccessDenied)
+			: base(Result, Code, Message, IsNeedLogin, AccessDenied)
 		{
 		} 
 
 		/// <summary>생성자</summary>
-		/// <param name="result">응답 결과</param>
-		public ResponseMqData(EnumResponseResult result)
-			: base(result)
+		/// <param name="Result">응답 결과</param>
+		public ResponseMqData(EnumResponseResult Result)
+			: base(Result)
 		{
 		}
 
 		/// <summary>생성자</summary>
-		/// <param name="result">응답 결과</param>
-		/// <param name="code">응답 코드</param>
-		/// <param name="message">응답 메세지</param>
-		public ResponseMqData(EnumResponseResult result, string code, string message)
-			: base(result, code, message)
+		/// <param name="Result">응답 결과</param>
+		/// <param name="Code">응답 코드</param>
+		/// <param name="Message">응답 메세지</param>
+		public ResponseMqData(EnumResponseResult Result, string Code, string Message)
+			: base(Result, Code, Message)
 		{
 		}
 	}

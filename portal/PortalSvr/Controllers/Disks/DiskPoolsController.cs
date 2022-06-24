@@ -54,56 +54,56 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>디스크 풀 정보를 추가한다.</summary>
-		/// <param name="request">디스크 풀 등록 요청 객체</param>
+		/// <param name="Request">디스크 풀 등록 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPoolWithDisks>))]
 		[HttpPost]
-		public async Task<ActionResult> Add([FromBody] RequestDiskPool request)
+		public async Task<ActionResult> Add([FromBody] RequestDiskPool Request)
 		{
-			return Json(await m_dataProvider.Add(request));
+			return Json(await m_dataProvider.Add(Request));
 		}
 
 		/// <summary>디스크 풀 정보를 수정한다.</summary>
-		/// <param name="id">디스크 풀 아이디</param>
-		/// <param name="request">디스크 풀 수정 요청 객체</param>
+		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Request">디스크 풀 수정 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{id}")]
-		public async Task<ActionResult> Update([FromRoute] string id, [FromBody] RequestDiskPool request)
+		[HttpPut("{Id}")]
+		public async Task<ActionResult> Update([FromRoute] string Id, [FromBody] RequestDiskPool Request)
 		{
-			return Json(await m_dataProvider.Update(id, request));
+			return Json(await m_dataProvider.Update(Id, Request));
 		}
 
 		/// <summary>디스크 풀 정보를 삭제한다.</summary>
-		/// <param name="id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("{id}")]
-		public async Task<ActionResult> Remove([FromRoute] string id)
+		[HttpDelete("{Id}")]
+		public async Task<ActionResult> Remove([FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Remove(id));
+			return Json(await m_dataProvider.Remove(Id));
 		}
 
 		/// <summary>디스크 풀 목록을 가져온다.</summary>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDiskPool>))]
 		[HttpGet]
 		public async Task<ActionResult> GetList(
-			int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = ""
+			int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				skip, countPerPage
-				, orderFields, orderDirections
-				, searchFields, searchKeyword
+				Skip, CountPerPage
+				, OrderFields, OrderDirections
+				, SearchFields, SearchKeyword
 			));
 		}
 
@@ -117,79 +117,79 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>특정 디스크 풀 정보를 가져온다.</summary>
-		/// <param name="id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPoolWithDisks>))]
-		[HttpGet("{id}")]
-		public async Task<ActionResult> Get([FromRoute] string id)
+		[HttpGet("{Id}")]
+		public async Task<ActionResult> Get([FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Get(id));
+			return Json(await m_dataProvider.Get(Id));
 		}
 
 		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
-		/// <param name="request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
 		[HttpPost("Exist")]
-		public async Task<ActionResult> IsNameExist([FromBody] RequestIsDiskPoolNameExist request)
+		public async Task<ActionResult> IsNameExist([FromBody] RequestIsDiskPoolNameExist Request)
 		{
-			return Json(await m_dataProvider.IsNameExist(null, request));
+			return Json(await m_dataProvider.IsNameExist(null, Request));
 		}
 
 		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
-		/// <param name="exceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
+		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("Exist/{exceptId}")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string exceptId, [FromBody] RequestIsDiskPoolNameExist request)
+		[HttpPost("Exist/{ExceptId}")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ExceptId, [FromBody] RequestIsDiskPoolNameExist Request)
 		{
-			return Json(await m_dataProvider.IsNameExist(exceptId, request));
+			return Json(await m_dataProvider.IsNameExist(ExceptId, Request));
 		}
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
 		[HttpGet("AvailableDisks")]
 		public async Task<ActionResult> GetAvailableDisks(
-			int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "")
+			int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "")
 		{
 			return Json(await m_dataProvider.GetAvailableDisks(
-				skip, countPerPage
-				, orderFields, orderDirections
-				, searchFields, searchKeyword));
+				Skip, CountPerPage
+				, OrderFields, OrderDirections
+				, SearchFields, SearchKeyword));
 		}
 
 		/// <summary>주어진 디스크 풀 아이디에 해당하는 디스크 풀에 참여가 가능한 디스크 목록을 가져온다.</summary>
-		/// <param name="id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
-		[HttpGet("{id}/AvailableDisks")]
+		[HttpGet("{Id}/AvailableDisks")]
 		public async Task<ActionResult> GetAvailableDisks(
-			[FromRoute] string id
-			, int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "")
+			[FromRoute] string Id
+			, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "")
 		{
 			return Json(await m_dataProvider.GetAvailableDisks(
-				id
-				, skip, countPerPage
-				, orderFields, orderDirections
-				, searchFields, searchKeyword));
+				Id
+				, Skip, CountPerPage
+				, OrderFields, OrderDirections
+				, SearchFields, SearchKeyword));
 		}
 	}
 }

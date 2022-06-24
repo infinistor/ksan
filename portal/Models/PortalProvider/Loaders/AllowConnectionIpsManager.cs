@@ -48,7 +48,7 @@ namespace PortalProvider.Loaders
 		/// <returns>로드 성공 여부</returns>
 		public async Task<bool> LoadAllowedConnectionIps(DbContext context)
 		{
-			bool result = false;
+			bool Result = false;
 
 			m_isAllAllowed = false;
 
@@ -61,14 +61,14 @@ namespace PortalProvider.Loaders
 					if (m_allowedConnectionIps.Count == 0)
 						m_isAllAllowed = true;
 
-					result = true;
+					Result = true;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 역할에 해당하는 접속 허용 아이피인지 여부</summary>
@@ -77,7 +77,7 @@ namespace PortalProvider.Loaders
 		/// <returns>접속 허용 아이피인지 여부</returns>
 		public bool IsAllowIp(string roleId, IPAddress address)
 		{
-			bool result = false;
+			bool Result = false;
 			uint addressNumber;
 			try
 			{
@@ -90,14 +90,14 @@ namespace PortalProvider.Loaders
 					// 허용된 아이피 목록을 설정하지 않았거나, 설정된 범위 내의 아이피인 경우
 					if (m_allowedConnectionIps.All(i => i.RoleId.ToString() != roleId)
 						|| m_allowedConnectionIps.Any(i => i.RoleId.ToString() == roleId && i.StartAddress <= addressNumber && addressNumber <= i.EndAddress))
-						result = true;
+						Result = true;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

@@ -21,88 +21,88 @@ namespace PortalProviderInterface
 	public interface IAccountProvider : IBaseProvider
 	{
 		/// <summary>사용자를 생성한다.</summary>
-		/// <param name="request">생성할 사용자 정보</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
-		/// <param name="setConfirmEmail">이메일 확인 상태로 설정할지 여부</param>
+		/// <param name="Request">생성할 사용자 정보</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
+		/// <param name="SetConfirmEmail">이메일 확인 상태로 설정할지 여부</param>
 		/// <returns>생성 결과</returns>
-		Task<ResponseData<ResponseLogin>> Create(RequestRegister request, HttpRequest httpRequest, bool setConfirmEmail = false);
+		Task<ResponseData<ResponseLogin>> Create(RequestRegister Request, HttpRequest HttpRequest, bool SetConfirmEmail = false);
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="apiKey">API 키 문자열</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="ApiKey">API 키 문자열</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>로그인 결과</returns>
-		Task<ResponseData<ResponseLogin>> LoginWithApiKey(string apiKey, HttpRequest httpRequest);
+		Task<ResponseData<ResponseLogin>> LoginWithApiKey(string ApiKey, HttpRequest HttpRequest);
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="request">로그인 요청 객체</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="Request">로그인 요청 객체</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>로그인 결과</returns>
-		Task<ResponseData<ResponseLogin>> Login(RequestLogin request, HttpRequest httpRequest);
+		Task<ResponseData<ResponseLogin>> Login(RequestLogin Request, HttpRequest HttpRequest);
 
 		/// <summary>로그아웃 처리</summary>
 		/// <returns>로그아웃 결과</returns>
 		Task<ResponseData> Logout();
 
 		/// <summary>로그인 여부를 가져온다.</summary>
-		/// <param name="user">로그인 사용자 정보 객체</param>
-		/// <param name="requireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
+		/// <param name="User">로그인 사용자 정보 객체</param>
+		/// <param name="RequireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
 		/// <returns>로그인 여부 정보</returns>
-		ResponseData CheckLogin(ClaimsPrincipal user, string requireRoles = "");
+		ResponseData CheckLogin(ClaimsPrincipal User, string RequireRoles = "");
 
 		/// <summary>로그인 정보를 가져온다. </summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
 		/// <returns>로그인 정보</returns>
-		Task<ResponseData<ResponseLogin>> GetLogin(ClaimsPrincipal loginUser);
+		Task<ResponseData<ResponseLogin>> GetLogin(ClaimsPrincipal LoginUser);
 
 		/// <summary>이메일 주소 인증 처리</summary>
-		/// <param name="request">이메일 인증 요청 객체</param>
+		/// <param name="Request">이메일 인증 요청 객체</param>
 		/// <returns>인증 처리 결과</returns>
-		Task<ResponseData> ConfirmEmail(RequestConfirmEmail request);
+		Task<ResponseData> ConfirmEmail(RequestConfirmEmail Request);
 
 		/// <summary>현재 로그인한 사용자의 비밀번호를 변경한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="request">비밀번호 요청 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="Request">비밀번호 요청 객체</param>
 		/// <returns>비밀번호 변경 결과</returns>
-		Task<ResponseData> ChangePassword(ClaimsPrincipal loginUser, RequestChangePassword request);
+		Task<ResponseData> ChangePassword(ClaimsPrincipal LoginUser, RequestChangePassword Request);
 
 		/// <summary>비밀번호 찾기 요청</summary>
-		/// <param name="request">비밀번호 찾기 요청 객체</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="Request">비밀번호 찾기 요청 객체</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>비밀번호 찾기 요청 처리 결과</returns>
-		Task<ResponseData> ForgotPassword(RequestForgetPassword request, HttpRequest httpRequest);
+		Task<ResponseData> ForgotPassword(RequestForgetPassword Request, HttpRequest HttpRequest);
 
 		/// <summary>비밀번호 재설정</summary>
-		/// <param name="request">비밀번호 재설정 요청 객체</param>
+		/// <param name="Request">비밀번호 재설정 요청 객체</param>
 		/// <returns>비밀번호 재설정 결과</returns>
-		Task<ResponseData> ResetPassword(RequestResetPassword request);
+		Task<ResponseData> ResetPassword(RequestResetPassword Request);
 
 		/// <summary>현재 로그인한 사용자 정보를 수정한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="request">회원 정보 수정 요청 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="Request">회원 정보 수정 요청 객체</param>
 		/// <returns>사용자 정보 수정 결과</returns>
-		Task<ResponseData> Update(ClaimsPrincipal loginUser, RequestUpdate request);
+		Task<ResponseData> Update(ClaimsPrincipal LoginUser, RequestUpdate Request);
 
 		/// <summary>특정 사용자에게 역할을 추가한다.</summary>
-		/// <param name="id">회원아이디</param>
-		/// <param name="roleName">역할명</param>
+		/// <param name="Id">회원아이디</param>
+		/// <param name="RoleName">역할명</param>
 		/// <returns>역할 추가 결과</returns>
-		Task<ResponseData> AddToRole(string id, string roleName);
+		Task<ResponseData> AddToRole(string Id, string RoleName);
 
 		/// <summary>특정 사용자에서 역할을 삭제한다.</summary>
-		/// <param name="id">회원아이디</param>
-		/// <param name="roleName">역할명</param>
+		/// <param name="Id">회원아이디</param>
+		/// <param name="RoleName">역할명</param>
 		/// <returns>역할 삭제 결과</returns>
-		Task<ResponseData> RemoveFromRole(string id, string roleName);
+		Task<ResponseData> RemoveFromRole(string Id, string RoleName);
 
 		/// <summary>로그인한 사용자에 대한 권한 목록을 가져온다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
 		/// <returns>로그인한 사용자에 대한 사용자 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetClaims(ClaimsPrincipal loginUser);
+		Task<ResponseList<ResponseClaim>> GetClaims(ClaimsPrincipal LoginUser);
 
 		/// <summary>로그인한 사용자의 권한 중 해당 권한이 존재하는지 확인한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="claimValue">검사할 권한 값</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="ClaimValue">검사할 권한 값</param>
 		/// <returns>로그인한 사용자의 권한 중 해당 권한이 존재하는지 여부</returns>
-		Task<ResponseData> HasClaim(ClaimsPrincipal loginUser, string claimValue);
+		Task<ResponseData> HasClaim(ClaimsPrincipal LoginUser, string ClaimValue);
 	}
 }

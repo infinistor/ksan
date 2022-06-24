@@ -22,46 +22,46 @@ namespace PortalProviderInterface
 	{
 
 		/// <summary>해당 사용자의 API 키 정보 목록을 가져온다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (KeyName, ExpireDate, KeyValue)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드목록 (KeyName, KeyValue)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (KeyName, ExpireDate, KeyValue)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드목록 (KeyName, KeyValue)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		Task<ResponseList<ResponseApiKey>> GetApiKeys(Guid userId
-			, int skip = 0, int countPerPage = 100, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "");
+		Task<ResponseList<ResponseApiKey>> GetApiKeys(Guid UserId
+			, int Skip = 0, int CountPerPage = 100, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "");
 
 		/// <summary>해당 사용자의 API 키 정보를 가져온다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="keyId">키 아이디</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		Task<ResponseData<ResponseApiKey>> GetApiKey(Guid userId, Guid keyId);
+		Task<ResponseData<ResponseApiKey>> GetApiKey(Guid UserId, Guid KeyId);
 
 		/// <summary>해당 사용자의 API 키를 발행한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="request">키 요청 객체</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Request">키 요청 객체</param>
 		/// <returns>API 키 추가 결과 객체</returns>
-		Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid userId, RequestApiKey request);
+		Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid UserId, RequestApiKey Request);
 
 		/// <summary>해당 사용자의 API 키를 키 값까지 지정하여 발행한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="request">키 요청 객체</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Request">키 요청 객체</param>
 		/// <returns>API 키 추가 결과 객체</returns>
-		Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid userId, RequestApiKeyEx request);
+		Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid UserId, RequestApiKeyEx Request);
 
 		/// <summary>해당 사용자의 API 키를 해제한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="keyId">키 아이디</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 해제 결과 객체</returns>
-		Task<ResponseData> RevokeApiKey(Guid userId, Guid keyId);
+		Task<ResponseData> RevokeApiKey(Guid UserId, Guid KeyId);
 
 		/// <summary>해당 키 아이디의 API 키 정보를 가져온다.</summary>
-		/// <param name="keyValue">키 값</param>
+		/// <param name="KeyValue">키 값</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		Task<ResponseData<ResponseApiKey>> GetApiKey(string keyValue);
+		Task<ResponseData<ResponseApiKey>> GetApiKey(string KeyValue);
 	}
 
 	/// <summary>미리 정의된 API 키</summary>

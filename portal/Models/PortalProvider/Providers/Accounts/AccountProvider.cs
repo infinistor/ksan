@@ -102,74 +102,74 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>볼륨 사용자용 포털 사용자를 생성한다.</summary>
-		/// <param name="request">생성할 사용자 정보</param>
+		/// <param name="Request">생성할 사용자 정보</param>
 		/// <returns>생성 결과</returns>
-		public async Task<ResponseData<ResponseLogin>> Create(RequestSnasUserRegister request)
+		public async Task<ResponseData<ResponseLogin>> Create(RequestSnasUserRegister Request)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
+			var Result = new ResponseData<ResponseLogin>();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 계정 객체를 생성한다.
-					NNApplicationUser user = new NNApplicationUser { LoginId = request.LoginId, Email = request.LoginId + "@pspace.co.kr", Name = request.Name };
+					var User = new NNApplicationUser { LoginId = Request.LoginId, Email = Request.LoginId + "@pspace.co.kr", Name = Request.Name };
 
 					// 계정을 생성한다.
-					IdentityResult identityResult = await m_userManager.CreateAsync(user, Guid.NewGuid().ToString());
+					var IdentityResult = await m_userManager.CreateAsync(User, Guid.NewGuid().ToString());
 
 					// 계정 생성에 성공한 경우
-					if (identityResult.Succeeded)
+					if (IdentityResult.Succeeded)
 					{
 						// 비밀번호 변경 일시를 지금으로 저장
-						user.PasswordChangeDate = DateTime.Now;
-						await m_userManager.UpdateAsync(user);
+						User.PasswordChangeDate = DateTime.Now;
+						await m_userManager.UpdateAsync(User);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 역할 추가
-						await m_userManager.AddToRoleAsync(user, PredefinedRoleNames.RoleNameUser);
+						await m_userManager.AddToRoleAsync(User, PredefinedRoleNames.RoleNameUser);
 
 						// 확인 메일 발송을 위한 토큰을 가져온다.
-						string mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(user);
+						var MailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(User);
 
 						// 이메일 확인 처리
-						identityResult = await m_userManager.ConfirmEmailAsync(user, mailConfirmToken);
+						IdentityResult = await m_userManager.ConfirmEmailAsync(User, MailConfirmToken);
 						// 이메일 확인 처리에 성공한 경우
-						if (identityResult.Succeeded)
+						if (IdentityResult.Succeeded)
 						{
 							// 추가된 사용자 정보를 가져온다.
-							User addedUser = await m_dbContext.Users.Where(i => i.Id == user.Id).FirstOrDefaultAsync();
-							addedUser.Email = addedUser.LoginId;
-							addedUser.PasswordHash = null;
+							var AddedUser = await m_dbContext.Users.Where(i => i.Id == User.Id).FirstOrDefaultAsync();
+							AddedUser.Email = AddedUser.LoginId;
+							AddedUser.PasswordHash = null;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 							// 역할을 포함한 사용자 정보를 가져온다.
-							ResponseData<ResponseUserWithRoles> responseUserWithRoles = await m_userProvider.GetUser(user.Id.ToString());
-							result.CopyValueFrom(responseUserWithRoles);
+							var responseUserWithRoles = await m_userProvider.GetUser(User.Id.ToString());
+							Result.CopyValueFrom(responseUserWithRoles);
 
-							result.Code = Resource.SC_COMMON__SUCCESS;
-							result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CREATED;
+							Result.Code = Resource.SC_COMMON__SUCCESS;
+							Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CREATED;
 						}
 						// 이메일 확인 처리에 실패한 경우
 						else
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
-							result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
 						}
 					}
 					// 계정 생성에 실패한 경우
 					else
 					{
 						// 에러 내용 저장
-						result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_REGIST;
-						result.Message = identityResult.Errors.FirstOrDefault() == null ? "" : identityResult.Errors.FirstOrDefault()?.Description;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_REGIST;
+						Result.Message = IdentityResult.Errors.FirstOrDefault() == null ? "" : IdentityResult.Errors.FirstOrDefault()?.Description;
 					}
 				}
 			}
@@ -177,103 +177,101 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>사용자를 생성한다.</summary>
-		/// <param name="request">생성할 사용자 정보</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
-		/// <param name="setConfirmEmail">메일 인증됨으로 처리할지 여부</param>
+		/// <param name="Request">생성할 사용자 정보</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
+		/// <param name="SetConfirmEmail">메일 인증됨으로 처리할지 여부</param>
 		/// <returns>생성 결과</returns>
-		public async Task<ResponseData<ResponseLogin>> Create(RequestRegister request, HttpRequest httpRequest, bool setConfirmEmail = false)
+		public async Task<ResponseData<ResponseLogin>> Create(RequestRegister Request, HttpRequest HttpRequest, bool SetConfirmEmail = false)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
-			NNApplicationUser user;
-
+			var Result = new ResponseData<ResponseLogin>();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 사용자명이 없는 경우, 사용자 아이디를 사용자명으로 설정
-					if (request.Name.IsEmpty())
-						request.Name = request.Email;
+					if (Request.Name.IsEmpty())
+						Request.Name = Request.Email;
 
 					// 해당 계정 객체를 생성한다.
-					user = new NNApplicationUser { LoginId = request.LoginId, Email = request.Email, Name = request.Name, PhoneNumber = request.PhoneNumber };
+					var User = new NNApplicationUser { LoginId = Request.LoginId, Email = Request.Email, Name = Request.Name, PhoneNumber = Request.PhoneNumber };
 
 					// 계정을 생성한다.
-					IdentityResult identityResult = await m_userManager.CreateAsync(user, request.Password);
+					var IdentityResult = await m_userManager.CreateAsync(User, Request.Password);
 
 					// 계정 생성에 성공한 경우
-					if (identityResult.Succeeded)
+					if (IdentityResult.Succeeded)
 					{
 						// 비밀번호 변경 일시를 지금으로 저장
-						user.PasswordChangeDate = DateTime.Now;
-						await m_userManager.UpdateAsync(user);
+						User.PasswordChangeDate = DateTime.Now;
+						await m_userManager.UpdateAsync(User);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await m_userManager.AddToRoleAsync(user, PredefinedRoleNames.RoleNameUser);
+						await m_userManager.AddToRoleAsync(User, PredefinedRoleNames.RoleNameUser);
 
-						ResponseData<ResponseUserWithRoles> responseUserWithRoles = await m_userProvider.GetUser(user.Id.ToString());
+						var ResponseUserWithRoles = await m_userProvider.GetUser(User.Id.ToString());
 
 						// 메일 인증됨으로 처리하는 경우
-						if (setConfirmEmail)
+						if (SetConfirmEmail)
 						{
 							// 확인 메일 발송을 위한 토큰을 가져온다.
-							string mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(user);
+							var mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(User);
 
 							// 이메일 확인 처리
-							identityResult = await m_userManager.ConfirmEmailAsync(user, mailConfirmToken);
+							IdentityResult = await m_userManager.ConfirmEmailAsync(User, mailConfirmToken);
 							// 이메일 확인 처리에 성공한 경우
-							if (identityResult.Succeeded)
+							if (IdentityResult.Succeeded)
 							{
-								result.CopyValueFrom(responseUserWithRoles);
+								Result.CopyValueFrom(ResponseUserWithRoles);
 
-								result.Code = Resource.SC_COMMON__SUCCESS;
-								result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CREATED;
+								Result.Code = Resource.SC_COMMON__SUCCESS;
+								Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CREATED;
 							}
 							// 이메일 확인 처리에 실패한 경우
 							else
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
-								result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
+								Result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
 							}
 						}
 						// 메일 인증을 수행해야 하는 경우
 						else
 						{
 							// 프로토콜과 호스트 저장
-							string protocol = request.Protocol.IsEmpty() ? httpRequest.Scheme : request.Protocol;
-							string host = request.Host.IsEmpty() ? httpRequest.Host.ToString() : request.Host;
+							var Protocol = Request.Protocol.IsEmpty() ? HttpRequest.Scheme : Request.Protocol;
+							var Host = Request.Host.IsEmpty() ? HttpRequest.Host.ToString() : Request.Host;
 
 							// 확인 메일 발송
-							ResponseData sendResult = await SendConfirmEmail(user, protocol, host);
+							var SendResult = await SendConfirmEmail(User, Protocol, Host);
 
 							// 에러가 아닌 경우
-							if (sendResult.Result != EnumResponseResult.Error)
-								result.CopyValueFrom(responseUserWithRoles);
+							if (SendResult.Result != EnumResponseResult.Error)
+								Result.CopyValueFrom(ResponseUserWithRoles);
 
-							result.Result = sendResult.Result;
-							result.Code = sendResult.Code;
-							result.Message = sendResult.Message;
+							Result.Result = SendResult.Result;
+							Result.Code = SendResult.Code;
+							Result.Message = SendResult.Message;
 						}
 					}
 					// 계정 생성에 실패한 경우
 					else
 					{
 						// 에러 내용 저장
-						result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_REGIST;
-						result.Message = identityResult.Errors.FirstOrDefault() == null ? "" : identityResult.Errors.FirstOrDefault()?.Description;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_REGIST;
+						Result.Message = IdentityResult.Errors.FirstOrDefault() == null ? "" : IdentityResult.Errors.FirstOrDefault()?.Description;
 					}
 				}
 			}
@@ -281,69 +279,69 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="apiKey">API 키 문자열</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="ApiKey">API 키 문자열</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>로그인 결과</returns>
-		public async Task<ResponseData<ResponseLogin>> LoginWithApiKey(string apiKey, HttpRequest httpRequest)
+		public async Task<ResponseData<ResponseLogin>> LoginWithApiKey(string ApiKey, HttpRequest HttpRequest)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
+			var Result = new ResponseData<ResponseLogin>();
 
 			try
 			{
 				// API 키가 존재하지 않는 경우
-				if (apiKey.IsEmpty())
+				if (ApiKey.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					result.Message = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Message = Resource.EC_COMMON__INVALID_REQUEST;
 				}
 				// API 키가 존재하는 경우
 				else
 				{
 					// 해당 API Key에 대한 정보를 가져온다.
-					ResponseData<ResponseApiKey> responseApiKey = await m_apiKeyProvider.GetApiKey(apiKey);
+					var ResponseApiKey = await m_apiKeyProvider.GetApiKey(ApiKey);
 
 					// 정보를 가져오는데 성공한 경우
-					if (responseApiKey.Result == EnumResponseResult.Success)
+					if (ResponseApiKey.Result == EnumResponseResult.Success)
 					{
 						// 해당 계정을 찾는다.
-						NNApplicationUser user = await m_userProvider.GetUserById(responseApiKey.Data.UserId);
+						var User = await m_userProvider.GetUserById(ResponseApiKey.Data.UserId);
 
 						//해당 계정을 찾을수 없는 경우
-						if (user == null || user.IsDeleted)
+						if (User == null || User.IsDeleted)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-							result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 						}
 						// 해당 계정을 찾은 경우
 						else
 						{
 							//이메일 인증이 되어있지 않는 경우
-							if (await m_userManager.IsEmailConfirmedAsync(user) == false)
+							if (await m_userManager.IsEmailConfirmedAsync(User) == false)
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
-								result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
+								Result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
 							}
 							//이메일 인증이 되어있는 경우
 							else
 							{
 								// 로그인
-								await m_signInManager.SignInAsync(user, false);
-								result = await ProcessAfterLogin(user, httpRequest);
+								await m_signInManager.SignInAsync(User, false);
+								Result = await ProcessAfterLogin(User, HttpRequest);
 							}
 						}
 					}
 					// 정보를 가져오는데 실패한 경우
 					else
 					{
-						result.Code = responseApiKey.Code;
-						result.Message = responseApiKey.Message;
+						Result.Code = ResponseApiKey.Code;
+						Result.Message = ResponseApiKey.Message;
 					}
 				}
 			}
@@ -351,72 +349,72 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="request">로그인 요청 객체</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="Request">로그인 요청 객체</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>로그인 결과</returns>
-		public async Task<ResponseData<ResponseLogin>> Login(RequestLogin request, HttpRequest httpRequest)
+		public async Task<ResponseData<ResponseLogin>> Login(RequestLogin Request, HttpRequest HttpRequest)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
+			var Result = new ResponseData<ResponseLogin>();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 계정을 찾는다.
-					NNApplicationUser user = await m_userProvider.GetUserByLoginId(request.LoginId);
+					var User = await m_userProvider.GetUserByLoginId(Request.LoginId);
 
 					//해당 계정을 찾을수 없는 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 해당 계정을 찾은 경우
 					else
 					{
 						//이메일 인증이 되어있지 않는 경우
-						if (await m_userManager.IsEmailConfirmedAsync(user) == false)
+						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
-							result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM;
 						}
 						//이메일 인증이 되어있는 경우
 						else
 						{
 							// 로그인
-							SignInResult signInResult = await m_signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: false);
+							var SignInResult = await m_signInManager.PasswordSignInAsync(User, Request.Password, Request.RememberMe, lockoutOnFailure: false);
 
 							// 로그인 성공 시
-							if (signInResult.Succeeded)
+							if (SignInResult.Succeeded)
 							{
-								result = await ProcessAfterLogin(user, httpRequest);
+								Result = await ProcessAfterLogin(User, HttpRequest);
 							}
 							// 계정이 잠겨있는 경우
-							else if (signInResult.IsLockedOut)
+							else if (SignInResult.IsLockedOut)
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_IS_LOCKED;
-								result.Message = Resource.EM_COMMON_ACCOUNT_IS_LOCKED;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_IS_LOCKED;
+								Result.Message = Resource.EM_COMMON_ACCOUNT_IS_LOCKED;
 							}
 							// 로그인 실패 시
 							else
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH;
-								result.Message = Resource.EM_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH;
+								Result.Message = Resource.EM_COMMON_ACCOUNT_ID_OR_PASSWORD_DO_NOT_MATCH;
 							}
 						}
 					}
@@ -426,54 +424,54 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인 후 필요한 작업을 처리한다.</summary>
-		/// <param name="user">사용자 객체</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="User">사용자 객체</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>처리 결과</returns>
-		private async Task<ResponseData<ResponseLogin>> ProcessAfterLogin(NNApplicationUser user, HttpRequest httpRequest)
+		private async Task<ResponseData<ResponseLogin>> ProcessAfterLogin(NNApplicationUser User, HttpRequest HttpRequest)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
+			var Result = new ResponseData<ResponseLogin>();
 
 			try
 			{
 				// 사용자 객체가 유효하지 않은 경우
-				if (user == null)
+				if (User == null)
 				{
-					result.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					result.Message = Resource.EM_COMMON__INVALID_REQUEST;
+					Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Message = Resource.EM_COMMON__INVALID_REQUEST;
 				}
 				// 사용자 객체가 유효한 경우
 				else
 				{
 					// 로그인 성공 시 접속 가능한 IP를 확인한다.
-					bool allowIp = false;
+					bool AllowIp = false;
 
 					// 역할 목록 저장
-					IList<string> roles = await m_userManager.GetRolesAsync(user);
+					var Roles = await m_userManager.GetRolesAsync(User);
 
 					// 사용자가 가지는 역할 정보를 가져온다.
-					List<string> userRoleIds = await m_roleManager.Roles.Where(i => roles.Contains(i.Name)).Select(i => i.Id.ToString()).ToListAsync();
+					var UserRoleIds = await m_roleManager.Roles.Where(i => Roles.Contains(i.Name)).Select(i => i.Id.ToString()).ToListAsync();
 
 					// 모든 역할 ID에 대해서 처리
-					foreach (string roleId in userRoleIds)
+					foreach (string RoleId in UserRoleIds)
 					{
 						// 접속한 아이피가 사용자가 가지는 역할에서 허용된 아이피인지 검사한다.
-						if (m_allowAddressProvider.IsAllowIp(roleId, httpRequest?.HttpContext.Connection.RemoteIpAddress))
+						if (m_allowAddressProvider.IsAllowIp(RoleId, HttpRequest?.HttpContext.Connection.RemoteIpAddress))
 						{
-							allowIp = true;
+							AllowIp = true;
 							break;
 						}
 					}
 
 					// 허용된 ip 가 아닌 경우
-					if (!allowIp)
+					if (!AllowIp)
 					{
 						// 로그아웃
 						await m_signInManager.SignOutAsync();
@@ -485,12 +483,12 @@ namespace PortalProvider.Providers.Accounts
 					await this.m_systemLogProvider.Add(
 						EnumLogLevel.Information
 						, "User login '{0} ({1})'"
-						, user.GetDisplayName()
+						, User.GetDisplayName()
 						, this.UserIpAddress);
 
 					// 로그인 기록 저장
-					DateTime? lastLoginDateTime = await m_dbContext.UserLoginHistories.AsNoTracking()
-						.Where(i => i.Id == user.Id)
+					DateTime? LastLoginDateTime = await m_dbContext.UserLoginHistories.AsNoTracking()
+						.Where(i => i.Id == User.Id)
 						.OrderByDescending(i => i.LoginDate)
 						.Select(i => i.LoginDate)
 						.LastOrDefaultAsync();
@@ -500,7 +498,7 @@ namespace PortalProvider.Providers.Accounts
 						// 로그인 기록 저장
 						await m_dbContext.UserLoginHistories.AddAsync(new UserLoginHistory()
 						{
-							Id = user.Id,
+							Id = User.Id,
 							LoginDate = DateTime.Now
 						});
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -510,198 +508,195 @@ namespace PortalProvider.Providers.Accounts
 						// ignored
 					}
 
-					result.Result = EnumResponseResult.Success;
-					result.IsNeedLogin = false;
-					result.Data = new ResponseLogin();
-					if (roles != null && roles.Count > 0)
-						result.Data.Roles.AddRange(roles);
-					result.Data.Id = user.Id.ToString();
-					result.Data.Email = user.Email;
-					result.Data.Name = user.Name;
-					result.Data.DisplayName = user.GetDisplayName();
-					result.Data.LastLoginDateTIme = lastLoginDateTime;
-					result.Data.ProductType = m_configuration["AppSettings:ProductType"];
+					Result.Result = EnumResponseResult.Success;
+					Result.IsNeedLogin = false;
+					Result.Data = new ResponseLogin();
+					if (Roles != null && Roles.Count > 0)
+						Result.Data.Roles.AddRange(Roles);
+					Result.Data.Id = User.Id.ToString();
+					Result.Data.Email = User.Email;
+					Result.Data.Name = User.Name;
+					Result.Data.DisplayName = User.GetDisplayName();
+					Result.Data.LastLoginDateTIme = LastLoginDateTime;
+					Result.Data.ProductType = m_configuration["AppSettings:ProductType"];
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그아웃 처리</summary>
 		/// <returns>로그아웃 결과</returns>
 		public async Task<ResponseData> Logout()
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				//로그아웃
 				await m_signInManager.SignOutAsync();
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인 여부를 가져온다.</summary>
-		/// <param name="user">로그인 사용자 정보 객체</param>
-		/// <param name="requireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
+		/// <param name="User">로그인 사용자 정보 객체</param>
+		/// <param name="RequireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
 		/// <returns>로그인 여부 정보</returns>
-		public ResponseData CheckLogin(ClaimsPrincipal user, string requireRoles = "")
+		public ResponseData CheckLogin(ClaimsPrincipal User, string RequireRoles = "")
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 로그인한 사용자인 경우
-				if (user != null && user.Identity != null && user.Identity.IsAuthenticated)
+				if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
 				{
 					// 필요한 역할 목록이 존재하는 경우
-					if (!requireRoles.IsEmpty())
+					if (!RequireRoles.IsEmpty())
 					{
 						// 역할 목록을 분리한다.
-						string[] requireRoleList = requireRoles.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+						var RequireRoleList = RequireRoles.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
 						// 모든 역할 목록에 대해서 처리
-						foreach (string requireRole in requireRoleList)
+						foreach (string RequireRole in RequireRoleList)
 						{
 							// 역할이 존재하는 경우
-							if (user.IsInRole(requireRole))
+							if (User.IsInRole(RequireRole))
 							{
-								result.Result = EnumResponseResult.Success;
+								Result.Result = EnumResponseResult.Success;
 								break;
 							}
 						}
 					}
 					else
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
 		/// <returns>로그인 결과</returns>
-		public async Task<ResponseData<ResponseLogin>> GetLogin(ClaimsPrincipal loginUser)
+		public async Task<ResponseData<ResponseLogin>> GetLogin(ClaimsPrincipal LoginUser)
 		{
-			ResponseData<ResponseLogin> result = new ResponseData<ResponseLogin>();
-			NNApplicationUser user;
-
+			var Result = new ResponseData<ResponseLogin>();
 			try
 			{
 				// 로그인한 사용자 계정을 가져온다.
-				user = await m_userManager.GetUserAsync(loginUser);
+				var User = await m_userManager.GetUserAsync(LoginUser);
 
 				//해당 계정을 찾을수 없는 경우
-				if (user == null || user.IsDeleted)
+				if (User == null || User.IsDeleted)
 				{
-					result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-					result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 				}
 				// 해당 계정을 찾은 경우
 				else
 				{
-					DateTime? lastLoginDateTime = await m_dbContext.UserLoginHistories.AsNoTracking()
-																	.Where(i => i.Id == user.Id)
+					DateTime? LastLoginDateTime = await m_dbContext.UserLoginHistories.AsNoTracking()
+																	.Where(i => i.Id == User.Id)
 																	.OrderByDescending(i => i.LoginDate)
 																	.Select(i => i.LoginDate)
 																	.LastOrDefaultAsync();
 
-					result.Result = EnumResponseResult.Success;
-					result.IsNeedLogin = false;
-					result.Data = new ResponseLogin();
-					result.Data.Id = user.Id.ToString();
-					result.Data.LoginId = user.LoginId;
-					result.Data.Email = user.Email;
-					result.Data.Name = user.Name;
-					result.Data.DisplayName = user.GetDisplayName();
-					result.Data.PasswordChangeDate = user.PasswordChangeDate;
-					result.Data.PhoneNumber = user.PhoneNumber;
-					result.Data.LastLoginDateTIme = lastLoginDateTime;
-					result.Data.ProductType = m_configuration["AppSettings:ProductType"];
+					Result.Result = EnumResponseResult.Success;
+					Result.IsNeedLogin = false;
+					Result.Data = new ResponseLogin();
+					Result.Data.Id = User.Id.ToString();
+					Result.Data.LoginId = User.LoginId;
+					Result.Data.Email = User.Email;
+					Result.Data.Name = User.Name;
+					Result.Data.DisplayName = User.GetDisplayName();
+					Result.Data.PasswordChangeDate = User.PasswordChangeDate;
+					Result.Data.PhoneNumber = User.PhoneNumber;
+					Result.Data.LastLoginDateTIme = LastLoginDateTime;
+					Result.Data.ProductType = m_configuration["AppSettings:ProductType"];
 
 					// 역할 목록 저장
-					IList<string> roles = await m_userManager.GetRolesAsync(user);
-					if (roles != null && roles.Count > 0)
-						result.Data.Roles.AddRange(roles);
+					var Roles = await m_userManager.GetRolesAsync(User);
+					if (Roles != null && Roles.Count > 0)
+						Result.Data.Roles.AddRange(Roles);
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>이메일 주소 인증 처리</summary>
-		/// <param name="user">사용자 정보 객체</param>
-		/// <param name="protocol">프로토콜</param>
-		/// <param name="host">호스트</param>
+		/// <param name="User">사용자 정보 객체</param>
+		/// <param name="Protocol">프로토콜</param>
+		/// <param name="Host">호스트</param>
 		/// <returns>인증 처리 결과</returns>
-		private async Task<ResponseData> SendConfirmEmail(NNApplicationUser user, string protocol, string host)
+		private async Task<ResponseData> SendConfirmEmail(NNApplicationUser User, string Protocol, string Host)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (user == null || user.IsDeleted)
+				if (User == null || User.IsDeleted)
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 확인 메일 발송을 위한 토큰을 가져온다.
-					string mailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(user);
+					var MailConfirmToken = await m_userManager.GenerateEmailConfirmationTokenAsync(User);
 
 					// 메일 내용 중 이메일 주소 확인 버튼 클릭 시 돌아올 콜백 URL
-					string callbackUrl;
-					callbackUrl = string.Format("{0}://{1}/{2}?userId={3}&code={4}", protocol, host, "Account/ConfirmEmail", WebUtility.UrlEncode(user.LoginId), WebUtility.UrlEncode(mailConfirmToken));
+					var CallbackUrl = string.Format("{0}://{1}/{2}?userId={3}&Code={4}", Protocol, Host, "Account/ConfirmEmail", WebUtility.UrlEncode(User.LoginId), WebUtility.UrlEncode(MailConfirmToken));
 
 					// 계정 확인 메일에 사용할 대체 문자열 저장
-					Dictionary<string, string> replace = new Dictionary<string, string>();
-					replace.Add("<%CALLBACK_URL%>", callbackUrl);
-					replace.Add("<%DOMAIN%>", string.Format("{0}://{1}", protocol, host));
+					var Replace = new Dictionary<string, string>();
+					Replace.Add("<%CALLBACK_URL%>", CallbackUrl);
+					Replace.Add("<%DOMAIN%>", string.Format("{0}://{1}", Protocol, Host));
 
 					// 메일 발송에 성공한 경우
-					if (await m_emailSender.SendEmailAsync(user.Email, Resource.UL_COMMON_ACCOUNT_MAIL_EMAIL_CONFIRM, m_pathProvider.MapPath("/email/" + Resource.EMAIL_COMMON_ACCOUNT_EMAIL_CONFIRMATION), replace))
+					if (await m_emailSender.SendEmailAsync(User.Email, Resource.UL_COMMON_ACCOUNT_MAIL_EMAIL_CONFIRM, m_pathProvider.MapPath("/Email/" + Resource.EMAIL_COMMON_ACCOUNT_EMAIL_CONFIRMATION), Replace))
 					{
-						result.Result = EnumResponseResult.Success;
-						result.Code = Resource.SC_COMMON__SUCCESS;
-						result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_SEND_CONFIRM_MAIL;
+						Result.Result = EnumResponseResult.Success;
+						Result.Code = Resource.SC_COMMON__SUCCESS;
+						Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_SEND_CONFIRM_MAIL;
 					}
 					// 메일 발송에 실패한 경우
 					else
 					{
-						result.Result = EnumResponseResult.Warning;
-						result.Code = Resource.EC_COMMON__MAIL_SEND_ERROR;
-						result.Message = Resource.EM_COMMON__MAIL_SEND_ERROR;
+						Result.Result = EnumResponseResult.Warning;
+						Result.Code = Resource.EC_COMMON__MAIL_SEND_ERROR;
+						Result.Message = Resource.EM_COMMON__MAIL_SEND_ERROR;
 					}
 				}
 			}
@@ -709,69 +704,68 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>이메일 주소 인증 처리</summary>
-		/// <param name="request">이메일 인증 요청 객체</param>
+		/// <param name="Request">이메일 인증 요청 객체</param>
 		/// <returns>인증 처리 결과</returns>
-		public async Task<ResponseData> ConfirmEmail(RequestConfirmEmail request)
+		public async Task<ResponseData> ConfirmEmail(RequestConfirmEmail Request)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
+			var Result = new ResponseData();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 사용자 아이디로 해당 회원 정보를 가져온다.
-					user = await m_userProvider.GetUserByLoginId(request.LoginId);
+					var User = await m_userProvider.GetUserByLoginId(Request.LoginId);
 
 					// 회원 정보가 유효하지 않은 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 이메일 확인 처리된 회원인 경우
-						if (user.EmailConfirmed)
+						if (User.EmailConfirmed)
 						{
-							result.Result = EnumResponseResult.Success;
-							result.Code = Resource.SC_COMMON__SUCCESS;
-							result.Message = Resource.SM_COMMON_ACCOUNT_EMAIL_CONFIRM_SUCCESS;
+							Result.Result = EnumResponseResult.Success;
+							Result.Code = Resource.SC_COMMON__SUCCESS;
+							Result.Message = Resource.SM_COMMON_ACCOUNT_EMAIL_CONFIRM_SUCCESS;
 						}
 						// 이메일 확인 처리되지 않은 회원인 경우
 						else
 						{
 							// 이메일 확인 처리
-							IdentityResult identityResult = await m_userManager.ConfirmEmailAsync(user, request.Code);
+							var IdentityResult = await m_userManager.ConfirmEmailAsync(User, Request.Code);
 
 							// 이메일 확인 처리에 성공한 경우
-							if (identityResult.Succeeded)
+							if (IdentityResult.Succeeded)
 							{
-								result.Result = EnumResponseResult.Success;
-								result.Code = Resource.SC_COMMON__SUCCESS;
-								result.Message = Resource.SM_COMMON_ACCOUNT_EMAIL_CONFIRM_SUCCESS;
+								Result.Result = EnumResponseResult.Success;
+								Result.Code = Resource.SC_COMMON__SUCCESS;
+								Result.Message = Resource.SM_COMMON_ACCOUNT_EMAIL_CONFIRM_SUCCESS;
 							}
 							// 이메일 확인 처리에 실패한 경우
 							else
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
-								result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_INVALID_TOKEN;
+								Result.Message = Resource.EM_COMMON_ACCOUNT_INVALID_TOKEN;
 							}
 						}
 					}
@@ -781,72 +775,71 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>현재 로그인한 사용자의 비밀번호를 변경한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="request">비밀번호 요청 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="Request">비밀번호 요청 객체</param>
 		/// <returns>비밀번호 변경 결과</returns>
-		public async Task<ResponseData> ChangePassword(ClaimsPrincipal loginUser, RequestChangePassword request)
+		public async Task<ResponseData> ChangePassword(ClaimsPrincipal LoginUser, RequestChangePassword Request)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
+			var Result = new ResponseData();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 현재 비밀번호와 변경하려는 비밀번호가 일치하는 경우
-				else if (request.Password == request.NewPassword)
+				else if (Request.Password == Request.NewPassword)
 				{
-					result.Code = Resource.EC_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME;
-					result.Message = Resource.EM_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME;
+					Result.Code = Resource.EC_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME;
+					Result.Message = Resource.EM_COMMON_ACCOUNT_CURRENT_PASSWORD_NEW_PASSWORD_SHOULD_NOT_BE_SAME;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 로그인한 사용자 계정을 가져온다.
-					user = await m_userManager.GetUserAsync(loginUser);
+					var User = await m_userManager.GetUserAsync(LoginUser);
 
 					//해당 계정을 찾을수 없는 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 해당 계정을 찾은 경우
 					else
 					{
 						// 비밀번호 변경
-						IdentityResult identityResult = await m_userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
+						var IdentityResult = await m_userManager.ChangePasswordAsync(User, Request.Password, Request.NewPassword);
 
 						// 비밀번호 변경에 성공한 경우
-						if (identityResult.Succeeded)
+						if (IdentityResult.Succeeded)
 						{
 							// 비밀번호 변경 일시를 지금으로 저장
-							user.PasswordChangeDate = DateTime.Now;
-							await m_userManager.UpdateAsync(user);
+							User.PasswordChangeDate = DateTime.Now;
+							await m_userManager.UpdateAsync(User);
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-							result.Result = EnumResponseResult.Success;
-							result.Code = Resource.SC_COMMON__SUCCESS;
-							result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CHANGE_PASSWORD;
+							Result.Result = EnumResponseResult.Success;
+							Result.Code = Resource.SC_COMMON__SUCCESS;
+							Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_CHANGE_PASSWORD;
 						}
 						// 비밀번호 변경에 실패한 경우
 						else
 						{
 							// 에러 내용 저장
-							result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_CHANGE_PASSWORD;
-							result.Message = identityResult.Errors.FirstOrDefault() == null ? "" : identityResult.Errors.FirstOrDefault()?.Description;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_CHANGE_PASSWORD;
+							Result.Message = IdentityResult.Errors.FirstOrDefault() == null ? "" : IdentityResult.Errors.FirstOrDefault()?.Description;
 						}
 					}
 				}
@@ -856,85 +849,83 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>비밀번호 찾기 요청</summary>
-		/// <param name="request">비밀번호 찾기 요청 객체</param>
-		/// <param name="httpRequest">HttpRequest 객체</param>
+		/// <param name="Request">비밀번호 찾기 요청 객체</param>
+		/// <param name="HttpRequest">HttpRequest 객체</param>
 		/// <returns>비밀번호 찾기 요청 처리 결과</returns>
-		public async Task<ResponseData> ForgotPassword(RequestForgetPassword request, HttpRequest httpRequest)
+		public async Task<ResponseData> ForgotPassword(RequestForgetPassword Request, HttpRequest HttpRequest)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
+			var Result = new ResponseData();
 
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 사용자 아이디로 해당 회원 정보를 가져온다.
-					user = await m_userProvider.GetUserByLoginId(request.LoginId);
+					var User = await m_userProvider.GetUserByLoginId(Request.LoginId);
 
 					// 회원 정보가 유효하지 않은 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
 						// 에러 출력
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 
 						//// 외부 해킹을 통해서 가입자 확인이 불가능하도록 하기 위해서 성공 반환
-						//result.Result = EnumResponseResult.Success;
+						//Result.Result = EnumResponseResult.Success;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 이메일 인증이 되지 않은 경우
-						if (await m_userManager.IsEmailConfirmedAsync(user) == false)
+						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
-							result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
 						}
 						// 이메일 인증이 된 경우
 						else
 						{
 							// 비밀번호 재설정 토큰 생성
-							string code = await m_userManager.GeneratePasswordResetTokenAsync(user);
+							var Code = await m_userManager.GeneratePasswordResetTokenAsync(User);
 
 							// 프로토콜과 호스트 저장
-							string protocol = request.Protocol.IsEmpty() ? httpRequest.Scheme : request.Protocol;
-							string host = request.Host.IsEmpty() ? httpRequest.Host.ToString() : request.Host;
+							var Protocol = Request.Protocol.IsEmpty() ? HttpRequest.Scheme : Request.Protocol;
+							var Host = Request.Host.IsEmpty() ? HttpRequest.Host.ToString() : Request.Host;
 
 							// 메일 내용 중 이메일 주소 확인 버튼 클릭 시 돌아올 콜백 URL
-							string callbackUrl;
-							callbackUrl = string.Format("{0}://{1}/{2}?userId={3}&code={4}", protocol, host, "Account/ResetPassword", WebUtility.UrlEncode(user.LoginId), WebUtility.UrlEncode(code));
+							string CallbackUrl = string.Format("{0}://{1}/{2}?userId={3}&Code={4}", Protocol, Host, "Account/ResetPassword", WebUtility.UrlEncode(User.LoginId), WebUtility.UrlEncode(Code));
 
 							// 계정 확인 메일에 사용할 대체 문자열 저장
-							Dictionary<string, string> replace = new Dictionary<string, string>();
-							replace.Add("<%CALLBACK_URL%>", callbackUrl);
-							replace.Add("<%DOMAIN%>", string.Format("{0}://{1}", protocol, host));
+							var Replace = new Dictionary<string, string>();
+							Replace.Add("<%CALLBACK_URL%>", CallbackUrl);
+							Replace.Add("<%DOMAIN%>", string.Format("{0}://{1}", Protocol, Host));
 
 							// 메일 발송에 성공한 경우
-							if (await m_emailSender.SendEmailAsync(user.Email, Resource.UL_COMMON_ACCOUNT_MAIL_PASSWORD_RESET, m_pathProvider.MapPath("/email/" + Resource.EMAIL_COMMON_ACCOUNT_RESET_PASSWORD), replace))
+							if (await m_emailSender.SendEmailAsync(User.Email, Resource.UL_COMMON_ACCOUNT_MAIL_PASSWORD_RESET, m_pathProvider.MapPath("/Email/" + Resource.EMAIL_COMMON_ACCOUNT_RESET_PASSWORD), Replace))
 							{
-								result.Result = EnumResponseResult.Success;
-								result.Code = Resource.SC_COMMON__SUCCESS;
-								result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_SEND_RESET_MAIL;
+								Result.Result = EnumResponseResult.Success;
+								Result.Code = Resource.SC_COMMON__SUCCESS;
+								Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_SEND_RESET_MAIL;
 							}
 							// 메일 발송에 실패한 경우
 							else
 							{
-								result.Code = Resource.EC_COMMON__MAIL_SEND_ERROR;
-								result.Message = Resource.EM_COMMON__MAIL_SEND_ERROR;
+								Result.Code = Resource.EC_COMMON__MAIL_SEND_ERROR;
+								Result.Message = Resource.EM_COMMON__MAIL_SEND_ERROR;
 							}
 						}
 					}
@@ -944,72 +935,70 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>비밀번호 재설정</summary>
-		/// <param name="request">비밀번호 재설정 요청 객체</param>
+		/// <param name="Request">비밀번호 재설정 요청 객체</param>
 		/// <returns>비밀번호 재설정 결과</returns>
-		public async Task<ResponseData> ResetPassword(RequestResetPassword request)
+		public async Task<ResponseData> ResetPassword(RequestResetPassword Request)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
-
+			var Result = new ResponseData();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 사용자 아이디로 해당 회원 정보를 가져온다.
-					user = await m_userProvider.GetUserByLoginId(request.LoginId);
+					var User = await m_userProvider.GetUserByLoginId(Request.LoginId);
 
 					// 회원 정보가 유효하지 않은 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 이메일 인증이 되지 않은 경우
-						if (await m_userManager.IsEmailConfirmedAsync(user) == false)
+						if (await m_userManager.IsEmailConfirmedAsync(User) == false)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
-							result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_IS_NOT_AUTH_EMAIL;
 						}
 						// 이메일 인증이 된 경우
 						else
 						{
 							// 비밀번호 재설정
-							IdentityResult identityResult = await m_userManager.ResetPasswordAsync(user, request.Code, request.NewPassword);
+							var IdentityResult = await m_userManager.ResetPasswordAsync(User, Request.Code, Request.NewPassword);
 
 							// 이메일 확인 처리에 성공한 경우
-							if (identityResult.Succeeded)
+							if (IdentityResult.Succeeded)
 							{
 								// 비밀번호 변경 일시를 지금으로 저장
-								user.PasswordChangeDate = DateTime.Now;
-								await m_userManager.UpdateAsync(user);
+								User.PasswordChangeDate = DateTime.Now;
+								await m_userManager.UpdateAsync(User);
 								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-								result.Result = EnumResponseResult.Success;
-								result.Code = Resource.SC_COMMON__SUCCESS;
-								result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_RESET_PASSWORD;
+								Result.Result = EnumResponseResult.Success;
+								Result.Code = Resource.SC_COMMON__SUCCESS;
+								Result.Message = Resource.SM_COMMON_ACCOUNT_SUCCESS_RESET_PASSWORD;
 							}
 							// 이메일 확인 처리에 실패한 경우
 							else
 							{
-								result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_RESET_PASSWORD;
-								result.Message = identityResult.Errors.FirstOrDefault() == null ? "" : identityResult.Errors.FirstOrDefault()?.Description;
+								Result.Code = Resource.EC_COMMON_ACCOUNT_FAIL_TO_RESET_PASSWORD;
+								Result.Message = IdentityResult.Errors.FirstOrDefault() == null ? "" : IdentityResult.Errors.FirstOrDefault()?.Description;
 							}
 						}
 					}
@@ -1019,56 +1008,54 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>현재 로그인한 사용자 정보를 수정한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="request">회원 정보 수정 요청 객체</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="Request">회원 정보 수정 요청 객체</param>
 		/// <returns>사용자 정보 수정 결과</returns>
-		public async Task<ResponseData> Update(ClaimsPrincipal loginUser, RequestUpdate request)
+		public async Task<ResponseData> Update(ClaimsPrincipal LoginUser, RequestUpdate Request)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
-
+			var Result = new ResponseData();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
+				if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 로그인한 사용자 계정을 가져온다.
-					user = await m_userManager.GetUserAsync(loginUser);
+					var User = await m_userManager.GetUserAsync(LoginUser);
 
 					//해당 계정을 찾을수 없는 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 해당 계정을 찾은 경우
 					else
 					{
 						// 사용자 정보 변경
-						user.Name = request.Name;
-						user.PhoneNumber = request.PhoneNumber;
-						await m_userManager.UpdateAsync(user);
+						User.Name = Request.Name;
+						User.PhoneNumber = Request.PhoneNumber;
+						await m_userManager.UpdateAsync(User);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						result.Result = EnumResponseResult.Success;
-						result.Code = Resource.SC_COMMON__SUCCESS;
-						result.Message = Resource.SM_COMMON__UPDATED;
+						Result.Result = EnumResponseResult.Success;
+						Result.Code = Resource.SC_COMMON__SUCCESS;
+						Result.Message = Resource.SM_COMMON__UPDATED;
 					}
 				}
 
@@ -1077,56 +1064,54 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 사용자에게 역할을 추가한다.</summary>
-		/// <param name="id">회원아이디</param>
-		/// <param name="roleName">역할명</param>
+		/// <param name="Id">회원아이디</param>
+		/// <param name="RoleName">역할명</param>
 		/// <returns>역할 추가 결과</returns>
-		public async Task<ResponseData> AddToRole(string id, string roleName)
+		public async Task<ResponseData> AddToRole(string Id, string RoleName)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
-
+			var Result = new ResponseData();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (id.IsEmpty() || roleName.IsEmpty())
+				if (Id.IsEmpty() || RoleName.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					result.Message = Resource.EM_COMMON__INVALID_REQUEST;
+					Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Message = Resource.EM_COMMON__INVALID_REQUEST;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 회원아이디로로 해당 회원 정보를 가져온다.
-					user = await m_userProvider.GetUserById(id);
+					var User = await m_userProvider.GetUserById(Id);
 
 					// 회원 정보가 유효하지 않은 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 해당 인증이 포함되어 있지 않은 경우
-						if (!await m_userManager.IsInRoleAsync(user, roleName))
+						if (!await m_userManager.IsInRoleAsync(User, RoleName))
 						{
-							await m_userManager.AddToRoleAsync(user, roleName);
-							result.Result = EnumResponseResult.Success;
+							await m_userManager.AddToRoleAsync(User, RoleName);
+							Result.Result = EnumResponseResult.Success;
 						}
 						// 해당 인증이 포함되어 있는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Warning;
-							result.Code = Resource.EC_COMMON__ALREADY_EXIST;
-							result.Message = Resource.EM_COMMON__ALREADY_EXIST;
+							Result.Result = EnumResponseResult.Warning;
+							Result.Code = Resource.EC_COMMON__ALREADY_EXIST;
+							Result.Message = Resource.EM_COMMON__ALREADY_EXIST;
 						}
 					}
 				}
@@ -1135,49 +1120,47 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 사용자에서 역할을 삭제한다.</summary>
-		/// <param name="id">회원아이디</param>
-		/// <param name="roleName">역할명</param>
+		/// <param name="Id">회원아이디</param>
+		/// <param name="RoleName">역할명</param>
 		/// <returns>역할 삭제 결과</returns>
-		public async Task<ResponseData> RemoveFromRole(string id, string roleName)
+		public async Task<ResponseData> RemoveFromRole(string Id, string RoleName)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
-
+			var Result = new ResponseData();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (id.IsEmpty() || roleName.IsEmpty())
+				if (Id.IsEmpty() || RoleName.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					result.Message = Resource.EM_COMMON__INVALID_REQUEST;
+					Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Message = Resource.EM_COMMON__INVALID_REQUEST;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 회원아이디로로 해당 회원 정보를 가져온다.
-					user = await m_userProvider.GetUserById(id);
+					var User = await m_userProvider.GetUserById(Id);
 
 					// 회원 정보가 유효하지 않은 경우
-					if (user == null || user.IsDeleted)
+					if (User == null || User.IsDeleted)
 					{
-						result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-						result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+						Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 					}
 					// 회원 정보가 유효한 경우
 					else
 					{
 						// 해당 인증이 포함되어 있는 경우
-						if (await m_userManager.IsInRoleAsync(user, roleName))
+						if (await m_userManager.IsInRoleAsync(User, RoleName))
 						{
-							await m_userManager.RemoveFromRoleAsync(user, roleName);
-							result.Result = EnumResponseResult.Success;
+							await m_userManager.RemoveFromRoleAsync(User, RoleName);
+							Result.Result = EnumResponseResult.Success;
 						}
 					}
 				}
@@ -1186,10 +1169,10 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인한 사용자에 대한 권한 목록을 가져온다.</summary>
@@ -1197,38 +1180,36 @@ namespace PortalProvider.Providers.Accounts
 		/// <returns>로그인한 사용자에 대한 사용자 목록</returns>
 		public async Task<ResponseList<ResponseClaim>> GetClaims(ClaimsPrincipal loginUser)
 		{
-			ResponseList<ResponseClaim> result = new ResponseList<ResponseClaim>();
-			NNApplicationUser user;
-
+			var Result = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 로그인한 사용자 계정을 가져온다.
-				user = await m_userManager.GetUserAsync(loginUser);
+				var User = await m_userManager.GetUserAsync(loginUser);
 
 				//해당 계정을 찾을수 없는 경우
-				if (user == null || user.IsDeleted)
+				if (User == null || User.IsDeleted)
 				{
-					result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-					result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 				}
 				// 해당 계정을 찾은 경우
 				else
 				{
 					// 해당 사용자의 역할을 가져온다.
-					List<string> roleNames = (List<string>)await m_userManager.GetRolesAsync(user);
-					if (roleNames == null)
-						roleNames = new List<string>();
+					var RoleNames = (List<string>)await m_userManager.GetRolesAsync(User);
+					if (RoleNames == null)
+						RoleNames = new List<string>();
 
 					// 해당 사용자의 역할 권한 및 사용자 권한을 가져온다.
-					result.Data = await m_dbContext.ClaimNames.AsNoTracking()
+					Result.Data = await m_dbContext.ClaimNames.AsNoTracking()
 													.Where(i =>
 														(
 															m_dbContext.RoleClaims
-																.Any(j => roleNames.Contains(j.Role.Name)
+																.Any(j => RoleNames.Contains(j.Role.Name)
 																		  && j.ClaimType == "Permission"
 																		  && j.ClaimValue == i.ClaimValue)
 															|| m_dbContext.UserClaims
-																.Any(j => j.UserId == user.Id
+																.Any(j => j.UserId == User.Id
 																		  && j.ClaimType == "Permission"
 																		  && j.ClaimValue == i.ClaimValue)
 														)
@@ -1237,72 +1218,70 @@ namespace PortalProvider.Providers.Accounts
 													.CreateListAsync<ClaimName, ResponseClaim>();
 
 					// 데이터가 존재하는 경우, 가져온 권한 중 중복 제거 처리
-					if (result.Data.Items.Count > 0)
+					if (Result.Data.Items.Count > 0)
 					{
-						List<ResponseClaim> distinctClaims = result.Data.Items.Distinct(new ResponseClaimEqualityComparer()).ToList();
-						result.Data.TotalCount = distinctClaims.Count;
-						result.Data.Items.Clear();
-						result.Data.Items.AddRange(distinctClaims);
+						var DistinctClaims = Result.Data.Items.Distinct(new ResponseClaimEqualityComparer()).ToList();
+						Result.Data.TotalCount = DistinctClaims.Count;
+						Result.Data.Items.Clear();
+						Result.Data.Items.AddRange(DistinctClaims);
 					}
-					result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그인한 사용자의 권한 중 해당 권한이 존재하는지 확인한다.</summary>
-		/// <param name="loginUser">로그인 사용자 정보 객체</param>
-		/// <param name="claimValue">검사할 권한 값</param>
+		/// <param name="LoginUser">로그인 사용자 정보 객체</param>
+		/// <param name="ClaimValue">검사할 권한 값</param>
 		/// <returns>로그인한 사용자의 권한 중 해당 권한이 존재하는지 여부</returns>
-		public async Task<ResponseData> HasClaim(ClaimsPrincipal loginUser, string claimValue)
+		public async Task<ResponseData> HasClaim(ClaimsPrincipal LoginUser, string ClaimValue)
 		{
-			ResponseData result = new ResponseData();
-			NNApplicationUser user;
-
+			var Result = new ResponseData();
 			try
 			{
 				// 로그인한 사용자 계정을 가져온다.
-				user = await m_userManager.GetUserAsync(loginUser);
+				var User = await m_userManager.GetUserAsync(LoginUser);
 
 				//해당 계정을 찾을수 없는 경우
-				if (user == null || user.IsDeleted)
+				if (User == null || User.IsDeleted)
 				{
-					result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-					result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+					Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 				}
 				// 해당 계정을 찾은 경우
 				else
 				{
 					// 해당 사용자의 역할을 가져온다.
-					List<string> roleNames = (List<string>)await m_userManager.GetRolesAsync(user);
-					if (roleNames == null)
-						roleNames = new List<string>();
+					var RoleNames = (List<string>)await m_userManager.GetRolesAsync(User);
+					if (RoleNames == null)
+						RoleNames = new List<string>();
 
 					// 해당 사용자의 역할 권한 및 사용자 권한에서 해당 권한이 있는 경우
 					if (await m_dbContext.RoleClaims.AsNoTracking()
-														.Where(i => roleNames.Contains(i.Role.Name)
+														.Where(i => RoleNames.Contains(i.Role.Name)
 															&& i.ClaimType == "Permission"
-															&& i.ClaimValue == claimValue)
+															&& i.ClaimValue == ClaimValue)
 														.AnyAsync()
 						|| await m_dbContext.UserClaims.AsNoTracking()
-														.Where(i => i.UserId == user.Id
+														.Where(i => i.UserId == User.Id
 															&& i.ClaimType == "Permission"
-															&& i.ClaimValue == claimValue)
+															&& i.ClaimValue == ClaimValue)
 														.AnyAsync()
 					)
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 					else
 					{
-						result.AccessDenied = true;
-						result.Code = Resource.EC_COMMON__ACCESS_DENIED;
-						result.Message = Resource.EM_COMMON__ACCESS_DENIED;
+						Result.AccessDenied = true;
+						Result.Code = Resource.EC_COMMON__ACCESS_DENIED;
+						Result.Message = Resource.EM_COMMON__ACCESS_DENIED;
 					}
 				}
 			}
@@ -1310,10 +1289,10 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 	}
 

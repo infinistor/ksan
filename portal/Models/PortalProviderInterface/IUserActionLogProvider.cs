@@ -22,28 +22,28 @@ namespace PortalProviderInterface
 	public interface IUserActionLogProvider : IBaseProvider
 	{
 		/// <summary>로그를 등록한다.</summary>
-		/// <param name="level">로그레벨</param>
-		/// <param name="user">사용자 정보</param>
-		/// <param name="ipAddress">아이피 주소</param>
-		/// <param name="messageFormat">로그 내용 형식</param>
-		/// <param name="messageValues">로그 내용 값</param>
+		/// <param name="Level">로그레벨</param>
+		/// <param name="User">사용자 정보</param>
+		/// <param name="IpAddress">아이피 주소</param>
+		/// <param name="MessageFormat">로그 내용 형식</param>
+		/// <param name="MessageValues">로그 내용 값</param>
 		/// <returns>등록결과</returns>
-		Task<ResponseData> Add(EnumLogLevel level, NNApplicationUser user, string ipAddress, string messageFormat, params object[] messageValues);
+		Task<ResponseData> Add(EnumLogLevel Level, NNApplicationUser User, string IpAddress, string MessageFormat, params object[] MessageValues);
 
 		/// <summary>로그 목록을 반환한다.</summary>
-		/// <param name="searchStartDate">검색 시작 일시</param>
-		/// <param name="searchEndDate">검색 종료 일시</param>
-		/// <param name="levels">로그 레벨 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수</param>
-		/// <param name="searchFields">검색필드목록 (Email, LoginId, Name, Code, Message)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="SearchStartDate">검색 시작 일시</param>
+		/// <param name="SearchEndDate">검색 종료 일시</param>
+		/// <param name="Levels">로그 레벨 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수</param>
+		/// <param name="SearchFields">검색필드목록 (Email, LoginId, Name, Code, Message)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>로그 목록</returns>
 		Task<ResponseList<ResponseUserActionLog>> GetLogs(
-			DateTime searchStartDate, DateTime searchEndDate,
-			List<EnumLogLevel> levels,
-			int skip = 0, int countPerPage = 100,
-			List<string> searchFields = null, string searchKeyword = ""
+			DateTime SearchStartDate, DateTime SearchEndDate,
+			List<EnumLogLevel> Levels,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		);
 	}
 }
