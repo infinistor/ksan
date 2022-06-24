@@ -213,7 +213,7 @@ namespace PortalProvider.Providers.Accounts
 				if (Request.KeyValue.IsEmpty())
 					Request.KeyValue = Guid.NewGuid().ToString().GetSHA256Hash();
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -290,7 +290,7 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 데이터가 존재하는 경우
 					else
 					{
-						using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 						{
 							try
 							{

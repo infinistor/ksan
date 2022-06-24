@@ -165,7 +165,7 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -229,7 +229,7 @@ namespace PortalProvider.Providers.Services
 				if (MyVersion.LastVersion)
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_UPDATE, Resource.EM_CONFIGS_ALREADY_LAST_VERSION);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -298,7 +298,7 @@ namespace PortalProvider.Providers.Services
 				// 해당 버전이 최신버전일 경우 삭제 불가
 				if (MyVersion.LastVersion) return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_DELETE_MAY_BE_IN_USE, Resource.EM_CONFIGS_LIST_VERSION_CANNOT_DELETE);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{

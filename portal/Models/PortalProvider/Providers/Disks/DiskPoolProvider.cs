@@ -106,7 +106,7 @@ namespace PortalProvider.Providers.Disks
 						return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -228,7 +228,7 @@ namespace PortalProvider.Providers.Disks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -326,7 +326,7 @@ namespace PortalProvider.Providers.Disks
 				if (Exist == null)
 					return new ResponseData(Result.Result = EnumResponseResult.Success);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
