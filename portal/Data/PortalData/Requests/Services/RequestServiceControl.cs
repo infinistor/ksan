@@ -17,6 +17,9 @@ namespace PortalData.Requests.Services
 	{
 		/// <summary>서비스 아이디</summary>
 		public string Id { get; set; }
+		
+		/// <summary>서비스 종류</summary>
+		public EnumServiceType ServiceType { get; set; }
 
 		/// <summary>서비스 제어 명령</summary>
 		public EnumServiceControl Control { get; set; }
@@ -28,12 +31,14 @@ namespace PortalData.Requests.Services
 		}
 
 		/// <summary>생성자</summary>
-		/// <param name="id">서비스 아이디</param>
-		/// <param name="control">서비스 제어 명령</param>
-		public RequestServiceControl(string id, EnumServiceControl control)
+		/// <param name="Id">서비스 아이디</param>
+		/// <param name="ServiceType">서비스 종류</param>
+		/// <param name="Control">서비스 제어 명령</param>
+		public RequestServiceControl(string Id, EnumServiceType ServiceType, EnumServiceControl Control)
 		{
-			Id = id;
-			Control = control;
+			this.Id = Id;
+			this.ServiceType = ServiceType;
+			this.Control = Control;
 		}
 	}
 }
