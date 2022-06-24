@@ -1622,4 +1622,7 @@
   <data name="EM_CONFIGS_LIST_VERSION_CANNOT_DELETE" xml:space="preserve">
     <value>마지막 버전은 삭제할 수 없습니다.</value>
   </data>
+  <data name="EM_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>포트가 유효하지 않습니다.</value>
+  </data>
 </root>

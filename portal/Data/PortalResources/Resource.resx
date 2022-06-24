@@ -1768,4 +1768,16 @@
     <value>The last version cannot be deleted.</value>
     <comment>마지막 버전은 삭제할 수 없습니다.</comment>
   </data>
+  <data name="EC_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>EC016</value>
+    <comment>포트가 유효하지 않습니다.</comment>
+  </data>
+  <data name="EM_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>Invalid Port</value>
+    <comment>포트가 유효하지 않습니다.</comment>
+  </data>
+  <data name="UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME" xml:space="preserve">
+    <value>STANDARD</value>
+    <comment>기본 디스크풀 명</comment>
+  </data>
 </root>
