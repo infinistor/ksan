@@ -330,7 +330,7 @@ namespace PortalProvider.Providers.Accounts
 				if (User == null || User.IsDeleted)
 					return new ResponseData(EnumResponseResult.Warning, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{

@@ -755,7 +755,7 @@ namespace PortalProvider.Providers.Accounts
 					// 해당 역할이 존재하는 경우
 					else
 					{
-						using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 						{
 							try
 							{

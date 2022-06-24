@@ -117,7 +117,7 @@ namespace PortalProvider.Providers.Networks
 				if (Response.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseNetworkInterface>(EnumResponseResult.Error, Response.Code, Response.Message);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -246,7 +246,7 @@ namespace PortalProvider.Providers.Networks
 				var ExistVlan = await m_dbContext.NetworkInterfaceVlans
 					.FirstOrDefaultAsync(i => i.InterfaceId == GuidId && i.Tag == 1);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -404,7 +404,7 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -493,7 +493,7 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -597,7 +597,7 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Success);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{

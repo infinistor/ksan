@@ -108,7 +108,7 @@ namespace PortalProvider.Providers.Networks
 				if (ResponseExist.Data)
 					return new ResponseData<ResponseNetworkInterfaceVlan>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_NETWORKS_NETWORK_INTERFACE_VLAN_DUPLICATED_TAG);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -219,7 +219,7 @@ namespace PortalProvider.Providers.Networks
 				if (Exist.Tag == 1)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_NETWORKS_NETWORK_INTERFACE_VLAN_RESERVED_TAG_IS_READ_ONLY);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -308,7 +308,7 @@ namespace PortalProvider.Providers.Networks
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Success);
 
-				using (IDbContextTransaction Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
