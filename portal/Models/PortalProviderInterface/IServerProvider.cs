@@ -21,75 +21,80 @@ namespace PortalProviderInterface
 	public interface IServerProvider : IBaseProvider
 	{
 		/// <summary>서버 등록</summary>
-		/// <param name="request">서버 등록 요청 객체</param>
+		/// <param name="Request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
-		Task<ResponseData<ResponseServerDetail>> Add(RequestServer request);
+		Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request);
+
+		/// <summary>서버 초기화</summary>
+		/// <param name="Request">서버 초기화 요청 객체</param>
+		/// <returns>서버 초기화 결과 객체</returns>
+		Task<ResponseData> Initialize(RequestServerInitialize Request);
 
 		/// <summary>서버 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="request">서버 수정 요청 객체</param>
+		/// <param name="Id">서버 아이디</param>
+		/// <param name="Request">서버 수정 요청 객체</param>
 		/// <returns>서버 수정 결과 객체</returns>
-		Task<ResponseData> Update(string id, RequestServer request);
+		Task<ResponseData> Update(string Id, RequestServer Request);
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="state">서버 상태</param>
-		/// <param name="modId">수정자 아이디</param>
-		/// <param name="modName">수정자명</param>
+		/// <param name="Id">서버 아이디</param>
+		/// <param name="State">서버 상태</param>
+		/// <param name="ModId">수정자 아이디</param>
+		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(string id, EnumServerState state, string modId = "", string modName = "");
+		Task<ResponseData> UpdateState(string Id, EnumServerState State, string ModId = "", string ModName = "");
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="request">서버 상태 수정 요청 객체</param>
-		/// <param name="modId">수정자 아이디</param>
-		/// <param name="modName">수정자명</param>
+		/// <param name="Request">서버 상태 수정 요청 객체</param>
+		/// <param name="ModId">수정자 아이디</param>
+		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		Task<ResponseData> UpdateState(RequestServerState request, string modId = "", string modName = "");
+		Task<ResponseData> UpdateState(RequestServerState Request, string ModId = "", string ModName = "");
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="loadAverage1M">1분 Load Average</param>
-		/// <param name="loadAverage5M">5분 Load Average</param>
-		/// <param name="loadAverage15M">15분 Load Average</param>
-		/// <param name="memoryUsed">서버 아이디</param>
+		/// <param name="Id">서버 아이디</param>
+		/// <param name="LoadAverage1M">1분 Load Average</param>
+		/// <param name="LoadAverage5M">5분 Load Average</param>
+		/// <param name="LoadAverage15M">15분 Load Average</param>
+		/// <param name="MemoryUsed">서버 아이디</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
-		Task<ResponseData> UpdateUsage(string id, float loadAverage1M, float loadAverage5M, float loadAverage15M, decimal memoryUsed);
+		Task<ResponseData> UpdateUsage(string Id, float LoadAverage1M, float LoadAverage5M, float LoadAverage15M, decimal MemoryUsed);
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="request">서버 사용 정보 수정 요청 객체</param>
+		/// <param name="Request">서버 사용 정보 수정 요청 객체</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
-		Task<ResponseData> UpdateUsage(RequestServerUsage request);
+		Task<ResponseData> UpdateUsage(RequestServerUsage Request);
 
 		/// <summary>서버 삭제</summary>
-		/// <param name="id">서버 아이디</param>
+		/// <param name="Id">서버 아이디</param>
 		/// <returns>서버 삭제 결과 객체</returns>
-		Task<ResponseData> Remove(string id);
+		Task<ResponseData> Remove(string Id);
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="searchStates">검색할 서버 상태 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> searchStates,
-			int skip = 0, int countPerPage = 100,
-			List<string> orderFields = null, List<string> orderDirections = null,
-			List<string> searchFields = null, string searchKeyword = ""
+			List<EnumServerState> SearchStates,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		);
 
 		/// <summary>서버 정보를 가져온다.</summary>
-		/// <param name="id">서버 아이디</param>
+		/// <param name="Id">서버 아이디</param>
 		/// <returns>서버 정보 객체</returns>
-		Task<ResponseData<ResponseServerDetail>> Get(string id);
+		Task<ResponseData<ResponseServerDetail>> Get(string Id);
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
-		/// <param name="exceptId">이름 검색 시 제외할 서버 아이디</param>
-		/// <param name="request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
+		/// <param name="Request">특정 이름의 서버 존재여부 확인 요청 객체</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		Task<ResponseData<bool>> IsNameExist(string exceptId, RequestIsServerNameExist request);
+		Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsServerNameExist Request);
 	}
 }
