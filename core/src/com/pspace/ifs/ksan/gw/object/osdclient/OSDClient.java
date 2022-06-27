@@ -114,12 +114,12 @@ public class OSDClient {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
 			md5er.update(buffer, 0, readLength);
-			logger.debug(GWConstants.LOG_OSDCLIENT_READ, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}
 		}
 		byPassOut.flush();
+		logger.debug(GWConstants.LOG_OSDCLIENT_READ, readTotal);
 
 		return readTotal;
 	}
