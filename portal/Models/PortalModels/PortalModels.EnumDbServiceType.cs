@@ -20,6 +20,8 @@ namespace PortalModels
 		S3Backend,
 		HaProxy,
 		Monitor,
-		Edge
+		Edge,
+		MariaDB,
+		MongoDB
 	}
 }

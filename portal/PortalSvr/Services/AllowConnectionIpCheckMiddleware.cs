@@ -119,7 +119,7 @@ namespace PortalSvr.Services
 		/// <returns>항상 허용되는 URL 경로인지 여부</returns>
 		private bool IsAlwaysAllowPath(HttpRequest httpRequest)
 		{
-			bool result = false;
+			bool Result = false;
 
 			try
 			{
@@ -128,13 +128,13 @@ namespace PortalSvr.Services
 				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/logout")
 				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/needlogin")
 				)
-					result = true;
+					Result = true;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 

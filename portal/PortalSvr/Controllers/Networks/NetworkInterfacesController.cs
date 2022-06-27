@@ -55,129 +55,129 @@ namespace PortalSvr.Controllers.Networks
 		}
 
 		/// <summary>네트워크 인터페이스 정보를 추가한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="request">네트워크 인터페이스 정보 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Request">네트워크 인터페이스 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseNetworkInterface>))]
-		[HttpPost("{serverId}")]
-		public async Task<ActionResult> Add([FromRoute] string serverId, [FromBody] RequestNetworkInterface request)
+		[HttpPost("{ServerId}")]
+		public async Task<ActionResult> Add([FromRoute] string ServerId, [FromBody] RequestNetworkInterface Request)
 		{
-			return Json(await m_dataProvider.Add(serverId, request));
+			return Json(await m_dataProvider.Add(ServerId, Request));
 		}
 
 		/// <summary>네트워크 인터페이스 정보를 수정한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">네트워크 인터페이스 아이디</param>
-		/// <param name="request">네트워크 인터페이스 정보 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 아이디</param>
+		/// <param name="Request">네트워크 인터페이스 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{serverId}/{id}")]
-		public async Task<ActionResult> Update([FromRoute] string serverId, [FromRoute] string id, [FromBody] RequestNetworkInterface request)
+		[HttpPut("{ServerId}/{Id}")]
+		public async Task<ActionResult> Update([FromRoute] string ServerId, [FromRoute] string Id, [FromBody] RequestNetworkInterface Request)
 		{
-			return Json(await m_dataProvider.Update(serverId, id, request));
+			return Json(await m_dataProvider.Update(ServerId, Id, Request));
 		}
 
 		/// <summary>네트워크 인터페이스 상태를 수정한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">네트워크 인터페이스 아이디</param>
-		/// <param name="state">네트워크 인터페이스 링크 상태</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 아이디</param>
+		/// <param name="State">네트워크 인터페이스 링크 상태</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{serverId}/{id}/LinkStatus/{state}")]
-		public async Task<ActionResult> UpdateLinkState([FromRoute] string serverId, [FromRoute] string id, [FromRoute] EnumNetworkLinkState state)
+		[HttpPut("{ServerId}/{Id}/LinkStatus/{State}")]
+		public async Task<ActionResult> UpdateLinkState([FromRoute] string ServerId, [FromRoute] string Id, [FromRoute] EnumNetworkLinkState State)
 		{
-			return Json(await m_dataProvider.UpdateLinkState(serverId, id, state));
+			return Json(await m_dataProvider.UpdateLinkState(ServerId, Id, State));
 		}
 
 		/// <summary>네트워크 인터페이스 상태를 수정한다.</summary>
-		/// <param name="request">네트워크 인터페이스 링크 상태 수정 요청 객체</param>
+		/// <param name="Request">네트워크 인터페이스 링크 상태 수정 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("LinkStatus")]
-		public async Task<ActionResult> UpdateLinkState([FromBody] RequestNetworkInterfaceLinkState request)
+		public async Task<ActionResult> UpdateLinkState([FromBody] RequestNetworkInterfaceLinkState Request)
 		{
-			return Json(await m_dataProvider.UpdateLinkState(request));
+			return Json(await m_dataProvider.UpdateLinkState(Request));
 		}
 
 		/// <summary>네트워크 인터페이스 사용 정보 수정</summary>
-		/// <param name="request">네트워크 인터페이스 사용 정보 수정 요청 객체</param>
+		/// <param name="Request">네트워크 인터페이스 사용 정보 수정 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("Usage")]
-		public async Task<ActionResult> UpdateUsage([FromBody] RequestNetworkInterfaceUsage request)
+		public async Task<ActionResult> UpdateUsage([FromBody] RequestNetworkInterfaceUsage Request)
 		{
-			return Json(await m_dataProvider.UpdateUsage(request));
+			return Json(await m_dataProvider.UpdateUsage(Request));
 		}
 
 		/// <summary>네트워크 인터페이스 정보를 삭제한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">네트워크 인터페이스 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("{serverId}/{id}")]
-		public async Task<ActionResult> Remove([FromRoute] string serverId, [FromRoute] string id)
+		[HttpDelete("{ServerId}/{Id}")]
+		public async Task<ActionResult> Remove([FromRoute] string ServerId, [FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Remove(serverId, id));
+			return Json(await m_dataProvider.Remove(ServerId, Id));
 		}
 
 		/// <summary>네트워크 인터페이스 목록을 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseNetworkInterface>))]
-		[HttpGet("{serverId}")]
+		[HttpGet("{ServerId}")]
 		public async Task<ActionResult> GetServers(
-			[FromRoute] string serverId
-			, int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = ""
+			[FromRoute] string ServerId
+			, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				serverId
-				, skip, countPerPage
-				, orderFields, orderDirections
-				, searchFields, searchKeyword
+				ServerId
+				, Skip, CountPerPage
+				, OrderFields, OrderDirections
+				, SearchFields, SearchKeyword
 			));
 		}
 
 		/// <summary>특정 네트워크 인터페이스 정보를 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="id">네트워크 인터페이스 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseNetworkInterface>))]
-		[HttpGet("{serverId}/{id}")]
-		public async Task<ActionResult> GetServer([FromRoute] string serverId, [FromRoute] string id)
+		[HttpGet("{ServerId}/{Id}")]
+		public async Task<ActionResult> GetServer([FromRoute] string ServerId, [FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Get(serverId, id));
+			return Json(await m_dataProvider.Get(ServerId, Id));
 		}
 
 		/// <summary>특정 이름의 네트워크 인터페이스가 존재하는지 확인한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="request">특정 이름의 네트워크 인터페이스 존재여부 확인 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="Request">특정 이름의 네트워크 인터페이스 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("{serverId}/Exist")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string serverId, [FromBody] RequestIsNetworkInterfaceNameExist request)
+		[HttpPost("{ServerId}/Exist")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ServerId, [FromBody] RequestIsNetworkInterfaceNameExist Request)
 		{
-			return Json(await m_dataProvider.IsNameExist(serverId, null, request));
+			return Json(await m_dataProvider.IsNameExist(ServerId, null, Request));
 		}
 
 		/// <summary>특정 이름의 네트워크 인터페이스가 존재하는지 확인한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="exceptId">이름 검색 시 제외할 네트워크 인터페이스 아이디</param>
-		/// <param name="request">특정 이름의 네트워크 인터페이스 존재여부 확인 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 네트워크 인터페이스 아이디</param>
+		/// <param name="Request">특정 이름의 네트워크 인터페이스 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("{serverId}/Exist/{exceptId}")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string serverId, [FromRoute] string exceptId, [FromBody] RequestIsNetworkInterfaceNameExist request)
+		[HttpPost("{ServerId}/Exist/{ExceptId}")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ServerId, [FromRoute] string ExceptId, [FromBody] RequestIsNetworkInterfaceNameExist Request)
 		{
-			return Json(await m_dataProvider.IsNameExist(serverId, exceptId, request));
+			return Json(await m_dataProvider.IsNameExist(ServerId, ExceptId, Request));
 		}
 	}
 }

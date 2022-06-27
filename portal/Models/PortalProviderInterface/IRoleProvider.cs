@@ -20,109 +20,109 @@ namespace PortalProviderInterface
 	public interface IRoleProvider : IBaseProvider
 	{
 		/// <summary>역할을 추가한다.</summary>
-		/// <param name="request">역할 정보</param>
+		/// <param name="Request">역할 정보</param>
 		/// <returns>역할 등록 결과</returns>
-		Task<ResponseData<ResponseRole>> AddRole(RequestRole request);
+		Task<ResponseData<ResponseRole>> AddRole(RequestRole Request);
 
 		/// <summary>역할을 수정한다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="request">역할 정보</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Request">역할 정보</param>
 		/// <returns>역할 수정 결과</returns>
-		Task<ResponseData> UpdateRole(string id, RequestRole request);
+		Task<ResponseData> UpdateRole(string Id, RequestRole Request);
 
 		/// <summary>역할을 삭제한다.</summary>
-		/// <param name="id">역할 아이디</param>
+		/// <param name="Id">역할 아이디</param>
 		/// <returns>역할 삭제 결과</returns>
-		Task<ResponseData> RemoveRole(string id);
+		Task<ResponseData> RemoveRole(string Id);
 
 		/// <summary>역할 아이디로 특정 역할을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
+		/// <param name="Id">역할 아이디</param>
 		/// <returns>해당 역할 데이터</returns>
-		Task<ResponseData<ResponseRole>> GetRoleById(string id);
+		Task<ResponseData<ResponseRole>> GetRoleById(string Id);
 
 		/// <summary>역할명으로 특정 역할을 가져온다.</summary>
-		/// <param name="name">역할명</param>
+		/// <param name="Name">역할명</param>
 		/// <returns>해당 역할 데이터</returns>
-		Task<ResponseData<ResponseRole>> GetRoleByName(string name);
+		Task<ResponseData<ResponseRole>> GetRoleByName(string Name);
 
 		/// <summary>전체 역할들을 가져온다.</summary>
 		/// <returns>해당 역할 데이터</returns>
 		Task<ResponseList<ResponseRole>> GetRoles();
 
 		/// <summary>특정 역할에 대한 권한 목록을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetRoleClaims(string id, int skip = 0, int countPerPage = int.MaxValue, string searchKeyword = "");
+		Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "");
 
 		/// <summary>특정 역할에 대한 사용자 목록을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		Task<ResponseList<ResponseUser>> GetRoleUsers(string id, int skip = 0, int countPerPage = 100, string searchKeyword = "");
+		Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = "");
 
 		/// <summary>역할에 사용자를 추가한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">사용자 정보</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">사용자 정보</param>
 		/// <returns>역할 등록 결과</returns>
-		Task<ResponseData> AddUserToRole(string roleId, RequestAddUserToRole request);
+		Task<ResponseData> AddUserToRole(string RoleId, RequestAddUserToRole Request);
 		/// <summary>역할에 사용자를 추가한다.</summary>
-		/// <param name="roleName">역할명</param>
-		/// <param name="request">사용자 정보</param>
+		/// <param name="RoleName">역할명</param>
+		/// <param name="Request">사용자 정보</param>
 		/// <returns>사용자 추가 결과</returns>
-		Task<ResponseData> AddUserToRoleByName(string roleName, RequestAddUserToRole request);
+		Task<ResponseData> AddUserToRoleByName(string RoleName, RequestAddUserToRole Request);
 
 		/// <summary>역할에 권한을 추가한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">권한 정보</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">권한 정보</param>
 		/// <returns>역할 등록 결과</returns>
-		Task<ResponseData> AddClaimToRole(string roleId, RequestAddClaimToRole request);
+		Task<ResponseData> AddClaimToRole(string RoleId, RequestAddClaimToRole Request);
 
 		/// <summary>역할의 권한을 수정한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">역할 권한 목록 객체</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">역할 권한 목록 객체</param>
 		/// <returns>역할 권한 수정 결과</returns>
-		Task<ResponseData> UpdateRoleClaims(string roleId, List<RequestRoleClaim> request);
+		Task<ResponseData> UpdateRoleClaims(string RoleId, List<RequestRoleClaim> Request);
 
 		/// <summary>역할에서 사용자를 삭제한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="userId">사용자 식별자</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="UserId">사용자 식별자</param>
 		/// <returns>사용자 삭제 결과</returns>
-		Task<ResponseData> RemoveUserFromRole(string roleId, string userId);
+		Task<ResponseData> RemoveUserFromRole(string RoleId, string UserId);
 
 		/// <summary>역할에서 사용자를 삭제한다.</summary>
-		/// <param name="roleName">역할명</param>
-		/// <param name="userId">사용자 식별자</param>
+		/// <param name="RoleName">역할명</param>
+		/// <param name="UserId">사용자 식별자</param>
 		/// <returns>사용자 삭제 결과</returns>
-		Task<ResponseData> RemoveUserFromRoleByName(string roleName, string userId);
+		Task<ResponseData> RemoveUserFromRoleByName(string RoleName, string UserId);
 
 		/// <summary>역할에서 권한을 삭제한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="claimValue">권한값</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="ClaimValue">권한값</param>
 		/// <returns>권한 삭제 결과</returns>
-		Task<ResponseData> RemoveClaimFromRole(string roleId, string claimValue);
+		Task<ResponseData> RemoveClaimFromRole(string RoleId, string ClaimValue);
 
 		/// <summary>권한 제목을 추가한다.</summary>
-		/// <param name="claimType">권한 타입</param>
-		/// <param name="claimValue">권한 값</param>
-		/// <param name="claimTitle">권한 제목</param>
-		/// <param name="depth">뎁스</param>
-		/// <param name="orderNo">순서</param>
+		/// <param name="ClaimType">권한 타입</param>
+		/// <param name="ClaimValue">권한 값</param>
+		/// <param name="ClaimTitle">권한 제목</param>
+		/// <param name="Depth">뎁스</param>
+		/// <param name="OrderNo">순서</param>
 		/// <returns>권한 제목 추가 결과</returns>
-		Task<ResponseData> AddClaimTitle(string claimType, string claimValue, string claimTitle, short depth, string orderNo);
+		Task<ResponseData> AddClaimTitle(string ClaimType, string ClaimValue, string ClaimTitle, short Depth, string OrderNo);
 
 		/// <summary>모든 권한 목록을 가져온다.</summary>
 		/// <returns>권한 목록</returns>
 		Task<ResponseList<ResponseClaim>> GetAllClaims();
 
 		/// <summary>특정 권한의 하위 권한 목록을 가져온다.</summary>
-		/// <param name="parentId">상위 권한 아이디</param>
+		/// <param name="ParentId">상위 권한 아이디</param>
 		/// <returns>권한 목록</returns>
-		Task<ResponseList<ResponseClaim>> GetClaims(int parentId);
+		Task<ResponseList<ResponseClaim>> GetClaims(int ParentId);
 	}
 
 	/// <summary>미리 정의된 역할명</summary>

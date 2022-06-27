@@ -13,22 +13,29 @@ using System.Collections.Generic;
 
 namespace PortalModels
 {
-	public partial class S3User
+	public partial class KsanUser
 	{
-		public S3User()
+
+		public KsanUser()
 		{
 			this.UserDiskPools = new List<UserDiskPool>();
 			OnCreated();
 		}
-		public virtual Guid Id { get; set; }
 
-		public virtual string Name { get; set; }
-
-		public virtual string Email { get; set; }
-
+		/// <summary> 엑세스 키 </summary>
 		public virtual string AccessKey { get; set; }
 
+		/// <summary> 비밀 키 </summary>
 		public virtual string SecretKey { get; set; }
+
+		/// <summary> 유저 아이디 </summary>
+		public virtual Guid Id { get; set; }
+
+		/// <summary> 유저명 </summary>
+		public virtual string Name { get; set; }
+
+		/// <summary> 이메일 </summary>
+		public virtual string Email { get; set; }
 
 		public virtual IList<UserDiskPool> UserDiskPools { get; set; }
 
@@ -38,7 +45,7 @@ namespace PortalModels
 
 		public override bool Equals(object obj)
 		{
-			S3User toCompare = obj as S3User;
+			KsanUser toCompare = obj as KsanUser;
 			if (toCompare == null)
 			{
 				return false;

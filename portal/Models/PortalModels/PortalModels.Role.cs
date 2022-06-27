@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 역할(권한 그룹) </summary>
 	public partial class Role
 	{
+
 		public Role()
 		{
 			this.RoleClaims = new List<RoleClaim>();

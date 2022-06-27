@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 역할(권한그룹) 권한 </summary>
 	public partial class RoleClaim
 	{
+
 		public RoleClaim()
 		{
 			OnCreated();

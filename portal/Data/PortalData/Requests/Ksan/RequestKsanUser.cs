@@ -8,13 +8,20 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-namespace PortalData.Requests.Services.Configs
+using MTLib.CommonData;
+
+namespace PortalData.Requests.Ksan
 {
-	/// <summary>서비스 설정 요청 인터페이스</summary>
-	public interface IRequestServiceConfig
+	/// <summary>S3 사용자 정보 등록 요청 클래스</summary>
+	public class RequestKsanUser : CommonRequestData
 	{
-		/// <summary>설정 객체의 내용을 문자열로 변환한다.</summary>
-		/// <returns>설정 문자열</returns>
-		ResponseData<string> Serialize();
+		/// <summary>S3 사용자명</summary>
+		public string Name { get; set; } = "";
+
+		/// <summary>이메일 주소</summary>
+		public string Email { get; set; } = "";
+
+		/// <summary> 기본 디스크풀 ID </summary>
+		public string StandardDiskPoolId { get; set; } = "";
 	}
 }

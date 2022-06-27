@@ -26,27 +26,27 @@ namespace PortalProvider
 		/// <returns>사용자 상태</returns>
 		public static async Task<EnumUserStatus> GetUserStatus(this UserManager<NNApplicationUser> userManager, NNApplicationUser user)
 		{
-			EnumUserStatus result = EnumUserStatus.Locked;
+			EnumUserStatus Result = EnumUserStatus.Locked;
 			try
 			{
 				if (user != null)
 				{
 					// 계정이 잠금상태인 경우
 					if (await userManager.IsLockedOutAsync(user))
-						result = EnumUserStatus.Locked;
+						Result = EnumUserStatus.Locked;
 					// 이메일 확인이 되지 않은 경우
 					else if (!await userManager.IsEmailConfirmedAsync(user))
-						result = EnumUserStatus.VerifyingEmail;
+						Result = EnumUserStatus.VerifyingEmail;
 					// 그외는 활성화 상태로 저장
 					else
-						result = EnumUserStatus.Activated;
+						Result = EnumUserStatus.Activated;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

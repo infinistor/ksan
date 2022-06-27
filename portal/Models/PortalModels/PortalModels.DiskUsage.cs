@@ -12,28 +12,38 @@ using System;
 
 namespace PortalModels
 {
-	/// <summary>
-	/// 역할(권한그룹) 내 사용자
-	/// </summary>
-	public partial class UserRole
+	/// <summary> 디스크 사용량 </summary>
+	public partial class DiskUsage
 	{
 
-		public UserRole()
+		public DiskUsage()
 		{
+			this.UsedInode = 0m;
+			this.UsedSize = 0m;
+			this.Read = 0m;
+			this.Write = 0m;
 			OnCreated();
 		}
 
-		/// <summary> 사용자 아이디 </summary>
-		public virtual Guid UserId { get; set; }
+		/// <summary> 디스크 유세이지 아이디 </summary>
+		public virtual Guid Id { get; set; }
 
-		/// <summary> 역할(권한그룹) 아이디 </summary>
-		public virtual Guid RoleId { get; set; }
+		/// <summary> 생성시간 </summary>
+		public virtual DateTime RegDate { get; set; }
 
-		/// <summary> 역할 정보 </summary>
-		public virtual Role Role { get; set; }
+		/// <summary> Inode사용량 </summary>
+		public virtual decimal UsedInode { get; set; }
 
-		/// <summary> 사용자 정보 </summary>
-		public virtual User User { get; set; }
+		/// <summary> 현재 사용량 </summary>
+		public virtual decimal UsedSize { get; set; }
+
+		/// <summary> 디스크 읽기 </summary>
+		public virtual decimal Read { get; set; }
+
+		/// <summary> 디스크 쓰기 </summary>
+		public virtual decimal Write { get; set; }
+
+		public virtual Disk Disk { get; set; }
 
 		#region Extensibility Method Definitions
 
@@ -41,15 +51,15 @@ namespace PortalModels
 
 		public override bool Equals(object obj)
 		{
-			UserRole toCompare = obj as UserRole;
+			DiskUsage toCompare = obj as DiskUsage;
 			if (toCompare == null)
 			{
 				return false;
 			}
 
-			if (!Object.Equals(this.UserId, toCompare.UserId))
+			if (!Object.Equals(this.Id, toCompare.Id))
 				return false;
-			if (!Object.Equals(this.RoleId, toCompare.RoleId))
+			if (!Object.Equals(this.RegDate, toCompare.RegDate))
 				return false;
 
 			return true;
@@ -58,8 +68,8 @@ namespace PortalModels
 		public override int GetHashCode()
 		{
 			int hashCode = 13;
-			hashCode = (hashCode * 7) + UserId.GetHashCode();
-			hashCode = (hashCode * 7) + RoleId.GetHashCode();
+			hashCode = (hashCode * 7) + Id.GetHashCode();
+			hashCode = (hashCode * 7) + RegDate.GetHashCode();
 			return hashCode;
 		}
 

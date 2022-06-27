@@ -19,29 +19,29 @@ namespace PortalData
 		public static string DisplayNameFormat { get; set; } = "{name}";
 
 		/// <summary>화면 표시 사용자명을 반환한다.</summary>
-		/// <param name="loginId">로그인 아이디</param>
-		/// <param name="name">사용자명</param>
-		/// <param name="email">이메일 주소</param>
+		/// <param name="LoginId">로그인 아이디</param>
+		/// <param name="Name">사용자명</param>
+		/// <param name="Email">이메일 주소</param>
 		/// <returns>화면 표시 사용자명</returns>
-		public static string GetDisplayName(string loginId, string email, string name)
+		public static string GetDisplayName(string LoginId, string Email, string Name)
 		{
-			string result = "";
+			string Result = "";
 			try
 			{
 				if (DisplayNameFormat.IsEmpty())
-					result = name;
+					Result = Name;
 				else
 				{
-					result = DisplayNameFormat.Replace("{login_id}", loginId)
-											.Replace("{name}", name)
-											.Replace("{email}", email);
+					Result = DisplayNameFormat.Replace("{login_id}", LoginId)
+											.Replace("{name}", Name)
+											.Replace("{email}", Email);
 				}
 			}
 			catch (System.Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
@@ -8,21 +8,40 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-namespace PortalData.Responses.Services.Configs.HaProxy
+
+namespace PortalModels
 {
-	/// <summary>HA Proxy 서버 설정 응답 클래스</summary>
-	public class ResponseHaProxyConfigServer
+	public partial class Region
 	{
-		/// <summary>호스트</summary>
-		public string Host { get; set; } = "";
 
-		/// <summary>IP 주소</summary>
-		public string IpAddress { get; set; } = "";
+		public Region()
+		{
+			OnCreated();
+		}
 
-		/// <summary>포트</summary>
-		public uint? Port { get; set; } = null;
+		/// <summary> 리전명 </summary>
+		public virtual string Name { get; set; }
 
-		/// <summary>파라미터</summary>
-		public string Param { get; set; } = "";
+		/// <summary> 리전 주소 </summary>
+		public virtual string Address { get; set; }
+
+		/// <summary> 포트 </summary>
+		public virtual int Port { get; set; }
+
+		/// <summary> SSL포트 </summary>
+		public virtual int SSLPort { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string AccessKey { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string SecretKey { get; set; }
+
+		#region Extensibility Method Definitions
+
+		partial void OnCreated();
+
+		#endregion
 	}
+
 }

@@ -23,16 +23,16 @@ namespace PortalData.ValidationAttributes
 		/// <returns>유효한지 여부</returns>
 		public override bool IsValid(object value)
 		{
-			bool result = false;
+			bool Result = false;
 
 			// 값이 문자열인 경우
 			if (value == null || value is string)
 			{
 				if (value == null || ((string)value).IsEmpty() || ((string)value).IsIpAddress())
-					result = true;
+					Result = true;
 			}
 
-			return result;
+			return Result;
 		}
 	}
 }
