@@ -75,7 +75,7 @@ public class OSDClient {
             return -1;
     }
     
-    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdIP) throws Exception{
+    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws Exception{
         JSONObject obj;
         String bindingKey; 
         
@@ -85,7 +85,7 @@ public class OSDClient {
         obj.put("DiskId", diskId);
         obj.put("DiskPath", diskPath);
         obj.put("VersionId", versionId);
-        bindingKey = String.format("*.services.osd.%s.object.getattr", osdIP);
+        bindingKey = String.format("*.services.osd.%s.object.getattr", osdServerId);
        
         System.out.format("[getObjectAttr] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);

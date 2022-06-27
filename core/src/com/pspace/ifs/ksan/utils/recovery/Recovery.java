@@ -17,15 +17,12 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.OSDClient;
+import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.utils.ObjectMover;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,55 +41,7 @@ public class Recovery {
     private ObjManagerUtil obmu;
     private OSDClient osdc;
     
-    class DataParser{
-        public String bucketName;
-        public String diskId;
-        public String objId;
-        public String versionId;
-        public String diskPath;
-        public String osdIP = "";
-        public String md5;
-        public long size;
-        private JSONParser parser;
-        
-        public DataParser(String body){
-            String value;
-            parser = new JSONParser();
-            try{
-                diskId = "";
-                md5 = "";
-                size = 0;       
-                JSONObject JO = (JSONObject) parser.parse(body);
-                bucketName = (String)JO.get("bucketName");
-                objId   = (String)JO.get("ObjId");
-                versionId = (String)JO.get("VersionId");
-                
-                if (JO.containsKey("DiskId"))
-                   diskId = (String)JO.get("DiskId");
-                
-                if (JO.containsKey("DiskPath"))
-                    diskPath = (String)JO.get("DiskPath");
-                
-                if (JO.containsKey("osdIP"))
-                    osdIP = (String)JO.get("osdIP");
-                
-                if (JO.containsKey("MD5"))
-                    md5 = (String)JO.get("MD5");
-                
-                if (JO.containsKey("Size")){
-                    value = (String)JO.get("Size");
-                    size = Long.parseLong(value);
-                }
-            } catch (ParseException ex) {
-                bucketName ="";
-                diskId = "";
-                objId = "";
-                versionId = "";
-                diskPath = "";
-                osdIP = "";
-            }
-        }
-    }
+   
     class RecoveryObjectCallback implements MQCallback{
         
         @Override
@@ -113,7 +62,7 @@ public class Recovery {
         
        
         private int fixObject(String body) throws Exception{
-           DataParser rp = new DataParser(body);
+           OSDResponseParser rp = new OSDResponseParser(body);
            String serverId;
            try{
                 // get object metadata
@@ -127,7 +76,7 @@ public class Recovery {
                 if (res.isEmpty())
                     return 0; // ignore because object not exist in osd
                 
-                DataParser resP = new DataParser(res);
+                OSDResponseParser resP = new OSDResponseParser(res);
                 if (mt.getSize() == resP.size && mt.getEtag().equals(resP.md5))
                     return 0; // the object is normal
                 
