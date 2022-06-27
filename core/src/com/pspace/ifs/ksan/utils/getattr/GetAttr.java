@@ -11,6 +11,7 @@
 
 package com.pspace.ifs.ksan.utils.getattr;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +23,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -143,14 +145,20 @@ public class GetAttr {
         }
     }
     
+    static void disableDebuglog(){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
+    }
+    
     /**
      * @param args the command line arguments
      */
         
     public static void main(String[] args) {
         
+        disableDebuglog();
         GetAttr gattr = new GetAttr();
-        
         if (gattr.parseArgs(args) != 0){
             gattr.howToUse();
           return;

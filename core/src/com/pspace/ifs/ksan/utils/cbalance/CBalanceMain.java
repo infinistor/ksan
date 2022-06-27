@@ -19,6 +19,8 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
+import ch.qos.logback.classic.LoggerContext;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -209,6 +211,12 @@ public class CBalanceMain {
         
         System.err.format("Not supported argument is given \n");
         howToUse(); 
+    }
+
+    static void disableDebuglog(){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
     }
     
     /**
