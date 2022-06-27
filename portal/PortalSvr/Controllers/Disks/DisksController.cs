@@ -100,16 +100,6 @@ namespace PortalSvr.Controllers.Disks
 			return Json(await m_dataProvider.UpdateState(Request));
 		}
 
-		/// <summary>디스크 크기를 수정한다.</summary>
-		/// <param name="Request">디스크 크기 수정 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("Size")]
-		public async Task<ActionResult> UpdateSize([FromBody] RequestDiskSize Request)
-		{
-			return Json(await m_dataProvider.UpdateSize(Request));
-		}
-
 		/// <summary>디스크 사용정보를 수정한다.</summary>
 		/// <param name="Request">디스크 사용 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
