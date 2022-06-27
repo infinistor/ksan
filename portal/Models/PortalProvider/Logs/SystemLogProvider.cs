@@ -39,20 +39,20 @@ namespace PortalProvider.Logs
 		}
 
 		/// <summary>로그를 등록한다.</summary>
-		/// <param name="level">로그레벨</param>
-		/// <param name="messageFormat">로그 내용 형식</param>
-		/// <param name="messageValues">로그 내용 값</param>
+		/// <param name="Level">로그레벨</param>
+		/// <param name="MessageFormat">로그 내용 형식</param>
+		/// <param name="MessageValues">로그 내용 값</param>
 		/// <returns>등록결과</returns>
-		public async Task<ResponseData> Add(EnumLogLevel level, string messageFormat, params object[] messageValues)
+		public async Task<ResponseData> Add(EnumLogLevel Level, string MessageFormat, params object[] MessageValues)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 메세지가 유효한 경우
-				if (!messageFormat.IsEmpty())
+				if (!MessageFormat.IsEmpty())
 				{
 					// 로그 저장
-					await m_dbContext.SystemLogs.AddAsync(new SystemLog() { LogLevel = (EnumDbLogLevel)level, Message = string.Format(messageFormat, messageValues), RegDate = DateTime.Now });
+					await m_dbContext.SystemLogs.AddAsync(new SystemLog() { LogLevel = (EnumDbLogLevel)Level, Message = string.Format(MessageFormat, MessageValues), RegDate = DateTime.Now });
 					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 				}
 			}
@@ -60,59 +60,59 @@ namespace PortalProvider.Logs
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>로그 목록을 반환한다.</summary>
-		/// <param name="searchStartDate">검색 시작 일시</param>
-		/// <param name="searchEndDate">검색 종료 일시</param>
-		/// <param name="levels">로그 레벨 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수</param>
-		/// <param name="searchFields">검색필드목록 (Email, LoginId, Name, Code, Message)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="SearchStartDate">검색 시작 일시</param>
+		/// <param name="SearchEndDate">검색 종료 일시</param>
+		/// <param name="Levels">로그 레벨 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수</param>
+		/// <param name="SearchFields">검색필드목록 (Email, LoginId, Name, Code, Message)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>로그 목록</returns>
 		public async Task<ResponseList<ResponseSystemLog>> GetLogs(
-			DateTime searchStartDate, DateTime searchEndDate,
-			List<EnumLogLevel> levels = null,
-			int skip = 0, int countPerPage = 100,
-			List<string> searchFields = null, string searchKeyword = ""
+			DateTime SearchStartDate, DateTime SearchEndDate,
+			List<EnumLogLevel> Levels = null,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			ResponseList<ResponseSystemLog> result = new ResponseList<ResponseSystemLog>();
+			var Result = new ResponseList<ResponseSystemLog>();
 			try
 			{
-				if (searchStartDate > DateTime.MinValue && searchEndDate > DateTime.MinValue)
+				if (SearchStartDate > DateTime.MinValue && SearchEndDate > DateTime.MinValue)
 				{
 					// 검색 필드 목록을 모두 소문자로 변환
-					if (searchFields != null)
-						searchFields = searchFields.ToLower();
+					if (SearchFields != null)
+						SearchFields = SearchFields.ToLower();
 
 					// 로그 목록을 가져온다.
-					result.Data = await m_dbContext.SystemLogs.AsNoTracking()
-						.Where(i => searchStartDate <= i.RegDate && i.RegDate <= searchEndDate
+					Result.Data = await m_dbContext.SystemLogs.AsNoTracking()
+						.Where(i => SearchStartDate <= i.RegDate && i.RegDate <= SearchEndDate
 							 && (
-								 searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-								 || (searchFields.Contains("message") && i.Message.Contains(searchKeyword))
+								 SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+								 || (SearchFields.Contains("Message") && i.Message.Contains(SearchKeyword))
 							 )
-							 && (levels == null || levels.Count == 0 || levels.Select(j => (int)j).Contains((int)i.LogLevel))
+							 && (Levels == null || Levels.Count == 0 || Levels.Select(j => (int)j).Contains((int)i.LogLevel))
 						)
 						.OrderByDescending(i => i.RegDate)
-						.CreateListAsync<SystemLog, ResponseSystemLog>(skip, countPerPage);
+						.CreateListAsync<SystemLog, ResponseSystemLog>(Skip, CountPerPage);
 				}
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 	}
 }

@@ -21,17 +21,17 @@ namespace PortalProvider
 		/// <summary>화면 표시명</summary>
 		public static string GetDisplayName(this NNApplicationUser user)
 		{
-			string result = "";
+			string Result = "";
 			try
 			{
 				if (user != null)
-					result = UserExtension.GetDisplayName(user.LoginId, user.Email, user.Name);
+					Result = UserExtension.GetDisplayName(user.LoginId, user.Email, user.Name);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

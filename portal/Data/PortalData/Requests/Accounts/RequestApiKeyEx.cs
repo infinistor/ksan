@@ -23,12 +23,12 @@ namespace PortalData.Requests.Accounts
 		}
 
 		/// <summary>생성자</summary>
-		public RequestApiKeyEx(RequestApiKey request)
+		public RequestApiKeyEx(RequestApiKey Request)
 		{
-			if (request != null)
+			if (Request != null)
 			{
-				KeyName = request.KeyName;
-				ExpireDate = request.ExpireDate;
+				KeyName = Request.KeyName;
+				ExpireDate = Request.ExpireDate;
 				KeyValue = "";
 			}
 		}

@@ -76,7 +76,7 @@ namespace PortalSvr.Services
 
 					// "internalservice" 계정을 생성하고, "InternalService" 역할에 추가한다.
 					// 해당 계정으로는 로그인 불가하며, API 키만 사용 가능하다.
-					ResponseData<ResponseUserWithRoles> response = await m_userProvider.Add(new RequestUserRegist()
+					var Response = await m_userProvider.Add(new RequestUserRegist()
 					{
 						LoginId = "internalservice",
 						Email = "internalservice@pspace.co.kr",
@@ -86,11 +86,11 @@ namespace PortalSvr.Services
 					}, null, null);
 
 					// "internalservice" 계정 생성에 성공한 경우, API KEY를 생성한다.
-					if (response.Result == EnumResponseResult.Success)
+					if (Response.Result == EnumResponseResult.Success)
 					{
 						// API 키를 발급한다.
-						ResponseData<ResponseApiKey> responseApiKey = await m_apiKeyProvider.IssueApiKey(
-							Guid.Parse(response.Data.Id),
+						var ResponseApiKey = await m_apiKeyProvider.IssueApiKey(
+							Guid.Parse(Response.Data.Id),
 							new RequestApiKeyEx()
 							{
 								KeyName = "InternalService API KEY",
@@ -99,8 +99,8 @@ namespace PortalSvr.Services
 							}
 						);
 
-						if (responseApiKey.Result == EnumResponseResult.Success)
-							m_logger.LogInformation("API KEY has been created. : {KeyValue}", responseApiKey.Data.KeyValue);
+						if (ResponseApiKey.Result == EnumResponseResult.Success)
+							m_logger.LogInformation("API KEY has been created. : {KeyValue}", ResponseApiKey.Data.KeyValue);
 					}
 				}
 			}

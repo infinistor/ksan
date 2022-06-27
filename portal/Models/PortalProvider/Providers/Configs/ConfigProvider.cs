@@ -61,30 +61,30 @@ namespace PortalProvider.Providers.Services
 		/// <returns>설정 정보가 포함된 결과 목록 객체</returns>
 		public async Task<ResponseList<ResponseServiceConfig>> GetConfigList(EnumServiceType ServiceType)
 		{
-			var result = new ResponseList<ResponseServiceConfig>();
+			var Result = new ResponseList<ResponseServiceConfig>();
 
 			try
 			{
 				// 해당 정보를 가져온다.
-				result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+				Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
 					.Where(i => i.Type == (EnumDbServiceType)ServiceType)
 					.OrderByDescending(i => i.Version)
 					.CreateListAsync<ServiceConfig, ResponseServiceConfig>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (result.Data == null)
+				if (Result.Data == null)
 					return new ResponseList<ResponseServiceConfig>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서비스의 최신 설정 정보를 가져온다.</summary>
@@ -92,31 +92,31 @@ namespace PortalProvider.Providers.Services
 		/// <returns>설정 정보가 포함된 결과 객체</returns>
 		public async Task<ResponseData<ResponseServiceConfig>> GetConfig(EnumServiceType ServiceType)
 		{
-			var result = new ResponseData<ResponseServiceConfig>();
+			var Result = new ResponseData<ResponseServiceConfig>();
 
 			try
 			{
 				// 해당 정보를 가져온다.
-				result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+				Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
 					.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.LastVersion == true)
 					.OrderByDescending(i => i.Version)
 					.FirstOrDefaultAsync<ServiceConfig, ResponseServiceConfig>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (result.Data == null)
+				if (Result.Data == null)
 					return new ResponseData<ResponseServiceConfig>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary> 특정 버전의 서비스 설정 정보를 가져온다.</summary>
@@ -125,69 +125,69 @@ namespace PortalProvider.Providers.Services
 		/// <returns>설정 정보가 포함된 결과 객체</returns>
 		public async Task<ResponseData<ResponseServiceConfig>> GetConfig(EnumServiceType ServiceType, int Version)
 		{
-			var result = new ResponseData<ResponseServiceConfig>();
+			var Result = new ResponseData<ResponseServiceConfig>();
 
 			try
 			{
 				// 해당 정보를 가져온다.
-				result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+				Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
 					.Where(i => i.Type == (EnumDbServiceType)ServiceType && i.Version == Version)
 					.FirstOrDefaultAsync<ServiceConfig, ResponseServiceConfig>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (result.Data == null)
+				if (Result.Data == null)
 					return new ResponseData<ResponseServiceConfig>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-				result.Result = EnumResponseResult.Error;
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>주어진 설정 정보를 특정 서비스에 저장한다.</summary>
-		/// <param name="request">서비스 설정 객체</param>
+		/// <param name="Request">서비스 설정 객체</param>
 		/// <returns>설정 결과 객체</returns>
-		public async Task<ResponseData<ResponseUpdateConfig>> SetConfig(RequestServiceConfig request)
+		public async Task<ResponseData<ResponseUpdateConfig>> SetConfig(RequestServiceConfig Request)
 		{
 			var Result = new ResponseData<ResponseUpdateConfig>();
 
 			try
 			{
 				// 설정이 유효하지 않은 경우
-				if (string.IsNullOrEmpty(request.Config))
+				if (string.IsNullOrEmpty(Request.Config))
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 정보를 생성한다.
-						var newData = new ServiceConfig()
+						var NewData = new ServiceConfig()
 						{
-							Type = (EnumDbServiceType)request.Type,
-							Config = request.Config,
+							Type = (EnumDbServiceType)Request.Type,
+							Config = Request.Config,
 							RegDate = DateTime.Now,
 							LastVersion = false,
 						};
 
 						// 저장
-						await m_dbContext.ServiceConfigs.AddAsync(newData);
+						await m_dbContext.ServiceConfigs.AddAsync(NewData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
 					{
-						transaction.Rollback();
+						Transaction.Rollback();
 
 						NNException.Log(ex);
 
@@ -229,7 +229,7 @@ namespace PortalProvider.Providers.Services
 				if (MyVersion.LastVersion)
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_UPDATE, Resource.EM_CONFIGS_ALREADY_LAST_VERSION);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
@@ -242,23 +242,23 @@ namespace PortalProvider.Providers.Services
 						}
 
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						var Data = new ResponseUpdateConfig()
+						var NewData = new ResponseUpdateConfig()
 						{
 							RegDate = MyVersion.RegDate,
 							Version = MyVersion.Version,
 						};
 
-						Result.Data = Data;
+						Result.Data = NewData;
 						Result.Result = EnumResponseResult.Success;
 
 						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", Data);
+						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", NewData);
 					}
 					catch (Exception ex)
 					{
-						transaction.Rollback();
+						Transaction.Rollback();
 
 						NNException.Log(ex);
 
@@ -298,7 +298,7 @@ namespace PortalProvider.Providers.Services
 				// 해당 버전이 최신버전일 경우 삭제 불가
 				if (MyVersion.LastVersion) return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_DELETE_MAY_BE_IN_USE, Resource.EM_CONFIGS_LIST_VERSION_CANNOT_DELETE);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{

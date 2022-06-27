@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> API 키 정보 </summary>
 	public partial class ApiKey
 	{
+
 		public ApiKey()
 		{
 			OnCreated();

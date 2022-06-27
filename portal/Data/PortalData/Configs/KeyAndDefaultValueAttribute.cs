@@ -30,62 +30,62 @@ namespace PortalData.Configs
 	{
 		/// <summary>특정 객체의 T 타입의 속성 객체를 가져온다.</summary>
 		/// <typeparam name="T">속성 객체 타입</typeparam>
-		/// <param name="value">Object 객체</param>
-		/// <param name="propertyName">프로퍼티명</param>
+		/// <param name="Value">Object 객체</param>
+		/// <param name="PropertyName">프로퍼티명</param>
 		/// <returns>T 타입의 속성 객체</returns>
-		public static T GetAttribute<T>(this object value, string propertyName) where T : Attribute
+		public static T GetAttribute<T>(this object Value, string PropertyName) where T : Attribute
 		{
-			T result = default(T);
+			T Result = default(T);
 			try
 			{
-				if (value != null)
+				if (Value != null)
 				{
-					MemberInfo memberInfo = value.GetType().GetMember(propertyName).FirstOrDefault();
-					if (memberInfo != null)
-						result = (T)memberInfo.GetCustomAttributes(typeof(T), false).FirstOrDefault();
+					MemberInfo MemberInfo = Value.GetType().GetMember(PropertyName).FirstOrDefault();
+					if (MemberInfo != null)
+						Result = (T)MemberInfo.GetCustomAttributes(typeof(T), false).FirstOrDefault();
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>ConfigKeyAndDefaultValueAttribute 객체의 Key 값을 가져온다.</summary>
-		/// <param name="value">ConfigKeyAndDefaultValueAttribute 객체</param>
+		/// <param name="Value">ConfigKeyAndDefaultValueAttribute 객체</param>
 		/// <returns>Key 값</returns>
-		public static string GetKey(this KeyAndDefaultValueAttribute value)
+		public static string GetKey(this KeyAndDefaultValueAttribute Value)
 		{
-			string result = "";
+			string Result = "";
 			try
 			{
-				if (value != null)
-					result = value.Key;
+				if (Value != null)
+					Result = Value.Key;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>ConfigKeyAndDefaultValueAttribute 객체의 기본 값을 가져온다.</summary>
-		/// <param name="value">ConfigKeyAndDefaultValueAttribute 객체</param>
+		/// <param name="Value">ConfigKeyAndDefaultValueAttribute 객체</param>
 		/// <returns>기본 값</returns>
-		public static string GetDefaultValue(this KeyAndDefaultValueAttribute value)
+		public static string GetDefaultValue(this KeyAndDefaultValueAttribute Value)
 		{
-			string result = "";
+			string Result = "";
 			try
 			{
-				if (value != null)
-					result = value.DefaultValue;
+				if (Value != null)
+					Result = Value.DefaultValue;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

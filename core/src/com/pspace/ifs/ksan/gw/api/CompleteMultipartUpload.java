@@ -194,25 +194,6 @@ public class CompleteMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		// try {
-		// 	// check exist object
-		// 	objMeta = open(bucket, object);
-		// 	if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-		// 		versionId = String.valueOf(System.nanoTime());
-		// 	} else {
-		// 		versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-		// 	}
-		// } catch (GWException e) {
-		// 	logger.info(e.getMessage());
-		// 	objMeta = createLocal(bucket, object);
-
-		// 	if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-		// 		versionId = String.valueOf(System.nanoTime());
-		// 	} else {
-		// 		versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-		// 	}
-		// }
-
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			logger.info(GWConstants.LOG_COMPLETE_MULTIPART_VERSION_ID, versionId);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);

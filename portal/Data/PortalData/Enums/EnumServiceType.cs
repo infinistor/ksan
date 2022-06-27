@@ -31,5 +31,9 @@ namespace PortalData.Enums
 		Monitor,
 		/// <summary>Edge</summary>
 		Edge,
+		/// <summary>MariaDB</summary>
+        MariaDB,
+		/// <summary>MongoDB</summary>
+        MongoDB
 	}
 }

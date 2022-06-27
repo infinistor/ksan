@@ -119,32 +119,32 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="sendingObject">전송할 객체</param>
-		/// <param name="waitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
+		/// <param name="Exchange">Exchange 명</param>
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="SendingObject">전송할 객체</param>
+		/// <param name="WaitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 응답 객체</returns>
-		public ResponseData<string> Send(string exchange, string routingKey, object sendingObject, int waitForResponseTimeoutSec)
+		public ResponseData<string> Send(string Exchange, string RoutingKey, object SendingObject, int WaitForResponseTimeoutSec)
 		{
-			ResponseData<string> result = new ResponseData<string>();
+			ResponseData<string> Result = new ResponseData<string>();
 
-			CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+			var CancellationTokenSource = new CancellationTokenSource();
 			try
 			{
 				// 객체가 유효하지 않은 경우
-				if (sendingObject == null)
+				if (SendingObject == null)
 					return new ResponseData<string>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 문자열로 변환
-				string message = JsonConvert.SerializeObject(sendingObject);
+				var Message = JsonConvert.SerializeObject(SendingObject);
 
 				// 메세지 전송
-				m_channel.BasicPublish(exchange: exchange,
-					routingKey: routingKey,
+				m_channel.BasicPublish(exchange: Exchange,
+					routingKey: RoutingKey,
 					basicProperties: m_properties,
-					body: message.GetBytes());
+					body: Message.GetBytes());
 
-				m_logger.LogDebug($"[Rabbit MQ] RPC Data transfer was successful and wait for response. (exchange: {exchange}, routingKey: {routingKey}, message: {message})");
+				m_logger.LogDebug($"[Rabbit MQ] RPC Data transfer was successful and wait for Response. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})");
 
 				// 응답 수신
 				m_channel.BasicConsume(
@@ -152,36 +152,36 @@ namespace PortalProvider.Providers.RabbitMq
 					queue: m_receiverQueueName,
 					autoAck: true);
 
-				// 3초 후 취소
-				cancellationTokenSource.CancelAfter(1000 * waitForResponseTimeoutSec);
+				// N초 후 취소
+				CancellationTokenSource.CancelAfter(1000 * WaitForResponseTimeoutSec);
 
 				try
 				{
 					// 응답 데이터를 가져온다.
-					result.Data = m_responseQueue.Take(cancellationTokenSource.Token);
-					result.Result = EnumResponseResult.Success;
+					Result.Data = m_responseQueue.Take(CancellationTokenSource.Token);
+					Result.Result = EnumResponseResult.Success;
 				}
 				catch (Exception /*e*/)
 				{
-					m_logger.LogError($"[Rabbit MQ] Response timed out for RPC data transfer. (exchange: {exchange}, routingKey: {routingKey}, message: {message})");
+					m_logger.LogError($"[Rabbit MQ] Response timed out for RPC Data transfer. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})");
 
-					result.Code = Resource.EC_COMMON__EXCEPTION;
-					result.Message = Resource.EM_COMMON__COMMUNICATION_TIMEOUT;
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__COMMUNICATION_TIMEOUT;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 			finally
 			{
-				cancellationTokenSource.Dispose();
+				CancellationTokenSource.Dispose();
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>연결 종료</summary>

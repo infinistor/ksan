@@ -14,6 +14,7 @@ namespace PortalModels
 	/// <summary> 설정 정보 테이블 </summary>
 	public partial class Config
 	{
+
 		public Config()
 		{
 			OnCreated();

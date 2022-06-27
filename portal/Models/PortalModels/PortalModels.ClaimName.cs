@@ -14,6 +14,7 @@ namespace PortalModels
 	/// <summary> 권한명 </summary>
 	public partial class ClaimName
 	{
+
 		public ClaimName()
 		{
 			OnCreated();

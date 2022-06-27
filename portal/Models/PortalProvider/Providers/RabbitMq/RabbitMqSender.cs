@@ -64,7 +64,7 @@ namespace PortalProvider.Providers.RabbitMq
 		{
 			try
 			{
-				ConnectionFactory factory = new ConnectionFactory
+				var Factory = new ConnectionFactory
 				{
 					ClientProvidedName = m_config.Name,
 					HostName = m_config.Host,
@@ -75,7 +75,7 @@ namespace PortalProvider.Providers.RabbitMq
 				};
 
 				// 연결 객체 생성
-				m_connection = factory.CreateConnection();
+				m_connection = Factory.CreateConnection();
 				// 채널 생성
 				m_channel = m_connection.CreateModel();
 			}
@@ -86,42 +86,42 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="sendingObject">전송할 객체</param>
+		/// <param name="Exchange">Exchange 명</param>
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="SendingObject">전송할 객체</param>
 		/// <returns>전송 결과 응답 객체</returns>
-		public ResponseData Send(string exchange, string routingKey, object sendingObject)
+		public ResponseData Send(string Exchange, string RoutingKey, object SendingObject)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 객체가 유효하지 않은 경우
-				if (sendingObject == null)
+				if (SendingObject == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 문자열로 변환
-				string message = JsonConvert.SerializeObject(sendingObject);
+				string Message = JsonConvert.SerializeObject(SendingObject);
 
 				// 메세지 전송
-				m_channel.BasicPublish(exchange: exchange,
-					routingKey: routingKey,
+				m_channel.BasicPublish(exchange: Exchange,
+					routingKey: RoutingKey,
 					basicProperties: null,
-					body: message.GetBytes());
+					body: Message.GetBytes());
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
-				m_logger.LogDebug("[Rabbit MQ] Data transfer was successful. (exchange: {Exchange}, routingKey: {RoutingKey}, message: {Message})", exchange, routingKey, message);
+				m_logger.LogDebug("[Rabbit MQ] Data transfer was successful. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})", Exchange, RoutingKey, Message);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>연결 종료</summary>

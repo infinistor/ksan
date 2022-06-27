@@ -54,104 +54,104 @@ namespace PortalSvr.Controllers.Networks
 		}
 
 		/// <summary>네트워크 인터페이스 VLAN 정보를 추가한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="request">네트워크 인터페이스 VLAN 정보 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Request">네트워크 인터페이스 VLAN 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseNetworkInterfaceVlan>))]
-		[HttpPost("{serverId}/{interfaceId}")]
-		public async Task<ActionResult> Add([FromRoute] string serverId, [FromRoute] string interfaceId, [FromBody] RequestNetworkInterfaceVlan request)
+		[HttpPost("{ServerId}/{InterfaceId}")]
+		public async Task<ActionResult> Add([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromBody] RequestNetworkInterfaceVlan Request)
 		{
-			return Json(await m_dataProvider.Add(serverId, interfaceId, request));
+			return Json(await m_dataProvider.Add(ServerId, InterfaceId, Request));
 		}
 
 		/// <summary>네트워크 인터페이스 VLAN 정보를 수정한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="id">네트워크 인터페이스 VLAN 아이디</param>
-		/// <param name="request">네트워크 인터페이스 VLAN 정보 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 VLAN 아이디</param>
+		/// <param name="Request">네트워크 인터페이스 VLAN 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{serverId}/{interfaceId}/{id}")]
-		public async Task<ActionResult> Update([FromRoute] string serverId, [FromRoute] string interfaceId, [FromRoute] string id, [FromBody] RequestNetworkInterfaceVlan request)
+		[HttpPut("{ServerId}/{InterfaceId}/{Id}")]
+		public async Task<ActionResult> Update([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromRoute] string Id, [FromBody] RequestNetworkInterfaceVlan Request)
 		{
-			return Json(await m_dataProvider.Update(serverId, interfaceId, id, request));
+			return Json(await m_dataProvider.Update(ServerId, InterfaceId, Id, Request));
 		}
 
 		/// <summary>네트워크 인터페이스 VLAN 정보를 삭제한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="id">네트워크 인터페이스 VLAN 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 VLAN 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("{serverId}/{interfaceId}/{id}")]
-		public async Task<ActionResult> Remove([FromRoute] string serverId, [FromRoute] string interfaceId, [FromRoute] string id)
+		[HttpDelete("{ServerId}/{InterfaceId}/{Id}")]
+		public async Task<ActionResult> Remove([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Remove(serverId, interfaceId, id));
+			return Json(await m_dataProvider.Remove(ServerId, InterfaceId, Id));
 		}
 
 		/// <summary>네트워크 인터페이스 VLAN 목록을 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseNetworkInterfaceVlan>))]
-		[HttpGet("{serverId}/{interfaceId}")]
+		[HttpGet("{ServerId}/{InterfaceId}")]
 		public async Task<ActionResult> Get(
-			[FromRoute] string serverId, [FromRoute] string interfaceId
-			, int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = ""
+			[FromRoute] string ServerId, [FromRoute] string InterfaceId
+			, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				serverId, interfaceId
-				, skip, countPerPage
-				, orderFields, orderDirections
-				, searchFields, searchKeyword
+				ServerId, InterfaceId
+				, Skip, CountPerPage
+				, OrderFields, OrderDirections
+				, SearchFields, SearchKeyword
 			));
 		}
 
 		/// <summary>특정 네트워크 인터페이스 VLAN 정보를 가져온다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="id">네트워크 인터페이스 VLAN 아이디</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Id">네트워크 인터페이스 VLAN 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseNetworkInterfaceVlan>))]
-		[HttpGet("{serverId}/{interfaceId}/{id}")]
-		public async Task<ActionResult> Get([FromRoute] string serverId, [FromRoute] string interfaceId, [FromRoute] string id)
+		[HttpGet("{ServerId}/{InterfaceId}/{Id}")]
+		public async Task<ActionResult> Get([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.Get(serverId, interfaceId, id));
+			return Json(await m_dataProvider.Get(ServerId, InterfaceId, Id));
 		}
 
 		/// <summary>특정 이름의 네트워크 인터페이스가 존재하는지 확인한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="request">특정 VLAN 태그 존재여부 확인 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="Request">특정 VLAN 태그 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("{serverId}/{interfaceId}/Exist")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string serverId, [FromRoute] string interfaceId, [FromBody] RequestIsNetworkInterfaceVlanExist request)
+		[HttpPost("{ServerId}/{InterfaceId}/Exist")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromBody] RequestIsNetworkInterfaceVlanExist Request)
 		{
-			return Json(await m_dataProvider.IsTagExist(serverId, interfaceId, null, request));
+			return Json(await m_dataProvider.IsTagExist(ServerId, InterfaceId, null, Request));
 		}
 
 		/// <summary>특정 이름의 네트워크 인터페이스가 존재하는지 확인한다.</summary>
-		/// <param name="serverId">서버 아이디</param>
-		/// <param name="interfaceId">네트워크 인터페이스 아이디</param>
-		/// <param name="exceptId">이름 검색 시 제외할 네트워크 인터페이스 VLAN 아이디</param>
-		/// <param name="request">특정 VLAN 태그 존재여부 확인 요청 객체</param>
+		/// <param name="ServerId">서버 아이디</param>
+		/// <param name="InterfaceId">네트워크 인터페이스 아이디</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 네트워크 인터페이스 VLAN 아이디</param>
+		/// <param name="Request">특정 VLAN 태그 존재여부 확인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("{serverId}/{interfaceId}/Exist/{exceptId}")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string serverId, [FromRoute] string interfaceId, [FromRoute] string exceptId, [FromBody] RequestIsNetworkInterfaceVlanExist request)
+		[HttpPost("{ServerId}/{InterfaceId}/Exist/{ExceptId}")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromRoute] string ExceptId, [FromBody] RequestIsNetworkInterfaceVlanExist Request)
 		{
-			return Json(await m_dataProvider.IsTagExist(serverId, interfaceId, exceptId, request));
+			return Json(await m_dataProvider.IsTagExist(ServerId, InterfaceId, ExceptId, Request));
 		}
 	}
 }

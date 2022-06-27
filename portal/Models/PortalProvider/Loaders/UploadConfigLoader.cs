@@ -36,45 +36,45 @@ namespace PortalProvider.Loaders
 		/// <returns>Smtp 관련 설정 객체</returns>
 		public UploadConfig GetConfig()
 		{
-			CSSPUploadConfig result = new CSSPUploadConfig();
+			var Result = new CSSPUploadConfig();
 			try
 			{
-				result.TempPath = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.TempPath)).Key);
-				result.DataUrl = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.DataUrl)).Key);
+				Result.TempPath = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.TempPath)).Key);
+				Result.DataUrl = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.DataUrl)).Key);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>초기화해야할 설정 목록을 가져온다.</summary>
 		/// <returns>초기화해야할 설정 목록</returns>
 		public List<KeyValuePair<string, string>> GetListForInitialization()
 		{
-			List<KeyValuePair<string, string>> result = new List<KeyValuePair<string, string>>();
-			ResponseList<ResponseConfig> configs;
-			KeyValuePair<string, string>? item;
+			List<KeyValuePair<string, string>> Result = new List<KeyValuePair<string, string>>();
+			ResponseList<ResponseConfig> Configs;
+			KeyValuePair<string, string>? Item;
 			try
 			{
 				// SMTP 관련 설정을 가져온다.
-				configs = m_configLoader.GetStartsWith("UPLOAD.");
+				Configs = m_configLoader.GetStartsWith("UPLOAD.");
 
 				// 설정이 유효한 경우
-				if (configs != null)
+				if (Configs != null)
 				{
-					item = SystemConfigLoader.GetInitializationItem<CSSPUploadConfig>(configs, "TempPath");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPUploadConfig>(configs, "DataUrl");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPUploadConfig>(Configs, "TempPath");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPUploadConfig>(Configs, "DataUrl");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 유저 디스크풀 목록 </summary>
 	public partial class UserDiskPool
 	{
+
 		public UserDiskPool()
 		{
 			OnCreated();
@@ -26,7 +27,10 @@ namespace PortalModels
 		/// <summary> 디스크풀 아이디 </summary>
 		public virtual Guid DiskPoolId { get; set; }
 
-		public virtual S3User S3User { get; set; }
+		/// <summary> 스토리지 클래스 이름 </summary>
+		public virtual string StorageClass { get; set; }
+
+		public virtual KsanUser S3User { get; set; }
 
 		public virtual DiskPool DiskPool { get; set; }
 
@@ -46,6 +50,8 @@ namespace PortalModels
 				return false;
 			if (!Object.Equals(this.DiskPoolId, toCompare.DiskPoolId))
 				return false;
+			if (!Object.Equals(this.StorageClass, toCompare.StorageClass))
+				return false;
 
 			return true;
 		}
@@ -55,9 +61,11 @@ namespace PortalModels
 			int hashCode = 13;
 			hashCode = (hashCode * 7) + UserId.GetHashCode();
 			hashCode = (hashCode * 7) + DiskPoolId.GetHashCode();
+			hashCode = (hashCode * 7) + StorageClass.GetHashCode();
 			return hashCode;
 		}
 
 		#endregion
 	}
+
 }

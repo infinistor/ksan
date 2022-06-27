@@ -67,115 +67,115 @@ namespace PortalSvr.RabbitMqReceivers
 		}
 
 		/// <summary>메시지 처리</summary>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="body">내용</param>
-		protected override async Task<ResponseMqData> HandleMessage(string routingKey, byte[] body)
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="Body">내용</param>
+		protected override async Task<ResponseMqData> HandleMessage(string RoutingKey, byte[] Body)
 		{
-			ResponseMqData result = new ResponseMqData();
+			ResponseMqData Result = new ResponseMqData();
 
 			try
 			{
 				// 수신된 데이터를 문자열로 변환
-				string json = body.GetString();
+				string json = Body.GetString();
 
 				using (var scope = m_serviceScopeFactory.CreateScope())
 				{
 					// API 키 프로바이더를 가져온다.
-					IApiKeyProvider apiKeyProvider = scope.ServiceProvider.GetService<IApiKeyProvider>();
-					if (apiKeyProvider == null)
+					var ApiKeyProvider = scope.ServiceProvider.GetService<IApiKeyProvider>();
+					if (ApiKeyProvider == null)
 						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 					// 내부 시스템 API 키 정보를 가져온다.
-					ResponseData<ResponseApiKey> responseApiKey = await apiKeyProvider.GetApiKey(PredefinedApiKey.InternalSystemApiKey);
+					var ResponseApiKey = await ApiKeyProvider.GetApiKey(PredefinedApiKey.InternalSystemApiKey);
 
 					// API 키를 가져오는데 실패한 경우
-					if (responseApiKey.Result == EnumResponseResult.Error)
-						return new ResponseMqData(EnumResponseResult.Error, responseApiKey.Code, responseApiKey.Message);
+					if (ResponseApiKey.Result == EnumResponseResult.Error)
+						return new ResponseMqData(EnumResponseResult.Error, ResponseApiKey.Code, ResponseApiKey.Message);
 
 					// 서버 상태 관련인 경우
-					if (routingKey.EndsWith("servers.state"))
+					if (RoutingKey.EndsWith("servers.state"))
 					{
 						// 처리할 프로바이더를 가져온다.
-						IServerProvider dataProvider = scope.ServiceProvider.GetService<IServerProvider>();
-						if (dataProvider == null)
+						var DataProvider = scope.ServiceProvider.GetService<IServerProvider>();
+						if (DataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
-						RequestServerState request = JsonConvert.DeserializeObject<RequestServerState>(json);
+						var Request = JsonConvert.DeserializeObject<RequestServerState>(json);
 
 						// 서버 상태 수정
-						ResponseData response = await dataProvider.UpdateState(request, responseApiKey.Data.UserId, responseApiKey.Data.UserName);
+						var Response = await DataProvider.UpdateState(Request, ResponseApiKey.Data.UserId, ResponseApiKey.Data.UserName);
 
-						result.CopyValueFrom(response);
-						result.IsProcessed = true;
+						Result.CopyValueFrom(Response);
+						Result.IsProcessed = true;
 					}
 					// 서버 사용 정보 관련인 경우
-					else if (routingKey.EndsWith("servers.usage"))
+					else if (RoutingKey.EndsWith("servers.usage"))
 					{
 						// 처리할 프로바이더를 가져온다.
-						IServerProvider dataProvider = scope.ServiceProvider.GetService<IServerProvider>();
-						if (dataProvider == null)
+						var DataProvider = scope.ServiceProvider.GetService<IServerProvider>();
+						if (DataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
-						RequestServerUsage request = JsonConvert.DeserializeObject<RequestServerUsage>(json);
+						var Request = JsonConvert.DeserializeObject<RequestServerUsage>(json);
 
 						// 서버 사용 정보 수정
-						ResponseData response = await dataProvider.UpdateUsage(request);
+						var Response = await DataProvider.UpdateUsage(Request);
 
-						result.CopyValueFrom(response);
-						result.IsProcessed = true;
+						Result.CopyValueFrom(Response);
+						Result.IsProcessed = true;
 					}
 					// 네트워크 인터페이스 연결 상태 관련인 경우
-					else if (routingKey.EndsWith("servers.interfaces.linkstate"))
+					else if (RoutingKey.EndsWith("servers.interfaces.linkstate"))
 					{
 						// 처리할 프로바이더를 가져온다.
-						INetworkInterfaceProvider dataProvider = scope.ServiceProvider.GetService<INetworkInterfaceProvider>();
-						if (dataProvider == null)
+						var DataProvider = scope.ServiceProvider.GetService<INetworkInterfaceProvider>();
+						if (DataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
-						RequestNetworkInterfaceLinkState request = JsonConvert.DeserializeObject<RequestNetworkInterfaceLinkState>(json);
+						var Request = JsonConvert.DeserializeObject<RequestNetworkInterfaceLinkState>(json);
 
 						// 네트워크 인터페이스 연결 상태 수정
-						ResponseData response = await dataProvider.UpdateLinkState(request);
+						var Response = await DataProvider.UpdateLinkState(Request);
 
-						result.CopyValueFrom(response);
-						result.IsProcessed = true;
+						Result.CopyValueFrom(Response);
+						Result.IsProcessed = true;
 					}
 					// 네트워크 인터페이스 사용 정보 관련인 경우
-					else if (routingKey.EndsWith("servers.interfaces.usage"))
+					else if (RoutingKey.EndsWith("servers.interfaces.usage"))
 					{
 						// 처리할 프로바이더를 가져온다.
-						INetworkInterfaceProvider dataProvider = scope.ServiceProvider.GetService<INetworkInterfaceProvider>();
-						if (dataProvider == null)
+						var DataProvider = scope.ServiceProvider.GetService<INetworkInterfaceProvider>();
+						if (DataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
-						RequestNetworkInterfaceUsage request = JsonConvert.DeserializeObject<RequestNetworkInterfaceUsage>(json);
+						var Request = JsonConvert.DeserializeObject<RequestNetworkInterfaceUsage>(json);
 
 						// 네트워크 인터페이스 사용 정보 수정
-						ResponseData response = await dataProvider.UpdateUsage(request);
+						var Response = await DataProvider.UpdateUsage(Request);
 
-						result.CopyValueFrom(response);
-						result.IsProcessed = true;
+						Result.CopyValueFrom(Response);
+						Result.IsProcessed = true;
 					}
 					// 디스크 크기 관련인 경우
-					else if (routingKey.EndsWith("servers.disks.size"))
+					else if (RoutingKey.EndsWith("servers.disks.usage"))
 					{
 						// 처리할 프로바이더를 가져온다.
-						IDiskProvider dataProvider = scope.ServiceProvider.GetService<IDiskProvider>();
-						if (dataProvider == null)
+						var DataProvider = scope.ServiceProvider.GetService<IDiskProvider>();
+						if (DataProvider == null)
 							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 						// json을 객체로 변환
-						RequestDiskSize request = JsonConvert.DeserializeObject<RequestDiskSize>(json);
+						var Request = JsonConvert.DeserializeObject<RequestDiskUsage>(json);
 
 						// 디스크 크기 수정
-						ResponseData response = await dataProvider.UpdateSize(request);
+						var Response = await DataProvider.UpdateUsage(Request);
 
-						result.CopyValueFrom(response);
-						result.IsProcessed = true;
+						Result.CopyValueFrom(Response);
+						Result.IsProcessed = true;
 					}
 				}
 			}
@@ -183,11 +183,11 @@ namespace PortalSvr.RabbitMqReceivers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 	}
 }

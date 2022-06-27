@@ -70,26 +70,26 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>역할을 추가한다.</summary>
-		/// <param name="request">역할 정보</param>
+		/// <param name="Request">역할 정보</param>
 		/// <returns>역할 등록 결과</returns>
-		public async Task<ResponseData<ResponseRole>> AddRole(RequestRole request)
+		public async Task<ResponseData<ResponseRole>> AddRole(RequestRole Request)
 		{
-			ResponseData<ResponseRole> result = new ResponseData<ResponseRole>();
+			var Result = new ResponseData<ResponseRole>();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<ResponseRole>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData<ResponseRole>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 해당 역할이 존재하지 않는 경우 생성
-				if (!await m_roleManager.RoleExistsAsync(request.Name))
+				if (!await m_roleManager.RoleExistsAsync(Request.Name))
 				{
-					NNApplicationRole role = new NNApplicationRole { Id = Guid.NewGuid(), Name = request.Name };
-					await m_roleManager.CreateAsync(role);
-					result.Data = new ResponseRole();
-					result.Data.Id = role.Id;
-					result.Data.Name = role.Name;
-					result.Result = EnumResponseResult.Success;
+					var Role = new NNApplicationRole { Id = Guid.NewGuid(), Name = Request.Name };
+					await m_roleManager.CreateAsync(Role);
+					Result.Data = new ResponseRole();
+					Result.Data.Id = Role.Id;
+					Result.Data.Name = Role.Name;
+					Result.Result = EnumResponseResult.Success;
 				}
 				// 해당 역할이 존재하는 경우
 				else
@@ -99,63 +99,62 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할을 수정한다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="request">역할 정보</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Request">역할 정보</param>
 		/// <returns>역할 등록 결과</returns>
-		public async Task<ResponseData> UpdateRole(string id, RequestRole request)
+		public async Task<ResponseData> UpdateRole(string Id, RequestRole Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (id.IsEmpty())
+				if (Id.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (!request.IsValid())
+				else if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(id);
+					var Role = await m_roleManager.FindByIdAsync(Id);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 수정할 Role이 미리 정의된 역할인 경우
-						if (role.Name == PredefinedRoleNames.RoleNameSupervisor
-							|| role.Name == PredefinedRoleNames.RoleNameInternalService)
+						if (Role.Name == PredefinedRoleNames.RoleNameSupervisor || Role.Name == PredefinedRoleNames.RoleNameInternalService)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
-							result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_UPDATE;
 						}
 						// 수정할 수 있는 경우
 						else
 						{
-							role.Name = request.Name;
-							await m_roleManager.UpdateAsync(role);
-							result.Result = EnumResponseResult.Success;
+							Role.Name = Request.Name;
+							await m_roleManager.UpdateAsync(Role);
+							Result.Result = EnumResponseResult.Success;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -163,57 +162,56 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할을 삭제한다.</summary>
-		/// <param name="id">역할 아이디</param>
+		/// <param name="Id">역할 아이디</param>
 		/// <returns>역할 삭제 결과</returns>
-		public async Task<ResponseData> RemoveRole(string id)
+		public async Task<ResponseData> RemoveRole(string Id)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (id.IsEmpty())
+				if (Id.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(id);
+					var Role = await m_roleManager.FindByIdAsync(Id);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 삭제할 Role이 미리 정의된 역할인 경우
-						if (role.Name == PredefinedRoleNames.RoleNameSupervisor
-							|| role.Name == PredefinedRoleNames.RoleNameInternalService)
+						if (Role.Name == PredefinedRoleNames.RoleNameSupervisor || Role.Name == PredefinedRoleNames.RoleNameInternalService)
 						{
-							result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
-							result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_ROLE_PREDEFINED_ROLE_CANNOT_DELETE;
 						}
 						// 삭제할 수 있는 Role인 경우
 						else
 						{
-							await m_roleManager.DeleteAsync(role);
-							result.Result = EnumResponseResult.Success;
-							result.Message = Resource.SM_COMMON__DELETED;
+							await m_roleManager.DeleteAsync(Role);
+							Result.Result = EnumResponseResult.Success;
+							Result.Message = Resource.SM_COMMON__DELETED;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Warning;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Warning;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -221,99 +219,97 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>전체 역할을 가져온다.</summary>
 		/// <returns>역할 목록</returns>
 		public async Task<ResponseList<ResponseRole>> GetRoles()
 		{
-			ResponseList<ResponseRole> result = new ResponseList<ResponseRole>();
-			List<ResponseRole> responseRoles = new List<ResponseRole>();
+			var Result = new ResponseList<ResponseRole>();
+			var ResponseRoles = new List<ResponseRole>();
 			try
 			{
 				// 역할 목록을 가져온다.
-				List<Role> roles = await m_dbContext.Roles.AsNoTracking()
+				var Roles = await m_dbContext.Roles.AsNoTracking()
 					.Include(i => i.RoleClaims)
 					.Include(i => i.UserRoles)
 					.ToListAsync();
 
-				if (roles != null)
+				if (Roles != null)
 				{
-					Role supervisorRole = roles.FirstOrDefault(i => i.Name == "Supervisor");
-					if (supervisorRole != null)
-						responseRoles.Add(new ResponseRole()
-						{ Id = supervisorRole.Id, Name = supervisorRole.Name, ClaimCount = supervisorRole.RoleClaims.Count, UserCount = supervisorRole.UserRoles.Count });
+					var SupervisorRole = Roles.FirstOrDefault(i => i.Name == "Supervisor");
+					if (SupervisorRole != null)
+						ResponseRoles.Add(new ResponseRole()
+						{ Id = SupervisorRole.Id, Name = SupervisorRole.Name, ClaimCount = SupervisorRole.RoleClaims.Count, UserCount = SupervisorRole.UserRoles.Count });
 
-					Role adminRole = roles.FirstOrDefault(i => i.Name == "Admin");
-					if (adminRole != null)
-						responseRoles.Add(new ResponseRole() { Id = adminRole.Id, Name = adminRole.Name, ClaimCount = adminRole.RoleClaims.Count, UserCount = adminRole.UserRoles.Count });
+					var AdminRole = Roles.FirstOrDefault(i => i.Name == "Admin");
+					if (AdminRole != null)
+						ResponseRoles.Add(new ResponseRole() { Id = AdminRole.Id, Name = AdminRole.Name, ClaimCount = AdminRole.RoleClaims.Count, UserCount = AdminRole.UserRoles.Count });
 
-					Role userRole = roles.FirstOrDefault(i => i.Name == "User");
-					if (userRole != null)
-						responseRoles.Add(new ResponseRole() { Id = userRole.Id, Name = userRole.Name, ClaimCount = userRole.RoleClaims.Count, UserCount = userRole.UserRoles.Count });
+					var UserRole = Roles.FirstOrDefault(i => i.Name == "User");
+					if (UserRole != null)
+						ResponseRoles.Add(new ResponseRole() { Id = UserRole.Id, Name = UserRole.Name, ClaimCount = UserRole.RoleClaims.Count, UserCount = UserRole.UserRoles.Count });
 
 					// 모든 역할에 대해서 처리
-					foreach (Role role in roles.Where(i => i.Name != "Supervisor" && i.Name != "Admin" && i.Name != "User"))
-						responseRoles.Add(new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count });
+					foreach (Role Role in Roles.Where(i => i.Name != "Supervisor" && i.Name != "Admin" && i.Name != "User"))
+						ResponseRoles.Add(new ResponseRole() { Id = Role.Id, Name = Role.Name, ClaimCount = Role.RoleClaims.Count, UserCount = Role.UserRoles.Count });
 				}
 
 				// 목록으로 변환
-				result.Data = responseRoles.CreateList();
-				result.Result = EnumResponseResult.Success;
+				Result.Data = ResponseRoles.CreateList();
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할 아이디로 특정 역할을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
+		/// <param name="Id">역할 아이디</param>
 		/// <returns>해당 역할 데이터</returns>
-		public async Task<ResponseData<ResponseRole>> GetRoleById(string id)
+		public async Task<ResponseData<ResponseRole>> GetRoleById(string Id)
 		{
-			ResponseData<ResponseRole> result = new ResponseData<ResponseRole>();
+			var Result = new ResponseData<ResponseRole>();
 			try
 			{
-				Guid searchId;
-
 				// 역할 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out searchId))
+				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid SearchId))
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효한 경우
 				else
 				{
 					// 해당 역할 정보를 가져온다.
-					Role role = await m_dbContext.Roles.AsNoTracking()
-						.Where(i => i.Id == searchId)
+					var Role = await m_dbContext.Roles.AsNoTracking()
+						.Where(i => i.Id == SearchId)
 						.Include(i => i.RoleClaims)
 						.Include(i => i.UserRoles)
 						.FirstOrDefaultAsync();
 
 					// 해당 역할 정보가 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
-						result.Data = new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count };
-						result.Result = EnumResponseResult.Success;
+						Result.Data = new ResponseRole() { Id = Role.Id, Name = Role.Name, ClaimCount = Role.RoleClaims.Count, UserCount = Role.UserRoles.Count };
+						Result.Result = EnumResponseResult.Success;
 					}
 					// 해당 역할 정보가 존재하지 않는 경우
 					else
 					{
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -321,48 +317,48 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할명으로 특정 역할을 가져온다.</summary>
-		/// <param name="name">역할명</param>
+		/// <param name="Name">역할명</param>
 		/// <returns>해당 역할 데이터</returns>
-		public async Task<ResponseData<ResponseRole>> GetRoleByName(string name)
+		public async Task<ResponseData<ResponseRole>> GetRoleByName(string Name)
 		{
-			ResponseData<ResponseRole> result = new ResponseData<ResponseRole>();
+			var Result = new ResponseData<ResponseRole>();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (name.IsEmpty())
+				if (Name.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효한 경우
 				else
 				{
 					// 해당 역할 정보를 가져온다.
-					Role role = await m_dbContext.Roles.AsNoTracking()
-						.Where(i => i.Name == name)
+					var Role = await m_dbContext.Roles.AsNoTracking()
+						.Where(i => i.Name == Name)
 						.Include(i => i.RoleClaims)
 						.Include(i => i.UserRoles)
 						.FirstOrDefaultAsync();
 
 					// 해당 역할 정보가 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
-						result.Data = new ResponseRole() { Id = role.Id, Name = role.Name, ClaimCount = role.RoleClaims.Count, UserCount = role.UserRoles.Count };
-						result.Result = EnumResponseResult.Success;
+						Result.Data = new ResponseRole() { Id = Role.Id, Name = Role.Name, ClaimCount = Role.RoleClaims.Count, UserCount = Role.UserRoles.Count };
+						Result.Result = EnumResponseResult.Success;
 					}
 					// 해당 역할 정보가 존재하지 않는 경우
 					else
 					{
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -370,88 +366,83 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 역할에 대한 권한 목록을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		public async Task<ResponseList<ResponseClaim>> GetRoleClaims(string id, int skip = 0, int countPerPage = int.MaxValue, string searchKeyword = "")
+		public async Task<ResponseList<ResponseClaim>> GetRoleClaims(string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
 		{
-			ResponseList<ResponseClaim> result = new ResponseList<ResponseClaim>();
+			ResponseList<ResponseClaim> Result = new ResponseList<ResponseClaim>();
 			try
 			{
-				Guid searchId;
-
 				// 역할 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out searchId))
+				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid SearchId))
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효한 경우
 				else
 				{
 					// 해당 역할의 권한들을 가져온다.
-					result.Data = await m_dbContext.RoleClaims.AsNoTracking()
-						.Where(i => i.RoleId == searchId
-									&& (searchKeyword.IsEmpty() || i.ClaimValue.Contains(searchKeyword)))
-						.CreateListAsync<RoleClaim, ResponseClaim>(skip, countPerPage);
+					Result.Data = await m_dbContext.RoleClaims.AsNoTracking()
+						.Where(i => i.RoleId == SearchId
+									&& (SearchKeyword.IsEmpty() || i.ClaimValue.Contains(SearchKeyword)))
+						.CreateListAsync<RoleClaim, ResponseClaim>(Skip, CountPerPage);
 
-					result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 역할에 대한 사용자 목록을 가져온다.</summary>
-		/// <param name="id">역할 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">역할 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 20)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>특정 역할에 대한 사용자 목록</returns>
-		public async Task<ResponseList<ResponseUser>> GetRoleUsers(string id, int skip = 0, int countPerPage = 100, string searchKeyword = "")
+		public async Task<ResponseList<ResponseUser>> GetRoleUsers(string Id, int Skip = 0, int CountPerPage = 100, string SearchKeyword = "")
 		{
-			ResponseList<ResponseUser> result = new ResponseList<ResponseUser>();
+			ResponseList<ResponseUser> Result = new ResponseList<ResponseUser>();
 			try
 			{
-				Guid searchId;
-
 				// 역할 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out searchId))
+				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid SearchId))
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효한 경우
 				else
 				{
 					// 해당 역할의 사용자를 가져온다.
-					result.Data = await m_dbContext.UserRoles.AsNoTracking()
+					Result.Data = await m_dbContext.UserRoles.AsNoTracking()
 						.Join(m_dbContext.Users, i => i.UserId, i => i.Id, (i, j) => new { Role = i, User = j })
-						.Where(i => i.Role.RoleId == searchId
+						.Where(i => i.Role.RoleId == SearchId
 									&& i.User.IsDeleted == false
-									&& (searchKeyword.IsEmpty()
-										|| i.User.LoginId.Contains(searchKeyword)
-										|| i.User.Email.Contains(searchKeyword)
-										|| i.User.Name.Contains(searchKeyword)
+									&& (SearchKeyword.IsEmpty()
+										|| i.User.LoginId.Contains(SearchKeyword)
+										|| i.User.Email.Contains(SearchKeyword)
+										|| i.User.Name.Contains(SearchKeyword)
 									))
-						//.Select(i => i.User)
 						.Select(i => new
 						{
 							Id = i.User.Id.ToString(),
@@ -462,93 +453,93 @@ namespace PortalProvider.Providers.Accounts
 							Status = !i.User.EmailConfirmed ? EnumUserStatus.VerifyingEmail : i.User.LockoutEnd > DateTime.Now ? EnumUserStatus.Locked : EnumUserStatus.Activated,
 						})
 						.OrderByWithDirection(i => i.Name)
-						.CreateListAsync<dynamic, ResponseUser>(skip, countPerPage);
+						.CreateListAsync<dynamic, ResponseUser>(Skip, CountPerPage);
 
 					// 모든 사용자에 대해서 처리
-					foreach (ResponseUser user in result.Data.Items)
+					foreach (ResponseUser user in Result.Data.Items)
 					{
 						NNApplicationUser applicationUser = await m_userProvider.GetUserById(user.Id);
 						user.Status = await m_userManager.GetUserStatus(applicationUser);
 					}
 
-					result.Result = EnumResponseResult.Success;
+					Result.Result = EnumResponseResult.Success;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에 사용자를 추가한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">사용자 정보</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">사용자 정보</param>
 		/// <returns>사용자 추가 결과</returns>
-		public async Task<ResponseData> AddUserToRole(string roleId, RequestAddUserToRole request)
+		public async Task<ResponseData> AddUserToRole(string RoleId, RequestAddUserToRole Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (roleId.IsEmpty())
+				if (RoleId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (!request.IsValid())
+				else if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(roleId);
+					var Role = await m_roleManager.FindByIdAsync(RoleId);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 해당 사용자를 가져온다.
-						NNApplicationUser user = await m_userProvider.GetUserById(request.Id);
+						var User = await m_userProvider.GetUserById(Request.Id);
 
 						// 해당 사용자가 존재하는 경우
-						if (user != null)
+						if (User != null)
 						{
 							// 해당 역할에 포함되어 있지 않은 경우
-							if (!await m_userManager.IsInRoleAsync(user, role.Name))
+							if (!await m_userManager.IsInRoleAsync(User, Role.Name))
 							{
-								await m_userManager.AddToRoleAsync(user, role.Name);
-								result.Result = EnumResponseResult.Success;
+								await m_userManager.AddToRoleAsync(User, Role.Name);
+								Result.Result = EnumResponseResult.Success;
 							}
 							// 해당 역할에 포함되어 있는 경우
 							else
 							{
-								result.Result = EnumResponseResult.Warning;
-								result.Code = Resource.EC_COMMON__ALREADY_EXIST;
-								result.Message = Resource.EM_COMMON__ALREADY_EXIST;
+								Result.Result = EnumResponseResult.Warning;
+								Result.Code = Resource.EC_COMMON__ALREADY_EXIST;
+								Result.Message = Resource.EM_COMMON__ALREADY_EXIST;
 							}
 						}
 						// 해당 사용자가 존재하지 않는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Error;
-							result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-							result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Result = EnumResponseResult.Error;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -556,77 +547,77 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에 사용자를 추가한다.</summary>
-		/// <param name="roleName">역할명</param>
-		/// <param name="request">사용자 정보</param>
+		/// <param name="RoleName">역할명</param>
+		/// <param name="Request">사용자 정보</param>
 		/// <returns>사용자 추가 결과</returns>
-		public async Task<ResponseData> AddUserToRoleByName(string roleName, RequestAddUserToRole request)
+		public async Task<ResponseData> AddUserToRoleByName(string RoleName, RequestAddUserToRole Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할명이 유효하지 않은 경우
-				if (roleName.IsEmpty())
+				if (RoleName.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (!request.IsValid())
+				else if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할명의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByNameAsync(roleName);
+					var Role = await m_roleManager.FindByNameAsync(RoleName);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 해당 사용자를 가져온다.
-						NNApplicationUser user = await m_userProvider.GetUserById(request.Id);
+						var User = await m_userProvider.GetUserById(Request.Id);
 
 						// 해당 사용자가 존재하는 경우
-						if (user != null)
+						if (User != null)
 						{
 							// 해당 역할에 포함되어 있지 않은 경우
-							if (!await m_userManager.IsInRoleAsync(user, role.Name))
+							if (!await m_userManager.IsInRoleAsync(User, Role.Name))
 							{
-								await m_userManager.AddToRoleAsync(user, role.Name);
-								result.Result = EnumResponseResult.Success;
+								await m_userManager.AddToRoleAsync(User, Role.Name);
+								Result.Result = EnumResponseResult.Success;
 							}
 							// 해당 역할에 포함되어 있는 경우
 							else
 							{
-								result.Result = EnumResponseResult.Warning;
-								result.Code = Resource.EC_COMMON__ALREADY_EXIST;
-								result.Message = Resource.EM_COMMON__ALREADY_EXIST;
+								Result.Result = EnumResponseResult.Warning;
+								Result.Code = Resource.EC_COMMON__ALREADY_EXIST;
+								Result.Message = Resource.EM_COMMON__ALREADY_EXIST;
 							}
 						}
 						// 해당 사용자가 존재하지 않는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Error;
-							result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-							result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Result = EnumResponseResult.Error;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -634,74 +625,74 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에 권한을 추가한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">권한 정보</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">권한 정보</param>
 		/// <returns>권한 추가 결과</returns>
-		public async Task<ResponseData> AddClaimToRole(string roleId, RequestAddClaimToRole request)
+		public async Task<ResponseData> AddClaimToRole(string RoleId, RequestAddClaimToRole Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (roleId.IsEmpty())
+				if (RoleId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (!request.IsValid())
+				else if (!Request.IsValid())
 				{
-					result.Code = request.GetErrorCode();
-					result.Message = request.GetErrorMessage();
+					Result.Code = Request.GetErrorCode();
+					Result.Message = Request.GetErrorMessage();
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(roleId);
+					var Role = await m_roleManager.FindByIdAsync(RoleId);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
-						bool exist = false;
+						bool Exist = false;
 
 						// 해당 역할의 기존 권한 목록을 가져온다.
-						IList<Claim> claims = await m_roleManager.GetClaimsAsync(role);
+						var claims = await m_roleManager.GetClaimsAsync(Role);
 						if (claims != null)
 						{
 							// 해당 역할의 권한 중에 해당 권한이 있는지 검사
-							if (claims.Where(i => i.Type == "Permission" && i.Value == request.ClaimValue).Any())
-								exist = true;
+							if (claims.Where(i => i.Type == "Permission" && i.Value == Request.ClaimValue).Any())
+								Exist = true;
 						}
 
 						// 해당 역할에 권한이 포함되어 있지 않은 경우
-						if (!exist)
+						if (!Exist)
 						{
-							await m_roleManager.AddClaimAsync(role, new Claim("Permission", request.ClaimValue));
-							result.Result = EnumResponseResult.Success;
+							await m_roleManager.AddClaimAsync(Role, new Claim("Permission", Request.ClaimValue));
+							Result.Result = EnumResponseResult.Success;
 						}
 						// 해당 역할에 권한이 포함되어 있는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Warning;
-							result.Code = Resource.EC_COMMON__ALREADY_EXIST;
-							result.Message = Resource.EM_COMMON__ALREADY_EXIST;
+							Result.Result = EnumResponseResult.Warning;
+							Result.Code = Resource.EC_COMMON__ALREADY_EXIST;
+							Result.Message = Resource.EM_COMMON__ALREADY_EXIST;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -709,102 +700,100 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할의 권한을 수정한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="request">역할 권한 목록 객체</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="Request">역할 권한 목록 객체</param>
 		/// <returns>역할 권한 수정 결과</returns>
-		public async Task<ResponseData> UpdateRoleClaims(string roleId, List<RequestRoleClaim> request)
+		public async Task<ResponseData> UpdateRoleClaims(string RoleId, List<RequestRoleClaim> Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
-				Guid searchId;
-
 				// 역할 아이디가 유효하지 않은 경우
-				if (roleId.IsEmpty() || !Guid.TryParse(roleId, out searchId))
+				if (RoleId.IsEmpty() || !Guid.TryParse(RoleId, out Guid SearchId))
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 역할 아이디가 유효하지 않은 경우
-				else if (request == null)
+				else if (Request == null)
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 요청한 모든 권한에 대해서 처리
-					foreach (RequestRoleClaim claim in request)
+					foreach (var Claim in Request)
 					{
 						// 파라미터가 유효하지 않은 경우
-						if (!claim.IsValid())
+						if (!Claim.IsValid())
 						{
-							result.Code = claim.GetErrorCode();
-							result.Message = claim.GetErrorMessage();
-							return result;
+							Result.Code = Claim.GetErrorCode();
+							Result.Message = Claim.GetErrorMessage();
+							return Result;
 						}
 					}
 
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(roleId);
+					var Role = await m_roleManager.FindByIdAsync(RoleId);
 
 					// 해당 역할이 존재하지 않는 경우
-					if (role == null)
+					if (Role == null)
 					{
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 					// 해당 역할이 존재하는 경우
 					else
 					{
-						using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 						{
 							try
 							{
 								// 기존 역할 권한을 가져온다.
-								List<RoleClaim> oldClaims = await m_dbContext.RoleClaims
-									.Where(i => i.RoleId == searchId)
+								var OldClaims = await m_dbContext.RoleClaims
+									.Where(i => i.RoleId == SearchId)
 									.ToListAsync();
 
 								// 기존 역할 권한 삭제
-								m_dbContext.RoleClaims.RemoveRange(oldClaims);
+								m_dbContext.RoleClaims.RemoveRange(OldClaims);
 								await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 								// 요청한 모든 권한에 대해서 처리
-								foreach (RequestRoleClaim claim in request)
+								foreach (var Claim in Request)
 								{
 									// 역할 권한 추가
 									await m_dbContext.RoleClaims.AddAsync(new RoleClaim()
 									{
-										RoleId = Guid.Parse(roleId),
+										RoleId = Guid.Parse(RoleId),
 										ClaimType = "Permission",
-										ClaimValue = claim.ClaimValue
+										ClaimValue = Claim.ClaimValue
 									});
 								}
 
 								await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-								transaction.Commit();
+								Transaction.Commit();
 
-								result.Result = EnumResponseResult.Success;
+								Result.Result = EnumResponseResult.Success;
 							}
 							catch (Exception ex)
 							{
-								transaction.Rollback();
+								Transaction.Rollback();
 
 								NNException.Log(ex);
 
-								result.Code = Resource.EC_COMMON__EXCEPTION;
-								result.Message = Resource.EM_COMMON__EXCEPTION;
+								Result.Code = Resource.EC_COMMON__EXCEPTION;
+								Result.Message = Resource.EM_COMMON__EXCEPTION;
 							}
 						}
 					}
@@ -814,78 +803,78 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에서 사용자를 삭제한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="userId">사용자 식별자</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="UserId">사용자 식별자</param>
 		/// <returns>사용자 추가 결과</returns>
-		public async Task<ResponseData> RemoveUserFromRole(string roleId, string userId)
+		public async Task<ResponseData> RemoveUserFromRole(string RoleId, string UserId)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (roleId.IsEmpty())
+				if (RoleId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (userId.IsEmpty())
+				else if (UserId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(roleId);
+					var Role = await m_roleManager.FindByIdAsync(RoleId);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 해당 사용자를 가져온다.
-						NNApplicationUser user = await m_userProvider.GetUserById(userId);
+						var User = await m_userProvider.GetUserById(UserId);
 
 						// 해당 사용자가 존재하는 경우
-						if (user != null)
+						if (User != null)
 						{
 							// 해당 역할에 포함되어 있는 경우
-							if (await m_userManager.IsInRoleAsync(user, role.Name))
+							if (await m_userManager.IsInRoleAsync(User, Role.Name))
 							{
 								// 역할에서 해당 사용자 삭제
-								await m_userManager.RemoveFromRoleAsync(user, role.Name);
-								result.Result = EnumResponseResult.Success;
+								await m_userManager.RemoveFromRoleAsync(User, Role.Name);
+								Result.Result = EnumResponseResult.Success;
 							}
 							// 해당 역할에 포함되어 있지 않은 경우
 							else
 							{
-								result.Result = EnumResponseResult.Warning;
-								result.Code = Resource.EC_COMMON__NOT_FOUND;
-								result.Message = Resource.EM_COMMON__NOT_FOUND;
+								Result.Result = EnumResponseResult.Warning;
+								Result.Code = Resource.EC_COMMON__NOT_FOUND;
+								Result.Message = Resource.EM_COMMON__NOT_FOUND;
 							}
 						}
 						// 해당 사용자가 존재하지 않는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Error;
-							result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-							result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Result = EnumResponseResult.Error;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -893,78 +882,78 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에서 사용자를 삭제한다.</summary>
-		/// <param name="roleName">역할명</param>
-		/// <param name="userId">사용자 식별자</param>
+		/// <param name="RoleName">역할명</param>
+		/// <param name="UserId">사용자 식별자</param>
 		/// <returns>사용자 추가 결과</returns>
-		public async Task<ResponseData> RemoveUserFromRoleByName(string roleName, string userId)
+		public async Task<ResponseData> RemoveUserFromRoleByName(string RoleName, string UserId)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할명이 유효하지 않은 경우
-				if (roleName.IsEmpty())
+				if (RoleName.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (userId.IsEmpty())
+				else if (UserId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할명의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByNameAsync(roleName);
+					var Role = await m_roleManager.FindByNameAsync(RoleName);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
 						// 해당 사용자를 가져온다.
-						NNApplicationUser user = await m_userProvider.GetUserById(userId);
+						var User = await m_userProvider.GetUserById(UserId);
 
 						// 해당 사용자가 존재하는 경우
-						if (user != null)
+						if (User != null)
 						{
 							// 해당 역할에 포함되어 있는 경우
-							if (await m_userManager.IsInRoleAsync(user, role.Name))
+							if (await m_userManager.IsInRoleAsync(User, Role.Name))
 							{
 								// 역할에서 해당 사용자 삭제
-								await m_userManager.RemoveFromRoleAsync(user, role.Name);
-								result.Result = EnumResponseResult.Success;
+								await m_userManager.RemoveFromRoleAsync(User, Role.Name);
+								Result.Result = EnumResponseResult.Success;
 							}
 							// 해당 역할에 포함되어 있지 않은 경우
 							else
 							{
-								result.Result = EnumResponseResult.Warning;
-								result.Code = Resource.EC_COMMON__NOT_FOUND;
-								result.Message = Resource.EM_COMMON__NOT_FOUND;
+								Result.Result = EnumResponseResult.Warning;
+								Result.Code = Resource.EC_COMMON__NOT_FOUND;
+								Result.Message = Resource.EM_COMMON__NOT_FOUND;
 							}
 						}
 						// 해당 사용자가 존재하지 않는 경우
 						else
 						{
-							result.Result = EnumResponseResult.Error;
-							result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-							result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Result = EnumResponseResult.Error;
+							Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
+							Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -972,73 +961,73 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>역할에서 권한을 삭제한다.</summary>
-		/// <param name="roleId">역할 아이디</param>
-		/// <param name="claimValue">권한값</param>
+		/// <param name="RoleId">역할 아이디</param>
+		/// <param name="ClaimValue">권한값</param>
 		/// <returns>권한 추가 결과</returns>
-		public async Task<ResponseData> RemoveClaimFromRole(string roleId, string claimValue)
+		public async Task<ResponseData> RemoveClaimFromRole(string RoleId, string ClaimValue)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 역할 아이디가 유효하지 않은 경우
-				if (roleId.IsEmpty())
+				if (RoleId.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효하지 않은 경우
-				else if (claimValue.IsEmpty())
+				else if (ClaimValue.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 역할 아이디의 역할을 가져온다.
-					NNApplicationRole role = await m_roleManager.FindByIdAsync(roleId);
+					var Role = await m_roleManager.FindByIdAsync(RoleId);
 
 					// 해당 역할이 존재하는 경우
-					if (role != null)
+					if (Role != null)
 					{
-						Claim claim = null;
-
 						// 해당 역할의 기존 권한 목록을 가져온다.
-						IList<Claim> claims = await m_roleManager.GetClaimsAsync(role);
-						if (claims != null)
+						Claim Claim = null;
+
+						var Claims = await m_roleManager.GetClaimsAsync(Role);
+						if (Claims != null)
 						{
 							// 해당 역할의 권한 중에 해당 권한이 있는지 검사
-							claim = claims.Where(i => i.Type == "Permission" && i.Value == claimValue).FirstOrDefault();
+							Claim = Claims.Where(i => i.Type == "Permission" && i.Value == ClaimValue).FirstOrDefault();
 						}
 
 						// 해당 역할에 권한이 포함되어 있는 경우
-						if (claim != null)
+						if (Claim != null)
 						{
-							await m_roleManager.RemoveClaimAsync(role, claim);
-							result.Result = EnumResponseResult.Success;
+							await m_roleManager.RemoveClaimAsync(Role, Claim);
+							Result.Result = EnumResponseResult.Success;
 						}
 						// 해당 역할에 권한이 포함되어 있지 않은 경우
 						else
 						{
-							result.Result = EnumResponseResult.Warning;
-							result.Code = Resource.EC_COMMON__NOT_FOUND;
-							result.Message = Resource.EM_COMMON__NOT_FOUND;
+							Result.Result = EnumResponseResult.Warning;
+							Result.Code = Resource.EC_COMMON__NOT_FOUND;
+							Result.Message = Resource.EM_COMMON__NOT_FOUND;
 						}
 					}
 					// 해당 역할이 존재하지 않는 경우
 					else
 					{
-						result.Result = EnumResponseResult.Error;
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Result = EnumResponseResult.Error;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 				}
 			}
@@ -1046,39 +1035,39 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>권한 제목을 추가한다.</summary>
-		/// <param name="claimType">권한 타입</param>
-		/// <param name="claimValue">권한 값</param>
-		/// <param name="claimTitle">권한 제목</param>
-		/// <param name="depth">뎁스</param>
-		/// <param name="orderNo">순서</param>
+		/// <param name="ClaimType">권한 타입</param>
+		/// <param name="ClaimValue">권한 값</param>
+		/// <param name="ClaimTitle">권한 제목</param>
+		/// <param name="Depth">뎁스</param>
+		/// <param name="OrderNo">순서</param>
 		/// <returns>권한 제목 추가 결과</returns>
-		public async Task<ResponseData> AddClaimTitle(string claimType, string claimValue, string claimTitle, short depth, string orderNo)
+		public async Task<ResponseData> AddClaimTitle(string ClaimType, string ClaimValue, string ClaimTitle, short Depth, string OrderNo)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
-				if (claimType.IsEmpty() || claimValue.IsEmpty() || claimTitle.IsEmpty())
+				if (ClaimType.IsEmpty() || ClaimValue.IsEmpty() || ClaimTitle.IsEmpty())
 				{
-					result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
+					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
+					Result.Message = Resource.EM_COMMON__INVALID_INFORMATION;
 				}
 				// 파라미터가 유효한 경우
 				else
 				{
 					// 해당 권한 제목이 존재하지 않는 경우
-					if (!await m_dbContext.ClaimNames.AsNoTracking().Where(i => i.ClaimType == claimType && i.ClaimValue == claimValue).AnyAsync())
+					if (!await m_dbContext.ClaimNames.AsNoTracking().Where(i => i.ClaimType == ClaimType && i.ClaimValue == ClaimValue).AnyAsync())
 					{
 						// 권한 제목 등록
-						await m_dbContext.ClaimNames.AddAsync(new ClaimName() { ClaimType = claimType, ClaimValue = claimValue, ClaimTitle = claimTitle, Depth = depth, OrderNo = orderNo });
+						await m_dbContext.ClaimNames.AddAsync(new ClaimName() { ClaimType = ClaimType, ClaimValue = ClaimValue, ClaimTitle = ClaimTitle, Depth = Depth, OrderNo = OrderNo });
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 					}
 				}
@@ -1087,92 +1076,91 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>모든 권한 목록을 가져온다.</summary>
 		/// <returns>권한 목록</returns>
 		public async Task<ResponseList<ResponseClaim>> GetAllClaims()
 		{
-			ResponseList<ResponseClaim> result = new ResponseList<ResponseClaim>();
+			var Result = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 전체 권한 정보를 가져온다.
-				result.Data = await m_dbContext.ClaimNames.AsNoTracking()
+				Result.Data = await m_dbContext.ClaimNames.AsNoTracking()
 					.OrderByWithDirection(i => i.OrderNo)
 					.CreateListAsync<ClaimName, ResponseClaim>();
 
 				// 모든 권한에 대해서 처리
-				foreach (ResponseClaim claim in result.Data.Items)
+				foreach (var Claim in Result.Data.Items)
 				{
-					claim.HasChild = result.Data.Items
+					Claim.HasChild = Result.Data.Items
 						.Any(i =>
-							i.ClaimValue.StartsWith(claim.ClaimValue)
-							&& i.Depth == claim.Depth + 1
+							i.ClaimValue.StartsWith(Claim.ClaimValue)
+							&& i.Depth == Claim.Depth + 1
 						);
 				}
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 권한의 하위 권한 목록을 가져온다.</summary>
-		/// <param name="parentId">상위 권한 아이디</param>
+		/// <param name="ParentId">상위 권한 아이디</param>
 		/// <returns>권한 목록</returns>
-		public async Task<ResponseList<ResponseClaim>> GetClaims(int parentId)
+		public async Task<ResponseList<ResponseClaim>> GetClaims(int ParentId)
 		{
-			ResponseList<ResponseClaim> result = new ResponseList<ResponseClaim>();
-			ResponseClaim parentClaim;
+			var Result = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 상위 권한 정보를 가져온다.
-				parentClaim = await m_dbContext.ClaimNames.AsNoTracking()
-					.Where(i => i.Id == parentId)
+				var ParentClaim = await m_dbContext.ClaimNames.AsNoTracking()
+					.Where(i => i.Id == ParentId)
 					.FirstOrDefaultAsync<ClaimName, ResponseClaim>();
 
-				if (parentClaim != null)
+				if (ParentClaim != null)
 				{
 					// 하위 권한 정보를 가져온다.
-					result.Data = await m_dbContext.ClaimNames.AsNoTracking()
-						.Where(i => i.ClaimValue.StartsWith(parentClaim.ClaimValue) && i.Depth == parentClaim.Depth + 1)
+					Result.Data = await m_dbContext.ClaimNames.AsNoTracking()
+						.Where(i => i.ClaimValue.StartsWith(ParentClaim.ClaimValue) && i.Depth == ParentClaim.Depth + 1)
 						.OrderByWithDirection(i => i.OrderNo)
 						.CreateListAsync<ClaimName, ResponseClaim>();
 
 					// 모든 권한에 대해서 처리
-					foreach (ResponseClaim claim in result.Data.Items)
+					foreach (var Claim in Result.Data.Items)
 					{
-						claim.HasChild = result.Data.Items
+						Claim.HasChild = Result.Data.Items
 							.Any(i =>
-								i.ClaimValue.StartsWith(claim.ClaimValue)
-								&& i.Depth == claim.Depth + 1
+								i.ClaimValue.StartsWith(Claim.ClaimValue)
+								&& i.Depth == Claim.Depth + 1
 							);
 					}
 				}
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 	}
 }
