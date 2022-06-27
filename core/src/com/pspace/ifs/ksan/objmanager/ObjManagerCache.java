@@ -19,15 +19,8 @@ import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
-import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -37,13 +30,15 @@ public class ObjManagerCache {
     private final HashMap<String, DISKPOOL> diskPoolMap;
     private final HashMap<String, Bucket> bucketMap;
     private DataRepository dbm;
+    private GetFromPortal portal;
     private static Logger logger;
     
-    public ObjManagerCache(){
+    public ObjManagerCache() throws IOException{
         diskPoolMap = new HashMap<>();
         bucketMap   = new HashMap<>();
         logger = LoggerFactory.getLogger(ObjManager.class);
         dbm = null;
+        portal = new GetFromPortal();
     }
     
     // the db manager will be used to reload data incase not exist in memory
@@ -64,7 +59,7 @@ public class ObjManagerCache {
         DISKPOOL dskPool;
         dskPool = diskPoolMap.get(diskPoolId);
         if (dskPool == null) {
-            this.loadDiskPools();
+            //this.loadDiskPools();
             dskPool = diskPoolMap.get(diskPoolId);
         }
         
@@ -199,8 +194,6 @@ public class ObjManagerCache {
         if (!mt.isReplicaExist())
            return true;
                 
-        
-        
         try {
             if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), ""))
                 return false; // replica disk not exist
@@ -224,6 +217,14 @@ public class ObjManagerCache {
         logger.error("There is no server in the the pool with disk path : {} and disk pool id : {}!", dpath, dskPoolId);
         throw new ResourceNotFoundException("There is no server in the the pool with disk path : " + 
                 dpath +" and disk pool id : " + dskPoolId + "!"); 
+    }
+    
+    public void reloadDiskPoolList() {
+        try{
+            portal.loadDiskPoolList(this);
+        } catch (Exception ex){
+           logger.error("failed to reload diskpools :> {} ", ex);
+        }
     }
     
     public void displayBucketList(){
@@ -255,46 +256,5 @@ public class ObjManagerCache {
 
     public void resetBucketList() {
         bucketMap.clear();
-    }
-    
-    public void loadDiskPools(){
-        try{ 
-            File fXmlFile = new File("/usr/local/ksan/etc/diskpools.xml");
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(fXmlFile);
-            doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("DISKPOOL");
-            for (int idx = 0; idx < nList.getLength(); idx++) {
-                DISKPOOL dp;
-                //SERVER s;
-                Node dpoolNode = nList.item(idx);
-                dp = new DISKPOOL(((Element)dpoolNode).getAttribute("id"), ((Element)dpoolNode).getAttribute("name"));
-                //logger.debug("disk pool : id {}, name {}", dp.getId(), dp.getName());
-                NodeList serverNodeList = ((Element)dpoolNode).getElementsByTagName("SERVER");
-                int sidx = 0;
-                SERVER s[] = new SERVER[serverNodeList.getLength()];
-                while (sidx < serverNodeList.getLength()){
-                    
-                    Element elemS = (Element)((Element)serverNodeList.item(sidx));
-                    s[sidx] = new SERVER(elemS.getAttribute("id"), 0, elemS.getAttribute("ip"));
-
-                    NodeList diskNodeList = elemS.getElementsByTagName("DISK");
-                    int didx = 0;
-                    while(didx < diskNodeList.getLength()){
-                        Element elemD = ((Element)diskNodeList.item(didx));
-                        s[sidx].addDisk(elemD.getAttribute("path"), elemD.getAttribute("id"), 0, DiskStatus.GOOD);
-                        //System.out.format("Disk id : %s path : %s status : %s\n",  elemD.getAttribute("id"), elemD.getAttribute("path"), elemD.getAttribute("status"));
-                       // logger.debug("disk id : {}, path : {}", elemD.getAttribute("id"), elemD.getAttribute("path"));
-                        didx++; 
-                    }
-                    dp.addServer(s[sidx]);
-                    sidx++;
-                }
-               this.setDiskPoolInCache(dp);
-            }
-        }catch (Exception e){
-            System.out.println("Error loading diskpool-->" + e);
-        }
     }
 }

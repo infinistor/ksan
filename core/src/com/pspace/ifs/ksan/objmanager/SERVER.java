@@ -167,6 +167,10 @@ public class SERVER {
         diskMap.putIfAbsent(diskid, dsk);
     }
     
+    public void addDisk(DISK dsk){
+        diskMap.putIfAbsent(dsk.getId(), dsk);
+    }
+    
     public void removeDisk(String path, String diskid) throws ResourceNotFoundException{
         DISK dsk;
         

@@ -72,14 +72,6 @@ public class DiskAllocation {
             }
             break;
          }while(true);
-         /*replica = dskPool.getNextServer();
-         while(replica.equals(primary)){
-             replica = dskPool.getNextServer();
-             if (replica.equals(primary)){
-                logger.error("there is no osd server for replica allocation!");
-                throw new ResourceNotFoundException("there is no osd server for replica allocation!");
-             }
-         } */
          dsk = replica.getNextDisk();
          dsk.setOSDIP(replica.getName());
          dsk.setOSDServerId(replica.getId());
@@ -91,10 +83,7 @@ public class DiskAllocation {
        try  {
            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
        } catch(ResourceNotFoundException ex){
-           obmCache.loadDiskPools();
-           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-           //obmCache.displayDiskPoolList();
-           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           obmCache.reloadDiskPoolList();
            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
            if(dskPool != null)
                System.out.println(">>>Get disk pool is fixed!!!!!");

@@ -65,7 +65,7 @@ public class MongoDataRepository implements DataRepository{
     private ObjManagerCache obmCache;
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
-    private static Logger logger;
+    private static Logger mongoLogger;
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
