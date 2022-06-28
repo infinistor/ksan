@@ -36,7 +36,6 @@ public class ObjManager {
     private DiskAllocation dAlloc;
     private static ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    private DiskMonitor diskM;
     private MQSender mqSender;
     private OSDClient osdc;
     private ObjManagerSharedResource obmsr;
@@ -50,24 +49,15 @@ public class ObjManager {
 
         obmsr = ObjManagerSharedResource.getInstance(config);
 
-        obmCache = obmsr.obmCache;
+        obmCache = obmsr.getCache();
 
         dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
 
-        obmCache.setDBManager(dbm);
-
         config.loadDiskPools(obmCache);
 
-        //config.loadBucketList(obmCache);
         logger.debug(config.toString());
 
-        dbm.loadBucketList();
-        //obmCache.displayBucketList();
-
-        //obmCache.displayDiskPoolList();
         dAlloc = new DiskAllocation(obmCache);
-
-        diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
 
         mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
 
@@ -642,8 +632,4 @@ public class ObjManager {
     public void activate(){}
     
     public void deactivate(){}
-
-    public void updateDiskpools(String routingKey, String body){
-        diskM.messageQueueReciver(routingKey, body);
-    }
 }

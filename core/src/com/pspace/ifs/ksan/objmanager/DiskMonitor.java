@@ -122,23 +122,23 @@ class JsonOutput{
 
 public class DiskMonitor {
 
-    /*class MQReader implements MQCallback{
+    class MQReader implements MQCallback{
 
         @Override
         public MQResponse call(String routingKey, String body) {
             return update(routingKey, body);
         }  
-    }*/
+    }
     
     private ObjManagerCache obmCache;
-    //private MQReceiver mq1ton;
+    private MQReceiver mq1ton;
     private JSONParser parser;
     
     public DiskMonitor(ObjManagerCache obmCache, String mqHost, String mqQueue, String mqExchange)
             throws Exception{
         this.obmCache = obmCache;
-        //MQCallback callback = new MQReader();
-        //mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
+        MQCallback callback = new MQReader();
+        mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
         parser = new JSONParser();
     }
     
@@ -433,9 +433,5 @@ public class DiskMonitor {
         System.out.println("[volumeMNT : 345] " + msg);
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
         return res;
-    }
-    
-    public MQResponse messageQueueReciver(String routingKey, String body){
-        return update(routingKey, body);
     }
 }

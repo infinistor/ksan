@@ -16,7 +16,7 @@ package com.pspace.ifs.ksan.objmanager;
  */
 public class ObjManagerSharedResource {
     
-    public ObjManagerCache obmCache = null;
+    private ObjManagerCache obmCache = null;
     private ObjManagerConfig config = null;
     private DiskMonitor diskM = null;
     private DataRepository dbm = null;
@@ -32,6 +32,8 @@ public class ObjManagerSharedResource {
 
             obmCache.setDBManager(dbm);
             
+            dbm.loadBucketList();
+            
             diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
         }
     }
@@ -45,4 +47,13 @@ public class ObjManagerSharedResource {
     private static class ObjManagerSharedResourceHolder {
         private static final ObjManagerSharedResource INSTANCE = new ObjManagerSharedResource();
     }
+    
+    public DiskMonitor getDiskMonitor(){
+        return diskM;
+    }
+    
+    public ObjManagerCache getCache(){
+        return obmCache;
+    }
+
 }
