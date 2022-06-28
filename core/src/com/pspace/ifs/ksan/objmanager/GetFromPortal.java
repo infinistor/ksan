@@ -321,6 +321,7 @@ public class GetFromPortal {
         objc.dbName = (String)jsonConfig.get("objM.db_name");
         objc.dbUsername = (String)jsonConfig.get("objM.db_user");
         objc.dbPassword = (String)jsonConfig.get("objM.db_password");
+        objc.mqHost = portalHost;
         objc.mqOsdExchangename = "osdExchange"; //Fixme
         objc.mqExchangename = "diskPoolExchange"; //Fime
         objc.mqQueeuname = "diskPoolQueeu";
