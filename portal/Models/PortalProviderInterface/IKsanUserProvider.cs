@@ -28,7 +28,7 @@ namespace PortalProviderInterface
 		/// <param name="Id">S3 사용자 식별자</param>
 		/// <param name="Request">S3 사용자 정보</param>
 		/// <returns>S3 사용자 수정 결과</returns>
-		Task<ResponseData> Update(string Id, RequestKsanUser Request);
+		Task<ResponseData> Update(string Id, RequestKsanUserUpdate Request);
 
 		/// <summary>S3 사용자를 삭제한다.</summary>
 		/// <param name="Id">S3 사용자 식별자</param>
@@ -67,10 +67,15 @@ namespace PortalProviderInterface
 		/// <returns>검사 결과 객체</returns>
 		Task<ResponseData> CheckEmailDuplicated(string Email);
 
-		/// <summary>유저의 디스크풀 정보를 추가한다.</summary>
-		/// <param name="Request">유저 디스크풀 추가 객체</param>
-		/// <returns>디스크풀 추가 결과</returns>
-		Task<ResponseData> addUserDiskPool(RequestUserDiskPool Request);
+		/// <summary>유저의 스토리지 클래스 정보를 추가한다.</summary>
+		/// <param name="Request">유저 스토리지 클래스 추가 객체</param>
+		/// <returns>스토리지 클래스 추가 결과</returns>
+		Task<ResponseData> AddStorageClass(RequestStorageClass Request);
+
+		/// <summary> 유저의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="Request"> 유저 스토리지 클래스 삭제 객체</param>
+		/// <returns> 유저 스토리지 클래스 삭제 결과 </returns>
+		Task<ResponseData> RemoveStorageClass(RequestStorageClass Request);
 
 	}
 }

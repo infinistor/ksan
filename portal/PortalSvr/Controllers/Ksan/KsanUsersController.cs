@@ -88,7 +88,7 @@ namespace PortalSvr.Controllers.Accounts
 		// [ClaimRequirement("Permission", "common.account.users.add")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseKsanUser>))]
 		[HttpPost]
-		public async Task<ActionResult> Post([FromBody] RequestKsanUser Request)
+		public async Task<ActionResult> Add([FromBody] RequestKsanUser Request)
 		{
 			return Json(await m_dataProvider.Add(Request));
 		}
@@ -100,7 +100,7 @@ namespace PortalSvr.Controllers.Accounts
 		// [ClaimRequirement("Permission", "common.account.users.update")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("{Id}")]
-		public async Task<ActionResult> Put([FromRoute] string Id, [FromBody] RequestKsanUser Request)
+		public async Task<ActionResult> Put([FromRoute] string Id, [FromBody] RequestKsanUserUpdate Request)
 		{
 			return Json(await m_dataProvider.Update(Id, Request));
 		}
@@ -114,6 +114,28 @@ namespace PortalSvr.Controllers.Accounts
 		public async Task<ActionResult> Delete([FromRoute] string Id)
 		{
 			return Json(await m_dataProvider.Remove(Id));
+		}
+		
+		/// <summary>유저의 스토리지 클래스 정보를 추가한다.</summary>
+		/// <param name="Request">유저 스토리지 클래스 추가 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.add")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPost("StorageClass")]
+		public async Task<ActionResult> AddStorageClass([FromBody] RequestStorageClass Request)
+		{
+			return Json(await m_dataProvider.AddStorageClass(Request));
+		}
+		
+		/// <summary>유저의 스토리지 클래스 정보를 추가한다.</summary>
+		/// <param name="Request">유저 스토리지 클래스 추가 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.add")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("StorageClass")]
+		public async Task<ActionResult> RemoveStorageClass([FromBody] RequestStorageClass Request)
+		{
+			return Json(await m_dataProvider.RemoveStorageClass(Request));
 		}
 	}
 }
