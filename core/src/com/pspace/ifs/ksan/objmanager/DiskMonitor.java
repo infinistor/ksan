@@ -126,75 +126,7 @@ public class DiskMonitor {
 
         @Override
         public MQResponse call(String routingKey, String body) {
-            MQResponse ret;
-            JsonOutput jo;
-            DISKPOOL dskPool = null;
-            if (routingKey.contains(".servers.disks.size"))
-                return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
-            
-            System.out.format("BiningKey : %s body : %s\n", routingKey, body);
-            
-            try {
-                jo = decodeJsonData(body);
-                System.out.println("jo value >>" + jo);
-                try {
-                    dskPool = obmCache.getDiskPoolFromCache(jo.dpoolid);
-                } catch (ResourceNotFoundException e){
-                    try { 
-                        dskPool = obmCache.getDiskPoolFromCacheWithServerId(jo.serverid);
-                    } catch (ResourceNotFoundException ex) {
-                         if (!routingKey.contains("servers.diskpools."))
-                            return new MQResponse(MQResponseType.ERROR,  "-22", ex.getMessage(),  0); 
-                    }
-                }
-            } catch (ParseException ex) {
-                System.out.println("body :>" + body);
-                Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
-                return new MQResponse(MQResponseType.ERROR, ex.getErrorType(), ex.getMessage(), 0);
-            }
-            
-            if (routingKey.contains("servers.disks.")){
-                if (routingKey.contains(".added"))
-                    ret =addRemoveDisk(dskPool, jo);
-                else if (routingKey.contains(".removed"))
-                    ret =addRemoveDisk(dskPool, jo);
-                else if (routingKey.contains(".state")){
-                    ret =startStopDisk(dskPool, jo);
-                } else if (routingKey.contains(".rwmode"))
-                    ret =updateDiskMode(dskPool, jo);
-                else if (routingKey.contains(".updated") || routingKey.contains(".size"))
-                    ret =updateDiskSpace(dskPool, jo);
-                else 
-                    ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
-            }  
-            else if (routingKey.contains("servers.diskpools.")){
-                if (routingKey.contains(".added"))
-                    ret =addRemoveDiskPool(KEYS.ADD.label, jo, body);
-                else if (routingKey.contains(".removed"))
-                    ret =addRemoveDiskPool(KEYS.REMOVE.label, jo, body);
-                else if (routingKey.contains(".updated"))
-                    ret= updateDiskPool(dskPool, jo,  body);
-                else 
-                    ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
-            }
-            else if (routingKey.contains("servers.volumes.")){
-                ret = volumeMGNT(dskPool, jo, body);
-            }
-            else if(routingKey.contains("servers.")){
-                if (routingKey.contains(".added"))
-                    ret =addRemoveServer(dskPool, jo);
-                else if (routingKey.contains(".removed"))
-                    ret =addRemoveServer(dskPool, jo);
-                else if (routingKey.contains(".state"))
-                    ret =updateServerStatus(dskPool, jo);
-                
-                else 
-                    ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
-            }     
-            else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
-            
-            return ret; 
+            return update(routingKey, body);
         }  
     }
     
@@ -207,10 +139,81 @@ public class DiskMonitor {
         this.obmCache = obmCache;
         MQCallback callback = new MQReader();
         mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
-        //mq1ton.addCallback(callback);
         parser = new JSONParser();
     }
     
+    private MQResponse update(String routingKey, String body) {
+        MQResponse ret;
+        JsonOutput jo;
+        DISKPOOL dskPool = null;
+        if (routingKey.contains(".servers.disks.size"))
+            return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+
+        System.out.format("BiningKey : %s body : %s\n", routingKey, body);
+
+        try {
+            jo = decodeJsonData(body);
+            System.out.println("jo value >>" + jo);
+            try {
+                dskPool = obmCache.getDiskPoolFromCache(jo.dpoolid);
+            } catch (ResourceNotFoundException e){
+                try { 
+                    dskPool = obmCache.getDiskPoolFromCacheWithServerId(jo.serverid);
+                } catch (ResourceNotFoundException ex) {
+                     if (!routingKey.contains("servers.diskpools."))
+                        return new MQResponse(MQResponseType.ERROR,  "-22", ex.getMessage(),  0); 
+                }
+            }
+        } catch (ParseException ex) {
+            System.out.println("body :>" + body);
+            Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            return new MQResponse(MQResponseType.ERROR, ex.getErrorType(), ex.getMessage(), 0);
+        }
+
+        if (routingKey.contains("servers.disks.")){
+            if (routingKey.contains(".added"))
+                ret =addRemoveDisk(dskPool, jo);
+            else if (routingKey.contains(".removed"))
+                ret =addRemoveDisk(dskPool, jo);
+            else if (routingKey.contains(".state")){
+                ret =startStopDisk(dskPool, jo);
+            } else if (routingKey.contains(".rwmode"))
+                ret =updateDiskMode(dskPool, jo);
+            else if (routingKey.contains(".updated") || routingKey.contains(".size"))
+                ret =updateDiskSpace(dskPool, jo);
+            else 
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+        }  
+        else if (routingKey.contains("servers.diskpools.")){
+            if (routingKey.contains(".added"))
+                ret =addRemoveDiskPool(KEYS.ADD.label, jo, body);
+            else if (routingKey.contains(".removed"))
+                ret =addRemoveDiskPool(KEYS.REMOVE.label, jo, body);
+            else if (routingKey.contains(".updated"))
+                ret= updateDiskPool(dskPool, jo,  body);
+            else 
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+        }
+        else if (routingKey.contains("servers.volumes.")){
+            ret = volumeMGNT(dskPool, jo, body);
+        }
+        else if(routingKey.contains("servers.")){
+            if (routingKey.contains(".added"))
+                ret =addRemoveServer(dskPool, jo);
+            else if (routingKey.contains(".removed"))
+                ret =addRemoveServer(dskPool, jo);
+            else if (routingKey.contains(".state"))
+                ret =updateServerStatus(dskPool, jo);
+
+            else 
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+        }     
+        else 
+            ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+
+        return ret; 
+    }  
+       
     private JsonOutput decodeJsonData(String msg)throws ParseException{
         JSONObject jO;
         JsonOutput res = new JsonOutput();
@@ -349,20 +352,7 @@ public class DiskMonitor {
         
         return res;
     }
-    
-    /*private MQResponse updateDiskSpace(DISKPOOL dskPool, JsonOutput jo) {
-       MQResponse res;
-       try{
-           dskPool.getServerById(jo.serverid)
-                  .setDiskSpace(jo.diskid, jo.fr, jo.freeInode);
-           res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
-       } catch(ResourceNotFoundException ex){
-           System.out.println(ex);
-           res = new MQResponse(MQResponseType.ERROR, -1, ex.getMessage(), 0);
-       }
-       return res;
-    }*/
-    
+       
     private MQResponse addRemoveServer(DISKPOOL dskPool, JsonOutput jo){
         MQResponse res;
         
@@ -402,24 +392,8 @@ public class DiskMonitor {
     
     private MQResponse addRemoveDiskPool(String action, JsonOutput jo, String msg){
         MQResponse res;
-    
-        //System.out.println("action >>" + action);
         if (action.equalsIgnoreCase(KEYS.ADD.label)){
-            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);
-            /*JSONObject jsonObject;
-            JSONObject jsonDskObject;
-            JSONArray jsonDisk;
-            try {
-                jsonObject = (JSONObject)parser.parse(msg);
-                jsonDisk = (JSONArray)jsonObject.get("Disks");
-                for(int idx=0; idx < jsonDisk.size(); idx++){
-                    jsonDskObject = (JSONObject)jsonDisk.get(idx);
-                    SERVER srv = new SERVER();
-                }
-            } catch (ParseException ex) {
-                Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
-            
+            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);     
             this.obmCache.setDiskPoolInCache(dskPool1);
             this.obmCache.displayDiskPoolList();
         }
