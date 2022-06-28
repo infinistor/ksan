@@ -643,7 +643,7 @@ public class ObjManager {
     
     public void deactivate(){}
 
-    public void updateConfig(){}
-
-    public void updateDiskpools(){}
+    public void updateDiskpools(String routingKey, String body){
+        diskM.messageQueueReciver(routingKey, body);
+    }
 }
