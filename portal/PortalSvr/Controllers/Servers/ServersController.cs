@@ -13,10 +13,8 @@ using System.Net;
 using System.Threading.Tasks;
 using PortalData;
 using PortalData.Enums;
-using PortalData.Requests.Disks;
 using PortalData.Requests.Networks;
 using PortalData.Requests.Servers;
-using PortalData.Responses.Disks;
 using PortalData.Responses.Networks;
 using PortalData.Responses.Servers;
 using PortalProviderInterface;
@@ -48,9 +46,6 @@ namespace PortalSvr.Controllers.Servers
 		/// <summary>네트워크 인터페이스 VLAN 데이터 프로바이더</summary>
 		private readonly INetworkInterfaceVlanProvider m_networkInterfaceVlanProvider;
 
-		/// <summary>디스크 데이터 프로바이더</summary>
-		private readonly IDiskProvider m_diskProvider;
-
 		/// <summary>생성자</summary>
 		/// <param name="configuration">설정 정보</param>
 		/// <param name="userManager">사용자 관리자</param>
@@ -58,22 +53,19 @@ namespace PortalSvr.Controllers.Servers
 		/// <param name="dataProvider">데이터 프로바이더</param>
 		/// <param name="networkInterfaceProvider">네트워크 인터페이스 데이터 프로바이더</param>
 		/// <param name="networkInterfaceVlanProvider">네트워크 인터페이스 VLAN 데이터 프로바이더</param>
-		/// <param name="diskProvider">디스크 데이터 프로바이더</param>
 		public ServersController(
 			IConfiguration configuration,
 			UserManager<NNApplicationUser> userManager,
 			ILogger<ServersController> logger,
 			IServerProvider dataProvider,
 			INetworkInterfaceProvider networkInterfaceProvider,
-			INetworkInterfaceVlanProvider networkInterfaceVlanProvider,
-			IDiskProvider diskProvider
+			INetworkInterfaceVlanProvider networkInterfaceVlanProvider
 		)
 			: base(configuration, userManager, logger, dataProvider, networkInterfaceProvider, networkInterfaceVlanProvider)
 		{
 			m_dataProvider = dataProvider;
 			m_networkInterfaceProvider = networkInterfaceProvider;
 			m_networkInterfaceVlanProvider = networkInterfaceVlanProvider;
-			m_diskProvider = diskProvider;
 		}
 
 		#region 서버 관련
@@ -442,139 +434,6 @@ namespace PortalSvr.Controllers.Servers
 		public async Task<ActionResult> IsNetworkInterfaceVlanTagExist([FromRoute] string ServerId, [FromRoute] string InterfaceId, [FromRoute] string ExceptId, [FromBody] RequestIsNetworkInterfaceVlanExist Request)
 		{
 			return Json(await m_networkInterfaceVlanProvider.IsTagExist(ServerId, InterfaceId, ExceptId, Request));
-		}
-
-		#endregion
-
-		#region 디스크 관련
-
-		/// <summary>디스크 정보를 추가한다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Request">디스크 등록 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDisk>))]
-		[HttpPost("{ServerId}/Disks")]
-		public async Task<ActionResult> AddDisk([FromRoute] string ServerId, [FromBody] RequestDisk Request)
-		{
-			return Json(await m_diskProvider.Add(ServerId, Request));
-		}
-
-		/// <summary>디스크 정보를 수정한다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <param name="Request">디스크 수정 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{ServerId}/Disks/{Id}")]
-		public async Task<ActionResult> UpdateDisk([FromRoute] string ServerId, [FromRoute] string Id, [FromBody] RequestDisk Request)
-		{
-			return Json(await m_diskProvider.Update(ServerId, Id, Request));
-		}
-
-		/// <summary>디스크 상태를 수정한다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <param name="State">디스크 상태</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{ServerId}/Disks/{Id}/State/{State}")]
-		public async Task<ActionResult> UpdateDiskState([FromRoute] string ServerId, [FromRoute] string Id, [FromRoute] EnumDiskState State)
-		{
-			return Json(await m_diskProvider.UpdateState(ServerId, Id, State));
-		}
-
-		/// <summary>디스크 읽기/쓰기 모드를 수정한다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <param name="diskRwMode">디스크 읽기/쓰기 모드</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{ServerId}/Disks/{Id}/RwMode/{diskRwMode}")]
-		public async Task<ActionResult> UpdateDiskRwMode([FromRoute] string ServerId, [FromRoute] string Id, [FromRoute] EnumDiskRwMode diskRwMode)
-		{
-			return Json(await m_diskProvider.UpdateRwMode(ServerId, Id, diskRwMode));
-		}
-
-		/// <summary>디스크 정보를 삭제한다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("{ServerId}/Disks/{Id}")]
-		public async Task<ActionResult> RemoveDisk([FromRoute] string ServerId, [FromRoute] string Id)
-		{
-			return Json(await m_diskProvider.Remove(ServerId, Id));
-		}
-
-		/// <summary>디스크 상태를 수정한다.</summary>
-		/// <param name="Request">상태 수정 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("Disks/State")]
-		public async Task<ActionResult> UpdateDiskState([FromBody] RequestDiskState Request)
-		{
-			return Json(await m_diskProvider.UpdateState(Request));
-		}
-
-		/// <summary>디스크 크기를 수정한다.</summary>
-		/// <param name="Request">디스크 크기 수정 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("Disks/Size")]
-		public async Task<ActionResult> UpdateDiskSize([FromBody] RequestDiskSize Request)
-		{
-			return Json(await m_diskProvider.UpdateSize(Request));
-		}
-
-		/// <summary>디스크 읽기/쓰기 모드를 수정한다.</summary>
-		/// <param name="Request">디스크 읽기/쓰기 모드 수정 요청 객체</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("Disks/RwMode")]
-		public async Task<ActionResult> UpdateDiskRwMode([FromBody] RequestDiskRwMode Request)
-		{
-			return Json(await m_diskProvider.UpdateRwMode(Request));
-		}
-
-		/// <summary>디스크 목록을 가져온다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="SearchStates">검색할 디스크 상태 목록</param>
-		/// <param name="SearchRwModes">검색할 디스크 읽기/쓰기 모드 목록</param>
-		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode) (기본정렬 State desc, Path asc, HaAction desc)</param>
-		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="SearchKeyword">검색어</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
-		[HttpGet("{ServerId}/Disks")]
-		public async Task<ActionResult> GetDisks(
-			[FromRoute] string ServerId,
-			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
-			int Skip = 0, int CountPerPage = 100,
-			List<string> OrderFields = null, List<string> OrderDirections = null,
-			List<string> SearchFields = null, string SearchKeyword = ""
-		)
-		{
-			return Json(await m_diskProvider.GetList(
-				ServerId,
-				SearchStates, SearchRwModes,
-				Skip, CountPerPage,
-				OrderFields, OrderDirections,
-				SearchFields, SearchKeyword
-			));
-		}
-
-		/// <summary>특정 디스크 정보를 가져온다.</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskWithServices>))]
-		[HttpGet("{ServerId}/Disks/{Id}")]
-		public async Task<ActionResult> GetDisk([FromRoute] string ServerId, [FromRoute] string Id)
-		{
-			return Json(await m_diskProvider.Get(ServerId, Id));
 		}
 
 		#endregion

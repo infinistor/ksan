@@ -10,6 +10,7 @@
 */
 using System.ComponentModel.DataAnnotations;
 using MTLib.CommonData;
+using PortalData.Enums;
 using PortalResources;
 
 namespace PortalData.Requests.Disks
@@ -27,11 +28,26 @@ namespace PortalData.Requests.Disks
 		
 		/// <summary>디스크 번호</summary>
 		public string DiskNo { get; set; }
+		
+		/// <summary>디스크 상태</summary>
+		public EnumDiskState State { get; set; } = EnumDiskState.Disable;
+		
+		/// <summary>전체 inode 수</summary>
+		public decimal TotalInode { get; set; }
 
-		/// <summary> 사용된 inode 수 </summary>
+		/// <summary>예약/시스템 inode 수</summary>
+		public decimal ReservedInode { get; set; }
+
+		/// <summary>사용된 inode 수</summary>
 		public decimal UsedInode { get; set; }
 
-		/// <summary> 사용된 크기 </summary>
+		/// <summary>전체 크기</summary>
+		public decimal TotalSize { get; set; }
+
+		/// <summary>예약/시스템 크기</summary>
+		public decimal ReservedSize { get; set; }
+
+		/// <summary>사용된 크기</summary>
 		public decimal UsedSize { get; set; }
 
 		/// <summary> 디스크 읽기 </summary>

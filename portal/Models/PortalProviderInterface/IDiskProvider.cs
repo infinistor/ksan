@@ -45,11 +45,6 @@ namespace PortalProviderInterface
 		/// <returns>디스크 상태 수정 결과 객체</returns>
 		Task<ResponseData> UpdateState(RequestDiskState Request);
 
-		/// <summary>디스크 크기 수정</summary>
-		/// <param name="Request">디스크 크기 수정 요청 객체</param>
-		/// <returns>디스크 크기 수정 결과 객체</returns>
-		Task<ResponseData> UpdateSize(RequestDiskSize Request);
-
 		/// <summary>디스크 사용 정보 수정</summary>
 		/// <param name="Request">디스크 사용 정보 수정 요청 객체</param>
 		/// <returns>디스크 사용 정보 수정 결과 객체</returns>

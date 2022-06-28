@@ -23,7 +23,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -157,6 +156,9 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 						Result.Data = (await this.Get(ServerId, NewData.Id.ToString())).Data;
 
+						// 디스크 추가 정보 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.added", Result.Data);
+
 						// 디스크풀에 추가된 디스크일 경우 추가된 디스크 정보 전송
 						if (NewData.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", Result.Data);
 					}
@@ -275,6 +277,9 @@ namespace PortalProvider.Providers.Disks
 						// 상세 정보를 가져온다.
 						var Response = (await this.Get(ServerId, Id)).Data;
 
+						// 디스크 추가 정보 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.updated", Response);
+
 						// 디스크풀에 추가된 디스크일 경우 수정된 디스크 정보 전송
 						if (Exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", Response);
 					}
@@ -344,11 +349,13 @@ namespace PortalProvider.Providers.Disks
 
 						Result.Result = EnumResponseResult.Success;
 
-						// // 디스크 상태 수정 전송
-						// SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", new { exist.Id, exist.ServerId, exist.DiskPoolId, exist.DiskNo, State = (EnumDiskState)exist.State});
+						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.DiskNo, State = (EnumDiskState)Exist.State };
+
+						// 디스크 상태 수정 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", Message);
 
 						// 디스크풀에 추가된 디스크일 경우 디스크 상태 수정 전송
-						if (Exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.DiskNo, State = (EnumDiskState)Exist.State });
+						if (Exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", Message);
 					}
 					catch (Exception ex)
 					{
@@ -420,131 +427,6 @@ namespace PortalProvider.Providers.Disks
 			return Result;
 		}
 
-		/// <summary>디스크 크기 수정</summary>
-		/// <param name="ServerId">서버 아이디</param>
-		/// <param name="Id">디스크 아이디</param>
-		/// <param name="TotalInode">전체 Inode 수</param>
-		/// <param name="ReservedInode">예약/시스템 Inode 수</param>
-		/// <param name="UsedInode">사용된 Inode 수</param>
-		/// <param name="TotalSize">전체 크기</param>
-		/// <param name="ReservedSize">예약/시스템 크기</param>
-		/// <param name="UsedSize">사용된 크기</param>
-		/// <returns>디스크 크기 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateSize(string ServerId, string Id, decimal TotalInode, decimal ReservedInode, decimal UsedInode, decimal TotalSize, decimal ReservedSize, decimal UsedSize)
-		{
-			var Result = new ResponseData();
-
-			try
-			{
-				// 서버 아이디가 존재하지 않는 경우
-				if (ServerId.IsEmpty())
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
-
-				// 서버 아이디가유효하지 않은 경우
-				if (!Guid.TryParse(ServerId, out Guid guidServerId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
-
-				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Disks
-					.FirstOrDefaultAsync(i => i.ServerId == guidServerId && i.Id == guidId);
-
-				// 해당 정보가 존재하지 않는 경우
-				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
-				{
-					try
-					{
-						// 정보를 수정한다.
-						Exist.TotalInode = TotalInode;
-						Exist.ReservedInode = ReservedInode;
-						Exist.UsedInode = UsedInode;
-						Exist.TotalSize = TotalSize;
-						Exist.ReservedSize = ReservedSize;
-						Exist.UsedSize = UsedSize;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
-
-						NNException.Log(ex);
-
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-
-				Result.Code = Resource.EC_COMMON__EXCEPTION;
-				Result.Message = Resource.EM_COMMON__EXCEPTION;
-			}
-
-			return Result;
-		}
-
-		/// <summary>디스크 크기 수정</summary>
-		/// <param name="Request">디스크 크기 수정 요청 객체</param>
-		/// <returns>디스크 크기 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateSize(RequestDiskSize Request)
-		{
-			var Result = new ResponseData();
-
-			try
-			{
-				// 아이디가 유효하지 않은 경우
-				if (!Request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
-
-				// 디스크 아이디와 디스크 식별번호가 모두 없는 경우
-				if (Request.Id.IsEmpty() && Request.DiskNo.IsEmpty())
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_DISK_ID_OR_NO);
-
-				// 디스크 아이디가 존재하고 아이디가 유효하지 않은 경우
-				Guid GuidDiskId = Guid.Empty;
-				if (!Request.Id.IsEmpty() && !Guid.TryParse(Request.Id, out GuidDiskId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
-
-				// 서버 아이디가 유효하지 않은 경우
-				if (!Guid.TryParse(Request.ServerId, out Guid GuidServerId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
-
-				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Disks.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.ServerId == GuidServerId && (i.Id == GuidDiskId || i.DiskNo == Request.DiskNo));
-
-				// 해당 정보가 존재하지 않는 경우
-				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-
-				// 디스크 크기 수정
-				Result = await UpdateSize(Request.ServerId, Exist.Id.ToString(), Request.TotalInode, Request.ReservedInode, Request.UsedInode, Request.TotalSize, Request.ReservedSize, Request.UsedSize);
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-
-				Result.Code = Resource.EC_COMMON__EXCEPTION;
-				Result.Message = Resource.EM_COMMON__EXCEPTION;
-			}
-
-			return Result;
-		}
-
 		/// <summary>디스크 사용 정보 수정</summary>
 		/// <param name="Request">디스크 사용 정보 수정 요청 객체</param>
 		/// <returns>디스크 사용 정보 수정 결과 객체</returns>
@@ -582,7 +464,11 @@ namespace PortalProvider.Providers.Disks
 					try
 					{
 						// 정보를 수정한다.
+						Exist.TotalInode = Request.TotalInode;
+						Exist.ReservedInode = Request.ReservedInode;
 						Exist.UsedInode = Request.UsedInode;
+						Exist.TotalSize = Request.TotalSize;
+						Exist.ReservedSize = Request.ReservedSize;
 						Exist.UsedSize = Request.UsedSize;
 						Exist.Read = Request.Read;
 						Exist.Write = Request.Write;
@@ -603,6 +489,10 @@ namespace PortalProvider.Providers.Disks
 						});
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
+
+						// 서비스 상태가 변경될 경우
+						if (Exist.State != (EnumDbDiskState)Request.State)
+							Result = await UpdateState(Request.ServerId, Exist.Id.ToString(), Request.State);
 
 						Result.Result = EnumResponseResult.Success;
 					}
@@ -671,6 +561,9 @@ namespace PortalProvider.Providers.Disks
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
+
+						// 수정된 R/W 모드 정보 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(Exist));
 
 						// 디스크풀에 추가된 디스크일 경우 수정된 R/W 모드 정보 전송
 						if (Exist.DiskPoolId != null) SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new ResponseDiskRwMode().CopyValueFrom(Exist));
@@ -794,6 +687,9 @@ namespace PortalProvider.Providers.Disks
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
+
+						// 삭제된 디스크 정보 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.removed", new ResponseDisk().CopyValueFrom(Exist));
 
 						// 디스크풀에 추가된 디스크일 경우 삭제된 디스크 정보 전송
 						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", new ResponseDisk().CopyValueFrom(Exist));
@@ -1017,15 +913,15 @@ namespace PortalProvider.Providers.Disks
 					return new ResponseData<ResponseDiskId>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 정보를 가져온다.
-				ResponseDiskId exist = await m_dbContext.Disks.AsNoTracking()
+				ResponseDiskId Exist = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.DiskNo == DiskNo)
 					.FirstOrDefaultAsync<Disk, ResponseDiskId>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData<ResponseDiskId>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				Result.Data = exist;
+				Result.Data = Exist;
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)

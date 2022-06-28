@@ -160,7 +160,7 @@ namespace PortalSvr.RabbitMqReceivers
 						Result.CopyValueFrom(Response);
 						Result.IsProcessed = true;
 					}
-					// 디스크 크기 관련인 경우
+					// 디스크 사용량 관련인 경우
 					else if (RoutingKey.EndsWith("servers.disks.usage"))
 					{
 						// 처리할 프로바이더를 가져온다.
