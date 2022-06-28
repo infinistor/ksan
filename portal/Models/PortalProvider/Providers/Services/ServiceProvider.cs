@@ -23,7 +23,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,6 +31,7 @@ using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
 using IServiceProvider = PortalProviderInterface.IServiceProvider;
+using MTLib.Reflection;
 
 namespace PortalProvider.Providers.Services
 {
@@ -175,6 +175,9 @@ namespace PortalProvider.Providers.Services
 
 						Result.Result = EnumResponseResult.Success;
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
+
+						// 서비스 추가 메시지 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.added",new ResponseSerivceMq().CopyValueFrom(NewData));
 					}
 					catch (Exception ex)
 					{
@@ -327,6 +330,9 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
+
+						// 서비스 변경 메시지 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated",new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -395,6 +401,9 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
+						
+						// 서비스 변경 메시지 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated",new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -691,6 +700,9 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
+
+						// 서비스 삭제 메시지 전송
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.removed",new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
