@@ -32,6 +32,7 @@ public class DISKPOOL {
     private String id;
     private String name;
     private boolean isLocal;
+    private int defualt_replica_count;
     private int currentServerIdx;
     private HashMap<String, SERVER> serverMap;
     private static Logger logger;
@@ -43,6 +44,7 @@ public class DISKPOOL {
         this.isLocal = false;
         serverMap = new HashMap<>();
         currentServerIdx = 0;
+        defualt_replica_count = 1;
         logger = LoggerFactory.getLogger(DISKPOOL.class);
     }
     
@@ -52,6 +54,7 @@ public class DISKPOOL {
         this.isLocal = false;
         serverMap = new HashMap<>();
         currentServerIdx = 0;
+        defualt_replica_count = 0;
     }
     
     public void setId(String id){
@@ -66,12 +69,20 @@ public class DISKPOOL {
         serverMap.putIfAbsent(s.getId(), s);
     }
     
+    public void setDefaultReplicaCount(int rcount){
+        defualt_replica_count = rcount;
+    }
+    
     public String getId(){
         return this.id;
     }
     
     public String getName(){
         return this.name;
+    }
+    
+    public int getDefaultReplicaCount(){
+        return defualt_replica_count;
     }
     
     public SERVER getLocalServer() throws NoSuchElementException{
@@ -307,7 +318,7 @@ public class DISKPOOL {
     
     @Override
     public String toString(){    
-        return String.format("{ id : %s name : %s num_server : %d }", 
-                id, name, serverMap.size());
+        return String.format("{ id : %s name : %s num_server : %d  default_replicaCount: %d}", 
+                id, name, serverMap.size(), this.defualt_replica_count);
     }
 }

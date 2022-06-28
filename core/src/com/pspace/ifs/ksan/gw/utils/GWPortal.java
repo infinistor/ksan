@@ -127,7 +127,7 @@ public class GWPortal {
     }
 
     private GWPortal() {
-        config = new MonConfig(); 
+        config = MonConfig.getInstance(); 
         config.configure();
 
         try

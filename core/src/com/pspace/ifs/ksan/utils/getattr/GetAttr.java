@@ -11,17 +11,21 @@
 
 package com.pspace.ifs.ksan.utils.getattr;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.objmanager.OSDClient;
+import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -42,6 +46,9 @@ public class GetAttr {
     @Option(name="--versionId", usage="Specify the object version Id if you wish particula version of the object")
     private String version = "";
     
+    @Option(name="--checksum", usage="To display the checksum of an object")
+    private boolean checksum = false;
+     
    // @Option(name="--isBucket", usage="set it if you wish to display the attribute of a bucket")
     private boolean isFile = true;
     
@@ -50,6 +57,10 @@ public class GetAttr {
     
     private CmdLineParser parser;
      
+    private OSDResponseParser primaryOSD;
+    
+    private OSDResponseParser secondOSD;
+    
     int parseArgs(String[] args){
         parser = new CmdLineParser(this);
         try{
@@ -86,6 +97,7 @@ public class GetAttr {
         parser.printUsage(System.err);
         System.err.println();
         System.err.format("  Example: %s --bucketName bucket1 --key file1.txt \n", getProgramName());
+        System.err.format("  Example: %s --bucketName bucket1 --key file1.txt --checksum \n", getProgramName());
         System.err.format("  Example: %s --bucketName bucket1 --key file1.txt --versionId fgsddasas \n", getProgramName());
         System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
         System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af --versionId fgsddasas \n", getProgramName());
@@ -100,6 +112,7 @@ public class GetAttr {
         String BLUE   = "\u001B[34m";
         
         String dskMsg;
+        String osdMsg;
         
         try {
             dskMsg = String.format(" PrimaryDisk>  diskId : %-15s  diskPath : %s (%s%7s%s)\n  ReplicaDisk>  diskId : %-15s  diskPath : %s (%s%7s%s)",
@@ -115,14 +128,39 @@ public class GetAttr {
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET);
         }
-       System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s"
-               + "\n %s \n"
-               , bucketName, mt.getPath(), mt.getObjId(), dskMsg);
-       System.out.println();
+        
+        if (checksum){
+            if (mt.isReplicaExist())
+                osdMsg = String.format("\nOSDInfo :\nPrimaaryOSD >  MD5 : %s  Size : %d \n ReplicaOSD > MD5 : %s  Size : %d \n ", 
+                        primaryOSD.md5, primaryOSD.size, secondOSD.md5, secondOSD.size);
+            else
+                osdMsg = String.format("\nOSDInfo :\nPrimaaryOSD >  MD5 : %s  Size : %d \n ", primaryOSD.md5, primaryOSD.size);
+        }
+        else
+           osdMsg =""; 
+        
+        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s"
+               + "\n %s \n %s"
+               , bucketName, mt.getPath(), mt.getObjId(), dskMsg, osdMsg);
+        System.out.println();
     }
     
     void displayNothing(){
         System.out.println("No Information avaliable!\n");
+    }
+    
+    void getOSDObjectAttr(Metadata mt) throws Exception{
+        if (!checksum)
+            return;
+       
+        String res;
+        OSDClient osdc = new OSDClient();
+        res = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
+        primaryOSD = new OSDResponseParser(res);
+        if (mt.isReplicaExist()){
+            res = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId(), mt.getReplicaDisk().getPath(), mt.getReplicaDisk().getOSDServerId());
+             secondOSD = new OSDResponseParser(res);
+        }
     }
     
     void getObjects(){
@@ -135,12 +173,20 @@ public class GetAttr {
             else
                 mt = obmu.getObject(bucketName, objId);
             
-             displayMeta(mt);
+            getOSDObjectAttr(mt);
+            
+            displayMeta(mt);
         } catch (ResourceNotFoundException ex) {
             displayNothing();
         } catch (Exception ex) {
             Logger.getLogger(GetAttr.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    static void disableDebuglog(){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
     }
     
     /**
@@ -149,8 +195,8 @@ public class GetAttr {
         
     public static void main(String[] args) {
         
+        disableDebuglog();
         GetAttr gattr = new GetAttr();
-        
         if (gattr.parseArgs(args) != 0){
             gattr.howToUse();
           return;

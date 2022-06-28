@@ -69,6 +69,12 @@ public class OSDServer {
             System.exit(1);
         }
 
+        try {
+            EventObject.getInstance().regist();
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+        }
+
         int poolSize = OSDConfig.getInstance().getPoolSize();
         localIP = KsanUtils.getLocalIP();
         port = OSDConfig.getInstance().getPort();
@@ -86,12 +92,17 @@ public class OSDServer {
         //     ScheduledExecutorService serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
         //     serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), OSDUtils.getInstance().getCacheScheduleMinutes(), OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MINUTES);
         // }
+
         if (!Strings.isNullOrEmpty(cacheDisk)) {
             logger.error("cache disk : {}", cacheDisk);
             DoMoveCacheToDisk worker = new DoMoveCacheToDisk();
             Thread mover = new Thread(worker);
             mover.start();
         }
+
+        // ObjectMover objMover = new ObjectMover();
+        // Thread threadMover = new Thread(objMover);
+        // threadMover.start();
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
@@ -166,6 +177,7 @@ public class OSDServer {
 
                     case OsdData.GET_PART:
                         getPart(headers);
+                        break;
     
                     case OsdData.PART:
                         part(headers);
@@ -603,8 +615,9 @@ public class OSDServer {
                 long remainLength = 0L;
                 int readLength = 0;
                 int readBytes;
-    
+
                 remainLength = file.length();
+                
                 while (remainLength > 0) {
                     readBytes = 0;
                     if (remainLength < OSDConstants.MAXBUFSIZE) {
@@ -618,13 +631,13 @@ public class OSDServer {
                     remainLength -= readLength;
                 }
             }
+            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_END, readTotal);
+            logger.info(OSDConstants.LOG_OSD_SERVER_GET_PART_SUCCESS_INFO, path, objId, partNo);
             socket.getOutputStream().flush();
+            
             if (!file.delete()) {
                 logger.error(OSDConstants.LOG_OSD_SERVER_FAILED_FILE_DELETE, file.getName());
             }
-            
-            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_PART_END, readTotal);
-            logger.info(OSDConstants.LOG_OSD_SERVER_GET_PART_SUCCESS_INFO, path, objId, partNo);
         }
 
         private void part(String[] headers) throws IOException {

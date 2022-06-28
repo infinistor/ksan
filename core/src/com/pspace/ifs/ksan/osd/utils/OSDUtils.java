@@ -28,6 +28,11 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.Properties;
 import java.util.UUID;
+import java.io.DataOutputStream;
+import java.io.DataInputStream;
+import java.net.Socket;
+
+import com.pspace.ifs.ksan.libs.data.OsdData;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -248,20 +253,37 @@ public class OSDUtils {
         return Charset.defaultCharset().decode(buf).toString();
     }
 
-    // public String getLocalIP() {
-	// 	if (!Strings.isNullOrEmpty(localIP)) {
-	// 		return localIP;
-	// 	} else {
-	// 		InetAddress local = null;
-	// 		try {
-	// 			local = InetAddress.getLocalHost();
-	// 			localIP = local.getHostAddress();
-	// 		} catch (UnknownHostException e) {
-	// 			logger.error(e.getMessage());
-	// 		}
-	// 		return localIP;
-	// 	}
-	// }
+    public static void sendHeader(Socket socket, String header) throws IOException {
+        byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
+        int size = buffer.length;
+        
+        DataOutputStream so = new DataOutputStream(socket.getOutputStream());
+        
+        so.writeInt(size);
+        so.write(buffer, 0, size);
+        so.flush();
+    }
+
+    public static OsdData receiveData(Socket socket) throws IOException {
+        DataInputStream si = new DataInputStream(socket.getInputStream());
+        int size = si.readInt();
+        byte[] buffer = new byte[size];
+        si.read(buffer, 0, size);
+        String result = new String(buffer, 0, size);
+        String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
+
+        OsdData data = new OsdData();
+        switch (ArrayResult[0]) {
+        case OsdData.FILE:
+            data.setETag(ArrayResult[1]);
+            data.setFileSize(Long.parseLong(ArrayResult[2]));
+            return data;
+        default:
+            logger.error(OSDConstants.LOG_OSD_SERVER_UNKNOWN_DATA, ArrayResult[1]);
+        }
+
+        return null;
+    }
 
     public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };

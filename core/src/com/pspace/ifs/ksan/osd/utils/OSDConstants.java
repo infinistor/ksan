@@ -76,12 +76,21 @@ public final class OSDConstants {
 
     public static final String AUTHORIZATION = "Authorization";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
-	public static final String MQUEUE_NAME_OSD_CONFIG = "ksan-osd-configure";
+	public static final String MQUEUE_NAME_OSD_CONFIG = "ksan-osd-configure-";
+    public static final String MQUEUE_NAME_OSD_DISKPOOL = "ksan-osd-diskpool-";
+    public static final String MQUEUE_EXCHANGE_NAME_FOR_OSD = "OSDExchange";
+    public static final String MQUEUE_NAME_OSD_MOVE_OBJECT = "ksan-osd-move-object-";
+    public static final String MQUEUE_NAME_OSD_DELETE_OBJECT = "ksan-osd-delete-object-";
+    public static final String MQUEUE_NAME_OSD_GETATTR_OBJECT = "ksan-osd-getattr-object-";
 	public static final String MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY = "*.services.config.osd.*";
-	public static final String MQUEUE_NAME_OSD_DISKPOOL = "ksan-osd-diskpool";
 	public static final String MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
     public static final String PORTAL_REST_API_CONFIG_OSD = "/api/v1/Config/Osd";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
+    public static final String MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX = "*.services.osd.";
+    public static final String MQUEUE_NAME_OSD_MOVE_OBJECT_ROUTING_KEY_SUFFIX = ".object.move";
+    public static final String MQUEUE_NAME_OSD_DELETE_OBJECT_ROUTING_KEY_SUFFIX = ".object.unlink";
+    public static final String MQUEUE_NAME_OSD_GETATTR_OBJECT_ROUTING_KEY_SUFFIX = ".object.getattr";
+    public static final String MQUEUE_NAME_OSD_COPY_OBJECT_ROUTING_KEY_SUFFIX = ".object.copy";
 
     // MonConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
@@ -193,4 +202,7 @@ public final class OSDConstants {
     public static final String DO_MOVE_CACHE_TO_DISK_COMMAND = "cp -a ";
     public static final String LOG_DO_MOVE_CACHE_TO_DISK_COMMAND = "{}";
     public static final String LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH = "targetPath : {}";
+
+    // MoveObject
+    public static final String LOG_MOVE_OBJECT_START = "MoveObject start ...";
 }

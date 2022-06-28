@@ -766,6 +766,9 @@ public final class GWConstants {
 	public static final int RANGE_OFFSET_INDEX = 0;
 	public static final int RANGE_LENGTH_INDEX = 1;
 
+	public static final String UTILITY_EXCHANGE_KEY = "UtilityExchange";
+	public static final String MESSAGE_QUEUE_OPTION = "fanout";
+
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";

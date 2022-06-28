@@ -36,7 +36,15 @@ public class MonConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(MonConfig.class);
 
-    public MonConfig() {
+    public static MonConfig getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+
+    private static class LazyHolder {
+        private static final MonConfig INSTANCE = new MonConfig();
+    }
+
+    private MonConfig() {
         String path = System.getProperty("configure");
 		if (path == null) {
 			path = Constants.KMON_CONFIG_PATH;

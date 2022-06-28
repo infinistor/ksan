@@ -78,13 +78,19 @@ public class OSDPortal {
     }
     
     private OSDPortal() {
-        config = new MonConfig(); 
+        config = MonConfig.getInstance(); 
         config.configure();
 
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), OSDConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", OSDConstants.MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY, configureCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), 
+				OSDConstants.MQUEUE_EXCHANGE_NAME, 
+				false, 
+				"fanout", 
+				OSDConstants.MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY, 
+				configureCB);
 			mq1ton.addCallback(configureCB);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
@@ -92,7 +98,13 @@ public class OSDPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), OSDConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", OSDConstants.MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY, diskpoolsCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), 
+				OSDConstants.MQUEUE_EXCHANGE_NAME, 
+				false, 
+				"fanout", 
+				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY, 
+				diskpoolsCB);
 			mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);

@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 public class KsanUtils {
     private static final Logger logger = LoggerFactory.getLogger(KsanUtils.class);
     private static String localIP = null;
+    private static int RETRY_COUNT = 3;
+    private static final String LOG_OSD_SERVER_FAILED_FILE_RENAME = "failed file rename {} -> {}";
 
     private KsanUtils() {
         throw new IllegalStateException("Utility class");
@@ -61,4 +63,15 @@ public class KsanUtils {
 			return localIP;
 		}
 	}
+
+    public static void retryRenameTo(File srcFile, File destFile) throws IOException {
+        if (srcFile.exists()) {
+            for (int i = 0; i < RETRY_COUNT; i++) {
+                if (srcFile.renameTo(destFile)) {
+                    return;
+                }
+            }
+            logger.error(LOG_OSD_SERVER_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
+        }
+    }
 }
