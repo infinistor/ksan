@@ -32,7 +32,7 @@ public final class GWConstants {
 
 	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure";
-	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.config.s3.*";
+	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.s3.config.*";
 	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool";
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
 	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user";
@@ -40,7 +40,7 @@ public final class GWConstants {
 
 	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
-	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
+	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
 	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortal";
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";

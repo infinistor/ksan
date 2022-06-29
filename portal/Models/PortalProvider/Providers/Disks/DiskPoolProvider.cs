@@ -78,6 +78,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 동일한 이름이 존재하는지 확인한다.
 				var NameExist = await this.IsNameExist(null, new RequestIsDiskPoolNameExist(Request.Name));
+
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
 				if (NameExist.Result != EnumResponseResult.Success)
 					return new ResponseData<ResponseDiskPoolWithDisks>(NameExist.Result, NameExist.Code, NameExist.Message);
@@ -184,7 +185,7 @@ namespace PortalProvider.Providers.Disks
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
@@ -192,9 +193,11 @@ namespace PortalProvider.Providers.Disks
 
 				// 동일한 이름이 존재하는지 확인한다.
 				var NameExist = await this.IsNameExist(Id, new RequestIsDiskPoolNameExist(Request.Name));
+
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
 				if (NameExist.Result != EnumResponseResult.Success)
 					return new ResponseData(NameExist.Result, NameExist.Code, NameExist.Message);
+
 				// 동일한 이름이 존재하는 경우
 				if (NameExist.Data)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
@@ -316,7 +319,7 @@ namespace PortalProvider.Providers.Disks
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 해당 정보를 가져온다.
 				var Exist = await m_dbContext.DiskPools
@@ -487,13 +490,10 @@ namespace PortalProvider.Providers.Disks
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools.AsNoTracking()
-					.Where(i => i.Id == guidId)
-					.Include(i => i.Disks)
-					.FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				var Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == guidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -526,7 +526,7 @@ namespace PortalProvider.Providers.Disks
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
 				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out guidId))
-					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 요청 객체가 유효하지 않은 경우
 				if (!Request.IsValid())
@@ -626,7 +626,7 @@ namespace PortalProvider.Providers.Disks
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 정보를 가져온다.
 				var Exist = await m_dbContext.DiskPools.AsNoTracking()

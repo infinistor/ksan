@@ -134,6 +134,7 @@ namespace PortalSvr
 				Services.AddSingleton<IAllowConnectionIpsManager, AllowConnectionIpsManager>();
 				Services.AddScoped<IUserClaimsPrincipalFactory<NNApplicationUser>, ApiKeyClaimsPrincipalFactory>();
 				Services.AddTransient<IAccountInitializer, AccountInitializer>();
+				Services.AddTransient<IRoleInitializer, RoleInitializer>();
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
@@ -216,15 +217,16 @@ namespace PortalSvr
 		/// <param name="pathProvider">경로 도우미 객체</param>
 		/// <param name="identityDbContext">인증 관련 DB 컨텍스트</param>
 		/// <param name="dbContext">DB 컨텍스트</param>
-		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
+		/// <param name="roleInitializer">역할 초기화 객체</param>
 		/// <param name="accountInitializer">계정 초기화 객체</param>
+		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
 		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
 		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
 		/// <param name="uploadConfigLoader">업로드 설정 로더</param>
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
 			, ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
-			, IAllowConnectionIpsManager allowAddressManager, IAccountInitializer accountInitializer
-			, ISystemConfigLoader systemConfigLoader
+			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer
+			, IAllowConnectionIpsManager allowAddressManager, ISystemConfigLoader systemConfigLoader
 			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
 		)
 		{
@@ -281,6 +283,7 @@ namespace PortalSvr
 				uploadConfigLoader.GetConfig();
 
 				// 데이터를 초기화 한다.
+				roleInitializer?.Initialize().Wait();
 				accountInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.

@@ -8,29 +8,18 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using System.Collections.Generic;
-
 namespace PortalData.Responses.Ksan
 {
-	/// <summary>S3 사용자 등록 응답 클래스</summary>
-	public class ResponseKsanUser
+	/// <summary> 유저 디스크풀 응답 클래스 </summary>
+	public class ResponseStorageClass
 	{
-		/// <summary>Ksan 사용자 식별자</summary>
-		public string Id { get; set; }
+		/// <summary> 유저 아이디</summary>	
+		public string UserId { get; set; }
+		
+		/// <summary> 디스크풀 아이디</summary>
+		public string DiskPoolId { get; set; }
 
-		/// <summary>사용자명</summary>
-		public string Name { get; set; }
-
-		/// <summary>이메일 주소</summary>
-		public string Email { get; set; }
-
-		/// <summary>Access Key</summary>
-		public string AccessKey { get; set; }
-
-		/// <summary>Secret Key</summary>
-		public string SecretKey { get; set; }
-
-		/// <summary> 스토리지 클래스 목록 </summary>
-		public List<ResponseStorageClass> UserDiskPools { get; set; } = new List<ResponseStorageClass>();
+		/// <summary> 스토리지 클래스 </summary>
+		public string StorageClass { get; set; }
 	}
 }
