@@ -11,22 +11,33 @@
 package com.pspace.ifs.ksan.gw.identity;
 
 import com.google.common.base.Strings;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class S3User {
     public static final String DATA = "Data";
     public static final String ITEMS = "Items";
+    public static final String USER_DISK_POOLS = "UserDiskPools";
 
     public static final String USER_ID = "Id";
     public static final String USER_NAME = "Name";
     public static final String USER_EMAIL = "Email";
     public static final String ACCESS_KEY = "AccessKey";
     public static final String ACCESS_SECRET = "SecretKey";
+    public static final String USER_DISK_POOLS_USER_ID = "UserId";
+    public static final String USER_DISK_POOLS_DISKPOOL_ID = "DiskPoolId";
+    public static final String USER_DISK_POOLS_STORAGE_CLASS = "StorageClass";
+    public static final String STANDARD = "STANDARD";
 
     private String userId;
     private String userName;
     private String userEmail;
 	private String accessKey;
 	private String accessSecret;
+    private List<HashMap<String, String>> userDiskPools;
 
     public S3User() {
         userId = "";
@@ -34,44 +45,73 @@ public class S3User {
         userEmail = "";
         accessKey = "";
         accessSecret = "";
+        userDiskPools = new ArrayList<HashMap<String, String>>();
     }
 
-    public S3User(String id, String name, String email, String access, String secret) {
+    public S3User(String id, String name, String email, String access, String secret, JSONArray diskpools) {
         this.userId = id;
         this.userName = name;
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
+        for (int i = 0; i < diskpools.size(); i++) {
+            JSONObject item = (JSONObject)diskpools.get(i);
+            HashMap<String, String> map = new HashMap<String, String>();
+            map.put(USER_DISK_POOLS_DISKPOOL_ID, (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID));
+            map.put(USER_DISK_POOLS_STORAGE_CLASS, (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
+        }
     }
 
     public String getUserName() {
         return Strings.nullToEmpty(userName);
     }
+
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
     public String getUserId() {
         return userId;
     }
+
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
     public String getUserEmail() {
         return Strings.nullToEmpty(userEmail);
     }
+
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
+
     public String getAccessKey() {
         return Strings.nullToEmpty(accessKey);
     }
+
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
     }
+
     public String getAccessSecret() {
         return Strings.nullToEmpty(accessSecret);
     }
+
     public void setAccessSecret(String accessSecret) {
         this.accessSecret = accessSecret;
+    }
+
+    public List<HashMap<String, String>> getUserDiskpools() {
+        return userDiskPools;
+    }
+
+    public String getUserDefaultDiskId() {
+        for (HashMap<String, String> map : userDiskPools) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(STANDARD)) {
+                return map.get(USER_DISK_POOLS_DISKPOOL_ID);
+            }
+        }
+        return null;
     }
 }
