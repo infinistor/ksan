@@ -45,6 +45,10 @@
 		<AutoGen>True</AutoGen>
 		<DependentUpon>PortalModels.efml</DependentUpon>
 	</Compile>
+	<Compile Update="PortalModels.DiskUsage.cs">
+	  <AutoGen>True</AutoGen>
+	  <DependentUpon>PortalModels.efml</DependentUpon>
+	</Compile>
 	<Compile Update="PortalModels.EnumDbDiskPoolReplicaType.cs">
 		<AutoGen>True</AutoGen>
 		<DependentUpon>PortalModels.efml</DependentUpon>
@@ -119,6 +123,10 @@
 	</Compile>
 	<Compile Update="PortalModels.PortalModel.Extension.cs">
 		<AutoGen>True</AutoGen>
+	</Compile>
+	<Compile Update="PortalModels.Region.cs">
+	  <AutoGen>True</AutoGen>
+	  <DependentUpon>PortalModels.efml</DependentUpon>
 	</Compile>
 	<Compile Update="PortalModels.Role.cs">
 		<AutoGen>True</AutoGen>

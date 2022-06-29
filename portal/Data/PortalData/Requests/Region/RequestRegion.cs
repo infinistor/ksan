@@ -8,30 +8,35 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System.ComponentModel.DataAnnotations;
+using MTLib.CommonData;
 using PortalData.ValidationAttributes;
 using PortalResources;
-using MTLib.CommonData;
-using System.ComponentModel.DataAnnotations;
 
-namespace PortalData.Requests.Servers
+namespace PortalData.Requests.Region
 {
-	/// <summary>서버 등록/수정 요청 클래스</summary>
-	public class RequestServerInitialize : CommonRequestData
+	/// <summary> 리전 정보 응답 클래스</summary>
+	public class RequestRegion : CommonRequestData
 	{
-		/// <summary>서버 아이피</summary>
+		/// <summary> 리전명 </summary>
+		public virtual string Name { get; set; }
+
+		/// <summary> 리전 주소 </summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string ServerIp { get; set; }
+		public virtual string Address { get; set; }
 
-		/// <summary>메니지먼트 아이피</summary>
-		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string MgsIp { get; set; }
-
-		/// <summary>서버 포트</summary>
+		/// <summary> 포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public int MQPort { get; set; }
+		public virtual int Port { get; set; }
 
-		/// <summary>메니지먼트 포트</summary>
+		/// <summary> SSL포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public int MgsPort { get; set; }
+		public virtual int SSLPort { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string AccessKey { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		public virtual string SecretKey { get; set; }
 	}
 }

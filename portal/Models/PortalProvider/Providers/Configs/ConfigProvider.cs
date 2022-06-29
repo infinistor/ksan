@@ -18,7 +18,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -254,7 +253,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.config.{ServiceType.ToString().ToLower()}.update", NewData);
+						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
 					}
 					catch (Exception ex)
 					{

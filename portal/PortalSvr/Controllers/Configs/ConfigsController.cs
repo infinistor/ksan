@@ -390,5 +390,63 @@ namespace PortalSvr.Controllers.Config
 		{
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Edge, Version));
 		}
+
+		/// <summary>MongoDB 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/MongoDB")]
+		public async Task<ActionResult> GetConfigListForMongoDB()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.MongoDB));
+		}
+
+		/// <summary>MongoDB 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("MongoDB")]
+		public async Task<ActionResult> GetConfigForMongoDB()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.MongoDB));
+		}
+
+		/// <summary>특정 버전의 MongoDB 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("MongoDB/{Version}")]
+		public async Task<ActionResult> GetConfigForMongoDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.MongoDB, Version));
+		}
+
+		/// <summary>MongoDB 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("MongoDB")]
+		public async Task<ActionResult> SetConfigForMongoDB([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.MongoDB, Config = Config }));
+		}
+
+		/// <summary>MongoDB 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("MongoDB/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForMongoDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.MongoDB, Version));
+		}
+
+		/// <summary>MongoDB 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("MongoDB/{Version}")]
+		public async Task<ActionResult> RemoveConfigForMongoDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.MongoDB, Version));
+		}
 	}
 }

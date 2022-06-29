@@ -90,9 +90,7 @@ namespace PortalProvider
 				else
 				{
 					if (m_loginUser == null && UserClaimsPrincipal != null)
-					{
 						m_loginUser = m_userManager.GetUserAsync(UserClaimsPrincipal).Result;
-					}
 
 					return m_loginUser;
 				}
@@ -234,9 +232,9 @@ namespace PortalProvider
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
 					var Response = RabbitMqRpc.Send(Exchange, RoutingKey, Request, WaitForResponseTimeoutSec);
+
 					// 에러인 경우
-					if (Response.Result == EnumResponseResult.Error)
-						Result.CopyValueFrom(Response);
+					if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
 					// 에러가 아닌 경우
 					else
 					{
