@@ -278,6 +278,18 @@ public class SERVER {
         return this.status;
     }
     
+    public String getStatusInString(){
+        String st;
+        if (status == ServerStatus.ONLINE)
+           st = "ONLINE";
+        else  if (status == ServerStatus.OFFLINE)
+           st = "OFFLINE";
+        else  if (status == ServerStatus.TIMEOUT)
+           st = "TIMEOUT";
+        else
+           st = "UNKNOWN";
+        return st;
+    }
     public int getNumDisk(){
         return diskMap.size();
     }
@@ -312,7 +324,7 @@ public class SERVER {
     @Override
     public String toString(){    
         return String.format(
-                "{id : %s ipaddr : %d hostname : %s isLocal : %s status : %d  diskCount : %d}", 
-                getId(), getIpAddress(), getName(), isLocal, getStatus(), getNumDisk() );
+                "{id : %s ipaddr : %d hostname : %s isLocal : %s status : %s  diskCount : %d}", 
+                getId(), getIpAddress(), getName(), isLocal, getStatusInString(), getNumDisk() );
     } 
 }

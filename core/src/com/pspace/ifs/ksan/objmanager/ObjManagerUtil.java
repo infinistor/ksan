@@ -16,6 +16,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -28,7 +29,7 @@ public class ObjManagerUtil {
     private ObjManagerCache  obmCache;
     private ObjManagerConfig config;
     private ObjManagerSharedResource omsr;
-    private OMLogger logger;
+    private static Logger logger;
     
     public ObjManagerUtil() throws Exception{
             
@@ -48,7 +49,7 @@ public class ObjManagerUtil {
                 
             dAlloc = new DiskAllocation(obmCache);
             
-            logger = (OMLogger) LoggerFactory.getLogger(ObjManagerUtil.class);
+            logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
     }
     
     private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
