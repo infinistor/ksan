@@ -27,11 +27,11 @@ namespace PortalData.Requests.Servers
 		public string MgsIp { get; set; }
 
 		/// <summary>서버 포트</summary>
-		[Range(1, int.MaxValue, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
+		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
 		public int MQPort { get; set; }
 
 		/// <summary>메니지먼트 포트</summary>
-		[Range(1, int.MaxValue, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
+		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
 		public int MgsPort { get; set; }
 	}
 }
