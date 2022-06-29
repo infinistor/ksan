@@ -511,7 +511,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   The requested Data is duplicate.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   The requested data is duplicate.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__DUPLICATED_DATA {
             get {
@@ -520,7 +520,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Up to {{MaxExportCount}} Data can be exported to Excel.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Up to {{MaxExportCount}} data can be exported to Excel.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__EXCEL_EXPORT_MAX_EXPORT_LIMIT {
             get {
@@ -538,7 +538,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Fail to create Response object.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Fail to create response object.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__EXCEPTION_FAIL_TO_SERIALIZE {
             get {
@@ -556,7 +556,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Failed to delete Data.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Failed to delete data.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__FAIL_TO_DELETE {
             get {
@@ -574,7 +574,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Failed to get Data.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Failed to get data.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__FAIL_TO_GET {
             get {
@@ -583,7 +583,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Failed to regist Data.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Failed to regist data.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__FAIL_TO_REGIST {
             get {
@@ -592,7 +592,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Failed to update Data.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Failed to update data.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__FAIL_TO_UPDATE {
             get {
@@ -682,7 +682,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   The Email could not be sent.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   The email could not be sent.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__MAIL_SEND_ERROR {
             get {
@@ -691,7 +691,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Multiple Data exists.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Multiple data exists.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__MULTIPLE_DATA_EXIST {
             get {
@@ -808,7 +808,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Your Email has been verified.\nPlease log in and use the service.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Your email has been verified.\nPlease log in and use the service.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_ACTIVATED {
             get {
@@ -817,7 +817,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Following error occurred while checking your Email.\n&quot;{{errorMessage}}&quot;\nPlease contact site manager.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Following error occurred while checking your email.\n&quot;{{errorMessage}}&quot;\nPlease contact site manager.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_ERROR {
             get {
@@ -826,7 +826,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Checking if Email is valid.\nPlease wait a moment.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Checking if email is valid.\nPlease wait a moment.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_PROCESSING {
             get {
@@ -835,7 +835,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   There is no verification Code for verifying your Email.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   There is no verification code for verifying your email.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_REQUIRE_CODE {
             get {
@@ -844,7 +844,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   There is no Email address information you want to verify.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   There is no email address information you want to verify.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_EMAIL_VERIFICATION_REQUIRE_EMAIL {
             get {
@@ -979,7 +979,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Please login after Email confirmation.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Please login after email confirmation.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_LOGIN_AFTER_EMAIL_CONFIRM {
             get {
@@ -1078,7 +1078,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Please enter your Email address.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Please enter your email address.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_REQUIRE_EMAIL {
             get {
@@ -1168,7 +1168,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   There is no verification Code to reset password.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   There is no verification code to reset password.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_RESET_PASSWORD_REQUIRE_CODE {
             get {
@@ -1177,7 +1177,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   There is no Email address information for the account you want to reset.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   There is no email address information for the account you want to reset.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON_ACCOUNT_RESET_PASSWORD_REQUIRE_EMAIL {
             get {
@@ -1762,6 +1762,24 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Storage class name is already exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_STORAGE_CLASS_ALREADY_EXIST {
+            get {
+                return ResourceManager.GetString("EM_STORAGE_CLASS_ALREADY_EXIST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_STORAGE_CLASS_INVALID_NAME {
+            get {
+                return ResourceManager.GetString("EM_STORAGE_CLASS_INVALID_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   EmailMemberVerifyMailForm.en.html과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EMAIL_COMMON_ACCOUNT_EMAIL_CONFIRMATION {
@@ -1776,6 +1794,15 @@ namespace PortalResources {
         public static string EMAIL_COMMON_ACCOUNT_RESET_PASSWORD {
             get {
                 return ResourceManager.GetString("EMAIL_COMMON_ACCOUNT_RESET_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EN_DISK_POOLS_INVALID_ID {
+            get {
+                return ResourceManager.GetString("EN_DISK_POOLS_INVALID_ID", resourceCulture);
             }
         }
         
@@ -1861,7 +1888,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   {0} Request(s) have been registered in total {1} Request(s).과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   {0} request(s) have been registered in total {1} request(s).과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string SM_COMMON__IMPORTED {
             get {
@@ -1906,7 +1933,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Your Email has been sent.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Your email has been sent.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string SM_COMMON__SEND_MAIL {
             get {
@@ -1969,7 +1996,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Your password reset Email has been sent. Please reset your password according to the contents of the Message.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Your password reset email has been sent. Please reset your password according to the contents of the message.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string SM_COMMON_ACCOUNT_SUCCESS_SEND_RESET_MAIL {
             get {
@@ -2986,7 +3013,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Application Request search field과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Application request search field과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string UL_COMMON__SEARCH_FIELD {
             get {
@@ -3067,7 +3094,7 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Statistical Data grouping type과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Statistical data grouping type과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string UL_COMMON__STAT_GROUP_BY_TYPE {
             get {

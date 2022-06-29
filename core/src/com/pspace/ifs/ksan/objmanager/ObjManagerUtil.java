@@ -16,6 +16,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -26,38 +27,28 @@ public class ObjManagerUtil {
     private DiskAllocation dAlloc;
     private ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    //private DiskMonitor diskM;
-    //private MQSender mqSender;
+    private ObjManagerSharedResource omsr;
     private OMLogger logger;
     
     public ObjManagerUtil() throws Exception{
             
             config = new ObjManagerConfig();
             
-            obmCache = new ObjManagerCache();
-          
-            //System.out.println(">>dbmCache : " + obmCache);
-            if (config.dbRepository.equalsIgnoreCase("MYSQL"))
-                 dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-            else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-                 dbm = new MongoDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
-            else 
-                System.out.println("ObjManger initalization error :  there is no db storage configured!");
+            omsr = ObjManagerSharedResource.getInstance(config);
             
-            //System.out.println(">>dbm : " + dbm);
+            obmCache = omsr.getCache();
+          
+            dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
+            
             config.loadDiskPools(obmCache);
            
-            dbm.loadBucketList();
+            //dbm.loadBucketList();
             
             obmCache.setDBManager(dbm);
-            
-            //obmCache.displayBucketList();
-            
-            //obmCache.displayDiskPoolList();
-            
+                
             dAlloc = new DiskAllocation(obmCache);
             
-            logger = new OMLogger(ObjManager.class.getName());
+            logger = (OMLogger) LoggerFactory.getLogger(ObjManagerUtil.class);
     }
     
     private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {

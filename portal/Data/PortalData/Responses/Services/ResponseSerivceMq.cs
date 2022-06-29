@@ -8,29 +8,27 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using System.Collections.Generic;
+using PortalData.Enums;
 
-namespace PortalData.Responses.Ksan
+namespace PortalData.Responses.Services
 {
-	/// <summary>S3 사용자 등록 응답 클래스</summary>
-	public class ResponseKsanUser
+
+	/// <summary>서비스 정보 응답 클래스</summary>
+	public class ResponseSerivceMq
 	{
-		/// <summary>Ksan 사용자 식별자</summary>
+		/// <summary>서비스 아이디</summary>
 		public string Id { get; set; }
 
-		/// <summary>사용자명</summary>
-		public string Name { get; set; }
+		/// <summary>서비스 그룹 아이디</summary>
+		public string GroupId { get; set; }
+		
+		/// <summary>서비스 타입</summary>
+		public EnumServiceType ServiceType { get; set; }
 
-		/// <summary>이메일 주소</summary>
-		public string Email { get; set; }
+		/// <summary>HA 작업</summary>
+		public EnumHaAction HaAction { get; set; }
 
-		/// <summary>Access Key</summary>
-		public string AccessKey { get; set; }
-
-		/// <summary>Secret Key</summary>
-		public string SecretKey { get; set; }
-
-		/// <summary> 스토리지 클래스 목록 </summary>
-		public List<ResponseStorageClass> UserDiskPools { get; set; } = new List<ResponseStorageClass>();
+		/// <summary>서비스 상태</summary>
+		public EnumServiceState State { get; set; }
 	}
 }
