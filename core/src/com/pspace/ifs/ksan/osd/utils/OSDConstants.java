@@ -82,7 +82,7 @@ public final class OSDConstants {
     public static final String MQUEUE_NAME_OSD_MOVE_OBJECT = "ksan-osd-move-object-";
     public static final String MQUEUE_NAME_OSD_DELETE_OBJECT = "ksan-osd-delete-object-";
     public static final String MQUEUE_NAME_OSD_GETATTR_OBJECT = "ksan-osd-getattr-object-";
-	public static final String MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY = "*.services.config.osd.*";
+	public static final String MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY = "*.services.osd.config.*";
 	public static final String MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
     public static final String PORTAL_REST_API_CONFIG_OSD = "/api/v1/Config/Osd";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
