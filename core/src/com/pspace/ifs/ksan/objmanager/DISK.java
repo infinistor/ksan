@@ -115,7 +115,7 @@ public class DISK{
     @Override
     public String toString(){
         return String.format(
-                "{ path : %s diskid : %s mode : %s  status : %s }", 
-                this.getPath(), this.getId(), this.getMode(), this.getStatus());
+                "{ OsdIP : %s, path : %s, diskid : %s, mode : %s,  status : %s }", 
+                this.getOsdIp(), this.getPath(), this.getId(), this.getMode(), this.getStatus());
     }
 }

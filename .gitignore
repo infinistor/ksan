@@ -6,3 +6,4 @@
 *.jar
 .factorypath
 .vscode/settings.json
+**/dependency-reduced-pom.xml

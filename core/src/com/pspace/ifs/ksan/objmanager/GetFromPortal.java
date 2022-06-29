@@ -31,6 +31,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,9 +43,11 @@ public class GetFromPortal {
     private String portalHost;
     private long portalPort;
     private String portalKey;
+    private static Logger logger;
     
     public GetFromPortal() throws IOException{
         getPortaConfig();
+        logger = LoggerFactory.getLogger(GetFromPortal.class);
     }
     
     private String getStringConfig(String key, String def){
@@ -189,7 +193,7 @@ public class GetFromPortal {
     
     private  SERVER parseDiskResponse(SERVER svr, JSONArray disks){
         for (int idx =0; idx < disks.size(); idx++){
-            JSONObject disk = (JSONObject)disks.get(0);
+            JSONObject disk = (JSONObject)disks.get(idx);
             String diskId = (String)disk.get("Id");
             String path = (String)disk.get("Path");
             String status = (String)disk.get("State");
@@ -220,7 +224,7 @@ public class GetFromPortal {
                 dsk.setMode(DiskMode.READWRITE);
             else
                 dsk.setMode(DiskMode.READONLY);
-           
+            logger.debug("DISKS {}", dsk.toString());
             svr.addDisk(dsk);   
         }
         return svr;
@@ -250,6 +254,7 @@ public class GetFromPortal {
             
             svr = parseDiskResponse(svr, disks);
             dskp.addServer(svr);
+            logger.debug("SERVERS {}", svr.toString());
         }
         return dskp;
     }
@@ -276,7 +281,7 @@ public class GetFromPortal {
             return;
         
         for(int idx = 0; idx < jsonItems.size(); idx++){
-            JSONObject item = (JSONObject)jsonItems.get(0);
+            JSONObject item = (JSONObject)jsonItems.get(idx);
             JSONArray servers = (JSONArray)item.get("Servers");
             String diskpoolId = (String)item.get("Id");
             String diskpoolName = (String)item.get("Name");
@@ -289,6 +294,7 @@ public class GetFromPortal {
             
             dp = parseDiskPoolResponse(dp, servers);
             omc.setDiskPoolInCache(dp);
+            logger.debug("DISKPOOL {}", dp.toString());
         }
     }
     
@@ -340,6 +346,7 @@ public class GetFromPortal {
             return;
         
         parseDiskPoolsResponse(omc, content);
+        omc.displayDiskPoolList();
     }
     
     public String getUserDefaultDiskPoolId(String userName) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{
