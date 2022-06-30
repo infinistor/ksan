@@ -397,11 +397,12 @@ public class ObjManager {
     /**
      * Create bucket if it is not exist
      * @param bt a Bucket class instance with basic information        
+     * @return  0 when the operation is successful        
      * @throws ResourceAlreadyExistException     
      * @throws java.sql.SQLException     
      * @throws ResourceNotFoundException     
      */
-    public void createBucket(Bucket bt) throws ResourceAlreadyExistException, SQLException, ResourceNotFoundException{
+    public int createBucket(Bucket bt) throws ResourceAlreadyExistException, SQLException, ResourceNotFoundException{
         DISKPOOL db;
         
         db = obmCache.getDiskPoolFromCache(bt.getDiskPoolId());
@@ -411,6 +412,7 @@ public class ObjManager {
             bt.setReplicaCount(db.getDefaultReplicaCount());
             Bucket bt1 = dbm.insertBucket(bt);
             obmCache.setBucketInCache(bt1);
+            return 0;
         }
         throw new ResourceAlreadyExistException("Bucket (" + bt.getName() + ") already exist in the system!");
     }
