@@ -19,7 +19,10 @@ import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 
 /**
@@ -240,21 +243,30 @@ public class ObjManagerCache {
         System.out.println("</BUCKETLIST>");*/
     }
     
-    public void displayDiskPoolList(){
-        /*DISKPOOL dskPool;
+    public String displayDiskPoolList(){
+        DISKPOOL dskPool;
+        String dskpoolXml;
         
-        System.out.println("<DISKPOOLLIST>");
+        dskpoolXml = "<DISKPOOLLIST>";
         for(String dskPoolId : diskPoolMap.keySet()){
              dskPool = diskPoolMap.get(dskPoolId);
-             System.out.format("   <DISKPOOL id=\"%s\"  name=\"%s\" numServer=\"%s\" >\n"
-                     , dskPool.getId(), dskPool.getName(), dskPool.getNumServers());
-             dskPool.displayServerList();
-             System.out.println("   </DISKPOOL>");
+             String dskpoolStr = String.format("\n   <DISKPOOL id=\"%s\"  name=\"%s\" defaultReplicaCount=%d numServer=\"%s\" >\n"
+                     , dskPool.getId(), dskPool.getName(), dskPool.getDefaultReplicaCount(), dskPool.getNumServers());
+             dskpoolStr = dskpoolStr + dskPool.displayServerList() + "\n   </DISKPOOL>";
+             dskpoolXml = dskpoolXml + dskpoolStr;
          }
-         System.out.println("</DISKPOOLLIST>");*/
+         dskpoolXml = dskpoolXml + "\n</DISKPOOLLIST>\n";
+         return dskpoolXml;
     }
 
     public void resetBucketList() {
         bucketMap.clear();
+    }
+    
+    public void dumpCacheInFile() throws IOException{
+        try (PrintWriter printWriter = new PrintWriter(new FileWriter("/usr/local/ksan/etc/diskpools.xml"))) {
+            printWriter.print(displayDiskPoolList()); 
+            printWriter.close();
+        } 
     }
 }

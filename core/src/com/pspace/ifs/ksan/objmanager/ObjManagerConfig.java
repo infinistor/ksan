@@ -70,11 +70,7 @@ public class ObjManagerConfig {
     }
         
     public void loadDiskPools(ObjManagerCache omc) throws Exception{
-        //try{ 
-            portal.loadDiskPoolList(omc);
-        /*}catch (Exception e){
-            System.out.println("Error loading diskpool-->" + e);
-        }*/
+        portal.loadDiskPoolList(omc);
     }
         
     @Override

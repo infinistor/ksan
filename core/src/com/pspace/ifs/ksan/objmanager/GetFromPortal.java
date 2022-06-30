@@ -224,7 +224,7 @@ public class GetFromPortal {
                 dsk.setMode(DiskMode.READWRITE);
             else
                 dsk.setMode(DiskMode.READONLY);
-            logger.debug("DISKS {}", dsk.toString());
+            //logger.debug("DISKS {}", dsk.toString());
             svr.addDisk(dsk);   
         }
         return svr;
@@ -254,7 +254,7 @@ public class GetFromPortal {
             
             svr = parseDiskResponse(svr, disks);
             dskp.addServer(svr);
-            logger.debug("SERVERS {}", svr.toString());
+            //logger.debug("SERVERS {}", svr.toString());
         }
         return dskp;
     }
@@ -294,7 +294,7 @@ public class GetFromPortal {
             
             dp = parseDiskPoolResponse(dp, servers);
             omc.setDiskPoolInCache(dp);
-            logger.debug("DISKPOOL {}", dp.toString());
+            //logger.debug("DISKPOOL {}", dp.toString());
         }
     }
     
@@ -346,7 +346,7 @@ public class GetFromPortal {
             return;
         
         parseDiskPoolsResponse(omc, content);
-        omc.displayDiskPoolList();
+        omc.dumpCacheInFile();
     }
     
     public String getUserDefaultDiskPoolId(String userName) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{

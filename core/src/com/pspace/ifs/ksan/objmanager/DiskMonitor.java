@@ -11,21 +11,20 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-
+import java.io.IOException;
 import org.json.simple.JSONArray;
 
 //import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -126,16 +125,27 @@ public class DiskMonitor {
 
         @Override
         public MQResponse call(String routingKey, String body) {
-            return update(routingKey, body);
+            MQResponse res = update(routingKey, body);
+        
+            if (res.getResult().compareToIgnoreCase("Success") == 0) {
+                try {
+                    obmCache.dumpCacheInFile();
+                } catch (IOException ex) {
+                   logger.debug("failed to  dump diskpool cache {}", ex);
+                }
+            }
+            return res;
         }  
     }
     
     private ObjManagerCache obmCache;
     private MQReceiver mq1ton;
     private JSONParser parser;
+    private static Logger logger;
     
     public DiskMonitor(ObjManagerCache obmCache, String mqHost, String mqQueue, String mqExchange)
             throws Exception{
+        logger = LoggerFactory.getLogger(DiskMonitor.class);
         this.obmCache = obmCache;
         MQCallback callback = new MQReader();
         mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
@@ -166,7 +176,7 @@ public class DiskMonitor {
             }
         } catch (ParseException ex) {
             System.out.println("body :>" + body);
-            Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            logger.debug("parsing error " + ex);
             return new MQResponse(MQResponseType.ERROR, ex.getErrorType(), ex.getMessage(), 0);
         }
 
@@ -326,7 +336,7 @@ public class DiskMonitor {
             res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
             //obmCache.displayDiskPoolList();
         } catch (ResourceNotFoundException ex) {
-            Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
             res = new MQResponse(MQResponseType.ERROR, "disk not exist", "", 0);
         }
         
@@ -345,7 +355,7 @@ public class DiskMonitor {
                         .removeDisk(jo.mpath, jo.diskid);
             }
        } catch (ResourceNotFoundException ex) {
-           Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
+           //logger.debug("diskpool not found "  + ex);
        }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
         obmCache.displayDiskPoolList();

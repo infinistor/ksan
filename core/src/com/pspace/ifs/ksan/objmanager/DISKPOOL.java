@@ -285,18 +285,21 @@ public class DISKPOOL {
         return serverMap.size();
     }
     
-    public void displayServerList(){
+    public String displayServerList(){
         SERVER srv;
+        String xmlData = "";
  
         for(String serverid : serverMap.keySet()){
             srv = serverMap.get(serverid);
-            logger.debug("\t<SERVER id=\"{}\" ip=\"{}\" status=\"{}\"  numDisk=\"{}\">", srv.getId() , srv.getName(), srv.getStatus(), srv.getNumDisk());
+            String eachSvr = String.format("\n\t<SERVER id=\"%s\" ip=\"%s\" status=\"%s\"  numDisk=\"%d\">", srv.getId() , srv.getName(), srv.getStatusInString(), srv.getNumDisk());
             // System.out.format("\t<SERVER id=\"%s\" ip=\"%s\" status=\"%s\"  numDisk=\"%s\">\n", srv.getId()
             //         , srv.getName(), srv.getStatus(), srv.getNumDisk());
-            srv.displayDiksList();
-            logger.debug("\t</SERVER>");
+            eachSvr = eachSvr + srv.displayDiksList() + "\n\t</SERVER>";
+            //logger.debug("\t</SERVER>");
             // System.out.println("\t</SERVER>");
+            xmlData= xmlData + eachSvr;
          }
+        return xmlData;
     }
     
     public boolean isDiskPoolWithLocalServer(){
