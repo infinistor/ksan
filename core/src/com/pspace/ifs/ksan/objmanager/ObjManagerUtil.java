@@ -35,7 +35,7 @@ public class ObjManagerUtil {
             
             config = new ObjManagerConfig();
             
-            omsr = ObjManagerSharedResource.getInstance(config, true);
+            omsr = ObjManagerSharedResource.getInstance(config, false);
             
             obmCache = omsr.getCache();
           
