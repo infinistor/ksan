@@ -337,14 +337,15 @@ public class ObjManager {
      * @return
      * @throws InvalidParameterException 
      * @throws ResourceNotFoundException 
+     * @throws java.sql.SQLException 
      */
     public int close(String bucketName, String path, String etag, String meta, String tag, long size, String acl, String pdskPath, String rdskPath, String versionId, String deleteMarker) 
-            throws InvalidParameterException, ResourceNotFoundException{
+            throws InvalidParameterException, ResourceNotFoundException, SQLException{
         Metadata mt;
         Bucket bt;
         DISK pdsk;
         DISK rdsk;
-        boolean isreplicaExist;
+        //boolean isreplicaExist;
         
         mt = new Metadata(bucketName, path);
         mt.set(etag, tag, meta, acl, size);
@@ -360,12 +361,12 @@ public class ObjManager {
            throw new ResourceNotFoundException("Bucket(" + bucketName +") not exist!");
         
         pdsk = obmCache.getDiskWithPath(bt.getDiskPoolId(), pdskPath);
-        isreplicaExist = false;
+        //isreplicaExist = false;
         mt.setPrimaryDisk(pdsk);
         if (rdskPath != null){
             if (!rdskPath.isEmpty()){
                 rdsk = obmCache.getDiskWithPath(bt.getDiskPoolId(), rdskPath);
-                isreplicaExist = true;
+                //isreplicaExist = true;
                 mt.setReplicaDISK(rdsk);
             } 
         }
@@ -374,7 +375,7 @@ public class ObjManager {
         return this.close(bucketName, path, mt);
     }
     
-    public int close(String bucketName, String path, Metadata mt) throws ResourceNotFoundException{
+    public int close(String bucketName, String path, Metadata mt) throws ResourceNotFoundException, SQLException{
         Bucket bt;
         
         try {
@@ -386,9 +387,16 @@ public class ObjManager {
         if (bt == null)
            throw new ResourceNotFoundException("Bucket(" + bucketName +") not exist!");
         try{
-            Metadata mtd = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path);
-            if (!bt.getVersioning().equalsIgnoreCase("Enabled"))
-                dbm.deleteObject(bucketName, path, "null");
+            dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path);
+            if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
+                logger.debug("[close] bucketName : {} path :{} vstatus : {}", bucketName, path, bt.getVersioning());
+                if (getBucketVersioning(bucketName).equalsIgnoreCase("Enabled")){
+                    logger.debug("[close] -1 bucketName : {} path :{} vstatus : {}", bucketName, path, "");
+                    dbm.deleteObject(bucketName, path, "null");
+                }
+                else
+                   logger.debug("[close] -2 bucketName : {} path :{} vstatus : {}", bucketName, path, getBucketVersioning(bucketName)); 
+            }
         } catch(ResourceNotFoundException ex){
             
         }
@@ -553,6 +561,7 @@ public class ObjManager {
         bt.setVersioning(versionState, "");
         ret = dbm.updateBucketVersioning(bt);
         obmCache.updateBucketInCache(bt);
+        logger.debug("[putBucketVersioning] bucketName: {} status : {}", bucketName, versionState);
         return ret;
     }
     
