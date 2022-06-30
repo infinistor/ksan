@@ -388,14 +388,8 @@ public class ObjManager {
            throw new ResourceNotFoundException("Bucket(" + bucketName +") not exist!");
         try{
             dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path, mt.getVersionId());
-            if (!bt.getVersioning().equalsIgnoreCase("Enabled")){
-                logger.debug("[close] bucketName : {} path :{} vstatus : {}", bucketName, path, bt.getVersioning());
-                if (getBucketVersioning(bucketName).equalsIgnoreCase("Enabled")){
-                    logger.debug("[close] -1 bucketName : {} path :{} vstatus : {}", bucketName, path, "");
-                    dbm.deleteObject(bucketName, path, mt.getVersionId());
-                }
-                else
-                   logger.debug("[close] -2 bucketName : {} path :{} vstatus : {}", bucketName, path, getBucketVersioning(bucketName)); 
+            if (!getBucketVersioning(bucketName).equalsIgnoreCase("Enabled")){//bt.getVersioning().equalsIgnoreCase("Enabled")
+               dbm.deleteObject(bucketName, path, mt.getVersionId()); 
             }
         } catch(ResourceNotFoundException ex){
             
