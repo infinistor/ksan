@@ -22,6 +22,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +48,13 @@ public class ObjManager {
 
         this.config = config;
 
-        obmsr = ObjManagerSharedResource.getInstance(config);
+        obmsr = ObjManagerSharedResource.getInstance(config, true);
 
         obmCache = obmsr.getCache();
 
         dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
 
-        config.loadDiskPools(obmCache);
+        //config.loadDiskPools(obmCache);
 
         logger.debug(config.toString());
 
@@ -124,7 +125,35 @@ public class ObjManager {
         
         return _open(bucket, path, versionId);
     }
-    
+     
+    /**
+     * Return a new primary and replica disk mount path allocated for the path provided.
+     * Unless the close method is called, the allocated disk mount path is not stored permanently. 
+     * @param bucket bucket name
+     * @param path     the path or key of the metadata is going to be created
+     * @param diskPoolId   the disk pool Id
+     * @param diskPoolId   the disk pool Id
+     * @param algorithm the algorithm used to allocate osd disk
+     * @return  return the metadata object with allocated primary and replica disk 
+     * @throws IOException 
+     */
+    private Metadata create(String bucketName, String path, String diskPoolId, int replicaCount, int algorithm)
+            throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+        logger.debug("Begin bucketName : {} key : {} alg : {} ", bucketName, path, algorithm == AllocAlgorithm.LOCALPRIMARY? "LOCAL" : "ROUNDROBIN");
+        if (dAlloc == null){
+            throw new ResourceNotFoundException("No disk to allocate!");
+        }
+
+        // create meta
+        Metadata mt = new Metadata(bucketName, path);
+
+        // allocate disk
+        dAlloc.allocDisk(mt, diskPoolId, replicaCount, algorithm); // FIXME replace bucket id
+        
+        logger.debug("End bucketName : {} key : {} pdiks : {} rdisk : {}", bucketName, path, 
+                mt.getPrimaryDisk().getPath(), mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : "");
+        return mt;
+    }
     /**
      * Return a new primary and replica disk mount path allocated for the path provided.
      * Unless the close method is called, the allocated disk mount path is not stored permanently. 
@@ -132,37 +161,37 @@ public class ObjManager {
      * @param path     the path or key of the metadata is going to be created
      * @param algorithm the algorithm used to allocate osd disk
      * @return  return the metadata object with allocated primary and replica disk 
-     * @throws IOException 
+     * @throws IOException , AllServiceOfflineException, ResourceNotFoundException
      */
     
     private Metadata create(String bucketName, String path, int algorithm)
             throws IOException, AllServiceOfflineException, ResourceNotFoundException{
         Bucket bt;
-        
-        logger.debug("Begin bucketName : {} key : {} alg : {} ", bucketName, path, algorithm == AllocAlgorithm.LOCALPRIMARY? "LOCAL" : "ROUNDROBIN");
-        if (dAlloc == null){
-            throw new ResourceNotFoundException("No disk to allocate!");
-        }
-
-        // create meta
-        try { 
+         try { 
             bt = getBucket(bucketName);
         } catch (SQLException ex) {
             throw new ResourceNotFoundException("Bucket(" + bucketName +") not found due to " + ex);
         }
-        
-        logger.debug(" bucket : {} bucketId : {} diskPoolId : {} ", bt.getName(), bt.getId(), bt.getDiskPoolId());
-        Metadata mt = new Metadata(bucketName, path);
-
-        // allocate disk
-        dAlloc.allocDisk(mt, bt.getDiskPoolId(), bt.getReplicaCount(), algorithm); // FIXME replace bucket id
-        
-        logger.debug("End bucketName : {} key : {} pdiks : {} rdisk : {}", bucketName, path, 
-                mt.getPrimaryDisk().getPath(), mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : "");
-        return mt;
+        return create(bucketName, path, bt.getDiskPoolId(), bt.getReplicaCount(), algorithm); 
     }
     
- 
+   /**
+     * Return a new primary and replica disk mount path allocated for the path provided.
+     * Unless the close method is called, the allocated disk mount path is not stored permanently. 
+     * @param bucket bucket name
+     * @param path     the path or key of the metadata is going to be created
+     * @param versionId the versionId of an object
+     * @param algorithm the algorithm used to allocate osd disk
+     * @return  return the metadata object with allocated primary and replica disk 
+     * @throws IOException , AllServiceOfflineException, ResourceNotFoundException
+     */
+    private Metadata create(String bucketName, String path, String versionId, int algorithm)
+            throws IOException, AllServiceOfflineException, ResourceNotFoundException {
+        if (versionId.equalsIgnoreCase("null"))
+            return create(bucketName, path, algorithm);
+        return open(bucketName, path);
+    }
+    
     /**
      * Return a new primary and replica disk mount path allocated for the path provided with round robin algorithm.
      * @param bucket bucket name
@@ -177,6 +206,20 @@ public class ObjManager {
     }
     
     /**
+     * Return a new primary and replica disk mount path allocated for the path provided with round robin algorithm.
+     * @param bucket bucket name
+     * @param path the path or key of the metadata is going to be created
+     * @param versionId the versionId of the object
+     * @return a basics of metadata object with allocated disk information 
+     * @throws IOException 
+     * @throws AllServiceOfflineException 
+     * @throws ResourceNotFoundException 
+     */
+    public Metadata create(String bucket, String path, String versionId)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+        return create(bucket, path, versionId, AllocAlgorithm.ROUNDROBIN);
+    }
+    
+    /**
      * Return a new primary and replica disk mount path allocated for the path provided with primary object at local osd algorithm.
      * @param bucket bucket name 
      * @param path the path or key of the metadata is going to be created
@@ -187,6 +230,20 @@ public class ObjManager {
      */
     public Metadata createLocal(String bucket, String path)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
         return create(bucket, path, AllocAlgorithm.LOCALPRIMARY);
+    }
+    
+    /**
+     * Return a new primary and replica disk mount path allocated for the path provided with primary object at local osd algorithm.
+     * @param bucket bucket name 
+     * @param path the path or key of the metadata is going to be created
+     * @param versionId the versionId of the object
+     * @return a basics of metadata object with allocated disk information with primary on local osd 
+     * @throws IOException , AllServiceOfflineException, ResourceNotFoundException
+     * @throws AllServiceOfflineException 
+     * @throws ResourceNotFoundException 
+     */
+    public Metadata createLocal(String bucket, String path, String versionId)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+        return create(bucket, path, versionId, AllocAlgorithm.LOCALPRIMARY);
     }
     
     /**
@@ -337,6 +394,26 @@ public class ObjManager {
         mt.updateLastmodified(); // to update last modified time to now
         return dbm.insertObject(mt); 
     }
+    /**
+     * Create bucket if it is not exist
+     * @param bt a Bucket class instance with basic information        
+     * @throws ResourceAlreadyExistException     
+     * @throws java.sql.SQLException     
+     * @throws ResourceNotFoundException     
+     */
+    public void createBucket(Bucket bt) throws ResourceAlreadyExistException, SQLException, ResourceNotFoundException{
+        DISKPOOL db;
+        
+        db = obmCache.getDiskPoolFromCache(bt.getDiskPoolId());
+        try {
+            dbm.selectBucket(bt.getName());
+        } catch (ResourceNotFoundException ex) {
+            bt.setReplicaCount(db.getDefaultReplicaCount());
+            Bucket bt1 = dbm.insertBucket(bt);
+            obmCache.setBucketInCache(bt1);
+        }
+        throw new ResourceAlreadyExistException("Bucket (" + bt.getName() + ") already exist in the system!");
+    }
     
     /**
      * Create bucket if it is not exist
@@ -347,7 +424,6 @@ public class ObjManager {
      * @throws ResourceAlreadyExistException     
      * @throws ResourceNotFoundException     
      */
-    
     public int createBucket(String bucketName, String userName, String userId, String acl, String  encryption, String objectlock) throws ResourceAlreadyExistException, ResourceNotFoundException{
        Bucket bt;
         
