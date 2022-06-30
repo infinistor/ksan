@@ -186,10 +186,20 @@ public class ObjManager {
      * @throws IOException , AllServiceOfflineException, ResourceNotFoundException
      */
     private Metadata create(String bucketName, String path, String versionId, int algorithm)
-            throws IOException, AllServiceOfflineException, ResourceNotFoundException {
-        if (versionId.equalsIgnoreCase("null"))
-            return create(bucketName, path, algorithm);
-        return open(bucketName, path);
+            throws IOException, AllServiceOfflineException , ResourceNotFoundException {
+        Metadata mt;
+        if (versionId.equalsIgnoreCase("null")){
+            return create(bucketName, path, algorithm); 
+        }
+        try {
+            mt = open(bucketName, path, versionId);
+            //mt.setVersionId(versionId, "", Boolean.TRUE);
+            return mt; 
+        } catch (ResourceNotFoundException ex) {
+            mt = create(bucketName, path, algorithm);
+            mt.setVersionId(versionId, "", Boolean.TRUE);
+            return mt; 
+        }
     }
     
     /**
@@ -389,7 +399,6 @@ public class ObjManager {
             logger.debug(err);
             throw new InvalidParameterException(err);
         }
-        //System.out.format("[close ] bucket : %s path : %s objid : %s\n", mt.getBucket(), mt.getPath(), mt.getObjId());
         
         mt.updateLastmodified(); // to update last modified time to now
         return dbm.insertObject(mt); 
