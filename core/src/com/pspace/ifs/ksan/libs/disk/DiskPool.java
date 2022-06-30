@@ -12,18 +12,23 @@ package com.pspace.ifs.ksan.libs.disk;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.google.common.base.Strings;
 
 public class DiskPool {
     public static final String ID = "Id";
     public static final String NAME = "Name";
-    public static final String CLASS_TYPE_ID = "ClassTypeId";
+    public static final String DISK_POOL_TYPE = "DiskPoolType";
     public static final String REPLICATION_TYPE = "ReplicationType";
+    public static final String REPLICATION_TYPE_ONE_PLUS_ZERO = "OnePlusZero";
+    public static final String REPLICATION_TYPE_ONE_PLUS_ONE = "OnePlusOne";
+    public static final String REPLICATION_TYPE_ONE_PLUS_TWO = "OnePlusTwo";
     public static final String SERVERS = "Servers";
 
     private String id;
     private String name;
     private String classTypeId; // "STANDARD", "ARCHIVE"
     private String replicationType; // "OnePlusZero", "OnePlusOne", "OnePlusTwo"
+    private int replicaCount;
     private List<Server> serverList;
 
     public DiskPool() {
@@ -72,6 +77,17 @@ public class DiskPool {
 
     public void setReplicationType(String replicationType) {
         this.replicationType = replicationType;
+        if (!Strings.isNullOrEmpty(this.replicationType)) {
+            if (this.replicationType.equalsIgnoreCase(REPLICATION_TYPE_ONE_PLUS_ONE)) {
+                replicaCount = 2;
+            } else if (this.replicationType.equalsIgnoreCase(REPLICATION_TYPE_ONE_PLUS_ZERO)) {
+                replicaCount = 1;
+            } else if (this.replicationType.equalsIgnoreCase(REPLICATION_TYPE_ONE_PLUS_TWO)) {
+                replicaCount = 3;
+            } else {
+                replicaCount = 0;
+            }
+        }
     }
 
     public List<Server> getServerList() {
@@ -84,5 +100,9 @@ public class DiskPool {
 
     public void addServer(Server server) {
         serverList.add(server);
+    }
+
+    public int getReplicaCount() {
+        return replicaCount;
     }
 }
