@@ -34,8 +34,8 @@ public class ObjManagerSharedResource {
             
             dbm.loadBucketList();
             
-            if (dumpCache){ 
-                this.config.loadDiskPools(obmCache);
+            config.loadDiskPools(obmCache);
+            if (dumpCache){    
                 diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
             }
         }
