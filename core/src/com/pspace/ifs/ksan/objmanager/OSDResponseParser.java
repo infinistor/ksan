@@ -31,7 +31,7 @@ public class OSDResponseParser {
     private JSONParser parser;
 
     public OSDResponseParser(String body){
-        String value;
+        Object value;
         parser = new JSONParser();
         try{
             diskId = "";
@@ -55,8 +55,8 @@ public class OSDResponseParser {
                 md5 = (String)JO.get("MD5");
 
             if (JO.containsKey("Size")){
-                value = (String)JO.get("Size");
-                size = Long.parseLong(value);
+                value = JO.get("Size");
+                size = Long.valueOf(value.toString());
             }
         } catch (ParseException ex) {
             bucketName ="";
