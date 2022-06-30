@@ -392,7 +392,7 @@ public class MongoDataRepository implements DataRepository{
     public Bucket insertBucket(Bucket bt) throws ResourceAlreadyExistException{
         Document doc;
         Document index;
-        try{ 
+        //try{ 
             doc = new Document(BUCKETNAME, bt.getName());
             //doc.append(BUCKETNAME, bucketName);
             doc.append(DISKPOOLID, bt.getDiskPoolId());
@@ -431,10 +431,10 @@ public class MongoDataRepository implements DataRepository{
             Document wildIndex = new Document(OBJID + ".$**", 1);
             database.getCollection(bt.getName()).createIndex(wildIndex); 
             //bt = new Bucket(bucketName, bucketName, diskPoolId);
-            getUserDiskPool(bt);
-        } catch(SQLException ex){
+            //getUserDiskPool(bt);
+        /*} catch(SQLException ex){
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bt.getName()), ex);
-        }
+        }*/
         return bt;
     }
 
