@@ -81,8 +81,18 @@ class MoveObjectCallback implements MQCallback {
 		targetDiskPath = (String) jsonObject.get(TARGET_DISK_PATH);
 		targetOsdIp = (String) jsonObject.get(TARGET_OSD_IP);
 
+		logger.info("objId : {}", objId);
+		logger.info("versionId : {}", versionId);
+		logger.info("sourceDiskId : {}", sourceDiskId);
+		logger.info("sourceDiskPath : {}", sourceDiskPath);
+		logger.info("targetDiskId : {}", targetDiskId);
+		logger.info("targetDiskPath : {}", targetDiskPath);
+		logger.info("targetOsdIp : {}", targetOsdIp);
+
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-		File srcFile = new File(OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId));
+		String fullPath = OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId);
+		logger.info("source full path : {}", fullPath);
+		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {
 			if (KsanUtils.getLocalIP().equals(targetOsdIp)) {
 				File file = new File(OSDUtils.getInstance().makeObjPath(targetDiskPath, objId, versionId));
@@ -140,7 +150,7 @@ class MoveObjectCallback implements MQCallback {
 			logger.error(e.getMessage(), e);
 			return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
 		}
-
+		logger.info("success move file : {}", fullPath);
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}
 }
@@ -177,15 +187,24 @@ class DeleteObjectCallback implements MQCallback {
 		versionId = (String) jsonObject.get(VERSION_ID);
 		diskId = (String) jsonObject.get(DISK_ID);
 		diskPath = (String) jsonObject.get(DISK_PATH);
+		logger.info("objId : {}", objId);
+		logger.info("versionId : {}", versionId);
+		logger.info("diskId : {}", diskId);
+		logger.info("diskPath : {}", diskPath);
 		
-		File file = new File(OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId));
+		String fullPath = OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId);
+		logger.info("full path : {}", fullPath);
+		File file = new File(fullPath);
 		if (file.exists()) {
 			if (file.delete()) {
+				logger.info("success delete object : {}", fullPath);
 				return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 			} else {
-				return new MQResponse(MQResponseType.ERROR, "failed", "delete failed", 0);
+				logger.info("failed delete object : {}", fullPath);
+				return new MQResponse(MQResponseType.ERROR, "failed", "failed delete", 0);
 			}
 		} else {
+			logger.info("file not exists: {}", fullPath);
 			return new MQResponse(MQResponseType.ERROR, "failed", "not exist", 0);
 		}
 	}
@@ -231,7 +250,16 @@ class GetAttrObjectCallBack implements MQCallback {
 		diskId = (String) jsonObject.get(DISK_ID);
 		diskPath = (String) jsonObject.get(DISK_PATH);
 
-		File file = new File(OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId));
+		logger.info("bucketName : {}", bucketName);
+		logger.info("objId : {}", objId);
+		logger.info("versionId : {}", versionId);
+		logger.info("diskId : {}", diskId);
+		logger.info("diskPath : {}", diskPath);
+
+		String fullPath = OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId);
+		logger.info("full path : {}", fullPath);
+
+		File file = new File(fullPath);
 		if (file.exists()) {
 			byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
 			MessageDigest md5er = null;
@@ -251,12 +279,15 @@ class GetAttrObjectCallBack implements MQCallback {
 				byte[] digest = md5er.digest();
 				ETag = base16().lowerCase().encode(digest);
 				message = "{\"BucketName\":\"" + bucketName + "\",\"ObjId\":\"" + objId + "\",\"VersionId\":\"" + versionId + "\",\"MD5\":\"" + ETag + "\",\"Size\":" + size + "}";
+				logger.info("send message: {}", message);
 				return new MQResponse(MQResponseType.SUCCESS, "", message, 0);
 			} catch(Exception e) {
+				logger.error(e.getMessage());
 				return new MQResponse(MQResponseType.ERROR, "failed", e.getMessage(), 0);
 			}
 			
 		} else {
+			logger.info("file not exists: {}", fullPath);
 			return new MQResponse(MQResponseType.ERROR, "failed", "not exist", 0);
 		}
 	}
@@ -302,8 +333,18 @@ class CopyObjectCallback implements MQCallback {
 		targetDiskPath = (String) jsonObject.get(TARGET_DISK_PATH);
 		targetOsdIp = (String) jsonObject.get(TARGET_OSD_IP);
 
+		logger.info("objId : {}", objId);
+		logger.info("versionId : {}", versionId);
+		logger.info("sourceDiskId : {}", sourceDiskId);
+		logger.info("sourceDiskPath : {}", sourceDiskPath);
+		logger.info("targetDiskId : {}", targetDiskId);
+		logger.info("targetDiskPath : {}", targetDiskPath);
+		logger.info("targetOsdIp : {}", targetOsdIp);
+
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-		File srcFile = new File(OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId));
+		String fullPath = OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId);
+		logger.info("full path : {}", fullPath);
+		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {
 			if (KsanUtils.getLocalIP().equals(targetOsdIp)) {
 				File file = new File(OSDUtils.getInstance().makeObjPath(targetDiskPath, objId, versionId));
@@ -360,7 +401,7 @@ class CopyObjectCallback implements MQCallback {
 			logger.error(e.getMessage(), e);
 			return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
 		}
-
+		logger.info("success copy file : {}", fullPath);
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}
 }
@@ -384,6 +425,7 @@ public class EventObject {
     }
 
 	public void regist() {
+		// MQReceiver(String host, String qname, String exchangeName, boolean queeuDurableity, String exchangeOption, String routingKey, MQCallback callback)
 		try
 		{
 			MQCallback moveObjectCallback = new MoveObjectCallback();
@@ -391,10 +433,9 @@ public class EventObject {
 				OSDConstants.MQUEUE_NAME_OSD_MOVE_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
-				"fanout", 
+				"direct", 
 				OSDConstants.MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX + config.getServerId() + OSDConstants.MQUEUE_NAME_OSD_MOVE_OBJECT_ROUTING_KEY_SUFFIX, 
 				moveObjectCallback);
-			mq1ton.addCallback(moveObjectCallback);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
@@ -405,10 +446,9 @@ public class EventObject {
 				OSDConstants.MQUEUE_NAME_OSD_DELETE_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
-				"fanout", 
+				"direct", 
 				OSDConstants.MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX + config.getServerId() + OSDConstants.MQUEUE_NAME_OSD_DELETE_OBJECT_ROUTING_KEY_SUFFIX, 
 				deleteObjectCallback);
-			mq1ton.addCallback(deleteObjectCallback);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
@@ -419,10 +459,9 @@ public class EventObject {
 				OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
-				"fanout", 
+				"direct", 
 				OSDConstants.MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX + config.getServerId() + OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT_ROUTING_KEY_SUFFIX, 
 				getAttrObjectCallBack);
-			mq1ton.addCallback(getAttrObjectCallBack);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
@@ -430,13 +469,12 @@ public class EventObject {
 		try {
 			MQCallback copyObjectCallback = new CopyObjectCallback();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-				OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT + config.getServerId(), 
+				OSDConstants.MQUEUE_NAME_OSD_COPY_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
-				"fanout", 
+				"direct", 
 				OSDConstants.MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX + config.getServerId() + OSDConstants.MQUEUE_NAME_OSD_COPY_OBJECT_ROUTING_KEY_SUFFIX, 
 				copyObjectCallback);
-			mq1ton.addCallback(copyObjectCallback);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
