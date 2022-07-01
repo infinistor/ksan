@@ -12,10 +12,10 @@ using MTLib.CommonData;
 
 namespace PortalData.Requests.Ksan
 {
-	/// <summary>S3 사용자 정보 등록 요청 클래스</summary>
+	/// <summary>Ksan 사용자 정보 등록 요청 클래스</summary>
 	public class RequestKsanUser : CommonRequestData
 	{
-		/// <summary>S3 사용자명</summary>
+		/// <summary>Ksan 사용자명</summary>
 		public string Name { get; set; } = "";
 
 		/// <summary>이메일 주소</summary>

@@ -1937,8 +1937,8 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="S3User_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
-			<end1 multiplicity="One" name="S3User" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
+		<association name="KsanUser_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
+			<end1 multiplicity="One" name="KsanUser" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
 				<property name="Id" />
 			</end1>
 			<end2 multiplicity="Many" name="UserDiskPools" class="KsanUser" relation-class="UserDiskPool" lazy="False" p1:Guid="82a163a7-4cb0-4583-b7aa-78eb9d6d9e01">
