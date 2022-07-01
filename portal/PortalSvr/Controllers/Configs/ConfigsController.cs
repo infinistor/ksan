@@ -159,62 +159,62 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.S3, Version));
 		}
 
-		/// <summary>S3Backend 설정 목록을 가져온다.</summary>
+		/// <summary>Recovery 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/S3Backend")]
-		public async Task<ActionResult> GetConfigListForS3Backend()
+		[HttpGet("List/Recovery")]
+		public async Task<ActionResult> GetConfigListForRecovery()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.S3Backend));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Recovery));
 		}
 
-		/// <summary>S3Backend 설정을 가져온다.</summary>
+		/// <summary>Recovery 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("S3Backend")]
-		public async Task<ActionResult> GetConfigForS3Backend()
+		[HttpGet("Recovery")]
+		public async Task<ActionResult> GetConfigForRecovery()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.S3Backend));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Recovery));
 		}
 
-		/// <summary>특정 버전의 S3Backend 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 Recovery 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("S3Backend/{Version}")]
-		public async Task<ActionResult> GetConfigForS3Backend([FromRoute] int Version)
+		[HttpGet("Recovery/{Version}")]
+		public async Task<ActionResult> GetConfigForRecovery([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.S3Backend, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Recovery, Version));
 		}
 
-		/// <summary>S3Backend 설정을 저장한다.</summary>
+		/// <summary>Recovery 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("S3Backend")]
-		public async Task<ActionResult> SetConfigForS3Backend([FromBody] string Config)
+		[HttpPost("Recovery")]
+		public async Task<ActionResult> SetConfigForRecovery([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.S3Backend, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Recovery, Config = Config }));
 		}
 
-		/// <summary>S3Backend 설정의 버전을 변경한다.</summary>
+		/// <summary>Recovery 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("S3Backend/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForS3Backend([FromRoute] int Version)
+		[HttpPut("Recovery/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForRecovery([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.S3Backend, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Recovery, Version));
 		}
 
-		/// <summary>S3Backend 설정의 버전을 삭제한다.</summary>
+		/// <summary>Recovery 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("S3Backend/{Version}")]
-		public async Task<ActionResult> RemoveConfigForS3Backend([FromRoute] int Version)
+		[HttpDelete("Recovery/{Version}")]
+		public async Task<ActionResult> RemoveConfigForRecovery([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.S3Backend, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Recovery, Version));
 		}
 
 		/// <summary>HaProxy 설정 목록을 가져온다.</summary>
@@ -447,6 +447,238 @@ namespace PortalSvr.Controllers.Config
 		public async Task<ActionResult> RemoveConfigForMongoDB([FromRoute] int Version)
 		{
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.MongoDB, Version));
+		}
+
+		/// <summary>Lifecycle 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/Lifecycle")]
+		public async Task<ActionResult> GetConfigListForLifecycle()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Lifecycle));
+		}
+
+		/// <summary>Lifecycle 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Lifecycle")]
+		public async Task<ActionResult> GetConfigForLifecycle()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Lifecycle));
+		}
+
+		/// <summary>특정 버전의 Lifecycle 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Lifecycle/{Version}")]
+		public async Task<ActionResult> GetConfigForLifecycle([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Lifecycle, Version));
+		}
+
+		/// <summary>Lifecycle 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("Lifecycle")]
+		public async Task<ActionResult> SetConfigForLifecycle([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Lifecycle, Config = Config }));
+		}
+
+		/// <summary>Lifecycle 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("Lifecycle/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForLifecycle([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Lifecycle, Version));
+		}
+
+		/// <summary>Lifecycle 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("Lifecycle/{Version}")]
+		public async Task<ActionResult> RemoveConfigForLifecycle([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Lifecycle, Version));
+		}
+
+		/// <summary>Replication 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/Replication")]
+		public async Task<ActionResult> GetConfigListForReplication()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Replication));
+		}
+
+		/// <summary>Replication 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Replication")]
+		public async Task<ActionResult> GetConfigForReplication()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Replication));
+		}
+
+		/// <summary>특정 버전의 Replication 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Replication/{Version}")]
+		public async Task<ActionResult> GetConfigForReplication([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Replication, Version));
+		}
+
+		/// <summary>Replication 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("Replication")]
+		public async Task<ActionResult> SetConfigForReplication([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Replication, Config = Config }));
+		}
+
+		/// <summary>Replication 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("Replication/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForReplication([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Replication, Version));
+		}
+
+		/// <summary>Replication 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("Replication/{Version}")]
+		public async Task<ActionResult> RemoveConfigForReplication([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Replication, Version));
+		}
+
+		/// <summary>Logging 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/Logging")]
+		public async Task<ActionResult> GetConfigListForLogging()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Logging));
+		}
+
+		/// <summary>Logging 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Logging")]
+		public async Task<ActionResult> GetConfigForLogging()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Logging));
+		}
+
+		/// <summary>특정 버전의 Logging 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Logging/{Version}")]
+		public async Task<ActionResult> GetConfigForLogging([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Logging, Version));
+		}
+
+		/// <summary>Logging 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("Logging")]
+		public async Task<ActionResult> SetConfigForLogging([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Logging, Config = Config }));
+		}
+
+		/// <summary>Logging 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("Logging/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForLogging([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Logging, Version));
+		}
+
+		/// <summary>Logging 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("Logging/{Version}")]
+		public async Task<ActionResult> RemoveConfigForLogging([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Logging, Version));
+		}
+
+		/// <summary>Metering 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/Metering")]
+		public async Task<ActionResult> GetConfigListForMetering()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Metering));
+		}
+
+		/// <summary>Metering 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Metering")]
+		public async Task<ActionResult> GetConfigForMetering()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Metering));
+		}
+
+		/// <summary>특정 버전의 Metering 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("Metering/{Version}")]
+		public async Task<ActionResult> GetConfigForMetering([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Metering, Version));
+		}
+
+		/// <summary>Metering 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("Metering")]
+		public async Task<ActionResult> SetConfigForMetering([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Metering, Config = Config }));
+		}
+
+		/// <summary>Metering 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("Metering/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForMetering([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Metering, Version));
+		}
+
+		/// <summary>Metering 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("Metering/{Version}")]
+		public async Task<ActionResult> RemoveConfigForMetering([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Metering, Version));
 		}
 	}
 }

@@ -17,11 +17,15 @@ namespace PortalModels
 		Unknown = -1,
 		OSD = 0,
 		S3,
-		S3Backend,
+		Recovery,
 		HaProxy,
 		Monitor,
 		Edge,
 		MariaDB,
-		MongoDB
+		MongoDB,
+		Lifecycle,
+		Replication,
+		Logging,
+		Metering
 	}
 }

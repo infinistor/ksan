@@ -123,7 +123,7 @@ namespace PortalProvider.Providers.Disks
 							ModId = LoginUserId,
 							ModName = LoginUserName,
 							ModDate = DateTime.Now,
-							ClassTypeId = (EnumDbDiskPoolType)Request.ClassTypeId,
+							DiskPoolType = (EnumDbDiskPoolType)Request.DiskPoolType,
 							ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType
 						};
 						await m_dbContext.DiskPools.AddAsync(newData);
