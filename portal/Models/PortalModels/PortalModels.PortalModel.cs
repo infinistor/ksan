@@ -604,7 +604,7 @@ namespace PortalModels
 			modelBuilder.Entity<DiskPool>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
 			modelBuilder.Entity<DiskPool>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
 			modelBuilder.Entity<DiskPool>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
-			modelBuilder.Entity<DiskPool>().Property(x => x.ClassTypeId).HasColumnName(@"CLASS_TYPE_ID").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<DiskPool>().Property(x => x.DiskPoolType).HasColumnName(@"CLASS_TYPE_ID").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<DiskPool>().Property(x => x.ReplicationType).HasColumnName(@"REPLICATION_TYPE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"1");
 			modelBuilder.Entity<DiskPool>().HasKey(@"Id");
 			modelBuilder.Entity<DiskPool>().HasIndex(@"Name").IsUnique(true);
