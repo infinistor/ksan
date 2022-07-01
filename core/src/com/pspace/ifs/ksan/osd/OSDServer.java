@@ -213,7 +213,7 @@ public class OSDServer {
                     }
                 }
             } catch (IOException | NoSuchAlgorithmException e) {
-                logger.error("closed socket : {}", socket.getRemoteSocketAddress().toString());
+                logger.info("socket : {} - {}", socket.getRemoteSocketAddress().toString(), e.getMessage());
 
                 if (socket.isClosed()) {
                     logger.error("Socket is closed");
