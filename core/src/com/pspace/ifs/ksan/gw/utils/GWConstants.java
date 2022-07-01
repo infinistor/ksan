@@ -47,32 +47,6 @@ public final class GWConstants {
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
 	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
 
-    public static final String PROPERTY_ENDPOINT = "gw.endpoint";
-    public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
-    public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
-	public static final String PROPERTY_KEYSTORE_PATH = "gw.keystore-path";
-	public static final String PROPERTY_KEYSTORE_PASSWORD = "gw.keystore-password";
-	public static final String PROPERTY_JETTY_MAX_THREADS = "gw.jetty.max-threads";
-	public static final String PROPERTY_JETTY_MAX_IDLE_TIMEOUT = "gw.jetty.max-idle-timeout";
-    public static final String PROPERTY_MAXIMUM_TIME_SKEW = "gw.maxtimeskew";
-	public static final String PROPERTY_OSD_PORT = "gw.osd-port";
-	public static final String PROPERTY_OSD_CLIENT_COUNT = "gw.osd-client-count";
-	public static final String PROPERTY_OBJMANAGER_COUNT = "gw.objmanager-count";
-	public static final String PROPERTY_LOCAL_IP = "gw.local-ip";
-    
-	public static final String PROPERTY_DB_REPOSITORY = "dbrepository";
-    public static final String PROPERTY_DB_HOST = "dbhost";
-    public static final String PROPERTY_DB_NAME = "database";
-    public static final String PROPERTY_DB_PORT = "dbport";
-    public static final String PROPERTY_DB_USER = "dbuser";
-    public static final String PROPERTY_DB_PASS = "dbpass";
-	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
-
-	public static final String PROPERTY_REPLICA_COUNT = "gw.replication";
-	public static final String PROPERTY_CACHE_DISK = "cache_disk";
-	public static final String PROPERTY_CACHE_FILE_SIZE = "cache_file_size";
-
-	public static final String PROPERTY_PERFORMANCE_MODE = "gw.performance.mode";
 	public static final String PERFORMANCE_MODE_NO_OPTION = "NO_OPTION";
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
