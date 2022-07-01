@@ -992,7 +992,7 @@ public final class GWConstants {
 	// ListObjectVersions
 	public static final String LOG_LIST_OBJECT_VERSIONS_START = "ListObjectVersions ...";
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
-	public static final String LOG_LIST_OBJECT_VERSIONS_PARAMETER_INFO = "{}, {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_KEY_COUNT = "key count : {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
