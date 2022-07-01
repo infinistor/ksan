@@ -175,7 +175,7 @@ public class OSDPortal {
 
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.CLASS_TYPE_ID), (String)item.get(DiskPool.REPLICATION_TYPE));
+					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					for (int j = 0; j < jsonServers.size(); j++) {
 						JSONObject jsonServer = (JSONObject)jsonServers.get(j);
