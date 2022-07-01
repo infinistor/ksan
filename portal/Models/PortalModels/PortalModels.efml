@@ -1247,7 +1247,7 @@
 			</Documentation>
 			<column name="" p1:unicode="False" />
 		</property>
-		<property name="ClassTypeId" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
+		<property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
 			<Documentation>
 				<Summary>디스크풀 타입</Summary>
 			</Documentation>

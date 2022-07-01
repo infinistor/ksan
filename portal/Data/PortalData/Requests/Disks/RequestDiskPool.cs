@@ -36,7 +36,7 @@ namespace PortalData.Requests.Disks
 		public List<string> DiskIds { get; set; } = new List<string>();
 
 		/// <summary> 디스크풀 타입 </summary>
-		public EnumDiskPoolType ClassTypeId { get; set; } = EnumDiskPoolType.STANDARD;
+		public EnumDiskPoolType DiskPoolType { get; set; } = EnumDiskPoolType.STANDARD;
 		
 		/// <summary> 복제 타입 </summary>
 		public EnumDiskPoolReplicaType ReplicationType { get; set; } = EnumDiskPoolReplicaType.OnePlusOne;

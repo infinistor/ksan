@@ -24,7 +24,7 @@ namespace PortalData.Responses.Disks
 		public virtual string Description { get; set; }
 
 		/// <summary> 디스크풀 타입 </summary>
-		public EnumDiskPoolType ClassTypeId { get; set; }
+		public EnumDiskPoolType DiskPoolType { get; set; }
 
 		/// <summary> 복제 타입 </summary>
 		public EnumDiskPoolReplicaType ReplicationType { get; set; }
