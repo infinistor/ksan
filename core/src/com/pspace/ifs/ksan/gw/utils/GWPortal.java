@@ -47,7 +47,7 @@ class ConfigUpdateCallback implements MQCallback{
 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getConfig();
-		ObjManagerHelper.updateAllConfig();
+		// ObjManagerHelper.updateAllConfig();
 		
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}    
@@ -61,7 +61,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getDiskPoolsDetails();
-		ObjManagerHelper.updateAllDiskpools(routingKey);
+		// ObjManagerHelper.updateAllDiskpools(routingKey);
 
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}    
@@ -75,6 +75,7 @@ class UserUpdateCallBack implements MQCallback{
 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 		JSONParser parser = new JSONParser();
 		JSONObject data = null;
+		JSONArray jsonUserDiskpools = null;
 		try {
 			data = (JSONObject)parser.parse(body);
 		} catch (ParseException e) {
@@ -82,22 +83,26 @@ class UserUpdateCallBack implements MQCallback{
 		}
 		
 		if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_ADDED)) {
+			jsonUserDiskpools = (JSONArray)data.get(S3User.USER_DISK_POOLS);
 			S3User user = new S3User((String)data.get(S3User.USER_ID), 
 									 (String)data.get(S3User.USER_NAME), 
 									 (String)data.get(S3User.USER_EMAIL), 
 									 (String)data.get(S3User.ACCESS_KEY), 
-									 (String)data.get(S3User.ACCESS_SECRET));
+									 (String)data.get(S3User.ACCESS_SECRET),
+									 jsonUserDiskpools);
 			S3UserManager.getInstance().addUser(user);
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 			S3UserManager.getInstance().printUsers();
 		} else if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_UPDATED)) {
+			jsonUserDiskpools = (JSONArray)data.get(S3User.USER_DISK_POOLS);
 			S3User user = S3UserManager.getInstance().getUserById((String)data.get(S3User.USER_ID));
 			S3UserManager.getInstance().removeUser(user);
 			user = new S3User((String)data.get(S3User.USER_ID), 
 							  (String)data.get(S3User.USER_NAME), 
 							  (String)data.get(S3User.USER_EMAIL), 
 							  (String)data.get(S3User.ACCESS_KEY), 
-							  (String)data.get(S3User.ACCESS_SECRET));
+							  (String)data.get(S3User.ACCESS_SECRET),
+							  jsonUserDiskpools);
 			S3UserManager.getInstance().addUser(user);
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 			S3UserManager.getInstance().printUsers();
@@ -242,7 +247,7 @@ public class GWPortal {
 					JSONObject item = (JSONObject)jsonItems.get(i);
 					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), 
 													 (String)item.get(DiskPool.NAME), 
-													 (String)item.get(DiskPool.CLASS_TYPE_ID), 
+													 (String)item.get(DiskPool.DISK_POOL_TYPE), 
 													 (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					for (int j = 0; j < jsonServers.size(); j++) {
@@ -283,13 +288,14 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_S3USERS);
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS);
 			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
 				String body = handler.handleResponse(response);
+				logger.info("Ksan Users : {}", body);
 				
 				JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
@@ -297,11 +303,14 @@ public class GWPortal {
                 JSONArray jsonItems = (JSONArray)jsonData.get(S3User.ITEMS);
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
+					JSONArray jsonUserDiskpools = (JSONArray)item.get(S3User.USER_DISK_POOLS);
+					logger.info("jsonUserDiskpools : {}", jsonUserDiskpools.toString());
 					S3User user = new S3User((String)item.get(S3User.USER_ID), 
 											 (String)item.get(S3User.USER_NAME), 
 											 (String)item.get(S3User.USER_EMAIL), 
 											 (String)item.get(S3User.ACCESS_KEY), 
-											 (String)item.get(S3User.ACCESS_SECRET));
+											 (String)item.get(S3User.ACCESS_SECRET),
+											 jsonUserDiskpools);
 					S3UserManager.getInstance().addUser(user);
 				}
 				S3UserManager.getInstance().printUsers();
@@ -322,7 +331,7 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_S3USERS + GWConstants.SLASH + id);
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS + GWConstants.SLASH + id);
 			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
@@ -332,12 +341,13 @@ public class GWPortal {
 				JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
                 JSONObject jsonData = (JSONObject)jsonObject.get(S3User.DATA);
-
+				JSONArray jsonUserDiskpools = (JSONArray)jsonData.get(S3User.USER_DISK_POOLS);
 				S3User user = new S3User((String)jsonData.get(S3User.USER_ID), 
 										 (String)jsonData.get(S3User.USER_NAME), 
 										 (String)jsonData.get(S3User.USER_EMAIL), 
 										 (String)jsonData.get(S3User.ACCESS_KEY), 
-										 (String)jsonData.get(S3User.ACCESS_SECRET));
+										 (String)jsonData.get(S3User.ACCESS_SECRET),
+										 jsonUserDiskpools);
 				logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
 				return user;
 			}

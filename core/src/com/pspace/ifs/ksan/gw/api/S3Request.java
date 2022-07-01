@@ -736,11 +736,51 @@ public abstract class S3Request {
 		return meta;
 	}
 
+	protected Metadata create(String bucket, String object, String versionId) throws GWException {
+		Metadata meta = null;
+		try {
+			setObjManager();
+			meta = objManager.create(bucket, object, versionId);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		return meta;
+	}
+
 	protected Metadata createLocal(String bucket, String object) throws GWException {
 		Metadata meta = null;
 		try {
 			setObjManager();
 			meta = objManager.createLocal(bucket, object);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		return meta;
+	}
+
+	protected Metadata createLocal(String bucket, String object, String versionId) throws GWException {
+		Metadata meta = null;
+		try {
+			setObjManager();
+			meta = objManager.createLocal(bucket, object, versionId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -815,6 +855,36 @@ public abstract class S3Request {
 		try {
 			setObjManager();
             result = objManager.createBucket(bucket, userName, userId, acl, encryption, objectlock);
+        } catch (ResourceAlreadyExistException e) {
+			PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);
+        } catch(ResourceNotFoundException e) {
+			PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+        } catch (Exception e) {
+			PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		if (result != 0) {
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
+		}
+
+		return  result;
+	}
+
+	protected int createBucket(Bucket bucket) throws GWException {
+		int result = 0;
+		try {
+			setObjManager();
+            result = objManager.createBucket(bucket);
         } catch (ResourceAlreadyExistException e) {
 			PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);

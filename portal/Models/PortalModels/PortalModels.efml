@@ -41,12 +41,16 @@
 			<Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
 			<Member Name="OSD" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
 			<Member Name="S3" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
-			<Member Name="S3Backend" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
+			<Member Name="Recovery" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
 			<Member Name="HaProxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
 			<Member Name="Monitor" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
 			<Member Name="Edge" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
 			<Member Name="MariaDB" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
 			<Member Name="MongoDB" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
+			<Member Name="Lifecycle" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
+			<Member Name="Replication" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
+			<Member Name="Logging" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
+			<Member Name="Metering" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>
@@ -1247,7 +1251,7 @@
 			</Documentation>
 			<column name="" p1:unicode="False" />
 		</property>
-		<property name="ClassTypeId" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
+		<property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
 			<Documentation>
 				<Summary>디스크풀 타입</Summary>
 			</Documentation>
@@ -1712,7 +1716,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="User_ServiceGroup" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
+		<association name="User_ServiceGroup_Reg" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
 			<end1 multiplicity="ZeroOrOne" name="RegUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="52cdbfeb-c7f9-4ab0-8f0e-1cda484d3aec">
 				<Documentation>
 					<Summary>등록 사용자 정보</Summary>
@@ -1726,7 +1730,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="User_ServiceGroup1" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
+		<association name="User_ServiceGroup_Mod" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
 			<end1 multiplicity="ZeroOrOne" name="ModUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="1e0ba52c-da8c-4ce4-8e57-6bdd777dbe6a">
 				<Documentation>
 					<Summary>수정 사용자 정보</Summary>
@@ -1740,7 +1744,7 @@
 				<property name="ModId" />
 			</end2>
 		</association>
-		<association name="User_Service" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
+		<association name="User_Service_Reg" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
 			<end1 multiplicity="ZeroOrOne" name="RegUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="f66d6e6c-fed6-4fe0-8462-357b97c09326">
 				<Documentation>
 					<Summary>등록 사용자 정보</Summary>
@@ -1754,7 +1758,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="User_Service1" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
+		<association name="User_Service_Mod" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
 			<end1 multiplicity="ZeroOrOne" name="ModUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="9892cf5a-5d6e-4087-b861-d68b554a7558">
 				<Documentation>
 					<Summary>수정 사용자 정보</Summary>
@@ -1937,8 +1941,8 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="S3User_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
-			<end1 multiplicity="One" name="S3User" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
+		<association name="KsanUser_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
+			<end1 multiplicity="One" name="KsanUser" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
 				<property name="Id" />
 			</end1>
 			<end2 multiplicity="Many" name="UserDiskPools" class="KsanUser" relation-class="UserDiskPool" lazy="False" p1:Guid="82a163a7-4cb0-4583-b7aa-78eb9d6d9e01">

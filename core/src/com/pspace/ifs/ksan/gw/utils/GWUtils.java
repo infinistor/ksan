@@ -1061,12 +1061,12 @@ public class GWUtils {
 		return cipherIn;
 	}
 
-	public static reportRecovery(String message) {      
-        try { 
-            MQSender mq1ton = new MQSender(MConfig.getInstance().getPortalIp(), GWConstants.UTILITY_EXCHANGE_KEY, GWConstants.MESSAGE_QUEUE_OPTION, "");
-            mq1ton.send(message);
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-		}
-	}
+	// public static void reportRecovery(String message) {      
+    //     try { 
+    //         MQSender mq1ton = new MQSender(MConfig.getInstance().getPortalIp(), GWConstants.UTILITY_EXCHANGE_KEY, GWConstants.MESSAGE_QUEUE_OPTION, "");
+    //         mq1ton.send(message);
+	// 	} catch (Exception e) {
+	// 		PrintStack.logging(logger, e);
+	// 	}
+	// }
 }

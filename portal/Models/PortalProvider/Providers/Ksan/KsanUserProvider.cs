@@ -609,7 +609,7 @@ namespace PortalProvider.Providers.Accounts
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 유저에 스토리지 클래스 추가
-				var NewData = new UserDiskPool { UserId = UserId, DiskPoolId = DiskPoolId, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
+				var NewData = new UserDiskPool { UserId = UserId, DiskPoolId = DiskPoolId, StorageClass = Request.StorageClass };
 				await m_dbContext.UserDiskPools.AddAsync(NewData);
 				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 

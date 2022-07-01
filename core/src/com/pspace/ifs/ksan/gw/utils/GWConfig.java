@@ -27,7 +27,7 @@ public class GWConfig {
     private String version;
 
     private String dbRepository;
-	private long replicaCount;
+	// private long replicaCount;
 	private String cacheDisk;
 	private String performanceMode;
 	private long cacheFileSize;
@@ -57,6 +57,9 @@ public class GWConfig {
 	private boolean isNoDisk;
 	private boolean isNoReplica;
 
+    private String eventLog;
+    private boolean isEventLog;
+
     private static final String VERSION = "version";
     private static final String AUTHORIZATION = "gw.authorization";
     private static final String ENDPOINT = "gw.endpoint";
@@ -81,8 +84,11 @@ public class GWConfig {
     private static final String DB_POOL_SIZE = "gw.db_pool_size";
     private static final String CACHE_PATH = "gw.cache_path";
     private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
+    private static final String EVENT_LOG = "gw.eventlog";
 
     private static final String EQUAL = "=";
+    private static final String ON = "on";
+    private static final String OFF = "off";
 
     private static final Logger logger = LoggerFactory.getLogger(GWConfig.class);
 
@@ -113,13 +119,13 @@ public class GWConfig {
         this.dbRepository = dbRepository;
     }
 
-    public long getReplicaCount() {
-        return replicaCount;
-    }
+    // public long getReplicaCount() {
+    //     return replicaCount;
+    // }
 
-    public void setReplicaCount(long replicaCount) {
-        this.replicaCount = replicaCount;
-    }
+    // public void setReplicaCount(long replicaCount) {
+    //     this.replicaCount = replicaCount;
+    // }
 
     public String getCacheDisk() {
         return cacheDisk;
@@ -329,6 +335,10 @@ public class GWConfig {
         this.isNoReplica = isNoReplica;
     }
 
+    public boolean isEventLog() {
+        return isEventLog;
+    }
+
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
         setAuthorizationString((String)jsonConfig.get(AUTHORIZATION));
         String endpoint = (String)jsonConfig.get(ENDPOINT);
@@ -336,8 +346,8 @@ public class GWConfig {
 		if (endpoint == null && secureEndpoint == null) {
 			throw new IllegalArgumentException(
 					GWConstants.LOG_CONFIG_MUST_CONTAIN +
-					GWConstants.PROPERTY_ENDPOINT + GWConstants.OR +
-					GWConstants.PROPERTY_SECURE_ENDPOINT);
+					ENDPOINT + GWConstants.OR +
+					SECURE_ENDPOINT);
 		}
 
 		if (endpoint != null) {
@@ -352,7 +362,7 @@ public class GWConfig {
         setMaxFileSize((long)jsonConfig.get(MAX_FILE_SIZE));
         setMaxListSize((long)jsonConfig.get(MAX_LIST_SIZE));
         setMaxTimeSkew((long)jsonConfig.get(MAX_TIMESKEW));
-        setReplicaCount((long)jsonConfig.get(REPLICATION));
+        // setReplicaCount((long)jsonConfig.get(REPLICATION));
         setOsdPort((long)jsonConfig.get(OSD_PORT));
         setJettyMaxThreads((long)jsonConfig.get(JETTY_MAX_THREADS));
         setOsdClientCount((long)jsonConfig.get(OSD_CLIENT_COUNT));
@@ -390,6 +400,14 @@ public class GWConfig {
 			}
 		}
 
+        eventLog = (String)jsonConfig.get(EVENT_LOG);
+        if (!Strings.isNullOrEmpty(eventLog) && eventLog.equalsIgnoreCase(OFF)) {
+            isEventLog = false;
+        } else {
+            eventLog = ON;
+            isEventLog = true;
+        }
+
         setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
         setDbHost((String)jsonConfig.get(DB_HOST));
         setDatabase((String)jsonConfig.get(DB_NAME));
@@ -409,7 +427,7 @@ public class GWConfig {
         logger.debug("{}", getMaxFileSize());
         logger.debug("{}", getMaxListSize());
         logger.debug("{}", getMaxTimeSkew());
-        logger.debug("{}", getReplicaCount());
+        // logger.debug("{}", getReplicaCount());
         logger.debug("{}", getOsdPort());
         logger.debug("{}", getJettyMaxThreads());
         logger.debug("{}", getOsdClientCount());
@@ -438,7 +456,8 @@ public class GWConfig {
             fileWriter.write(MAX_FILE_SIZE + EQUAL + maxFileSize + "\n");
             fileWriter.write(MAX_LIST_SIZE + EQUAL + maxListSize + "\n");
             fileWriter.write(MAX_TIMESKEW + EQUAL + maxTimeSkew + "\n");
-            fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
+            fileWriter.write(EVENT_LOG + EQUAL + eventLog + "\n");
+            // fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
             fileWriter.write(OSD_PORT + EQUAL + osdPort + "\n");
             fileWriter.write(JETTY_MAX_THREADS + EQUAL + jettyMaxThreads + "\n");
             fileWriter.write(OSD_CLIENT_COUNT + EQUAL + osdClientCount + "\n");

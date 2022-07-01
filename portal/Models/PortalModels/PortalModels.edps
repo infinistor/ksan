@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <EntityDeveloper Version="6.12.1419.0">
 	<ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="True" RegenareteConnectionStringInAppConfig="False" TargetFramework="Net50" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
-		<Connection ConnectionString="Persist Security Info=True;Server=192.168.13.10;User ID=root;Password=qwe123;Database=ksan" Provider="MySqlConnector" />
+		<Connection ConnectionString="" Provider="MySqlConnector" />
 		<Generation>
 			<GeneratedFiles>
 				<File Name="PortalModels.PortalModel.cs" />

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace PortalData.Responses.Ksan
 {
-	/// <summary>S3 사용자 등록 응답 클래스</summary>
+	/// <summary>Ksan 사용자 등록 응답 클래스</summary>
 	public class ResponseKsanUser
 	{
 		/// <summary>Ksan 사용자 식별자</summary>

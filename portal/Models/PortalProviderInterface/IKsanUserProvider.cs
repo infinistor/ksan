@@ -16,32 +16,32 @@ using PortalData.Responses.Ksan;
 
 namespace PortalProviderInterface
 {
-	/// <summary>S3 사용자 프로바이더 인터페이스</summary>
+	/// <summary>Ksan 사용자 프로바이더 인터페이스</summary>
 	public interface IKsanUserProvider : IBaseProvider
 	{
-		/// <summary>S3 사용자를 추가한다.</summary>
-		/// <param name="Request">S3 사용자 정보</param>
-		/// <returns>S3 사용자 등록 결과</returns>
+		/// <summary>Ksan 사용자를 추가한다.</summary>
+		/// <param name="Request">Ksan 사용자 정보</param>
+		/// <returns>Ksan 사용자 등록 결과</returns>
 		Task<ResponseData<ResponseKsanUser>> Add(RequestKsanUser Request);
 
-		/// <summary>S3 사용자를 수정한다.</summary>
-		/// <param name="Id">S3 사용자 식별자</param>
-		/// <param name="Request">S3 사용자 정보</param>
-		/// <returns>S3 사용자 수정 결과</returns>
+		/// <summary>Ksan 사용자를 수정한다.</summary>
+		/// <param name="Id">Ksan 사용자 식별자</param>
+		/// <param name="Request">Ksan 사용자 정보</param>
+		/// <returns>Ksan 사용자 수정 결과</returns>
 		Task<ResponseData> Update(string Id, RequestKsanUserUpdate Request);
 
-		/// <summary>S3 사용자를 삭제한다.</summary>
-		/// <param name="Id">S3 사용자 식별자</param>
-		/// <returns>S3 사용자 삭제 결과</returns>
+		/// <summary>Ksan 사용자를 삭제한다.</summary>
+		/// <param name="Id">Ksan 사용자 식별자</param>
+		/// <returns>Ksan 사용자 삭제 결과</returns>
 		Task<ResponseData> Remove(string Id);
 
 		/// <summary>특정 로그인 이메일에 대한 사용자 정보 객체를 가져온다.</summary>
 		/// <param name="Email">이메일 주소</param>
-		/// <returns>S3 사용자 정보 객체</returns>
+		/// <returns>Ksan 사용자 정보 객체</returns>
 		Task<ResponseData<ResponseKsanUser>> GetUserByEmail(string Email);
 
-		/// <summary>S3 사용자 식별자로 특정 사용자를 가져온다.</summary>
-		/// <param name="Id">S3 사용자 식별자</param>
+		/// <summary>Ksan 사용자 식별자로 특정 사용자를 가져온다.</summary>
+		/// <param name="Id">Ksan 사용자 식별자</param>
 		/// <returns>해당 사용자 데이터</returns>
 		Task<ResponseData<ResponseKsanUser>> GetUserById(string Id);
 
@@ -52,7 +52,7 @@ namespace PortalProviderInterface
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <param name="SearchFields">검색필드목록 (Id, Email, Name)</param>
 		/// <param name="SearchKeyword">검색어 (옵션)</param>
-		/// <returns>S3 사용자 목록</returns>
+		/// <returns>Ksan 사용자 목록</returns>
 		Task<ResponseList<ResponseKsanUser>> GetUsers(int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = "");
