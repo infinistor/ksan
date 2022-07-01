@@ -30,7 +30,7 @@ namespace PortalModels
 		/// <summary> 스토리지 클래스 이름 </summary>
 		public virtual string StorageClass { get; set; }
 
-		public virtual KsanUser S3User { get; set; }
+		public virtual KsanUser KsanUser { get; set; }
 
 		public virtual DiskPool DiskPool { get; set; }
 
