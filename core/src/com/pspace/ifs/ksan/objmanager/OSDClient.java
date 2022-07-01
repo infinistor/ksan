@@ -61,7 +61,34 @@ public class OSDClient {
         obj.put("TargetDiskPath", desDisk.getPath());
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOSDServerId());
-        System.out.println("[moveObject] bindingKey :> " + bindingKey);
+        System.out.format("[moveObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        MQResponse ret;
+        if (!res.isEmpty())
+            ret = new MQResponse(res);
+        else
+            return -1;
+        
+        if (ret.getResult().equalsIgnoreCase("Success"))
+            return 0;
+        else
+            return -1;
+    }
+    
+    public int copyObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws Exception{
+        JSONObject obj;
+        String bindingKey;
+        
+        obj = new JSONObject();
+        obj.put("ObjId", objId);
+        obj.put("VersionId", versionId);
+        obj.put("SourceDiskId", srcDisk.getId());
+        obj.put("SourceDiskPath", srcDisk.getPath());
+        obj.put("TargetDiskId", desDisk.getId());
+        obj.put("TargetDiskPath", desDisk.getPath());
+        obj.put("TargetOSDIP", desDisk.getOsdIp());
+        bindingKey = String.format("*.services.osd.%s.object.copy", srcDisk.getOSDServerId());
+        System.out.format("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         MQResponse ret;
         if (!res.isEmpty())

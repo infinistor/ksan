@@ -43,8 +43,8 @@ public class GetAttr {
     @Option(name="--objId", usage="Specify the object Id if you with to display with Id rather than object key")
     private String objId = "";
     
-    @Option(name="--versionId", usage="Specify the object version Id if you wish particula version of the object")
-    private String version = "";
+    @Option(name="--versionId", usage="Specify the object version Id if you wish particular version of an object")
+    private String versionId ="null";
     
     @Option(name="--checksum", usage="To display the checksum of an object")
     private boolean checksum = false;
@@ -113,35 +113,41 @@ public class GetAttr {
         
         String dskMsg;
         String osdMsg;
+        String replicaOSDIP;
         
         try {
-            dskMsg = String.format(" PrimaryDisk>  diskId : %-15s  diskPath : %s (%s%7s%s)\n  ReplicaDisk>  diskId : %-15s  diskPath : %s (%s%7s%s)",
+            replicaOSDIP= mt.getReplicaDisk().getOsdIp();
+            dskMsg = String.format(" PrimaryDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%7s%s)\n  ReplicaDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%7s%s)",
                     mt.getPrimaryDisk().getId(), 
+                    mt.getPrimaryDisk().getOsdIp(),
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET,
                     mt.getReplicaDisk().getId(), 
+                    replicaOSDIP,
                     mt.getReplicaDisk().getPath(), GREEN,
                     mt.getReplicaDisk().getStatus(), RESET);
         } catch (ResourceNotFoundException ex) {
-            dskMsg = String.format(" PrimaryDisk>  diskId : %s  diskPath : %s (%s%s%s)\n",
+            dskMsg = String.format(" PrimaryDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%s%s)\n",
                     mt.getPrimaryDisk().getId(), 
+                    mt.getPrimaryDisk().getOsdIp(),
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET);
+                    replicaOSDIP = "";
         }
         
         if (checksum){
             if (mt.isReplicaExist())
-                osdMsg = String.format("\nOSDInfo :\nPrimaaryOSD >  MD5 : %s  Size : %d \n ReplicaOSD > MD5 : %s  Size : %d \n ", 
-                        primaryOSD.md5, primaryOSD.size, secondOSD.md5, secondOSD.size);
+                osdMsg = String.format("\nOSDInfo :\n PrimaaryOSD (%-16s) >  MD5 : %-40s  Size : %d \n ReplicaOSD  (%-16s) >  MD5 : %-40s  Size : %d \n ", 
+                        mt.getPrimaryDisk().getOsdIp(), primaryOSD.md5, primaryOSD.size, replicaOSDIP, secondOSD.md5, secondOSD.size);
             else
                 osdMsg = String.format("\nOSDInfo :\nPrimaaryOSD >  MD5 : %s  Size : %d \n ", primaryOSD.md5, primaryOSD.size);
         }
         else
            osdMsg =""; 
         
-        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s"
+        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d "
                + "\n %s \n %s"
-               , bucketName, mt.getPath(), mt.getObjId(), dskMsg, osdMsg);
+               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), dskMsg, osdMsg);
         System.out.println();
     }
     
@@ -169,9 +175,9 @@ public class GetAttr {
         try {
             ObjManagerUtil obmu = new ObjManagerUtil();
             if (!ObjectPath.isEmpty())
-                mt = obmu.getObjectWithPath(bucketName, ObjectPath);
+                mt = obmu.getObjectWithPath(bucketName, ObjectPath, versionId);
             else
-                mt = obmu.getObject(bucketName, objId);
+                mt = obmu.getObject(bucketName, objId, versionId);
             
             getOSDObjectAttr(mt);
             
@@ -183,9 +189,9 @@ public class GetAttr {
         }
     }
     
-    static void disableDebuglog(){
+    static void disableDebuglog(String driver){
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(driver);
         rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
     }
     
@@ -195,7 +201,9 @@ public class GetAttr {
         
     public static void main(String[] args) {
         
-        disableDebuglog();
+        disableDebuglog("org.mongodb.driver");
+        disableDebuglog("com.pspace.ifs.ksan.objmanager");
+        
         GetAttr gattr = new GetAttr();
         if (gattr.parseArgs(args) != 0){
             gattr.howToUse();

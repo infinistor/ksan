@@ -108,8 +108,8 @@ public class DISKPOOL {
      
      private String getNextServerId(){
          String serverid = "";
-        //try{
-        //    lock.lock();
+        try{
+            lock.lock();
             Set<String> entry =  serverMap.keySet();
             List<String> keys = new ArrayList<>(entry);
             
@@ -127,9 +127,9 @@ public class DISKPOOL {
                 logger.debug(" >>currentServerIdx: {} keySize {}", currentServerIdx, keys.size());
                 currentServerIdx = 0;
             }
-            /*}finally{
+            }finally{
                 lock.unlock();
-            }*/
+            }
            
         return serverid;
      }

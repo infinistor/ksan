@@ -230,32 +230,32 @@ public class CBalance {
         return moveWithSize(bucketName, srcDiskId, amountToMove, "");
     }
     
-    public int moveSingleObjectWithKey(String bucket, String key) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        Metadata mt = obmu.getObjectWithPath(bucket, key);
+    public int moveSingleObjectWithKey(String bucket, String key, String versionId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);
         if (mt == null)
             return -1;
         
-        return objm.moveObject1(bucket, key, mt.getPrimaryDisk().getId());
+        return objm.moveObject1(bucket, key, versionId, mt.getReplicaDisk().getId());
     }
     
-    public int moveSingleObjectWithKey(String bucket, String key, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        return objm.moveObject1(bucket, key, srcDiskId);
+    public int moveSingleObjectWithKey(String bucket, String key, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        return objm.moveObject1(bucket, key, versionId, srcDiskId);
     }
     
-    public int moveSingleObjectWithKey(String bucket, String key, String srcDiskId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        return objm.moveObject1(bucket, key, srcDiskId, dstDiskId);
+    public int moveSingleObjectWithKey(String bucket, String key, String versionId, String srcDiskId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        return objm.moveObject1(bucket, key, versionId, srcDiskId, dstDiskId);
     }
     
-    public int moveSingleObject(String bucket, String objId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+    public int moveSingleObject(String bucket, String objId, String versionId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         Metadata mt = obmu.getObject(bucket, objId);
-        return objm.moveObject(bucket, objId, "", mt.getPrimaryDisk().getId());
+        return objm.moveObject(bucket, objId,  versionId, mt.getPrimaryDisk().getId());
     }
     
-    public int moveSingleObject(String bucket, String objId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        return objm.moveObject(bucket, objId, "", srcDiskId);
+    public int moveSingleObject(String bucket, String objId, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        return objm.moveObject(bucket, objId, versionId, srcDiskId);
     }
     
-    public int moveSingleObject(String bucket, String objId, String srcDiskId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        return objm.moveObject(bucket, objId, srcDiskId, dstDiskId);
+    public int moveSingleObject(String bucket, String objId, String versionId, String srcDiskId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        return objm.moveObject(bucket, objId, versionId, srcDiskId, dstDiskId);
     }
 }
