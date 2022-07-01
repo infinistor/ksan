@@ -17,7 +17,11 @@ import java.util.List;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class S3User {
+    private final Logger logger = LoggerFactory.getLogger(S3User.class);
     public static final String DATA = "Data";
     public static final String ITEMS = "Items";
     public static final String USER_DISK_POOLS = "UserDiskPools";
@@ -54,11 +58,13 @@ public class S3User {
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
+        userDiskPools = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < diskpools.size(); i++) {
             JSONObject item = (JSONObject)diskpools.get(i);
             HashMap<String, String> map = new HashMap<String, String>();
             map.put(USER_DISK_POOLS_DISKPOOL_ID, (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID));
             map.put(USER_DISK_POOLS_STORAGE_CLASS, (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
+            userDiskPools.add(map);
         }
     }
 

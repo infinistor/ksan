@@ -35,13 +35,13 @@ public class ObjManagerUtil {
             
             config = new ObjManagerConfig();
             
-            omsr = ObjManagerSharedResource.getInstance(config);
+            omsr = ObjManagerSharedResource.getInstance(config, false);
             
             obmCache = omsr.getCache();
           
             dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
             
-            config.loadDiskPools(obmCache);
+            //config.loadDiskPools(obmCache);
            
             //dbm.loadBucketList();
             

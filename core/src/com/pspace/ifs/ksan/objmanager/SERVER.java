@@ -280,31 +280,39 @@ public class SERVER {
     
     public String getStatusInString(){
         String st;
-        if (status == ServerStatus.ONLINE)
-           st = "ONLINE";
-        else  if (status == ServerStatus.OFFLINE)
-           st = "OFFLINE";
-        else  if (status == ServerStatus.TIMEOUT)
-           st = "TIMEOUT";
-        else
-           st = "UNKNOWN";
+        if (null == status)
+            st = "UNKNOWN";
+        else  switch (status) {
+            case ONLINE:
+                st = "ONLINE";
+                break;
+            case OFFLINE:
+                st = "OFFLINE";
+                break;
+            case TIMEOUT:
+                st = "TIMEOUT";
+                break;
+            default:
+                st = "UNKNOWN";
+                break;
+        }
         return st;
     }
     public int getNumDisk(){
         return diskMap.size();
     }
     
-    public void displayDiksList(){
+    public String displayDiksList(){
         DISK dsk;
+        String xmlDsk = "";
         
         for(String diskid : diskMap.keySet()){
-             dsk = diskMap.get(diskid);
-             logger.debug("\t   <DISK id=\"{}\"  path=\"{}\" freeSpace=\"{}\" freeInode=\"{}\" mode=\"{}\" status=\"{}\">",
+            dsk = diskMap.get(diskid);
+            String dskStr = String.format("\n\t   <DISK id=\"%s\"  path=\"%s\" freeSpace=\"%s\" freeInode=\"%s\" mode=\"%s\" status=\"%s\">",
                dsk.getId(), dsk.getPath(), dsk.getFreeSpace(), dsk.getFreeInode(), dsk.getMode(), dsk.getStatus());
-            //  System.out.format(
-            //    "\t   <DISK id=\"%s\"  path=\"%s\" freeSpace=\"%f\" freeInode=\"%f\" mode=\"%s\" status=\"%s\"> \n",
-            //    dsk.getId(), dsk.getPath(), dsk.getFreeSpace(), dsk.getFreeInode(), dsk.getMode(), dsk.getStatus());
+            xmlDsk = xmlDsk + dskStr;
         }
+        return xmlDsk;
     }
 
     @Override

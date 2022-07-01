@@ -331,18 +331,14 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
-			if (GWConfig.getInstance().getReplicaCount() > 1) {
-				objMeta = create(bucket, object);
-			} else {
-				objMeta = createLocal(bucket, object);
-			}
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
+				objMeta = create(bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+				objMeta = create(bucket, object);
 			}
 		}
-
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.putObject();
 

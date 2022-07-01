@@ -20,7 +20,7 @@ public class OSDClient {
     public OSDClient() throws IOException, Exception{
         ObjManagerConfig config = new ObjManagerConfig();
         System.out.format(" hosts : %s exchange %s\n", config.mqHost, config.mqOsdExchangename);
-        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "fanout", ""); 
+        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "direct", ""); 
     }
     
     public OSDClient(MQSender mqSender){

@@ -63,7 +63,7 @@ public class DiskManager {
 
     public void configure() {
         for (DiskPool pool : diskPoolList) {
-            for (Server server : diskPoolList.get(0).getServerList()) {
+            for (Server server : pool.getServerList()) {
                 if (localHost.equals(server.getIp())) {
                     for (Disk disk : server.getDiskList()) {
                         localDiskInfoMap.put(disk.getId(), disk.getPath());
@@ -83,7 +83,7 @@ public class DiskManager {
 
     public String getPath(String diskID) {
         for (DiskPool pool : diskPoolList) {
-            for (Server server : diskPoolList.get(0).getServerList()) {
+            for (Server server : pool.getServerList()) {
                 for (Disk disk : server.getDiskList()) {
                     if (diskID.equals(disk.getId())) {
                         return disk.getPath();
@@ -97,7 +97,7 @@ public class DiskManager {
 
     public String getOSDIP(String diskID) {
         for (DiskPool pool : diskPoolList) {
-            for (Server server : diskPoolList.get(0).getServerList()) {
+            for (Server server : pool.getServerList()) {
                 for (Disk disk : server.getDiskList()) {
                     if (diskID.equals(disk.getId())) {
                         return server.getIp();
@@ -139,15 +139,17 @@ public class DiskManager {
         try {
             FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, false);
             fileWriter.write(FILE_DISKPOOL_LIST_START);
-            fileWriter.write(FILE_DISKPOOL_ID + diskPoolList.get(0).getId() + FILE_DISKPOOL_NAME + diskPoolList.get(0).getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPoolList.get(0).getReplicationType() + FILE_DISKPOOL_NEWLINE);
-            for (Server server : diskPoolList.get(0).getServerList()) {
-                fileWriter.write(FILE_SERVER_ID + server.getId() + FILE_SERVER_IP + server.getIp() + FILE_SERVER_STATUS + server.getStatus() + FILE_DISKPOOL_NEWLINE);
-                for (Disk disk : server.getDiskList()) {
-                    fileWriter.write(FILE_DISK_ID + disk.getId() + FILE_DISK_PATH + disk.getPath() + FILE_DISK_MODE + disk.getMode() + FILE_DISK_STATUS + disk.getStatus() + FILE_DISK_END);
+            for (DiskPool diskPool : diskPoolList) {
+                fileWriter.write(FILE_DISKPOOL_ID + diskPool.getId() + FILE_DISKPOOL_NAME + diskPool.getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPool.getReplicationType() + FILE_DISKPOOL_NEWLINE);
+                for (Server server : diskPool.getServerList()) {
+                    fileWriter.write(FILE_SERVER_ID + server.getId() + FILE_SERVER_IP + server.getIp() + FILE_SERVER_STATUS + server.getStatus() + FILE_DISKPOOL_NEWLINE);
+                    for (Disk disk : server.getDiskList()) {
+                        fileWriter.write(FILE_DISK_ID + disk.getId() + FILE_DISK_PATH + disk.getPath() + FILE_DISK_MODE + disk.getMode() + FILE_DISK_STATUS + disk.getStatus() + FILE_DISK_END);
+                    }
+                    fileWriter.write(FILE_SERVER_END);
                 }
-                fileWriter.write(FILE_SERVER_END);
+                fileWriter.write(FILE_DISKPOOL_END);
             }
-            fileWriter.write(FILE_DISKPOOL_END);
             fileWriter.write(FILE_DISKPOOL_LIST_END);
             fileWriter.close();
         } catch (IOException e) {

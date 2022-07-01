@@ -26,6 +26,8 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.objmanager.Bucket;
+import com.pspace.ifs.ksan.libs.DiskManager;
 
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +43,13 @@ public class CreateBucket extends S3Request {
     public void process() throws GWException {
         logger.info(GWConstants.LOG_CREATE_BUCKET_START);
 		
-		String bucket = s3Parameter.getBucketName();
-		logger.debug(GWConstants.LOG_CREATE_BUCKET_NAME, bucket);
-		checkBucketName(bucket);
+		String bucketName = s3Parameter.getBucketName();
+		logger.debug(GWConstants.LOG_CREATE_BUCKET_NAME, bucketName);
+		checkBucketName(bucketName);
 
-		if (isExistBucket(bucket) || bucket.equalsIgnoreCase(GWConstants.WEBSITE)) {
-			logger.info(GWConstants.LOG_CREATE_BUCKET_EXIST, bucket);
-			initBucketInfo(bucket);
+		if (isExistBucket(bucketName) || bucketName.equalsIgnoreCase(GWConstants.WEBSITE)) {
+			logger.info(GWConstants.LOG_CREATE_BUCKET_EXIST, bucketName);
+			initBucketInfo(bucketName);
 			if (isBucketOwner(s3Parameter.getUser().getUserId())) {
 				throw new GWException(GWErrorCode.BUCKET_ALREADY_OWNED_BY_YOU, s3Parameter);
 			}
@@ -81,20 +83,34 @@ public class CreateBucket extends S3Request {
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;
+		String diskpoolId = s3Parameter.getUser().getUserDefaultDiskId();
+		logger.info("user default diskpoolId : {}", diskpoolId);
+
+		Bucket bucket = new Bucket();
+		bucket.setName(bucketName);
+		bucket.setUserId(s3Parameter.getUser().getUserId());
+		bucket.setUserName(s3Parameter.getUser().getUserName());
+		bucket.setAcl(xml);
+		bucket.setDiskPoolId(diskpoolId);
+
 		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			result = createBucket(bucket, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", objectLockXml);
-			putBucketVersioning(bucket, GWConstants.STATUS_ENABLED);
+			// bucket.setEncryption();
+			bucket.setObjectLock(objectLockXml);
+			result = createBucket(bucket);
+			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", objectLockXml);
+			putBucketVersioning(bucketName, GWConstants.STATUS_ENABLED);
 		} else {
-			result = createBucket(bucket, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", "");
+			result = createBucket(bucket);
+			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", "");
 		}
 
 		if (result != 0) {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
 		}
 		
-		s3Parameter.getResponse().addHeader(HttpHeaders.LOCATION, GWConstants.SLASH + bucket);
+		s3Parameter.getResponse().addHeader(HttpHeaders.LOCATION, GWConstants.SLASH + bucketName);
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
     }
     

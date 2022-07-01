@@ -182,12 +182,12 @@ public class CompleteMultipartUpload extends S3Request {
 		String versionId = null;
 		Metadata objMeta = null;
 		try {
-			objMeta = createLocal(bucket, object);
-
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
+				objMeta = createLocal(bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+				objMeta = createLocal(bucket, object);
 			}
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);

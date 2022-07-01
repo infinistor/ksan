@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.pspace.ifs.ksan.gw.identity.S3User;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +86,9 @@ public class S3UserManager {
     public void printUsers() {
         for (S3User user : userSet) {
             logger.info("Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}", user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+            for (HashMap<String, String> map : user.getUserDiskpools()) {
+                logger.info("{}, {}", map.get(S3User.USER_DISK_POOLS_DISKPOOL_ID), map.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ public class ObjManagerSharedResource {
     
     private ObjManagerSharedResource(){}
     
-    private void init(ObjManagerConfig config) throws Exception{
+    private void init(ObjManagerConfig config, boolean dumpCache) throws Exception{
         if (this.config == null){
             this.config = config;
             obmCache = new ObjManagerCache();
@@ -34,13 +34,16 @@ public class ObjManagerSharedResource {
             
             dbm.loadBucketList();
             
-            diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
+            config.loadDiskPools(obmCache);
+            if (dumpCache){    
+                diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
+            }
         }
     }
     
-    public static ObjManagerSharedResource getInstance(ObjManagerConfig config) throws Exception {
+    public static ObjManagerSharedResource getInstance(ObjManagerConfig config, boolean dumpCache) throws Exception {
        ObjManagerSharedResource instance = ObjManagerSharedResourceHolder.INSTANCE;
-       instance.init(config);
+       instance.init(config, dumpCache);
        return instance;
     }
     
