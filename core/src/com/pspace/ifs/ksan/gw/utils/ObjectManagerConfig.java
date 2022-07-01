@@ -26,6 +26,10 @@ public class ObjectManagerConfig {
     private long dbPort;
     private String dbUserName;
     private String dbPassword;
+    private String mqHost;
+    private String mqQueueName;
+    private String mqExchangeName;
+    private String mqOsdExchangeName;
 
     private static final String VERSION = "version";
     private static final String DB_REPOSITORY = "objM.db_repository";
@@ -34,6 +38,10 @@ public class ObjectManagerConfig {
     private static final String DB_PORT = "objM.db_port";
     private static final String DB_USER = "objM.db_user";
     private static final String DB_PASSWORD = "objM.db_password";
+    private static final String MQ_HOST = "objM.mq_host";
+    private static final String MQ_QUEUE_NAME = "objM.mq_queue_name";
+    private static final String MQ_EXCHANGE_NAME = "objM.mq_exchange_name";
+    private static final String MQ_OSD_EXCHANGE_NAME = "objM.mq_osd_exchange_name";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(ObjectManagerConfig.class);
@@ -104,6 +112,38 @@ public class ObjectManagerConfig {
         this.dbPassword = dbPassword;
     }
 
+    public String getMqHost() {
+        return mqHost;
+    }
+
+    public void setMqHost(String mqHost) {
+        this.mqHost = mqHost;
+    }
+
+    public String getMqQueueName() {
+        return mqQueueName;
+    }
+
+    public void setMqQueueName(String mqQueueName) {
+        this.mqQueueName = mqQueueName;
+    }
+
+    public String getMqExchangeName() {
+        return mqExchangeName;
+    }
+
+    public void setMqExchangeName(String mqExchangeName) {
+        this.mqExchangeName = mqExchangeName;
+    }
+
+    public String getMqOsdExchangeName() {
+        return mqOsdExchangeName;
+    }
+
+    public void setMqOsdExchangeName(String mqOsdExchangeName) {
+        this.mqOsdExchangeName = mqOsdExchangeName;
+    }
+
     public void setConfig(JSONObject jsonConfig) {
 
         setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
@@ -112,6 +152,10 @@ public class ObjectManagerConfig {
         setDbPort((long)jsonConfig.get(DB_PORT));
         setDbUserName((String)jsonConfig.get(DB_USER));
         setDbPassword((String)jsonConfig.get(DB_PASSWORD));
+        setMqHost((String)jsonConfig.get(MQ_HOST));
+        setMqQueueName((String)jsonConfig.get(MQ_QUEUE_NAME));
+        setMqExchangeName((String)jsonConfig.get(MQ_EXCHANGE_NAME));
+        setMqOsdExchangeName((String)jsonConfig.get(MQ_OSD_EXCHANGE_NAME));
 
         logger.debug(getDbRepository());
         logger.debug(getDbHost());
@@ -119,6 +163,10 @@ public class ObjectManagerConfig {
         logger.debug("{}", getDbPort());
         logger.debug(getDbUserName());
         logger.debug(getDbPassword());
+        logger.debug(getMqHost());
+        logger.debug(getMqQueueName());
+        logger.debug(getMqExchangeName());
+        logger.debug(getMqOsdExchangeName());
     }
 
     public void saveConfigFile() throws IOException {
@@ -131,6 +179,10 @@ public class ObjectManagerConfig {
             fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
             fileWriter.write(DB_USER + EQUAL + dbUserName + "\n");
             fileWriter.write(DB_PASSWORD + EQUAL + dbPassword + "\n");
+            fileWriter.write(MQ_HOST + EQUAL + mqHost + "\n");
+            fileWriter.write(MQ_QUEUE_NAME + EQUAL + mqQueueName + "\n");
+            fileWriter.write(MQ_EXCHANGE_NAME + EQUAL + mqExchangeName + "\n");
+            fileWriter.write(MQ_OSD_EXCHANGE_NAME + EQUAL + mqOsdExchangeName + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);
