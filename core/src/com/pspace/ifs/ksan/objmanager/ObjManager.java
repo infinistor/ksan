@@ -722,4 +722,8 @@ public class ObjManager {
     public void activate(){}
     
     public void deactivate(){}
+    
+    public void updateDiskpools(String routingKey, String body){
+        this.obmsr.getDiskMonitor().update(routingKey, body);
+    }
 }
