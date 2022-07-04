@@ -11,10 +11,14 @@
 package com.pspace.DB.Table;
 
 public interface BaseTable {
-    public String GetCreateTableQuery();
-    public String GetInsertQuery();
-    public String GetSelectQuery(long Index);
-    public String GetDeleteQuery(long Index);
-    public String GetClearQuery(long LastIndex);
+	public String GetCreateTableQuery();
+
+	public String GetInsertQuery();
+
+	public String GetSelectQuery(long Index);
+
+	public String GetDeleteQuery(long Index);
+
+	public String GetClearQuery(long LastIndex);
 
 }

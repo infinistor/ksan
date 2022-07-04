@@ -10,6 +10,8 @@
 */
 package com.pspace.backend.Data;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.s3format.Tagging;
 
@@ -17,77 +19,62 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ObjectData {
-    static final Logger logger = LoggerFactory.getLogger(ObjectData.class);
-    
-    public String BucketName;
-    public String ObjectName;
-    public long FileSize;
-    public Tagging Tags;
-    public long LastModified;
-    public String VersionId;
-    public String DeleteMarker;
-    public boolean LastVersion;
+	static final Logger logger = LoggerFactory.getLogger(ObjectData.class);
 
-    public ObjectData(String BucketName, String ObjectName, long FileSize, Tagging Tags, long LastModified, String VersionId, String DeleteMarker, boolean LastVersion) {
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.FileSize = FileSize;
-        this.Tags = Tags;
-        this.LastModified = LastModified;
-        this.VersionId = VersionId;
-        this.DeleteMarker = DeleteMarker;
-        this.LastVersion = LastVersion;
-    }
+	public String BucketName;
+	public String ObjectName;
+	public long FileSize;
+	public Tagging Tags;
+	public long LastModified;
+	public String VersionId;
+	public String DeleteMarker;
+	public boolean LastVersion;
 
-    public ObjectData(String BucketName, String ObjectName, long FileSize, String Tags, long LastModified, String VersionId, String DeleteMarker, boolean LastVersion) {
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.FileSize = FileSize;
-        setTags(Tags);
-        this.LastModified = LastModified;
-        this.VersionId = VersionId;
-        this.DeleteMarker = DeleteMarker;
-        this.LastVersion = LastVersion;
-    }
+	public ObjectData(String BucketName, String ObjectName, long FileSize, Tagging Tags, long LastModified,
+			String VersionId, String DeleteMarker, boolean LastVersion) {
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.FileSize = FileSize;
+		this.Tags = Tags;
+		this.LastModified = LastModified;
+		this.VersionId = VersionId;
+		this.DeleteMarker = DeleteMarker;
+		this.LastVersion = LastVersion;
+	}
 
-    public void setTags(String StrTags)
-    {
-        if (StrTags.isBlank())
-        {
-            Tags = null;
-            return;
-        }
+	public ObjectData(String BucketName, String ObjectName, long FileSize, String Tags, long LastModified,
+			String VersionId, String DeleteMarker, boolean LastVersion) {
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.FileSize = FileSize;
+		setTags(Tags);
+		this.LastModified = LastModified;
+		this.VersionId = VersionId;
+		this.DeleteMarker = DeleteMarker;
+		this.LastVersion = LastVersion;
+	}
 
-        try {
-            //수명주기 설정 언마샬링
-            Tags = new XmlMapper().readValue(StrTags, Tagging.class);
-         } catch (Exception e) {
-             logger.error("Set Tag Failed : {}", ObjectName, e);
-         }
-    }
+	public void setTags(String StrTags) {
+		if (StrTags.isBlank()) {
+			Tags = null;
+			return;
+		}
 
-    @Override
-    public String toString() {
-        return String.format(
-        "%s{\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %d,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %d,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s\n" + 
-        "}",
-        "ObjectData",
-        "BucketName"  , BucketName,
-        "ObjectName"  , ObjectName,
-        "FileSize"    , FileSize,
-        "Tags"        , Tags,
-        "LastModified", LastModified,
-        "VersionId"   , VersionId,
-        "DeleteMarker", DeleteMarker,
-        "LastVersion" , LastVersion
-        );
-    }
+		try {
+			// 수명주기 설정 언마샬링
+			Tags = new XmlMapper().readValue(StrTags, Tagging.class);
+		} catch (Exception e) {
+			logger.error("Set Tag Failed : {}", ObjectName, e);
+		}
+	}
+
+	@Override
+	public String toString() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
+	}
 }

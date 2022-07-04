@@ -23,98 +23,97 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LifecycleSender {
-    private final Logger logger;
-    private final AmazonS3 Client;
-    private final DBManager DB;
+	private final Logger logger;
+	private final AmazonS3 Client;
+	private final DBManager DB;
 
-    public LifecycleSender(DBManager DB, String S3URL, String AccessKey, String SecretKey)
-    {
-        this.DB = DB;
-        logger = LoggerFactory.getLogger(LifecycleSender.class);
-        Client = CreateClient(S3URL, AccessKey, SecretKey);
-    }
+	public LifecycleSender(DBManager DB, String S3URL, String AccessKey, String SecretKey) {
+		this.DB = DB;
+		logger = LoggerFactory.getLogger(LifecycleSender.class);
+		Client = CreateClient(S3URL, AccessKey, SecretKey);
+	}
 
-    public void Start()
-    {
-        while(true)
-        {
-            var EventList = DB.GetLifecycleEventList();
+	public void Start() {
+		while (true) {
+			var EventList = DB.GetLifecycleEventList();
 
-            for(var Event : EventList)
-            {
-                logger.debug(Event.toString());
-                //결과값 초기화
-                String Result = "";
+			for (var Event : EventList) {
+				logger.debug(Event.toString());
+				// 결과값 초기화
+				String Result = "";
 
-                // 3회 시도
-                for(int i = 0; i < 3; i++){
-                    // UploadId가 존재하지 않을 경우 오브젝트 삭제
-                    if (Event.UploadId.isBlank())
-                    {
-                        //VersionId가 존재하지 않을 경우 일반적인 삭제로 취급
-                        if (Event.VersionId.isBlank()) Result = DeleteObject(Event.BucketName, Event.ObjectName);
+				// 3회 시도
+				for (int i = 0; i < 3; i++) {
+					// UploadId가 존재하지 않을 경우 오브젝트 삭제
+					if (Event.UploadId.isBlank()) {
+						// VersionId가 존재하지 않을 경우 일반적인 삭제로 취급
+						if (Event.VersionId.isBlank())
+							Result = DeleteObject(Event.BucketName, Event.ObjectName);
 
-                        //VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급
-                        else Result = DeleteObjectVersion(Event.BucketName, Event.ObjectName, Event.VersionId);
-                    }
-                    // UploadId가 존재할 경우 Multipart 삭제
-                    else Result = AbortMultipartUpload(Event.BucketName, Event.ObjectName, Event.UploadId);
+						// VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급
+						else
+							Result = DeleteObjectVersion(Event.BucketName, Event.ObjectName, Event.VersionId);
+					}
+					// UploadId가 존재할 경우 Multipart 삭제
+					else
+						Result = AbortMultipartUpload(Event.BucketName, Event.ObjectName, Event.UploadId);
 
-                    // 성공했을 경우 종료
-                    if (Result.equals("")) break;
-                }
-                //반환값이 비어있지 않을 경우 - 에러가 발생할 경우
-                if (!Result.isBlank()) DB.InsertLifecycleFailed(new LifecycleFailedData(Event, Result));
-            }
-            // DB에서 가져온 목록이 1000개 이하일경우 
-            if(EventList.size() < 1000) break;
-        }
-    }
+					// 성공했을 경우 종료
+					if (Result.equals(""))
+						break;
+				}
+				// 반환값이 비어있지 않을 경우 - 에러가 발생할 경우
+				if (!Result.isBlank())
+					DB.InsertLifecycleFailed(new LifecycleFailedData(Event, Result));
+			}
+			// DB에서 가져온 목록이 1000개 이하일경우
+			if (EventList.size() < 1000)
+				break;
+		}
+	}
 
-    /*************************************** Utility *******************************************/
+	/***************************************
+	 * Utility
+	 *******************************************/
 
-    protected AmazonS3 CreateClient(String S3URL, String AccessKey, String SecretKey)
-    {
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials(AccessKey, SecretKey);
+	protected AmazonS3 CreateClient(String S3URL, String AccessKey, String SecretKey) {
+		BasicAWSCredentials awsCreds = new BasicAWSCredentials(AccessKey, SecretKey);
 
-        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3URL, ""))
-                .withPathStyleAccessEnabled(true).build();
-    }
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3URL, ""))
+				.withPathStyleAccessEnabled(true).build();
+	}
 
-    protected String DeleteObject(String BucketName, String ObjectName)
-    {
-        var Result = "";
-        try {
-            Client.deleteObject(BucketName, ObjectName);
-        } catch (Exception e) {
-            logger.error("", e);
-            Result = e.getMessage();
-        }
-        return Result;
-    }
+	protected String DeleteObject(String BucketName, String ObjectName) {
+		var Result = "";
+		try {
+			Client.deleteObject(BucketName, ObjectName);
+		} catch (Exception e) {
+			logger.error("", e);
+			Result = e.getMessage();
+		}
+		return Result;
+	}
 
-    protected String DeleteObjectVersion(String BucketName, String ObjectName, String VersionId)
-    {
-        var Result = "";
-        try {
-            Client.deleteVersion(BucketName, ObjectName, VersionId);
-        } catch (Exception e) {
-            logger.error("", e);
-            Result = e.getMessage();
-        }
-        return Result;
-    }
+	protected String DeleteObjectVersion(String BucketName, String ObjectName, String VersionId) {
+		var Result = "";
+		try {
+			Client.deleteVersion(BucketName, ObjectName, VersionId);
+		} catch (Exception e) {
+			logger.error("", e);
+			Result = e.getMessage();
+		}
+		return Result;
+	}
 
-    protected String AbortMultipartUpload(String BucketName, String ObjectName, String UploadId)
-    {
-        var Result = "";
-        try {
-            Client.abortMultipartUpload(new AbortMultipartUploadRequest(BucketName, ObjectName, UploadId));
-        } catch (Exception e) {
-            logger.error("", e);
-            Result = e.getMessage();
-        }
-        return Result;
-    }
+	protected String AbortMultipartUpload(String BucketName, String ObjectName, String UploadId) {
+		var Result = "";
+		try {
+			Client.abortMultipartUpload(new AbortMultipartUploadRequest(BucketName, ObjectName, UploadId));
+		} catch (Exception e) {
+			logger.error("", e);
+			Result = e.getMessage();
+		}
+		return Result;
+	}
 }

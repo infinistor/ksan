@@ -13,86 +13,76 @@ package com.pspace.backend.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class LifecycleEventData implements BaseData {
 
-    public long Index;
-    public String BucketName;
-    public String ObjectName;
-    public String VersionId;
-    public String UploadId;
-        
-    public LifecycleEventData(long Index, String BucketName, String ObjectName, String VersionId, String UploadId)
-    {
-        this.Index = Index;
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.VersionId = VersionId;
-        this.UploadId = UploadId;
-    }
+	public long Index;
+	public String BucketName;
+	public String ObjectName;
+	public String VersionId;
+	public String UploadId;
 
-    public LifecycleEventData(String BucketName, String ObjectName)
-    {
-        this.Index = 0;
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.VersionId = "";
-        this.UploadId = "";
-    }
+	public LifecycleEventData(long Index, String BucketName, String ObjectName, String VersionId, String UploadId) {
+		this.Index = Index;
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.VersionId = VersionId;
+		this.UploadId = UploadId;
+	}
 
-    public LifecycleEventData(String BucketName, String ObjectName, String VersionId)
-    {
-        this.Index = 0;
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.VersionId = VersionId;
-        this.UploadId = "";
-    }
+	public LifecycleEventData(String BucketName, String ObjectName) {
+		this.Index = 0;
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.VersionId = "";
+		this.UploadId = "";
+	}
 
-    public LifecycleEventData(String BucketName, String ObjectName, String VersionId, String UploadId)
-    {
-        this.Index = 0;
-        this.BucketName = BucketName;
-        this.ObjectName = ObjectName;
-        this.VersionId = VersionId;
-        this.UploadId = UploadId;
-    }
+	public LifecycleEventData(String BucketName, String ObjectName, String VersionId) {
+		this.Index = 0;
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.VersionId = VersionId;
+		this.UploadId = "";
+	}
 
-    @Override
-    public void Init() {
-        Index = 0;
-        BucketName = "";
-        ObjectName = "";
-        VersionId = "";
-        UploadId = "";
-    }
+	public LifecycleEventData(String BucketName, String ObjectName, String VersionId, String UploadId) {
+		this.Index = 0;
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.VersionId = VersionId;
+		this.UploadId = UploadId;
+	}
 
-    @Override
-    public List<Object> GetInsertDBParameters() {
-        var params = new ArrayList<Object>();
-        params.add(BucketName);
-        params.add(ObjectName);
-        params.add(VersionId);
-        params.add(UploadId);
+	@Override
+	public void Init() {
+		Index = 0;
+		BucketName = "";
+		ObjectName = "";
+		VersionId = "";
+		UploadId = "";
+	}
 
-        return params;
-    }
+	@Override
+	public List<Object> GetInsertDBParameters() {
+		var params = new ArrayList<Object>();
+		params.add(BucketName);
+		params.add(ObjectName);
+		params.add(VersionId);
+		params.add(UploadId);
 
-    @Override
-    public String toString() {
-        return String.format(
-        "%s{\n" + 
-            "\t%s : %d,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s\n" + 
-        "}",
-        "MultipartData",
-        "Index"     , Index,
-        "BucketName", BucketName,
-        "ObjectName", ObjectName,
-        "VersionId" , VersionId,
-        "UploadId"  , UploadId
-        );
-    }
+		return params;
+	}
+
+	@Override
+	public String toString() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
+	}
 }

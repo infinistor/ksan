@@ -21,64 +21,57 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Main {
-    static final Logger logger = LoggerFactory.getLogger(Main.class);
-    
-	public static void main(String[] args)
-    {
-        logger.info("Lifecycle Manager Start!");
+	static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+	public static void main(String[] args) {
+		logger.info("Lifecycle Manager Start!");
 
 		// Save Process Pid
-		if(!SavePid("/var/run/ifs-lifecycleManager.pid"))
-        {
-            logger.error("Pid Save Failed!");
-            return;
-        }
+		if (!SavePid("/var/run/ifs-lifecycleManager.pid")) {
+			logger.error("Pid Save Failed!");
+			return;
+		}
 
-        // Read Configuration
-        var Config = new MainConfig("/usr/local/ksan/etc/ifs-lifecycleManager.conf");
-        if(!Config.GetConfig())
-        {
-            logger.error("Config Read Failed!");
-            return;
-        }
+		// Read Configuration
+		var Config = new MainConfig("/usr/local/ksan/etc/ifs-lifecycleManager.conf");
+		if (!Config.GetConfig()) {
+			logger.error("Config Read Failed!");
+			return;
+		}
 
-        // DB Initialization
-        var DB = new DBManager(Config.DB);
-        if(!DB.CreateTables()){
-            logger.error("DB Tables Create Failed!");
-            return;
-        }
+		// DB Initialization
+		var DB = new DBManager(Config.DB);
+		if (!DB.CreateTables()) {
+			logger.error("DB Tables Create Failed!");
+			return;
+		}
 
-        // Event Clear
-        DB.LifecycleEventsClear();
+		// Event Clear
+		DB.LifecycleEventsClear();
 
-        // Get Bucket
-        var BucketList = DB.GetBucketList();
-        if(BucketList.size() > 0)
-        {
-            logger.info("Lifecycle Filter Start!");
-            var Filter = new LifecycleFilter(DB);
+		// Get Bucket
+		var BucketList = DB.GetBucketList();
+		if (BucketList.size() > 0) {
+			logger.info("Lifecycle Filter Start!");
+			var Filter = new LifecycleFilter(DB);
 
-            if (Filter.Filtering())
-            {
-                logger.info("Lifecycle Sender Start!");
-                var Sender = new LifecycleSender(DB, Config.S3SourceURL, Config.AccessKey, Config.SecretKey);
-                Sender.Start();
-            }
-            else
-                logger.info("Lifecycle filtering Empty!");
-        }
+			if (Filter.Filtering()) {
+				logger.info("Lifecycle Sender Start!");
+				var Sender = new LifecycleSender(DB, Config.S3SourceURL, Config.AccessKey, Config.SecretKey);
+				Sender.Start();
+			} else
+				logger.info("Lifecycle filtering Empty!");
+		}
 
-        logger.info("Lifecycle Manager End!");
-    }
+		logger.info("Lifecycle Manager End!");
+	}
 
-    public static boolean SavePid(String FilePath)
-	{
+	public static boolean SavePid(String FilePath) {
 		try {
 			String temp = ManagementFactory.getRuntimeMXBean().getName();
 			int index = temp.indexOf("@");
 			String PID = temp.substring(0, index);
-	
+
 			File file = new File(FilePath);
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
 			writer.write(PID);

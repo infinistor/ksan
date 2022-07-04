@@ -27,217 +27,221 @@ import com.pspace.DB.Table.*;
 import com.pspace.backend.Data.*;
 
 public class DBManager {
-    static final Logger logger = LoggerFactory.getLogger(DBManager.class);
-    
-    private final BucketTable BucketQuery = new BucketTable();
-    private final ObjectTable ObjectQuery = new ObjectTable();
-    private final MultipartTable MultipartQuery = new MultipartTable();
-    private final BaseTable LifecycleQuery = new LifecycleEventTable();
-    private final BaseTable LifecycleFailedQuery = new LifecycleFailedTable();
+	static final Logger logger = LoggerFactory.getLogger(DBManager.class);
 
-    private static final long DB_SELECT_LIMIT = 1000;
+	private final BucketTable BucketQuery = new BucketTable();
+	private final ObjectTable ObjectQuery = new ObjectTable();
+	private final MultipartTable MultipartQuery = new MultipartTable();
+	private final BaseTable LifecycleQuery = new LifecycleEventTable();
+	private final BaseTable LifecycleFailedQuery = new LifecycleFailedTable();
 
-    private final DBConfig Config;
-    private final String URL;
+	private static final long DB_SELECT_LIMIT = 1000;
 
-    public DBManager(DBConfig Config)
-    {
-        this.Config = Config;
-        URL = String.format("jdbc:mysql://%s:%d/%s?useSSL=false", Config.Host, Config.Port, Config.DatabaseName);
-    }
+	private final DBConfig Config;
+	private final String URL;
 
-    /************************************** Select ***************************************/
-
-    public List<BucketData> GetBucketList()
-    {
-        var DataList = new ArrayList<BucketData>();
-
-        boolean loop = true;
-        long Index = 0;
-        
-        while(loop)
-        {
-            var rmap = Select(BucketQuery.GetSelectQuery(Index));
-            if (rmap == null) break;
-            if (rmap.size() == 0) break;
-            
-            if (rmap.size() < DB_SELECT_LIMIT) loop = false;
-            else Index += 1000;
-            
-            DataList.addAll(BucketTable.GetList(rmap));
-        }
-        
-        return DataList;
-    }
-
-    public List<ObjectData> GetObjectList(String BucketName)
-    {
-        var DataList = new ArrayList<ObjectData>();
-
-        boolean loop = true;
-        long Index = 0;
-        
-        while(loop)
-        {
-            var rmap = Select(ObjectQuery.GetSelectQuery(BucketName, Index));
-            if (rmap == null) break;
-            if (rmap.size() == 0) break;
-            
-            if (rmap.size() < DB_SELECT_LIMIT) loop = false;
-            else Index += 1000;
-            
-            DataList.addAll(ObjectTable.GetList(BucketName, rmap));
-        }
-        
-        return DataList;
-    }
-
-    public List<MultipartData> GetMultipartList(String BucketName)
-    {
-        var DataList = new ArrayList<MultipartData>();
-
-        boolean loop = true;
-        long Index = 0;
-        
-        while(loop)
-        {
-            var rmap = Select(MultipartQuery.GetSelectQuery(BucketName, Index));
-            if (rmap == null) break;
-            if (rmap.size() == 0) break;
-            
-            if (rmap.size() < DB_SELECT_LIMIT) loop = false;
-            else Index += 1000;
-            
-            DataList.addAll(MultipartTable.GetList(BucketName, rmap));
-        }
-        
-        return DataList;
-    }
-
-    public List<LifecycleEventData> GetLifecycleEventList()
-    {
-        List<HashMap<String, Object>> rmap = Select(LifecycleQuery.GetSelectQuery(0));
-        if (rmap == null) return null;
-        return LifecycleEventTable.GetList(rmap);
-    }
-    /************************************** Insert ***************************************/
-
-    public boolean CreateTables()
-    {
-        //DB Create Table
-        if(!Execute(URL, LifecycleQuery.GetCreateTableQuery())) return false;
-        if(!Execute(URL, LifecycleFailedQuery.GetCreateTableQuery())) return false;
-        return true;
-    }
-
-    public boolean InsertLifecycles(List<LifecycleEventData> Lifecycles)
-    {
-        boolean result = true;
-
-        for(var Lifecycle : Lifecycles)
-            if(!InsertLifecycle(Lifecycle)) result = false;
-
-        return result;
-    }
-    public boolean InsertLifecycle(LifecycleEventData Lifecycle)
-    {
-        return Insert(URL, LifecycleQuery.GetInsertQuery(), Lifecycle.GetInsertDBParameters());
-    }
-    public boolean InsertLifecycleFailed(LifecycleFailedData LifecycleFailed)
-    {
-        return Insert(URL, LifecycleFailedQuery.GetInsertQuery(), LifecycleFailed.GetInsertDBParameters());
-    }
-    /************************************** Clear ****************************************/
-
-    public boolean LifecycleEventsClear()
-    {
-        return Delete(URL, LifecycleQuery.GetClearQuery(0));
-    }
-    
-    /************************************** Utility **************************************/
-    
-	private boolean Execute(String URL, String Query)
-	{
-        try
-        (
-            Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
-            PreparedStatement stmt = conn.prepareStatement(Query);
-        ){
-            stmt.execute();
-            return true;
-        } catch (SQLException e) {
-            logger.error("Query Error : {}", Query, e);
-            return false;
-        }
+	public DBManager(DBConfig Config) {
+		this.Config = Config;
+		URL = String.format("jdbc:mysql://%s:%d/%s?useSSL=false", Config.Host, Config.Port, Config.DatabaseName);
 	}
 
-    private boolean Insert(String URL, String Query, List<Object> Params)
-    {
-        try
-        (
-            Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
-            LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
-        ){
-            int index = 1;
-            for(Object Param : Params) stmt.setObject(index++, Param);
-            logger.debug(stmt.toString());
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            logger.error("Query Error : {}", Query, e);
-            return false;
-        }
-    }
+	/**************************************
+	 * Select
+	 ***************************************/
 
-    private List<HashMap<String, Object>> Select(String Query)
-    {
-        try
-        (
-            Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
-            LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
-            ResultSet rs = stmt.executeQuery();
-        ){
-            logger.debug(stmt.toString());
+	public List<BucketData> GetBucketList() {
+		var DataList = new ArrayList<BucketData>();
 
-            List<HashMap<String, Object>> rmap = null;
+		boolean loop = true;
+		long Index = 0;
 
-            ResultSetMetaData md = rs.getMetaData();
-            int columns = md.getColumnCount();
+		while (loop) {
+			var rmap = Select(BucketQuery.GetSelectQuery(Index));
+			if (rmap == null)
+				break;
+			if (rmap.size() == 0)
+				break;
 
-            int init = 0;
-            while (rs.next()) {
-                if(init == 0) {
-                    rmap = new ArrayList<HashMap<String, Object>>();
-                    init++;
-                }
+			if (rmap.size() < DB_SELECT_LIMIT)
+				loop = false;
+			else
+				Index += 1000;
 
-                HashMap<String, Object> map = null; 
-                map = new HashMap<String, Object>(columns);
-                for(int i=1; i<=columns; ++i) {
+			DataList.addAll(BucketTable.GetList(rmap));
+		}
+
+		return DataList;
+	}
+
+	public List<ObjectData> GetObjectList(String BucketName) {
+		var DataList = new ArrayList<ObjectData>();
+
+		boolean loop = true;
+		long Index = 0;
+
+		while (loop) {
+			var rmap = Select(ObjectQuery.GetSelectQuery(BucketName, Index));
+			if (rmap == null)
+				break;
+			if (rmap.size() == 0)
+				break;
+
+			if (rmap.size() < DB_SELECT_LIMIT)
+				loop = false;
+			else
+				Index += 1000;
+
+			DataList.addAll(ObjectTable.GetList(BucketName, rmap));
+		}
+
+		return DataList;
+	}
+
+	public List<MultipartData> GetMultipartList(String BucketName) {
+		var DataList = new ArrayList<MultipartData>();
+
+		boolean loop = true;
+		long Index = 0;
+
+		while (loop) {
+			var rmap = Select(MultipartQuery.GetSelectQuery(BucketName, Index));
+			if (rmap == null)
+				break;
+			if (rmap.size() == 0)
+				break;
+
+			if (rmap.size() < DB_SELECT_LIMIT)
+				loop = false;
+			else
+				Index += 1000;
+
+			DataList.addAll(MultipartTable.GetList(BucketName, rmap));
+		}
+
+		return DataList;
+	}
+
+	public List<LifecycleEventData> GetLifecycleEventList() {
+		List<HashMap<String, Object>> rmap = Select(LifecycleQuery.GetSelectQuery(0));
+		if (rmap == null)
+			return null;
+		return LifecycleEventTable.GetList(rmap);
+	}
+
+	/**************************************
+	 * Insert
+	 ***************************************/
+
+	public boolean CreateTables() {
+		// DB Create Table
+		if (!Execute(URL, LifecycleQuery.GetCreateTableQuery()))
+			return false;
+		if (!Execute(URL, LifecycleFailedQuery.GetCreateTableQuery()))
+			return false;
+		return true;
+	}
+
+	public boolean InsertLifecycles(List<LifecycleEventData> Lifecycles) {
+		boolean result = true;
+
+		for (var Lifecycle : Lifecycles)
+			if (!InsertLifecycle(Lifecycle))
+				result = false;
+
+		return result;
+	}
+
+	public boolean InsertLifecycle(LifecycleEventData Lifecycle) {
+		return Insert(URL, LifecycleQuery.GetInsertQuery(), Lifecycle.GetInsertDBParameters());
+	}
+
+	public boolean InsertLifecycleFailed(LifecycleFailedData LifecycleFailed) {
+		return Insert(URL, LifecycleFailedQuery.GetInsertQuery(), LifecycleFailed.GetInsertDBParameters());
+	}
+
+	/**************************************
+	 * Clear
+	 ****************************************/
+
+	public boolean LifecycleEventsClear() {
+		return Delete(URL, LifecycleQuery.GetClearQuery(0));
+	}
+
+	/**************************************
+	 * Utility
+	 **************************************/
+
+	private boolean Execute(String URL, String Query) {
+		try (
+				Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
+				PreparedStatement stmt = conn.prepareStatement(Query);) {
+			stmt.execute();
+			return true;
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", Query, e);
+			return false;
+		}
+	}
+
+	private boolean Insert(String URL, String Query, List<Object> Params) {
+		try (
+				Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
+				LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);) {
+			int index = 1;
+			for (Object Param : Params)
+				stmt.setObject(index++, Param);
+			logger.debug(stmt.toString());
+			return stmt.executeUpdate() > 0;
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", Query, e);
+			return false;
+		}
+	}
+
+	private List<HashMap<String, Object>> Select(String Query) {
+		try (
+				Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
+				LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
+				ResultSet rs = stmt.executeQuery();) {
+			logger.debug(stmt.toString());
+
+			List<HashMap<String, Object>> rmap = null;
+
+			ResultSetMetaData md = rs.getMetaData();
+			int columns = md.getColumnCount();
+
+			int init = 0;
+			while (rs.next()) {
+				if (init == 0) {
+					rmap = new ArrayList<HashMap<String, Object>>();
+					init++;
+				}
+
+				HashMap<String, Object> map = null;
+				map = new HashMap<String, Object>(columns);
+				for (int i = 1; i <= columns; ++i) {
 					map.put(md.getColumnName(i), rs.getObject(i));
 				}
-                rmap.add(map);
-            }
-            return rmap;
+				rmap.add(map);
+			}
+			return rmap;
 
-        } catch (SQLException e) {
-            logger.error("Query Error : {}", Query, e);
-            return null;
-        }
-    }
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", Query, e);
+			return null;
+		}
+	}
 
-    private boolean Delete(String URL, String Query)
-    {
-        try
-        (
-            Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
-            LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);
-        ){
-            stmt.execute();
-            logger.debug(stmt.toString());
-            return true;
-        } catch (SQLException e) {
-            logger.error("Query Error : {}", Query, e);
-            return false;
-        }
-    }
+	private boolean Delete(String URL, String Query) {
+		try (
+				Connection conn = DriverManager.getConnection(URL, Config.User, Config.Password);
+				LogPreparedStatement stmt = new LogPreparedStatement(conn, Query);) {
+			stmt.execute();
+			logger.debug(stmt.toString());
+			return true;
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", Query, e);
+			return false;
+		}
+	}
 }

@@ -16,62 +16,63 @@ import java.util.List;
 
 import com.pspace.backend.Data.LifecycleEventData;
 
-public class LifecycleEventTable implements BaseTable{
+public class LifecycleEventTable implements BaseTable {
 
-    protected final static String DB_TABLE_NAME = "lifecycle_event";
-    protected final static String DB_ID         = "id";
-    protected final static String DB_BUCKET     = "bucketname";
-    protected final static String DB_OBJECT     = "objectname";
-    protected final static String DB_VERSION_ID = "versionid";
-    protected final static String DB_UPLOAD_ID  = "uploadid";
+	protected final static String DB_TABLE_NAME = "lifecycle_event";
+	protected final static String DB_ID = "id";
+	protected final static String DB_BUCKET = "bucketname";
+	protected final static String DB_OBJECT = "objectname";
+	protected final static String DB_VERSION_ID = "versionid";
+	protected final static String DB_UPLOAD_ID = "uploadid";
 
-    @Override
-    public String GetCreateTableQuery() {
-        return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
-            DB_ID         + " bigint auto_increment primary key, " +
-            DB_BUCKET     + " varchar(64) null, " +
-            DB_OBJECT     + " varchar(2048) null, " +
-            DB_VERSION_ID + " varchar(32) not null, " +
-            DB_UPLOAD_ID  + " varchar(32) null);" ;
-    }
+	@Override
+	public String GetCreateTableQuery() {
+		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
+				DB_ID + " bigint auto_increment primary key, " +
+				DB_BUCKET + " varchar(64) null, " +
+				DB_OBJECT + " varchar(2048) null, " +
+				DB_VERSION_ID + " varchar(32) not null, " +
+				DB_UPLOAD_ID + " varchar(32) null);";
+	}
 
-    @Override
-    public String GetInsertQuery() {
-        return String.format("INSERT INTO %s(%s, %s, %s, %s) VALUES(?, ?, ?, ?)",
-                            DB_TABLE_NAME, DB_BUCKET, DB_OBJECT, DB_VERSION_ID, DB_UPLOAD_ID);
-    }
+	@Override
+	public String GetInsertQuery() {
+		return String.format("INSERT INTO %s(%s, %s, %s, %s) VALUES(?, ?, ?, ?)",
+				DB_TABLE_NAME, DB_BUCKET, DB_OBJECT, DB_VERSION_ID, DB_UPLOAD_ID);
+	}
 
-    @Override
-    public String GetSelectQuery(long Index) {
-        return String.format("SELECT * FROM %s LIMIT %d, %d;", DB_TABLE_NAME, Index, Index + 1000);
-    }
+	@Override
+	public String GetSelectQuery(long Index) {
+		return String.format("SELECT * FROM %s LIMIT %d, %d;", DB_TABLE_NAME, Index, Index + 1000);
+	}
 
-    @Override
-    public String GetDeleteQuery(long Index) {
-        return String.format("Delete from %s where ID = %d;", DB_TABLE_NAME, Index);
-    }
+	@Override
+	public String GetDeleteQuery(long Index) {
+		return String.format("Delete from %s where ID = %d;", DB_TABLE_NAME, Index);
+	}
 
-    @Override
-    public String GetClearQuery(long LastIndex) {
-        if(LastIndex == 0) return String.format("Delete from %s;", DB_TABLE_NAME);
-        else               return String.format("Delete from %s where ID <= %d;", DB_TABLE_NAME, LastIndex);
-    }
+	@Override
+	public String GetClearQuery(long LastIndex) {
+		if (LastIndex == 0)
+			return String.format("Delete from %s;", DB_TABLE_NAME);
+		else
+			return String.format("Delete from %s where ID <= %d;", DB_TABLE_NAME, LastIndex);
+	}
 
-    public static List<LifecycleEventData> GetList(List<HashMap<String, Object>> resultList)
-	{
-        if (resultList == null) return null;
+	public static List<LifecycleEventData> GetList(List<HashMap<String, Object>> resultList) {
+		if (resultList == null)
+			return null;
 		var MyList = new ArrayList<LifecycleEventData>();
 
-        for(var result : resultList)
-        {
-            var Index      = (long)result.get(DB_ID);
-            var BucketName = (String)result.get(DB_BUCKET);
-            var ObjectName = (String)result.get(DB_OBJECT);
-            var VersionId  = (String)result.get(DB_VERSION_ID);
-            var UploadId   = (String)result.get(DB_UPLOAD_ID);
+		for (var result : resultList) {
+			var Index = (long) result.get(DB_ID);
+			var BucketName = (String) result.get(DB_BUCKET);
+			var ObjectName = (String) result.get(DB_OBJECT);
+			var VersionId = (String) result.get(DB_VERSION_ID);
+			var UploadId = (String) result.get(DB_UPLOAD_ID);
 
-            MyList.add(new LifecycleEventData(Index, BucketName, ObjectName, VersionId, UploadId));
-        }
-        return MyList;
+			MyList.add(new LifecycleEventData(Index, BucketName, ObjectName, VersionId, UploadId));
+		}
+		return MyList;
 	}
 }

@@ -10,55 +10,43 @@
 */
 package com.pspace.DB;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class DBConfig {
-    public String Host;
-    public int Port;
-    public String DatabaseName;
-    public String User;
-    public String Password;
+	public String Host;
+	public int Port;
+	public String DatabaseName;
+	public String User;
+	public String Password;
 
-    public DBConfig()
-    {
-        Init();
-    }
+	public DBConfig() {
+		Init();
+	}
 
-    public DBConfig(String Host, int Port, String DatabaseName, String User, String Password)
-    {
-        this.Host = Host;
-        this.Port = Port;
-        this.DatabaseName = DatabaseName;
-        this.User = User;
-        this.Password = Password;
-    }
+	public DBConfig(String Host, int Port, String DatabaseName, String User, String Password) {
+		this.Host = Host;
+		this.Port = Port;
+		this.DatabaseName = DatabaseName;
+		this.User = User;
+		this.Password = Password;
+	}
 
-    public void Init()
-    {
-        Host = "";
-        Port = 0;
-        DatabaseName = "";
-        User = "";
-        Password = "";
-    }
-    
-    @Override
-    public String toString()
-    {
-        return String.format(
-        "%s{\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %d,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s\n" + 
-        "}",
-        "DBConfig",
-            "Host", Host,
-            "Port", Port,
-            "DatabaseName", DatabaseName,
-            "User", User,
-            "Password", Password
-        );
-    }
-    
+	public void Init() {
+		Host = "";
+		Port = 0;
+		DatabaseName = "";
+		User = "";
+		Password = "";
+	}
+
+	@Override
+	public String toString() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
+	}
 }

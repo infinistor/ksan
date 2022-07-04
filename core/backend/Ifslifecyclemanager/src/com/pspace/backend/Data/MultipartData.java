@@ -12,34 +12,29 @@ package com.pspace.backend.Data;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class MultipartData {
-    public String BucketName;
-    public String ObjectName;
-    public Date LastModified;
-    public String UploadId;
+	public String BucketName;
+	public String ObjectName;
+	public Date LastModified;
+	public String UploadId;
 
-    public MultipartData(String BucketName, String ObjectName, Date LastModified, String UploadId)
-    {
-        this.BucketName   = BucketName;
-        this.ObjectName   = ObjectName;
-        this.LastModified = LastModified;
-        this.UploadId     = UploadId;
-    }
+	public MultipartData(String BucketName, String ObjectName, Date LastModified, String UploadId) {
+		this.BucketName = BucketName;
+		this.ObjectName = ObjectName;
+		this.LastModified = LastModified;
+		this.UploadId = UploadId;
+	}
 
-    @Override
-    public String toString() {
-        return String.format(
-        "%s{\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s,\n" + 
-            "\t%s : %s\n" + 
-        "}",
-        "MultipartData",
-        "BucketName"    , BucketName,
-        "ObjectName"    , ObjectName,
-        "LastModified"  , LastModified.toString(),
-        "UploadId"     , UploadId
-        );
-    }
+	@Override
+	public String toString() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
+	}
 }
