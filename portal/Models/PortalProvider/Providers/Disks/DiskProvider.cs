@@ -490,9 +490,9 @@ namespace PortalProvider.Providers.Disks
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
 
-						// 서비스 상태가 변경될 경우
-						if (Exist.State != (EnumDbDiskState)Request.State)
-							Result = await UpdateState(Request.ServerId, Exist.Id.ToString(), Request.State);
+						// // 서비스 상태가 변경될 경우
+						// if (Exist.State != (EnumDbDiskState)Request.State)
+						// 	Result = await UpdateState(Request.ServerId, Exist.Id.ToString(), Request.State);
 
 						Result.Result = EnumResponseResult.Success;
 					}
