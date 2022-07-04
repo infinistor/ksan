@@ -163,10 +163,12 @@ public class DISKPOOL {
                        throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
                      }  
                  }
-
+                 
+                 logger.debug("ServerId : {} OSDIP : {} currentServerIdx : {} startIndex {} ", srv.getId(), srv.getName(), currentServerIdx, startIndex);
                  if (srv.getStatus() != ServerStatus.ONLINE){
                      continue;
                  }
+                 
                  return srv;
             }
             logger.error("There is no server in the system!");
