@@ -41,6 +41,9 @@ public class CBalanceMain {
     @Option(name="--objId", usage="Specify the object Id insted of object key")
     public String objId = "";
     
+    @Option(name="--versionId", usage="Specify the object version Id if you wish particular version of an object")
+    private String versionId ="null";
+    
     @Option(name="--SrcDiskId", usage="Specify the source disk Id")
     public String SrcDiskId = "";
     
@@ -89,7 +92,7 @@ public class CBalanceMain {
              parser.parseArgument(args);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --target <object | size | empty > --bucketName <bucket Name> --key <object path> --size <capacity to move> --SrcDiskId <Source disk id> --DstDiskId <Destination disk Id>\n", getProgramName());
+           System.err.format("%s --target <object | size | empty > --bucketName <bucket Name> --key <object path> --versionId <object version Id> --size <capacity to move> --SrcDiskId <Source disk id> --DstDiskId <Destination disk Id>\n", getProgramName());
            return -1;
         }
         
@@ -120,8 +123,11 @@ public class CBalanceMain {
         System.err.println();
         System.err.println("Example : To move a single object and the object can be idetified either key or object Id");
         System.err.format("          %s --target object --bucketName bucket1 --key file1.txt \n", getProgramName());
-        System.err.format("          %s --target bucket --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --versionId 526554498818254 \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
         System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --DstDiskId disk222\n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 --DstDiskId disk222\n", getProgramName());
         System.err.println("\nExample : To move a spefic amount of object from one disk to others");
         System.err.format("          %s --target size --SrcDiskId disk111  --DstDiskId disk222 --size 2GB \n", getProgramName());
         System.err.format("          %s --target size --SrcDiskId disk111 --size 2GB \n", getProgramName());
@@ -147,11 +153,11 @@ public class CBalanceMain {
             try {
                 if (key.isEmpty() && !objId.isEmpty()){
                     if (!DstDiskId.isEmpty() && !SrcDiskId.isEmpty())
-                        ret = cb.moveSingleObject(bucketName, objId, SrcDiskId, DstDiskId);
+                        ret = cb.moveSingleObject(bucketName, objId, versionId, SrcDiskId, DstDiskId);
                     else if (!SrcDiskId.isEmpty())
-                        ret = cb.moveSingleObject(bucketName, objId, SrcDiskId);
+                        ret = cb.moveSingleObject(bucketName, objId, versionId, SrcDiskId);
                     else
-                        ret = cb.moveSingleObject(bucketName, objId);
+                        ret = cb.moveSingleObject(bucketName, objId, versionId);
                     
                     if (ret  > 0)
                         System.out.format("A Single Object(bucket : %s, objid : %s) moved\n", bucketName, objId);
@@ -160,11 +166,12 @@ public class CBalanceMain {
                 }
                 else if (!key.isEmpty()){
                     if (!DstDiskId.isEmpty() && !SrcDiskId.isEmpty()){
-                        ret = cb.moveSingleObjectWithKey(bucketName, key, SrcDiskId, DstDiskId);
+                        ret = cb.moveSingleObjectWithKey(bucketName, key, versionId, SrcDiskId, DstDiskId);
                     } else if (!SrcDiskId.isEmpty())
-                        ret = cb.moveSingleObjectWithKey(bucketName, key, SrcDiskId);
-                    else
-                        ret = cb.moveSingleObjectWithKey(bucketName, key);
+                        ret = cb.moveSingleObjectWithKey(bucketName, key, versionId, SrcDiskId);
+                    else{
+                        ret = cb.moveSingleObjectWithKey(bucketName, key, versionId);
+                    }
                 
                     if (ret  > 0)
                         System.out.format("A Single Object(bucket : %s, key : %s) moved\n", bucketName, key);
@@ -213,9 +220,9 @@ public class CBalanceMain {
         howToUse(); 
     }
 
-    static void disableDebuglog(){
+    static void disableDebuglog(String driver){
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(driver);
         rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
     }
     
@@ -223,6 +230,9 @@ public class CBalanceMain {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
+        disableDebuglog("org.mongodb.driver");
+        disableDebuglog("com.pspace.ifs.ksan.objmanager");
+        
         CBalanceMain cb = new CBalanceMain();
         
         if (cb.parseArgs(args) != 0){

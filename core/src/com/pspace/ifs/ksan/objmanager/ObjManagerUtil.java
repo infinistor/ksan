@@ -86,14 +86,18 @@ public class ObjManagerUtil {
         return dbm.selectSingleObjectWithObjId(bt.getDiskPoolId(), bucketName, objid, versionId);
     }
     
-    public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
+    public Metadata getObjectWithPath(String bucketName, String key, String versionId) throws ResourceNotFoundException{
         Bucket bt;
         try {
             bt = this.getBucket(bucketName);
         } catch (SQLException ex) {
             throw new ResourceNotFoundException(ex.getMessage());
         }
-        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key);
+        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key, versionId);
+    }
+    
+    public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
+        return getObjectWithPath(bucketName, key, "null");
     }
     
     public int updateObject(String bucketName, String objid, Metadata mt, int updateCtrl){
@@ -125,22 +129,22 @@ public class ObjManagerUtil {
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
-    public DISK allocReplicaDisk(String bucketName, String pdiskId, String rdiskId) throws ResourceNotFoundException, AllServiceOfflineException{
+    public DISK allocReplicaDisk(String bucketName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
        
-        if (pdiskId == null && rdiskId == null)
-             throw new ResourceNotFoundException("null diskid provided!");
+        if (mt == null)
+             throw new ResourceNotFoundException("null metadata are provided!");
 
-        if (pdiskId != null && rdiskId != null){
+        /*if (pdiskId != null && rdiskId != null){
             if (pdiskId.isEmpty() && rdiskId.isEmpty())
                 throw new ResourceNotFoundException("empty diskid provided!");
-        }
+        }*/
         
-        DISK rsrcDisk = null;
+        //DISK rsrcDisk = null;
         String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-        DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
+       /* DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
         if (rdiskId != null)
-            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);
-        return dAlloc.allocDisk(dskPoolId, psrcDisk, rsrcDisk);
+            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);*/
+        return dAlloc.allocDisk(dskPoolId, mt);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){

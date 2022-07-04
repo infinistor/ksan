@@ -525,7 +525,7 @@ public class ObjManager {
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
-    public DISK allocReplicaDisk(String bucketName, String dpath, String diskid) throws ResourceNotFoundException, AllServiceOfflineException{
+    /*public DISK allocReplicaDisk(String bucketName, String dpath, String diskid) throws ResourceNotFoundException, AllServiceOfflineException{
         DISK primary = new DISK();
         
         if (dpath == null && diskid == null)
@@ -547,7 +547,7 @@ public class ObjManager {
         
         String dskPoolId = bt.getDiskPoolId();
         return dAlloc.allocDisk(dskPoolId, primary, null);
-    }
+    }*/
     
     public int putBucketVersioning(String bucketName, String versionState) throws ResourceNotFoundException, SQLException{
         int ret;
@@ -722,4 +722,8 @@ public class ObjManager {
     public void activate(){}
     
     public void deactivate(){}
+    
+    public void updateDiskpools(String routingKey, String body){
+        this.obmsr.getDiskMonitor().update(routingKey, body);
+    }
 }

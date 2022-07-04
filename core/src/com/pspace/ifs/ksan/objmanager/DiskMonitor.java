@@ -121,7 +121,7 @@ class JsonOutput{
 
 public class DiskMonitor {
 
-    class MQReader implements MQCallback{
+    /*class MQReader implements MQCallback{
 
         @Override
         public MQResponse call(String routingKey, String body) {
@@ -136,10 +136,10 @@ public class DiskMonitor {
             }
             return res;
         }  
-    }
+    }*/
     
     private ObjManagerCache obmCache;
-    private MQReceiver mq1ton;
+    //private MQReceiver mq1ton;
     private JSONParser parser;
     private static Logger logger;
     
@@ -147,19 +147,19 @@ public class DiskMonitor {
             throws Exception{
         logger = LoggerFactory.getLogger(DiskMonitor.class);
         this.obmCache = obmCache;
-        MQCallback callback = new MQReader();
-        mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
+        //MQCallback callback = new MQReader();
+        //mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
         parser = new JSONParser();
     }
     
-    private MQResponse update(String routingKey, String body) {
+    public MQResponse update(String routingKey, String body) {
         MQResponse ret;
         JsonOutput jo;
         DISKPOOL dskPool = null;
         if (routingKey.contains(".servers.disks.size"))
             return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
 
-        System.out.format("BiningKey : %s body : %s\n", routingKey, body);
+        logger.debug("BiningKey : {}{ body : {}\n", routingKey, body);
 
         try {
             jo = decodeJsonData(body);
@@ -296,11 +296,11 @@ public class DiskMonitor {
         MQResponse res;
         
         if (jo.status.equalsIgnoreCase("Good")){
-            System.out.println("Start Disk>>" + jo);
+            logger.debug("Start Disk {}" , jo);
             dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.GOOD);
         }
         else if (jo.status.equalsIgnoreCase("Stop")){
-            System.out.println("Stop Disk>>" + jo);
+            logger.debug("Stop Disk>> {}",  jo);
             dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.STOPPED);
         }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);

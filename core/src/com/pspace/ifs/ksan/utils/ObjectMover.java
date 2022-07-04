@@ -191,33 +191,51 @@ public class ObjectMover {
          
          throw new ResourceNotFoundException("There is no disk with ID " + diskID + " in the metadata!");
     }
+    // main move
+    private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws ResourceNotFoundException, Exception{
+        // move object in osd
+        if (osdc.moveObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
+            return -1;
+        //System.out.println("bucketName :>" + bucket);
+       return obmu.replaceDisk(bucket, objId, versionId, srcDisk.getId(), desDisk.getId()); 
+    }
+    
+    private int copyObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk)throws ResourceNotFoundException, Exception{
+        if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
+            return -1;
+        
+    }
     public int moveObject(String bucket, String objId, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         System.out.println("[moveObject] objId " + objId + " versionId : " + versionId);
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK replica = obmu.allocReplicaDisk(bucket, mt.getPrimaryDisk().getId(), mt.isReplicaExist() ? mt.getReplicaDisk().getId() : null);
+        DISK replica = obmu.allocReplicaDisk(bucket, mt);
         return moveObject(bucket, objId, versionId, srcDisk, replica);
     }
     
-    public int moveObject1(String bucket, String key, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        System.out.println("[moveObject1] key " + key );
-        Metadata mt = obmu.getObjectWithPath(bucket, key);
+    public int moveObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        System.out.println("[moveObject] objId " + objId + " versionId : " + versionId);
+        Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        System.out.println("[moveObject1] mt " + mt.getObjId() + " versionId :" + mt.getVersionId());
-        DISK replica = obmu.allocReplicaDisk(bucket, mt.getPrimaryDisk().getId(), mt.isReplicaExist() ? mt.getReplicaDisk().getId() : null);
-        System.out.println("srcDiskId >" + srcDiskId + " newDiskid >" + replica.getId());
+        DISK desDisk = getDisk(mt, desDiskId);
+        return moveObject(bucket, objId, versionId, srcDisk, desDisk);
+    }
+    
+    public int moveObject1(String bucket, String key, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        //System.out.format("[moveObject1] bucket : %s key : %s versionId : %s \n", bucket, key,  versionId);
+        Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);
+        DISK srcDisk = getDisk(mt, srcDiskId);
+        //System.out.println("[moveObject1] mt " + mt.getObjId() + " versionId :" + mt.getVersionId());
+        DISK replica = obmu.allocReplicaDisk(bucket, mt);
+        //System.out.println("srcDiskId >" + srcDiskId + " newDiskid >" + replica.getId());
         return moveObject(bucket, mt.getObjId(), mt.getVersionId(), srcDisk, replica);
     }
     
-    public int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws ResourceNotFoundException, Exception{
-        // move object in osd
-        osdc.moveObject(bucket, objId, versionId, srcDisk, desDisk);
-        System.out.println("bucketName :>" + bucket);
-       return obmu.replaceDisk(bucket, objId, versionId, srcDisk.getId(), desDisk.getId()); 
-    }
-    
-    public int moveObject1(String bucket, String key, String srcDiskId, String desDiskId) throws ResourceNotFoundException, Exception{
-       return moveObject(bucket, new Metadata(bucket, key).getObjId(), srcDiskId, desDiskId);
+    public int moveObject1(String bucket, String key, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, Exception{
+       Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);
+       DISK srcDisk = getDisk(mt, srcDiskId);
+       DISK desDisk = getDisk(mt, desDiskId);
+       return moveObject(bucket, new Metadata(bucket, key).getObjId(), versionId, srcDisk, desDisk);
     }
     
     public int startJob(){

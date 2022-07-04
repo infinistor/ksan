@@ -265,7 +265,7 @@ public class Objmanagertest {
             String key = "parentDir1/subDir/test11";
             ObjManagerUtil om = new ObjManagerUtil();;
             Metadata md = om.getObjectWithPath(bucketName, key);
-            DISK replica = om.allocReplicaDisk(bucketName, md.getPrimaryDisk().getId(), md.getReplicaDisk().getId());
+            DISK replica = om.allocReplicaDisk(bucketName, md);
             om.replaceDisk(bucketName, md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), replica.getId());
         } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
