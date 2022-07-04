@@ -16,70 +16,72 @@ import java.util.List;
 
 import com.pspace.backend.Data.ObjectData;
 
-public class ObjectTable implements BaseTable{
+public class ObjectTable implements BaseTable {
 
-    protected final static String DB_TABLE_NAME   = "MDSDBTable";
-    protected final static String DB_BUCKET       = "bucket";
-    protected final static String DB_KEYNAME      = "objKey";
-    protected final static String DB_SIZE         = "size";
-    protected final static String DB_TAGS         = "tag";
-    protected final static String DB_LASTMODIFIED = "lastModified";
-    protected final static String DB_VERSIONID    = "versionid";
-    protected final static String DB_DELETEMARKER = "deleteMarker";
-    protected final static String DB_LASTVERSION  = "lastversion";
+	protected final static String DB_TABLE_NAME = "MDSDBTable";
+	protected final static String DB_BUCKET = "bucket";
+	protected final static String DB_KEYNAME = "objKey";
+	protected final static String DB_SIZE = "size";
+	protected final static String DB_TAGS = "tag";
+	protected final static String DB_LASTMODIFIED = "lastModified";
+	protected final static String DB_VERSIONID = "versionid";
+	protected final static String DB_DELETEMARKER = "deleteMarker";
+	protected final static String DB_LASTVERSION = "lastversion";
 
-    @Override
-    public String GetCreateTableQuery() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	@Override
+	public String GetCreateTableQuery() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public String GetInsertQuery() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	@Override
+	public String GetInsertQuery() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public String GetSelectQuery(long Index) {
-        return String.format("SELECT %s, %s, %s, %s, %s, %s, %s, %s FROM %s LIMIT %d, %d;",
-        DB_BUCKET, DB_KEYNAME, DB_SIZE, DB_TAGS, DB_LASTMODIFIED, DB_VERSIONID, DB_DELETEMARKER, DB_LASTVERSION, DB_TABLE_NAME, Index, Index + 1000);
-    }
-    
-    public String GetSelectQuery(String BucketName, long Index) {
-        return String.format("SELECT %s, %s, %s, %s, %s, %s, %s FROM %s WHERE %s = '%s' LIMIT %d, %d;",
-                            DB_KEYNAME, DB_SIZE, DB_TAGS, DB_LASTMODIFIED, DB_VERSIONID, DB_DELETEMARKER, DB_LASTVERSION, DB_TABLE_NAME, DB_BUCKET, BucketName, Index, Index + 1000);
-    }
+	@Override
+	public String GetSelectQuery(long Index) {
+		return String.format("SELECT %s, %s, %s, %s, %s, %s, %s, %s FROM %s LIMIT %d, %d;",
+				DB_BUCKET, DB_KEYNAME, DB_SIZE, DB_TAGS, DB_LASTMODIFIED, DB_VERSIONID, DB_DELETEMARKER, DB_LASTVERSION,
+				DB_TABLE_NAME, Index, Index + 1000);
+	}
 
-    @Override
-    public String GetDeleteQuery(long Index) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public String GetSelectQuery(String BucketName, long Index) {
+		return String.format("SELECT %s, %s, %s, %s, %s, %s, %s FROM %s WHERE %s = '%s' LIMIT %d, %d;",
+				DB_KEYNAME, DB_SIZE, DB_TAGS, DB_LASTMODIFIED, DB_VERSIONID, DB_DELETEMARKER, DB_LASTVERSION,
+				DB_TABLE_NAME, DB_BUCKET, BucketName, Index, Index + 1000);
+	}
 
-    @Override
-    public String GetClearQuery(long LastIndex) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public static List<ObjectData> GetList(String BucketName, List<HashMap<String, Object>> resultList)
-	{
-        if (resultList == null) return null;
+	@Override
+	public String GetDeleteQuery(long Index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String GetClearQuery(long LastIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static List<ObjectData> GetList(String BucketName, List<HashMap<String, Object>> resultList) {
+		if (resultList == null)
+			return null;
 		var MyList = new ArrayList<ObjectData>();
 
-        for(var result : resultList)
-        {
-            var KeyName      = (String)result.get(DB_KEYNAME);
-            var FileSize     = (long)result.get(DB_SIZE);
-            var Tags         = (String)result.get(DB_TAGS);
-            var LastModified = (long)result.get(DB_LASTMODIFIED);
-            var VersionId    = (String)result.get(DB_VERSIONID);
-            var DeleteMarker = (String)result.get(DB_DELETEMARKER);
-            var LastVersion  = (boolean)result.get(DB_LASTVERSION);
-            var ObjectInfo   = new ObjectData(BucketName, KeyName, FileSize, Tags, LastModified, VersionId, DeleteMarker, LastVersion);
-            MyList.add(ObjectInfo);
-        }
-        return MyList;
+		for (var result : resultList) {
+			var KeyName = (String) result.get(DB_KEYNAME);
+			var FileSize = (long) result.get(DB_SIZE);
+			var Tags = (String) result.get(DB_TAGS);
+			var LastModified = (long) result.get(DB_LASTMODIFIED);
+			var VersionId = (String) result.get(DB_VERSIONID);
+			var DeleteMarker = (String) result.get(DB_DELETEMARKER);
+			var LastVersion = (boolean) result.get(DB_LASTVERSION);
+			var ObjectInfo = new ObjectData(BucketName, KeyName, FileSize, Tags, LastModified, VersionId, DeleteMarker,
+					LastVersion);
+			MyList.add(ObjectInfo);
+		}
+		return MyList;
 	}
 }

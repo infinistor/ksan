@@ -12,39 +12,41 @@ package com.pspace.DB.Table;
 
 public class LifecycleFailedTable extends LifecycleEventTable {
 
-    protected final static String DB_TABLE_NAME = "lifecycle_fail_event";
-    protected final static String DB_FAIL_LOG   = "fail_log";
+	protected final static String DB_TABLE_NAME = "lifecycle_fail_event";
+	protected final static String DB_FAIL_LOG = "fail_log";
 
-    @Override
-    public String GetCreateTableQuery() {
-        return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
-            DB_ID         + " bigint auto_increment primary key, " +
-            DB_BUCKET     + " varchar(64) null, " +
-            DB_OBJECT     + " varchar(2048) null, " +
-            DB_VERSION_ID + " varchar(32) not null, " +
-            DB_UPLOAD_ID + " varchar(32) not null, " +
-            DB_FAIL_LOG  + " text null);" ;
-    }
+	@Override
+	public String GetCreateTableQuery() {
+		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
+				DB_ID + " bigint auto_increment primary key, " +
+				DB_BUCKET + " varchar(64) null, " +
+				DB_OBJECT + " varchar(2048) null, " +
+				DB_VERSION_ID + " varchar(32) not null, " +
+				DB_UPLOAD_ID + " varchar(32) not null, " +
+				DB_FAIL_LOG + " text null);";
+	}
 
-    @Override
-    public String GetInsertQuery() {
-        return String.format("INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?)",
-                            DB_TABLE_NAME, DB_BUCKET, DB_OBJECT, DB_VERSION_ID, DB_UPLOAD_ID, DB_FAIL_LOG);
-    }
+	@Override
+	public String GetInsertQuery() {
+		return String.format("INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?)",
+				DB_TABLE_NAME, DB_BUCKET, DB_OBJECT, DB_VERSION_ID, DB_UPLOAD_ID, DB_FAIL_LOG);
+	}
 
-    @Override
-    public String GetSelectQuery(long Index) {
-        return String.format("SELECT * FROM %s LIMIT %d, %d;", DB_TABLE_NAME, Index, Index + 1000);
-    }
+	@Override
+	public String GetSelectQuery(long Index) {
+		return String.format("SELECT * FROM %s LIMIT %d, %d;", DB_TABLE_NAME, Index, Index + 1000);
+	}
 
-    @Override
-    public String GetDeleteQuery(long Index) {
-        return String.format("Delete from %s where ID = %d;", DB_TABLE_NAME, Index);
-    }
+	@Override
+	public String GetDeleteQuery(long Index) {
+		return String.format("Delete from %s where ID = %d;", DB_TABLE_NAME, Index);
+	}
 
-    @Override
-    public String GetClearQuery(long LastIndex) {
-        if(LastIndex == 0) return String.format("Delete from %s;", DB_TABLE_NAME);
-        else               return String.format("Delete from %s where ID <= %d;", DB_TABLE_NAME, LastIndex);
-    }
+	@Override
+	public String GetClearQuery(long LastIndex) {
+		if (LastIndex == 0)
+			return String.format("Delete from %s;", DB_TABLE_NAME);
+		else
+			return String.format("Delete from %s where ID <= %d;", DB_TABLE_NAME, LastIndex);
+	}
 }

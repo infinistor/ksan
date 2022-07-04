@@ -20,68 +20,74 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BucketTable implements BaseTable {
-    static final Logger logger = LoggerFactory.getLogger(BucketTable.class);
+	static final Logger logger = LoggerFactory.getLogger(BucketTable.class);
 
-    protected final static String DB_TABLE_NAME = "BUCKETS";
-    protected final static String DB_BUCKET = "name";
-    protected final static String DB_BUCKET_LIFECYCLE = "lifecycle";
+	protected final static String DB_TABLE_NAME = "BUCKETS";
+	protected final static String DB_BUCKET = "name";
+	protected final static String DB_BUCKET_LIFECYCLE = "lifecycle";
 
-    @Override
-    public String GetCreateTableQuery() {
-        return "";
-    }
-
-    @Override
-    public String GetInsertQuery() {
-        return "";
-    }
-
-    @Override
-    public String GetSelectQuery(long Index) {
-        return String.format("SELECT %s, convert(%s using utf8) as %s FROM %s WHERE %s IS NOT NULL LIMIT %d, %d;",
-                            DB_BUCKET, DB_BUCKET_LIFECYCLE, DB_BUCKET_LIFECYCLE, DB_TABLE_NAME, DB_BUCKET_LIFECYCLE, Index, Index + 1000);
-    }
-
-    @Override
-    public String GetDeleteQuery(long Index) { return ""; }
-
-    @Override
-    public String GetClearQuery(long LastIndex) { return ""; }
-
-    public static String GetSelectOneQuery(String bucketName) {
-        return String.format("SELECT %s, convert(%s using utf8) as %s FROM %s WHERE %s = '%s';",
-                            DB_BUCKET, DB_BUCKET_LIFECYCLE, DB_BUCKET_LIFECYCLE, DB_TABLE_NAME, DB_BUCKET, bucketName);
-    }
-
-    public static List<BucketData> GetList(List<HashMap<String, Object>> resultList)
-	{
-        if (resultList == null) return null;
-		var MyList = new ArrayList<BucketData>();
-
-        for(var result : resultList)
-        {
-            var BucketName      = (String)result.get(DB_BUCKET);
-            var StrLifecycle    = (String)result.get(DB_BUCKET_LIFECYCLE);
-            var BucketInfo      = new BucketData(BucketName);
-            
-            BucketInfo.setLifecycleConfiguration(StrLifecycle);
-
-            MyList.add(BucketInfo);
-        }
-        return MyList;
+	@Override
+	public String GetCreateTableQuery() {
+		return "";
 	}
 
-    public static BucketData GetData(List<HashMap<String, Object>> resultList) {
-        if (resultList == null) return null;
-        if (resultList.size() > 2) return null;
+	@Override
+	public String GetInsertQuery() {
+		return "";
+	}
 
-        var result = resultList.get(0);
-        
-        var bucketName   = (String)result.get(DB_BUCKET);
-        var strLifecycle = (String)result.get(DB_BUCKET_LIFECYCLE);
-        var bucketInfo   = new BucketData(bucketName);
-        
-        bucketInfo.setLifecycleConfiguration(strLifecycle);
-        return bucketInfo;
-    }
+	@Override
+	public String GetSelectQuery(long Index) {
+		return String.format("SELECT %s, convert(%s using utf8) as %s FROM %s WHERE %s IS NOT NULL LIMIT %d, %d;",
+				DB_BUCKET, DB_BUCKET_LIFECYCLE, DB_BUCKET_LIFECYCLE, DB_TABLE_NAME, DB_BUCKET_LIFECYCLE, Index,
+				Index + 1000);
+	}
+
+	@Override
+	public String GetDeleteQuery(long Index) {
+		return "";
+	}
+
+	@Override
+	public String GetClearQuery(long LastIndex) {
+		return "";
+	}
+
+	public static String GetSelectOneQuery(String bucketName) {
+		return String.format("SELECT %s, convert(%s using utf8) as %s FROM %s WHERE %s = '%s';",
+				DB_BUCKET, DB_BUCKET_LIFECYCLE, DB_BUCKET_LIFECYCLE, DB_TABLE_NAME, DB_BUCKET, bucketName);
+	}
+
+	public static List<BucketData> GetList(List<HashMap<String, Object>> resultList) {
+		if (resultList == null)
+			return null;
+		var MyList = new ArrayList<BucketData>();
+
+		for (var result : resultList) {
+			var BucketName = (String) result.get(DB_BUCKET);
+			var StrLifecycle = (String) result.get(DB_BUCKET_LIFECYCLE);
+			var BucketInfo = new BucketData(BucketName);
+
+			BucketInfo.setLifecycleConfiguration(StrLifecycle);
+
+			MyList.add(BucketInfo);
+		}
+		return MyList;
+	}
+
+	public static BucketData GetData(List<HashMap<String, Object>> resultList) {
+		if (resultList == null)
+			return null;
+		if (resultList.size() > 2)
+			return null;
+
+		var result = resultList.get(0);
+
+		var bucketName = (String) result.get(DB_BUCKET);
+		var strLifecycle = (String) result.get(DB_BUCKET_LIFECYCLE);
+		var bucketInfo = new BucketData(bucketName);
+
+		bucketInfo.setLifecycleConfiguration(strLifecycle);
+		return bucketInfo;
+	}
 }

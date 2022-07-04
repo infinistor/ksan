@@ -13,52 +13,51 @@ package com.pspace.backend.Data;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LifecycleFailedData extends LifecycleEventData{
+public class LifecycleFailedData extends LifecycleEventData {
 
-    public long Index;
-    public String BucketName;
-    public String ObjectName;
-    public String VersionId;
-    public String UploadId;
-    public String FailLog;
-        
-    public LifecycleFailedData(long Index, String BucketName, String ObjectName, String VersionId, String UploadId, String FailLog)
-    {
-        super(Index, BucketName, ObjectName, VersionId, UploadId);
-        this.FailLog = FailLog;
-    }
+	public long Index;
+	public String BucketName;
+	public String ObjectName;
+	public String VersionId;
+	public String UploadId;
+	public String FailLog;
 
-    public LifecycleFailedData(String BucketName, String ObjectName, String VersionId, String UploadId, String FailLog)
-    {
-        super(BucketName, ObjectName, VersionId, UploadId);
-        this.FailLog = FailLog;
-    }
+	public LifecycleFailedData(long Index, String BucketName, String ObjectName, String VersionId, String UploadId,
+			String FailLog) {
+		super(Index, BucketName, ObjectName, VersionId, UploadId);
+		this.FailLog = FailLog;
+	}
 
-    public LifecycleFailedData(LifecycleEventData Data, String FailLog)
-    {
-        super(Data.BucketName, Data.ObjectName, Data.VersionId, Data.UploadId);
-        this.FailLog = FailLog;
-    }
+	public LifecycleFailedData(String BucketName, String ObjectName, String VersionId, String UploadId,
+			String FailLog) {
+		super(BucketName, ObjectName, VersionId, UploadId);
+		this.FailLog = FailLog;
+	}
 
-    @Override
-    public void Init() {
-        Index = 0;
-        BucketName = "";
-        ObjectName = "";
-        VersionId = "";
-        UploadId = "";
-    }
+	public LifecycleFailedData(LifecycleEventData Data, String FailLog) {
+		super(Data.BucketName, Data.ObjectName, Data.VersionId, Data.UploadId);
+		this.FailLog = FailLog;
+	}
 
-    @Override
-    public List<Object> GetInsertDBParameters() {
-        var params = new ArrayList<Object>();
-        params.add(BucketName);
-        params.add(ObjectName);
-        params.add(VersionId);
-        params.add(UploadId);
-        params.add(FailLog);
+	@Override
+	public void Init() {
+		Index = 0;
+		BucketName = "";
+		ObjectName = "";
+		VersionId = "";
+		UploadId = "";
+	}
 
-        return params;
-    }
-    
+	@Override
+	public List<Object> GetInsertDBParameters() {
+		var params = new ArrayList<Object>();
+		params.add(BucketName);
+		params.add(ObjectName);
+		params.add(VersionId);
+		params.add(UploadId);
+		params.add(FailLog);
+
+		return params;
+	}
+
 }

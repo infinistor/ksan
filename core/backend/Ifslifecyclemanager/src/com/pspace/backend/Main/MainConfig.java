@@ -21,89 +21,87 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainConfig {
-    private final String STR_FILENAME = "config.ini";
-    /////////////////////////////////////Global///////////////////////////////////////////
-    private final String STR_GLOBAL       = "Global";
-    private final String STR_GLOBAL_DELAY = "Delay";
-    ///////////////////////////////////// DB /////////////////////////////////////////////
-    private final String STR_DATABASE       = "DB";
-    private final String STR_DB_HOST        = "Host";
-    private final String STR_DB_PORT        = "Port";
-    private final String STR_DB_NAME     = "DatabaseName";
-    private final String STR_DB_USER        = "User";
-    private final String STR_DB_PASSWORD    = "Password";
-    ///////////////////////////////////// S3 /////////////////////////////////////////////
-    private final String STR_S3 = "S3";
-    private final String STR_S3_URL = "URL";
-    private final String STR_S3_ACCESSKEY = "AccessKey";
-    private final String STR_S3_SECRETKEY = "SecretKey";
+	private final String STR_FILENAME = "config.ini";
+	/////////////////////////// Global/////////////////////////////////////
+	private final String STR_GLOBAL = "Global";
+	private final String STR_GLOBAL_DELAY = "Delay";
+	///////////////////////////// DB //////////////////////////////////////
+	private final String STR_DATABASE = "DB";
+	private final String STR_DB_HOST = "Host";
+	private final String STR_DB_PORT = "Port";
+	private final String STR_DB_NAME = "DatabaseName";
+	private final String STR_DB_USER = "User";
+	private final String STR_DB_PASSWORD = "Password";
+	///////////////////////////// S3 ///////////////////////////////////////
+	private final String STR_S3 = "S3";
+	private final String STR_S3_URL = "URL";
+	private final String STR_S3_ACCESSKEY = "AccessKey";
+	private final String STR_S3_SECRETKEY = "SecretKey";
 
-    /*********************************************************************************************************/
-    static final Logger logger = LoggerFactory.getLogger(MainConfig.class);
-    public final String FileName;
-    private final Ini ini = new Ini();
-    /*********************************************************************************************************/
+	/*********************************************************************************************************/
+	static final Logger logger = LoggerFactory.getLogger(MainConfig.class);
+	public final String FileName;
+	private final Ini ini = new Ini();
+	/*********************************************************************************************************/
 
-    public int Delay;
-    public DBConfig DB;
+	public int Delay;
+	public DBConfig DB;
 
-    public String S3SourceURL;
-    public String AccessKey;
-    public String SecretKey;
+	public String S3SourceURL;
+	public String AccessKey;
+	public String SecretKey;
 
-    public MainConfig(String FileName)
-    {
-        if(FileName.isEmpty()) this.FileName = STR_FILENAME;
-        else this.FileName = FileName;
-    }
+	public MainConfig(String FileName) {
+		if (FileName.isEmpty())
+			this.FileName = STR_FILENAME;
+		else
+			this.FileName = FileName;
+	}
 
-    public boolean GetConfig()
-    {
-        
-    	File file = new File(FileName);
-    	try {
+	public boolean GetConfig() {
+
+		File file = new File(FileName);
+		try {
 			ini.load(new FileReader(file));
-            
-            Delay = ReadKeyToInt(STR_GLOBAL, STR_GLOBAL_DELAY);
-            
-            DB = ReadDBConfig();
 
-            S3SourceURL = ReadKeyToString(STR_S3, STR_S3_URL);
-            AccessKey = ReadKeyToString(STR_S3, STR_S3_ACCESSKEY);
-            SecretKey = ReadKeyToString(STR_S3, STR_S3_SECRETKEY);
+			Delay = ReadKeyToInt(STR_GLOBAL, STR_GLOBAL_DELAY);
+
+			DB = ReadDBConfig();
+
+			S3SourceURL = ReadKeyToString(STR_S3, STR_S3_URL);
+			AccessKey = ReadKeyToString(STR_S3, STR_S3_ACCESSKEY);
+			SecretKey = ReadKeyToString(STR_S3, STR_S3_SECRETKEY);
 
 		} catch (Exception e) {
 			logger.error("", e);
-            return false;
+			return false;
 		}
-    	return true;
-    }
-    
-    //////////////////////////////////////////////////////////////////////////
-    private DBConfig ReadDBConfig()
-    {
-        String URL = ReadKeyToString(STR_DATABASE, STR_DB_HOST);
-        int Port = ReadKeyToInt(STR_DATABASE, STR_DB_PORT);
-        String DatabaseName = ReadKeyToString(STR_DATABASE, STR_DB_NAME);
-        String Name = ReadKeyToString(STR_DATABASE, STR_DB_USER);
-        String Password = ReadKeyToString(STR_DATABASE, STR_DB_PASSWORD);
+		return true;
+	}
 
-        return new DBConfig(URL, Port, DatabaseName, Name, Password);
-    }
-    
-    //////////////////////////////////////////////////////////////////////////
-    private String ReadKeyToString(String Section, String Key)
-    {
-        String Value = ini.get(Section, Key);
-        return (Value == null) ? "" : Value;
-    }
-    private int ReadKeyToInt(String Section, String Key)
-    {
-        return NumberUtils.toInt(ini.get(Section, Key));
-    }
-    // private boolean ReadKeyToBoolean(String Section, String Key)
-    // {
-    // 	return Boolean.parseBoolean(ini.get(Section, Key));
-    // }
+	//////////////////////////////////////////////////////////////////////////
+	private DBConfig ReadDBConfig() {
+		String URL = ReadKeyToString(STR_DATABASE, STR_DB_HOST);
+		int Port = ReadKeyToInt(STR_DATABASE, STR_DB_PORT);
+		String DatabaseName = ReadKeyToString(STR_DATABASE, STR_DB_NAME);
+		String Name = ReadKeyToString(STR_DATABASE, STR_DB_USER);
+		String Password = ReadKeyToString(STR_DATABASE, STR_DB_PASSWORD);
+
+		return new DBConfig(URL, Port, DatabaseName, Name, Password);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	private String ReadKeyToString(String Section, String Key) {
+		String Value = ini.get(Section, Key);
+		return (Value == null) ? "" : Value;
+	}
+
+	private int ReadKeyToInt(String Section, String Key) {
+		return NumberUtils.toInt(ini.get(Section, Key));
+	}
+	// private boolean ReadKeyToBoolean(String Section, String Key)
+	// {
+	// return Boolean.parseBoolean(ini.get(Section, Key));
+	// }
 
 }

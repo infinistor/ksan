@@ -19,60 +19,60 @@ import com.pspace.backend.Data.MultipartData;
 
 public class MultipartTable implements BaseTable {
 
-    protected final static String DB_TABLE_NAME = "MULTIPARTS";
-    protected final static String DB_BUCKET     = "bucket";
-    protected final static String DB_KEYNAME    = "objKey";
-    protected final static String DB_CHANGETIME = "changeTime";
-    protected final static String DB_COMPLETED  = "completed";
-    protected final static String DB_UPLOADID   = "uploadid";
-    @Override
-    public String GetCreateTableQuery() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	protected final static String DB_TABLE_NAME = "MULTIPARTS";
+	protected final static String DB_BUCKET = "bucket";
+	protected final static String DB_KEYNAME = "objKey";
+	protected final static String DB_CHANGETIME = "changeTime";
+	protected final static String DB_COMPLETED = "completed";
+	protected final static String DB_UPLOADID = "uploadid";
 
-    @Override
-    public String GetInsertQuery() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	@Override
+	public String GetCreateTableQuery() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public String GetSelectQuery(long Index) {
-        return String.format("SELECT %s, %s, %s, %s FROM %s WHERE %s = FALSE LIMIT %d, %d;",
-        DB_BUCKET, DB_KEYNAME, DB_CHANGETIME, DB_UPLOADID, DB_TABLE_NAME, DB_COMPLETED, Index, Index + 1000);
-    }
-    
-    public String GetSelectQuery(String BucketName, long Index) {
-        return String.format("SELECT %s, %s, %s FROM %s WHERE %s = FALSE and %s = '%s' LIMIT %d, %d;",
-                            DB_KEYNAME, DB_CHANGETIME, DB_UPLOADID, DB_TABLE_NAME, DB_COMPLETED, DB_BUCKET, BucketName, Index, Index + 1000);
-    }
+	@Override
+	public String GetInsertQuery() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public String GetSelectQuery(long Index) {
+		return String.format("SELECT %s, %s, %s, %s FROM %s WHERE %s = FALSE LIMIT %d, %d;",
+				DB_BUCKET, DB_KEYNAME, DB_CHANGETIME, DB_UPLOADID, DB_TABLE_NAME, DB_COMPLETED, Index, Index + 1000);
+	}
 
-    @Override
-    public String GetDeleteQuery(long Index) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public String GetSelectQuery(String BucketName, long Index) {
+		return String.format("SELECT %s, %s, %s FROM %s WHERE %s = FALSE and %s = '%s' LIMIT %d, %d;",
+				DB_KEYNAME, DB_CHANGETIME, DB_UPLOADID, DB_TABLE_NAME, DB_COMPLETED, DB_BUCKET, BucketName, Index,
+				Index + 1000);
+	}
 
-    @Override
-    public String GetClearQuery(long LastIndex) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public static List<MultipartData> GetList(String BucketName, List<HashMap<String, Object>> resultList)
-	{
-        if (resultList == null) return null;
+	@Override
+	public String GetDeleteQuery(long Index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String GetClearQuery(long LastIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static List<MultipartData> GetList(String BucketName, List<HashMap<String, Object>> resultList) {
+		if (resultList == null)
+			return null;
 		var MyList = new ArrayList<MultipartData>();
 
-        for(var result : resultList)
-        {
-            var KeyName      = (String)result.get(DB_KEYNAME);
-            var LastModified = (Date)result.get(DB_CHANGETIME);
-            var UploadId     = (String)result.get(DB_UPLOADID);
-            MyList.add(new MultipartData(BucketName, KeyName, LastModified, UploadId));
-        }
-        return MyList;
+		for (var result : resultList) {
+			var KeyName = (String) result.get(DB_KEYNAME);
+			var LastModified = (Date) result.get(DB_CHANGETIME);
+			var UploadId = (String) result.get(DB_UPLOADID);
+			MyList.add(new MultipartData(BucketName, KeyName, LastModified, UploadId));
+		}
+		return MyList;
 	}
 }

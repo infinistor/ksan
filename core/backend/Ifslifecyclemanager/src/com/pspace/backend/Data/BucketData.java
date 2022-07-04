@@ -17,27 +17,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BucketData {
-    static final Logger logger = LoggerFactory.getLogger(BucketData.class);
+	static final Logger logger = LoggerFactory.getLogger(BucketData.class);
 
-    public String BucketName;
-    public LifecycleConfiguration Lifecycle;
+	public String BucketName;
+	public LifecycleConfiguration Lifecycle;
 
-    public BucketData(String BucketName)
-    {
-        this.BucketName = BucketName;
-    }
-    
-    public boolean setLifecycleConfiguration(String strLifecycle)
-    {
-        if (strLifecycle.isBlank()) return false;
+	public BucketData(String BucketName) {
+		this.BucketName = BucketName;
+	}
 
-        try {
-            //수명주기 설정 언마샬링
-            Lifecycle = new XmlMapper().readValue(strLifecycle, LifecycleConfiguration.class);
-             return true;
-         } catch (Exception e) {
-             logger.error("Bucket Lifecycle read failed : {}", BucketName, e);
-             return false;
-         }
-    }
+	public boolean setLifecycleConfiguration(String strLifecycle) {
+		if (strLifecycle.isBlank())
+			return false;
+
+		try {
+			// 수명주기 설정 언마샬링
+			Lifecycle = new XmlMapper().readValue(strLifecycle, LifecycleConfiguration.class);
+			return true;
+		} catch (Exception e) {
+			logger.error("Bucket Lifecycle read failed : {}", BucketName, e);
+			return false;
+		}
+	}
 }
