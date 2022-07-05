@@ -75,14 +75,8 @@ namespace PortalProvider.Providers.Disks
 				if (!Request.IsValid())
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var NameExist = await this.IsNameExist(null, Request.Name);
-
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (NameExist.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskPoolWithDisks>(NameExist.Result, NameExist.Code, NameExist.Message);
-				// 동일한 이름이 존재하는 경우
-				if (NameExist.Data)
+				// 동일한 이름이 존재할경우
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
 
 				// 디스크 GUID 목록
@@ -202,15 +196,8 @@ namespace PortalProvider.Providers.Disks
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var NameExist = await this.IsNameExist(Id, Request.Name);
-
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (NameExist.Result != EnumResponseResult.Success)
-					return new ResponseData(NameExist.Result, NameExist.Code, NameExist.Message);
-
-				// 동일한 이름이 존재하는 경우
-				if (NameExist.Data)
+				// 동일한 이름이 존재할경우
+				if (await this.IsNameExist(Request.Name, GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
 
 				// 디스크 GUID 목록
@@ -518,7 +505,7 @@ namespace PortalProvider.Providers.Disks
 				// Id로 조회할경우
 				else
 					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == GuidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
-					
+
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
@@ -537,31 +524,26 @@ namespace PortalProvider.Providers.Disks
 			return Result;
 		}
 
-		/// <summary>특정 이름의 디스크 풀가 존재하는지 확인한다.</summary>
+		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="Name">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
 		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
 			var Result = new ResponseData<bool>();
-			var guidId = Guid.Empty;
+			var GuidId = Guid.Empty;
 
 			try
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
-				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out guidId))
+				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out GuidId))
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 요청 객체가 유효하지 않은 경우
 				if (Name.IsEmpty())
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_REQUIRE_NAME);
 
-				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != guidId) && i.Name == Name))
-					Result.Data = true;
-				// 동일한 이름이 존재하지 않는 경우
-				else
-					Result.Data = false;
+				Result.Data = await IsNameExist(Name, GuidId != Guid.Empty ? GuidId : null);
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -573,6 +555,25 @@ namespace PortalProvider.Providers.Disks
 			}
 
 			return Result;
+		}
+
+		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
+		/// <param name="Name">검색할 이름</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		{
+			try
+			{
+				// 동일한 이름이 존재하는 경우
+				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
 		}
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>

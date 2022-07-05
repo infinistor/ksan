@@ -72,14 +72,8 @@ namespace PortalProvider.Providers.Servers
 				if (!Request.IsValid())
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var ResponseExist = await this.IsNameExist(null, new RequestIsServerNameExist(Request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (ResponseExist.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseServerDetail>(ResponseExist.Result, ResponseExist.Code, ResponseExist.Message);
-
 				// 동일한 이름이 존재하는 경우
-				if (ResponseExist.Data)
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
@@ -219,14 +213,8 @@ namespace PortalProvider.Providers.Servers
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var ResponseExist = await this.IsNameExist(Id, new RequestIsServerNameExist(Request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (ResponseExist.Result != EnumResponseResult.Success)
-					return new ResponseData(ResponseExist.Result, ResponseExist.Code, ResponseExist.Message);
-
 				// 동일한 이름이 존재하는 경우
-				if (ResponseExist.Data)
+				if (await this.IsNameExist(Request.Name, GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
 
 				// 해당 정보를 가져온다.
@@ -809,9 +797,9 @@ namespace PortalProvider.Providers.Servers
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
-		/// <param name="Request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsServerNameExist Request)
+		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
 			ResponseData<bool> Result = new ResponseData<bool>();
 
@@ -823,15 +811,10 @@ namespace PortalProvider.Providers.Servers
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 요청 객체가 유효하지 않은 경우
-				if (!Request.IsValid())
-					return new ResponseData<bool>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+				if (Name.IsEmpty())
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REQUIRE_NAME);
 
-				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != GuidId) && i.Name == Request.Name))
-					Result.Data = true;
-				// 동일한 이름이 존재하지 않는 경우
-				else
-					Result.Data = false;
+				Result.Data = await IsNameExist(Name, GuidId != Guid.Empty ? GuidId : null);
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -843,6 +826,24 @@ namespace PortalProvider.Providers.Servers
 			}
 
 			return Result;
+		}
+
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
+		/// <param name="Name">검색할 이름</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		{
+			try
+			{
+				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
 		}
 	}
 }

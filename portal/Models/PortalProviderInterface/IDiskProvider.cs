@@ -98,8 +98,8 @@ namespace PortalProviderInterface
 		
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 아이디</param>
-		/// <param name="Request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		Task<bool> IsNameExist(Guid? ExceptId, string Name);
+		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
 	}
 }

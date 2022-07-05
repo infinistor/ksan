@@ -85,16 +85,16 @@ namespace PortalProvider.Providers.Disks
 						return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 					GuidServerId = Server.Id;
+					ServerId = Server.Id.ToString();
 				}
 
 				// 이름이 유효하지 않을경우
 				if (Request.Name.IsEmpty())
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 동일한 이름이 존재할 경우	
-				if (await this.IsNameExist(null, Request.Name))
+				// 동일한 이름이 존재할 경우
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
-
 
 				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid GuidDiskPoolId = Guid.Empty;
@@ -246,6 +246,10 @@ namespace PortalProvider.Providers.Disks
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 동일한 이름이 존재할 경우
+				if (await this.IsNameExist(Request.Name, Exist.Id))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
 
 				// 마운트 경로가 변경되는 경우
 				if (Exist.Path != Request.Path)
@@ -627,7 +631,6 @@ namespace PortalProvider.Providers.Disks
 
 			try
 			{
-				NNException.Log(new Exception($"GetList : {ServerId}"));
 				// 서버 아이디가 존재하지 않는 경우
 				if (ServerId.IsEmpty() || !Guid.TryParse(ServerId, out Guid GuidServerId))
 					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
@@ -786,9 +789,9 @@ namespace PortalProvider.Providers.Disks
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 아이디</param>
-		/// <param name="Request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<bool> IsNameExist(Guid? ExceptId, string Name)
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
 		{
 			try
 			{

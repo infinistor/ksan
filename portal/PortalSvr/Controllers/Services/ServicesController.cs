@@ -171,24 +171,24 @@ namespace PortalSvr.Controllers.Services
 		}
 
 		/// <summary>특정 이름의 서비스가 존재하는지 확인한다.</summary>
-		/// <param name="Request">특정 이름의 서비스 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("Exist")]
-		public async Task<ActionResult> IsServiceNameExist([FromBody] RequestIsServiceNameExist Request)
+		[HttpPost("Exist/{Name}")]
+		public async Task<ActionResult> IsServiceNameExist([FromRoute] string Name)
 		{
-			return Json(await m_dataProvider.IsNameExist(null, Request));
+			return Json(await m_dataProvider.IsNameExist(null, Name));
 		}
 
 		/// <summary>특정 이름의 서비스가 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 서비스 아이디</param>
-		/// <param name="Request">특정 이름의 서비스 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("Exist/{ExceptId}")]
-		public async Task<ActionResult> IsServiceNameExist([FromRoute] string ExceptId, [FromBody] RequestIsServiceNameExist Request)
+		[HttpPost("Exist/{ExceptId}/{Name}")]
+		public async Task<ActionResult> IsServiceNameExist([FromRoute] string ExceptId, [FromRoute] string Name)
 		{
-			return Json(await m_dataProvider.IsNameExist(ExceptId, Request));
+			return Json(await m_dataProvider.IsNameExist(ExceptId, Name));
 		}
 
 		/// <summary>서비스 시작</summary>

@@ -8,6 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PortalData;
@@ -60,9 +61,15 @@ namespace PortalProviderInterface
 
 		/// <summary>특정 이름의 디스크풀이 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="Name">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
 		Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name);
+
+		/// <summary>특정 이름의 디스크풀이 존재하는지 확인한다.</summary>
+		/// <param name="Name">검색할 이름</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>

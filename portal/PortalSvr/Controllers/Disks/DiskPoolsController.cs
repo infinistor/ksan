@@ -130,7 +130,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="Name">검색할 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("Exist")]
+		[HttpPost("Exist/{Name}")]
 		public async Task<ActionResult> IsNameExist([FromRoute] string Name)
 		{
 			return Json(await m_dataProvider.IsNameExist(null, Name));
