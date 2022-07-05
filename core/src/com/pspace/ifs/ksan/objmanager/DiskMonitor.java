@@ -443,8 +443,10 @@ public class DiskMonitor {
             //dskPool1.
             logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} status : {} diskMood: {} totalInode : {} userInode {} totalSize : {} usedSize {}}", 
                     diskId, serverId, dskPoolId, mpath, status, diskMood, totalInode,  userInode, totalSize, usedSize);
+            DISKPOOL dskPool1 = null;
+            DISK dsk1 = null;
             try {
-                DISKPOOL dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+                dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                 if (diskMood.equalsIgnoreCase(KEYS.RW.label))
                     dskPool1.setDiskMode(serverId, diskId, DiskMode.READWRITE);
                 else if (diskMood.equalsIgnoreCase(KEYS.RO.label))
@@ -458,13 +460,34 @@ public class DiskMonitor {
                 else
                    dskPool1.setDiskStatus(serverId, diskId, DiskStatus.UNKNOWN);
                 
-                DISK dsk1 = dskPool1.getDisk("", diskId);
+                dsk1 = dskPool1.getDisk("", diskId);
                 dsk1.setSpace(totalSize, usedSize, reservedSize);
                 dsk1.setInode(totalInode, userInode);
                 logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
                     diskId, serverId, dskPoolId, mpath);
-            } catch (ResourceNotFoundException ex) {
-                // ignore
+            } catch (ResourceNotFoundException ex) { // add disk if not exist
+                if (dskPool1 != null && dsk1 == null){
+                    SERVER svr;
+                    try {
+                        svr = dskPool1.getServerById(serverId);
+                    } catch (ResourceNotFoundException ex1) {
+                        logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                        return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+                    }
+                    DISK dsk2 = new DISK();
+                    dsk2.setId(diskId);
+                    dsk2.setInode(totalInode, userInode);
+                    dsk2.setPath(mpath);
+                    dsk2.setOSDServerId(serverId);
+                    dsk2.setOSDIP(svr.getName());
+                    dsk2.setSpace(totalSize, usedSize, reservedSize);
+                    if (diskMood.equalsIgnoreCase(KEYS.RW.label))
+                       dsk2.setMode(DiskMode.READWRITE);
+                    else
+                       dskPool1.setDiskMode(serverId, diskId, DiskMode.READONLY); 
+                    svr.addDisk(dsk2);
+                }
+                
             }
         }
         
