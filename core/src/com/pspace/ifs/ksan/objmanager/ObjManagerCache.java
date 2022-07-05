@@ -264,7 +264,7 @@ public class ObjManagerCache {
     }
     
     public void dumpCacheInFile() throws IOException{
-        try (PrintWriter printWriter = new PrintWriter(new FileWriter("/usr/local/ksan/etc/diskpools.xml"))) {
+        try (PrintWriter printWriter = new PrintWriter(new FileWriter("/usr/local/ksan/etc/diskpools1.xml"))) {
             printWriter.print(displayDiskPoolList()); 
             printWriter.close();
         } 

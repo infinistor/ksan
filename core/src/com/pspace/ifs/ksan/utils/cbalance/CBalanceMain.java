@@ -100,7 +100,7 @@ public class CBalanceMain {
             return 0;
         
         if (!target.isEmpty()){
-            if (!bucketName.isEmpty() && (!key.isEmpty() || !objId.isEmpty()))
+            if (!bucketName.isEmpty() && (!key.isEmpty() || !objId.isEmpty()) && !SrcDiskId.isEmpty())
                 return 0;
             
             if (target.equalsIgnoreCase("empty") && !SrcDiskId.isEmpty())
@@ -122,10 +122,10 @@ public class CBalanceMain {
         parser.printUsage(System.err);
         System.err.println();
         System.err.println("Example : To move a single object and the object can be idetified either key or object Id");
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --versionId 526554498818254 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --SrcDiskId disk111 \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 --SrcDiskId disk111 \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --versionId 526554498818254 --SrcDiskId disk11 \n", getProgramName());
+        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskId disk11 \n", getProgramName());
         System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --DstDiskId disk222\n", getProgramName());
         System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 --DstDiskId disk222\n", getProgramName());
         System.err.println("\nExample : To move a spefic amount of object from one disk to others");

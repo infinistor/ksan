@@ -17,6 +17,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
 //import org.json.simple.JSONArray;
@@ -45,6 +46,7 @@ enum KEYS{
     TOTALSPACE("TotalSize"),
     USEDSPACE("UsedSize"),
     RESERVEDSPACE("ReservedSize"),
+    RESERVEDINODE("ReservedInode"),
     TOTALINODE("TotalInode"),
     USEDINODE("UsedInode"),
     MODE("RwMode"),
@@ -429,9 +431,64 @@ public class DiskMonitor {
             String serverId = (String)dsk.get("ServerId");
             String dskPoolId = (String)dsk.get("DiskPoolId");
             String mpath = (String)dsk.get("Path");
+            String status = (String)dsk.get("State");
+            String diskMood = (String)dsk.get("RwMode");
+            double totalInode = Double.valueOf(dsk.get(KEYS.TOTALINODE.label).toString());
+            double reservedInode = Double.valueOf(dsk.get(KEYS.RESERVEDINODE.label).toString());
+            double userInode = Double.valueOf(dsk.get(KEYS.USEDINODE.label).toString());
+            double totalSize = Double.valueOf(dsk.get(KEYS.TOTALSPACE.label).toString());
+            double reservedSize = Double.valueOf(dsk.get(KEYS.RESERVEDSPACE.label).toString());
+            double usedSize = Double.valueOf(dsk.get(KEYS.USEDSPACE.label).toString());
+       
             //dskPool1.
-            System.out.format("DISK to add: { diskid : %s serverId : %s dskPoolId : %s mpath : %s}", 
+            logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} status : {} diskMood: {} totalInode : {} userInode {} totalSize : {} usedSize {}}", 
+                    diskId, serverId, dskPoolId, mpath, status, diskMood, totalInode,  userInode, totalSize, usedSize);
+            DISKPOOL dskPool1 = null;
+            DISK dsk1 = null;
+            try {
+                dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+                if (diskMood.equalsIgnoreCase(KEYS.RW.label))
+                    dskPool1.setDiskMode(serverId, diskId, DiskMode.READWRITE);
+                else if (diskMood.equalsIgnoreCase(KEYS.RO.label))
+                    dskPool1.setDiskMode(serverId, diskId, DiskMode.READONLY);
+                if (status.equalsIgnoreCase("Good"))
+                    dskPool1.setDiskStatus(serverId, diskId, DiskStatus.GOOD);
+                else if (status.equalsIgnoreCase("stop"))
+                    dskPool1.setDiskStatus(serverId, diskId, DiskStatus.STOPPED);
+                else if (status.equalsIgnoreCase("broken"))
+                   dskPool1.setDiskStatus(serverId, diskId, DiskStatus.BROKEN);
+                else
+                   dskPool1.setDiskStatus(serverId, diskId, DiskStatus.UNKNOWN);
+                
+                dsk1 = dskPool1.getDisk("", diskId);
+                dsk1.setSpace(totalSize, usedSize, reservedSize);
+                dsk1.setInode(totalInode, userInode);
+                logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
                     diskId, serverId, dskPoolId, mpath);
+            } catch (ResourceNotFoundException ex) { // add disk if not exist
+                if (dskPool1 != null && dsk1 == null){
+                    SERVER svr;
+                    try {
+                        svr = dskPool1.getServerById(serverId);
+                    } catch (ResourceNotFoundException ex1) {
+                        logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                        return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+                    }
+                    DISK dsk2 = new DISK();
+                    dsk2.setId(diskId);
+                    dsk2.setInode(totalInode, userInode);
+                    dsk2.setPath(mpath);
+                    dsk2.setOSDServerId(serverId);
+                    dsk2.setOSDIP(svr.getName());
+                    dsk2.setSpace(totalSize, usedSize, reservedSize);
+                    if (diskMood.equalsIgnoreCase(KEYS.RW.label))
+                       dsk2.setMode(DiskMode.READWRITE);
+                    else
+                       dskPool1.setDiskMode(serverId, diskId, DiskMode.READONLY); 
+                    svr.addDisk(dsk2);
+                }
+                
+            }
         }
         
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);

@@ -75,6 +75,14 @@ public class GetFromPortal {
         portalKey = getStringConfig("IfsPortalKey", "");
     }
     
+    private String getString(JSONObject jsonObject, String key){
+        Object obj = jsonObject.get(key);
+        if (obj == null)
+            return "";
+        
+        return (String)obj;
+    }
+    
     private JSONObject parseGetSingleItem(String response, int index) throws ParseException{
         if (response.isEmpty())
             return null;
@@ -102,9 +110,12 @@ public class GetFromPortal {
     
     private JSONObject parseConfigResponse(String response) throws ParseException{
         JSONParser parser = new JSONParser();
-        JSONObject jsonItem = parseGetSingleItem(response, 0);
         
-        String config = (String)jsonItem.get("Config");
+        JSONObject jsonItem = parseGetSingleItem(response, 0);
+        if (jsonItem == null)
+            return null;
+        
+        String config = getString(jsonItem,"Config");
         if (config.isEmpty())
             return null;
         return (JSONObject)parser.parse(config);
