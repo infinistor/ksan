@@ -191,7 +191,7 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="Request">서버 수정 요청 객체</param>
 		/// <returns>서버 수정 결과 객체</returns>
 		public async Task<ResponseData> Update(string Id, RequestServer Request)
@@ -200,8 +200,20 @@ namespace PortalProvider.Providers.Servers
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+					//서버가 존재하지 않는 경우
+					if (Server == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = Server.Id;
+				}
 
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
@@ -303,7 +315,7 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="State">서버 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -314,12 +326,18 @@ namespace PortalProvider.Providers.Servers
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				Server Exist = await m_dbContext.Servers
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -400,11 +418,11 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="LoadAverage1M">1분 Load Average</param>
 		/// <param name="LoadAverage5M">5분 Load Average</param>
 		/// <param name="LoadAverage15M">15분 Load Average</param>
-		/// <param name="MemoryUsed">서버 아이디</param>
+		/// <param name="MemoryUsed">메모리 사용량</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
 		public async Task<ResponseData> UpdateUsage(string Id, float LoadAverage1M, float LoadAverage5M, float LoadAverage15M, decimal MemoryUsed)
 		{
@@ -412,12 +430,18 @@ namespace PortalProvider.Providers.Servers
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Servers
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -502,7 +526,7 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 삭제</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 삭제 결과 객체</returns>
 		public async Task<ResponseData> Remove(string Id)
 		{
@@ -511,12 +535,18 @@ namespace PortalProvider.Providers.Servers
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Servers.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -699,7 +729,7 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 정보를 가져온다.</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 정보 객체</returns>
 		public async Task<ResponseData<ResponseServerDetail>> Get(string Id)
 		{
@@ -707,11 +737,23 @@ namespace PortalProvider.Providers.Servers
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 정보를 가져온다.
-				var Exist = await m_dbContext.Servers.AsNoTracking()
+				ResponseServerDetail Exist = null;
+
+				// 해당 정보를 가져온다.
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.AsNoTracking()
+					.Where(i => i.Name == Id)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.Include(i => i.Disks)
+					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.AsNoTracking()
 					.Where(i => i.Id == GuidId)
 					.Include(i => i.NetworkInterfaces)
 					.ThenInclude(i => i.NetworkInterfaceVlans)

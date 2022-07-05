@@ -21,7 +21,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -77,7 +76,7 @@ namespace PortalProvider.Providers.Disks
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는지 확인한다.
-				var NameExist = await this.IsNameExist(null, new RequestIsDiskPoolNameExist(Request.Name));
+				var NameExist = await this.IsNameExist(null, Request.Name);
 
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
 				if (NameExist.Result != EnumResponseResult.Success)
@@ -175,7 +174,7 @@ namespace PortalProvider.Providers.Disks
 		}
 
 		/// <summary>디스크 풀 수정</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 풀 수정 요청 객체</param>
 		/// <returns>디스크 풀 수정 결과 객체</returns>
 		public async Task<ResponseData> Update(string Id, RequestDiskPool Request)
@@ -184,15 +183,27 @@ namespace PortalProvider.Providers.Disks
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var DiskPool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+					//서비스가 존재하지 않는 경우
+					if (DiskPool == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = DiskPool.Id;
+				}
 
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는지 확인한다.
-				var NameExist = await this.IsNameExist(Id, new RequestIsDiskPoolNameExist(Request.Name));
+				var NameExist = await this.IsNameExist(Id, Request.Name);
 
 				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
 				if (NameExist.Result != EnumResponseResult.Success)
@@ -309,7 +320,7 @@ namespace PortalProvider.Providers.Disks
 		}
 
 		/// <summary>디스크 풀 삭제</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 삭제 결과 객체</returns>
 		public async Task<ResponseData> Remove(string Id)
 		{
@@ -318,12 +329,18 @@ namespace PortalProvider.Providers.Disks
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				DiskPool Exist = null;
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -335,7 +352,7 @@ namespace PortalProvider.Providers.Disks
 					{
 						// 해당 디스크 풀에 속한 디스크 목록을 가져온다.
 						var Disks = await this.m_dbContext.Disks
-							.Where(i => i.DiskPoolId == guidId)
+							.Where(i => i.DiskPoolId == Exist.Id)
 							.ToListAsync();
 
 						// 모든 디스크에 대해서 처리
@@ -481,7 +498,7 @@ namespace PortalProvider.Providers.Disks
 		}
 
 		/// <summary>특정 디스크 풀 정보를 가져온다.</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 정보 객체</returns>
 		public async Task<ResponseData<ResponseDiskPoolWithDisks>> Get(string Id)
 		{
@@ -489,12 +506,19 @@ namespace PortalProvider.Providers.Disks
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
-					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
+				if (Id.IsEmpty())
+					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == guidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				ResponseDiskPoolWithDisks Exist = null;
 
+				// 해당 정보를 가져온다.
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == GuidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+					
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
@@ -515,9 +539,9 @@ namespace PortalProvider.Providers.Disks
 
 		/// <summary>특정 이름의 디스크 풀가 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsDiskPoolNameExist Request)
+		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
 			var Result = new ResponseData<bool>();
 			var guidId = Guid.Empty;
@@ -529,11 +553,11 @@ namespace PortalProvider.Providers.Disks
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 요청 객체가 유효하지 않은 경우
-				if (!Request.IsValid())
-					return new ResponseData<bool>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+				if (Name.IsEmpty())
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_REQUIRE_NAME);
 
 				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != guidId) && i.Name == Request.Name))
+				if (await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != guidId) && i.Name == Name))
 					Result.Data = true;
 				// 동일한 이름이 존재하지 않는 경우
 				else
@@ -554,9 +578,9 @@ namespace PortalProvider.Providers.Disks
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetAvailableDisks(
@@ -584,7 +608,6 @@ namespace PortalProvider.Providers.Disks
 						i.DiskPoolId == null
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
-							|| (SearchFields.Contains("diskno") && i.DiskNo.Contains(SearchKeyword))
 							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))
 						)
 					)
@@ -609,9 +632,9 @@ namespace PortalProvider.Providers.Disks
 		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetAvailableDisks(
@@ -653,7 +676,6 @@ namespace PortalProvider.Providers.Disks
 						(i.DiskPoolId == null || (!Id.IsEmpty() && i.DiskPoolId == guidId))
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
-							|| (SearchFields.Contains("diskno") && i.DiskNo.Contains(SearchKeyword))
 							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))
 						)
 					)

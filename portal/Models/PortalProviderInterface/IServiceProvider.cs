@@ -26,13 +26,13 @@ namespace PortalProviderInterface
 		Task<ResponseData<ResponseServiceWithVlans>> Add(RequestService Request);
 
 		/// <summary>서비스 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="Request">서비스 수정 요청 객체</param>
 		/// <returns>서비스 수정 결과 객체</returns>
 		Task<ResponseData> Update(string Id, RequestService Request);
 
 		/// <summary>서비스 상태 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="State">서비스 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -47,9 +47,9 @@ namespace PortalProviderInterface
 		Task<ResponseData> UpdateState(RequestServiceState Request, string ModId = "", string ModName = "");
 
 		/// <summary>서비스 사용 정보 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="CpuUsage">CPU 사용률</param>
-		/// <param name="MemoryUsed">서버 아이디</param>
+		/// <param name="MemoryUsed">메모리 사용량</param>
 		/// <param name="ThreadCount">스레드 수</param>
 		/// <returns>서비스 사용 정보 정보 수정 결과 객체</returns>
 		Task<ResponseData> UpdateUsage(string Id, float CpuUsage, decimal MemoryUsed, int ThreadCount);
@@ -60,7 +60,7 @@ namespace PortalProviderInterface
 		Task<ResponseData> UpdateUsage(RequestServiceUsage Request);
 
 		/// <summary>서비스 HA 상태 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="State">HA 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -75,7 +75,7 @@ namespace PortalProviderInterface
 		Task<ResponseData> UpdateHaAction(RequestServiceHaAction Request, string ModId = "", string ModName = "");
 
 		/// <summary>서비스 삭제</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string Id);
 
@@ -94,7 +94,7 @@ namespace PortalProviderInterface
 		);
 
 		/// <summary>서비스 정보를 가져온다.</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 정보 객체</returns>
 		Task<ResponseData<ResponseServiceWithVlans>> Get(string Id);
 
@@ -105,17 +105,17 @@ namespace PortalProviderInterface
 		Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsServiceNameExist Request);
 
 		/// <summary>서비스 시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 시작 결과 객체</returns>
 		Task<ResponseData> Start(string Id);
 
 		/// <summary>서비스 중지</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 중지 결과 객체</returns>
 		Task<ResponseData> Stop(string Id);
 
 		/// <summary>서비스 재시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 재시작 결과 객체</returns>
 		Task<ResponseData> Restart(string Id);
 	}

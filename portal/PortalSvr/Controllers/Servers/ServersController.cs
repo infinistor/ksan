@@ -92,7 +92,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>서버 정보를 수정한다.</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="Request">서버 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
@@ -103,7 +103,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="State">서버 상태</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
@@ -134,7 +134,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>서버 정보를 삭제한다.</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpDelete("{Id}")]
@@ -170,7 +170,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>특정 서버 정보를 가져온다.</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServer>))]
 		[HttpGet("{Id}")]

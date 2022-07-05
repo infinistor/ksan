@@ -25,13 +25,13 @@ namespace PortalProviderInterface
 		Task<ResponseData<ResponseDiskPoolWithDisks>> Add(RequestDiskPool Request);
 
 		/// <summary>디스크 풀 수정</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 풀 수정 요청 객체</param>
 		/// <returns>디스크 풀 수정 결과 객체</returns>
 		Task<ResponseData> Update(string Id, RequestDiskPool Request);
 
 		/// <summary>디스크 풀 삭제</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string Id);
 
@@ -54,22 +54,22 @@ namespace PortalProviderInterface
 		Task<ResponseList<ResponseDiskPoolDetails>> GetListDetails();
 
 		/// <summary>특정 디스크 풀 정보를 가져온다.</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 정보 객체</returns>
 		Task<ResponseData<ResponseDiskPoolWithDisks>> Get(string Id);
 
-		/// <summary>특정 이름의 디스크 풀가 존재하는지 확인한다.</summary>
+		/// <summary>특정 이름의 디스크풀이 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsDiskPoolNameExist Request);
+		Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name);
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetAvailableDisks(int Skip = 0, int CountPerPage = 100
@@ -80,9 +80,9 @@ namespace PortalProviderInterface
 		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		Task<ResponseList<ResponseDisk>> GetAvailableDisks(

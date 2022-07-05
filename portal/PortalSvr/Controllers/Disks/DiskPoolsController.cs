@@ -64,7 +64,7 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>디스크 풀 정보를 수정한다.</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 풀 수정 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
@@ -75,7 +75,7 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>디스크 풀 정보를 삭제한다.</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpDelete("{Id}")]
@@ -117,7 +117,7 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>특정 디스크 풀 정보를 가져온다.</summary>
-		/// <param name="Id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPoolWithDisks>))]
 		[HttpGet("{Id}")]
@@ -127,32 +127,32 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
-		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
 		[HttpPost("Exist")]
-		public async Task<ActionResult> IsNameExist([FromBody] RequestIsDiskPoolNameExist Request)
+		public async Task<ActionResult> IsNameExist([FromRoute] string Name)
 		{
-			return Json(await m_dataProvider.IsNameExist(null, Request));
+			return Json(await m_dataProvider.IsNameExist(null, Name));
 		}
 
 		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="Request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<bool>))]
-		[HttpPost("Exist/{ExceptId}")]
-		public async Task<ActionResult> IsNameExist([FromRoute] string ExceptId, [FromBody] RequestIsDiskPoolNameExist Request)
+		[HttpPost("Exist/{ExceptId}/{Name}")]
+		public async Task<ActionResult> IsNameExist([FromRoute] string ExceptId, [FromRoute] string Name)
 		{
-			return Json(await m_dataProvider.IsNameExist(ExceptId, Request));
+			return Json(await m_dataProvider.IsNameExist(ExceptId, Name));
 		}
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
@@ -172,9 +172,9 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (DiskNo, Path)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
