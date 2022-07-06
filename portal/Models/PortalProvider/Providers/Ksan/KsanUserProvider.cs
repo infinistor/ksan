@@ -99,11 +99,18 @@ namespace PortalProvider.Providers.Accounts
 				}
 
 				// 기본 디스크풀 ID가 유효하지 않을 경우
-				if (Request.StandardDiskPoolId.IsEmpty() || !Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolId))
+				if (Request.StandardDiskPoolId.IsEmpty())
 					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+
 				// 디스크풀 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolId);
+				DiskPool Exist = null;
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolId))
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.StandardDiskPoolId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -123,7 +130,7 @@ namespace PortalProvider.Providers.Accounts
 				await m_dbContext.KsanUsers.AddAsync(User);
 
 				// 기본 스토리지 클래스 등록
-				var StorageClass = new UserDiskPool { UserId = User.Id, DiskPoolId = DiskPoolId, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
+				var StorageClass = new UserDiskPool { UserId = User.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
 				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
 				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
@@ -255,24 +262,31 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 아이디가 유효하지 않을 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 사용자 계정을 가져온다.
-				var User = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == guidId).FirstOrDefaultAsync();
+				KsanUser Exist = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 계정을 찾을 수 없는 경우
-				if (User == null)
+				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
 
 				// 계정 삭제
-				m_dbContext.KsanUsers.Remove(User);
+				m_dbContext.KsanUsers.Remove(Exist);
 				await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 				Result.Result = EnumResponseResult.Success;
 
 				//Ksan 사용자 삭제 알림
 				var responseKsanUser = new ResponseKsanUser();
-				responseKsanUser.CopyValueFrom(User);
+				responseKsanUser.CopyValueFrom(Exist);
 				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.removed", responseKsanUser);
 			}
 			catch (Exception ex)
@@ -297,11 +311,10 @@ namespace PortalProvider.Providers.Accounts
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = "")
 		{
-			ResponseList<ResponseKsanUser> Result = new ResponseList<ResponseKsanUser>();
+			var Result = new ResponseList<ResponseKsanUser>();
 
 			try
 			{
-
 				ClearDefaultOrders();
 				AddDefaultOrders("Name", "asc");
 
@@ -420,27 +433,37 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>특정 사용자 식별자에 대한 사용자 정보 객체를 가져온다.</summary>
-		/// <param name="id">사용자 식별자</param>
+		/// <param name="Id">사용자 식별자</param>
 		/// <param name="includeDeletedUser">삭제된 사용자도 포함할지 여부</param>
 		/// <returns>사용자 정보 객체</returns>
-		public async Task<ResponseData<ResponseKsanUser>> GetUserById(string id)
+		public async Task<ResponseData<ResponseKsanUser>> GetUser(string Id)
 		{
 			var Result = new ResponseData<ResponseKsanUser>();
 			try
 			{
 				// 아이디가 유효하지 않을 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 사용자 ID로 해당 사용자 정보를 반환한다.
-				var User = await m_dbContext.KsanUsers
-					.AsNoTracking()
-					.Where(i => i.Id == GuidId)
-					.Include(i => i.UserDiskPools)
-					.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
+				// 유저 정보를 가져온다.
+				ResponseKsanUser Exist = null;
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.KsanUsers
+							.AsNoTracking()
+							.Where(i => i.Id == GuidId)
+							.Include(i => i.UserDiskPools)
+							.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.KsanUsers
+							.AsNoTracking()
+							.Where(i => i.Name == Id)
+							.Include(i => i.UserDiskPools)
+							.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
 
 				// 해당 계정을 찾을 수 없는 경우
-				if (User == null)
+				if (Exist == null)
 				{
 					Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
 					Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
@@ -448,50 +471,7 @@ namespace PortalProvider.Providers.Accounts
 				}
 				else
 				{
-					Result.Data = User;
-					Result.Result = EnumResponseResult.Success;
-				}
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-
-				Result.Code = Resource.EC_COMMON__EXCEPTION;
-				Result.Message = Resource.EM_COMMON__EXCEPTION;
-				Result.Result = EnumResponseResult.Error;
-			}
-			return Result;
-		}
-
-		/// <summary>특정 사용자 식별자에 대한 사용자 정보 객체를 가져온다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <returns>사용자 정보 객체</returns>
-		public async Task<ResponseData<ResponseKsanUser>> GetUserByName(string Name)
-		{
-			var Result = new ResponseData<ResponseKsanUser>();
-			try
-			{
-				// 사용자 식별자가 유효하지 않을 경우
-				if (Name.IsEmpty())
-				{
-					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
-					Result.Message = Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME;
-					Result.Result = EnumResponseResult.Error;
-				}
-
-				// 사용자 이름으로 해당 사용자 정보를 반환한다.
-				var User = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == Name).Include(i => i.UserDiskPools).FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
-
-				// 해당 계정을 찾을 수 없는 경우
-				if (User == null)
-				{
-					Result.Code = Resource.EC_COMMON_ACCOUNT_NOT_FOUND;
-					Result.Message = Resource.EM_COMMON_ACCOUNT_NOT_FOUND;
-					Result.Result = EnumResponseResult.Error;
-				}
-				else
-				{
-					Result.Data = User;
+					Result.Data = Exist;
 					Result.Result = EnumResponseResult.Success;
 				}
 			}
