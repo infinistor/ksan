@@ -64,17 +64,6 @@ namespace PortalModels
 			modelBuilder.Entity<SystemLog>()
 				.HasIndex(i => new { i.LogId, i.RegDate }).IsUnique(false);
 		}
-
-		/// <summary> DISKS 테이블에 대한 매핑 사용자 정의 </summary>
-		/// <param name="modelBuilder">모델 빌더 객체</param>
-		partial void CustomizeDiskMapping(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<Disk>()
-				.HasIndex(i => new { i.ServerId, i.Name }).IsUnique(false);
-			modelBuilder.Entity<Disk>()
-				.HasIndex(i => new { i.ServerId, i.Id }).IsUnique(false);
-		}
-
 		#endregion
 	}
 }

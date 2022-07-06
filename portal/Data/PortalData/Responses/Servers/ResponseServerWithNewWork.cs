@@ -9,14 +9,14 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 using System.Collections.Generic;
-using PortalData.Responses.Services;
+using PortalData.Responses.Networks;
 
-namespace PortalData.Responses.Disks
+namespace PortalData.Responses.Servers
 {
-	/// <summary>서버/서비스 정보를 포함한 디스크 정보 응답 클래스</summary>
-	public class ResponseDiskWithServices : ResponseDiskWithDiskPool
+	/// <summary>서버 상세 정보 응답 클래스</summary>
+	public class ResponseServerWithNewWork : ResponseServer
 	{
-		/// <summary>서비스 목록</summary>
-		public List<ResponseService> Services { get; set; } = new List<ResponseService>();
+		/// <summary>네트워크 인터페이스 목록</summary>
+		public List<ResponseNetworkInterface> NetworkInterfaces { get; set; } = new List<ResponseNetworkInterface>();
 	}
 }

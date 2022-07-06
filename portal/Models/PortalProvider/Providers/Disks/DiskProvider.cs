@@ -62,18 +62,18 @@ namespace PortalProvider.Providers.Disks
 		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Request">디스크 등록 요청 객체</param>
 		/// <returns>디스크 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseDiskWithServer>> Add(string ServerId, RequestDisk Request)
+		public async Task<ResponseData<ResponseDiskWithServerAndNetwork>> Add(string ServerId, RequestDisk Request)
 		{
-			ResponseData<ResponseDiskWithServer> Result = new ResponseData<ResponseDiskWithServer>();
+			ResponseData<ResponseDiskWithServerAndNetwork> Result = new ResponseData<ResponseDiskWithServerAndNetwork>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 서버 아이디가 유효하지 않는 경우
 				if (ServerId.IsEmpty())
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
 
 				// 서버 이름으로 조회할 경우
 				if (!Guid.TryParse(ServerId, out Guid GuidServerId))
@@ -82,7 +82,7 @@ namespace PortalProvider.Providers.Disks
 
 					//서버가 존재하지 않는 경우
 					if (Server == null)
-						return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 					GuidServerId = Server.Id;
 					ServerId = Server.Id.ToString();
@@ -90,16 +90,16 @@ namespace PortalProvider.Providers.Disks
 
 				// 이름이 유효하지 않을경우
 				if (Request.Name.IsEmpty())
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 동일한 이름이 존재할 경우
 				if (await this.IsNameExist(Request.Name))
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
 
 				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid GuidDiskPoolId = Guid.Empty;
 				if (!Request.DiskPoolId.IsEmpty() && !Guid.TryParse(Request.DiskPoolId, out GuidDiskPoolId))
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
 
 				// 디스크 풀 아이디가 유효한 경우
 				if (GuidDiskPoolId != Guid.Empty)
@@ -111,7 +111,7 @@ namespace PortalProvider.Providers.Disks
 
 					// 해당 디스크 풀이 존재하지 않는 경우
 					if (diskPool == null)
-						return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
 				}
 
 				// 디스크가 이미 마운트되어 있는지 확인 요청
@@ -123,7 +123,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 실패인 경우
 				if (Response.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, Response.Code, Response.Message);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Response.Code, Response.Message);
 
 				// 아이디 생성
 				var NewId = Guid.NewGuid();
@@ -140,7 +140,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 실패인 경우
 				if (ResponseWriteDiskId.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskWithServer>(EnumResponseResult.Error, ResponseWriteDiskId.Code, ResponseWriteDiskId.Message);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, ResponseWriteDiskId.Code, ResponseWriteDiskId.Message);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -734,44 +734,39 @@ namespace PortalProvider.Providers.Disks
 		/// <summary>디스크 정보를 가져온다.</summary>
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <returns>디스크 정보 객체</returns>
-		public async Task<ResponseData<ResponseDiskWithServices>> Get(string Id)
+		public async Task<ResponseData<ResponseDiskWithServerAndNetwork>> Get(string Id)
 		{
-			ResponseData<ResponseDiskWithServices> Result = new ResponseData<ResponseDiskWithServices>();
+			var Result = new ResponseData<ResponseDiskWithServerAndNetwork>();
 
 			try
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty())
-					return new ResponseData<ResponseDiskWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
 
-				ResponseDiskWithServices Exist = null;
+				ResponseDiskWithServerAndNetwork Exist = null;
 				// 해당 정보를 가져온다.
 				// 아이디로 가져올 경우
 				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.Id == GuidId)
-					.Include(i => i.Server)
 					.Include(i => i.DiskPool)
-					.FirstOrDefaultAsync<Disk, ResponseDiskWithServices>();
+					.Include(i => i.Server)
+					.ThenInclude(i => i.NetworkInterfaces)
+					.FirstOrDefaultAsync<Disk, ResponseDiskWithServerAndNetwork>();
 
 				// 이름으로 조회할 경우
 				else
 					Exist = await m_dbContext.Disks.AsNoTracking()
 					.Where(i => i.Name == Id)
-					.Include(i => i.Server)
 					.Include(i => i.DiskPool)
-					.FirstOrDefaultAsync<Disk, ResponseDiskWithServices>();
+					.Include(i => i.Server)
+					.ThenInclude(i => i.NetworkInterfaces)
+					.FirstOrDefaultAsync<Disk, ResponseDiskWithServerAndNetwork>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData<ResponseDiskWithServices>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-
-				// 연결된 서비스 목록을 가져온다.
-				var Services = await m_dbContext.Services.AsNoTracking()
-					.Where(i => i.ServiceDisks.Any(j => j.DiskId == GuidId))
-					.ToListAsync<Service, ResponseService>();
-				if (Services != null)
-					Exist.Services = Services;
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				Result.Data = Exist;
 				Result.Result = EnumResponseResult.Success;
