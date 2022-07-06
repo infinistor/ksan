@@ -58,6 +58,7 @@ enum KEYS{
     ADD("Add"),       /*for add disk, server, diskpool and server*/
     REMOVE("Remove"), /*to remove disk, server, diskpool and server*/
     TIMEOUT("timeout"), /* for server timout */
+    REPLICACOUNT("ReplicationType"),
     ;
     public final String label;
     
@@ -84,6 +85,7 @@ class JsonOutput{
     String mode;
     String status;
     int rack;
+    int replicaCount;
     
     public JsonOutput(){
         id = "";
@@ -103,6 +105,7 @@ class JsonOutput{
         status = "";
         mode = "";
         rack = -1;
+        replicaCount = 0;
     }
     
     @Override
@@ -184,9 +187,9 @@ public class DiskMonitor {
 
         if (routingKey.contains("servers.disks.")){
             if (routingKey.contains(".added"))
-                ret =addRemoveDisk(dskPool, jo);
+                ret =addRemoveDisk(dskPool, jo, body);
             else if (routingKey.contains(".removed"))
-                ret =addRemoveDisk(dskPool, jo);
+                ret =addRemoveDisk(dskPool, jo, body);
             else if (routingKey.contains(".state")){
                 ret =startStopDisk(dskPool, jo);
             } else if (routingKey.contains(".rwmode"))
@@ -273,11 +276,20 @@ public class DiskMonitor {
             res.hostname = (String)jO.get(KEYS.HOSTNAME.label);
         if (jO.containsKey(KEYS.IPADD.label))
             res.IPaddr = (String)jO.get(KEYS.IPADD.label);
+        
         if (jO.containsKey(KEYS.RACK.label))
             res.rack = Integer.getInteger((String)jO.get(KEYS.RACK.label));
         
         if (jO.containsKey(KEYS.STATUS.label))
             res.status = (String)jO.get(KEYS.STATUS.label);
+        
+        if (jO.containsKey(KEYS.REPLICACOUNT.label)){
+            String status = (String)jO.get(KEYS.REPLICACOUNT.label);
+            if (status.equalsIgnoreCase("OnePlusOne"))
+                res.replicaCount = 2;
+            else
+                res.replicaCount = 1;
+        }
         
         return res;
     }
@@ -292,6 +304,15 @@ public class DiskMonitor {
         } catch (ParseException ex) {
             return new JSONArray();
         }
+    }
+    
+    private JsonOutput decodeSubJsonObject(String msg, String tag) throws ParseException{
+        JSONObject jsonObject;
+        JSONObject subObject;
+        
+        jsonObject =(JSONObject)parser.parse(msg);
+        subObject = (JSONObject)jsonObject.get(tag);
+        return decodeJsonData(subObject.toJSONString()); 
     }
     
     private MQResponse startStopDisk(DISKPOOL dskPool, JsonOutput jo){
@@ -345,23 +366,41 @@ public class DiskMonitor {
         return res;
     }
     
-    private MQResponse addRemoveDisk(DISKPOOL dskPool, JsonOutput jo){
+    private MQResponse addRemoveDisk(DISKPOOL dskPool, JsonOutput jo, String body){
         MQResponse res;
-       try {
+        SERVER svr = null;
+        try {
             if (jo.action.equalsIgnoreCase(KEYS.ADD.label)){
-                    dskPool.getServerById(jo.serverid)
-                            .addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
+                    svr = dskPool.getServerById(jo.serverid);
+                    svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
+                    logger.debug("[addRemoveDisk] disk added {}", body);
             }
             else if (jo.action.equalsIgnoreCase(KEYS.REMOVE.label)){
                 dskPool.getServerById(jo.serverid)
                         .removeDisk(jo.mpath, jo.diskid);
+                logger.debug("[addRemoveDisk] disk removed {}", body);
             }
-       } catch (ResourceNotFoundException ex) {
-           //logger.debug("diskpool not found "  + ex);
-       }
+        } catch (ResourceNotFoundException ex) {
+           if (jo.action.equalsIgnoreCase(KEYS.ADD.label)){
+               if (svr == null){
+                   try {
+                       JsonOutput jsonSvr = this.decodeSubJsonObject(body, "Server");
+                       //return addRemoveServer(dskPool, jsonSvr);
+                       dskPool.addServer(jsonSvr.serverid, jsonSvr.IPaddr, jsonSvr.hostname, jsonSvr.rack);
+                       svr = dskPool.getServerById(jo.serverid);
+                       svr.setRack(jsonSvr.rack);
+                       svr.setStatus(ServerStatus.ONLINE);
+                       svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
+                       logger.debug("[addRemoveDisk] OSD server and disk added {}", body);
+                   } catch (ParseException | ResourceNotFoundException ex1) {
+                      logger.debug("[addRemoveDisk] unable to add disk because the server not exist request {}", body);
+                   }
+               }
+           }
+        }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
         obmCache.displayDiskPoolList();
-        
+ 
         return res;
     }
        
@@ -405,14 +444,17 @@ public class DiskMonitor {
     private MQResponse addRemoveDiskPool(String action, JsonOutput jo, String msg){
         MQResponse res;
         if (action.equalsIgnoreCase(KEYS.ADD.label)){
-            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);     
+            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName); 
+            dskPool1.setDefaultReplicaCount(jo.replicaCount);
             this.obmCache.setDiskPoolInCache(dskPool1);
             this.obmCache.displayDiskPoolList();
+            logger.debug("[addRemoveDiskPool] diskpool name : {} Id : {} added", jo.diskPoolName, jo.id);
         }
         else if (action.equalsIgnoreCase(KEYS.REMOVE.label)){
             if (!(jo.id.isEmpty() && jo.diskPoolName.isEmpty()))
                 this.obmCache.removeDiskPoolFromCache(jo.id);
             this.obmCache.displayDiskPoolList();
+            logger.debug("[addRemoveDiskPool] diskpool name : {} Id : {} removed", jo.diskPoolName, jo.id);
         }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
         
