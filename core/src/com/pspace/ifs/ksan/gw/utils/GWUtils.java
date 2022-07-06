@@ -1004,22 +1004,6 @@ public class GWUtils {
 					}
 				}
 			}
-		} else {
-			logger.debug(GWConstants.LOG_UTILS_INIT_DIR);
-			for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
-				for (Server server : diskpool.getServerList()) {
-					if (GWUtils.getLocalIP().equals(server.getIp())) {
-						for (Disk disk : server.getDiskList()) {
-							File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
-							file.mkdirs();
-						}
-					}
-				}
-			}
 		}
 	}
 

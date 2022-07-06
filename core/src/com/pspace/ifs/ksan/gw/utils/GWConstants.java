@@ -31,11 +31,17 @@ public final class GWConstants {
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
 
 	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
-	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure";
+	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.s3.config.*";
-	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool";
+	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
+	public static final String MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY = "*.servers.disks.added";
+	public static final String MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY = "*.servers.disks.updated";
+	public static final String MQUEUE_NAME_GW_DISK_REMOVED_ROUTING_KEY = "*.servers.disks.removed";
+	public static final String MQUEUE_NAME_GW_DISK_STATE_ROUTING_KEY = "*.servers.disks.state";
+	public static final String MQUEUE_NAME_GW_DISK_RWMODE_ROUTING_KEY = "*.servers.disks.rwmode";
+	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool-";
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
-	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user";
+	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
 	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.s3.user.*";
 
 	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
@@ -1265,6 +1271,7 @@ public final class GWConstants {
 
 	// GWPortal
 	public static final String GWPORTAL_RECEIVED_CONFIG_CHANGE = "receive config change ...";
+	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";
 	public static final String LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA = "BiningKey : {}, body : {}";

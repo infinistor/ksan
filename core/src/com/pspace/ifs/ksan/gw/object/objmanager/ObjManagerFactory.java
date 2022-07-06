@@ -24,7 +24,8 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
     private ObjManagerConfig config;
-    // private List<ObjManager> objManagerList = new ArrayList<ObjManager>();
+    private List<ObjManager> objManagerList = new ArrayList<ObjManager>();
+
     public ObjManagerFactory() throws IOException {
         config = new ObjManagerConfig(ObjectManagerConfig.getInstance().getDbRepository(),
             ObjectManagerConfig.getInstance().getDbHost(),
@@ -36,12 +37,11 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
             ObjectManagerConfig.getInstance().getMqQueueName(),
             ObjectManagerConfig.getInstance().getMqExchangeName(),
             ObjectManagerConfig.getInstance().getMqOsdExchangeName());
-            // "192.168.31.231", "disk", "disk", "OSDExchange");
     }
 
     private ObjManager create() throws Exception {
         ObjManager objManager = new ObjManager(config);
-        // objManagerList.add(objManager);
+        objManagerList.add(objManager);
         return objManager;
     }
 
@@ -78,7 +78,8 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
     //     objManagerList.forEach(objManager -> objManager.updateConfig());
     // }
 
-    // public void notifyChangeDiskpools(String routingKey) {
-    //     objManagerList.forEach(objManager -> objManager.updateDiskpools());
-    // }
+    public void notifyChangeDiskpools(String routingKey, String body) {
+        ObjManager objManager = objManagerList.get(0);
+        objManager.updateDiskpools(routingKey, body);
+    }
 }
