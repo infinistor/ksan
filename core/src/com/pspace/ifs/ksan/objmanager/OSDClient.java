@@ -27,23 +27,25 @@ public class OSDClient {
         this.mqSender = mqSender;
     }
     
-    public int removeObject(Metadata mt) throws Exception{
+    public int removeObject(String objId, String versionId, DISK dsk)throws Exception{
         JSONObject obj;
         String bindingKey;
         
         obj = new JSONObject();
-        obj.put("ObjId", mt.getObjId());
-        obj.put("VersionId", mt.getVersionId());
-        obj.put("DiskId", mt.getPrimaryDisk().getId());
-        obj.put("DiskPath", mt.getPrimaryDisk().getPath());
-        bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getPrimaryDisk().getOSDServerId());
+        obj.put("ObjId", objId);
+        obj.put("VersionId", versionId);
+        obj.put("DiskId", dsk.getId());
+        obj.put("DiskPath", dsk.getPath());
+        bindingKey = String.format("*.services.osd.%s.object.unlink", dsk.getOSDServerId());
         mqSender.send(obj.toString(), bindingKey);
-
+        return 0;
+    }
+    
+    public int removeObject(Metadata mt) throws Exception{
+     
+        removeObject(mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk());
         if (mt.isReplicaExist()){
-            obj.replace("DiskId", mt.getReplicaDisk().getId());
-            obj.replace("DiskPath", mt.getReplicaDisk().getPath());
-            bindingKey = String.format("*.services.osd.%s.object.unlink", mt.getReplicaDisk().getOSDServerId());
-            mqSender.send(obj.toString(), bindingKey);
+            removeObject(mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk());
         }    
         return 0;
     }

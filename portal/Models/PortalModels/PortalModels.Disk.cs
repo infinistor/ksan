@@ -39,8 +39,8 @@ namespace PortalModels
 		/// <summary> 디스크 Pool 아이디 </summary>
 		public virtual Guid? DiskPoolId { get; set; }
 
-		/// <summary> 디스크 번호 (디스크 아이디의 HashCode) </summary>
-		public virtual string DiskNo { get; set; }
+		/// <summary> 디스크 이름 </summary>
+		public virtual string Name { get; set; }
 
 		/// <summary> 서버 아이디 </summary>
 		public virtual Guid ServerId { get; set; }

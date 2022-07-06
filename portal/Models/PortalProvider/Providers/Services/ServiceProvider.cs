@@ -72,13 +72,8 @@ namespace PortalProvider.Providers.Services
 				if (!Request.IsValid())
 					return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var ResponseExist = await this.IsNameExist(null, new RequestIsServiceNameExist(Request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (ResponseExist.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseServiceWithVlans>(ResponseExist.Result, ResponseExist.Code, ResponseExist.Message);
 				// 동일한 이름이 존재하는 경우
-				if (ResponseExist.Data)
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
 
 				// 그룹 아이디가 존재하고 유효한 Guid가 아닌 경우
@@ -177,7 +172,7 @@ namespace PortalProvider.Providers.Services
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 서비스 추가 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.added",new ResponseSerivceMq().CopyValueFrom(NewData));
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.added", new ResponseSerivceMq().CopyValueFrom(NewData));
 					}
 					catch (Exception ex)
 					{
@@ -202,7 +197,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="Request">서비스 수정 요청 객체</param>
 		/// <returns>서비스 수정 결과 객체</returns>
 		public async Task<ResponseData> Update(string Id, RequestService Request)
@@ -211,20 +206,27 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var Service = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+					//서비스가 존재하지 않는 경우
+					if (Service == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = Service.Id;
+				}
 
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				var ResponseExist = await this.IsNameExist(Id, new RequestIsServiceNameExist(Request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (ResponseExist.Result != EnumResponseResult.Success)
-					return new ResponseData(ResponseExist.Result, ResponseExist.Code, ResponseExist.Message);
 				// 동일한 이름이 존재하는 경우
-				if (ResponseExist.Data)
+				if (await this.IsNameExist(Request.Name, GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
 
 				// 그룹 아이디가 존재하고 유효한 Guid가 아닌 경우
@@ -332,7 +334,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 변경 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated",new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -357,7 +359,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 상태 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="State">서비스 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -369,12 +371,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -401,9 +409,9 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
-						
+
 						// 서비스 변경 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated",new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -457,9 +465,9 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 사용 정보 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="CpuUsage">CPU 사용률</param>
-		/// <param name="MemoryUsed">서버 아이디</param>
+		/// <param name="MemoryUsed">메모리 사용량</param>
 		/// <param name="ThreadCount">스레드 수</param>
 		/// <returns>서비스 사용 정보 정보 수정 결과 객체</returns>
 		public async Task<ResponseData> UpdateUsage(string Id, float CpuUsage, decimal MemoryUsed, int ThreadCount)
@@ -469,11 +477,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -557,7 +572,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 HA 상태 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="State">HA 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -569,12 +584,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -654,7 +675,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 삭제</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 삭제 결과 객체</returns>
 		public async Task<ResponseData> Remove(string Id)
 		{
@@ -663,11 +684,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -702,7 +730,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 삭제 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.removed",new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.removed", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -788,7 +816,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 정보를 가져온다.</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 정보 객체</returns>
 		public async Task<ResponseData<ResponseServiceWithVlans>> Get(string Id)
 		{
@@ -796,11 +824,23 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData<ResponseServiceWithVlans>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 정보를 가져온다.
-				var Exist = await m_dbContext.Services.AsNoTracking()
+				ResponseServiceWithVlans Exist = null;
+
+				// 해당 정보를 가져온다.
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking()
+					.Where(i => i.Name == Id)
+					.Include(i => i.ServiceGroup)
+					.Include(i => i.Vlans)
+					.ThenInclude(i => i.NetworkInterfaceVlan)
+					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking()
 					.Where(i => i.Id == GuidId)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
@@ -859,9 +899,9 @@ namespace PortalProvider.Providers.Services
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 서비스 아이디</param>
-		/// <param name="Request">특정 이름의 서비스 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsServiceNameExist Request)
+		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
 			ResponseData<bool> Result = new ResponseData<bool>();
 
@@ -873,15 +913,10 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 요청 객체가 유효하지 않은 경우
-				if (!Request.IsValid())
-					return new ResponseData<bool>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+				if (Name.IsEmpty())
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_REQUIRE_NAME);
 
-				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != GuidId) && i.Name == Request.Name))
-					Result.Data = true;
-				// 동일한 이름이 존재하지 않는 경우
-				else
-					Result.Data = false;
+				Result.Data = await IsNameExist(Name, GuidId != Guid.Empty ? GuidId : null);
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -895,8 +930,26 @@ namespace PortalProvider.Providers.Services
 			return Result;
 		}
 
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <param name="Name">검색할 이름</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 서비스 아이디</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		{
+			try
+			{
+				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
+		}
+
 		/// <summary>서비스 시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 시작 결과 객체</returns>
 		public async Task<ResponseData> Start(string Id)
 		{
@@ -904,11 +957,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -946,7 +1006,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 중지</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 중지 결과 객체</returns>
 		public async Task<ResponseData> Stop(string Id)
 		{
@@ -955,12 +1015,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -999,7 +1065,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 재시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 재시작 결과 객체</returns>
 		public async Task<ResponseData> Restart(string Id)
 		{
@@ -1008,12 +1074,18 @@ namespace PortalProvider.Providers.Services
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid GuidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)

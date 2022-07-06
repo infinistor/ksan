@@ -170,7 +170,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 수정</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <param name="Request">서비스 수정 요청 객체</param>
 		/// <returns>서비스 수정 결과 객체</returns>
 		public async Task<ResponseData> Update(string Id, RequestServiceGroup Request)
@@ -298,7 +298,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 삭제</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 삭제 결과 객체</returns>
 		public async Task<ResponseData> Remove(string Id)
 		{
@@ -423,7 +423,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 정보를 가져온다.</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 정보 객체</returns>
 		public async Task<ResponseData<ResponseServiceGroupWithServices>> Get(string Id)
 		{
@@ -626,7 +626,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 시작 결과 객체</returns>
 		public async Task<ResponseData> Start(string Id)
 		{
@@ -688,7 +688,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 중지</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 그룹 중지 결과 객체</returns>
 		public async Task<ResponseData> Stop(string Id)
 		{
@@ -750,7 +750,7 @@ namespace PortalProvider.Providers.Services
 		}
 
 		/// <summary>서비스 재시작</summary>
-		/// <param name="Id">서비스 아이디</param>
+		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 재시작 결과 객체</returns>
 		public async Task<ResponseData> Restart(string Id)
 		{

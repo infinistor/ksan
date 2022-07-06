@@ -27,6 +27,8 @@ using MTLib.CommonData;
 using MTLib.Core;
 using PortalData.Responses.Region;
 using PortalData.Requests.Region;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 
 namespace PortalSvr.Controllers.Regions
 {
@@ -62,6 +64,7 @@ namespace PortalSvr.Controllers.Regions
 		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<RequestRegion>))]
 		[HttpGet]
 		public async Task<ActionResult> Get(
 			int Skip = 0, int CountPerPage = 100,
@@ -74,25 +77,38 @@ namespace PortalSvr.Controllers.Regions
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
 		/// <returns>리전 정보 객체</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<RequestRegion>))]
 		[HttpGet("{RegionName}")]
 		public async Task<ActionResult> Get([FromRoute] string RegionName)
 		{
 			return Json(await m_dataProvider.Get(RegionName));
 		}
 
-		/// <summary>리전을 추가한다.</summary>
+		/// <summary>리전을 생성한다.</summary>
 		/// <param name="Request">리전 정보</param>
-		/// <returns>리전 등록 결과</returns>
+		/// <returns>리전 생성 결과</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<RequestRegion>))]
 		[HttpPost]
 		public async Task<ActionResult> Add([FromBody] RequestRegion Request)
 		{
 			return Json(await m_dataProvider.Add(Request));
 		}
 
+		/// <summary>리전을 생성한다.</summary>
+		/// <param name="Request">리전 정보</param>
+		/// <returns>리전 생성 결과</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPost("Sync")]
+		public async Task<ActionResult> Sync([FromBody] List<RequestRegion> Request)
+		{
+			return Json(await m_dataProvider.Sync(Request));
+		}
+
 		/// <summary>리전을 변경한다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
 		/// <param name="Request">리전 정보</param>
-		/// <returns>리전 등록 결과</returns>
+		/// <returns>리전 변경 결과</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("{RegionName}")]
 		public async Task<ActionResult> Update([FromRoute] string RegionName, [FromBody] RequestRegion Request)
 		{
@@ -102,6 +118,7 @@ namespace PortalSvr.Controllers.Regions
 		/// <summary>리전을 삭제한다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
 		/// <returns>리전 삭제 결과</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpDelete]
 		public async Task<ActionResult> Remove([FromRoute] string RegionName)
 		{

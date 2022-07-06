@@ -1101,11 +1101,11 @@
 			</Documentation>
 			<column name="" />
 		</property>
-		<property name="DiskNo" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
 			<Documentation>
-				<Summary>디스크 번호 (디스크 아이디의 HashCode)</Summary>
+				<Summary>디스크 이름</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
 			<Documentation>
@@ -1452,7 +1452,7 @@
 			<Documentation>
 				<Summary>유저명</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
 			<Documentation>

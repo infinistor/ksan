@@ -70,7 +70,7 @@ namespace PortalModels
 		partial void CustomizeDiskMapping(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<Disk>()
-				.HasIndex(i => new { i.ServerId, i.DiskNo }).IsUnique(false);
+				.HasIndex(i => new { i.ServerId, i.Name }).IsUnique(false);
 			modelBuilder.Entity<Disk>()
 				.HasIndex(i => new { i.ServerId, i.Id }).IsUnique(false);
 		}

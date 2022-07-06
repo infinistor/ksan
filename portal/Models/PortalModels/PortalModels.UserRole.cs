@@ -12,9 +12,7 @@ using System;
 
 namespace PortalModels
 {
-	/// <summary>
-	/// 역할(권한그룹) 내 사용자
-	/// </summary>
+	/// <summary> 역할(권한그룹) 내 사용자 </summary>
 	public partial class UserRole
 	{
 

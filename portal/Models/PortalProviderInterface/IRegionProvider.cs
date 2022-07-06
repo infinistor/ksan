@@ -20,10 +20,15 @@ namespace PortalProviderInterface
 	/// <summary>리전 프로바이더 인터페이스</summary>
 	public interface IRegionProvider : IBaseProvider
 	{
-		/// <summary>리전을 추가한다.</summary>
+		/// <summary>리전을 생성한다.</summary>
 		/// <param name="Request">리전 정보</param>
 		/// <returns>리전 등록 결과</returns>
-		Task<ResponseData> Add(RequestRegion Request);
+		Task<ResponseData<ResponseRegion>> Add(RequestRegion Request);
+
+		/// <summary>리전을 동기화한다.</summary>
+		/// <param name="Request">리전 정보 목록</param>
+		/// <returns>리전 등록 결과</returns>
+		Task<ResponseData> Sync(List<RequestRegion> Request);
 
 		/// <summary>리전을 수정한다.</summary>
 		/// <param name="RegionName">리전 식별자</param>

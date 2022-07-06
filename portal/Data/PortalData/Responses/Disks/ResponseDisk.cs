@@ -27,8 +27,8 @@ namespace PortalData.Responses.Disks
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
-		/// <summary>디스크 식별번호</summary>
-		public string DiskNo { get; set; }
+		/// <summary>디스크 이름</summary>
+		public string Name { get; set; }
 
 		/// <summary>마운트 경로</summary>
 		public string Path { get; set; }

@@ -1,224 +1,224 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-	<RootNamespace>PortalModels</RootNamespace>
+		<TargetFramework>net5.0</TargetFramework>
+		<RootNamespace>PortalModels</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="PortalModels.S3User.cs" />
+		<Compile Remove="PortalModels.S3User.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
-	<PackageReference Include="EntityFramework" Version="6.4.4" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.10" />
-	<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-	<PackageReference Include="MTLib.Core" Version="5.0.1" />
-	<PackageReference Include="MySqlConnector" Version="1.3.13" />
-	<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+		<PackageReference Include="EntityFramework" Version="6.4.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+		<PackageReference Include="MTLib.Core" Version="5.0.1" />
+		<PackageReference Include="MySqlConnector" Version="1.3.13" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-	<Compile Update="PortalModels.AllowedConnectionIp.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ApiKey.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ClaimName.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.Config.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.Disk.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.DiskPool.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.DiskUsage.cs">
-	  <AutoGen>True</AutoGen>
-	  <DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbDiskPoolReplicaType.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbDiskPoolType.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbDiskRwMode.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbDiskState.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbHaAction.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbLogLevel.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbServerState.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbServiceGroupMode.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbServiceState.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbServiceType.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.KsanUser.cs">
-	  <AutoGen>True</AutoGen>
-	  <DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.NetworkInterfaceUsage.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.PortalModel.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbNetworkLinkState.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbOnOff.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.EnumDbYesNo.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.NetworkInterface.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.NetworkInterfaceVlan.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.PortalModel.Extension.cs">
-		<AutoGen>True</AutoGen>
-	</Compile>
-	<Compile Update="PortalModels.Region.cs">
-	  <AutoGen>True</AutoGen>
-	  <DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.Role.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.RoleClaim.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.Server.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServerUsage.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.Service.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServiceConfig.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServiceDisk.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServiceGroup.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServiceNetworkInterfaceVlan.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.ServiceUsage.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.SystemLog.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.User.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.UserActionLog.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.UserClaim.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.UserDiskPool.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.UserLoginHistory.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
-	<Compile Update="PortalModels.UserRole.cs">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</Compile>
+		<Compile Update="PortalModels.AllowedConnectionIp.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ApiKey.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ClaimName.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.Config.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.Disk.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.DiskPool.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.DiskUsage.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbDiskPoolReplicaType.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbDiskPoolType.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbDiskRwMode.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbDiskState.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbHaAction.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbLogLevel.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbServerState.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbServiceGroupMode.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbServiceState.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbServiceType.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.KsanUser.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.NetworkInterfaceUsage.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.PortalModel.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbNetworkLinkState.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbOnOff.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.EnumDbYesNo.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.NetworkInterface.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.NetworkInterfaceVlan.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.PortalModel.Extension.cs">
+			<AutoGen>True</AutoGen>
+		</Compile>
+		<Compile Update="PortalModels.Region.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.Role.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.RoleClaim.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.Server.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServerUsage.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.Service.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceConfig.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceDisk.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceGroup.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceNetworkInterfaceVlan.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceUsage.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.SystemLog.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.User.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.UserActionLog.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.UserClaim.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.UserDiskPool.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.UserLoginHistory.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.UserRole.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	<None Update="PortalModels.Diagram1.view">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</None>
-	<None Update="PortalModels.PortalModelDiagram.view">
-		<AutoGen>True</AutoGen>
-	</None>
-	<None Update="PortalModels.edps">
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</None>
-	<None Update="PortalModels.efml">
-		<Generator>DevartEFCoreGenerator</Generator>
-		<LastGenOutput>PortalModels.info</LastGenOutput>
-	</None>
-	<None Update="PortalModels.info">
-		<DesignTime>True</DesignTime>
-		<AutoGen>True</AutoGen>
-		<DependentUpon>PortalModels.efml</DependentUpon>
-	</None>
+		<None Update="PortalModels.Diagram1.view">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</None>
+		<None Update="PortalModels.PortalModelDiagram.view">
+			<AutoGen>True</AutoGen>
+		</None>
+		<None Update="PortalModels.edps">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</None>
+		<None Update="PortalModels.efml">
+			<Generator>DevartEFCoreGenerator</Generator>
+			<LastGenOutput>PortalModels.info</LastGenOutput>
+		</None>
+		<None Update="PortalModels.info">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</None>
 	</ItemGroup>
 
 </Project>

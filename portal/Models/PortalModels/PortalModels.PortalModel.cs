@@ -19,14 +19,12 @@ namespace PortalModels
 	public partial class PortalModel : DbContext
 	{
 
-		public PortalModel() :
-			base()
+		public PortalModel() : base()
 		{
 			OnCreated();
 		}
 
-		public PortalModel(DbContextOptions<PortalModel> options) :
-			base(options)
+		public PortalModel(DbContextOptions<PortalModel> options) : base(options)
 		{
 			OnCreated();
 		}
@@ -556,7 +554,7 @@ namespace PortalModels
 			modelBuilder.Entity<Disk>().ToTable(@"DISKS");
 			modelBuilder.Entity<Disk>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").ValueGeneratedNever();
-			modelBuilder.Entity<Disk>().Property(x => x.DiskNo).HasColumnName(@"DISK_NO").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.Path).HasColumnName(@"PATH").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.State).HasColumnName(@"STATE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"-2");
@@ -570,6 +568,7 @@ namespace PortalModels
 			modelBuilder.Entity<Disk>().Property(x => x.Write).HasColumnName(@"WRITE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Disk>().Property(x => x.RwMode).HasColumnName(@"RW_MODE").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().HasKey(@"Id");
+			modelBuilder.Entity<Disk>().HasIndex(@"Name").IsUnique(true);
 		}
 
 		partial void CustomizeDiskMapping(ModelBuilder modelBuilder);
@@ -697,6 +696,7 @@ namespace PortalModels
 			modelBuilder.Entity<KsanUser>().Property(x => x.Email).HasColumnName(@"EMAIL").ValueGeneratedNever();
 			modelBuilder.Entity<KsanUser>().HasKey(@"AccessKey", @"SecretKey");
 			modelBuilder.Entity<KsanUser>().HasIndex(@"Id").IsUnique(true);
+			modelBuilder.Entity<KsanUser>().HasIndex(@"Name").IsUnique(true);
 		}
 
 		partial void CustomizeKsanUserMapping(ModelBuilder modelBuilder);

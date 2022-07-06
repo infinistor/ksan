@@ -38,10 +38,6 @@ namespace PortalProvider.Providers.Accounts
 	{
 		/// <summary>역할 매니져</summary>
 		protected readonly RoleManager<NNApplicationRole> m_roleManager;
-		protected readonly int ACCESS_KEY_LENGTH = 20;
-		protected readonly int SECRET_KEY_LENGTH = 40;
-		protected readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z가-힣]{1,}$");
-		protected readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
 
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
@@ -113,45 +109,34 @@ namespace PortalProvider.Providers.Accounts
 				if (Exist == null)
 					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				// 요청이 유효한 경우
-				try
+				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
+				var User = new KsanUser
 				{
-					// Ksan 사용자 객체를 생성한다.
-					var User = new KsanUser
-					{
-						Id = Guid.NewGuid(),
-						Name = Request.Name,
-						Email = Email,
-						AccessKey = RandomText(ACCESS_KEY_LENGTH),
-						SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
-					};
+					Id = Guid.NewGuid(),
+					Name = Request.Name,
+					Email = Email,
+					AccessKey = RandomText(ACCESS_KEY_LENGTH),
+					SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
+				};
 
-					// Ksan 사용자 등록
-					await m_dbContext.KsanUsers.AddAsync(User);
+				// Ksan 사용자 등록
+				await m_dbContext.KsanUsers.AddAsync(User);
 
-					// 기본 스토리지 클래스 등록
-					var StorageClass = new UserDiskPool { UserId = User.Id, DiskPoolId = DiskPoolId, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
-					await m_dbContext.UserDiskPools.AddAsync(StorageClass);
-					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+				// 기본 스토리지 클래스 등록
+				var StorageClass = new UserDiskPool { UserId = User.Id, DiskPoolId = DiskPoolId, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
+				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
+				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-					Result.Data = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == User.Id)
-						.Include(i => i.UserDiskPools)
-						.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
+				Result.Data = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == User.Id)
+					.Include(i => i.UserDiskPools)
+					.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
 
-					Result.Result = EnumResponseResult.Success;
-					Result.Data = new ResponseKsanUser();
-					Result.Data.CopyValueFrom(User);
+				Result.Result = EnumResponseResult.Success;
+				Result.Data = new ResponseKsanUser();
+				Result.Data.CopyValueFrom(User);
 
-					// Ksan 사용자 등록 알림
-					SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.added", Result.Data);
-				}
-				catch (Exception ex)
-				{
-					NNException.Log(ex);
-
-					Result.Code = Resource.EC_COMMON__EXCEPTION;
-					Result.Message = Resource.EM_COMMON__EXCEPTION;
-				}
+				// Ksan 사용자 등록 알림
+				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.added", Result.Data);
 			}
 			catch (Exception ex)
 			{
@@ -164,25 +149,37 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>Ksan 사용자를 수정한다.</summary>
-		/// <param name="id">Ksan 사용자 식별자</param>
+		/// <param name="Id">Ksan 사용자 식별자</param>
 		/// <param name="Request">Ksan 사용자 정보</param>
 		/// <returns>Ksan 사용자 수정 결과</returns>
-		public async Task<ResponseData> Update(string id, RequestKsanUserUpdate Request)
+		public async Task<ResponseData> Update(string Id, RequestKsanUserUpdate Request)
 		{
 			var Result = new ResponseData();
 
 			try
 			{
-				// 아이디가 유효하지 않을 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 사용자명이 없는 경우
 				if (Request.Name.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
 
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var KsanUser = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+					//서비스가 존재하지 않는 경우
+					if (KsanUser == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = KsanUser.Id;
+				}
+
 				// 사용자 계정을 가져온다.
-				var User = await m_dbContext.KsanUsers.Where(i => i.Id == guidId).FirstOrDefaultAsync();
+				var User = await m_dbContext.KsanUsers.Where(i => i.Id == GuidId).FirstOrDefaultAsync();
 
 				// 해당 계정을 찾을 수 없는 경우
 				if (User == null)
@@ -660,13 +657,13 @@ namespace PortalProvider.Providers.Accounts
 				// 스토리지 클래스가 존재할 경우에만 삭제
 				if (Data == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_DELETE, Resource.EC_COMMON__NOT_FOUND);
-				
+
 				// 스토리지 클래스 삭제
 				m_dbContext.UserDiskPools.Remove(Data);
 				await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 				//Ksan 사용자 변경 알림
-				var User = await m_dbContext.KsanUsers.AsNoTracking().Where(i =>i.Id == UserId).FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
+				var User = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == UserId).FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
 				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.updated", User);
 
 				Result.Result = EnumResponseResult.Success;
@@ -687,6 +684,10 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/************************************************************************************************************/
+		protected readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z가-힣]{1,}$");
+		protected readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
+		protected readonly int ACCESS_KEY_LENGTH = 20;
+		protected readonly int SECRET_KEY_LENGTH = 40;
 		protected readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 		protected readonly char[] TEXT_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 		/// <summary>랜덤한 문자열(대문자+숫자)을 생성한다.</summary>
