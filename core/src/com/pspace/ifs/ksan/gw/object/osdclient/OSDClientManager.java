@@ -75,33 +75,16 @@ public class OSDClientManager {
         for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
             for (Server server : diskpool.getServerList()) {
                 if (!GWUtils.getLocalIP().equals(server.getIp())) {
-                    logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
-                    OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
-                    OSDClientPool pool = new OSDClientPool(factory, config);
-                    pool.preparePool();
-                    pools.put(server.getIp(), pool);
+                    if (!pools.containsKey(server.getIp())) {
+                        logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
+                        OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
+                        OSDClientPool pool = new OSDClientPool(factory, config);
+                        pool.preparePool();
+                        pools.put(server.getIp(), pool);
+                    }
                 }
             }
         }
-
-        // for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
-        //     if (!GWUtils.getLocalIP().equals(server.getIp())) {
-        //         logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
-        //         OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
-        //         OSDClientPool pool = new OSDClientPool(factory, config);
-        //         pool.preparePool();
-        //         pools.put(server.getIp(), pool);
-        //     }
-        // }
-        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-        //     if (!GWUtils.getLocalIP().equals(server.getIp())) {
-        //         logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
-        //         OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
-        //         OSDClientPool pool = new OSDClientPool(factory, config);
-        //         pool.preparePool();
-        //         pools.put(server.getIp(), pool);
-        //     }
-        // }
     }
 
     public void update(int port, int osdClientCount) throws Exception {

@@ -26,9 +26,6 @@ namespace PortalData.Requests.Disks
 		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_SERVER_ID", ErrorMessageResourceType = typeof(Resource))]
 		public string ServerId { get; set; }
 		
-		/// <summary>디스크 번호</summary>
-		public string DiskNo { get; set; }
-		
 		/// <summary>디스크 상태</summary>
 		public EnumDiskState State { get; set; } = EnumDiskState.Disable;
 		

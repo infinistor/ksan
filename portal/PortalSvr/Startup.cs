@@ -152,6 +152,7 @@ namespace PortalSvr
 				Services.AddTransient<PortalProviderInterface.IServiceProvider, PortalProvider.Providers.Services.ServiceProvider>();
 				Services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
+				Services.AddTransient<IRegionProvider, RegionProvider>();
 
 				Services.AddSwaggerGen(c =>
 				{

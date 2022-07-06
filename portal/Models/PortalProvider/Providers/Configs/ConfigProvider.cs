@@ -182,6 +182,10 @@ namespace PortalProvider.Providers.Services
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
 
+						Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
+							.Where(i => i.Type == (EnumDbServiceType)Request.Type)
+							.OrderByDescending(i => i.Version)
+							.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
 						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)

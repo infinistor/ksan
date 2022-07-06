@@ -10,6 +10,9 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+
+import java.io.File;
+
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
@@ -53,6 +56,20 @@ class ConfigUpdateCallback implements MQCallback{
 	}    
 }
 
+class DiskUpdateCallback implements MQCallback{
+	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
+	@Override
+	public MQResponse call(String routingKey, String body) {
+		logger.info(GWConstants.GWPORTAL_RECEIVED_DISK_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+
+		GWPortal.getInstance().getDiskPoolsDetails();
+		ObjManagerHelper.updateAllDiskpools(routingKey, body);
+
+		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+	}
+}
+
 class DiskpoolsUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
 	@Override
@@ -61,7 +78,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getDiskPoolsDetails();
-		// ObjManagerHelper.updateAllDiskpools(routingKey);
+		ObjManagerHelper.updateAllDiskpools(routingKey, body);
 
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}    
@@ -145,7 +162,77 @@ public class GWPortal {
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_CONFIG_ROUTING_KEY, 
 											   configureCB);
-			mq1ton.addCallback(configureCB);
+			// mq1ton.addCallback(configureCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
+		try {
+			MQCallback diskCB = new DiskUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY, 
+											   diskCB);
+			// mq1ton.addCallback(diskpoolsCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
+		try {
+			MQCallback diskCB = new DiskUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY, 
+											   diskCB);
+			// mq1ton.addCallback(diskpoolsCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
+		try {
+			MQCallback diskCB = new DiskUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISK_REMOVED_ROUTING_KEY, 
+											   diskCB);
+			// mq1ton.addCallback(diskpoolsCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
+		try {
+			MQCallback diskCB = new DiskUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISK_STATE_ROUTING_KEY, 
+											   diskCB);
+			// mq1ton.addCallback(diskpoolsCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
+		try {
+			MQCallback diskCB = new DiskUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false, 
+											   "", 
+											   GWConstants.MQUEUE_NAME_GW_DISK_RWMODE_ROUTING_KEY, 
+											   diskCB);
+			// mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
@@ -159,7 +246,7 @@ public class GWPortal {
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY, 
 											   diskpoolsCB);
-			mq1ton.addCallback(diskpoolsCB);
+			// mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
@@ -173,7 +260,7 @@ public class GWPortal {
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_USER_ROUTING_KEY, 
 											   userCB);
-			mq1ton.addCallback(userCB);
+			// mq1ton.addCallback(userCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
@@ -271,6 +358,22 @@ public class GWPortal {
 				}
 				DiskManager.getInstance().configure();
 				DiskManager.getInstance().saveFile();
+				
+				for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+					for (Server server : diskpool.getServerList()) {
+						if (GWUtils.getLocalIP().equals(server.getIp())) {
+							for (Disk disk : server.getDiskList()) {
+								File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+								file.mkdirs();
+								file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+								file.mkdirs();
+								file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+								file.mkdirs();
+							}
+						}
+					}
+				}
+
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());

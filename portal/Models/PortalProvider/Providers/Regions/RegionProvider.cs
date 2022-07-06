@@ -27,6 +27,7 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using PortalData.Requests.Region;
 using PortalData.Responses.Region;
+using MTLib.Reflection;
 
 namespace PortalProvider.Providers.Accounts
 {
@@ -54,17 +55,17 @@ namespace PortalProvider.Providers.Accounts
 		{
 		}
 
-		/// <summary>리전을 추가한다.</summary>
+		/// <summary>리전을 생성한다.</summary>
 		/// <param name="Request">리전 정보</param>
 		/// <returns>리전 등록 결과</returns>
-		public async Task<ResponseData> Add(RequestRegion Request)
+		public async Task<ResponseData<ResponseRegion>> Add(RequestRegion Request)
 		{
-			var Result = new ResponseData();
+			var Result = new ResponseData<ResponseRegion>();
 			try
 			{
 				// 파라미터가 유효하지 않은 경우
 				if (!Request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+					return new ResponseData<ResponseRegion>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 해당 리전 객체를 생성한다.
 				var NewData = new Region
@@ -73,13 +74,17 @@ namespace PortalProvider.Providers.Accounts
 					Address = Request.Address,
 					Port = Request.Port,
 					SSLPort = Request.SSLPort,
-					AccessKey = Request.AccessKey,
-					SecretKey = Request.SecretKey
+					AccessKey = RandomText(ACCESS_KEY_LENGTH),
+					SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
 				};
 
 				// 리전 등록
 				await m_dbContext.Regions.AddAsync(NewData);
+				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
+				Result.Data = new ResponseRegion();
+				Result.Data.CopyValueFrom(NewData);
+				
 				Result.Result = EnumResponseResult.Success;
 				Result.Code = Resource.SC_COMMON__SUCCESS;
 				Result.Message = Resource.SM_COMMON__CREATED;
@@ -92,6 +97,55 @@ namespace PortalProvider.Providers.Accounts
 				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 			return Result;
+		}
+
+		/// <summary>리전을 동기화한다.</summary>
+		/// <param name="Request">리전 정보</param>
+		/// <returns>리전 등록 결과</returns>
+		public async Task<ResponseData> Sync(List<RequestRegion> Requests)
+		{
+			var Result = new ResponseData();
+
+			using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					// 파라미터가 유효하지 않은 경우
+					foreach (var Request in Requests)
+					{
+						if (!Request.IsValid())
+							return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+						// 해당 리전 객체를 생성한다.
+						var NewData = new Region
+						{
+							Name = Request.Name,
+							Address = Request.Address,
+							Port = Request.Port,
+							SSLPort = Request.SSLPort,
+							AccessKey = Request.AccessKey,
+							SecretKey = Request.SecretKey
+						};
+
+						// 리전 등록
+						await m_dbContext.Regions.AddAsync(NewData);
+					}
+					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+					Result.Result = EnumResponseResult.Success;
+					Result.Code = Resource.SC_COMMON__SUCCESS;
+					Result.Message = Resource.SM_COMMON__CREATED;
+				}
+				catch (Exception ex)
+				{
+					await Transaction.RollbackAsync();
+					NNException.Log(ex);
+
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+					Result.Message = Resource.EM_COMMON__EXCEPTION;
+				}
+				return Result;
+			}
 		}
 
 		/// <summary>리전을 수정한다.</summary>
@@ -207,7 +261,7 @@ namespace PortalProvider.Providers.Accounts
 			}
 			return Result;
 		}
-		
+
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
 		/// <returns>리전 정보 객체</returns>
@@ -265,6 +319,30 @@ namespace PortalProvider.Providers.Accounts
 				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 			return Result;
+		}
+		/************************************************************************************************************/
+		protected readonly int ACCESS_KEY_LENGTH = 20;
+		protected readonly int SECRET_KEY_LENGTH = 40;
+		protected readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+		protected readonly char[] TEXT_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+		/// <summary>랜덤한 문자열(대문자+숫자)을 생성한다.</summary>
+		/// <param name="Length">문자열 길이</param>
+		/// <returns>생성한 문자열</returns>
+		protected string RandomText(int Length)
+		{
+			var rand = new Random();
+			var chars = Enumerable.Range(0, Length).Select(x => TEXT[rand.Next(0, TEXT.Length)]);
+			return new string(chars.ToArray());
+		}
+
+		/// <summary>랜덤한 문자열(대문자+소문자+숫자)을 생성한다.</summary>
+		/// <param name="Length">문자열 길이</param>
+		/// <returns>생성한 문자열</returns>
+		protected string RandomTextLong(int Length)
+		{
+			var rand = new Random();
+			var chars = Enumerable.Range(0, Length).Select(x => TEXT_STRING[rand.Next(0, TEXT_STRING.Length)]);
+			return new string(chars.ToArray());
 		}
 	}
 }

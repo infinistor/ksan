@@ -14,21 +14,21 @@ namespace PortalData.Responses.Region
 	public class ResponseRegion
 	{
 		/// <summary> 리전명 </summary>
-		public virtual string Name { get; set; }
+		public virtual string Name { get; set; } = "";
 
 		/// <summary> 리전 주소 </summary>
-		public virtual string Address { get; set; }
+		public virtual string Address { get; set; } = "";
 
 		/// <summary> 포트 </summary>
-		public virtual int Port { get; set; }
+		public virtual int Port { get; set; } = 0;
 
 		/// <summary> SSL포트 </summary>
-		public virtual int SSLPort { get; set; }
+		public virtual int SSLPort { get; set; } = 0;
 
 		/// <summary> 엑세스키 </summary>
-		public virtual string AccessKey { get; set; }
+		public virtual string AccessKey { get; set; } = "";
 
 		/// <summary> 엑세스키 </summary>
-		public virtual string SecretKey { get; set; }
+		public virtual string SecretKey { get; set; } = "";
 	}
 }

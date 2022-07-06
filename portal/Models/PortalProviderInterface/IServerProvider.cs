@@ -8,6 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PortalData;
@@ -31,13 +32,13 @@ namespace PortalProviderInterface
 		Task<ResponseData> Initialize(RequestServerInitialize Request);
 
 		/// <summary>서버 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="Request">서버 수정 요청 객체</param>
 		/// <returns>서버 수정 결과 객체</returns>
 		Task<ResponseData> Update(string Id, RequestServer Request);
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="State">서버 상태</param>
 		/// <param name="ModId">수정자 아이디</param>
 		/// <param name="ModName">수정자명</param>
@@ -52,11 +53,11 @@ namespace PortalProviderInterface
 		Task<ResponseData> UpdateState(RequestServerState Request, string ModId = "", string ModName = "");
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <param name="LoadAverage1M">1분 Load Average</param>
 		/// <param name="LoadAverage5M">5분 Load Average</param>
 		/// <param name="LoadAverage15M">15분 Load Average</param>
-		/// <param name="MemoryUsed">서버 아이디</param>
+		/// <param name="MemoryUsed">메모리 사용량</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
 		Task<ResponseData> UpdateUsage(string Id, float LoadAverage1M, float LoadAverage5M, float LoadAverage15M, decimal MemoryUsed);
 
@@ -66,7 +67,7 @@ namespace PortalProviderInterface
 		Task<ResponseData> UpdateUsage(RequestServerUsage Request);
 
 		/// <summary>서버 삭제</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 삭제 결과 객체</returns>
 		Task<ResponseData> Remove(string Id);
 
@@ -87,14 +88,20 @@ namespace PortalProviderInterface
 		);
 
 		/// <summary>서버 정보를 가져온다.</summary>
-		/// <param name="Id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 정보 객체</returns>
 		Task<ResponseData<ResponseServerDetail>> Get(string Id);
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
-		/// <param name="Request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		Task<ResponseData<bool>> IsNameExist(string ExceptId, RequestIsServerNameExist Request);
+		Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name);
+
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <param name="Name">검색할 이름</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
 	}
 }
