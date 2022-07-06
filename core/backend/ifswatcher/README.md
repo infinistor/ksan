@@ -1,78 +1,98 @@
-# Watcher (S3GW Metering Backend)
+# metering (S3GW Metering Backend)
 
 ## 개요
 
 ### 용도
-* 로깅 데이터를 수집하여 metering 정보를 저장
+
+-   로깅 데이터를 수집하여 metering 정보를 저장
 
 ### 주요 기능
-* bucket별 filecount, 용량 저장
-* bucket별 upload, download 스트림 크기 저장
 
-### watcher.conf (KSAN/etc/watcher.conf)
-``` shell
-dbhost=                // s3 db host ip
-dbs3=                  // s3 db name
-dbport=                // s3 db port
-dbuser=                // s3 db user
-dbpass=                // s3 db password
-```
+-   bucket별 filecount, 용량 저장
+-   bucket별 upload, download 스트림 크기 저장
 
-## 실행 예시(CLI)
-``` shell
-java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ifs-watcher.xml ifs-watcher &
-```
+#### 경로
+
+-   등록 : **POST** `/api/v1/Config/Metering`
+-   목록 조회 : **GET** `/api/v1/Config/Metering`
+-   설정 삭제 : **DELETE** `/api/v1/Config/Metering/{Version}`
+-   특정버전을 최신버전으로 설정 : **PUT** `/api/v1/Config/Metering/{Version}`
 
 ## 로그 파일
-* 설정 파일 : ifs-watcher.xml (KSAN/etc/ifs-watcher.xml)
-* 위치
-  * /var/log/watcher/watcher.log
+
+-   설정 파일 : ifs-metering.xml (/app/ifs-metering.xml)
+-   위치
+    -   /home/ksan/logs/metering.log
 
 ## 구동 환경
 
-* OS : CentOS Linux release 7.5 이상
-* JDK : 11 이상
+-   Docker : 20.10.0 이상
 
 ## How to Build
 
-### Maven 설치
-* Maven이 설치되어 있는지 확인해야 합니다.
+### Docker 설치
 
 ``` shell
-mvn -v
+yum update
+yum -y install docker
+systemctl enable docker
+systemctl start docker
 ```
-* 위의 명령어로 확인하세요.
 
-* 설치가 되어 있지 않으면 다음 명령어로 설치를 해야 합니다.
+#### Centos7 Docker 버전 업데이트
+
 ``` shell
-sudo apt install maven
+# docker 버전 확인
+docker -v
+Docker version 1.13.1, build 0be3e21/1.13.1
+# 버전이 1.13.1일 경우 버전 업데이트
+yum update -y
+# 기존 버전 삭제
+yum remove -y docker-common
+# Docker Update에 필요한 Tool 설치
+yum install -y yum-utils device-mapper-persistent-data lvm2
+# Docker 공식 Repository 추가
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# peer's certificate issuer is not recognized에러 발생시
+  yum install -y ca-certificates
+  update-ca-trust force-enable
+  # 다시 Docker 공식 Repository 추가
+  yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 설치가능한 Docker version 확인
+yum list docker-ce --showduplicates | sort -r
+# 최신 Docker version 설치
+yum install -y docker-ce
+# Docker를 부팅시 실행되도록 설정
+systemctl enable docker
+# Docker 시작
+systemctl start docker
 ```
 
 ### Build
 
-* pom.xml 파일이 있는 위치(KSAN/core/watcher)에서 
-``` shell
-mvn package
-```
-* 위의 명령어를 실행하면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ifs-watcher가 생성됩니다.
+- 실행후 ksan-metering.tar 이미지 파일이 생성됩니다.
 
-## How to Use (빌드한 경우)
-
-* Watcher를 실행시키기 위하여 필요한 파일은 4개입니다.
- * KSAN/core/watcher/target/ifs-watcher - 소스 빌드 후, 생성된 실행 파일	
- * KSAN/etc/watcher.conf - 설정 파일
- * KSAN/etc/ifs-watcher.xml - log파일 관련 설정
- 
-* ifs-watcher를 /usr/local/ksan/bin 에 복사합니다.
-* watcher.conf, ifs-watcher.xml 를 /usr/local/ksan/etc 에 복사합니다.
-
-* ifs-watcher의 실행 권한을 확인합니다.
- * ifs-watcher의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
-``` shell
-chmod +x ifs-watcher
+```shell
+#!/bin/bash
+docker build --rm -t pspace/ksan-metering:latest -f DockerFile .
+docker save -o ksan-metering.tar pspace/ksan-metering
 ```
 
-* ifs-watcher.jar를 실행합니다. (/usr/local/ksan/bin)
-``` shell 
-java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ifs-watcher.xml ifs-watcher &
+## How to Use
+
+- KsanMon, KsanEdge, KsanPortal, MariaDB, KsanGw가 모두 동작하고 있어야 정상적으로 동작합니다.
+
+### 실행(CLI)
+
+``` shell
+docker start ksan-metering
+```
+
+### 서비스 등록후 실행
+``` shell
+cp ksan-metering /etc/systemd/system/
+systemctl enable ksan-metering
+systemctl start ksan-metering
 ```

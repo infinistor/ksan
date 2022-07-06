@@ -1,0 +1,20 @@
+FROM maven:3.8.6-jdk-11 as build
+WORKDIR /src
+COPY . .
+RUN mvn package
+
+FROM openjdk:11-jre-slim
+WORKDIR /app
+RUN mkdir -p /app/logs
+COPY --from=build /src/target/ksan-lifecycle /app
+COPY ./ksan-lifecycle.xml /app
+COPY ./start.sh /app
+CMD ["/app/start.sh"]
+
+# FROM openjdk:11-jre-slim as simple
+# WORKDIR /app
+# RUN mkdir -p /app/logs
+# COPY ./target/ksan-lifecycle /app
+# COPY ./ksan-lifecycle.xml /app
+# COPY ./start.sh /app
+# CMD ["/app/start.sh"]

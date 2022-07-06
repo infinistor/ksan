@@ -1,0 +1,11 @@
+[Unit]
+Description=Systemd ksan-metering Daemon
+After=network.target
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a ksan-matering
+ExecStop=/usr/bin/docker stop -t 2 ksan-matering
+
+[Install]
+WantedBy=multi-user.target
