@@ -255,13 +255,12 @@ public class OSDUtils {
 
     public static void sendHeader(Socket socket, String header) throws IOException {
         byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
-        int size = buffer.length;
-        
-        DataOutputStream so = new DataOutputStream(socket.getOutputStream());
-        
-        so.writeInt(size);
-        so.write(buffer, 0, size);
-        so.flush();
+		byte length = (byte)buffer.length;
+		socket.getOutputStream().write(length);
+		
+		socket.getOutputStream().write(buffer, 0, buffer.length);
+		socket.getOutputStream().flush();
+		logger.info("send header size : {}", buffer.length);
     }
 
     public static OsdData receiveData(Socket socket) throws IOException {

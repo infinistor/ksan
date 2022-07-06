@@ -49,7 +49,7 @@ class MoveObjectCallback implements MQCallback {
 	private static final String SOURCE_DISK_PATH = "SourceDiskPath";
 	private static final String TARGET_DISK_ID = "TargetDiskId";
 	private static final String TARGET_DISK_PATH = "TargetDiskPath";
-	private static final String TARGET_OSD_IP = "TargetOsdIp";
+	private static final String TARGET_OSD_IP = "TargetOSDIP";
 
 	private String objId;
 	private String versionId;
@@ -301,7 +301,7 @@ class CopyObjectCallback implements MQCallback {
 	private static final String SOURCE_DISK_PATH = "SourceDiskPath";
 	private static final String TARGET_DISK_ID = "TargetDiskId";
 	private static final String TARGET_DISK_PATH = "TargetDiskPath";
-	private static final String TARGET_OSD_IP = "TargetOsdIp";
+	private static final String TARGET_OSD_IP = "TargetOSDIP";
 
 	private String objId;
 	private String versionId;
@@ -379,28 +379,27 @@ class CopyObjectCallback implements MQCallback {
 
 					logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_RELAY_OSD, targetOsdIp, header);
 					OSDUtils.sendHeader(destSocket, header);
-					MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
+					// MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
 
 					int readLength = 0;
 					while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
 						destSocket.getOutputStream().write(buffer, 0, readLength);
-						md5er.update(buffer, 0, readLength);
+						// md5er.update(buffer, 0, readLength);
 					}
 					destSocket.getOutputStream().flush();
 
-					byte[] digest = md5er.digest();
-					String eTag = base16().lowerCase().encode(digest);
-
-					OsdData data = OSDUtils.receiveData(destSocket);
-					if (!eTag.equals(data.getETag())) {
-						logger.error(OSDConstants.LOG_OSD_SERVER_DIFFERENCE_ETAG, eTag, data.getETag());
-					}
+					// byte[] digest = md5er.digest();
+					// String eTag = base16().lowerCase().encode(digest);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
 				}
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
 		}
+
 		logger.info("success copy file : {}", fullPath);
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
 	}
