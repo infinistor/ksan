@@ -79,7 +79,7 @@ namespace PortalSvr.Services
 						}
 
 						// 모든 역할 ID에 대해서 처리
-						foreach (string roleId in roleIds)
+						foreach (var roleId in roleIds)
 						{
 							// 접속한 아이피가 사용자가 가지는 역할에서 허용된 아이피인지 검사한다.
 							if (allowConnectionIpManager.IsAllowIp(roleId, context.Connection.RemoteIpAddress))

@@ -265,7 +265,7 @@ namespace PortalProvider
 		/// <returns>전송 결과 객체</returns>
 		protected ResponseData<U> SendRpcMq<U>(string Exchange, string RoutingKey, object Request, int WaitForResponseTimeoutSec)
 		{
-			ResponseData<U> Result = new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+			var Result = new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 			try
 			{

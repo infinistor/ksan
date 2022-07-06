@@ -53,7 +53,7 @@ namespace PortalProvider.Loaders
 		/// <returns>초기화해야할 설정 목록</returns>
 		public List<KeyValuePair<string, string>> GetListForInitialization()
 		{
-			List<KeyValuePair<string, string>> Result = new List<KeyValuePair<string, string>>();
+			var Result = new List<KeyValuePair<string, string>>();
 			ResponseList<ResponseConfig> Configs;
 			KeyValuePair<string, string>? Item;
 			try

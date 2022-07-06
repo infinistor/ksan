@@ -202,7 +202,7 @@ namespace PortalProvider.Providers.Services
 				if (Request.ServiceIds != null && Request.ServiceIds.Count > 0)
 				{
 					// 모든 서비스 아이디에 대해서 처리
-					foreach (string serviceId in Request.ServiceIds)
+					foreach (var serviceId in Request.ServiceIds)
 					{
 						if (!Guid.TryParse(serviceId, out Guid GuidServiceId))
 							return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICE_GROUPS_INVALID_SERVICE_ID);
@@ -235,7 +235,7 @@ namespace PortalProvider.Providers.Services
 						if (oldServices.Count > 0)
 						{
 							// 모든 서비스 아이디에 대해서 처리
-							foreach (Service oldService in oldServices)
+							foreach (var oldService in oldServices)
 								// 그룹 아이디 변경
 								oldService.GroupId = null;
 							// 데이터가 변경된 경우 저장

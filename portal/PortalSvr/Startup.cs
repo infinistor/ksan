@@ -306,7 +306,7 @@ namespace PortalSvr
 					string i18nRootPath = $"{Configuration["AppSettings:I18nPath"].Replace('/', Path.DirectorySeparatorChar)}";
 
 					// 모든 언어에 대해서 리소스 파일 내용을 Json으로 저장
-					foreach (CultureInfo culture in ConfigurationOptions.Localization.SupportedUICultures)
+					foreach (var culture in ConfigurationOptions.Localization.SupportedUICultures)
 						ResourceManagers.Save(culture, Path.Combine(i18nRootPath, string.Format("{0}.json", culture.Name)));
 				}
 			}
@@ -332,24 +332,24 @@ namespace PortalSvr
 				systemConfigLoader.Load(dbContext);
 
 				// SMTP 설정 관련 초기화할 목록을 가져온다.
-				List<KeyValuePair<string, string>> smtpConfigValues = smtpConfigLoader.GetListForInitialization();
+				var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
 				// SMTP 설정 관련 초기화할 항목이 존재하는 경우
 				if (smtpConfigValues != null && smtpConfigValues.Count > 0)
 				{
 					// 항목 추가
-					foreach (KeyValuePair<string, string> keyValue in smtpConfigValues)
+					foreach (var keyValue in smtpConfigValues)
 						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
 					dbContext.SaveChangesWithConcurrencyResolution();
 					configChanged = true;
 				}
 
 				// 업로드 설정 관련 초기화할 목록을 가져온다.
-				List<KeyValuePair<string, string>> uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+				var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
 				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
 				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
 				{
 					// 항목 추가
-					foreach (KeyValuePair<string, string> keyValue in uploadConfigValues)
+					foreach (var keyValue in uploadConfigValues)
 						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
 					dbContext.SaveChangesWithConcurrencyResolution();
 					configChanged = true;

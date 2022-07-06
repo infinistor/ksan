@@ -495,7 +495,7 @@ namespace PortalProvider.Providers.Networks
 		/// <returns>해당 VLAN 태그가 존재하는지 여부</returns>
 		public async Task<ResponseData<bool>> IsTagExist(string ServerId, string InterfaceId, string ExceptId, RequestIsNetworkInterfaceVlanExist Request)
 		{
-			ResponseData<bool> Result = new ResponseData<bool>();
+			var Result = new ResponseData<bool>();
 			Guid GuidId = Guid.Empty;
 
 			try
