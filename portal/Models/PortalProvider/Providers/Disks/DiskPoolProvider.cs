@@ -88,8 +88,16 @@ namespace PortalProvider.Providers.Disks
 					// 모든 디스크 아이디에 대해서 처리
 					foreach (string DiskId in Request.DiskIds)
 					{
+						// 아이디가 아니라 이름일 경우
 						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
-							return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+						{
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
+							// 존재하지 않을 경우
+							if (Disk == null)
+								return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+
+							GuidDiskId = Disk.Id;
+						}
 						DiskIds.Add(GuidDiskId);
 					}
 
@@ -126,9 +134,7 @@ namespace PortalProvider.Providers.Disks
 						foreach (Guid DiskId in DiskIds)
 						{
 							// 해당 디스크 정보를 가져온다.
-							var Disk = await m_dbContext.Disks
-								.Where(i => i.Id == DiskId)
-								.FirstOrDefaultAsync();
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == DiskId);
 
 							// 디스크 풀 아이디 변경
 							Disk.DiskPoolId = newData.Id;
@@ -209,9 +215,16 @@ namespace PortalProvider.Providers.Disks
 					// 모든 디스크 아이디에 대해서 처리
 					foreach (var DiskId in Request.DiskIds)
 					{
+						// 아이디가 아니라 이름일 경우
 						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
-							return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
-						DiskIds.Add(GuidDiskId);
+						{
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
+							// 존재하지 않을 경우
+							if (Disk == null)
+								return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+
+							GuidDiskId = Disk.Id;
+						}
 					}
 
 					// 주어진 디스크 아이디로 다른 그룹에 속하지 않는 디스크 아이디 수가 요청 개수와 다른 경우
@@ -222,8 +235,7 @@ namespace PortalProvider.Providers.Disks
 				}
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+				var Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -234,9 +246,7 @@ namespace PortalProvider.Providers.Disks
 					try
 					{
 						// 이 디스크 풀 아이디를 사용하는 이전 디스크의 디스크 풀 아이디 초기화
-						var OldDisks = await m_dbContext.Disks
-							.Where(i => i.DiskPoolId == GuidId)
-							.ToListAsync();
+						var OldDisks = await m_dbContext.Disks.Where(i => i.DiskPoolId == GuidId).ToListAsync();
 						if (OldDisks.Count > 0)
 						{
 							// 모든 디스크 아이디에 대해서 처리
@@ -252,9 +262,7 @@ namespace PortalProvider.Providers.Disks
 						foreach (Guid guidDiskId in DiskIds)
 						{
 							// 해당 디스크 정보를 가져온다.
-							var Disk = await m_dbContext.Disks
-								.Where(i => i.Id == guidDiskId)
-								.FirstOrDefaultAsync();
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == guidDiskId);
 
 							// 디스크 풀 아이디 변경
 							Disk.DiskPoolId = GuidId;
