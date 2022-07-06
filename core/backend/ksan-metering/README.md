@@ -20,7 +20,7 @@
 
 ## 로그 파일
 
--   설정 파일 : ifs-metering.xml (/app/ifs-metering.xml)
+-   설정 파일 : ksan-metering.xml (/app/ksan-metering.xml)
 -   위치
     -   /home/ksan/logs/metering.log
 
