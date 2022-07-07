@@ -79,7 +79,7 @@ namespace PortalSvr.Services
 						}
 
 						// 모든 역할 ID에 대해서 처리
-						foreach (string roleId in roleIds)
+						foreach (var roleId in roleIds)
 						{
 							// 접속한 아이피가 사용자가 가지는 역할에서 허용된 아이피인지 검사한다.
 							if (allowConnectionIpManager.IsAllowIp(roleId, context.Connection.RemoteIpAddress))
@@ -119,7 +119,7 @@ namespace PortalSvr.Services
 		/// <returns>항상 허용되는 URL 경로인지 여부</returns>
 		private bool IsAlwaysAllowPath(HttpRequest httpRequest)
 		{
-			bool result = false;
+			bool Result = false;
 
 			try
 			{
@@ -128,13 +128,13 @@ namespace PortalSvr.Services
 				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/logout")
 				//|| httpRequest.Path.Value.ToLower().EndsWith("/account/needlogin")
 				)
-					result = true;
+					Result = true;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 

@@ -92,7 +92,7 @@ namespace PortalSvr.RabbitMqReceivers
 		{
 			try
 			{
-				ConnectionFactory factory = new ConnectionFactory
+				var Factory = new ConnectionFactory
 				{
 					ClientProvidedName = m_config.Name,
 					HostName = m_config.Host,
@@ -103,7 +103,7 @@ namespace PortalSvr.RabbitMqReceivers
 				};
 
 				// 연결 객체 생성
-				m_connection = factory.CreateConnection();
+				m_connection = Factory.CreateConnection();
 				// 연결 해제 이벤트 설정
 				m_connection.ConnectionShutdown += (_, _) =>
 				{
@@ -118,7 +118,7 @@ namespace PortalSvr.RabbitMqReceivers
 				// 모든 바인딩 키 처리
 				if (m_bindingKeys != null)
 				{
-					foreach (string bindingKey in m_bindingKeys)
+					foreach (var bindingKey in m_bindingKeys)
 						m_channel.QueueBind(queue: m_queueName, exchange: m_exchangeName, routingKey: bindingKey);
 				}
 			}
@@ -129,46 +129,46 @@ namespace PortalSvr.RabbitMqReceivers
 		}
 
 		/// <summary>서비스 실행</summary>
-		/// <param name="stoppingToken">실행 취소 토큰 객체</param>
+		/// <param name="StoppingToken">실행 취소 토큰 객체</param>
 		/// <returns></returns>
-		protected override Task ExecuteAsync(CancellationToken stoppingToken)
+		protected override Task ExecuteAsync(CancellationToken StoppingToken)
 		{
 			try
 			{
-				stoppingToken.ThrowIfCancellationRequested();
+				StoppingToken.ThrowIfCancellationRequested();
 
 				// Consumer 생성
-				EventingBasicConsumer consumer = new EventingBasicConsumer(m_channel);
+				var Consumer = new EventingBasicConsumer(m_channel);
 				// 데이터 수신 이벤트 설정
-				consumer.Received += async (_, ea) =>
+				Consumer.Received += async (_, ea) =>
 				{
 					try
 					{
 						// 수신 객체가 유효한 경우, 해당 데이터 처리
 						if (ea != null)
 						{
-							ResponseMqData responseHandleMessage = await HandleMessage(ea.RoutingKey, ea.Body.ToArray());
+							var ResponseHandleMessage = await HandleMessage(ea.RoutingKey, ea.Body.ToArray());
 
 							// 처리된 건인 경우
-							if (responseHandleMessage.IsProcessed)
+							if (ResponseHandleMessage.IsProcessed)
 							{
-								m_logger.LogDebug($"[Process] MQ Message Received on [{{0}}] : {{1}}, data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
+								m_logger.LogDebug($"[Process] MQ Message Received on [{{0}}] : {{1}}, Data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
 
 								// 응답 연관 아이디가 존재하는 경우
-								IBasicProperties properties = ea.BasicProperties;
-								if (properties != null && !properties.CorrelationId.IsEmpty())
+								var Properties = ea.BasicProperties;
+								if (Properties != null && !Properties.CorrelationId.IsEmpty())
 								{
 									// 답으로 보낼 속성 생성하고 연관 아이디 저장
-									IBasicProperties replyProps = m_channel.CreateBasicProperties();
-									replyProps.CorrelationId = properties.CorrelationId;
+									var ReplyProps = m_channel.CreateBasicProperties();
+									ReplyProps.CorrelationId = Properties.CorrelationId;
 
 									// 결과를 json으로 변환
-									string json = JsonConvert.SerializeObject(responseHandleMessage);
+									string json = JsonConvert.SerializeObject(ResponseHandleMessage);
 
 									// 응답 전송
 									m_channel.BasicPublish(exchange: "",
-										routingKey: properties.ReplyTo,
-										basicProperties: replyProps,
+										routingKey: Properties.ReplyTo,
+										basicProperties: ReplyProps,
 										body: json.GetBytes());
 								}
 
@@ -178,7 +178,7 @@ namespace PortalSvr.RabbitMqReceivers
 							// 처리되지 않은 건인 경우
 							else
 							{
-								m_logger.LogDebug($"[Reject] MQ Message Received on [{{0}}] : {{1}}, data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
+								m_logger.LogDebug($"[Reject] MQ Message Received on [{{0}}] : {{1}}, Data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
 
 								// 처리 거부
 								m_channel.BasicReject(ea.DeliveryTag, false);
@@ -192,12 +192,12 @@ namespace PortalSvr.RabbitMqReceivers
 				};
 
 				// 이벤트 설정
-				consumer.Registered += OnConsumerRegistered;
-				consumer.Unregistered += OnConsumerUnregistered;
-				consumer.ConsumerCancelled += OnConsumerCancelled;
-				consumer.Shutdown += OnConsumerShutdown;
+				Consumer.Registered += OnConsumerRegistered;
+				Consumer.Unregistered += OnConsumerUnregistered;
+				Consumer.ConsumerCancelled += OnConsumerCancelled;
+				Consumer.Shutdown += OnConsumerShutdown;
 
-				m_channel.BasicConsume(m_queueName, false, consumer);
+				m_channel.BasicConsume(m_queueName, false, Consumer);
 			}
 			catch (Exception ex)
 			{
@@ -208,38 +208,38 @@ namespace PortalSvr.RabbitMqReceivers
 		}
 
 		/// <summary>메시지 처리</summary>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="body">내용</param>
-		protected abstract Task<ResponseMqData> HandleMessage(string routingKey, byte[] body);
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="Body">내용</param>
+		protected abstract Task<ResponseMqData> HandleMessage(string RoutingKey, byte[] Body);
 
 		/// <summary>메세지 수신 등록 시 이벤트</summary>
-		/// <param name="sender">이벤트 발송 객체</param>
+		/// <param name="Sender">이벤트 발송 객체</param>
 		/// <param name="e">이벤트 데이터</param>
-		private void OnConsumerRegistered(object sender, ConsumerEventArgs e)
+		private void OnConsumerRegistered(object Sender, ConsumerEventArgs e)
 		{
 			m_logger.LogInformation($"[Rabbit MQ] Receiver is registered. {m_queueName}");
 		}
 
 		/// <summary>메세지 수신 해제 시 이벤트</summary>
-		/// <param name="sender">이벤트 발송 객체</param>
+		/// <param name="Sender">이벤트 발송 객체</param>
 		/// <param name="e">이벤트 데이터</param>
-		private void OnConsumerUnregistered(object sender, ConsumerEventArgs e)
+		private void OnConsumerUnregistered(object Sender, ConsumerEventArgs e)
 		{
 			m_logger.LogInformation($"[Rabbit MQ] Receiver is unregistered. {m_queueName}");
 		}
 
 		/// <summary>메세지 수신 취소 시 이벤트</summary>
-		/// <param name="sender">이벤트 발송 객체</param>
+		/// <param name="Sender">이벤트 발송 객체</param>
 		/// <param name="e">이벤트 데이터</param>
-		private void OnConsumerCancelled(object sender, ConsumerEventArgs e)
+		private void OnConsumerCancelled(object Sender, ConsumerEventArgs e)
 		{
 			m_logger.LogInformation($"[Rabbit MQ] Receiver is cancelled. {m_queueName}");
 		}
 
 		/// <summary>메세지 수신 종료 시 이벤트</summary>
-		/// <param name="sender">이벤트 발송 객체</param>
+		/// <param name="Sender">이벤트 발송 객체</param>
 		/// <param name="e">이벤트 데이터</param>
-		private void OnConsumerShutdown(object sender, ShutdownEventArgs e)
+		private void OnConsumerShutdown(object Sender, ShutdownEventArgs e)
 		{
 			m_logger.LogInformation($"[Rabbit MQ] Receiver is shutdown. {m_queueName}");
 		}

@@ -19,18 +19,22 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.ifs.ksan.libs.PrintStack;
+
 public class AsyncHandler {
     private final static Logger logger = LoggerFactory.getLogger(AsyncHandler.class);
 
     public static CompletableFuture<Integer> s3logging(S3Parameter s3Parameter) {
         CompletableFuture<Integer> future = new CompletableFuture<>();
         new Thread( () -> {
-            // GWDB gwDB = GWUtils.getDBInstance();
-            // try {
-            //     gwDB.putS3logging(s3Parameter);
-            // } catch (GWException e) {
-            //     PrintStack.logging(logger, e);
-            // }
+            if (GWConfig.getInstance().isEventLog()) {
+                GWDB gwDB = GWUtils.getDBInstance();
+                try {
+                    gwDB.putS3logging(s3Parameter);
+                } catch (GWException e) {
+                    PrintStack.logging(logger, e);
+                }
+            }
         }).start();
 
         return future;

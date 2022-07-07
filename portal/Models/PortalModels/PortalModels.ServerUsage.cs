@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 서버 사용 정보 </summary>
 	public partial class ServerUsage
 	{
+
 		public ServerUsage()
 		{
 			this.LoadAverage1M = 0f;

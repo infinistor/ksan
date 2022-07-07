@@ -21,7 +21,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -65,100 +64,101 @@ namespace PortalProvider.Providers.Disks
 		}
 
 		/// <summary>디스크 풀 등록</summary>
-		/// <param name="request">디스크 풀 등록 요청 객체</param>
+		/// <param name="Request">디스크 풀 등록 요청 객체</param>
 		/// <returns>디스크 풀 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseDiskPoolWithDisks>> Add(RequestDiskPool request)
+		public async Task<ResponseData<ResponseDiskPoolWithDisks>> Add(RequestDiskPool Request)
 		{
-			ResponseData<ResponseDiskPoolWithDisks> result = new ResponseData<ResponseDiskPoolWithDisks>();
+			var Result = new ResponseData<ResponseDiskPoolWithDisks>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는지 확인한다.
-				ResponseData<bool> responseExist = await this.IsNameExist(null, new RequestIsDiskPoolNameExist(request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (responseExist.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskPoolWithDisks>(responseExist.Result, responseExist.Code, responseExist.Message);
-				// 동일한 이름이 존재하는 경우
-				if (responseExist.Data)
+				// 동일한 이름이 존재할경우
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
 
 				// 디스크 GUID 목록
-				List<Guid> diskIds = new List<Guid>();
+				var DiskIds = new List<Guid>();
 
 				// 모든 디스크 아이디에 대해서 처리
-				if (request.DiskIds != null && request.DiskIds.Count > 0)
+				if (Request.DiskIds != null && Request.DiskIds.Count > 0)
 				{
 					// 모든 디스크 아이디에 대해서 처리
-					foreach (string diskId in request.DiskIds)
+					foreach (var DiskId in Request.DiskIds)
 					{
-						if (!Guid.TryParse(diskId, out Guid guidDiskId))
-							return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
-						diskIds.Add(guidDiskId);
+						// 아이디가 아니라 이름일 경우
+						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
+						{
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
+							// 존재하지 않을 경우
+							if (Disk == null)
+								return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+
+							GuidDiskId = Disk.Id;
+						}
+						DiskIds.Add(GuidDiskId);
 					}
 
 					// 주어진 디스크 아이디로 다른 그룹에 속하지 않는 디스크 아이디 수가 요청 개수와 다른 경우
 					if (await this.m_dbContext.Disks.AsNoTracking()
-						.Where(i => diskIds.Contains(i.Id) && i.DiskPoolId == null)
-						.CountAsync() != diskIds.Count)
+						.Where(i => DiskIds.Contains(i.Id) && i.DiskPoolId == null)
+						.CountAsync() != DiskIds.Count)
 						return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 정보를 생성한다.
-						DiskPool newData = new DiskPool()
+						var newData = new DiskPool()
 						{
 							Id = Guid.NewGuid(),
-							Name = request.Name,
-							Description = request.Description,
+							Name = Request.Name,
+							Description = Request.Description,
 							RegId = LoginUserId,
 							RegName = LoginUserName,
 							RegDate = DateTime.Now,
 							ModId = LoginUserId,
 							ModName = LoginUserName,
 							ModDate = DateTime.Now,
-							ClassTypeId = (EnumDbDiskPoolType)request.ClassTypeId,
-							ReplicationType = (EnumDbDiskPoolReplicaType)request.ReplicationType
+							DiskPoolType = (EnumDbDiskPoolType)Request.DiskPoolType,
+							ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType
 						};
 						await m_dbContext.DiskPools.AddAsync(newData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 모든 디스크 아이디에 대해서 처리
-						foreach (Guid guidDiskId in diskIds)
+						foreach (var DiskId in DiskIds)
 						{
 							// 해당 디스크 정보를 가져온다.
-							Disk disk = await m_dbContext.Disks
-								.Where(i => i.Id == guidDiskId)
-								.FirstOrDefaultAsync();
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == DiskId);
 
 							// 디스크 풀 아이디 변경
-							disk.DiskPoolId = newData.Id;
+							Disk.DiskPoolId = newData.Id;
 						}
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
-						result.Data = (await this.Get(newData.Id.ToString())).Data;
+						Result.Result = EnumResponseResult.Success;
+						Result.Data = (await this.Get(newData.Id.ToString())).Data;
 
 						// 추가된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.added", result.Data);
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -166,80 +166,92 @@ namespace PortalProvider.Providers.Disks
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>디스크 풀 수정</summary>
-		/// <param name="id">디스크 풀 아이디</param>
-		/// <param name="request">디스크 풀 수정 요청 객체</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 풀 수정 요청 객체</param>
 		/// <returns>디스크 풀 수정 결과 객체</returns>
-		public async Task<ResponseData> Update(string id, RequestDiskPool request)
+		public async Task<ResponseData> Update(string Id, RequestDiskPool Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var DiskPool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
-				// 동일한 이름이 존재하는지 확인한다.
-				ResponseData<bool> responseExist = await this.IsNameExist(id, new RequestIsDiskPoolNameExist(request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (responseExist.Result != EnumResponseResult.Success)
-					return new ResponseData(responseExist.Result, responseExist.Code, responseExist.Message);
-				// 동일한 이름이 존재하는 경우
-				if (responseExist.Data)
+					//서비스가 존재하지 않는 경우
+					if (DiskPool == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = DiskPool.Id;
+				}
+
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+				// 동일한 이름이 존재할경우
+				if (await this.IsNameExist(Request.Name, GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
 
 				// 디스크 GUID 목록
-				List<Guid> diskIds = new List<Guid>();
+				var DiskIds = new List<Guid>();
 
 				// 모든 디스크 아이디에 대해서 처리
-				if (request.DiskIds != null && request.DiskIds.Count > 0)
+				if (Request.DiskIds != null && Request.DiskIds.Count > 0)
 				{
 					// 모든 디스크 아이디에 대해서 처리
-					foreach (string diskId in request.DiskIds)
+					foreach (var DiskId in Request.DiskIds)
 					{
-						if (!Guid.TryParse(diskId, out Guid guidDiskId))
-							return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
-						diskIds.Add(guidDiskId);
+						// 아이디가 아니라 이름일 경우
+						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
+						{
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
+							// 존재하지 않을 경우
+							if (Disk == null)
+								return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+
+							GuidDiskId = Disk.Id;
+						}
+						DiskIds.Add(GuidDiskId);
 					}
 
 					// 주어진 디스크 아이디로 다른 그룹에 속하지 않는 디스크 아이디 수가 요청 개수와 다른 경우
 					if (await this.m_dbContext.Disks.AsNoTracking()
-						.Where(i => diskIds.Contains(i.Id) && (i.DiskPoolId == null || i.DiskPoolId == guidId))
-						.CountAsync() != diskIds.Count)
+						.Where(i => DiskIds.Contains(i.Id) && (i.DiskPoolId == null || i.DiskPoolId == GuidId))
+						.CountAsync() != DiskIds.Count)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
 
 				// 해당 정보를 가져온다.
-				DiskPool exist = await m_dbContext.DiskPools
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				var Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 이 디스크 풀 아이디를 사용하는 이전 디스크의 디스크 풀 아이디 초기화
-						List<Disk> oldDisks = await m_dbContext.Disks
-							.Where(i => i.DiskPoolId == guidId)
-							.ToListAsync();
-						if (oldDisks.Count > 0)
+						var OldDisks = await m_dbContext.Disks.Where(i => i.DiskPoolId == GuidId).ToListAsync();
+						if (OldDisks.Count > 0)
 						{
 							// 모든 디스크 아이디에 대해서 처리
-							foreach (Disk oldDisk in oldDisks)
+							foreach (var oldDisk in OldDisks)
 								// 그룹 아이디 변경
 								oldDisk.DiskPoolId = null;
 							// 데이터가 변경된 경우 저장
@@ -248,49 +260,47 @@ namespace PortalProvider.Providers.Disks
 						}
 
 						// 모든 디스크 아이디에 대해서 처리
-						foreach (Guid guidDiskId in diskIds)
+						foreach (var GuidDiskId in DiskIds)
 						{
 							// 해당 디스크 정보를 가져온다.
-							Disk disk = await m_dbContext.Disks
-								.Where(i => i.Id == guidDiskId)
-								.FirstOrDefaultAsync();
+							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == GuidDiskId);
 
 							// 디스크 풀 아이디 변경
-							disk.DiskPoolId = guidId;
+							Disk.DiskPoolId = GuidId;
 						}
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 정보를 수정한다.
-						exist.Name = request.Name;
-						exist.Description = request.Description;
+						Exist.Name = Request.Name;
+						Exist.Description = Request.Description;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-							exist.ModId = LoginUserId;
-							exist.ModName = LoginUserName;
-							exist.ModDate = DateTime.Now;
+							Exist.ModId = LoginUserId;
+							Exist.ModName = LoginUserName;
+							Exist.ModDate = DateTime.Now;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						}
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 
 						// 상세 정보를 가져온다.
-						ResponseDiskPoolWithDisks response = (await this.Get(id)).Data;
+						var Response = (await this.Get(Id)).Data;
 
 						// 수정된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", response);
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", Response);
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -298,68 +308,74 @@ namespace PortalProvider.Providers.Disks
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>디스크 풀 삭제</summary>
-		/// <param name="id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 삭제 결과 객체</returns>
-		public async Task<ResponseData> Remove(string id)
+		public async Task<ResponseData> Remove(string Id)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				DiskPool Exist = null;
+
 				// 해당 정보를 가져온다.
-				DiskPool exist = await m_dbContext.DiskPools
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
-					return new ResponseData(result.Result = EnumResponseResult.Success);
+				if (Exist == null)
+					return new ResponseData(Result.Result = EnumResponseResult.Success);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 해당 디스크 풀에 속한 디스크 목록을 가져온다.
-						List<Disk> disks = await this.m_dbContext.Disks
-							.Where(i => i.DiskPoolId == guidId)
+						var Disks = await this.m_dbContext.Disks
+							.Where(i => i.DiskPoolId == Exist.Id)
 							.ToListAsync();
 
 						// 모든 디스크에 대해서 처리
-						foreach (Disk disk in disks)
-							disk.DiskPoolId = null;
+						foreach (var Disk in Disks)
+							Disk.DiskPoolId = null;
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 해당 데이터 삭제
-						m_dbContext.DiskPools.Remove(exist);
+						m_dbContext.DiskPools.Remove(Exist);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.removed", new ResponseDiskPool().CopyValueFrom(exist));
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.removed", new ResponseDiskPool().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -367,28 +383,28 @@ namespace PortalProvider.Providers.Disks
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>디스크 풀 목록을 가져온다.</summary>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 풀 목록 객체</returns>
 		public async Task<ResponseList<ResponseDiskPool>> GetList(
-			int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = ""
+			int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			ResponseList<ResponseDiskPool> result = new ResponseList<ResponseDiskPool>();
+			var Result = new ResponseList<ResponseDiskPool>();
 			try
 			{
 				// 기본 정렬 정보 추가
@@ -396,43 +412,43 @@ namespace PortalProvider.Providers.Disks
 				AddDefaultOrders("Name", "asc");
 
 				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref orderFields, ref orderDirections);
+				InitOrderFields(ref OrderFields, ref OrderDirections);
 
 				// 검색 필드를  초기화한다.
-				InitSearchFields(ref searchFields);
+				InitSearchFields(ref SearchFields);
 
 				// 목록을 가져온다.
-				result.Data = await m_dbContext.DiskPools.AsNoTracking()
+				Result.Data = await m_dbContext.DiskPools.AsNoTracking()
 					.Where(i =>
 						(
-							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-							|| (searchFields.Contains("name") && i.Name.Contains(searchKeyword))
-							|| (searchFields.Contains("description") && i.Description.Contains(searchKeyword))
-							|| (searchFields.Contains("path") && i.Disks.Where(j => j.Path.Contains(searchKeyword)).Any())
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("path") && i.Disks.Where(j => j.Path.Contains(SearchKeyword)).Any())
 						)
 					)
-					.OrderByWithDirection(orderFields, orderDirections)
-					.CreateListAsync<DiskPool, ResponseDiskPool>(skip, countPerPage);
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<DiskPool, ResponseDiskPool>(Skip, CountPerPage);
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>디스크 풀 목록을 가져온다.</summary>
 		/// <returns>디스크 풀 목록 객체</returns>
 		public async Task<ResponseList<ResponseDiskPoolDetails>> GetListDetails()
 		{
-			ResponseList<ResponseDiskPoolDetails> result = new ResponseList<ResponseDiskPoolDetails>();
+			var Result = new ResponseList<ResponseDiskPoolDetails>();
 			try
 			{
 				// 기본 정렬 정보 추가
@@ -440,11 +456,11 @@ namespace PortalProvider.Providers.Disks
 				AddDefaultOrders("Name", "asc");
 
 				// 목록을 가져온다.
-				result.Data = await m_dbContext.DiskPools.AsNoTracking().CreateListAsync<DiskPool, ResponseDiskPoolDetails>();
+				Result.Data = await m_dbContext.DiskPools.AsNoTracking().CreateListAsync<DiskPool, ResponseDiskPoolDetails>();
 
-				for (int i = 0; i < result.Data.Items.Count; i++)
+				for (int i = 0; i < Result.Data.Items.Count; i++)
 				{
-					var DiskPool = result.Data.Items[i];
+					var DiskPool = Result.Data.Items[i];
 					if (!Guid.TryParse(DiskPool.Id, out Guid DiskPoolId)) continue;
 					var Data = await m_dbContext.Servers.AsNoTracking()
 						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolId))
@@ -463,108 +479,126 @@ namespace PortalProvider.Providers.Disks
 					}
 				}
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>특정 디스크 풀 정보를 가져온다.</summary>
-		/// <param name="id">디스크 풀 아이디</param>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>디스크 풀 정보 객체</returns>
-		public async Task<ResponseData<ResponseDiskPoolWithDisks>> Get(string id)
+		public async Task<ResponseData<ResponseDiskPoolWithDisks>> Get(string Id)
 		{
-			ResponseData<ResponseDiskPoolWithDisks> result = new ResponseData<ResponseDiskPoolWithDisks>();
+			var Result = new ResponseData<ResponseDiskPoolWithDisks>();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 정보를 가져온다.
-				ResponseDiskPoolWithDisks exist = await m_dbContext.DiskPools.AsNoTracking()
-					.Where(i => i.Id == guidId)
-					.Include(i => i.Disks)
-					.FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				ResponseDiskPoolWithDisks Exist = null;
+
+				// 해당 정보를 가져온다.
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == GuidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				result.Data = exist;
-				result.Result = EnumResponseResult.Success;
+				Result.Data = Exist;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
-		/// <summary>특정 이름의 디스크 풀가 존재하는지 확인한다.</summary>
-		/// <param name="exceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
-		/// <param name="request">특정 이름의 디스크 풀 존재여부 확인 요청 객체</param>
+		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
+		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<ResponseData<bool>> IsNameExist(string exceptId, RequestIsDiskPoolNameExist request)
+		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
-			ResponseData<bool> result = new ResponseData<bool>();
-			Guid guidId = Guid.Empty;
+			var Result = new ResponseData<bool>();
+			var GuidId = Guid.Empty;
 
 			try
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
-				if (!exceptId.IsEmpty() && !Guid.TryParse(exceptId, out guidId))
-					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out GuidId))
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 요청 객체가 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<bool>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (Name.IsEmpty())
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_REQUIRE_NAME);
 
-				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (exceptId.IsEmpty() || i.Id != guidId) && i.Name == request.Name))
-					result.Data = true;
-				// 동일한 이름이 존재하지 않는 경우
-				else
-					result.Data = false;
-				result.Result = EnumResponseResult.Success;
+				Result.Data = await IsNameExist(Name, GuidId != Guid.Empty ? GuidId : null);
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
+		}
+
+		/// <summary>특정 이름의 디스크 풀이 존재하는지 확인한다.</summary>
+		/// <param name="Name">검색할 이름</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 디스크 풀 아이디</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		{
+			try
+			{
+				// 동일한 이름이 존재하는 경우
+				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
 		}
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetAvailableDisks(
-			int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "")
+			int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "")
 		{
-			ResponseList<ResponseDisk> result = new ResponseList<ResponseDisk>();
+			var Result = new ResponseList<ResponseDisk>();
 
 			try
 			{
@@ -573,68 +607,67 @@ namespace PortalProvider.Providers.Disks
 				AddDefaultOrders("Path", "asc");
 
 				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref orderFields, ref orderDirections);
+				InitOrderFields(ref OrderFields, ref OrderDirections);
 
 				// 검색 필드를  초기화한다.
-				InitSearchFields(ref searchFields);
+				InitSearchFields(ref SearchFields);
 
 				// 목록을 가져온다.
-				result.Data = await m_dbContext.Disks.AsNoTracking()
+				Result.Data = await m_dbContext.Disks.AsNoTracking()
 					.Where(i =>
 						i.DiskPoolId == null
 						&& (
-							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-							|| (searchFields.Contains("diskno") && i.DiskNo.Contains(searchKeyword))
-							|| (searchFields.Contains("path") && i.Path.Contains(searchKeyword))
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))
 						)
 					)
-					.OrderByWithDirection(orderFields, orderDirections)
-					.CreateListAsync<Disk, ResponseDisk>(skip, countPerPage);
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>주어진 디스크 풀 아이디에 해당하는 디스크 풀에 참여가 가능한 디스크 목록을 가져온다.</summary>
-		/// <param name="id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (DiskNo, Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (DiskNo, Path)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="Id">디스크 풀 아이디 (null인 경우, 어느 풀에도 속하지 않은 디스크만 검색한다.)</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Path, HaAction, State, TotalSize, ReservedSize, UsedSize, RwMode)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Path)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>참여가 가능한 디스크 목록 객체</returns>
 		public async Task<ResponseList<ResponseDisk>> GetAvailableDisks(
-			string id
-			, int skip = 0, int countPerPage = 100
-			, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "")
+			string Id
+			, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "")
 		{
-			ResponseList<ResponseDisk> result = new ResponseList<ResponseDisk>();
+			var Result = new ResponseList<ResponseDisk>();
 
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
-					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
+					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 정보를 가져온다.
-				ResponseDiskPool exist = await m_dbContext.DiskPools.AsNoTracking()
+				var Exist = await m_dbContext.DiskPools.AsNoTracking()
 					.Where(i => i.Id == guidId)
 					.FirstOrDefaultAsync<DiskPool, ResponseDiskPool>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 기본 정렬 정보 추가
@@ -642,36 +675,35 @@ namespace PortalProvider.Providers.Disks
 				AddDefaultOrders("Path", "asc");
 
 				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref orderFields, ref orderDirections);
+				InitOrderFields(ref OrderFields, ref OrderDirections);
 
 				// 검색 필드를  초기화한다.
-				InitSearchFields(ref searchFields);
+				InitSearchFields(ref SearchFields);
 
 				// 목록을 가져온다.
-				result.Data = await m_dbContext.Disks.AsNoTracking()
+				Result.Data = await m_dbContext.Disks.AsNoTracking()
 					.Where(i =>
-						(i.DiskPoolId == null || (!id.IsEmpty() && i.DiskPoolId == guidId))
+						(i.DiskPoolId == null || (!Id.IsEmpty() && i.DiskPoolId == guidId))
 						&& (
-							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-							|| (searchFields.Contains("diskno") && i.DiskNo.Contains(searchKeyword))
-							|| (searchFields.Contains("path") && i.Path.Contains(searchKeyword))
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))
 						)
 					)
-					.OrderByWithDirection(orderFields, orderDirections)
-					.CreateListAsync<Disk, ResponseDisk>(skip, countPerPage);
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 	}
 }

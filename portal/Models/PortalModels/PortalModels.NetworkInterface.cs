@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 네트워크 인터페이스 정보 </summary>
 	public partial class NetworkInterface
 	{
+
 		public NetworkInterface()
 		{
 			this.Dhcp = (PortalModels.EnumDbYesNo)Enum.Parse(typeof(PortalModels.EnumDbYesNo), "0");

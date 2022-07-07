@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <EntityDeveloper Version="6.12.1419.0">
-	<ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="True" RegenareteConnectionStringInAppConfig="False" TargetFramework="NetCore30" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
-		<Connection ConnectionString="User Id=root;Password=qwe123;Host=192.168.31.10;Database=ksan;Persist Security Info=True" Provider="Devart.Data.MySql" />
+	<ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="True" RegenareteConnectionStringInAppConfig="False" TargetFramework="Net50" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
+		<Connection ConnectionString="" Provider="MySqlConnector" />
 		<Generation>
 			<GeneratedFiles>
 				<File Name="PortalModels.PortalModel.cs" />
@@ -30,8 +30,10 @@
 				<File Name="PortalModels.NetworkInterfaceUsage.cs" />
 				<File Name="PortalModels.ServiceUsage.cs" />
 				<File Name="PortalModels.ServiceConfig.cs" />
-				<File Name="PortalModels.S3User.cs" />
+				<File Name="PortalModels.KsanUser.cs" />
 				<File Name="PortalModels.UserDiskPool.cs" />
+				<File Name="PortalModels.DiskUsage.cs" />
+				<File Name="PortalModels.Region.cs" />
 				<File Name="PortalModels.EnumDbNetworkLinkState.cs" />
 				<File Name="PortalModels.EnumDbYesNo.cs" />
 				<File Name="PortalModels.EnumDbOnOff.cs" />

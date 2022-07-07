@@ -19,7 +19,7 @@ namespace PortalModels
 
 		public DiskPool()
 		{
-			this.ClassTypeId = (PortalModels.EnumDbDiskPoolType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolType), "0");
+			this.DiskPoolType = (PortalModels.EnumDbDiskPoolType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolType), "0");
 			this.ReplicationType = (PortalModels.EnumDbDiskPoolReplicaType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolReplicaType), "1");
 			this.Disks = new List<Disk>();
 			this.UserDiskPools = new List<UserDiskPool>();
@@ -54,7 +54,7 @@ namespace PortalModels
 		public virtual DateTime? ModDate { get; set; }
 
 		/// <summary> 디스크풀 타입 </summary>
-		public virtual EnumDbDiskPoolType ClassTypeId { get; set; }
+		public virtual EnumDbDiskPoolType DiskPoolType { get; set; }
 
 		public virtual EnumDbDiskPoolReplicaType ReplicationType { get; set; }
 

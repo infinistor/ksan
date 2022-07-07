@@ -55,78 +55,78 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>사용자 목록을 반환한다.</summary>
-		/// <param name="searchRoleName">검색할 역할명</param>
-		/// <param name="regStartDate">가입일 검색 시작일자</param>
-		/// <param name="regEndDate">가입일 검색 종료일자</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Email, Name(기본값))</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드목록 (LoginId, Email, Name)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="SearchRoleName">검색할 역할명</param>
+		/// <param name="RegStartDate">가입일 검색 시작일자</param>
+		/// <param name="RegEndDate">가입일 검색 종료일자</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드목록 (LoginId, Email, Name)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.list")]
 		[HttpGet]
 		public async Task<ActionResult> Get(
-			string searchRoleName = "", DateTime? regStartDate = null, DateTime? regEndDate = null,
-			int skip = 0, int countPerPage = 100,
-			List<string> orderFields = null, List<string> orderDirections = null,
-			List<string> searchFields = null, string searchKeyword = ""
+			string SearchRoleName = "", DateTime? RegStartDate = null, DateTime? RegEndDate = null,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			ResponseList<ResponseUserWithRoles> response = new ResponseList<ResponseUserWithRoles>();
+			var Response = new ResponseList<ResponseUserWithRoles>();
 			try
 			{
 				// 사용자 목록을 반환한다.
-				response = await m_dataProvider.GetUsers(
-					searchRoleName, regStartDate, regEndDate,
-					skip, countPerPage,
-					orderFields, orderDirections,
-					searchFields, searchKeyword
+				Response = await m_dataProvider.GetUsers(
+					SearchRoleName, RegStartDate, RegEndDate,
+					Skip, CountPerPage,
+					OrderFields, OrderDirections,
+					SearchFields, SearchKeyword
 				);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>로그인 아이디 중복 여부를 검사한다.</summary>
-		/// <param name="loginId">로그인 아이디</param>
+		/// <param name="LoginId">로그인 아이디</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
-		[HttpGet("Unique/{loginId}")]
-		public async Task<ActionResult> IsUniqueLoginId([FromRoute] string loginId)
+		[HttpGet("Unique/{LoginId}")]
+		public async Task<ActionResult> IsUniqueLoginId([FromRoute] string LoginId)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 				// 로그인 아이디가 유효하지 않은 경우
-				if (loginId.IsEmpty())
+				if (LoginId.IsEmpty())
 				{
-					response.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					response.Message = Resource.EM_COMMON__INVALID_REQUEST;
+					Response.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Response.Message = Resource.EM_COMMON__INVALID_REQUEST;
 				}
 				// 로그인 아이디가 유효한 경우
 				else
 				{
 					// 해당 로그인 아이디의 사용자 정보를 가져온다.
-					NNApplicationUser existUser = await m_dataProvider.GetUserByLoginId(loginId);
+					NNApplicationUser existUser = await m_dataProvider.GetUserByLoginId(LoginId);
 
 					// 해당 로그인 아이디의 사용자가 존재하는 경우
 					if (existUser != null)
 					{
-						response.Code = Resource.EC_COMMON__ALREADY_EXIST;
-						response.Message = Resource.EM_COMMON_ACCOUNT_ALREADY_EXIST;
+						Response.Code = Resource.EC_COMMON__ALREADY_EXIST;
+						Response.Message = Resource.EM_COMMON_ACCOUNT_ALREADY_EXIST;
 					}
 					// 해당 로그인 아이디의 사용자가 존재하지 않는 경우
 					else
 					{
-						response.Result = EnumResponseResult.Success;
+						Response.Result = EnumResponseResult.Success;
 					}
 				}
 			}
@@ -134,266 +134,266 @@ namespace PortalSvr.Controllers.Accounts
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자 정보를 반환한다.</summary>
-		/// <param name="id">사용자 식별자</param>
+		/// <param name="Id">사용자 식별자</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
-		[HttpGet("{id}")]
-		public async Task<ActionResult> Get([FromRoute] string id)
+		[HttpGet("{Id}")]
+		public async Task<ActionResult> Get([FromRoute] string Id)
 		{
-			ResponseData<ResponseUserWithRoles> response = new ResponseData<ResponseUserWithRoles>();
+			var Response = new ResponseData<ResponseUserWithRoles>();
 			try
 			{
 				// 사용자 정보를 가져온다.
-				response = await m_dataProvider.GetUser(id);
+				Response = await m_dataProvider.GetUser(Id);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자의 역할/사용자 권한 목록을 반환한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
-		[HttpGet("{id}/Claims")]
-		public async Task<ActionResult> GetClaims([FromRoute] string id, int skip = 0, int countPerPage = int.MaxValue, string searchKeyword = "")
+		[HttpGet("{Id}/Claims")]
+		public async Task<ActionResult> GetClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
 		{
-			ResponseList<ResponseClaim> response = new ResponseList<ResponseClaim>();
+			var Response = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 특정 역할의 권한 목록을 가져온다.
-				response = await m_dataProvider.GetClaims(id, skip, countPerPage, searchKeyword);
+				Response = await m_dataProvider.GetClaims(Id, Skip, CountPerPage, SearchKeyword);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자의 사용자 권한 목록을 반환한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
-		/// <param name="searchKeyword">검색어 (옵션)</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지당 레코드 수 (옵션, 기본 int.MaxValue)</param>
+		/// <param name="SearchKeyword">검색어 (옵션)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
-		[HttpGet("{id}/UserClaims")]
-		public async Task<ActionResult> GetUserClaims([FromRoute] string id, int skip = 0, int countPerPage = int.MaxValue, string searchKeyword = "")
+		[HttpGet("{Id}/UserClaims")]
+		public async Task<ActionResult> GetUserClaims([FromRoute] string Id, int Skip = 0, int CountPerPage = int.MaxValue, string SearchKeyword = "")
 		{
-			ResponseList<ResponseClaim> response = new ResponseList<ResponseClaim>();
+			var Response = new ResponseList<ResponseClaim>();
 			try
 			{
 				// 특정 역할의 권한 목록을 가져온다.
-				response = await m_dataProvider.GetUserClaims(id, skip, countPerPage, searchKeyword);
+				Response = await m_dataProvider.GetUserClaims(Id, Skip, CountPerPage, SearchKeyword);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>사용자 정보를 등록한다.</summary>
-		/// <param name="request">사용자 등록 정보 객체</param>
+		/// <param name="Request">사용자 등록 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add")]
 		[HttpPost]
-		public async Task<ActionResult> Post([FromBody] RequestUserRegist request)
+		public async Task<ActionResult> Post([FromBody] RequestUserRegist Request)
 		{
-			return Json(await m_dataProvider.Add(request));
+			return Json(await m_dataProvider.Add(Request));
 		}
 
 		/// <summary>사용자 정보를 수정한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="request">사용자 수정 정보 객체</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Request">사용자 수정 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.update")]
-		[HttpPut("{id}")]
-		public async Task<ActionResult> Put([FromRoute] string id, [FromBody] RequestUserUpdate request)
+		[HttpPut("{Id}")]
+		public async Task<ActionResult> Put([FromRoute] string Id, [FromBody] RequestUserUpdate Request)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 				// 사용자 수정
-				response = await m_dataProvider.Update(id, request);
+				Response = await m_dataProvider.Update(Id, Request);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>사용자 정보를 수정한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="request">사용자 비밀번호 수정 정보 객체</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Request">사용자 비밀번호 수정 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.update")]
-		[HttpPut("{id}/ChangePassword")]
-		public async Task<ActionResult> ChangePassword([FromRoute] string id, [FromBody] RequestUserChangePassword request)
+		[HttpPut("{Id}/ChangePassword")]
+		public async Task<ActionResult> ChangePassword([FromRoute] string Id, [FromBody] RequestUserChangePassword Request)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 				// 사용자 비밀번호 변경
-				response = await m_dataProvider.ChangePassword(id, request);
+				Response = await m_dataProvider.ChangePassword(Id, Request);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>사용자 정보를 삭제한다.</summary>
-		/// <param name="id">사용자 식별자</param>
+		/// <param name="Id">사용자 식별자</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.remove")]
-		[HttpDelete("{id}")]
-		public async Task<ActionResult> Delete([FromRoute] string id)
+		[HttpDelete("{Id}")]
+		public async Task<ActionResult> Delete([FromRoute] string Id)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 				// 사용자 삭제
-				response = await m_dataProvider.Remove(id);
+				Response = await m_dataProvider.Remove(Id);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자에 권한을 등록한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="request">권한 정보 객체</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Request">권한 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add,common.account.users.update")]
-		[HttpPost("{id}/Claims")]
-		public async Task<ActionResult> AddClaim([FromRoute] string id, [FromBody] RequestAddClaimToUser request)
+		[HttpPost("{Id}/Claims")]
+		public async Task<ActionResult> AddClaim([FromRoute] string Id, [FromBody] RequestAddClaimToUser Request)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 
 				// 사용자에 권한을 등록한다.
-				response = await m_dataProvider.AddClaim(id, request);
+				Response = await m_dataProvider.AddClaim(Id, Request);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자에서 권한을 삭제한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="claimValue">권한값</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="ClaimValue">권한값</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.roles.add,common.account.roles.update")]
-		[HttpDelete("{id}/Claims/{claimValue}")]
-		public async Task<ActionResult> RemoveClaim([FromRoute] string id, [FromRoute] string claimValue)
+		[HttpDelete("{Id}/Claims/{ClaimValue}")]
+		public async Task<ActionResult> RemoveClaim([FromRoute] string Id, [FromRoute] string ClaimValue)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 
 				// 사용자에서 권한을 삭제한다.
-				response = await m_dataProvider.RemoveClaim(id, claimValue);
+				Response = await m_dataProvider.RemoveClaim(Id, ClaimValue);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자에 역할을 등록한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="request">역할 정보 객체</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Request">역할 정보 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add,common.account.users.update")]
-		[HttpPost("{id}/Roles")]
-		public async Task<ActionResult> AddRole([FromRoute] string id, [FromBody] RequestAddRoleToUser request)
+		[HttpPost("{Id}/Roles")]
+		public async Task<ActionResult> AddRole([FromRoute] string Id, [FromBody] RequestAddRoleToUser Request)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 
 				// 사용자에 역할을 등록한다.
-				response = await m_dataProvider.AddRole(id, request);
+				Response = await m_dataProvider.AddRole(Id, Request);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 
 		/// <summary>특정 사용자에서 역할을 삭제한다.</summary>
-		/// <param name="id">사용자 식별자</param>
-		/// <param name="roleName">역할명</param>
+		/// <param name="Id">사용자 식별자</param>
+		/// <param name="RoleName">역할명</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.roles.add,common.account.roles.update")]
-		[HttpDelete("{id}/Roles/{roleName}")]
-		public async Task<ActionResult> RemoveRole([FromRoute] string id, [FromRoute] string roleName)
+		[HttpDelete("{Id}/Roles/{RoleName}")]
+		public async Task<ActionResult> RemoveRole([FromRoute] string Id, [FromRoute] string RoleName)
 		{
-			ResponseData response = new ResponseData();
+			var Response = new ResponseData();
 			try
 			{
 
 				// 사용자에서 역할을 삭제한다.
-				response = await m_dataProvider.RemoveRole(id, roleName);
+				Response = await m_dataProvider.RemoveRole(Id, RoleName);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				response.Code = Resource.EC_COMMON__EXCEPTION;
-				response.Message = Resource.EM_COMMON__EXCEPTION;
+				Response.Code = Resource.EC_COMMON__EXCEPTION;
+				Response.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return Json(response);
+			return Json(Response);
 		}
 	}
 }

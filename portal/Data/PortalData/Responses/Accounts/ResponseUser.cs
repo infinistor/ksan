@@ -34,16 +34,16 @@ namespace PortalData.Responses.Accounts
 		{
 			get
 			{
-				string result = "";
+				string Result = "";
 				try
 				{
-					result = UserExtension.GetDisplayName("", Email, Name);
+					Result = UserExtension.GetDisplayName("", Email, Name);
 				}
 				catch (Exception ex)
 				{
 					NNException.Log(ex);
 				}
-				return result;
+				return Result;
 			}
 		}
 

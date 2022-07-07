@@ -47,7 +47,7 @@ public class DiskAllocation {
          throw new ResourceNotFoundException("Allocation algorithm is not defined or set!");  
      }
      
-    private DISK allocReplicaDisk(DISKPOOL dskPool, SERVER primary, SERVER replica1) throws ResourceNotFoundException, AllServiceOfflineException{
+    private DISK allocReplicaDisk(DISKPOOL dskPool, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
          SERVER replica;
          DISK dsk;
          int numRoatate = 0;
@@ -59,30 +59,25 @@ public class DiskAllocation {
                 throw new ResourceNotFoundException("there is no osd server for replica allocation!");
             }
             
-            if (replica.equals(primary)){
-                numRoatate++;
-                continue;
-            }
-            
-            if (replica1 != null){
-                if (replica.equals(replica1)){
-                    numRoatate++;
-                    continue;
-                }
-            }
+           if (mt.isPrimaryExist()){
+               if (mt.getPrimaryDisk().getOSDServerId().equals(replica.getId())){
+                   numRoatate++;
+                   continue;
+               }
+           }
+           if (mt.isReplicaExist()){
+               if (mt.getReplicaDisk().getOSDServerId().equals(replica.getId())){
+                   numRoatate++;
+                   continue;
+               }
+           }
+ 
             break;
          }while(true);
-         /*replica = dskPool.getNextServer();
-         while(replica.equals(primary)){
-             replica = dskPool.getNextServer();
-             if (replica.equals(primary)){
-                logger.error("there is no osd server for replica allocation!");
-                throw new ResourceNotFoundException("there is no osd server for replica allocation!");
-             }
-         } */
          dsk = replica.getNextDisk();
          dsk.setOSDIP(replica.getName());
          dsk.setOSDServerId(replica.getId());
+         logger.debug("[ReplicaAllocation] bucket : {} key : {} versionId : {}  DiskId {} osdIp {} ", mt.getBucket(), mt.getPath(), mt.getVersionId(), dsk.getId(), replica.getName());
          return dsk;
     }
     
@@ -91,10 +86,7 @@ public class DiskAllocation {
        try  {
            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
        } catch(ResourceNotFoundException ex){
-           obmCache.loadDiskPools();
-           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-           //obmCache.displayDiskPoolList();
-           //System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+           obmCache.reloadDiskPoolList();
            dskPool = obmCache.getDiskPoolFromCache(dskPoolId);
            if(dskPool != null)
                System.out.println(">>>Get disk pool is fixed!!!!!");
@@ -126,7 +118,7 @@ public class DiskAllocation {
              }
              
              try{
-                replicaDisk = this.allocReplicaDisk(dskPool, primary, null);
+                replicaDisk = this.allocReplicaDisk(dskPool, md);
                 md.setReplicaDISK(replicaDisk);
              } catch(ResourceNotFoundException e){
                 //replicaDisk = new DISK();
@@ -141,11 +133,9 @@ public class DiskAllocation {
     }
     
     // allocate only replica disk
-    public DISK allocDisk(String dskPoolId, DISK primary, DISK replica1) throws ResourceNotFoundException, AllServiceOfflineException{
+    public DISK allocDisk(String dskPoolId, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
         DISK replicaDisk;
         DISKPOOL dskPool;
-        SERVER svr;
-        SERVER rsvr = null;
         
         logger.debug("disk pool id : {}", dskPoolId);
         dskPool = getDiskPool(dskPoolId);
@@ -153,13 +143,8 @@ public class DiskAllocation {
             logger.error("there is no bucket in the system!");
             throw new ResourceNotFoundException("there is no bucket in the system!");
         }
-        svr = dskPool.getServer(primary.getPath(), primary.getId());
-        if (replica1 != null)
-            rsvr = dskPool.getServer(replica1.getPath(), replica1.getId());
         
-        replicaDisk = this.allocReplicaDisk(dskPool, svr, rsvr);
-        replicaDisk.setOSDIP(svr.getName());
-        replicaDisk.setOSDServerId(svr.getId());
+        replicaDisk = this.allocReplicaDisk(dskPool, mt);
         return replicaDisk;
     }
     

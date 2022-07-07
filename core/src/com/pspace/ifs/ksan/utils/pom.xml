@@ -6,7 +6,6 @@
 	<version>0.7.1</version>
 	<packaging>jar</packaging>
 	<name>ksan-utils</name>
-	
 	<properties>
    		<slf4j.version>1.7.25</slf4j.version>
 		<jdk.version>1.8</jdk.version>
@@ -25,95 +24,6 @@
 			<artifactId>ksan-objmanager</artifactId>
 			<version>0.7.1</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.2.3</version>
-	    </dependency>
-            <dependency>
-			<groupId>args4j</groupId>
-			<artifactId>args4j</artifactId>
-			<version>2.33</version>
-            </dependency>
-		<dependency>
-      		<groupId>com.google.guava</groupId>
-       		<artifactId>guava</artifactId>
-       		<version>30.1-jre</version>
-    	</dependency>
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<version>3.0.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.12.5</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>2.12.5</version>
-		</dependency>
-		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.11.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.13</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.4.14</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-crypto</artifactId>
-			<version>1.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-			<version>5.9.0</version>
-		</dependency>
-                <dependency>
-                        <groupId>org.mongodb</groupId>
-                        <artifactId>mongo-java-driver</artifactId>
-                        <version>3.12.8</version>
-                </dependency>
-                <dependency>
-                	<groupId>org.mariadb.jdbc</groupId>
-                	<artifactId>mariadb-java-client</artifactId>
-                	<version>2.7.4</version>
-        	</dependency>
-                <dependency>
-                        <groupId>mysql</groupId>
-                        <artifactId>mysql-connector-java</artifactId>
-                        <version>8.0.28</version>
-                </dependency>
-
-                <dependency>
-                        <groupId>com.pspace.ifs.ksan.gw</groupId>
-                        <artifactId>ksan</artifactId>
-                        <version>0.7.1</version>
-                        <scope>compile</scope>
-                </dependency>
-
-		</dependency> -->
 	</dependencies>
 
 	<build>
@@ -137,7 +47,7 @@
                     </excludes> -->
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.2.0</version>
@@ -164,7 +74,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>  -->
                        <!-- for utility build -->
                         <plugin>
                             <artifactId>exec-maven-plugin</artifactId>
@@ -186,10 +96,12 @@
                         </plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+                                <version>3.1.1</version>
 				<executions>
-                                      <execution>
+                                    <execution>
 						<id>ksanGetAttr</id>
 						<configuration>
+                                                  <minimizeJar>true</minimizeJar>	
 							<archive>
 								<manifest>
 									<mainClass>com.pspace.ifs.ksan.utils.getattr.GetAttr</mainClass>
@@ -200,9 +112,6 @@
 							</descriptorRefs>
 							<finalName>ksanGetAttr</finalName>
                                                         <appendAssemblyId>false</appendAssemblyId>
-                                                       <includes>
-                                                       		<include>**/OSDDummy/*</include>
-                                                       </includes>
 						</configuration>
 						<phase>package</phase>
 						<goals>

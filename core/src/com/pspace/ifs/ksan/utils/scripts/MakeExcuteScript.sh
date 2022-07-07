@@ -8,7 +8,8 @@ FULLPATH="$PARENTPATH/../target/$Fname"
 echo "#! /bin/bash" >$FULLPATH
 echo "" >> $FULLPATH
 echo "parent_path=\$( cd \"\$(dirname \"\$\{BASH_SOURCE\[0\]\}\")\" ; pwd -P )" >> $FULLPATH
-echo "java -jar \$parent_path/target/$Fname.jar \"\$\@\"" >> $FULLPATH
+echo "[ ! -f "$parent_path/$Fname.jar" ] && parent_path="/usr/local/ksan/bin"" >> $FULLPATH
+echo "java -jar \$parent_path/$Fname.jar \"\$@\"" >> $FULLPATH
 echo "" >> $FULLPATH
 
 chmod +x "$FULLPATH"

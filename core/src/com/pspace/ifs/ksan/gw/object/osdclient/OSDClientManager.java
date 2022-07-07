@@ -23,6 +23,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -71,24 +72,19 @@ public class OSDClientManager {
         config.setTestOnReturn(true);
         config.setMaxTotal(osdClientCount);
 
-        for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
-            if (!GWUtils.getLocalIP().equals(server.getIp())) {
-                logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
-                OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
-                OSDClientPool pool = new OSDClientPool(factory, config);
-                pool.preparePool();
-                pools.put(server.getIp(), pool);
+        for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+            for (Server server : diskpool.getServerList()) {
+                if (!GWUtils.getLocalIP().equals(server.getIp())) {
+                    if (!pools.containsKey(server.getIp())) {
+                        logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
+                        OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
+                        OSDClientPool pool = new OSDClientPool(factory, config);
+                        pool.preparePool();
+                        pools.put(server.getIp(), pool);
+                    }
+                }
             }
         }
-        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-        //     if (!GWUtils.getLocalIP().equals(server.getIp())) {
-        //         logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
-        //         OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
-        //         OSDClientPool pool = new OSDClientPool(factory, config);
-        //         pool.preparePool();
-        //         pools.put(server.getIp(), pool);
-        //     }
-        // }
     }
 
     public void update(int port, int osdClientCount) throws Exception {
@@ -98,9 +94,15 @@ public class OSDClientManager {
     }
 
     public void shutDown() {
-        for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
-            pools.remove(server.getIp());
+        for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+            for (Server server : diskpool.getServerList()) {
+                pools.remove(server.getIp());
+            }
         }
+
+        // for (Server server : DiskManager.getInstance().getDiskPool().getServerList()) {
+        //     pools.remove(server.getIp());
+        // }
         // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
         //     pools.remove(server.getIp());
         // }

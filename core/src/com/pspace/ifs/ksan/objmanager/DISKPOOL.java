@@ -32,6 +32,7 @@ public class DISKPOOL {
     private String id;
     private String name;
     private boolean isLocal;
+    private int defualt_replica_count;
     private int currentServerIdx;
     private HashMap<String, SERVER> serverMap;
     private static Logger logger;
@@ -43,6 +44,7 @@ public class DISKPOOL {
         this.isLocal = false;
         serverMap = new HashMap<>();
         currentServerIdx = 0;
+        defualt_replica_count = 1;
         logger = LoggerFactory.getLogger(DISKPOOL.class);
     }
     
@@ -52,6 +54,7 @@ public class DISKPOOL {
         this.isLocal = false;
         serverMap = new HashMap<>();
         currentServerIdx = 0;
+        defualt_replica_count = 0;
     }
     
     public void setId(String id){
@@ -66,12 +69,20 @@ public class DISKPOOL {
         serverMap.putIfAbsent(s.getId(), s);
     }
     
+    public void setDefaultReplicaCount(int rcount){
+        defualt_replica_count = rcount;
+    }
+    
     public String getId(){
         return this.id;
     }
     
     public String getName(){
         return this.name;
+    }
+    
+    public int getDefaultReplicaCount(){
+        return defualt_replica_count;
     }
     
     public SERVER getLocalServer() throws NoSuchElementException{
@@ -97,8 +108,8 @@ public class DISKPOOL {
      
      private String getNextServerId(){
          String serverid = "";
-        //try{
-        //    lock.lock();
+        try{
+            lock.lock();
             Set<String> entry =  serverMap.keySet();
             List<String> keys = new ArrayList<>(entry);
             
@@ -116,9 +127,9 @@ public class DISKPOOL {
                 logger.debug(" >>currentServerIdx: {} keySize {}", currentServerIdx, keys.size());
                 currentServerIdx = 0;
             }
-            /*}finally{
+            }finally{
                 lock.unlock();
-            }*/
+            }
            
         return serverid;
      }
@@ -152,10 +163,12 @@ public class DISKPOOL {
                        throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
                      }  
                  }
-
+                 
+                 logger.debug("ServerId : {} OSDIP : {} currentServerIdx : {} startIndex {} ", srv.getId(), srv.getName(), currentServerIdx, startIndex);
                  if (srv.getStatus() != ServerStatus.ONLINE){
                      continue;
                  }
+                 
                  return srv;
             }
             logger.error("There is no server in the system!");
@@ -274,18 +287,21 @@ public class DISKPOOL {
         return serverMap.size();
     }
     
-    public void displayServerList(){
+    public String displayServerList(){
         SERVER srv;
+        String xmlData = "";
  
         for(String serverid : serverMap.keySet()){
             srv = serverMap.get(serverid);
-            logger.debug("\t<SERVER id=\"{}\" ip=\"{}\" status=\"{}\"  numDisk=\"{}\">", srv.getId() , srv.getName(), srv.getStatus(), srv.getNumDisk());
+            String eachSvr = String.format("\n\t<SERVER id=\"%s\" ip=\"%s\" status=\"%s\"  numDisk=\"%d\">", srv.getId() , srv.getName(), srv.getStatusInString(), srv.getNumDisk());
             // System.out.format("\t<SERVER id=\"%s\" ip=\"%s\" status=\"%s\"  numDisk=\"%s\">\n", srv.getId()
             //         , srv.getName(), srv.getStatus(), srv.getNumDisk());
-            srv.displayDiksList();
-            logger.debug("\t</SERVER>");
+            eachSvr = eachSvr + srv.displayDiksList() + "\n\t</SERVER>";
+            //logger.debug("\t</SERVER>");
             // System.out.println("\t</SERVER>");
+            xmlData= xmlData + eachSvr;
          }
+        return xmlData;
     }
     
     public boolean isDiskPoolWithLocalServer(){
@@ -307,7 +323,7 @@ public class DISKPOOL {
     
     @Override
     public String toString(){    
-        return String.format("{ id : %s name : %s num_server : %d }", 
-                id, name, serverMap.size());
+        return String.format("{ id : %s name : %s num_server : %d  default_replicaCount: %d}", 
+                id, name, serverMap.size(), this.defualt_replica_count);
     }
 }

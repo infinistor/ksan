@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 네트워크 인터페이스 VLAN 설정 </summary>
 	public partial class NetworkInterfaceVlan
 	{
+
 		public NetworkInterfaceVlan()
 		{
 			this.ServiceNetworkInterfaceVlans = new List<ServiceNetworkInterfaceVlan>();

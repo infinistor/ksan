@@ -12,9 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Resources;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using PortalModels;
 using PortalProvider.Loaders;
@@ -29,7 +27,6 @@ using PortalProviderInterface;
 using PortalResources;
 using PortalSvr.RabbitMqReceivers;
 using PortalSvr.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -94,7 +91,6 @@ namespace PortalSvr
 				ConfigurationOptions.CookieAuthentication.LoginPath = new PathString("/api/v1/Account/NeedLogin");
 				ConfigurationOptions.CookieAuthentication.LogoutPath = new PathString("/api/v1/Account/Logout");
 				ConfigurationOptions.CookieAuthentication.AccessDeniedPath = new PathString("/api/v1/Account/AccessDenied");
-				ConfigurationOptions.CookieAuthentication.Events.OnSigningIn = FilterRoleClaims;
 				ConfigurationOptions.CookieAuthentication.Events.OnRedirectToLogin = (context) =>
 				{
 					context.HttpContext.Response.Redirect(context.RedirectUri.Replace("http://", "https://"));
@@ -114,56 +110,56 @@ namespace PortalSvr
 		}
 
 		/// <summary>컨테이너에 서비스들을 추가한다.</summary>
-		/// <param name="services">서비스 집합 객체</param>
-		public void ConfigureServices(IServiceCollection services)
+		/// <param name="Services">서비스 집합 객체</param>
+		public void ConfigureServices(IServiceCollection Services)
 		{
 			try
 			{
 				// 데이터베이스 연결 설정
-				services.AddDbContext<PortalModel>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+				Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
 
 				// 사용자 인증 관련 데이터베이스 연결 설정
-				services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+				Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
 
 				// 컨테이너에 기본 서비스들을 추가한다.
-				services.ConfigureServices(true, ConfigurationOptions);
+				Services.ConfigureServices(true, ConfigurationOptions);
 
 				// 업로드 설정 로더 변경
-				services.ReplaceTransient<IUploadConfigLoader, UploadConfigLoader>();
+				Services.ReplaceTransient<IUploadConfigLoader, UploadConfigLoader>();
 				// Smtp 설정 로더 변경
-				services.ReplaceTransient<ISmtpConfigLoader, SmtpConfigLoader>();
+				Services.ReplaceTransient<ISmtpConfigLoader, SmtpConfigLoader>();
 
 				// 프로바이더 객체 DI 설정
-				services.AddSingleton<ISystemConfigLoader, SystemConfigLoader>();
-				services.AddSingleton<IAllowConnectionIpsManager, AllowConnectionIpsManager>();
-				services.AddScoped<IUserClaimsPrincipalFactory<NNApplicationUser>, ApiKeyClaimsPrincipalFactory>();
-				services.AddTransient<IRoleInitializer, RoleInitializer>();
-				services.AddTransient<IAccountInitializer, AccountInitializer>();
-				services.AddTransient<IDiskPoolsInitializer, DiskPoolsInitializer>();
-				services.AddTransient<IRoleProvider, RoleProvider>();
-				services.AddTransient<IUserProvider, UserProvider>();
-				services.AddTransient<IAccountProvider, AccountProvider>();
-				services.AddTransient<ISystemLogProvider, SystemLogProvider>();
-				services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
-				services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
-				services.AddTransient<IRabbitMqSender, RabbitMqSender>();
-				services.AddTransient<IRabbitMqRpc, RabbitMqRpc>();
-				services.AddTransient<IServerProvider, ServerProvider>();
-				services.AddTransient<INetworkInterfaceProvider, NetworkInterfaceProvider>();
-				services.AddTransient<INetworkInterfaceVlanProvider, NetworkInterfaceVlanProvider>();
-				services.AddTransient<IDiskProvider, DiskProvider>();
-				services.AddTransient<IConfigProvider, ConfigProvider>();
-				services.AddTransient<IDiskPoolProvider, DiskPoolProvider>();
-				services.AddTransient<PortalProviderInterface.IServiceProvider, PortalProvider.Providers.Services.ServiceProvider>();
-				services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
-				services.AddTransient<IS3UserProvider, S3UserProvider>();
+				Services.AddSingleton<ISystemConfigLoader, SystemConfigLoader>();
+				Services.AddSingleton<IAllowConnectionIpsManager, AllowConnectionIpsManager>();
+				Services.AddScoped<IUserClaimsPrincipalFactory<NNApplicationUser>, ApiKeyClaimsPrincipalFactory>();
+				Services.AddTransient<IAccountInitializer, AccountInitializer>();
+				Services.AddTransient<IRoleInitializer, RoleInitializer>();
+				Services.AddTransient<IRoleProvider, RoleProvider>();
+				Services.AddTransient<IUserProvider, UserProvider>();
+				Services.AddTransient<IAccountProvider, AccountProvider>();
+				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
+				Services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
+				Services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
+				Services.AddTransient<IRabbitMqSender, RabbitMqSender>();
+				Services.AddTransient<IRabbitMqRpc, RabbitMqRpc>();
+				Services.AddTransient<IServerProvider, ServerProvider>();
+				Services.AddTransient<INetworkInterfaceProvider, NetworkInterfaceProvider>();
+				Services.AddTransient<INetworkInterfaceVlanProvider, NetworkInterfaceVlanProvider>();
+				Services.AddTransient<IDiskProvider, DiskProvider>();
+				Services.AddTransient<IConfigProvider, ConfigProvider>();
+				Services.AddTransient<IDiskPoolProvider, DiskPoolProvider>();
+				Services.AddTransient<PortalProviderInterface.IServiceProvider, PortalProvider.Providers.Services.ServiceProvider>();
+				Services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
+				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
+				Services.AddTransient<IRegionProvider, RegionProvider>();
 
-				services.AddSwaggerGen(c =>
+				Services.AddSwaggerGen(c =>
 				{
 					c.SwaggerDoc("v1", new OpenApiInfo { Title = "KSAN", Version = "v1" });
 					c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 					{
-						Description = @"Bearer 체계를 사용하는 JWT Authorization 헤더.<br/>'Bearer'[공백]을 입력 한 다음 아래 텍스트 입력에 토큰을 입력하십시오.<br/>예 : '5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8'",
+						Description = $@"Bearer 체계를 사용하는 JWT Authorization 헤더.<br/>'Bearer'[공백]을 입력 한 다음 아래 텍스트 입력에 토큰을 입력하십시오.<br/>예 : '{PortalProviderInterface.PredefinedApiKey.InternalSystemApiKey}'",
 						Name = "Authorization",
 						In = ParameterLocation.Header,
 						Type = SecuritySchemeType.ApiKey,
@@ -192,21 +188,21 @@ namespace PortalSvr
 					c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PortalSvr.xml"));
 					c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PortalData.xml"));
 				});
-				services.AddSwaggerGenNewtonsoftSupport();
+				Services.AddSwaggerGenNewtonsoftSupport();
 
 				// 서비스 프로바이더 저장
-				ServiceProviderSignleton = services.BuildServiceProvider();
+				ServiceProviderSignleton = Services.BuildServiceProvider();
 
 				// Rabbit MQ 설정
 				IConfigurationSection configurationSectionRabbitMq = Configuration.GetSection("AppSettings:RabbitMq");
 				RabbitMqConfiguration rabbitMqConfiguration = configurationSectionRabbitMq.Get<RabbitMqConfiguration>();
-				services.Configure<RabbitMqConfiguration>(configurationSectionRabbitMq);
+				Services.Configure<RabbitMqConfiguration>(configurationSectionRabbitMq);
 
 				// Rabbit MQ
 				if (rabbitMqConfiguration.Enabled)
 				{
-					services.AddHostedService<RabbitMqServerReceiver>();
-					services.AddHostedService<RabbitMqServiceReceiver>();
+					Services.AddHostedService<RabbitMqServerReceiver>();
+					Services.AddHostedService<RabbitMqServiceReceiver>();
 				}
 			}
 			catch (Exception ex)
@@ -222,18 +218,16 @@ namespace PortalSvr
 		/// <param name="pathProvider">경로 도우미 객체</param>
 		/// <param name="identityDbContext">인증 관련 DB 컨텍스트</param>
 		/// <param name="dbContext">DB 컨텍스트</param>
-		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
 		/// <param name="roleInitializer">역할 초기화 객체</param>
 		/// <param name="accountInitializer">계정 초기화 객체</param>
-		/// <param name="diskPoolsInitializer">디스크풀 초기화 객체</param>
+		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
 		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
 		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
 		/// <param name="uploadConfigLoader">업로드 설정 로더</param>
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
 			, ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
-			, IAllowConnectionIpsManager allowAddressManager
-			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer, IDiskPoolsInitializer diskPoolsInitializer
-			, ISystemConfigLoader systemConfigLoader
+			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer
+			, IAllowConnectionIpsManager allowAddressManager, ISystemConfigLoader systemConfigLoader
 			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
 		)
 		{
@@ -292,7 +286,6 @@ namespace PortalSvr
 				// 데이터를 초기화 한다.
 				roleInitializer?.Initialize().Wait();
 				accountInitializer?.Initialize().Wait();
-				diskPoolsInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader
@@ -305,7 +298,7 @@ namespace PortalSvr
 				if (!Configuration["AppSettings:i18nPath"].IsEmpty())
 				{
 					// 모든 리소스 매니저를 리스트로 생성
-					List<ResourceManager> resourceManagers = new List<ResourceManager>()
+					var ResourceManagers = new List<ResourceManager>()
 					{
 						Resource.ResourceManager
 					};
@@ -313,8 +306,8 @@ namespace PortalSvr
 					string i18nRootPath = $"{Configuration["AppSettings:I18nPath"].Replace('/', Path.DirectorySeparatorChar)}";
 
 					// 모든 언어에 대해서 리소스 파일 내용을 Json으로 저장
-					foreach (CultureInfo culture in ConfigurationOptions.Localization.SupportedUICultures)
-						resourceManagers.Save(culture, Path.Combine(i18nRootPath, string.Format("{0}.json", culture.Name)));
+					foreach (var culture in ConfigurationOptions.Localization.SupportedUICultures)
+						ResourceManagers.Save(culture, Path.Combine(i18nRootPath, string.Format("{0}.json", culture.Name)));
 				}
 			}
 			catch (Exception ex)
@@ -339,24 +332,24 @@ namespace PortalSvr
 				systemConfigLoader.Load(dbContext);
 
 				// SMTP 설정 관련 초기화할 목록을 가져온다.
-				List<KeyValuePair<string, string>> smtpConfigValues = smtpConfigLoader.GetListForInitialization();
+				var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
 				// SMTP 설정 관련 초기화할 항목이 존재하는 경우
 				if (smtpConfigValues != null && smtpConfigValues.Count > 0)
 				{
 					// 항목 추가
-					foreach (KeyValuePair<string, string> keyValue in smtpConfigValues)
+					foreach (var keyValue in smtpConfigValues)
 						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
 					dbContext.SaveChangesWithConcurrencyResolution();
 					configChanged = true;
 				}
 
 				// 업로드 설정 관련 초기화할 목록을 가져온다.
-				List<KeyValuePair<string, string>> uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+				var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
 				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
 				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
 				{
 					// 항목 추가
-					foreach (KeyValuePair<string, string> keyValue in uploadConfigValues)
+					foreach (var keyValue in uploadConfigValues)
 						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
 					dbContext.SaveChangesWithConcurrencyResolution();
 					configChanged = true;
@@ -370,53 +363,6 @@ namespace PortalSvr
 			{
 				NNException.Log(ex);
 			}
-		}
-
-		/// <summary>로그인하는 사용자의 역할에 속한 클레임들을 걸러낸다.</summary>
-		/// <param name="context">쿠키 사인인 처리 컨텍스트</param>
-		/// <returns>클레임 주요 정보</returns>
-		private static async Task<ClaimsPrincipal> FilterRoleClaims(CookieSigningInContext context)
-		{
-			ClaimsPrincipal principal = context.Principal;
-			try
-			{
-				if (principal != null && principal.Identity is ClaimsIdentity identity)
-				{
-					RoleManager<NNApplicationRole> roleManager = (RoleManager<NNApplicationRole>)ServiceProviderSignleton.GetService(typeof(RoleManager<NNApplicationRole>));
-
-					if (roleManager != null)
-					{
-						// 해당 사용자의 역할 목록을 가져온다.
-						List<string> roleNames = identity.Claims.Where(i => i.Type == identity.RoleClaimType).Select(i => i.Value).ToList();
-
-						// 역할이 존재하는 경우
-						if (roleNames.Count > 0)
-						{
-							List<string> roleClaims = new List<string>();
-
-							// 모든 역할명에 대해서 처리
-							foreach (string roleName in roleNames)
-							{
-								// 이 역할에 대한 클레임 객체를 가져온다.
-								// IList<Claim> thisRoleClaims = await roleManager.GetClaimsAsync(await roleManager.FindByNameAsync(roleName));
-								// if (thisRoleClaims != null && thisRoleClaims.Count > 0)
-								//     roleClaims.AddRange(thisRoleClaims.Select(i => i.Value).ToList());
-							}
-
-							// 역할에 대한 클레임에 속해 있는 클레임들을 가져온다.
-							List<Claim> claimsAlreadyInRole = identity.FindAll(i => roleClaims.Contains(i.Value)).ToList();
-
-							// 역할에 대한 클레임에 속해 있는 클레임들을 삭제한다.
-							claimsAlreadyInRole.ForEach(c => identity.TryRemoveClaim(c));
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-			}
-			return principal;
 		}
 	}
 }

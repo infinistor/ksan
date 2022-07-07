@@ -90,9 +90,7 @@ namespace PortalProvider
 				else
 				{
 					if (m_loginUser == null && UserClaimsPrincipal != null)
-					{
 						m_loginUser = m_userManager.GetUserAsync(UserClaimsPrincipal).Result;
-					}
 
 					return m_loginUser;
 				}
@@ -141,27 +139,27 @@ namespace PortalProvider
 		/// <summary>로그인 사용자의 역할 목록</summary>
 		public async Task<List<string>> GetUserRoles()
 		{
-			List<string> result = new List<string>();
+			var Result = new List<string>();
 
 			if (m_userManager != null)
 			{
 				// 로그인한 사용자의 역할을 가져온다.
-				IList<string> roles = await m_userManager.GetRolesAsync(this.LoginUser);
+				var Roles = await m_userManager.GetRolesAsync(this.LoginUser);
 
-				if (roles != null && roles.Count > 0)
-					result.AddRange(roles);
+				if (Roles != null && Roles.Count > 0)
+					Result.AddRange(Roles);
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>검색어 필드를 초기화한다.</summary>
-		/// <param name="searchFields">검색어 필드 목록</param>
-		protected void InitSearchFields(ref List<string> searchFields)
+		/// <param name="SearchFields">검색어 필드 목록</param>
+		protected void InitSearchFields(ref List<string> SearchFields)
 		{
 			// 검색 필드 목록을 모두 소문자로 변환
-			if (searchFields != null)
-				searchFields = searchFields.ToLower();
+			if (SearchFields != null)
+				SearchFields = SearchFields.ToLower();
 		}
 
 		/// <summary>기본 정렬 필드</summary>
@@ -178,168 +176,168 @@ namespace PortalProvider
 		}
 
 		/// <summary>기본 정렬 정보를 추가한다.</summary>
-		/// <param name="field">필드명</param>
-		/// <param name="direction">정렬방향</param>
-		protected void AddDefaultOrders(string field, string direction)
+		/// <param name="Field">필드명</param>
+		/// <param name="Direction">정렬방향</param>
+		protected void AddDefaultOrders(string Field, string Direction)
 		{
-			DefaultOrderFields.Add(field);
-			DefaultOrderDirections.Add(direction);
+			DefaultOrderFields.Add(Field);
+			DefaultOrderDirections.Add(Direction);
 		}
 
 		/// <summary>정렬 필드를 초기화한다.</summary>
-		/// <param name="orderFields">정렬 필드 목록</param>
-		/// <param name="orderDirections">정렬 필드 목록</param>
-		protected void InitOrderFields(ref List<string> orderFields, ref List<string> orderDirections)
+		/// <param name="OrderFields">정렬 필드 목록</param>
+		/// <param name="OrderDirections">정렬 필드 목록</param>
+		protected void InitOrderFields(ref List<string> OrderFields, ref List<string> OrderDirections)
 		{
-			if (orderFields == null) orderFields = new List<string>();
-			if (orderDirections == null) orderDirections = new List<string>();
+			if (OrderFields == null) OrderFields = new List<string>();
+			if (OrderDirections == null) OrderDirections = new List<string>();
 
 			// 정렬 필드가 지정되지 않은 경우, 기본 정렬 필드 설정
-			if (orderFields.Count == 0)
+			if (OrderFields.Count == 0)
 			{
 				if (DefaultOrderFields.Count > 0)
 				{
-					orderFields.AddRange(DefaultOrderFields);
-					orderDirections.Clear();
+					OrderFields.AddRange(DefaultOrderFields);
+					OrderDirections.Clear();
 				}
 			}
 
 			// 정렬방향목록이 지정되지 않은 경우, 기본 정렬방향목록 설정
-			if (orderDirections.Count == 0)
+			if (OrderDirections.Count == 0)
 			{
-				if (DefaultOrderDirections.Count > 0 && orderFields != null && orderFields.TrueForAll(i => DefaultOrderFields.Contains(i)))
-					orderDirections.AddRange(DefaultOrderDirections);
+				if (DefaultOrderDirections.Count > 0 && OrderFields != null && OrderFields.TrueForAll(i => DefaultOrderFields.Contains(i)))
+					OrderDirections.AddRange(DefaultOrderDirections);
 			}
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="request">전송할 객체</param>
-		/// <param name="waitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
+		/// <param name="Exchange">Exchange 명</param>
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="Request">전송할 객체</param>
+		/// <param name="WaitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 객체</returns>
-		protected ResponseData SendRpcMq(string exchange, string routingKey, object request, int waitForResponseTimeoutSec)
+		protected ResponseData SendRpcMq(string Exchange, string RoutingKey, object Request, int WaitForResponseTimeoutSec)
 		{
-			ResponseData result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+			var Result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 			try
 			{
-				using (IServiceScope serviceScope = m_serviceScopeFactory.CreateScope())
+				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ RPC 객체를 생성한다.
-					IRabbitMqRpc rabbitMqRpc = serviceScope.ServiceProvider.GetService<IRabbitMqRpc>();
+					var RabbitMqRpc = ServiceScope.ServiceProvider.GetService<IRabbitMqRpc>();
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (rabbitMqRpc == null)
+					if (RabbitMqRpc == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					ResponseData<string> response = rabbitMqRpc.Send(exchange, routingKey, request, waitForResponseTimeoutSec);
+					var Response = RabbitMqRpc.Send(Exchange, RoutingKey, Request, WaitForResponseTimeoutSec);
+
 					// 에러인 경우
-					if (response.Result == EnumResponseResult.Error)
-						result.CopyValueFrom(response);
+					if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
 					// 에러가 아닌 경우
 					else
 					{
 						// 결과 데이터를 객체로 변환
-						ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(response.Data);
-						result.CopyValueFrom(responseData);
+						ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(Response.Data);
+						Result.CopyValueFrom(responseData);
 					}
 
-					rabbitMqRpc.Close();
+					RabbitMqRpc.Close();
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="request">전송할 객체</param>
-		/// <param name="waitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
+		/// <param name="Exchange">Exchange 명</param>
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="Request">전송할 객체</param>
+		/// <param name="WaitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 객체</returns>
-		protected ResponseData<U> SendRpcMq<U>(string exchange, string routingKey, object request, int waitForResponseTimeoutSec)
+		protected ResponseData<U> SendRpcMq<U>(string Exchange, string RoutingKey, object Request, int WaitForResponseTimeoutSec)
 		{
-			ResponseData<U> result = new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+			var Result = new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 			try
 			{
-				using (IServiceScope serviceScope = m_serviceScopeFactory.CreateScope())
+				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ RPC 객체를 생성한다.
-					IRabbitMqRpc rabbitMqRpc = serviceScope.ServiceProvider.GetService<IRabbitMqRpc>();
+					var RabbitMqRpc = ServiceScope.ServiceProvider.GetService<IRabbitMqRpc>();
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (rabbitMqRpc == null)
+					if (RabbitMqRpc == null)
 						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					ResponseData<string> response = rabbitMqRpc.Send(exchange, routingKey, request, waitForResponseTimeoutSec);
+					var Response = RabbitMqRpc.Send(Exchange, RoutingKey, Request, WaitForResponseTimeoutSec);
 					// 에러인 경우
-					if (response.Result == EnumResponseResult.Error)
-						result.CopyValueFrom(response);
+					if (Response.Result == EnumResponseResult.Error)
+						Result.CopyValueFrom(Response);
 					// 에러가 아닌 경우
 					else
 					{
 						// 결과 데이터를 객체로 변환
-						ResponseData<U> responseData = JsonConvert.DeserializeObject<ResponseData<U>>(response.Data);
-						result.CopyValueFrom(responseData);
+						var responseData = JsonConvert.DeserializeObject<ResponseData<U>>(Response.Data);
+						Result.CopyValueFrom(responseData);
 					}
 
-					rabbitMqRpc.Close();
+					RabbitMqRpc.Close();
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
-		/// <param name="routingKey">라우팅 키</param>
-		/// <param name="request">전송할 객체</param>
+		/// <param name="Exchange">Exchange 명</param>
+		/// <param name="RoutingKey">라우팅 키</param>
+		/// <param name="Request">전송할 객체</param>
 		/// <returns>전송 결과 객체</returns>
-		protected ResponseData SendMq(string exchange, string routingKey, object request)
+		protected ResponseData SendMq(string Exchange, string RoutingKey, object Request)
 		{
-			ResponseData result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+			var Result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 			try
 			{
 				// DI 객체를 생성한다.
-				using (IServiceScope serviceScope = m_serviceScopeFactory.CreateScope())
+				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ Sender 객체를 생성한다.
-					IRabbitMqSender rabbitMqSender = serviceScope.ServiceProvider.GetService<IRabbitMqSender>();
+					var RabbitMqSender = ServiceScope.ServiceProvider.GetService<IRabbitMqSender>();
 					// Rabbit MQ Sender 객체 생성에 실패한 경우
-					if (rabbitMqSender == null)
+					if (RabbitMqSender == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 추가된 디스크 정보 전송
-					result = rabbitMqSender.Send(exchange, routingKey, request);
-					rabbitMqSender.Close();
+					Result = RabbitMqSender.Send(Exchange, RoutingKey, Request);
+					RabbitMqSender.Close();
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 	}
 }

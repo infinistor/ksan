@@ -65,11 +65,11 @@ public class ObjManagerHelper {
         pool.returnObject(objManager);
     }
 
-    public static void updateAllConfig() {
-        factory.notifyChangeConfig();
-    }
+    // public static void updateAllConfig() {
+    //     factory.notifyChangeConfig();
+    // }
 
-    public static void updateAllDiskpools(String routingKey) {
-        factory.notifyChangeDiskpools(routingKey);
+    public static void updateAllDiskpools(String routingKey, String body) {
+        factory.notifyChangeDiskpools(routingKey, body);
     }
 }

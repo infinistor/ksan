@@ -57,28 +57,28 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>해당 사용자의 API 키 정보 목록을 가져온다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (KeyName, ExpireDate, KeyValue)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드목록 (KeyName, KeyValue)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (KeyName, ExpireDate, KeyValue)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드목록 (KeyName, KeyValue)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		public async Task<ResponseList<ResponseApiKey>> GetApiKeys(Guid userId
-			, int skip = 0, int countPerPage = 100, List<string> orderFields = null, List<string> orderDirections = null
-			, List<string> searchFields = null, string searchKeyword = "")
+		public async Task<ResponseList<ResponseApiKey>> GetApiKeys(Guid UserId
+			, int Skip = 0, int CountPerPage = 100, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = "")
 		{
-			ResponseList<ResponseApiKey> result = new ResponseList<ResponseApiKey>();
+			var Result = new ResponseList<ResponseApiKey>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (userId == Guid.Empty)
+				if (UserId == Guid.Empty)
 					return new ResponseList<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 사용자 정보를 가져온다.
-				NNApplicationUser user = await m_userManager.FindByIdAsync(userId.ToString());
-				if (user == null)
+				var User = await m_userManager.FindByIdAsync(UserId.ToString());
+				if (User == null)
 					return new ResponseList<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
 
 				// 기본 정렬 정보 추가
@@ -86,70 +86,70 @@ namespace PortalProvider.Providers.Accounts
 				AddDefaultOrders("ExpireDate", "desc");
 
 				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref orderFields, ref orderDirections);
+				InitOrderFields(ref OrderFields, ref OrderDirections);
 
 				// 검색 필드를  초기화한다.
-				InitSearchFields(ref searchFields);
+				InitSearchFields(ref SearchFields);
 
 				// API 키 목록을 가져온다.
-				result.Data = await m_dbContext.ApiKeys.AsNoTracking()
-					.Where(i => i.UserId == userId
+				Result.Data = await m_dbContext.ApiKeys.AsNoTracking()
+					.Where(i => i.UserId == UserId
 								&& (
-									searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-									|| (searchFields.Contains("keyname") && i.KeyName.Contains(searchKeyword))
-									|| (searchFields.Contains("keyvalue") && i.KeyValue.Contains(searchKeyword))
+									SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+									|| (SearchFields.Contains("keyname") && i.KeyName.Contains(SearchKeyword))
+									|| (SearchFields.Contains("keyvalue") && i.KeyValue.Contains(SearchKeyword))
 								)
 					)
 					.Select(i => new
 					{
 						i.KeyId,
 						i.UserId,
-						UserName = user.Name,
+						UserName = User.Name,
 						i.KeyName,
 						i.KeyValue,
 						i.ExpireDate
 					})
-					.OrderByWithDirection(orderFields, orderDirections)
+					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<dynamic, ResponseApiKey>();
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>해당 사용자의 API 키 정보를 가져온다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="keyId">키 아이디</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		public async Task<ResponseData<ResponseApiKey>> GetApiKey(Guid userId, Guid keyId)
+		public async Task<ResponseData<ResponseApiKey>> GetApiKey(Guid UserId, Guid KeyId)
 		{
-			ResponseData<ResponseApiKey> result = new ResponseData<ResponseApiKey>();
+			var Result = new ResponseData<ResponseApiKey>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (userId == Guid.Empty || keyId == Guid.Empty)
+				if (UserId == Guid.Empty || KeyId == Guid.Empty)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 해당 사용자 정보를 가져온다.
-				NNApplicationUser user = await m_userManager.FindByIdAsync(userId.ToString());
-				if (user == null)
+				var User = await m_userManager.FindByIdAsync(UserId.ToString());
+				if (User == null)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
 
 				// API 키 정보를 가져온다.
-				ResponseApiKey exist = await m_dbContext.ApiKeys.AsNoTracking()
-					.Where(i => i.KeyId == keyId && i.UserId == userId)
+				var Exist = await m_dbContext.ApiKeys.AsNoTracking()
+					.Where(i => i.KeyId == KeyId && i.UserId == UserId)
 					.Select(i => new
 					{
 						i.KeyId,
 						i.UserId,
-						UserName = user.Name,
+						UserName = User.Name,
 						i.KeyName,
 						i.KeyValue,
 						i.ExpireDate
@@ -157,94 +157,94 @@ namespace PortalProvider.Providers.Accounts
 					.FirstOrDefaultAsync<dynamic, ResponseApiKey>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 				{
-					result.Code = Resource.EC_COMMON__NOT_FOUND;
-					result.Message = Resource.EM_COMMON__NOT_FOUND;
+					Result.Code = Resource.EC_COMMON__NOT_FOUND;
+					Result.Message = Resource.EM_COMMON__NOT_FOUND;
 				}
 				// 해당 데이터가 존재하는 경우
 				else
 				{
-					result.Data = exist;
-					result.Result = EnumResponseResult.Success;
+					Result.Data = Exist;
+					Result.Result = EnumResponseResult.Success;
 				}
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>해당 사용자의 API 키를 발행한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="request">키 요청 객체</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Request">키 요청 객체</param>
 		/// <returns>API 키 추가 결과 객체</returns>
-		public async Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid userId, RequestApiKey request)
+		public async Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid UserId, RequestApiKey Request)
 		{
-			return await IssueApiKey(userId, new RequestApiKeyEx(request));
+			return await IssueApiKey(UserId, new RequestApiKeyEx(Request));
 		}
 
 		/// <summary>해당 사용자의 API 키를 키 값까지 지정하여 발행한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="request">키 요청 객체</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="Request">키 요청 객체</param>
 		/// <returns>API 키 추가 결과 객체</returns>
-		public async Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid userId, RequestApiKeyEx request)
+		public async Task<ResponseData<ResponseApiKey>> IssueApiKey(Guid UserId, RequestApiKeyEx Request)
 		{
-			ResponseData<ResponseApiKey> result = new ResponseData<ResponseApiKey>();
+			var Result = new ResponseData<ResponseApiKey>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (userId == Guid.Empty)
+				if (UserId == Guid.Empty)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 해당 사용자 정보를 가져온다.
-				NNApplicationUser user = await m_userManager.FindByIdAsync(userId.ToString());
-				if (user == null)
+				var User = await m_userManager.FindByIdAsync(UserId.ToString());
+				if (User == null)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
 
-				if (request.KeyValue.IsEmpty())
-					request.KeyValue = Guid.NewGuid().ToString().GetSHA256Hash();
+				if (Request.KeyValue.IsEmpty())
+					Request.KeyValue = Guid.NewGuid().ToString().GetSHA256Hash();
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
-						ApiKey newData = new ApiKey()
+						var NewData = new ApiKey()
 						{
 							KeyId = Guid.NewGuid(),
-							UserId = userId,
-							KeyName = request.KeyName,
-							ExpireDate = request.ExpireDate,
-							KeyValue = request.KeyValue
+							UserId = UserId,
+							KeyName = Request.KeyName,
+							ExpireDate = Request.ExpireDate,
+							KeyValue = Request.KeyValue
 						};
 
 						// API 키를 생성한다.
-						await m_dbContext.ApiKeys.AddAsync(newData);
+						await m_dbContext.ApiKeys.AddAsync(NewData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Data = new ResponseApiKey();
-						result.Data.CopyValueFrom(newData);
-						result.Data.UserName = user.Name;
-						result.Result = EnumResponseResult.Success;
+						Result.Data = new ResponseApiKey();
+						Result.Data.CopyValueFrom(NewData);
+						Result.Data.UserName = User.Name;
+						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -252,64 +252,64 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>해당 사용자의 API 키를 해제한다.</summary>
-		/// <param name="userId">사용자 아이디</param>
-		/// <param name="keyId">키 아이디</param>
+		/// <param name="UserId">사용자 아이디</param>
+		/// <param name="KeyId">키 아이디</param>
 		/// <returns>API 키 해제 결과 객체</returns>
-		public async Task<ResponseData> RevokeApiKey(Guid userId, Guid keyId)
+		public async Task<ResponseData> RevokeApiKey(Guid UserId, Guid KeyId)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (userId == Guid.Empty || keyId == Guid.Empty)
+				if (UserId == Guid.Empty || KeyId == Guid.Empty)
 				{
-					result.Code = Resource.EC_COMMON__INVALID_REQUEST;
-					result.Message = Resource.EM_COMMON__INVALID_REQUEST;
+					Result.Code = Resource.EC_COMMON__INVALID_REQUEST;
+					Result.Message = Resource.EM_COMMON__INVALID_REQUEST;
 				}
 				// 요청이 유효한 경우
 				else
 				{
 					// API 키 정보를 가져온다.
-					ApiKey exist = await m_dbContext.ApiKeys.AsNoTracking()
-						.Where(i => i.UserId == userId && i.KeyId == keyId)
+					var Exist = await m_dbContext.ApiKeys.AsNoTracking()
+						.Where(i => i.UserId == UserId && i.KeyId == KeyId)
 						.FirstOrDefaultAsync();
 
 					// 해당 데이터가 존재하지 않는 경우
-					if (exist == null)
+					if (Exist == null)
 					{
-						result.Code = Resource.EC_COMMON__NOT_FOUND;
-						result.Message = Resource.EM_COMMON__NOT_FOUND;
+						Result.Code = Resource.EC_COMMON__NOT_FOUND;
+						Result.Message = Resource.EM_COMMON__NOT_FOUND;
 					}
 					// 해당 데이터가 존재하는 경우
 					else
 					{
-						using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 						{
 							try
 							{
 								// 해당 데이터 삭제
-								m_dbContext.ApiKeys.Remove(exist);
+								m_dbContext.ApiKeys.Remove(Exist);
 								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-								await transaction.CommitAsync();
+								await Transaction.CommitAsync();
 
-								result.Result = EnumResponseResult.Success;
+								Result.Result = EnumResponseResult.Success;
 							}
 							catch (Exception ex)
 							{
-								await transaction.RollbackAsync();
+								await Transaction.RollbackAsync();
 
 								NNException.Log(ex);
 
-								result.Code = Resource.EC_COMMON__EXCEPTION;
-								result.Message = Resource.EM_COMMON__EXCEPTION;
+								Result.Code = Resource.EC_COMMON__EXCEPTION;
+								Result.Message = Resource.EM_COMMON__EXCEPTION;
 							}
 						}
 					}
@@ -319,50 +319,50 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>해당 키 아이디의 API 키 정보를 가져온다.</summary>
-		/// <param name="keyValue">키 값</param>
+		/// <param name="KeyValue">키 값</param>
 		/// <returns>API 키 정보 목록 객체</returns>
-		public async Task<ResponseData<ResponseApiKey>> GetApiKey(string keyValue)
+		public async Task<ResponseData<ResponseApiKey>> GetApiKey(string KeyValue)
 		{
-			ResponseData<ResponseApiKey> result = new ResponseData<ResponseApiKey>();
+			var Result = new ResponseData<ResponseApiKey>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (keyValue.IsEmpty())
+				if (KeyValue.IsEmpty())
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// API 키 정보를 가져온다.
-				ResponseApiKey exist = await m_dbContext.ApiKeys.AsNoTracking()
-					.Where(i => i.KeyValue == keyValue && i.ExpireDate >= DateTime.Now)
+				var Exist = await m_dbContext.ApiKeys.AsNoTracking()
+					.Where(i => i.KeyValue == KeyValue && i.ExpireDate >= DateTime.Now)
 					.FirstOrDefaultAsync<ApiKey, ResponseApiKey>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				result.Data = exist;
+				Result.Data = Exist;
 
 				// 해당 사용자 정보를 가져온다.
-				NNApplicationUser user = await m_userManager.FindByIdAsync(exist.UserId);
-				if (user != null)
-					result.Data.UserName = user.Name;
+				var User = await m_userManager.FindByIdAsync(Exist.UserId);
+				if (User != null)
+					Result.Data.UserName = User.Name;
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
-			return result;
+			return Result;
 		}
 	}
 }

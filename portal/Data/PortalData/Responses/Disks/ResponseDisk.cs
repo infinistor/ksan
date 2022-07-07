@@ -27,8 +27,8 @@ namespace PortalData.Responses.Disks
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
-		/// <summary>디스크 식별번호</summary>
-		public string DiskNo { get; set; }
+		/// <summary>디스크 이름</summary>
+		public string Name { get; set; }
 
 		/// <summary>마운트 경로</summary>
 		public string Path { get; set; }
@@ -53,6 +53,12 @@ namespace PortalData.Responses.Disks
 
 		/// <summary>사용된 크기</summary>
 		public decimal UsedSize { get; set; }
+
+		/// <summary>읽기</summary>
+		public decimal Read { get; set; }
+
+		/// <summary>사용된 크기</summary>
+		public decimal Write { get; set; }
 
 		/// <summary>디스크 읽기/쓰기 모드</summary>
 		public EnumDiskRwMode RwMode { get; set; } = EnumDiskRwMode.ReadWrite;

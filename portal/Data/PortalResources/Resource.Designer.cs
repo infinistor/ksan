@@ -214,6 +214,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   EC016과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EC_COMMON__INVALID_PORT {
+            get {
+                return ResourceManager.GetString("EC_COMMON__INVALID_PORT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   EC012과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EC_COMMON__INVALID_REQUEST {
@@ -642,6 +651,15 @@ namespace PortalResources {
         public static string EM_COMMON__INVALID_IP_ADDRESS {
             get {
                 return ResourceManager.GetString("EM_COMMON__INVALID_IP_ADDRESS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid Port과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON__INVALID_PORT {
+            get {
+                return ResourceManager.GetString("EM_COMMON__INVALID_PORT", resourceCulture);
             }
         }
         
@@ -1744,6 +1762,24 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Storage class name is already exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_STORAGE_CLASS_ALREADY_EXIST {
+            get {
+                return ResourceManager.GetString("EM_STORAGE_CLASS_ALREADY_EXIST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_STORAGE_CLASS_INVALID_NAME {
+            get {
+                return ResourceManager.GetString("EM_STORAGE_CLASS_INVALID_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   EmailMemberVerifyMailForm.en.html과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EMAIL_COMMON_ACCOUNT_EMAIL_CONFIRMATION {
@@ -1758,6 +1794,15 @@ namespace PortalResources {
         public static string EMAIL_COMMON_ACCOUNT_RESET_PASSWORD {
             get {
                 return ResourceManager.GetString("EMAIL_COMMON_ACCOUNT_RESET_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EN_DISK_POOLS_INVALID_ID {
+            get {
+                return ResourceManager.GetString("EN_DISK_POOLS_INVALID_ID", resourceCulture);
             }
         }
         
@@ -3513,6 +3558,15 @@ namespace PortalResources {
         public static string UL_DISKPOOL_CLASS_TYPE_STANDARD {
             get {
                 return ResourceManager.GetString("UL_DISKPOOL_CLASS_TYPE_STANDARD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   STANDARD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME {
+            get {
+                return ResourceManager.GetString("UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME", resourceCulture);
             }
         }
         

@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 서비스 정보 </summary>
 	public partial class Service
 	{
+
 		public Service()
 		{
 			this.HaAction = (PortalModels.EnumDbHaAction)Enum.Parse(typeof(PortalModels.EnumDbHaAction), "-1");

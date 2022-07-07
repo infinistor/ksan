@@ -31,48 +31,28 @@ public final class GWConstants {
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
 
 	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
-	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure";
-	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.config.s3.*";
-	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool";
+	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
+	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.s3.config.*";
+	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
+	public static final String MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY = "*.servers.disks.added";
+	public static final String MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY = "*.servers.disks.updated";
+	public static final String MQUEUE_NAME_GW_DISK_REMOVED_ROUTING_KEY = "*.servers.disks.removed";
+	public static final String MQUEUE_NAME_GW_DISK_STATE_ROUTING_KEY = "*.servers.disks.state";
+	public static final String MQUEUE_NAME_GW_DISK_RWMODE_ROUTING_KEY = "*.servers.disks.rwmode";
+	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool-";
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
-	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user";
+	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
 	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.s3.user.*";
 
 	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
-	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
+	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
 	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortal";
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
 	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
 
-    public static final String PROPERTY_ENDPOINT = "gw.endpoint";
-    public static final String PROPERTY_SECURE_ENDPOINT = "gw.secure-endpoint";
-    public static final String PROPERTY_AUTHORIZATION = "gw.authorization";
-	public static final String PROPERTY_KEYSTORE_PATH = "gw.keystore-path";
-	public static final String PROPERTY_KEYSTORE_PASSWORD = "gw.keystore-password";
-	public static final String PROPERTY_JETTY_MAX_THREADS = "gw.jetty.max-threads";
-	public static final String PROPERTY_JETTY_MAX_IDLE_TIMEOUT = "gw.jetty.max-idle-timeout";
-    public static final String PROPERTY_MAXIMUM_TIME_SKEW = "gw.maxtimeskew";
-	public static final String PROPERTY_OSD_PORT = "gw.osd-port";
-	public static final String PROPERTY_OSD_CLIENT_COUNT = "gw.osd-client-count";
-	public static final String PROPERTY_OBJMANAGER_COUNT = "gw.objmanager-count";
-	public static final String PROPERTY_LOCAL_IP = "gw.local-ip";
-    
-	public static final String PROPERTY_DB_REPOSITORY = "dbrepository";
-    public static final String PROPERTY_DB_HOST = "dbhost";
-    public static final String PROPERTY_DB_NAME = "database";
-    public static final String PROPERTY_DB_PORT = "dbport";
-    public static final String PROPERTY_DB_USER = "dbuser";
-    public static final String PROPERTY_DB_PASS = "dbpass";
-	public static final String PROPERTY_DB_POOL_SIZE = "dbpoolsize";
-
-	public static final String PROPERTY_REPLICA_COUNT = "gw.replication";
-	public static final String PROPERTY_CACHE_DISK = "cache_disk";
-	public static final String PROPERTY_CACHE_FILE_SIZE = "cache_file_size";
-
-	public static final String PROPERTY_PERFORMANCE_MODE = "gw.performance.mode";
 	public static final String PERFORMANCE_MODE_NO_OPTION = "NO_OPTION";
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
@@ -766,6 +746,9 @@ public final class GWConstants {
 	public static final int RANGE_OFFSET_INDEX = 0;
 	public static final int RANGE_LENGTH_INDEX = 1;
 
+	public static final String UTILITY_EXCHANGE_KEY = "UtilityExchange";
+	public static final String MESSAGE_QUEUE_OPTION = "fanout";
+
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
@@ -989,7 +972,7 @@ public final class GWConstants {
 	// ListObjectVersions
 	public static final String LOG_LIST_OBJECT_VERSIONS_START = "ListObjectVersions ...";
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
-	public static final String LOG_LIST_OBJECT_VERSIONS_PARAMETER_INFO = "{}, {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_KEY_COUNT = "key count : {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
@@ -1288,6 +1271,7 @@ public final class GWConstants {
 
 	// GWPortal
 	public static final String GWPORTAL_RECEIVED_CONFIG_CHANGE = "receive config change ...";
+	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";
 	public static final String LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA = "BiningKey : {}, body : {}";

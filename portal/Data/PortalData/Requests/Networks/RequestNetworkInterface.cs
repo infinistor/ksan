@@ -20,51 +20,51 @@ namespace PortalData.Requests.Networks
 	/// <summary>네트워크 인터페이스 정보 요청 클래스</summary>
 	public class RequestNetworkInterface : CommonRequestData
 	{
-        /// <summary>인터페이스명</summary>
-        [Required(ErrorMessageResourceName = "EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
-        public string Name
-        {
-	        get => m_name;
-	        set => m_name = value.IsEmpty() ? "" : value.Trim();
-        }
-        private string m_name;
+		/// <summary>인터페이스명</summary>
+		[Required(ErrorMessageResourceName = "EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+		public string Name
+		{
+			get => m_name;
+			set => m_name = value.IsEmpty() ? "" : value.Trim();
+		}
+		private string m_name;
 
-        /// <summary>설명</summary>
-        public string Description { get; set; }
+		/// <summary>설명</summary>
+		public string Description { get; set; }
 
-        /// <summary>DHCP 사용 여부</summary>
-        public EnumYesNo? Dhcp { get; set; }
+		/// <summary>DHCP 사용 여부</summary>
+		public EnumYesNo? Dhcp { get; set; }
 
-        /// <summary>맥주소</summary>
-        public string MacAddress { get; set; }
+		/// <summary>맥주소</summary>
+		public string MacAddress { get; set; }
 
-        /// <summary>네트워크 연결 상태</summary>
-        public EnumNetworkLinkState? LinkState { get; set; }
+		/// <summary>네트워크 연결 상태</summary>
+		public EnumNetworkLinkState? LinkState { get; set; }
 
-        /// <summary>아이피 주소</summary>
-        [IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-        public string IpAddress { get; set; }
+		/// <summary>아이피 주소</summary>
+		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
+		public string IpAddress { get; set; }
 
-        /// <summary>서브넷 마스크</summary>
-        [IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_SUBNET_MASK", ErrorMessageResourceType = typeof(Resource))]
-        public string SubnetMask { get; set; }
+		/// <summary>서브넷 마스크</summary>
+		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_SUBNET_MASK", ErrorMessageResourceType = typeof(Resource))]
+		public string SubnetMask { get; set; }
 
-        /// <summary>게이트웨이</summary>
-        [IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_GATEWAY", ErrorMessageResourceType = typeof(Resource))]
-        public string Gateway { get; set; }
+		/// <summary>게이트웨이</summary>
+		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_GATEWAY", ErrorMessageResourceType = typeof(Resource))]
+		public string Gateway { get; set; }
 
-        /// <summary>DNS #1</summary>
-        [IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_DNS_1", ErrorMessageResourceType = typeof(Resource))]
-        public string Dns1 { get; set; }
+		/// <summary>DNS #1</summary>
+		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_DNS_1", ErrorMessageResourceType = typeof(Resource))]
+		public string Dns1 { get; set; }
 
-        /// <summary>DNS #2</summary>
-        [IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_DNS_2", ErrorMessageResourceType = typeof(Resource))]
-        public string Dns2 { get; set; }
-        
-        /// <summary>BandWidth</summary>
-        public decimal BandWidth { get; set; }
-        
-        /// <summary>관리용 인터페이스인지 여부</summary>
-        public bool IsManagement { get; set; }
+		/// <summary>DNS #2</summary>
+		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_DNS_2", ErrorMessageResourceType = typeof(Resource))]
+		public string Dns2 { get; set; }
+
+		/// <summary>BandWidth</summary>
+		public decimal BandWidth { get; set; }
+
+		/// <summary>관리용 인터페이스인지 여부</summary>
+		public bool IsManagement { get; set; }
 	}
 }

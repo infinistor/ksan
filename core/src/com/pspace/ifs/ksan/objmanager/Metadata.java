@@ -181,7 +181,10 @@ public class Metadata {
     
     public DISK getReplicaDisk() throws ResourceNotFoundException{
         try{
-            return allocDisk.get(REPLICADISK);
+            DISK rep = allocDisk.get(REPLICADISK);
+            if (rep == null)
+               throw new ResourceNotFoundException("bucket : " +getBucket()+" path : " + getPath() + " there is no replica disk"); 
+            return rep;
         } catch (IndexOutOfBoundsException e){
             throw new ResourceNotFoundException("bucket : " +getBucket()+" path : " + getPath() + " there is no replica disk");
         }

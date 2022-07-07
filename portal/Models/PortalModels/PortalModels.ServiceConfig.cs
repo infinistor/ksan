@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 서비스 설정 정보 </summary>
 	public partial class ServiceConfig
 	{
+
 		public ServiceConfig()
 		{
 			this.LastVersion = true;
@@ -66,4 +67,5 @@ namespace PortalModels
 
 		#endregion
 	}
+
 }

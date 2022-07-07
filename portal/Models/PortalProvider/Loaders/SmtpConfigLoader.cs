@@ -35,60 +35,60 @@ namespace PortalProvider.Loaders
 		/// <returns>Smtp 관련 설정 객체</returns>
 		public SmtpConfig GetConfig()
 		{
-			CSSPSmtpConfig result = new CSSPSmtpConfig();
+			CSSPSmtpConfig Result = new CSSPSmtpConfig();
 			try
 			{
-				result.Host = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.Host)).Key);
-				result.Port = m_configLoader.GetValue<int>(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.Port)).Key);
-				result.Account = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.Account)).Key);
-				result.Password = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.Password)).Key);
-				result.UseSsl = m_configLoader.GetValue<bool>(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.UseSsl)).Key);
-				result.DefaultSenderEmail = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.DefaultSenderEmail)).Key);
-				result.DefaultSenderName = m_configLoader.GetValue(result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(result.DefaultSenderName)).Key);
+				Result.Host = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.Host)).Key);
+				Result.Port = m_configLoader.GetValue<int>(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.Port)).Key);
+				Result.Account = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.Account)).Key);
+				Result.Password = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.Password)).Key);
+				Result.UseSsl = m_configLoader.GetValue<bool>(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.UseSsl)).Key);
+				Result.DefaultSenderEmail = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.DefaultSenderEmail)).Key);
+				Result.DefaultSenderName = m_configLoader.GetValue(Result.GetAttribute<KeyAndDefaultValueAttribute>(nameof(Result.DefaultSenderName)).Key);
 			}
 			catch (System.Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 
 		/// <summary>초기화해야할 설정 목록을 가져온다.</summary>
 		/// <returns>초기화해야할 설정 목록</returns>
 		public List<KeyValuePair<string, string>> GetListForInitialization()
 		{
-			List<KeyValuePair<string, string>> result = new List<KeyValuePair<string, string>>();
-			ResponseList<ResponseConfig> configs;
-			KeyValuePair<string, string>? item;
+			var Result = new List<KeyValuePair<string, string>>();
+			ResponseList<ResponseConfig> Configs;
+			KeyValuePair<string, string>? Item;
 			try
 			{
 				// SMTP 관련 설정을 가져온다.
-				configs = m_configLoader.GetStartsWith("SMTP.");
+				Configs = m_configLoader.GetStartsWith("SMTP.");
 
 				// 설정이 유효한 경우
-				if (configs != null)
+				if (Configs != null)
 				{
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "Host");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "Port");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "Account");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "Password");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "UseSsl");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "DefaultSenderEmail");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
-					item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(configs, "DefaultSenderName");
-					if (item != null) result.Add((KeyValuePair<string, string>)item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "Host");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "Port");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "Account");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "Password");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "UseSsl");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "DefaultSenderEmail");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
+					Item = SystemConfigLoader.GetInitializationItem<CSSPSmtpConfig>(Configs, "DefaultSenderName");
+					if (Item != null) Result.Add((KeyValuePair<string, string>)Item);
 				}
 			}
 			catch (System.Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return result;
+			return Result;
 		}
 	}
 }

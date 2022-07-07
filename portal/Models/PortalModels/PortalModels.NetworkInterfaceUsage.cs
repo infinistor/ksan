@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 네트워크 인터페이스 사용 정보 </summary>
 	public partial class NetworkInterfaceUsage
 	{
+
 		public NetworkInterfaceUsage()
 		{
 			this.BandWidth = 0m;

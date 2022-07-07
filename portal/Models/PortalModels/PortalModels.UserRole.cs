@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 역할(권한그룹) 내 사용자 </summary>
 	public partial class UserRole
 	{
+
 		public UserRole()
 		{
 			OnCreated();

@@ -1622,4 +1622,16 @@
   <data name="EM_CONFIGS_LIST_VERSION_CANNOT_DELETE" xml:space="preserve">
     <value>마지막 버전은 삭제할 수 없습니다.</value>
   </data>
+  <data name="EM_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>포트가 유효하지 않습니다.</value>
+  </data>
+  <data name="EM_STORAGE_CLASS_ALREADY_EXIST" xml:space="preserve">
+    <value>스토리지 클래스명이 이미 존재합니다.</value>
+  </data>
+  <data name="EM_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
+    <value>유효하지 않은 스토리지 클래스 이름입니다.</value>
+  </data>
+  <data name="EN_DISK_POOLS_INVALID_ID" xml:space="preserve">
+    <value>유효하지 않은 디스크풀 아이디입니다.</value>
+  </data>
 </root>

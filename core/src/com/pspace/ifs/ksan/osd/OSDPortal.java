@@ -78,13 +78,19 @@ public class OSDPortal {
     }
     
     private OSDPortal() {
-        config = new MonConfig(); 
+        config = MonConfig.getInstance(); 
         config.configure();
 
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), OSDConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", OSDConstants.MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY, configureCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), 
+				OSDConstants.MQUEUE_EXCHANGE_NAME, 
+				false, 
+				"fanout", 
+				OSDConstants.MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY, 
+				configureCB);
 			mq1ton.addCallback(configureCB);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
@@ -92,7 +98,13 @@ public class OSDPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), OSDConstants.MQUEUE_EXCHANGE_NAME, false, "fanout", OSDConstants.MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY, diskpoolsCB);
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), 
+				OSDConstants.MQUEUE_EXCHANGE_NAME, 
+				false, 
+				"fanout", 
+				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY, 
+				diskpoolsCB);
 			mq1ton.addCallback(diskpoolsCB);
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
@@ -163,7 +175,7 @@ public class OSDPortal {
 
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.CLASS_TYPE_ID), (String)item.get(DiskPool.REPLICATION_TYPE));
+					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					for (int j = 0; j < jsonServers.size(); j++) {
 						JSONObject jsonServer = (JSONObject)jsonServers.get(j);

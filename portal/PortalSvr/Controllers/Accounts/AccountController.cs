@@ -53,33 +53,33 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>회원 가입을 처리한다.</summary>
-		/// <param name="request">회원 가입 요청 객체</param>
+		/// <param name="Request">회원 가입 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("Register")]
 		[AllowAnonymous]
-		public async Task<JsonResult> Register([FromBody] RequestRegister request)
+		public async Task<JsonResult> Register([FromBody] RequestRegister Request)
 		{
-			return Json(await m_dataProvider.Create(request, HttpContext.Request));
+			return Json(await m_dataProvider.Create(Request, HttpContext.Request));
 		}
 
 		/// <summary>이메일 주소 인증 처리</summary>
-		/// <param name="request">이메일 인증 요청 객체</param>
+		/// <param name="Request">이메일 인증 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ConfirmEmail")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ConfirmEmail([FromBody] RequestConfirmEmail request)
+		public async Task<JsonResult> ConfirmEmail([FromBody] RequestConfirmEmail Request)
 		{
-			return Json(await m_dataProvider.ConfirmEmail(request));
+			return Json(await m_dataProvider.ConfirmEmail(Request));
 		}
 
 		/// <summary>로그인 처리</summary>
-		/// <param name="request">로그인 요청 객체</param>
+		/// <param name="Request">로그인 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("Login")]
 		[AllowAnonymous]
-		public async Task<JsonResult> Login([FromBody] RequestLogin request)
+		public async Task<JsonResult> Login([FromBody] RequestLogin Request)
 		{
-			return Json(await m_dataProvider.Login(request, this.Request));
+			return Json(await m_dataProvider.Login(Request, this.Request));
 		}
 
 		/// <summary>로그인한 사용자 정보를 가져온다.</summary>
@@ -91,13 +91,13 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>로그인 여부를 가져온다.</summary>
-		/// <param name="requireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
+		/// <param name="RequireRoles">필요한 역할명 목록 (',' 으로 구분)</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[HttpGet("CheckLogin/{requireRoles?}")]
+		[HttpGet("CheckLogin/{RequireRoles?}")]
 		[AllowAnonymous]
-		public JsonResult CheckLogin([FromRoute] string requireRoles = "")
+		public JsonResult CheckLogin([FromRoute] string RequireRoles = "")
 		{
-			return Json(m_dataProvider.CheckLogin(User, requireRoles));
+			return Json(m_dataProvider.CheckLogin(User, RequireRoles));
 		}
 
 		/// <summary>로그 아웃</summary>
@@ -110,41 +110,41 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>현재 로그인한 사용자의 비밀번호를 변경한다.</summary>
-		/// <param name="request">비밀번호 요청 객체</param>
+		/// <param name="Request">비밀번호 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ChangePassword")]
-		public async Task<JsonResult> ChangePassword([FromBody] RequestChangePassword request)
+		public async Task<JsonResult> ChangePassword([FromBody] RequestChangePassword Request)
 		{
-			return Json(await m_dataProvider.ChangePassword(User, request));
+			return Json(await m_dataProvider.ChangePassword(User, Request));
 		}
 
 		/// <summary>비밀번호 찾기 요청</summary>
-		/// <param name="request">비밀번호 찾기 요청 객체</param>
+		/// <param name="Request">비밀번호 찾기 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ForgotPassword")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ForgotPassword([FromBody] RequestForgetPassword request)
+		public async Task<JsonResult> ForgotPassword([FromBody] RequestForgetPassword Request)
 		{
-			return Json(await m_dataProvider.ForgotPassword(request, HttpContext.Request));
+			return Json(await m_dataProvider.ForgotPassword(Request, HttpContext.Request));
 		}
 
 		/// <summary>비밀번호 재설정</summary>
-		/// <param name="request">비밀번호 재설정 요청 객체</param>
+		/// <param name="Request">비밀번호 재설정 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPost("ResetPassword")]
 		[AllowAnonymous]
-		public async Task<JsonResult> ResetPassword([FromBody] RequestResetPassword request)
+		public async Task<JsonResult> ResetPassword([FromBody] RequestResetPassword Request)
 		{
-			return Json(await m_dataProvider.ResetPassword(request));
+			return Json(await m_dataProvider.ResetPassword(Request));
 		}
 
 		/// <summary>현재 로그인한 사용자 정보를 수정한다.</summary>
-		/// <param name="request">비밀번호 요청 객체</param>
+		/// <param name="Request">비밀번호 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[HttpPut("Update")]
-		public async Task<JsonResult> Update([FromBody] RequestUpdate request)
+		public async Task<JsonResult> Update([FromBody] RequestUpdate Request)
 		{
-			return Json(await m_dataProvider.Update(User, request));
+			return Json(await m_dataProvider.Update(User, Request));
 		}
 
 		/// <summary>로그인한 사용자의 권한 목록을 가져온다.</summary>
@@ -156,12 +156,12 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>로그인한 사용자의 권한 중 해당 권한이 존재하는지 확인한다.</summary>
-		/// <param name="claimValue">검사할 권한 값</param>
+		/// <param name="ClaimValue">검사할 권한 값</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[HttpGet("Claims/{claimValue}")]
-		public async Task<JsonResult> HasClaim([FromRoute] string claimValue)
+		[HttpGet("Claims/{ClaimValue}")]
+		public async Task<JsonResult> HasClaim([FromRoute] string ClaimValue)
 		{
-			return Json(await m_dataProvider.HasClaim(User, claimValue));
+			return Json(await m_dataProvider.HasClaim(User, ClaimValue));
 		}
 
 		#region 직접 호출하지 않지만 로그인 혹은 권한이 필요한 경우 호출되는 Action
@@ -177,19 +177,19 @@ namespace PortalSvr.Controllers.Accounts
 		[AllowAnonymous]
 		public UnauthorizedObjectResult NeedLogin()
 		{
-			ResponseData response = new ResponseData();
+			ResponseData Response = new ResponseData();
 			try
 			{
 				// 로그인이 필요로 설정
-				response.IsNeedLogin = true;
-				response.Code = Resource.EC_COMMON__NEED_LOGIN;
-				response.Message = Resource.EM_COMMON__NEED_LOGIN;
+				Response.IsNeedLogin = true;
+				Response.Code = Resource.EC_COMMON__NEED_LOGIN;
+				Response.Message = Resource.EM_COMMON__NEED_LOGIN;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return Unauthorized(response);
+			return Unauthorized(Response);
 		}
 
 		/// <summary>로그인이 필요하다는 내용을 전달한다.</summary>
@@ -204,19 +204,19 @@ namespace PortalSvr.Controllers.Accounts
 		[AllowAnonymous]
 		public UnauthorizedObjectResult AccessDenied()
 		{
-			ResponseData response = new ResponseData();
+			ResponseData Response = new ResponseData();
 			try
 			{
-				response.IsNeedLogin = false;
-				response.AccessDenied = true;
-				response.Code = Resource.EC_COMMON__ACCESS_DENIED;
-				response.Message = Resource.EM_COMMON__ACCESS_DENIED;
+				Response.IsNeedLogin = false;
+				Response.AccessDenied = true;
+				Response.Code = Resource.EC_COMMON__ACCESS_DENIED;
+				Response.Message = Resource.EM_COMMON__ACCESS_DENIED;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 			}
-			return Unauthorized(response);
+			return Unauthorized(Response);
 		}
 		#endregion
 	}

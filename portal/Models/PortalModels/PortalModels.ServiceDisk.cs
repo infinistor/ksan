@@ -15,6 +15,7 @@ namespace PortalModels
 	/// <summary> 서비스 사용 디스크 정보 </summary>
 	public partial class ServiceDisk
 	{
+
 		public ServiceDisk()
 		{
 			OnCreated();

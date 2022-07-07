@@ -55,7 +55,7 @@ namespace PortalSvr.Services
 			string[] claimValues = claim.Value.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (claimValues.Length > 0)
 			{
-				foreach (string claimValue in claimValues)
+				foreach (var claimValue in claimValues)
 					m_claims.Add(new Claim(claim.Type, claimValue));
 
 				m_claimValues = m_claims.Select(i => i.Value).ToList();

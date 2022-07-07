@@ -26,7 +26,10 @@ namespace PortalModels
 			this.TotalSize = 0m;
 			this.ReservedSize = 0m;
 			this.UsedSize = 0m;
+			this.Read = 0m;
+			this.Write = 0m;
 			this.ServiceDisks = new List<ServiceDisk>();
+			this.DiskUsages = new List<DiskUsage>();
 			OnCreated();
 		}
 
@@ -36,8 +39,8 @@ namespace PortalModels
 		/// <summary> 디스크 Pool 아이디 </summary>
 		public virtual Guid? DiskPoolId { get; set; }
 
-		/// <summary> 디스크 번호 (디스크 아이디의 HashCode) </summary>
-		public virtual string DiskNo { get; set; }
+		/// <summary> 디스크 이름 </summary>
+		public virtual string Name { get; set; }
 
 		/// <summary> 서버 아이디 </summary>
 		public virtual Guid ServerId { get; set; }
@@ -66,6 +69,10 @@ namespace PortalModels
 		/// <summary> 사용된 크기 </summary>
 		public virtual decimal UsedSize { get; set; }
 
+		public virtual decimal Read { get; set; }
+
+		public virtual decimal Write { get; set; }
+
 		/// <summary> 디스크 읽기/쓰기 모드 </summary>
 		public virtual EnumDbDiskRwMode RwMode { get; set; }
 
@@ -77,6 +84,8 @@ namespace PortalModels
 
 		/// <summary> 디스크 풀 정보 </summary>
 		public virtual DiskPool DiskPool { get; set; }
+
+		public virtual IList<DiskUsage> DiskUsages { get; set; }
 
 		#region Extensibility Method Definitions
 

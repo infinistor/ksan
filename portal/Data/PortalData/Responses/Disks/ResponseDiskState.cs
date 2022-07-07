@@ -24,8 +24,8 @@ namespace PortalData.Responses.Disks
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
-		/// <summary>디스크 식별번호</summary>
-		public string DiskNo { get; set; }
+		/// <summary>디스크 이름</summary>
+		public string Name { get; set; }
 
 		/// <summary>디스크 상태</summary>
 		public EnumDiskState State { get; set; } = EnumDiskState.Disable;

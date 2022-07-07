@@ -16,6 +16,7 @@ namespace PortalModels
 	/// <summary> 서비스 그룹 </summary>
 	public partial class ServiceGroup
 	{
+
 		public ServiceGroup()
 		{
 			this.Services = new List<Service>();

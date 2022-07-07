@@ -41,10 +41,16 @@
 			<Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
 			<Member Name="OSD" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
 			<Member Name="S3" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
-			<Member Name="S3Backend" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
+			<Member Name="Recovery" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
 			<Member Name="HaProxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
 			<Member Name="Monitor" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
 			<Member Name="Edge" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
+			<Member Name="MariaDB" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
+			<Member Name="MongoDB" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
+			<Member Name="Lifecycle" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
+			<Member Name="Replication" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
+			<Member Name="Logging" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
+			<Member Name="Metering" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>
@@ -347,7 +353,7 @@
 			<Documentation>
 				<Summary>서비스명</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dd6944d1-0590-4128-bbdb-7e99a47b57db">
 			<Documentation>
@@ -467,7 +473,7 @@
 			<Documentation>
 				<Summary>서버명</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
 			<Documentation>
@@ -1095,11 +1101,11 @@
 			</Documentation>
 			<column name="" />
 		</property>
-		<property name="DiskNo" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
 			<Documentation>
-				<Summary>디스크 번호 (디스크 아이디의 HashCode)</Summary>
+				<Summary>디스크 이름</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
 			<Documentation>
@@ -1155,6 +1161,12 @@
 			</Documentation>
 			<column name="" default="0" />
 		</property>
+		<property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="761e860d-48b8-47e2-9a48-9311b61b5773">
+			<column name="" default="0" />
+		</property>
+		<property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="bc6cc914-5704-4263-8279-c09f88d1c1da">
+			<column name="" default="0" />
+		</property>
 		<property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
 			<Documentation>
 				<Summary>디스크 읽기/쓰기 모드</Summary>
@@ -1195,7 +1207,7 @@
 			<Documentation>
 				<Summary>디스크 Pool 명</Summary>
 			</Documentation>
-			<column name="" />
+			<column name="" unique="True" />
 		</property>
 		<property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a8f71709-ee54-4da7-8725-23fb3a63d00a">
 			<Documentation>
@@ -1239,7 +1251,7 @@
 			</Documentation>
 			<column name="" p1:unicode="False" />
 		</property>
-		<property name="ClassTypeId" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
+		<property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
 			<Documentation>
 				<Summary>디스크풀 타입</Summary>
 			</Documentation>
@@ -1415,25 +1427,7 @@
 			<column name="" default="1" precision="1" scale="0" />
 		</property>
 	</class>
-	<class name="S3User" entity-set="S3Users" p1:Guid="169b761c-fe63-4a2c-9d34-bce199767f58">
-		<property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
-			<Documentation>
-				<Summary>유저 아이디</Summary>
-			</Documentation>
-			<column name="" unique="True" />
-		</property>
-		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
-			<Documentation>
-				<Summary>유저명</Summary>
-			</Documentation>
-			<column name="" />
-		</property>
-		<property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
-			<Documentation>
-				<Summary>이메일</Summary>
-			</Documentation>
-			<column name="" />
-		</property>
+	<class name="KsanUser" entity-set="KsanUsers" p1:Guid="169b761c-fe63-4a2c-9d34-bce199767f58">
 		<composite-id>
 			<key-property name="AccessKey" type="String" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
 				<Documentation>
@@ -1448,6 +1442,24 @@
 				<column name="" length="40" p1:fixed-length="True" />
 			</key-property>
 		</composite-id>
+		<property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
+			<Documentation>
+				<Summary>유저 아이디</Summary>
+			</Documentation>
+			<column name="" unique="True" />
+		</property>
+		<property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
+			<Documentation>
+				<Summary>유저명</Summary>
+			</Documentation>
+			<column name="" unique="True" />
+		</property>
+		<property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
+			<Documentation>
+				<Summary>이메일</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
 	</class>
 	<class name="UserDiskPool" entity-set="UserDiskPools" p1:Guid="d69a1a22-3560-4c3e-aa2f-13570f3cc256">
 		<Documentation>
@@ -1466,7 +1478,94 @@
 				</Documentation>
 				<column name="" />
 			</key-property>
+			<key-property name="StorageClass" type="String" p1:ValidateRequired="true" p1:Guid="b358d8c1-23f7-4db6-b864-d43fed21fbb6">
+				<Documentation>
+					<Summary>스토리지 클래스 이름</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
 		</composite-id>
+	</class>
+	<class name="DiskUsage" entity-set="DiskUsages" p1:Guid="5d3c2840-402e-4de2-8940-12a619474ce1">
+		<Documentation>
+			<Summary>디스크 사용량</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b11303ff-02a4-4fc5-9049-847030a975eb">
+				<Documentation>
+					<Summary>디스크 유세이지 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="398726f6-cb2f-4410-a152-51821910520f">
+				<Documentation>
+					<Summary>생성시간</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+		<property name="UsedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="6ab10ce7-be5b-4342-a461-e876e0cd4aa1">
+			<Documentation>
+				<Summary>Inode사용량</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="UsedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="54ff65b9-9f02-48e7-b878-390936affc77">
+			<Documentation>
+				<Summary>현재 사용량</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="3f0b6c4d-79d7-4e44-81a7-24a9982c9696">
+			<Documentation>
+				<Summary>디스크 읽기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+		<property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="3ba6ba0d-1c40-4d2e-a60e-c29a50eb1feb">
+			<Documentation>
+				<Summary>디스크 쓰기</Summary>
+			</Documentation>
+			<column name="" default="0" />
+		</property>
+	</class>
+	<class name="Region" entity-set="Regions" p1:Guid="80be8172-4374-4c95-9849-c5fd7502c81c">
+		<id name="Name" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14a0f850-fa16-4a7e-bb45-23e9e8b3182f">
+			<Documentation>
+				<Summary>리전명</Summary>
+			</Documentation>
+			<column name="" length="50" />
+		</id>
+		<property name="Address" type="String" p1:ValidateMaxLength="15" p1:ValidateRequired="true" p1:Guid="3e62bb3b-10c6-4f9d-aa29-a6af84ab2bdb">
+			<Documentation>
+				<Summary>리전 주소</Summary>
+			</Documentation>
+			<column name="" length="15" />
+		</property>
+		<property name="Port" type="Int32" p1:ValidateRequired="true" p1:Guid="c8c48ae0-9341-434a-a1f8-7c7e1c6e5f2b">
+			<Documentation>
+				<Summary>포트</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="SSLPort" type="Int32" p1:ValidateRequired="true" p1:Guid="32f9fb60-6738-4082-9837-dbd0e038ebbc">
+			<Documentation>
+				<Summary>SSL포트</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="AccessKey" type="String" p1:ValidateRequired="true" p1:Guid="350a66d7-4e01-4b2e-988e-fd72d372676d">
+			<Documentation>
+				<Summary>엑세스키</Summary>
+			</Documentation>
+			<column name="" sql-type="char(20)" />
+		</property>
+		<property name="SecretKey" type="String" p1:ValidateRequired="true" p1:Guid="7ccc2d65-a746-45f6-a563-d38e2a8ccb3d">
+			<Documentation>
+				<Summary>엑세스키</Summary>
+			</Documentation>
+			<column name="" sql-type="char(40)" />
+		</property>
 	</class>
 	<associations>
 		<association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
@@ -1617,7 +1716,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="User_ServiceGroup" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
+		<association name="User_ServiceGroup_Reg" cardinality="OneToMany" p1:Guid="e5df32cb-dcd8-41fb-a591-def555d3cf14">
 			<end1 multiplicity="ZeroOrOne" name="RegUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="52cdbfeb-c7f9-4ab0-8f0e-1cda484d3aec">
 				<Documentation>
 					<Summary>등록 사용자 정보</Summary>
@@ -1631,7 +1730,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="User_ServiceGroup1" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
+		<association name="User_ServiceGroup_Mod" cardinality="OneToMany" p1:Guid="9bffa19f-1610-417c-946e-fcb6b00b6564">
 			<end1 multiplicity="ZeroOrOne" name="ModUser" class="ServiceGroup" relation-class="User" constrained="True" lazy="False" p1:Guid="1e0ba52c-da8c-4ce4-8e57-6bdd777dbe6a">
 				<Documentation>
 					<Summary>수정 사용자 정보</Summary>
@@ -1645,7 +1744,7 @@
 				<property name="ModId" />
 			</end2>
 		</association>
-		<association name="User_Service" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
+		<association name="User_Service_Reg" cardinality="OneToMany" p1:Guid="0d43c566-7666-47e7-bff2-f1fbc3cda341">
 			<end1 multiplicity="ZeroOrOne" name="RegUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="f66d6e6c-fed6-4fe0-8462-357b97c09326">
 				<Documentation>
 					<Summary>등록 사용자 정보</Summary>
@@ -1659,7 +1758,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="User_Service1" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
+		<association name="User_Service_Mod" cardinality="OneToMany" p1:Guid="b4c779b7-26cf-477b-8d46-ec1379e02a83">
 			<end1 multiplicity="ZeroOrOne" name="ModUser" class="Service" relation-class="User" constrained="True" lazy="False" p1:Guid="9892cf5a-5d6e-4087-b861-d68b554a7558">
 				<Documentation>
 					<Summary>수정 사용자 정보</Summary>
@@ -1790,7 +1889,7 @@
 				<property name="ServiceId" />
 			</end2>
 		</association>
-		<association name="Disk_ServiceDisk" cardinality="OneToMany" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
+		<association name="Disk_ServiceDisk" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
 			<end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
 				<Documentation>
 					<Summary>디스크 정보</Summary>
@@ -1818,7 +1917,7 @@
 				<property name="DiskPoolId" />
 			</end2>
 		</association>
-		<association name="Server_ServerUsage" cardinality="OneToMany" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
+		<association name="Server_ServerUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
 			<end1 multiplicity="One" name="Server" class="ServerUsage" relation-class="Server" constrained="True" lazy="False" p1:Guid="8ae27611-0428-4874-81e0-eb4f616d6d27">
 				<property name="Id" />
 			</end1>
@@ -1826,7 +1925,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
+		<association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
 			<end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceUsage" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="dd2c125d-8c87-4786-ac8e-b65ccce1f5eb">
 				<property name="Id" />
 			</end1>
@@ -1834,7 +1933,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="Service_ServiceUsage" cardinality="OneToMany" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
+		<association name="Service_ServiceUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
 			<end1 multiplicity="One" name="Service" class="ServiceUsage" relation-class="Service" constrained="True" lazy="False" p1:Guid="a955c72c-b674-4bea-9c2b-9951a1f5f098">
 				<property name="Id" />
 			</end1>
@@ -1842,11 +1941,11 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="S3User_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
-			<end1 multiplicity="One" name="S3User" class="UserDiskPool" relation-class="S3User" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
+		<association name="KsanUser_UserDiskPool" cardinality="OneToMany" on-delete="Cascade" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
+			<end1 multiplicity="One" name="KsanUser" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
 				<property name="Id" />
 			</end1>
-			<end2 multiplicity="Many" name="UserDiskPools" class="S3User" relation-class="UserDiskPool" lazy="False" p1:Guid="82a163a7-4cb0-4583-b7aa-78eb9d6d9e01">
+			<end2 multiplicity="Many" name="UserDiskPools" class="KsanUser" relation-class="UserDiskPool" lazy="False" p1:Guid="82a163a7-4cb0-4583-b7aa-78eb9d6d9e01">
 				<property name="UserId" />
 			</end2>
 		</association>
@@ -1856,6 +1955,14 @@
 			</end1>
 			<end2 multiplicity="Many" name="UserDiskPools" class="DiskPool" relation-class="UserDiskPool" lazy="False" p1:Guid="79111c8b-930d-4090-be78-4878d54cecab">
 				<property name="DiskPoolId" />
+			</end2>
+		</association>
+		<association name="Disk_DiskUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="3a992fac-a5ff-4cd3-a0ae-b499558ddb27">
+			<end1 multiplicity="One" name="Disk" class="DiskUsage" relation-class="Disk" constrained="True" lazy="False" p1:Guid="93648c5b-62f7-49b4-8687-82e78401caf8">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="DiskUsages" class="Disk" relation-class="DiskUsage" lazy="False" p1:Guid="a7d88ea0-9da7-423d-a891-72e852e5a62f">
+				<property name="Id" />
 			</end2>
 		</association>
 	</associations>

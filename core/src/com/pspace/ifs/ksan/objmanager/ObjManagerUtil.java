@@ -16,6 +16,8 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -26,38 +28,28 @@ public class ObjManagerUtil {
     private DiskAllocation dAlloc;
     private ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    //private DiskMonitor diskM;
-    //private MQSender mqSender;
-    private OMLogger logger;
+    private ObjManagerSharedResource omsr;
+    private static Logger logger;
     
     public ObjManagerUtil() throws Exception{
             
             config = new ObjManagerConfig();
             
-            obmCache = new ObjManagerCache();
-          
-            //System.out.println(">>dbmCache : " + obmCache);
-            if (config.dbRepository.equalsIgnoreCase("MYSQL"))
-                 dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-            else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-                 dbm = new MongoDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
-            else 
-                System.out.println("ObjManger initalization error :  there is no db storage configured!");
+            omsr = ObjManagerSharedResource.getInstance(config, false);
             
-            //System.out.println(">>dbm : " + dbm);
-            config.loadDiskPools(obmCache);
+            obmCache = omsr.getCache();
+          
+            dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
+            
+            //config.loadDiskPools(obmCache);
            
-            dbm.loadBucketList();
+            //dbm.loadBucketList();
             
             obmCache.setDBManager(dbm);
-            
-            //obmCache.displayBucketList();
-            
-            //obmCache.displayDiskPoolList();
-            
+                
             dAlloc = new DiskAllocation(obmCache);
             
-            logger = new OMLogger(ObjManager.class.getName());
+            logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
     }
     
     private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
@@ -94,14 +86,18 @@ public class ObjManagerUtil {
         return dbm.selectSingleObjectWithObjId(bt.getDiskPoolId(), bucketName, objid, versionId);
     }
     
-    public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
+    public Metadata getObjectWithPath(String bucketName, String key, String versionId) throws ResourceNotFoundException{
         Bucket bt;
         try {
             bt = this.getBucket(bucketName);
         } catch (SQLException ex) {
             throw new ResourceNotFoundException(ex.getMessage());
         }
-        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key);
+        return dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key, versionId);
+    }
+    
+    public Metadata getObjectWithPath(String bucketName, String key) throws ResourceNotFoundException{
+        return getObjectWithPath(bucketName, key, "null");
     }
     
     public int updateObject(String bucketName, String objid, Metadata mt, int updateCtrl){
@@ -133,22 +129,22 @@ public class ObjManagerUtil {
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
-    public DISK allocReplicaDisk(String bucketName, String pdiskId, String rdiskId) throws ResourceNotFoundException, AllServiceOfflineException{
+    public DISK allocReplicaDisk(String bucketName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
        
-        if (pdiskId == null && rdiskId == null)
-             throw new ResourceNotFoundException("null diskid provided!");
+        if (mt == null)
+             throw new ResourceNotFoundException("null metadata are provided!");
 
-        if (pdiskId != null && rdiskId != null){
+        /*if (pdiskId != null && rdiskId != null){
             if (pdiskId.isEmpty() && rdiskId.isEmpty())
                 throw new ResourceNotFoundException("empty diskid provided!");
-        }
+        }*/
         
-        DISK rsrcDisk = null;
+        //DISK rsrcDisk = null;
         String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-        DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
+       /* DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
         if (rdiskId != null)
-            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);
-        return dAlloc.allocDisk(dskPoolId, psrcDisk, rsrcDisk);
+            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);*/
+        return dAlloc.allocDisk(dskPoolId, mt);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){

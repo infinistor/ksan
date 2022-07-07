@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
@@ -69,15 +69,15 @@ namespace PortalSvr.Services
 					userRole = await m_provider.AddRole(new RequestRole() { Name = PredefinedRoleNames.RoleNameUser });
 				}
 
-				ClaimInitializer claimInitializer = new ClaimInitializer(m_provider);
-				// 권한 초기화
-				await claimInitializer.InitializeClaims();
-				// Supervisor 의 권한 추가
-				await claimInitializer.InitializeSupervisor(supervisorRole.Data.Id.ToString());
-				// InternalService 의 권한 추가
-				await claimInitializer.InitializeInternalService(internalServiceRole.Data.Id.ToString());
-				// User 의 권한 추가
-				await claimInitializer.InitializeUser(userRole.Data.Id.ToString());
+				// ClaimInitializer claimInitializer = new ClaimInitializer(m_provider);
+				// // 권한 초기화
+				// await claimInitializer.InitializeClaims();
+				// // Supervisor 의 권한 추가
+				// await claimInitializer.InitializeSupervisor(supervisorRole.Data.Id.ToString());
+				// // InternalService 의 권한 추가
+				// await claimInitializer.InitializeInternalService(internalServiceRole.Data.Id.ToString());
+				// // User 의 권한 추가
+				// await claimInitializer.InitializeUser(userRole.Data.Id.ToString());
 			}
 			catch (Exception ex)
 			{

@@ -167,6 +167,10 @@ public class SERVER {
         diskMap.putIfAbsent(diskid, dsk);
     }
     
+    public void addDisk(DISK dsk){
+        diskMap.putIfAbsent(dsk.getId(), dsk);
+    }
+    
     public void removeDisk(String path, String diskid) throws ResourceNotFoundException{
         DISK dsk;
         
@@ -223,9 +227,9 @@ public class SERVER {
     }
     
     private String getNextDiskId(){
-        lock.lock();
+        //lock.lock();
         String diskid;
-        try {
+        //try {
             Set<String> entry =  diskMap.keySet();
             String []keys = entry.toArray( new String[entry.size()]);
             
@@ -234,13 +238,13 @@ public class SERVER {
             
             diskid = keys[currentDiskIdx];
             currentDiskIdx++;
-        } finally {
+        /*} finally {
             lock.unlock();
-        }
+        }*/
         return diskid;
     }
     
-    public DISK getNextDisk()  throws ResourceNotFoundException{
+    public DISK getNextDisk() throws ResourceNotFoundException{
         DISK dsk;
         int startIndex;
         
@@ -248,47 +252,73 @@ public class SERVER {
             logger.error("There is no disk in the server!");
             throw new ResourceNotFoundException("There is no disk in the server!"); 
         }
-        logger.debug("diskMap size : {}", diskMap.size());
-        startIndex = currentDiskIdx;
-        while((dsk = diskMap.get(getNextDiskId())) != null){
-            if (dsk == null)
-                continue;
-            
-            // if (startIndex == currentDiskIdx)
-            //     break;
-            
-            if (dsk.getStatus() != DiskStatus.GOOD){
-                continue;
+        try{
+            lock.lock();
+            logger.debug("diskMap size : {} currentDiskIdx {}", diskMap.size(), currentDiskIdx);
+            startIndex = currentDiskIdx;
+            while((dsk = diskMap.get(getNextDiskId())) != null){
+                if (dsk == null)
+                    continue;
+
+                // if (startIndex == currentDiskIdx)
+                //     break;
+                
+                logger.debug("DiskId : {}  path : {} osdIp: {} currentDiskIdx: {} startIndex : {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), currentDiskIdx, startIndex); 
+                if (dsk.getStatus() != DiskStatus.GOOD){
+                    continue;
+                }
+
+                if (dsk.getMode() != DiskMode.READWRITE)
+                    continue;
+
+                return dsk;
             }
-            
-            if (dsk.getMode() != DiskMode.READWRITE)
-                continue;
-            
-            return dsk;
+            logger.error("There is no disk the server!"); 
+            throw new ResourceNotFoundException("There is no disk the server!");
+        } finally {
+            lock.unlock();
         }
-        logger.error("There is no disk the server!"); 
-        throw new ResourceNotFoundException("There is no disk the server!");
     }
     
     public ServerStatus getStatus(){
         return this.status;
     }
     
+    public String getStatusInString(){
+        String st;
+        if (null == status)
+            st = "UNKNOWN";
+        else  switch (status) {
+            case ONLINE:
+                st = "ONLINE";
+                break;
+            case OFFLINE:
+                st = "OFFLINE";
+                break;
+            case TIMEOUT:
+                st = "TIMEOUT";
+                break;
+            default:
+                st = "UNKNOWN";
+                break;
+        }
+        return st;
+    }
     public int getNumDisk(){
         return diskMap.size();
     }
     
-    public void displayDiksList(){
+    public String displayDiksList(){
         DISK dsk;
+        String xmlDsk = "";
         
         for(String diskid : diskMap.keySet()){
-             dsk = diskMap.get(diskid);
-             logger.debug("\t   <DISK id=\"{}\"  path=\"{}\" freeSpace=\"{}\" freeInode=\"{}\" mode=\"{}\" status=\"{}\">",
+            dsk = diskMap.get(diskid);
+            String dskStr = String.format("\n\t   <DISK id=\"%s\"  path=\"%s\" freeSpace=\"%s\" freeInode=\"%s\" mode=\"%s\" status=\"%s\">",
                dsk.getId(), dsk.getPath(), dsk.getFreeSpace(), dsk.getFreeInode(), dsk.getMode(), dsk.getStatus());
-            //  System.out.format(
-            //    "\t   <DISK id=\"%s\"  path=\"%s\" freeSpace=\"%f\" freeInode=\"%f\" mode=\"%s\" status=\"%s\"> \n",
-            //    dsk.getId(), dsk.getPath(), dsk.getFreeSpace(), dsk.getFreeInode(), dsk.getMode(), dsk.getStatus());
+            xmlDsk = xmlDsk + dskStr;
         }
+        return xmlDsk;
     }
 
     @Override
@@ -308,7 +338,7 @@ public class SERVER {
     @Override
     public String toString(){    
         return String.format(
-                "{id : %s ipaddr : %d hostname : %s isLocal : %s status : %d  diskCount : %d}", 
-                getId(), getIpAddress(), getName(), isLocal, getStatus(), getNumDisk() );
+                "{id : %s ipaddr : %d hostname : %s isLocal : %s status : %s  diskCount : %d}", 
+                getId(), getIpAddress(), getName(), isLocal, getStatusInString(), getNumDisk() );
     } 
 }

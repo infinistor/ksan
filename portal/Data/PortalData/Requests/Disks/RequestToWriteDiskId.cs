@@ -28,10 +28,6 @@ namespace PortalData.Requests.Disks
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
-		/// <summary>디스크 식별번호</summary>
-		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_DISK_NO", ErrorMessageResourceType = typeof(Resource))]
-		public string DiskNo { get; set; }
-
 		/// <summary>마운트 경로</summary>
 		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_PATH", ErrorMessageResourceType = typeof(Resource))]
 		public string Path { get; set; }

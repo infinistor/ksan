@@ -1768,4 +1768,28 @@
     <value>The last version cannot be deleted.</value>
     <comment>마지막 버전은 삭제할 수 없습니다.</comment>
   </data>
+  <data name="EC_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>EC016</value>
+    <comment>포트가 유효하지 않습니다.</comment>
+  </data>
+  <data name="EM_COMMON__INVALID_PORT" xml:space="preserve">
+    <value>Invalid Port</value>
+    <comment>포트가 유효하지 않습니다.</comment>
+  </data>
+  <data name="UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME" xml:space="preserve">
+    <value>STANDARD</value>
+    <comment>기본 디스크풀 명</comment>
+  </data>
+  <data name="EM_STORAGE_CLASS_ALREADY_EXIST" xml:space="preserve">
+    <value>Storage class name is already exist.</value>
+    <comment>스토리지 클래스명이 이미 존재합니다.</comment>
+  </data>
+  <data name="EM_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
+    <value>Invalid storage class name.</value>
+    <comment>유효하지 않은 스토리지 클래스 이름입니다.</comment>
+  </data>
+  <data name="EN_DISK_POOLS_INVALID_ID" xml:space="preserve">
+    <value>Invalid disk pool id.</value>
+    <comment>유효하지 않은 디스크풀 아이디입니다.</comment>
+  </data>
 </root>

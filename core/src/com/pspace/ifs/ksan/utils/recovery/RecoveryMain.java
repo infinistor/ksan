@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.utils.recovery;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.io.InputStreamReader;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -100,11 +102,18 @@ public class RecoveryMain {
         }
     }
     
+    static void disableDebuglog(){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.mongodb.driver");
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
+    }
     /**
      * @param args the command line arguments
      */
     
     public static void main(String[] args) {
+        disableDebuglog();
+        
         RecoveryMain rc = new RecoveryMain();
         
         if (rc.parseArgs(args) != 0){

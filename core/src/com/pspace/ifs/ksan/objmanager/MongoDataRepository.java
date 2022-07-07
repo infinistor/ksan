@@ -65,7 +65,7 @@ public class MongoDataRepository implements DataRepository{
     private ObjManagerCache obmCache;
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
-    private static Logger logger;
+    private static Logger mongoLogger;
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
@@ -130,7 +130,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String STARTTIME = "startTime";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
-        System.out.format(">>[MongoDataRepository] hosts : %s username : %s dbname : %s\n", hosts, username, dbname);
+        //System.out.format(">>[MongoDataRepository] hosts : %s username : %s dbname : %s\n", hosts, username, dbname);
         parseDBHostNames2URL(hosts, port);
         this.username = username;
         this.passwd = passwd;
@@ -392,7 +392,7 @@ public class MongoDataRepository implements DataRepository{
     public Bucket insertBucket(Bucket bt) throws ResourceAlreadyExistException{
         Document doc;
         Document index;
-        try{ 
+        //try{ 
             doc = new Document(BUCKETNAME, bt.getName());
             //doc.append(BUCKETNAME, bucketName);
             doc.append(DISKPOOLID, bt.getDiskPoolId());
@@ -431,10 +431,10 @@ public class MongoDataRepository implements DataRepository{
             Document wildIndex = new Document(OBJID + ".$**", 1);
             database.getCollection(bt.getName()).createIndex(wildIndex); 
             //bt = new Bucket(bucketName, bucketName, diskPoolId);
-            getUserDiskPool(bt);
-        } catch(SQLException ex){
+            //getUserDiskPool(bt);
+        /*} catch(SQLException ex){
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bt.getName()), ex);
-        }
+        }*/
         return bt;
     }
 

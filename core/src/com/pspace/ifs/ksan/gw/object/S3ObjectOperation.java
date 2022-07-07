@@ -550,7 +550,7 @@ public class S3ObjectOperation {
                                               versionId, 
                                               length, 
                                               GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, 
-                                              objMeta.getReplicaDisk().getId(), 
+                                              GWConstants.EMPTY_STRING,//objMeta.getReplicaDisk().getId(), 
                                               GWConstants.EMPTY_STRING,
                                               GWConfig.getInstance().getPerformanceMode());
                     }

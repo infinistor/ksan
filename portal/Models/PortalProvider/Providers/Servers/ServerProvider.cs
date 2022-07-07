@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Servers;
-using PortalData.Responses.Networks;
 using PortalData.Responses.Servers;
 using PortalData.Responses.Services;
 using PortalModels;
@@ -24,7 +23,6 @@ using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,6 +31,7 @@ using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
 using MTLib.Reflection;
+using Renci.SshNet;
 
 namespace PortalProvider.Providers.Servers
 {
@@ -62,65 +61,59 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 등록</summary>
-		/// <param name="request">서버 등록 요청 객체</param>
+		/// <param name="Request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer request)
+		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request)
 		{
-			ResponseData<ResponseServerDetail> result = new ResponseData<ResponseServerDetail>();
+			var Result = new ResponseData<ResponseServerDetail>();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
-
-				// 동일한 이름이 존재하는지 확인한다.
-				ResponseData<bool> responseExist = await this.IsNameExist(null, new RequestIsServerNameExist(request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (responseExist.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseServerDetail>(responseExist.Result, responseExist.Code, responseExist.Message);
+				if (!Request.IsValid())
+					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는 경우
-				if (responseExist.Data)
+				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 정보를 생성한다.
-						Server newData = new Server()
+						var NewData = new Server()
 						{
 							Id = Guid.NewGuid(),
-							Name = request.Name,
-							Description = request.Description,
-							CpuModel = request.CpuModel,
-							Clock = request.Clock,
-							State = (EnumDbServerState)request.State,
-							Rack = request.Rack,
-							MemoryTotal = request.MemoryTotal,
+							Name = Request.Name,
+							Description = Request.Description,
+							CpuModel = Request.CpuModel,
+							Clock = Request.Clock,
+							State = (EnumDbServerState)Request.State,
+							Rack = Request.Rack,
+							MemoryTotal = Request.MemoryTotal,
 							ModId = LoginUserId,
 							ModName = LoginUserName,
 							ModDate = DateTime.Now
 						};
-						await m_dbContext.Servers.AddAsync(newData);
+						await m_dbContext.Servers.AddAsync(NewData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
-						result.Data = (await this.Get(newData.Id.ToString())).Data;
+						Result.Result = EnumResponseResult.Success;
+						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 추가된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.added", result.Data);
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -128,70 +121,132 @@ namespace PortalProvider.Providers.Servers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
+		}
+
+		/// <summary>서버 초기화</summary>
+		/// <param name="Request">서버 초기화 요청 객체</param>
+		/// <returns>서버 초기화 결과 객체</returns>
+		public async Task<ResponseData> Initialize(RequestServerInitialize Request)
+		{
+			var Result = new ResponseData();
+			try
+			{
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+				// SSH 접속
+				var Client = new SshClient(Request.ServerIp, "root", "qwe123");
+				Client.Connect();
+
+				// 명령어 생성 및 실행
+				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}");
+
+				// 결과 받아오기
+				await Task.Run(() => Commend.Execute());
+				var error = Commend.Error;
+				var answer = Commend.Result;
+
+				if (string.IsNullOrEmpty(error))
+				{
+					if (answer.Contains("Done"))
+					{
+						Result.Message = answer;
+						Result.Result = EnumResponseResult.Success;
+					}
+					else
+					{
+						Result.Message = answer;
+						Result.Result = EnumResponseResult.Error;
+					}
+				}
+				else
+				{
+					Result.Message = error;
+					Result.Result = EnumResponseResult.Error;
+					Result.Code = Resource.EC_COMMON__EXCEPTION;
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
 		}
 
 		/// <summary>서버 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="request">서버 수정 요청 객체</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
+		/// <param name="Request">서버 수정 요청 객체</param>
 		/// <returns>서버 수정 결과 객체</returns>
-		public async Task<ResponseData> Update(string id, RequestServer request)
+		public async Task<ResponseData> Update(string Id, RequestServer Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+				{
+					var Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
-				// 동일한 이름이 존재하는지 확인한다.
-				ResponseData<bool> responseExist = await this.IsNameExist(id, new RequestIsServerNameExist(request.Name));
-				// 동일한 이름이 존재하는지 확인하는데 실패한 경우
-				if (responseExist.Result != EnumResponseResult.Success)
-					return new ResponseData(responseExist.Result, responseExist.Code, responseExist.Message);
+					//서버가 존재하지 않는 경우
+					if (Server == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+					GuidId = Server.Id;
+				}
+
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는 경우
-				if (responseExist.Data)
+				if (await this.IsNameExist(Request.Name, GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
 
 				// 해당 정보를 가져온다.
-				Server exist = await m_dbContext.Servers
+				var Exist = await m_dbContext.Servers
 					.Include(i => i.NetworkInterfaces)
 					.ThenInclude(i => i.NetworkInterfaceVlans)
 					.ThenInclude(i => i.ServiceNetworkInterfaceVlans)
 					.ThenInclude(i => i.Service)
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+					.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 전체 메모리 크기가 변경된 경우
-						if (exist.MemoryTotal != request.MemoryTotal)
+						if (Exist.MemoryTotal != Request.MemoryTotal)
 						{
 							// 모든 네트워크 인터페이스에 대해서 처리
-							foreach (NetworkInterface networkInterface in exist.NetworkInterfaces)
+							foreach (var NetworkInterface in Exist.NetworkInterfaces)
 							{
 								// 모든 VLAN에 대해서 처리
-								foreach (NetworkInterfaceVlan networkInterfaceVlan in networkInterface.NetworkInterfaceVlans)
+								foreach (var NetworkInterfaceVlan in NetworkInterface.NetworkInterfaceVlans)
 								{
 									// 모든 서비스 연결 정보에 대해서 처리
-									foreach (ServiceNetworkInterfaceVlan serviceNetworkInterfaceVlan in networkInterfaceVlan.ServiceNetworkInterfaceVlans)
+									foreach (var ServiceNetworkInterfaceVlan in NetworkInterfaceVlan.ServiceNetworkInterfaceVlans)
 									{
 										// 오프라인 처리
-										serviceNetworkInterfaceVlan.Service.MemoryTotal = request.MemoryTotal;
+										ServiceNetworkInterfaceVlan.Service.MemoryTotal = Request.MemoryTotal;
 										if (m_dbContext.HasChanges())
 											await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 									}
@@ -200,39 +255,39 @@ namespace PortalProvider.Providers.Servers
 						}
 
 						// 정보를 수정한다.
-						exist.Name = request.Name;
-						exist.Description = request.Description;
-						exist.CpuModel = request.CpuModel;
-						exist.Clock = request.Clock;
-						exist.State = (EnumDbServerState)request.State;
-						exist.Rack = request.Rack;
-						exist.MemoryTotal = request.MemoryTotal;
+						Exist.Name = Request.Name;
+						Exist.Description = Request.Description;
+						Exist.CpuModel = Request.CpuModel;
+						Exist.Clock = Request.Clock;
+						Exist.State = (EnumDbServerState)Request.State;
+						Exist.Rack = Request.Rack;
+						Exist.MemoryTotal = Request.MemoryTotal;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-							exist.ModId = LoginUserId;
-							exist.ModName = LoginUserName;
-							exist.ModDate = DateTime.Now;
+							Exist.ModId = LoginUserId;
+							Exist.ModName = LoginUserName;
+							Exist.ModDate = DateTime.Now;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						}
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 
 						// 상세 정보를 가져온다.
-						ResponseServerDetail response = (await this.Get(id)).Data;
+						var Response = (await this.Get(Id)).Data;
 
 						// 수정된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.updated", response);
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.updated", Response);
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -240,90 +295,73 @@ namespace PortalProvider.Providers.Servers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="state">서버 상태</param>
-		/// <param name="modId">수정자 아이디</param>
-		/// <param name="modName">수정자명</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
+		/// <param name="State">서버 상태</param>
+		/// <param name="ModId">수정자 아이디</param>
+		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateState(string id, EnumServerState state, string modId = "", string modName = "")
+		public async Task<ResponseData> UpdateState(string Id, EnumServerState State, string ModId = "", string ModName = "")
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				Server exist = await m_dbContext.Servers
-					// .Include(i => i.NetworkInterfaces)
-					// .ThenInclude(i => i.NetworkInterfaceVlans)
-					// .ThenInclude(i => i.ServiceNetworkInterfaceVlans)
-					// .ThenInclude(i => i.Service)
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 파라미터로 넘어온 수정자 아이디 파싱
 				Guid guidModId = Guid.Empty;
-				if (!modId.IsEmpty())
-					Guid.TryParse(modId, out guidModId);
+				if (!ModId.IsEmpty())
+					Guid.TryParse(ModId, out guidModId);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
-						// // 오프라인 상태인 경우, 해당 서버와 연관된 모든 서비스 오프라인 처리
-						// if (state == EnumServerState.Offline)
-						// {
-						// 	// 모든 네트워크 인터페이스에 대해서 처리
-						// 	foreach (NetworkInterface networkInterface in exist.NetworkInterfaces)
-						// 	{
-						// 		// 모든 VLAN에 대해서 처리
-						// 		foreach (NetworkInterfaceVlan networkInterfaceVlan in networkInterface.NetworkInterfaceVlans)
-						// 		{
-						// 			// 모든 서비스 연결 정보에 대해서 처리
-						// 			foreach (ServiceNetworkInterfaceVlan serviceNetworkInterfaceVlan in networkInterfaceVlan.ServiceNetworkInterfaceVlans)
-						// 			{
-						// 				// 오프라인 처리
-						// 				serviceNetworkInterfaceVlan.Service.State = EnumDbServiceState.Offline;
-						// 			}
-						// 		}
-						// 	}
-						// }
-
 						// 정보를 수정한다.
-						exist.State = (EnumDbServerState)state;
+						Exist.State = (EnumDbServerState)State;
 						if (LoginUserId != Guid.Empty || guidModId != Guid.Empty)
-							exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : guidModId;
-						if (!LoginUserName.IsEmpty() || !modName.IsEmpty())
-							exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : modName;
-						exist.ModDate = DateTime.Now;
+							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : guidModId;
+						if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
+							Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+						Exist.ModDate = DateTime.Now;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -331,75 +369,81 @@ namespace PortalProvider.Providers.Servers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 
 		/// <summary>서버 상태 수정</summary>
-		/// <param name="request">서버 상태 수정 요청 객체</param>
-		/// <param name="modId">수정자 아이디</param>
-		/// <param name="modName">수정자명</param>
+		/// <param name="Request">서버 상태 수정 요청 객체</param>
+		/// <param name="ModId">수정자 아이디</param>
+		/// <param name="ModName">수정자명</param>
 		/// <returns>서버 상태 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateState(RequestServerState request, string modId = "", string modName = "")
+		public async Task<ResponseData> UpdateState(RequestServerState Request, string ModId = "", string ModName = "")
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 상태 변경
-				result = await this.UpdateState(request.Id, request.State, modId, modName);
+				Result = await this.UpdateState(Request.Id, Request.State, ModId, ModName);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="id">서버 아이디</param>
-		/// <param name="loadAverage1M">1분 Load Average</param>
-		/// <param name="loadAverage5M">5분 Load Average</param>
-		/// <param name="loadAverage15M">15분 Load Average</param>
-		/// <param name="memoryUsed">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
+		/// <param name="LoadAverage1M">1분 Load Average</param>
+		/// <param name="LoadAverage5M">5분 Load Average</param>
+		/// <param name="LoadAverage15M">15분 Load Average</param>
+		/// <param name="MemoryUsed">메모리 사용량</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateUsage(string id, float loadAverage1M, float loadAverage5M, float loadAverage15M, decimal memoryUsed)
+		public async Task<ResponseData> UpdateUsage(string Id, float LoadAverage1M, float LoadAverage5M, float LoadAverage15M, decimal MemoryUsed)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				Server exist = await m_dbContext.Servers
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 정보를 수정한다.
-						exist.LoadAverage1M = loadAverage1M;
-						exist.LoadAverage5M = loadAverage5M;
-						exist.LoadAverage15M = loadAverage15M;
-						exist.MemoryUsed = memoryUsed;
+						Exist.LoadAverage1M = LoadAverage1M;
+						Exist.LoadAverage5M = LoadAverage5M;
+						Exist.LoadAverage15M = LoadAverage15M;
+						Exist.MemoryUsed = MemoryUsed;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -407,28 +451,28 @@ namespace PortalProvider.Providers.Servers
 						// 사용 정보 추가
 						m_dbContext.ServerUsages.Add(new ServerUsage()
 						{
-							Id = exist.Id,
+							Id = Exist.Id,
 							RegDate = DateTime.Now,
-							LoadAverage1M = loadAverage1M,
-							LoadAverage5M = loadAverage5M,
-							LoadAverage15M = loadAverage15M,
-							MemoryTotal = exist.MemoryTotal,
-							MemoryUsed = memoryUsed
+							LoadAverage1M = LoadAverage1M,
+							LoadAverage5M = LoadAverage5M,
+							LoadAverage15M = LoadAverage15M,
+							MemoryTotal = Exist.MemoryTotal,
+							MemoryUsed = MemoryUsed
 						});
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -436,138 +480,144 @@ namespace PortalProvider.Providers.Servers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 사용 정보 수정</summary>
-		/// <param name="request">서버 사용 정보 수정 요청 객체</param>
+		/// <param name="Request">서버 사용 정보 수정 요청 객체</param>
 		/// <returns>서버 사용 정보 수정 결과 객체</returns>
-		public async Task<ResponseData> UpdateUsage(RequestServerUsage request)
+		public async Task<ResponseData> UpdateUsage(RequestServerUsage Request)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 			try
 			{
 				// 요청이 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 상태 변경
-				result = await this.UpdateUsage(request.Id, request.LoadAverage1M, request.LoadAverage5M, request.LoadAverage15M, request.MemoryUsed);
+				Result = await this.UpdateUsage(Request.Id, Request.LoadAverage1M, Request.LoadAverage5M, Request.LoadAverage15M, Request.MemoryUsed);
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 삭제</summary>
-		/// <param name="id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 삭제 결과 객체</returns>
-		public async Task<ResponseData> Remove(string id)
+		public async Task<ResponseData> Remove(string Id)
 		{
-			ResponseData result = new ResponseData();
+			var Result = new ResponseData();
 
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				Server Exist = null;
+
 				// 해당 정보를 가져온다.
-				Server exist = await m_dbContext.Servers.AsNoTracking()
-					.FirstOrDefaultAsync(i => i.Id == guidId);
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
-				if (exist == null)
-					return new ResponseData(result.Result = EnumResponseResult.Success);
+				if (Exist == null)
+					return new ResponseData(Result.Result = EnumResponseResult.Success);
 
 				// 해당 서버에 연결된 디스크가 존재하는 경우
-				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == guidId))
+				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == GuidId))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_DISK);
 
-				using (IDbContextTransaction transaction = await m_dbContext.Database.BeginTransactionAsync())
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
 					{
 						// 네트워크 인터페이스 목록을 가져온다.
-						List<NetworkInterface> networkInterfaces = await m_dbContext.NetworkInterfaces.AsNoTracking()
-							.Where(i => i.ServerId == guidId)
+						var NetworkInterfaces = await m_dbContext.NetworkInterfaces.AsNoTracking()
+							.Where(i => i.ServerId == GuidId)
 							.ToListAsync();
 
 						// 모든 네트워크 인터페이스에 대해서 처리
-						foreach (NetworkInterface networkInterface in networkInterfaces)
+						foreach (var NetworkInterface in NetworkInterfaces)
 						{
 							// 서비스 연결 목록을 가져온다.
-							List<ServiceNetworkInterfaceVlan> services = await m_dbContext.ServiceNetworkInterfaceVlans
-								.Where(i => i.NetworkInterfaceVlan.InterfaceId == networkInterface.Id)
+							var Services = await m_dbContext.ServiceNetworkInterfaceVlans
+								.Where(i => i.NetworkInterfaceVlan.InterfaceId == NetworkInterface.Id)
 								.ToListAsync();
 							// 서비스 연결 목록 삭제
-							if (services.Count > 0)
-								m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(services);
+							if (Services.Count > 0)
+								m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Services);
 
 							// VLAN 목록을 가져온다.
-							List<NetworkInterfaceVlan> vlans = await m_dbContext.NetworkInterfaceVlans
-								.Where(i => i.InterfaceId == networkInterface.Id)
+							var Vlans = await m_dbContext.NetworkInterfaceVlans
+								.Where(i => i.InterfaceId == NetworkInterface.Id)
 								.ToListAsync();
 							// VLAN 목록 삭제
-							if (vlans.Count > 0)
-								m_dbContext.NetworkInterfaceVlans.RemoveRange(vlans);
+							if (Vlans.Count > 0)
+								m_dbContext.NetworkInterfaceVlans.RemoveRange(Vlans);
 
 							// 네트워크 사용 정보 삭제
-							List<NetworkInterfaceUsage> usages = await m_dbContext.NetworkInterfaceUsages
-								.Where(i => i.Id == networkInterface.Id)
+							var Usages = await m_dbContext.NetworkInterfaceUsages
+								.Where(i => i.Id == NetworkInterface.Id)
 								.ToListAsync();
 							// 네트워크 사용 정보 목록 삭제
-							if (vlans.Count > 0)
-								m_dbContext.NetworkInterfaceUsages.RemoveRange(usages);
+							if (Vlans.Count > 0)
+								m_dbContext.NetworkInterfaceUsages.RemoveRange(Usages);
 						}
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 네트워크 인터페이스 삭제
-						m_dbContext.NetworkInterfaces.RemoveRange(networkInterfaces);
+						m_dbContext.NetworkInterfaces.RemoveRange(NetworkInterfaces);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 서버 사용 정보를 가져온다.
-						List<ServerUsage> serverUsages = await m_dbContext.ServerUsages
-							.Where(i => i.Id == guidId)
+						var ServerUsages = await m_dbContext.ServerUsages
+							.Where(i => i.Id == GuidId)
 							.ToListAsync();
 
 						// 서버 사용 정보 삭제
-						m_dbContext.ServerUsages.RemoveRange(serverUsages);
+						m_dbContext.ServerUsages.RemoveRange(ServerUsages);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 						// 해당 데이터 삭제
-						m_dbContext.Servers.Remove(exist);
+						m_dbContext.Servers.Remove(Exist);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-						await transaction.CommitAsync();
+						await Transaction.CommitAsync();
 
-						result.Result = EnumResponseResult.Success;
+						Result.Result = EnumResponseResult.Success;
 
 						// MQ로 전송할 객체 생성
-						ResponseServer response = new ResponseServer();
-						response.CopyValueFrom(exist);
+						var Response = new ResponseServer();
+						Response.CopyValueFrom(Exist);
 
 						// 삭제된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.removed", response);
+						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.removed", Response);
 					}
 					catch (Exception ex)
 					{
-						await transaction.RollbackAsync();
+						await Transaction.RollbackAsync();
 
 						NNException.Log(ex);
 
-						result.Code = Resource.EC_COMMON__EXCEPTION;
-						result.Message = Resource.EM_COMMON__EXCEPTION;
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
 					}
 				}
 			}
@@ -575,30 +625,30 @@ namespace PortalProvider.Providers.Servers
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="searchStates">검색할 서버 상태 목록</param>
-		/// <param name="skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
-		/// <param name="countPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="orderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
-		/// <param name="orderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="searchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
-		/// <param name="searchKeyword">검색어</param>
+		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		public async Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> searchStates,
-			int skip = 0, int countPerPage = 100,
-			List<string> orderFields = null, List<string> orderDirections = null,
-			List<string> searchFields = null, string searchKeyword = ""
+			List<EnumServerState> SearchStates,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			ResponseList<ResponseServer> result = new ResponseList<ResponseServer>();
+			var Result = new ResponseList<ResponseServer>();
 			try
 			{
 				// 기본 정렬 정보 추가
@@ -606,29 +656,29 @@ namespace PortalProvider.Providers.Servers
 				AddDefaultOrders("Name", "asc");
 
 				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref orderFields, ref orderDirections);
+				InitOrderFields(ref OrderFields, ref OrderDirections);
 
 				// 검색 필드를  초기화한다.
-				InitSearchFields(ref searchFields);
+				InitSearchFields(ref SearchFields);
 
-				short clock = -1;
-				if (searchFields.Contains("clock"))
+				short Clock = -1;
+				if (SearchFields.Contains("clock"))
 				{
-					if (!short.TryParse(searchKeyword, out clock))
-						clock = -1;
+					if (!short.TryParse(SearchKeyword, out Clock))
+						Clock = -1;
 				}
 
 				// 목록을 가져온다.
-				result.Data = await m_dbContext.Servers.AsNoTracking()
+				Result.Data = await m_dbContext.Servers.AsNoTracking()
 					.Where(i =>
 						(
-							searchFields == null || searchFields.Count == 0 || searchKeyword.IsEmpty()
-							|| (searchFields.Contains("name") && i.Name.Contains(searchKeyword))
-							|| (searchFields.Contains("description") && i.Description.Contains(searchKeyword))
-							|| (searchFields.Contains("cpumodel") && i.CpuModel.Contains(searchKeyword))
-							|| (searchFields.Contains("clock") && i.Clock == clock)
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("cpumodel") && i.CpuModel.Contains(SearchKeyword))
+							|| (SearchFields.Contains("clock") && i.Clock == Clock)
 						)
-						&& (searchStates == null || searchStates.Count == 0 || searchStates.Select(j => (int)j).Contains((int)i.State))
+						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.Select(i => new
 					{
@@ -649,126 +699,151 @@ namespace PortalProvider.Providers.Servers
 						i.ModId,
 						i.ModName
 					})
-					.OrderByWithDirection(orderFields, orderDirections)
-					.CreateListAsync<dynamic, ResponseServer>(skip, countPerPage);
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<dynamic, ResponseServer>(Skip, CountPerPage);
 
-				result.Result = EnumResponseResult.Success;
+				Result.Result = EnumResponseResult.Success;
 
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>서버 정보를 가져온다.</summary>
-		/// <param name="id">서버 아이디</param>
+		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>서버 정보 객체</returns>
-		public async Task<ResponseData<ResponseServerDetail>> Get(string id)
+		public async Task<ResponseData<ResponseServerDetail>> Get(string Id)
 		{
-			ResponseData<ResponseServerDetail> result = new ResponseData<ResponseServerDetail>();
+			var Result = new ResponseData<ResponseServerDetail>();
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (id.IsEmpty() || !Guid.TryParse(id, out Guid guidId))
+				if (Id.IsEmpty())
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 정보를 가져온다.
-				ResponseServerDetail exist = await m_dbContext.Servers.AsNoTracking()
-					.Where(i => i.Id == guidId)
+				ResponseServerDetail Exist = null;
+
+				// 해당 정보를 가져온다.
+				// 이름으로 조회할 경우
+				if (!Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Servers.AsNoTracking()
+					.Where(i => i.Name == Id)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.Include(i => i.Disks)
+					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
+				// Id로 조회할경우
+				else
+					Exist = await m_dbContext.Servers.AsNoTracking()
+					.Where(i => i.Id == GuidId)
 					.Include(i => i.NetworkInterfaces)
 					.ThenInclude(i => i.NetworkInterfaceVlans)
 					.Include(i => i.Disks)
 					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
 
 				// 해당 데이터가 존재하지 않는 경우
-				if (exist == null)
+				if (Exist == null)
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 해당 서버 내의 모든 Vlan ID 목록
-				List<Guid> vlanIds = new List<Guid>();
+				var VlanIds = new List<Guid>();
 
 				// 모든 네트워크 인터페이스의 Vlan ID들을 추가한다.
-				foreach (ResponseNetworkInterfaceDetail networkInterfaceDetail in exist.NetworkInterfaces)
-					vlanIds.AddRange(networkInterfaceDetail.NetworkInterfaceVlans.Select(i => Guid.Parse(i.Id)).ToList());
+				foreach (var NetworkInterfaceDetail in Exist.NetworkInterfaces)
+					VlanIds.AddRange(NetworkInterfaceDetail.NetworkInterfaceVlans.Select(i => Guid.Parse(i.Id)).ToList());
 
 				// 서버의 Vlan과 연결된 모든 서비스를 가져온다.
-				List<ResponseService> services = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-					.Where(i => vlanIds.Contains(i.VlanId))
+				var Services = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
+					.Where(i => VlanIds.Contains(i.VlanId))
 					.Select(i => i.Service)
 					.ToListAsync<Service, ResponseService>();
 
-				if (services.Count > 0) exist.Services = services;
+				if (Services.Count > 0) Exist.Services = Services;
 
 				//디스크 풀이름을 가져온다.
-				if (exist.Disks.Count > 0)
+				if (Exist.Disks.Count > 0)
 				{
-					foreach (var disk in exist.Disks)
+					foreach (var Disk in Exist.Disks)
 					{
-						Guid.TryParse(disk.DiskPoolId, out Guid diskpoolId);
+						Guid.TryParse(Disk.DiskPoolId, out Guid DiskpoolId);
 						string diskName = await m_dbContext.DiskPools.AsNoTracking()
-							.Where(i => i.Id == diskpoolId)
+							.Where(i => i.Id == DiskpoolId)
 							.Select(i => i.Name)
 							.FirstOrDefaultAsync();
-						disk.DiskPoolName = diskName;
+						Disk.DiskPoolName = diskName;
 					}
 				}
 
-				result.Data = exist;
-				result.Result = EnumResponseResult.Success;
+				Result.Data = Exist;
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
 		}
 
 		/// <summary>해당 이름이 존재하는지 여부</summary>
-		/// <param name="exceptId">이름 검색 시 제외할 서버 아이디</param>
-		/// <param name="request">특정 이름의 서버 존재여부 확인 요청 객체</param>
+		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
+		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
-		public async Task<ResponseData<bool>> IsNameExist(string exceptId, RequestIsServerNameExist request)
+		public async Task<ResponseData<bool>> IsNameExist(string ExceptId, string Name)
 		{
-			ResponseData<bool> result = new ResponseData<bool>();
-			Guid guidId = Guid.Empty;
+			ResponseData<bool> Result = new ResponseData<bool>();
 
 			try
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
-				if (!exceptId.IsEmpty() && !Guid.TryParse(exceptId, out guidId))
+				Guid GuidId = Guid.Empty;
+				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out GuidId))
 					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 요청 객체가 유효하지 않은 경우
-				if (!request.IsValid())
-					return new ResponseData<bool>(EnumResponseResult.Error, request.GetErrorCode(), request.GetErrorMessage());
+				if (Name.IsEmpty())
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REQUIRE_NAME);
 
-				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (exceptId.IsEmpty() || i.Id != guidId) && i.Name == request.Name))
-					result.Data = true;
-				// 동일한 이름이 존재하지 않는 경우
-				else
-					result.Data = false;
-				result.Result = EnumResponseResult.Success;
+				Result.Data = await IsNameExist(Name, GuidId != Guid.Empty ? GuidId : null);
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
 
-				result.Code = Resource.EC_COMMON__EXCEPTION;
-				result.Message = Resource.EM_COMMON__EXCEPTION;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 
-			return result;
+			return Result;
+		}
+
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
+		/// <param name="Name">검색할 이름</param>
+		/// <returns>해당 이름이 존재하는지 여부</returns>
+		public async Task<bool> IsNameExist(string Name, Guid? ExceptId = null)
+		{
+			try
+			{
+				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return false;
 		}
 	}
 }

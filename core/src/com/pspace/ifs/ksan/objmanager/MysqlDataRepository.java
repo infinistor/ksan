@@ -617,7 +617,7 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setString(8, bt.getObjectLock());
             this.pstInsertBucket.setInt(9, bt.getReplicaCount());
             this.pstInsertBucket.executeUpdate();
-            getUserDiskPool(bt); // get diskpoolId and replicaCount
+            //getUserDiskPool(bt); // get diskpoolId and replicaCount
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", bt.getName()), ex);
