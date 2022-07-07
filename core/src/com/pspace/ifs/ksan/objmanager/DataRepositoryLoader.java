@@ -23,9 +23,9 @@ public class DataRepositoryLoader {
         if (config == null)
             throw new Exception("ObjManger data storage initalization error :  there is no configuration provided!");
         
-        if (config.dbRepository.equalsIgnoreCase("MYSQL"))
+        if (config.dbRepository.equalsIgnoreCase("MYSQL") || config.dbRepository.equalsIgnoreCase("MariaDB"))
             dbm = new MysqlDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-        else if(config.dbRepository.equalsIgnoreCase("MONGO"))
+        else if(config.dbRepository.equalsIgnoreCase("MONGO") || config.dbRepository.equalsIgnoreCase("MongoDB"))
             dbm = new MongoDataRepository(obmCache, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
         else 
             throw new Exception("ObjManger data storage initalization error :  wrong data storage type"+config.dbRepository+"!");
