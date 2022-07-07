@@ -209,25 +209,11 @@ namespace PortalProvider.Providers.Services
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-				{
-					var Service = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
-
-					//서비스가 존재하지 않는 경우
-					if (Service == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-					GuidId = Service.Id;
-				}
 
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는 경우
-				if (await this.IsNameExist(Request.Name, GuidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
 
 				// 그룹 아이디가 존재하고 유효한 Guid가 아닌 경우
 				Guid GuidGroupId = Guid.Empty;
@@ -247,12 +233,22 @@ namespace PortalProvider.Providers.Services
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVICES_THERE_IS_NO_SERVICE_GROUP);
 				}
 
-				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				Service Exist = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 동일한 이름이 존재하는 경우
+				if (await this.IsNameExist(Request.Name, Exist.Id))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVICES_DUPLICATED_NAME);
 
 				decimal MemoryTotal = 0;
 				var Servers = new List<Server>();
@@ -311,7 +307,7 @@ namespace PortalProvider.Providers.Services
 
 						// 기존 VLAN 목록을 가져온다.
 						var ExistVlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-							.Where(i => i.ServiceId == GuidId)
+							.Where(i => i.ServiceId == Exist.Id)
 							.ToListAsync();
 						m_dbContext.RemoveRange(ExistVlans);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -322,7 +318,7 @@ namespace PortalProvider.Providers.Services
 							// 해당 VLAN 정보를 생성한다.
 							var NewVlan = new ServiceNetworkInterfaceVlan()
 							{
-								ServiceId = GuidId,
+								ServiceId = Exist.Id,
 								VlanId = GuidVlanId
 							};
 							await this.m_dbContext.ServiceNetworkInterfaceVlans.AddAsync(NewVlan);
@@ -377,12 +373,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -483,12 +479,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -590,12 +586,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid GuidId))
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -690,12 +686,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
-				else
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -707,7 +703,7 @@ namespace PortalProvider.Providers.Services
 					{
 						// VLAN 연결 목록을 가져온다.
 						var Vlans = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-							.Where(i => i.ServiceId == GuidId)
+							.Where(i => i.ServiceId == Exist.Id)
 							.ToListAsync();
 						// 서비스 연결 목록 삭제
 						m_dbContext.ServiceNetworkInterfaceVlans.RemoveRange(Vlans);
@@ -715,7 +711,7 @@ namespace PortalProvider.Providers.Services
 
 						// 서비스 사용 정보 목록을 가져온다.
 						var Usages = await m_dbContext.ServiceUsages.AsNoTracking()
-							.Where(i => i.Id == GuidId)
+							.Where(i => i.Id == Exist.Id)
 							.ToListAsync();
 						// 서비스 사용 정보 목록 삭제
 						m_dbContext.ServiceUsages.RemoveRange(Usages);
@@ -830,18 +826,18 @@ namespace PortalProvider.Providers.Services
 				ResponseServiceWithVlans Exist = null;
 
 				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Services.AsNoTracking()
-					.Where(i => i.Name == Id)
+					.Where(i => i.Id == GuidId)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
 					.ThenInclude(i => i.NetworkInterfaceVlan)
 					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
-				// Id로 조회할경우
+				// 이름으로 조회할 경우
 				else
 					Exist = await m_dbContext.Services.AsNoTracking()
-					.Where(i => i.Id == GuidId)
+					.Where(i => i.Name == Id)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
 					.ThenInclude(i => i.NetworkInterfaceVlan)
@@ -963,12 +959,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
-				else
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -1021,12 +1017,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
-				else
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -1080,12 +1076,12 @@ namespace PortalProvider.Providers.Services
 				// 해당 정보를 가져온다.
 				Service Exist = null;
 
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
-				else
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
