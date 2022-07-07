@@ -163,7 +163,7 @@ namespace PortalSvr.Controllers
 			{
 				if (m_providers != null)
 				{
-					foreach (IBaseProvider provider in m_providers)
+					foreach (var provider in m_providers)
 					{
 						provider.UserClaimsPrincipal = User;
 						provider.UserIpAddress = HttpContext.GetRequestIp();

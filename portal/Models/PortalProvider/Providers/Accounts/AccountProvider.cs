@@ -460,7 +460,7 @@ namespace PortalProvider.Providers.Accounts
 					var UserRoleIds = await m_roleManager.Roles.Where(i => Roles.Contains(i.Name)).Select(i => i.Id.ToString()).ToListAsync();
 
 					// 모든 역할 ID에 대해서 처리
-					foreach (string RoleId in UserRoleIds)
+					foreach (var RoleId in UserRoleIds)
 					{
 						// 접속한 아이피가 사용자가 가지는 역할에서 허용된 아이피인지 검사한다.
 						if (m_allowAddressProvider.IsAllowIp(RoleId, HttpRequest?.HttpContext.Connection.RemoteIpAddress))
@@ -572,7 +572,7 @@ namespace PortalProvider.Providers.Accounts
 						var RequireRoleList = RequireRoles.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
 						// 모든 역할 목록에 대해서 처리
-						foreach (string RequireRole in RequireRoleList)
+						foreach (var RequireRole in RequireRoleList)
 						{
 							// 역할이 존재하는 경우
 							if (User.IsInRole(RequireRole))

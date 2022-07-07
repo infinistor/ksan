@@ -1889,7 +1889,7 @@
 				<property name="ServiceId" />
 			</end2>
 		</association>
-		<association name="Disk_ServiceDisk" cardinality="OneToMany" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
+		<association name="Disk_ServiceDisk" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
 			<end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
 				<Documentation>
 					<Summary>디스크 정보</Summary>
@@ -1917,7 +1917,7 @@
 				<property name="DiskPoolId" />
 			</end2>
 		</association>
-		<association name="Server_ServerUsage" cardinality="OneToMany" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
+		<association name="Server_ServerUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="1e7314fb-7c02-4d4c-94ef-f2db3cd1e8fa">
 			<end1 multiplicity="One" name="Server" class="ServerUsage" relation-class="Server" constrained="True" lazy="False" p1:Guid="8ae27611-0428-4874-81e0-eb4f616d6d27">
 				<property name="Id" />
 			</end1>
@@ -1925,7 +1925,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
+		<association name="NetworkInterface_NetworkInterfaceUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="bb773e95-265d-45b3-9d41-aaa1a8644b9d">
 			<end1 multiplicity="One" name="NetworkInterface" class="NetworkInterfaceUsage" relation-class="NetworkInterface" constrained="True" lazy="False" p1:Guid="dd2c125d-8c87-4786-ac8e-b65ccce1f5eb">
 				<property name="Id" />
 			</end1>
@@ -1933,7 +1933,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="Service_ServiceUsage" cardinality="OneToMany" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
+		<association name="Service_ServiceUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="9cfc338e-a832-4397-b767-6ce1bbe63b57">
 			<end1 multiplicity="One" name="Service" class="ServiceUsage" relation-class="Service" constrained="True" lazy="False" p1:Guid="a955c72c-b674-4bea-9c2b-9951a1f5f098">
 				<property name="Id" />
 			</end1>
@@ -1941,7 +1941,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="KsanUser_UserDiskPool" cardinality="OneToMany" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
+		<association name="KsanUser_UserDiskPool" cardinality="OneToMany" on-delete="Cascade" p1:Guid="54d0bb3f-c24b-483f-beda-bc916c74e20d">
 			<end1 multiplicity="One" name="KsanUser" class="UserDiskPool" relation-class="KsanUser" constrained="True" lazy="False" p1:Guid="c9829f78-e0a2-4dae-bc90-d5b6c45a6597">
 				<property name="Id" />
 			</end1>
@@ -1957,7 +1957,7 @@
 				<property name="DiskPoolId" />
 			</end2>
 		</association>
-		<association name="Disk_DiskUsage" cardinality="OneToMany" p1:Guid="3a992fac-a5ff-4cd3-a0ae-b499558ddb27">
+		<association name="Disk_DiskUsage" cardinality="OneToMany" on-delete="Cascade" p1:Guid="3a992fac-a5ff-4cd3-a0ae-b499558ddb27">
 			<end1 multiplicity="One" name="Disk" class="DiskUsage" relation-class="Disk" constrained="True" lazy="False" p1:Guid="93648c5b-62f7-49b4-8687-82e78401caf8">
 				<property name="Id" />
 			</end1>

@@ -633,7 +633,7 @@ namespace PortalProvider.Providers.Networks
 
 						Result.Result = EnumResponseResult.Success;
 
-						foreach (NetworkInterfaceVlan vlan in Vlans)
+						foreach (var vlan in Vlans)
 							// 삭제된 네트워크 인터페이스 VLAN 정보 전송
 							SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.deleted", new ResponseNetworkInterfaceVlan().CopyValueFrom(vlan));
 						// 삭제된 네트워크 인터페이스 정보 전송

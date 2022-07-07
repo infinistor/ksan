@@ -118,7 +118,7 @@ namespace PortalSvr.RabbitMqReceivers
 				// 모든 바인딩 키 처리
 				if (m_bindingKeys != null)
 				{
-					foreach (string bindingKey in m_bindingKeys)
+					foreach (var bindingKey in m_bindingKeys)
 						m_channel.QueueBind(queue: m_queueName, exchange: m_exchangeName, routingKey: bindingKey);
 				}
 			}

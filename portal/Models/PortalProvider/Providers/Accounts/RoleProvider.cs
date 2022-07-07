@@ -256,7 +256,7 @@ namespace PortalProvider.Providers.Accounts
 						ResponseRoles.Add(new ResponseRole() { Id = UserRole.Id, Name = UserRole.Name, ClaimCount = UserRole.RoleClaims.Count, UserCount = UserRole.UserRoles.Count });
 
 					// 모든 역할에 대해서 처리
-					foreach (Role Role in Roles.Where(i => i.Name != "Supervisor" && i.Name != "Admin" && i.Name != "User"))
+					foreach (var Role in Roles.Where(i => i.Name != "Supervisor" && i.Name != "Admin" && i.Name != "User"))
 						ResponseRoles.Add(new ResponseRole() { Id = Role.Id, Name = Role.Name, ClaimCount = Role.RoleClaims.Count, UserCount = Role.UserRoles.Count });
 				}
 
@@ -456,7 +456,7 @@ namespace PortalProvider.Providers.Accounts
 						.CreateListAsync<dynamic, ResponseUser>(Skip, CountPerPage);
 
 					// 모든 사용자에 대해서 처리
-					foreach (ResponseUser user in Result.Data.Items)
+					foreach (var user in Result.Data.Items)
 					{
 						NNApplicationUser applicationUser = await m_userProvider.GetUserById(user.Id);
 						user.Status = await m_userManager.GetUserStatus(applicationUser);

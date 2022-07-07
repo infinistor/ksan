@@ -43,7 +43,7 @@ namespace PortalProviderInterface
 		/// <summary>Ksan 사용자 식별자로 특정 사용자를 가져온다.</summary>
 		/// <param name="Id">Ksan 사용자 식별자</param>
 		/// <returns>해당 사용자 데이터</returns>
-		Task<ResponseData<ResponseKsanUser>> GetUserById(string Id);
+		Task<ResponseData<ResponseKsanUser>> GetUser(string Id);
 
 		/// <summary>전체 사용자를 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>

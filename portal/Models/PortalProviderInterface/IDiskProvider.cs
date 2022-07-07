@@ -25,7 +25,7 @@ namespace PortalProviderInterface
 		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Request">디스크 등록 요청 객체</param>
 		/// <returns>디스크 등록 결과 객체</returns>
-		Task<ResponseData<ResponseDiskWithServer>> Add(string ServerId, RequestDisk Request);
+		Task<ResponseData<ResponseDiskWithServerAndNetwork>> Add(string ServerId, RequestDisk Request);
 
 		/// <summary>디스크 수정</summary>
 		/// <param name="Id">디스크 아이디 / 이름</param>
@@ -94,7 +94,7 @@ namespace PortalProviderInterface
 		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <returns>디스크 정보 객체</returns>
-		Task<ResponseData<ResponseDiskWithServices>> Get(string Id);
+		Task<ResponseData<ResponseDiskWithServerAndNetwork>> Get(string Id);
 		
 		/// <summary>해당 이름이 존재하는지 여부</summary>
 		/// <param name="ExceptId">이름 검색 시 제외할 디스크 아이디</param>

@@ -72,14 +72,14 @@ namespace PortalSvr.Controllers.Accounts
 		}
 
 		/// <summary>특정 사용자 정보를 반환한다.</summary>
-		/// <param name="Id">사용자 식별자</param>
+		/// <param name="Id">사용자 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.view")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseKsanUser>))]
 		[HttpGet("{Id}")]
 		public async Task<ActionResult> Get([FromRoute] string Id)
 		{
-			return Json(await m_dataProvider.GetUserById(Id));
+			return Json(await m_dataProvider.GetUser(Id));
 		}
 
 		/// <summary>사용자 정보를 등록한다.</summary>

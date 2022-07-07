@@ -79,7 +79,7 @@ namespace PortalModels
 		public virtual DbSet<UserDiskPool> UserDiskPools { get; set; }
 		public virtual DbSet<DiskUsage> DiskUsages { get; set; }
 		public virtual DbSet<Region> Regions { get; set; }
-		
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
@@ -760,7 +760,7 @@ namespace PortalModels
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.ModUser).WithMany(op => op.ModNetworkInterfaces).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterface>().HasMany(x => x.NetworkInterfaceVlans).WithOne(op => op.NetworkInterface).HasForeignKey(@"InterfaceId").IsRequired(true);
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.RegUser).WithMany(op => op.RegNetworkInterfaces).HasForeignKey(@"RegId").IsRequired(false);
-			modelBuilder.Entity<NetworkInterface>().HasMany(x => x.NetworkInterfaceUsages).WithOne(op => op.NetworkInterface).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<NetworkInterface>().HasMany(x => x.NetworkInterfaceUsages).WithOne(op => op.NetworkInterface).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasOne(x => x.RegUser).WithMany(op => op.RegNetworkInterfaceVlans).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<NetworkInterfaceVlan>().HasOne(x => x.ModUser).WithMany(op => op.ModNetworkInterfaceVlans).HasForeignKey(@"ModId").IsRequired(false);
@@ -772,7 +772,7 @@ namespace PortalModels
 			modelBuilder.Entity<Service>().HasOne(x => x.RegUser).WithMany(op => op.RegServices).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasOne(x => x.ModUser).WithMany(op => op.ModServices).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceDisks).WithOne(op => op.Service).HasForeignKey(@"ServiceId").IsRequired(true);
-			modelBuilder.Entity<Service>().HasMany(x => x.ServiceUsages).WithOne(op => op.Service).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<Service>().HasMany(x => x.ServiceUsages).WithOne(op => op.Service).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceNetworkInterfaceVlan>().HasOne(x => x.Service).WithMany(op => op.Vlans).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<ServiceNetworkInterfaceVlan>().HasOne(x => x.NetworkInterfaceVlan).WithMany(op => op.ServiceNetworkInterfaceVlans).HasForeignKey(@"VlanId").IsRequired(true);
@@ -780,7 +780,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().HasMany(x => x.NetworkInterfaces).WithOne(op => op.Server).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Server>().HasOne(x => x.ModUser).WithMany(op => op.ModServers).HasForeignKey(@"ModId").IsRequired(false);
 			modelBuilder.Entity<Server>().HasMany(x => x.Disks).WithOne(op => op.Server).HasForeignKey(@"ServerId").IsRequired(true);
-			modelBuilder.Entity<Server>().HasMany(x => x.ServerUsages).WithOne(op => op.Server).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<Server>().HasMany(x => x.ServerUsages).WithOne(op => op.Server).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceGroup>().HasMany(x => x.Services).WithOne(op => op.ServiceGroup).HasForeignKey(@"GroupId").IsRequired(false);
 			modelBuilder.Entity<ServiceGroup>().HasOne(x => x.RegUser).WithMany(op => op.RegServiceGroups).HasForeignKey(@"RegId").IsRequired(false);
@@ -820,28 +820,28 @@ namespace PortalModels
 			modelBuilder.Entity<UserActionLog>().HasOne(x => x.User).WithMany(op => op.UserActionLogs).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"UserId").IsRequired(true);
 
 			modelBuilder.Entity<Disk>().HasOne(x => x.Server).WithMany(op => op.Disks).HasForeignKey(@"ServerId").IsRequired(true);
-			modelBuilder.Entity<Disk>().HasMany(x => x.ServiceDisks).WithOne(op => op.Disk).HasForeignKey(@"DiskId").IsRequired(true);
+			modelBuilder.Entity<Disk>().HasMany(x => x.ServiceDisks).WithOne(op => op.Disk).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"DiskId").IsRequired(true);
 			modelBuilder.Entity<Disk>().HasOne(x => x.DiskPool).WithMany(op => op.Disks).HasForeignKey(@"DiskPoolId").IsRequired(false);
-			modelBuilder.Entity<Disk>().HasMany(x => x.DiskUsages).WithOne(op => op.Disk).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<Disk>().HasMany(x => x.DiskUsages).WithOne(op => op.Disk).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Service).WithMany(op => op.ServiceDisks).HasForeignKey(@"ServiceId").IsRequired(true);
-			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Disk).WithMany(op => op.ServiceDisks).HasForeignKey(@"DiskId").IsRequired(true);
+			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Disk).WithMany(op => op.ServiceDisks).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"DiskId").IsRequired(true);
 
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
 
-			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<NetworkInterfaceUsage>().HasOne(x => x.NetworkInterface).WithMany(op => op.NetworkInterfaceUsages).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<NetworkInterfaceUsage>().HasOne(x => x.NetworkInterface).WithMany(op => op.NetworkInterfaceUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<ServiceUsage>().HasOne(x => x.Service).WithMany(op => op.ServiceUsages).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<ServiceUsage>().HasOne(x => x.Service).WithMany(op => op.ServiceUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<KsanUser>().HasMany(x => x.UserDiskPools).WithOne(op => op.KsanUser).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
+			modelBuilder.Entity<KsanUser>().HasMany(x => x.UserDiskPools).WithOne(op => op.KsanUser).OnDelete(DeleteBehavior.Cascade).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
 
-			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.KsanUser).WithMany(op => op.UserDiskPools).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
+			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.KsanUser).WithMany(op => op.UserDiskPools).OnDelete(DeleteBehavior.Cascade).HasPrincipalKey(@"Id").HasForeignKey(@"UserId").IsRequired(true);
 			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.DiskPool).WithMany(op => op.UserDiskPools).HasForeignKey(@"DiskPoolId").IsRequired(true);
 
-			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).HasForeignKey(@"Id").IsRequired(true);
+			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);
