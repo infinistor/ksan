@@ -15,12 +15,14 @@ Version = '0.8.0'
 
 
 setup(
-    name='ksan-gw-util',
-    version=Version,
-    data_files=[('/usr/local/ksan/bin', [\
-                 './system/ksanGw','./system/startup.sh' , './system/shutdown.sh', './system/web.xml'
-    ])],
-)
+            name='ksan-gw-util',
+                version=Version,
+                    data_files=[('/usr/local/ksan/bin', [\
+                                          './target/ksan-gw.jar']),
+                        ('/usr/local/ksan/etc', ['././ksan-gw-log.xml'])
+                            ],
+     )
+
 
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")
 

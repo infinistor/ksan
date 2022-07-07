@@ -5,7 +5,6 @@ import os
 from glob import glob
 from os.path import basename, splitext
 from setuptools import find_packages, setup
-from distutils.command.install_scripts import install_scripts
 import site
 import pdb
 

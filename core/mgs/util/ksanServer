@@ -12,52 +12,58 @@
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.init import InitMonServicedConf, read_conf
-from ksan.server.server_manage import *
+from common.init import InitMonServicedConf, read_conf
+from server.server_manage import *
 import pdb
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanServer {update|show|status} [option]
-                unregister    -S <server id>                                 : Unregister server from servers pool
-                update    -S <server id> -n <server name> -e <Description>   : Update server info 
-                list      -S <server id>                                     : Show the registered server info
+        Usage: ksanServer {add|remove|update|list} [option]
+                add       -i <server ip>                                     : Add Server to servers pool
+                remove    -N <server name>                                   : Remove server from servers pool
+                update    -N <server name> -c <Description>                  : Update server info 
+                list      -l                                                 : Show the registered server info
         [options]
                 -S                                                           : Server Id    
+                -N                                                           : Server Name
                 -e                                                           : Description
-                -n                                                           : Server Name
-                -L                                                           : Show info in detail
+                -l                                                           : Show info in detail
                 -h, --help                                                   : show this help message and exit
 """
         print(Usage)
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {remove|update|list} [option]"
+    usage = "Usage: %prog {add|remove|update|list} [option]"
     parser = MyOptionParser(usage=usage)
     parser.add_option('-S', "--Id", dest="ServerId", help='Server Id')
-    parser.add_option('-e', "--Description", dest="Description", default='', help='Server Description')
-    parser.add_option('-n', "--Name", dest="Name", default=None, help='Server Name')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='Server Info in detail')
+    parser.add_option('-i', "--IpAddress", dest="IpAddress", default='', help='Server Ip Address')
+    parser.add_option('-c', "--Description", dest="Description", default='', help='Server Description')
+    parser.add_option('-N', "--Name", dest="Name", default=None, help='Server Name')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='Server Info in detail')
     parser.add_option('-s', "--State", dest="State", help='Server State')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='debug mode')
-    parser.add_option('-A', "--LoadAverage", dest="LoadAverage", default=False, help='LoadAverage')
+    #parser.add_option('-A', "--LoadAverage", dest="LoadAverage", default=False, help='LoadAverage')
 
     options, args = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
         sys.exit(-1)
 
-    IfsPortalIp = '127.0.0.1'
-    IfsPortalPort = 5443
-    IfsMqPort = 5672
+    IfsPortalIp = ''
+    IfsPortalPort = 0
+    IfsMqPort = 0
     ret, conf = read_conf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf['mgs']['MgsIp']
         IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
         IfsMqPort = int(conf['mgs']['MqPort'])
+    else:
+        if args[0] != 'init':
+            print("ksanMon.conf is not configured. ./ksanServer init first")
+            sys.exit(-1)
 
     logger = None
     if options.debug is True:
@@ -67,16 +73,17 @@ if __name__ == '__main__':
     if args[0] == 'init':
         InitMonServicedConf()
     elif args[0] == 'add':
-        Res, Errmsg, Ret = AddServer(IfsPortalIp, IfsPortalPort, options.Description, logger=logger)
+        Res, Errmsg, Ret = ServerInit(IfsPortalIp, IfsPortalPort, options.IpAddress, IfsMqPort, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
-    elif args[0] == 'unregister':
-        if options.ServerId is None:
+    elif args[0] == 'remove':
+        if not (options.ServerId or options.Name):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveServer(IfsPortalIp, IfsPortalPort, options.ServerId, logger=logger)
+
+        Res, Errmsg, Ret = RemoveServer(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -86,7 +93,7 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, options.ServerId, Name=options.Name,
+        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name,
                                             Description=options.Description, State=options.State, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -98,7 +105,7 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, options.ServerId, State=options.State, logger=logger)
+        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name, State=options.State, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -107,7 +114,7 @@ if __name__ == '__main__':
         Detail = False
         if options.Detail:
             Detail = True
-        Res, errmsg, Ret, Data = GetServerInfo(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, logger=logger)
+        Res, errmsg, Ret, Data = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 ShowServerInfo(Data, Id=options.ServerId, Detail=options.Detail)

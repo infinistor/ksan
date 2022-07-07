@@ -13,6 +13,7 @@
 import pdb
 from subprocess import Popen, PIPE
 import socket
+import re
 
 def shcall(command):
     """
@@ -32,3 +33,62 @@ def GetHostInfo():
         return True, hostname, ip
     except socket.error as err:
         return False, str(err), None
+
+
+def UpdateEtcHosts(ClusterMembers:list, Mode): # ClusterMembers: [('192.168.11.11', 'osd1')]
+    OmittedHostNameList = list()
+    lines = ''
+    with open("/etc/hosts", 'r') as f:
+        lines = f.readlines()
+
+    if Mode == 'add':
+        for member in ClusterMembers:
+            ip, hostname = member
+            IpFinder = re.compile("^%s[\s]" % ip)
+            HostNameFinder1 = re.compile("[\s]%s[\s]" % hostname)
+            HostNameFinder2 = re.compile("[\s]%s$" % hostname)
+            Found = False
+            for line in lines:
+                trimedlist = line.rsplit()
+                trimedstring = " ".join(trimedlist)
+                ValidIp = IpFinder.search(trimedstring)
+                HostNameType1 = HostNameFinder1.search(trimedstring)
+                HostNameType2 = HostNameFinder2.search(trimedstring)
+                if ValidIp and (HostNameType1 or HostNameType2):
+                    Found = True
+                    break
+            if Found is False:
+                OmittedHostNameList.append("%s %s" % (ip, hostname))
+        if len(OmittedHostNameList):
+            with open("/etc/hosts", 'a+') as f:
+                for hostname in OmittedHostNameList:
+                    f.write("%s\n" % hostname)
+
+    elif Mode == 'remove':
+        UpdatedLines = ''
+        ip, hostname = ClusterMembers[0]
+        HostNameFinder1 = re.compile("[\s]%s[\s]" % hostname)
+        HostNameFinder2 = re.compile("[\s]%s$" % hostname)
+
+        Removed = False
+        for line in lines:
+            if line == '\n' or line == ' ':
+                continue
+
+            trimedlist = line.rsplit()
+            trimedstring = " ".join(trimedlist)
+
+            HostNameType1 = HostNameFinder1.search(trimedstring)
+            HostNameType2 = HostNameFinder2.search(trimedstring)
+            if HostNameType1 or HostNameType2:
+                Removed = True
+                continue
+
+            else:
+                UpdatedLines += line
+
+        if Removed is True:
+            with open("/etc/hosts", 'w') as f:
+                f.write("%s\n" % UpdatedLines)
+    else:
+        print('Invalid Mode')

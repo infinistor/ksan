@@ -20,9 +20,9 @@ import requests
 import urllib3
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.define import *
-from ksan.common.display import disp_serverinfo
-from ksan.common.log import Logging, catch_exceptions
+from common.define import *
+from common.display import disp_serverinfo
+from common.log import Logging, catch_exceptions
 import json
 import jsonpickle
 import pdb
@@ -96,7 +96,7 @@ class RestApi:
         self._url = url
         self.logger = logger
         if self.logger is None:
-            self.logger = Logging().create()
+            self.logger = Logging().get_logger()
 
         if header is None:
             header = dict()

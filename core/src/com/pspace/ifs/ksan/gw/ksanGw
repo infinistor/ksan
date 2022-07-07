@@ -12,8 +12,13 @@
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.service.gw import *
-from ksan.server.server_manage import *
+try:
+    from service.gw import *
+    from server.server_manage import *
+except (ModuleNotFoundError, ImportError) as e:
+    print('python common module is not installed')
+    sys.exit(-1)
+
 import pdb
 
 
@@ -55,7 +60,6 @@ if __name__ == '__main__':
 
     gw = KsanGW(logger)
     if args[0] == 'init':
-        gw.Init()
         sys.exit(0)
 
     elif args[0] == 'start':

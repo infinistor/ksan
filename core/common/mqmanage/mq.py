@@ -14,19 +14,20 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
+import pika
 import pdb
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.define import *
-from ksan.mqmanage.RabbitMqReceiver import RabbitMqReceiver
-from ksan.mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
-from ksan.mqmanage.RabbitMqRpc import RabbitMqRpc
-from ksan.mqmanage.RabbitMqSender import RabbitMqSender
+from common.define import *
+from mqmanage.RabbitMqReceiver import RabbitMqReceiver
+from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
+from mqmanage.RabbitMqRpc import RabbitMqRpc
+from mqmanage.RabbitMqSender import RabbitMqSender
 import json
 
 class Mq:
     def __init__(self, Host, Port, VirtualHost, User, Password, RoutingKey, ExchangeName, QueueName=None, ServerId=None,
-                 ServiceList=None, LocalIpList=None, logger=None):
+                 ServiceList=None, LocalIpList=None, logger=None, MonConf=None, GlobalFlag=None):
         self.config = RabbitMqConfiguration()
         self.config.host = Host
         self.config.port = Port
@@ -40,6 +41,8 @@ class Mq:
         self.ServiceList = ServiceList
         self.LocalIpList = LocalIpList
         self.logger = logger
+        self.MonConf = MonConf
+        self.GlobalFlag = GlobalFlag
 
     def Sender(self, Data):
         mqSender = RabbitMqSender(self.config)
@@ -47,7 +50,7 @@ class Mq:
 
     def Receiver(self):
         RabbitMqReceiver(self.config, self.queuename, self.config.exchangeName, bindingKeys=self.routingkey,
-                         ServerId=self.ServerId, ServiceList=self.ServiceList, LocalIpList=self.LocalIpList)
+                         ServerId=self.ServerId, ServiceList=self.ServiceList, LocalIpList=self.LocalIpList, logger=self.logger, MonConf=self.MonConf, GlobalFlag=self.GlobalFlag)
 
     def Rpc(self, Data):
         mqRpc = RabbitMqRpc(self.config)
@@ -68,3 +71,10 @@ def MqReturn(Result, Code=0, Messages='', Data=None):
         Ret['Data'] = Data
     #Ret['Data'] = json.dumps(Ret)
     return json.dumps(Ret)
+
+def RemoveQueue(QueueHost, QueueName):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(QueueHost))
+    channel = connection.channel()
+
+    channel.queue_delete(queue=QueueName)
+    connection.close()

@@ -12,50 +12,45 @@
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.service.service_manage import *
-from ksan.server.server_manage import *
-from ksan.common.init import GetConf
+from service.service_manage import *
+from server.server_manage import *
+from common.init import GetConf
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ifs_serviceGroup {add|delete|start|stop|set|list} [option]
-                add        -n <Group Name> -T <Group Type [GW|OSD]>        : Add Group
-                remove     -G <Group Id>                                                      : Delete Group
-                update     -G <Group Id>                                                      : Update Group Info
-                start      -G <Group Id>                                                      : Start Group
-                stop       -G <Group Id>                                                      : Stop Group 
-                restart    -G <Group Id>                                                      : Restart Group 
-                addService -G <Group Id> -D <Service Ids>                                    : Add Service to Group
-                removeService -G <Group Id> -D <Service Ids>                                 : Remove Service to Group
-                list      -L                                                                 : Show Group info
+        Usage: ifs_serviceGroup {add|remove|update|start|stop|addService|removeService|list} [option]
+                add        -n <Group Name> -t <Group Type [GW|OSD]>                          : Add Group
+                remove     -G <Group Id>                                                     : Delete Group
+                update     -G <Group Id>                                                     : Update Group Info
+                start      -G <Group Id>                                                     : Start Group
+                stop       -G <Group Id>                                                     : Stop Group 
+                addService -G <Group Id> -I <Service Ids>                                    : Add Service to Group
+                removeService -G <Group Id> -I <Service Ids>                                 : Remove Service to Group
+                list      -l                                                                 : Show Group info
         [options]
                 -I                                                                           : Service Id
                 -n                                                                           : Service Name
                 -G                                                                           : Service Group Id
-                -T                                                                           : Service Type
-                -L                                                                           : Show Service Info in detail
-                -V                                                                           : Vlan Id
-                -F                                                                           : Config File Path
+                -t                                                                           : Service Type
+                -l                                                                           : Show Service Info in detail
                 -h, --help                                                                   : show this help message and exit
 """
         print(Usage)
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|list|status} [option]"
+    usage = "Usage: %prog {add|remove|update|start|stop|addService|removeService|list} [option]"
     parser = MyOptionParser(usage=usage)
     parser.add_option('-S', "--ServerId", dest="ServerId", help='Server Id')
     parser.add_option('-I', "--ServiceId", dest="ServiceId", help='Service Id')
     parser.add_option('-n', "--Name", dest="Name", help='server description')
     parser.add_option('-G', "--GroupId", dest="GroupId", help='Group Id')
     parser.add_option('-D', "--ServiceIds", dest="ServiceIds", default=[],help='Service Ids')
-    parser.add_option('-T', "--ServiceType", dest="ServiceType", help='Service Type')
-    parser.add_option('-F', "--File", dest="File", help='Config File Path')
-    parser.add_option('-V', "--VlanId", dest="VlanId", help='Vlan Id')
-    parser.add_option('-e', "--Description", dest="Description", help='Description')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='server info in detail')
+    parser.add_option('-t', "--ServiceType", dest="ServiceType", help='Service Type')
+    parser.add_option('-c', "--Description", dest="Description", help='Description')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='server info in detail')
     parser.add_option('-i', "--Ipaddr", dest="IpAddress", help='Service Group IpAddress')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='debug mode')
 
@@ -100,15 +95,15 @@ if __name__ == '__main__':
         AddServiceIds = None
         removeServiceIds = None
         if args[0] == 'addService':
-            if not (options.ServiceIds and options.GroupId):
+            if not (options.ServiceId and options.GroupId):
                 parser.print_help()
                 sys.exit(-1)
-            AddServiceIds = options.ServiceIds.split()
+            AddServiceIds = options.ServiceId.split()
         elif args[0] == 'removeService':
-            if not (options.ServiceIds and options.GroupId):
+            if not (options.ServiceId and options.GroupId):
                 parser.print_help()
                 sys.exit(-1)
-            removeServiceIds = options.ServiceIds.split()
+            removeServiceIds = options.ServiceId.split()
         Res, Errmsg, Ret = UpdateServiceGroup(IfsPortalIp, IfsPortalPort, options.GroupId, Name=options.Name,
                                               Description=options.Description,
                                              addServiceIds=AddServiceIds,removeServiceIds=removeServiceIds, logger=logger)

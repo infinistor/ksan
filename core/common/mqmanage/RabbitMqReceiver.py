@@ -14,15 +14,17 @@
 import os, sys
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.disk.disk_mq_handle import *
-from ksan.service.service_mq_handle import *
-import ksan.mqmanage
-from ksan.Enums.EnumResponseResult import EnumResponseResult
-from ksan.common.ResponseMqData import ResponseMqData
-from ksan.mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
+from disk.disk_mq_handle import *
+from service.service_mq_handle import *
+import mqmanage
+from Enums.EnumResponseResult import EnumResponseResult
+from common.ResponseMqData import ResponseMqData
+from common.define import Updated, Checked
+from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
 #from mqmanage.RabbitMqSender import RabbitMqSender
 #from mqmanage.RabbitMqRpc import RabbitMqRpc
-import ksan.network.network_mq_handle
+import network.network_mq_handle
+from server.server_mq_handle import *
 
 import json
 import pika
@@ -37,7 +39,7 @@ class RabbitMqReceiver:
     """
 
     def __init__(self, config: RabbitMqConfiguration, queueName: str, exchangeName: str, bindingKeys: tuple,
-                 ServerId=None, ServiceList=None, LocalIpList=None, logger=None):
+                 ServerId=None, ServiceList=None, LocalIpList=None, logger=None, MonConf=None, GlobalFlag=None):
         self.m_config = config
         self.m_queue_name = queueName
         self.m_exchange_name = exchangeName
@@ -50,6 +52,8 @@ class RabbitMqReceiver:
         self.ServiceList = ServiceList
         self.LocalIpList = LocalIpList
         self.logger = logger
+        self.MonConf = MonConf
+        self.GlobalFlag = GlobalFlag  # {'ServiceUpdated': Updated, 'DiskUpdated': Updated, 'NetworkUpdated': Checked}
         # Rabbit MQ 리스너 초기화
         self.initializeRabbitMqListener(self.m_config)
 
@@ -159,21 +163,25 @@ class RabbitMqReceiver:
         #print(RoutingKey, body)
 
         if RoutKeyDisk in RoutingKey or RoutKeyDiskRpcFinder.search(RoutingKey) or RoutKeyDiskPool in RoutingKey:
-            ResponseReturn = MqDiskHandler(RoutingKey, body, Response, self.ServerId)
+            ResponseReturn = MqDiskHandler(RoutingKey, body, Response, self.ServerId, self.GlobalFlag, self.logger)
             return ResponseReturn
             #Response.IsProcessed = True
         elif RoutKeyService in RoutingKey or RoutKeyServiceRpcFinder.search(RoutingKey):
-            ResponseReturn = MqServiceHandler(RoutingKey, body, Response, self.ServerId, self.ServiceList, self.LocalIpList)
+            ResponseReturn = MqServiceHandler(self.MonConf, RoutingKey, body, Response, self.ServerId, self.ServiceList, self.LocalIpList, self.GlobalFlag,  self.logger)
             #Response.IsProcessed = True
             return ResponseReturn
         elif RoutKeyNetwork in RoutingKey or RoutKeyNetworkRpcFinder.search(RoutingKey):
-            ResponseReturn = ksan.network.network_mq_handle.MqNetworkHandler(RoutingKey, body, Response, self.ServerId, self.ServiceList)
+            ResponseReturn = network.network_mq_handle.MqNetworkHandler(self.MonConf, RoutingKey, body, Response, self.ServerId, self.ServiceList, self.GlobalFlag, self.logger)
+            Response.IsProcessed = True
+            return ResponseReturn
+        elif RoutKeyServerUpdate in RoutingKey or RoutKeyServerDel in RoutingKey or RoutKeyServerAdd in RoutingKey:
+            ResponseReturn = MqServerHandler(self.MonConf, RoutingKey, body, Response, self.ServerId, self.logger)
             Response.IsProcessed = True
             return ResponseReturn
         else:
-            print("Invalid RouteKey: %s" % RoutingKey)
+            self.logger.debug("Skip RouteKey: %s" % str(RoutingKey))
             Response.IsProcessed = True
-            ResponseReturn = ksan.mqmanage.mq.MqReturn(ResultSuccess)
+            ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
             return ResponseReturn
 
 

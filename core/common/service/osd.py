@@ -13,21 +13,42 @@
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.define import *
-from ksan.common.init import *
-from ksan.common.utils import IsDaemonRunning
-from ksan.common.shcommand import *
-from ksan.service.service_manage import AddService
+from common.define import *
+from common.init import *
+from common.utils import IsDaemonRunning
+from common.shcommand import *
+from service.service_manage import AddService
 import signal
+
+
 
 class KsanOsdConfig:
     def __init__(self, LocalIp):
-        self.ip = LocalIp
+        self.pool_size = 650
         self.port = 8000
-        self.pool_size = 10
-        self.obj_dir = 'obj'
-        self.trash_dir = 'trash'
-        self.write_temp_dir = 'temp'
+        self.ec_schedule_minutes = 30000
+        self.ec_apply_minutes = 3000000
+        self.ec_file_size = 100000
+        self.cache_disk = ''
+        self.cache_schedule_minutes = 2
+        self.cache_file_size = 1024
+        self.cache_limit_minutes = 5
+        self.trash_schedule_minutes = 5
+
+    def Set(self, pool_size, port, ec_schedule_minutes, ec_apply_minutes, ec_file_size, cache_disk,
+            cache_schedule_minutes, cache_file_size, cache_limit_minutes, trash_schedule_minutes):
+
+        self.pool_size = pool_size
+        self.port = port
+        self.ec_schedule_minutes = ec_schedule_minutes
+        self.ec_apply_minutes = ec_apply_minutes
+        self.ec_file_size = ec_file_size
+        self.cache_disk = cache_disk
+        self.cache_schedule_minutes = cache_schedule_minutes
+        self.cache_file_size = cache_file_size
+        self.cache_limit_minutes = cache_limit_minutes
+        self.trash_schedule_minutes = trash_schedule_minutes
+
 
 class KsanOsd:
     def __init__(self, logger):
@@ -35,49 +56,48 @@ class KsanOsd:
         self.MonConf = None
         self.OsdConf = None
 
-    def ReadConf(self):
-        Ret, HostName, LocalIp = GetHostInfo()
-        if Ret is False:
-            print('Fail to get host by name')
-            sys.exit(-1)
+    def PreRequest(self):
+        # java version chck:
+        out, err = shcall("java -version")
+        out += str(err)
+        if 'openjdk version "11.' not in  out:
+            return False, 'java11 is not installed'
+        KsanOsdBinPath = "%s/%s" % (KsanBinPath, KsanOsdBinaryName)
+        if not os.path.exists(KsanOsdBinPath):
+            return False, '%s is not found' % KsanOsdBinPath
 
-        Conf = KsanOsdConfig(LocalIp)
-        Ret, Conf = KsanInitConf(OsdServiceConfPath, Conf, FileType='Normal')
-        self.OsdConf = Conf
+        return True, ''
 
-        Ret, Conf = KsanInitConf(MonServicedConfPath, Conf)
-        self.MonConf = Conf
 
     def Start(self):
-        Ret, Pid = IsDaemonRunning(KsanOsdPidPath, CmdLine='ksanOsd.jar')
+        ret, errmsg = self.PreRequest()
+        if ret is False:
+            return ret, errmsg
+
+        Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
         if Ret is True:
             print('Already Running')
             return False, 'ksanOsd is alread running'
         else:
-            self.ReadConf()
-            self.PreRequisite()
-            if self.RegisterService() is False:
-               sys.exit(-1)
-
-            StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s ksanOsd.jar >/dev/null 2>&1 &' % \
-                       (KsanBinPath, OsdXmlFilePath)
+            StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
+                       (KsanBinPath, OsdXmlFilePath, KsanOsdBinaryName)
             os.system(StartCmd)
             time.sleep(2)
 
-            Ret, Pid = IsDaemonRunning(KsanOsdPidPath, CmdLine='ksanOsd.jar')
+            Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
             if Ret is True:
                 return True, ''
             else:
                 return False, 'Fail to start ksanOsd'
 
     def Stop(self):
-        Ret, Pid = IsDaemonRunning(KsanOsdPidPath, CmdLine='ksanOsd.jar')
+        Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
         if Ret is False:
             return False, 'ksanOsd is not running'
         else:
             try:
                 os.kill(int(Pid), signal.SIGTERM)
-                os.unlink(KsanOsdPidPath)
+                os.unlink(KsanOsdPidFile)
                 print('Done')
                 return True, ''
             except OSError as err:
@@ -88,84 +108,10 @@ class KsanOsd:
         self.Start()
 
     def Status(self):
-        Ret, Pid = IsDaemonRunning(KsanOsdPidPath, CmdLine='ksanOsd.jar')
+        Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
         if Ret is True:
             print('ksanOsd ... Ok')
             return True, 'KsanOsd ... Ok'
         else:
             print('ksanOsd ... Not Ok')
             return False, 'KsanOsd ... Not Ok'
-    def RegisterService(self):
-        ServiceName = self.GetHostName() + '_Osd'
-        ServiceType = 'Osd'
-        ServiceGroupId = None
-        Res, Errmsg, Ret = AddService(self.MonConf.mgs.MgsIp, self.MonConf.mgs.IfsPortalPort, ServiceName, ServiceType, self.MonConf.mgs.ServerId)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-            return True
-        else:
-            print(Errmsg)
-            return False
-
-    def Init(self):
-        #Conf = KsanOsdConfig()
-        #Ret, Conf = KsanInitConf(OsdServiceConfPath, Conf, FileType='Normal')
-        #if Ret is True:
-        self.ReadConf()
-        self.OsdConf.ip = get_input('Insert Local Ip', 'ip', default=self.OsdConf.ip)
-        self.OsdConf.port = get_input('Insert KsanOsd Port', int, default=self.OsdConf.port)
-        self.OsdConf.pool_size = get_input('Insert Pool Size', int, default=self.OsdConf.pool_size)
-        self.OsdConf.obj_dir = get_input('Insert Object Directory', str, default=self.OsdConf.obj_dir)
-        self.OsdConf.trash_dir = get_input('Insert Trash Directory', str, default=self.OsdConf.trash_dir)
-        self.OsdConf.write_temp_dir = get_input('Insert Write Temp Directory', str, default=self.OsdConf.write_temp_dir)
-
-        StrOsdConf = """
-ip=%s
-port=%s
-pool_size=%s
-obj_dir=%s
-trash_dir=%s
-write_temp_dir=%s
-""" % (self.OsdConf.ip, self.OsdConf.port, self.OsdConf.pool_size, self.OsdConf.obj_dir, self.OsdConf.trash_dir, self.OsdConf.write_temp_dir)
-        try:
-            with open(OsdServiceConfPath, 'w') as configfile:
-                configfile.write(StrOsdConf)
-            print('Done')
-        except (IOError, OSError) as err:
-            print('fail to get config file: %s' % OsdServiceConfPath)
-            self.logger.error('fail to get config file: %s' % OsdServiceConfPath)
-
-    def PreRequisite(self):
-        IsConfGood = True
-        if not os.path.exists(OsdServiceConfPath):
-            print('ksanOsd.conf is not found. Init first')
-            IsConfGood = False
-        else:
-            if self.MonConf is not None:
-                if self.MonConf.mgs.ServerId == '':
-                    print('Local server is not registered. Excute ksanEdge register first')
-                    IsConfGood = False
-                elif self.MonConf.mgs.DefaultNetworkId == '':
-                    print('Local default network is not registered. Excute ksanEdge start first')
-                    IsConfGood = False
-
-        out, err = shcall('hostname -I')
-        LocalIps = out.rsplit()
-        if self.OsdConf.ip not in LocalIps:
-            print('%s is invalid local ip' % self.OsdConf.ip)
-            IsConfGood = False
-
-        if IsConfGood != True:
-            sys.exit(-1)
-
-    def GetHostName(self):
-        out, err = shcall('hostname')
-        return out[:-1]
-
-    def UpdateConf(self, Body):
-        Conf = self.ReadConf()
-        #Conf.Set(Body['Config'])
-        #with open(S3ConfFile, 'w') as f:
-        #    f.write(Conf.Config)
-        #print("Update S3 Conf")
-        return True, ''

@@ -14,9 +14,9 @@ import os, sys
 import pdb
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.display import *
-from ksan.common.shcommand import *
-from ksan.server.server_manage import *
+from common.display import *
+from common.shcommand import *
+from server.server_manage import *
 from optparse import OptionParser
 import re
 import psutil
@@ -73,47 +73,19 @@ def WriteDiskId(Path, DiskId):
     return True, ''
 
 
-
 @catch_exceptions()
-def get_disk_info(ip, port, ServerId, DiskId=None, disp=False, logger=None):
-    """
-    get server info all or specific server info with Id
-    :param ip:
-    :param port:
-    :param ServerId
-    :param NicId
-    :param disp:
-    :param logger
-    :return:
-    """
-    if ServerId is None:
-        return ResInvalidCode, ResInvalidMsg + 'Serverid is required', None
-    if DiskId is not None:
-        Url = "/api/v1/Servers/%s/Disks/%s" % (ServerId, DiskId)
-    else:
-        Url = "/api/v1/Servers/%s/Disks" % ServerId
-    Params = dict()
-    Params['countPerPage'] = 100
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
-    Res, Errmsg, Data = Conn.get()
-    if Res == ResOk:
-        Ret = Conn.parsing_result(Data)
-        if disp is True:
-            if Ret.Header.Result == ResultSuccess:
-                if Ret.ItemHeader is None:
-                    disp_disk_info(Ret.Data, DiskId=DiskId)
-                else:
-                    disp_disk_info(Ret.ItemHeader)
-        return Res, Errmsg, Ret
-    else:
-        return Res, Errmsg, None
+def AddDisk(Ip, Port, Path, DiskName, ServerId=None, ServerName=None, DiskPoolId='',logger=None):
 
+    if ServerId is not None:
+        TargetServer = ServerId
+    elif ServerName is not None:
+        TargetServer = ServerName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' ServerId or ServerName is required', None
 
-@catch_exceptions()
-def AddDisk(Ip, Port, ServerId, Path, logger=None):
+    Url = '/api/v1/Disks/%s' % TargetServer
     disk = AddDiskObject()
-    disk.Set(Path, 'Stop', 0, 0, 0, 0, 0, 0, 'ReadWrite')
-    Url = '/api/v1/Servers/%s/Disks' % ServerId
+    disk.Set(DiskName, Path, 'Stop', 0, 0, 0, 0, 0, 0, 'ReadWrite', DiskPoolId=DiskPoolId)
     body = jsonpickle.encode(disk, make_refs=False)
     Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
@@ -121,8 +93,8 @@ def AddDisk(Ip, Port, ServerId, Path, logger=None):
 
 
 @catch_exceptions()
-def UpdateDiskInfo(Ip, Port, DiskId, DiskPoolId=None, Path=None, Name=None, Description=None, State=None, logger=None):
-    Res, Errmsg, Disk, ServerId = GetDiskInfoWithId(Ip, Port, DiskId, logger=logger)
+def UpdateDiskInfo(Ip, Port, DiskId=None, DiskPoolId=None, Path=None, Name=None, Description=None, State=None, logger=None):
+    Res, Errmsg, Disk, ServerId = GetDiskInfoWithId(Ip, Port, DiskId=DiskId, Name=Name, logger=logger)
     if Res != ResOk:
         return Res, Errmsg, None
 
@@ -137,8 +109,15 @@ def UpdateDiskInfo(Ip, Port, DiskId, DiskPoolId=None, Path=None, Name=None, Desc
     if Name is not None:
         Disk.Name = Name
 
+    if DiskId is not None:
+        TargetDisk = DiskId
+    elif Name is not Name:
+        TargetDisk = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskId and Name are all None', None
+
     #Url = '/api/v1/Servers/%s/Disks/%s' % (ServerId, DiskId)
-    Url = '/api/v1/Servers/%s/Disks/%s' % (ServerId, DiskId)
+    Url = '/api/v1/Disks/%s' % TargetDisk
     body = jsonpickle.encode(Disk, make_refs=False)
     Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
     Res, Errmsg, Ret = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
@@ -149,11 +128,17 @@ def UpdateDiskInfo(Ip, Port, DiskId, DiskPoolId=None, Path=None, Name=None, Desc
 
 
 @catch_exceptions()
-def RemoveDiskInfo(ip, port, ServerId, DiskId, logger=None):
+def RemoveDiskInfo(ip, port, DiskId=None, Name=None, logger=None):
     # get network interface info
-    if not (ServerId and DiskId):
-        return ResInvalidCode, ResInvalidMsg + 'Server id and Disk id are required', None
-    Url = '/api/v1/Servers/%s/Disks/%s' % (ServerId, DiskId)
+    if DiskId is not None:
+        TargetDisk = DiskId
+    elif Name is not None:
+        TargetDisk = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' Server id and Disk id are required', None
+
+
+    Url = '/api/v1/Disks/%s' % TargetDisk
     Conn = RestApi(ip, port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.delete()
     return Res, Errmsg, Ret
@@ -162,7 +147,7 @@ def RemoveDiskInfo(ip, port, ServerId, DiskId, logger=None):
 @catch_exceptions()
 def update_disk_state(Ip, Port, ServerId, DiskId, State, logger=None):
 
-    Url = '/api/v1/Servers/%s/Disks/%s/State/%s' % (ServerId, DiskId, State)
+    Url = '/api/v1/Disks/%s/%s/State/%s' % (ServerId, DiskId, State)
     Conn = RestApi(Ip, Port, Url, logger=logger)
     Ret, Errmsg, Data = Conn.put()
     if Ret == ResOk:
@@ -186,9 +171,9 @@ def update_disk_hastate(Ip, Port, ServerId, DiskId, HaAction, logger=None):
 
 
 @catch_exceptions()
-def UpdateDiskSize(Ip, Port, ServerId, DiskId, TotalSize=None, UsedSize=None,
+def UpdateDiskSize(Ip, Port,  DiskId, TotalSize=None, UsedSize=None,
                    TotalInode=None, UsedInode=None, logger=None):
-    Res, Errmgs, Ret, Disk = GetDiskInfo(Ip, Port, ServerId, DiskId=DiskId, logger=logger)
+    Res, Errmgs, Ret, Disk = GetDiskInfo(Ip, Port,  DiskId=DiskId, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             Disk = Disk[0]
@@ -219,28 +204,42 @@ def UpdateDiskSize(Ip, Port, ServerId, DiskId, TotalSize=None, UsedSize=None,
 
 
 @catch_exceptions()
-def ChangeDiskMode(Ip, Port, ServerId, DiskId, RwMode, logger=None):
+def ChangeDiskMode(Ip, Port, RwMode, DiskId=None, Name=None, logger=None):
+
+    if DiskId is not None:
+        TargetDisk = DiskId
+    elif Name is not None:
+        TargetDisk = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskId and Name are all None', None
 
     if RwMode not in [DiskModeRw, DiskModeRd]:
         return ResInvalidCode, ResInvalidMsg, None
-    Url = '/api/v1/Servers/%s/Disks/%s/RwMode/%s' % \
-          (ServerId, DiskId, RwMode)
+    Url = '/api/v1/Disks/%s/RwMode/%s' % \
+          (TargetDisk, RwMode)
     Conn = RestApi(Ip, Port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.put()
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def StartStopDisk(Ip, Port, ServerId, DiskId, Action, logger=None):
+def StartStopDisk(Ip, Port, Action, DiskId=None, Name=None, logger=None):
 
-    Url = '/api/v1/Servers/%s/Disks/%s/State/%s' % \
-          (ServerId, DiskId, Action)
+    if DiskId is not None:
+        TargetDisk = DiskId
+    elif Name is not None:
+        TargetDisk = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg, None
+
+    Url = '/api/v1/Disks/%s/State/%s' % \
+          (TargetDisk, Action)
     Conn = RestApi(Ip, Port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.put()
     return Res, Errmsg, Ret
 
 
-def GetDiskInfo(Ip, Port, ServerId=None, DiskId=None, logger=None):
+def GetDiskInfo(Ip, Port, DiskId=None, Name=None, logger=None):
     """
     Get All Disk Info with Server Info
     :param Ip:
@@ -249,9 +248,16 @@ def GetDiskInfo(Ip, Port, ServerId=None, DiskId=None, logger=None):
     :param logger:
     :return:
     """
-    ItemsHeader = True
     if DiskId is not None:
-        Url = "/api/v1/Disks/%s/%s" % (ServerId, DiskId)
+        TargetDisk = DiskId
+    elif Name is not None:
+        TargetDisk = Name
+    else:
+        TargetDisk = None
+
+    ItemsHeader = True
+    if TargetDisk is not None:
+        Url = "/api/v1/Disks/%s" % TargetDisk
         ReturnType = DiskDetailModule
         ItemsHeader = False
     else:
@@ -276,58 +282,20 @@ def GetDiskInfo(Ip, Port, ServerId=None, DiskId=None, logger=None):
 
 
 @catch_exceptions()
-def GetDiskInfoWithId(Ip, Port, DiskId, logger=None):
-    AllServersDetail = list()
-    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(Ip, Port, logger=None)
+def GetDiskInfoWithId(Ip, Port, DiskId=None, Name=None, logger=None):
+
+    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(Ip, Port, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for Svr in Servers:
                 for Disk in Svr.Disks:
-                    if Disk.Id == DiskId:
+                    if Disk.Id == DiskId or Disk.Name == Name:
                         return ResOk, Errmsg, Disk, Svr.Id
             return ResNotFoundCode, ResNotFoundMsg, None, None
         else:
             return Ret.Code, Ret.Message, None, None
     else:
         return Res, Errmsg, None, None
-
-
-@catch_exceptions()
-def GetDiskInfoPerServer(Ip, Port, ServerId=None, logger=None):
-    """
-    get all disk info per server.
-    :param Ip:
-    :param Port:
-    :param ServerId: server id used to get specific server's disk
-    :param logger:
-    :return: tuple. Res, Errmsg, AllDiskInfoPerServerList(DiskInfoPerServer Object list)
-    """
-    AllDiskInfoPerServerList = list()
-    Res, Errmsg, Ret = GetServerInfo(Ip, Port, logger=logger)
-    if Res == ResOk and Ret.Header.Result == ResultSuccess:
-        for svr in Ret.ItemHeader.Items:
-            _svr = ServerItems()
-            _svr.Set(svr)
-            if ServerId is not None:
-                if _svr.Id != ServerId:
-                    continue
-
-            TmpServerDict = DiskInfoPerServer(_svr.Id, _svr.Name)
-            Res, Errmsg, Ret = get_disk_info(Ip, Port, _svr.Id, logger=logger)
-            if Res == ResOk:
-                if Ret.Header.Result == ResultSuccess:
-                    for disk in Ret.ItemHeader.Items:
-                        _disk = DiskItems(disk)
-                        _disk.Set(disk)
-                        TmpServerDict.DiskList.append(_disk)
-                else:
-                    TmpServerDict.Res = Ret.Header.Result
-            else:
-                TmpServerDict.Res = Res
-
-            AllDiskInfoPerServerList.append(TmpServerDict)
-
-    return Res, Errmsg, AllDiskInfoPerServerList
 
 
 @catch_exceptions()
@@ -378,14 +346,16 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=False):
     """
 
     if Detail is True:
-        DiskTitleLine = '%s' % ('=' * 235)
-        DiskDataLine = '%s' % ('-' * 235)
-        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15),  'DiskId'.center(38), 'Path'.center(15),
-               'State'.center(10), 'Total'.center(20), 'Used'.center(20), 'Free'.center(20), 'RwMode'.center(10), 'DiskPoolId'.center(38), 'ServerId'.center(38))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+        DiskTitleLine = '%s' % ('=' * 355)
+        DiskDataLine = '%s' % ('-' * 355)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'DiskId'.center(38), 'Path'.center(15),
+               'State'.center(10), 'TotalSize'.center(20), 'UsedSize'.center(20), 'FreeSize'.center(20),
+                'TotalInode'.center(20), 'UsedInode'.center(20), 'ReservedInode'.center(20), 'Read'.center(20), 'Write'.center(20),
+                    'RwMode'.center(10), 'DiskPoolId'.center(38), 'ServerId'.center(38))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
     else:
-        DiskTitleLine = '%s' % ('=' * 83)
-        DiskDataLine = '%s' % ('-' * 83)
-        title = "|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskId'.center(38), 'Path'.center(15),'State'.center(10))
+        DiskTitleLine = '%s' % ('=' * 99)
+        DiskDataLine = '%s' % ('-' * 99)
+        title = "|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'DiskId'.center(38), 'Path'.center(15),'State'.center(10))
     print(DiskTitleLine)
     print(title)
     print(DiskTitleLine)
@@ -398,15 +368,17 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=False):
         #if ServerId is not None and ServerId != svr.Id:
         #    continue
         if Detail is True:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15),
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
                                        str(disk.Id).center(38),
                                        '{:15.15}'.format(disk.Path.center(15)),
                                        disk.State.center(10), str(int(disk.TotalSize)).center(20),
                                        str(int(disk.UsedSize)).center(20), str(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize)).center(20),
-                                       disk.RwMode.center(10), str(disk.DiskPoolId).center(38), disk.Server.Id.center(38))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+                                        str(int(disk.TotalInode)).center(20), str(int(disk.UsedInode)).center(20), str(int(disk.ReservedInode)).center(20),
+                                        str(disk.Read).center(20), str(disk.Write).center(20),
+                                        disk.RwMode.center(10), str(disk.DiskPoolId).center(38), disk.Server.Id.center(38))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
         else:
 
-            _dsp = "|%s|%s|%s|%s|" % (disk.Server.Name.center(15),
+            _dsp = "|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
                                              str(disk.Id).center(38), disk.Path.center(15),
                                              disk.State.center(10))
 

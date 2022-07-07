@@ -14,7 +14,7 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.server.server_manage import *
+from server.server_manage import *
 
 
 def GetUserInfo(ip, port, UserId=None, logger=None):
@@ -209,7 +209,7 @@ def ChangeUserPassword(Ip, Port, UserId, NewPassword, NewConfirmPassword, logger
         return res, errmsg, None
 
 
-def GetS3UserInfo(ip, port, UserId=None, logger=None):
+def GetS3UserInfo(ip, port, UserId=None, UserName=None, logger=None):
     """
     get server info all or specific server info with Id
     :param ip:
@@ -220,10 +220,17 @@ def GetS3UserInfo(ip, port, UserId=None, logger=None):
     :param logger
     :return:
     """
+    if UserId is not None:
+        TargetUser = UserId
+    elif UserName is not None:
+        TargetUser = UserName
+    else:
+        TargetUser = None
+
     ItemsHeader = True
     ReturnType = S3UserObjectModule
-    if UserId is not None:
-        Url = "/api/v1/KsanUsers/%s" % UserId
+    if TargetUser is not None:
+        Url = "/api/v1/KsanUsers/%s" % TargetUser
         ItemsHeader = False
     else:
         Url = "/api/v1/KsanUsers"
@@ -233,7 +240,7 @@ def GetS3UserInfo(ip, port, UserId=None, logger=None):
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
-            if UserId is not None:
+            if TargetUser is not None:
                 return Res, Errmsg, Ret, [Ret.Data]
             else:
                 return Res, Errmsg, Ret, Ret.Data.Items
@@ -244,7 +251,7 @@ def GetS3UserInfo(ip, port, UserId=None, logger=None):
 
 
 @catch_exceptions()
-def AddS3User(ip, port, Name, Email='user@example.com', logger=None):
+def AddS3User(ip, port, Name, DiskPoolId=None, DiskPoolName=None, Email='user@example.com', logger=None):
     """
     add network interface with name
     :param ip: portal ip
@@ -255,8 +262,15 @@ def AddS3User(ip, port, Name, Email='user@example.com', logger=None):
     :return:
     """
     # get network interface info
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskPoolId or DiskPoolName is required', None
+
     user = S3UserObject()
-    user.Set(Name, Email, "", "")
+    user.Set(Name, TargetDiskPool, Email, "", "")
     body = jsonpickle.encode(user, make_refs=False)
     Url = '/api/v1/KsanUsers'
     ReturnType = ResponseHeaderModule
@@ -268,21 +282,29 @@ def AddS3User(ip, port, Name, Email='user@example.com', logger=None):
 
 
 @catch_exceptions()
-def UpdateS3UserInfo(Ip, Port, UserId, Name=None, Email=None, logger=None):
+def UpdateS3UserInfo(Ip, Port, UserId=None, UserName=None, Email=None, logger=None):
 
-    Res, Errmsg, Ret, User = GetS3UserInfo(Ip, Port, UserId, logger=logger)
+    if UserId is not None:
+        TargetUser = UserId
+    elif UserName is not None:
+        TargetUser = UserName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' UserId or UserName is required', None
+
+
+    Res, Errmsg, Ret, User = GetS3UserInfo(Ip, Port, UserId=UserId, UserName=UserName, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             User = User[0]
             if Email is not None:
                 User.Email = Email
-            if Name is not None:
-                User.Name = Name
+            if UserName is not None:
+                User.Name = UserName
             NewUser = S3UserUpdateObject()
             NewUser.Set(User.Name, User.Email)
 
             body = jsonpickle.encode(NewUser, make_refs=False)
-            Url = '/api/v1/KsanUsers/%s' % UserId
+            Url = '/api/v1/KsanUsers/%s' % TargetUser
             Params = body
             Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
             res, errmsg, ret = Conn.put()
@@ -297,7 +319,7 @@ def UpdateS3UserInfo(Ip, Port, UserId, Name=None, Email=None, logger=None):
 
 
 @catch_exceptions()
-def RemoveS3User(Ip, Port, UserId, logger=None):
+def RemoveS3User(Ip, Port, UserId=None, UserName=None, logger=None):
     """
     delete server info from server pool
     :param ip:
@@ -306,11 +328,98 @@ def RemoveS3User(Ip, Port, UserId, logger=None):
     :param logger:
     :return:tuple(error code, error msg, ResponseHeader class)
     """
-    Url = '/api/v1/KsanUsers/%s' % UserId
+    if UserId is not None:
+        TargetUser = UserId
+    elif UserName is not None:
+        TargetUser = UserName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' UserId or UserName is required', None
+
+
+    Url = '/api/v1/KsanUsers/%s' % TargetUser
     ReturnType = ResponseHeaderModule
     Conn = RestApi(Ip, Port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ReturnType=ReturnType)
     return Res, Errmsg, Ret
+
+
+@catch_exceptions()
+def AddS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
+    """
+    add network interface with name
+    :param ip: portal ip
+    :param port: portal port
+    :param Name: S3 User Name
+    :param Description:
+    :param logger:
+    :return:
+    """
+    # get network interface info
+
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskPoolId or DiskPoolName is required', None
+    if UserId is not None:
+        TargetUser = UserId
+    elif UserName is not None:
+        TargetUser = UserName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' UserId or UserName is required', None
+
+
+    user = S3UserStorageClassObject()
+    user.Set(TargetUser, TargetDiskPool, StorageClass)
+    body = jsonpickle.encode(user, make_refs=False)
+    Url = '/api/v1/KsanUsers/StorageClass'
+    ReturnType = ResponseHeaderModule
+
+    Params = body
+    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Ret
+
+
+@catch_exceptions()
+def RemoveS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
+    """
+    add network interface with name
+    :param ip: portal ip
+    :param port: portal port
+    :param Name: S3 User Name
+    :param Description:
+    :param logger:
+    :return:
+    """
+    # get network interface info
+
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskPoolId or DiskPoolName is required', None
+    if UserId is not None:
+        TargetUser = UserId
+    elif UserName is not None:
+        TargetUser = UserName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' UserId or UserName is required', None
+
+
+    user = S3UserStorageClassObject()
+    user.Set(TargetUser, TargetDiskPool, StorageClass)
+    body = jsonpickle.encode(user, make_refs=False)
+    Url = '/api/v1/KsanUsers/StorageClass'
+    ReturnType = ResponseHeaderModule
+
+    Params = body
+    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Ret
+
 
 
 @catch_exceptions()
@@ -324,20 +433,37 @@ def ShowS3UserInfo(UserList, Detail=False):
     if Detail is False:
         UserTitleLine = '=' * 92
         UserDataLine = '-' * 92
-        title ="|%s|%s|%s|" % ('Id'.center(38), 'Name'.center(20), 'Email'.center(30))
+        title ="|%s|%s|%s|" % ('Name'.center(20), 'Email'.center(30), 'Id'.center(38))
+        UserDiskPoolStorageClassLine = ''
+        UserDiskPoolStorageClassTitle = ''
     else:
         UserTitleLine = '=' * 166
         UserDataLine = '-' * 166
-        title = "|%s|%s|%s|%s|%s|" % ('Id'.center(38), 'Name'.center(20), 'Email'.center(30), 'AccessKey'.center(30), 'SecretKey'.center(42))
+        title = "|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'AccessKey'.center(30),
+                                      'SecretKey'.center(42), 'Email'.center(30), 'Id'.center(38))
+
+        UserDiskPoolStorageClassLine = '%s%s' % (' ' * 101, '-' * 65)
+        UserDiskPoolStorageClassTitle = "%s|%s|%s|" % (' ' * 101, "DiskPoolId".center(42), "StorageClass".center(20))
+
     print(UserTitleLine)
     print(title)
     print(UserTitleLine)
     for user in UserList:
+        _userdiskpool = ''
         if Detail is False:
-            _nic ="|%s|%s|%s|" % (user.Id.center(38), '{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30))
+            _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
         else:
-            _nic ="|%s|%s|%s|%s|%s|" % (user.Id.center(38), '{:20.20}'.format(str(user.Name).center(20)),
-                                        user.Email.center(30), user.AccessKey.center(30), user.SecretKey.center(42))
-        print(_nic)
+            _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)),
+                                        user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
+            for diskpool in user.UserDiskPools:
+                _userdiskpool += "%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolId'].center(42), diskpool['StorageClass'].center(20))
+                _userdiskpool += "%s%s" % (' ' * 101, '-' * 65)
+
+        print(_user)
         print(UserDataLine)
+        if len(_userdiskpool) > 0:
+            print(UserDiskPoolStorageClassTitle)
+            print(UserDiskPoolStorageClassLine)
+            print(_userdiskpool)
+            print(UserDataLine)
 

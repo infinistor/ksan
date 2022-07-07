@@ -41,6 +41,9 @@ class Logging(object):
     def create(self):
         return self.logger
 
+    def get_logger(self, name=__name__):
+        return logging.getLogger(name)
+
 
 def catch_exceptions():
     logger = logging.getLogger('common.log')
