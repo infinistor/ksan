@@ -1807,6 +1807,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   InternalService API KEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string INTERNALSERVICE_API_KEY {
+            get {
+                return ResourceManager.GetString("INTERNALSERVICE_API_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   SC001과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string SC_COMMON__SUCCESS {

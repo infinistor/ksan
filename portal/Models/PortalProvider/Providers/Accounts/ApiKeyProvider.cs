@@ -363,5 +363,26 @@ namespace PortalProvider.Providers.Accounts
 			}
 			return Result;
 		}
+
+		/// <summary> 메인키의 정보를 가져온다. </summary>
+		/// <returns> API 키 객체 </returns>
+		public async Task<ResponseApiKey> GetMainApiKey()
+		{
+			try
+			{
+				// API 키 정보를 가져온다.
+				var Exist = await m_dbContext.ApiKeys.AsNoTracking()
+					.Where(i => i.KeyName == Resource.INTERNALSERVICE_API_KEY)
+					.FirstOrDefaultAsync<ApiKey, ResponseApiKey>();
+
+				// 해당 데이터가 존재하는 경우
+				if (Exist != null) return Exist;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+			return null;
+		}
 	}
 }
