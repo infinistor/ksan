@@ -159,7 +159,7 @@ public class CBalanceMain {
                     else
                         ret = cb.moveSingleObject(bucketName, objId, versionId);
                     
-                    if (ret  > 0)
+                    if (ret  >= 0)
                         System.out.format("A Single Object(bucket : %s, objid : %s) moved\n", bucketName, objId);
                     else
                         System.err.format("failed to move single Object(bucket : %s, objid : %s) ret : %d\n", bucketName, objId, ret);
@@ -173,7 +173,7 @@ public class CBalanceMain {
                         ret = cb.moveSingleObjectWithKey(bucketName, key, versionId);
                     }
                 
-                    if (ret  > 0)
+                    if (ret  >= 0)
                         System.out.format("A Single Object(bucket : %s, key : %s) moved\n", bucketName, key);
                     else
                         System.err.format("failed to move single Object(bucket : %s, key : %s)\n", bucketName, key);
