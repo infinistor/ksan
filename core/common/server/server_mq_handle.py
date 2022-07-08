@@ -13,14 +13,18 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 #from common.common.mqutils import Mq
-from ksan.server.server_manage import *
-import ksan.mqmanage
-from ksan.common.define import *
+from server.server_manage import *
+import mqmanage.mq
+from common.define import *
+from common.init import GetConf
+from common.shcommand import UpdateEtcHosts
+import socket
 import time
+import logging
 
-def MonUpdateServerUsage(conf):
-    ServerUsageMq = ksan.mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerUsage, ExchangeName)
-    ServerStateMq = ksan.mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerState, ExchangeName)
+def MonUpdateServerUsage(conf, logger):
+    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerUsage, ExchangeName)
+    ServerStateMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerState, ExchangeName)
     while True:
         svr = GetServerUsage(conf.mgs.ServerId)
         svr.Get()
@@ -40,7 +44,57 @@ def MonUpdateServerUsage(conf):
         time.sleep(ServerMonitorInterval)
 
 
-def MqServerHandler(RoutingKey, Body, Response, ServerId):
-    ResponseReturn = ksan.mqmanage.mq.MqReturn(ResultSuccess)
-    Response.IsProcessed = True
-    return ResponseReturn
+def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
+    logger.debug("MqServerHandler %s %s" % (str(RoutingKey), str(Body)))
+    try:
+        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
+        Body = Body.decode('utf-8')
+        Body = json.loads(Body)
+        body = DictToObject(Body)
+        if RoutKeyServerUpdateFinder.search(RoutingKey) or RoutKeyServerAddFinder.search(RoutingKey):
+            #IpAddress = body.NetworkInterfaces.IpAddress # not available
+            pass
+
+        elif RoutKeyServerDelFinder.search(RoutingKey):
+            HostName = body.Name
+            HostInfo = [('', HostName)]
+            UpdateEtcHosts(HostInfo, 'remove')
+            logging.log(logging.INFO, 'host is removed. %s' % str(HostInfo))
+            if ServerId == body.Id:
+                ret, errlog = RemoveQueue()
+                if ret is False:
+                    logging.error('fail to remove queue %s' % errlog)
+                else:
+                    logging.log(logging.INFO, 'success to remove queue')
+                if os.path.exists(MonServicedConfPath):
+                    os.unlink(MonServicedConfPath)
+                    logging.log(logging.INFO, 'ksanMon.conf is removed')
+
+        '''
+        if RoutKeyServerUpdateFinder.search(RoutingKey):
+            ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
+            Body = Body.decode('utf-8')
+            Body = json.loads(Body)
+            body = DictToObject(Body)
+            if ServerId == body.ServerId:
+                ret = CheckDiskMount(body.Path)
+                if ret is False:
+                    ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages='No such disk is found')
+                Response.IsProcessed = True
+            print(ResponseReturn)
+            return ResponseReturn
+        '''
+        return ResponseReturn
+    except Exception as err:
+        print(err)
+
+def RemoveQueue():
+    ret, conf = GetConf(MonServicedConfPath)
+    if ret is True:
+        QueueHost = conf.mgs.MgsIp
+        QueueName = 'IfsEdge-%s' % conf.mgs.ServerId
+        mqmanage.mq.RemoveQueue(QueueHost, QueueName)
+        return True, ''
+    else:
+        return False, 'fail to read ksanMon.conf'
+

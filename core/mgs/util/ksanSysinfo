@@ -14,9 +14,9 @@
 import os, sys
 import pdb
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.disk.disk_manage import *
-from ksan.network.network_manage import *
-from ksan.common.init import *
+from disk.disk_manage import *
+from network.network_manage import *
+from common.init import *
 
 def main():
     # Server info

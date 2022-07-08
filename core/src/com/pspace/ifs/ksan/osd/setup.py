@@ -17,8 +17,9 @@ setup(
     name='ksan-osd-util',
     version=Version,
     data_files=[('/usr/local/ksan/bin', [\
-                 './ksanOsd', './target/ksanOsd.jar'
-    ])],
+                 './target/ksan-osd.jar']),
+    ('/usr/local/ksan/etc', ['././ksan-osd-log.xml'])
+    ],
 )
 
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")

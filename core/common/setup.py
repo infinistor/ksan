@@ -16,10 +16,10 @@ Version = '0.8.0'
 setup(
     name='ksan-common',
     version=Version,
-    data_files=[('/usr/local/ksan/bin', ['./ksanEdge', './ksanMon'])],\
-    packages=['ksan.server', 'ksan.disk','ksan.common' \
-               ,'ksan.Enums','ksan.mqmanage','ksan.network', \
-               'ksan.server','ksan.service','ksan.user'],
+    data_files=[('/usr/local/ksan/bin', ['./ksanEdge', './ksanMon', './ksanNodeRegister', 'ksanMongoDBManager'])],\
+    packages=['server', 'disk','common' \
+               ,'Enums','mqmanage','network', \
+               'server','service','user'],
 )
 
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")

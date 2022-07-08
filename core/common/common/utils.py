@@ -12,6 +12,7 @@
 
 import os
 import re
+from common.shcommand import shcall
 
 def IsDaemonRunning(PidPath, CmdLine=None):
     """
@@ -45,6 +46,25 @@ def IsDaemonRunning(PidPath, CmdLine=None):
             return True, Pid
         else:
             return False, None
+
+def CreatePidFile(Pid, File):
+    with open(File, 'w') as f:
+        f.write("%d" % Pid)
+        f.flush()
+
+
+def IsDaemonRunningWithSystemd(Daemon):
+    PidFinder = re.compile("Main PID: ([\d]+)")
+    Cmd = 'systemctl status %si|grep --color=never -e Active: -e "Main PID:"' % Daemon
+    out, err = shcall(Cmd)
+    Pid = PidFinder.search(out)
+    if Pid:
+        Pid = Pid.groups()[0]
+        return True, Pid
+    else:
+        return False, None
+
+
 
 def IsIpValid(Ip):
     IpFinder = re.compile("([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})")
@@ -87,3 +107,150 @@ def CheckParams(parms, keys):
         return ','.join(omitted)
     else:
         return None
+
+
+PidInit = None
+PidNotFound = -2
+MainDaemonList = ['GW', 'OSD', 'RABBITMQ', 'MON', 'EDGE', 'DB']
+
+
+def GetCmdOfDaemon(daemon):
+    global g_isPortalRunning
+
+    if daemon in ['mariadb']:
+        return 'systemctl start mariadb'
+    elif daemon in ['ksan-osd.jar']:
+        return '/usr/local/ksan/bin/ksanOsd start'
+    elif daemon in ['ksan-gw.jar']:
+        return '/usr/local/ksan/bin/ksanGw start'
+    elif daemon in ['ksanMon']:
+        return '/usr/local/ksan/bin/ksanMon start'
+    elif daemon in ['ksanEdge']:
+        return '/usr/local/ksan/bin/ksanEdge start'
+    else:
+        return None
+
+
+def UpdateMonitoringList(MonDaemonDict, DaemonKeyList, daemon_black_list):
+    global g_mgs
+    """
+    Set Each Daemon's property(pid parsing type, command to start, current pid with init)
+    :param MonDaemonDict:
+    :param DaemonKeyList:
+    :return:
+    """
+    global KeyDaemonMap
+
+    DaemonToMonitor = list()
+    # Add New Daemon list
+    for Key in DaemonKeyList:  # MGS, MDS, OSD, ...
+        if Key not in MainDaemonList or Key in daemon_black_list:
+            continue
+
+        for daemon in KeyDaemonMap[Key]: # ifs_mgsd, ifs_mdsd, ifs_osdd, ...
+            if daemon in daemon_black_list:
+                continue
+            DaemonToMonitor.append(daemon)
+            if daemon not in MonDaemonDict:
+                MonDaemonDict[daemon] = dict()
+                if daemon == 'ifss-jmds':
+                    MonDaemonDict[daemon]['PidFinder'] = re.compile("([\d]+) java [\s\/\d\w\-_=\.]+%s" % daemon)
+                else:
+                    MonDaemonDict[daemon]['PidFinder'] = re.compile("([\d]+)[\s][\s\/\d\w\-_=\.]+%s" % daemon)
+                MonDaemonDict[daemon]['Pid'] = PidInit
+                MonDaemonDict[daemon]['Cmd'] = GetCmdOfDaemon(daemon)
+                g_monlogger.error("([\d]+)[\s][\s\/\d\w\-_=\.]+%s %s" % (daemon, GetCmdOfDaemon(daemon)))
+
+
+    # Delete No need to Monitor list
+    for daemon in MonDaemonDict.keys():
+        if daemon not in DaemonToMonitor:
+            try:
+                del MonDaemonDict[daemon]
+            except KeyError:
+                pass
+
+
+def GetPsResult():
+    InfiniPsCmd = "ps --ppid 1 -o pid,args  |grep -e 'ifs_' -e 'mysql' -e 'mariadbd' -e 'httpd' -e 'dotnet' -e 'memcached' " \
+                  "-e 'ifss-' -e 'ifs-' -e 'ifs_logbucket' -e 'smbd' -e '/usr/sbin/haproxy'  " \
+                  "-e 'ifs_' |grep -v ' vim ' |grep -v ' vi '"
+
+    out, err = shcall(InfiniPsCmd)
+    g_monlogger.error('ps running...')
+
+    return out.rsplit("\n")
+
+
+def CheckDaemonIsRunning(MonDaemonDict, snmp_trap_daemon_list):
+    """
+    Check Daemon Status with Checking pid exists in /proc and then check if daemon name exists in /proc/pid/cmdline
+    Pid Status are PidInit(new registered), PidNotFound(not exists) otherwise normal.
+
+    :param MonDaemonDict:
+    :return: if Pid is not found in /proc/ or New daemon is added return False orthersize True
+    """
+    global g_monlogger
+
+    TerminatedFlg = False
+    for daemon, detail in MonDaemonDict.items():
+        if detail['Pid'] == PidInit:
+            TerminatedFlg = True
+            g_monlogger.error('new daemon %s(init pid :%s) is registered' % (daemon, detail['Pid']))
+            continue
+        if not os.path.exists("/proc/%s" % detail['Pid']):
+            if detail['Pid'] == PidNotFound:
+                g_monlogger.error('fail to start %s' % daemon)
+            else:
+                g_monlogger.error('%s is terminated. Pid %s is not found in /proc' % (daemon, detail['Pid']))
+
+
+            detail['Pid'] = PidNotFound
+            shcall(detail['Cmd'])
+            TerminatedFlg = True
+        else:
+            try:
+                with open("/proc/%s/cmdline" % detail['Pid']) as f:
+                    CmdLine = f.read()
+                    if daemon not in CmdLine:
+                        print('%s is terminated. Pid %s is invalid ' % (daemon, detail['Pid']))
+                        g_monlogger.error('%s is terminated. Pid %s is invalid ' % (daemon, detail['Pid']))
+                        detail['Pid'] = PidNotFound
+                        shcall(detail['Cmd'])
+                        TerminatedFlg = True
+            except Exception as err:
+                print('%s is terminated Pid %s is not accessable %s' % (daemon, detail['Pid'], str(err)))
+                g_monlogger.error('%s is terminated Pid %s is not accessable %s' % (daemon, detail['Pid'], str(err)))
+                detail['Pid'] = PidNotFound
+                shcall(detail['Cmd'])
+                TerminatedFlg = True
+
+    return TerminatedFlg
+
+def ParsingPidFromPsResult(MonDaemonDict, PsResult, snmp_trap_daemon_list):
+    """
+    Parsing Pid from ps command(ps --ppid 1 -o pid,args). only to parsing pid whose ppid is 1.
+    Looping line by line from ps result and check daemon is in the line and parsing pid.
+    :param MonDaemonDict:
+    :param PsResult:
+    :return:
+    """
+    for daemon, detail in MonDaemonDict.items():
+        if detail['Pid'] == PidInit or detail['Pid'] == PidNotFound:
+            Found = False
+            for psline in PsResult:
+                if daemon in psline:
+                    Pid = detail['PidFinder'].search(psline)
+                    if Pid:
+                        detail['Pid'] = Pid.groups()[0]
+                        g_monlogger.error('daemon %s success to get pid %s' % (daemon, detail['Pid']))
+                        Found = True
+                        break
+            if Found is False:
+                g_monlogger.error('daemon %s fail to get pid %s' % (daemon, detail['Pid']))
+                detail['Pid'] = PidNotFound
+
+
+
+
+

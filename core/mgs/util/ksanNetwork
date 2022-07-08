@@ -13,35 +13,40 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.init import read_conf
-from ksan.network.network_manage import *
-from ksan.server.server_manage import *
+from common.init import read_conf
+from network.network_manage import *
+from server.server_manage import *
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanNetwork {add|delete|update|show|status|exists_check} [option]
+        Usage: ksanNetwork {add|remove|update|show|status|exists_check} [option]
                 init                                         : init management server ip and port
                 add       -n <nic name>  -S <server id>      : register nic to the management network interface pool
-                addvlan   -T <vlan id>  -i <Ipaddress> -m <Subnetmaksk> -g <gateway>      : register vlan network to the vlan network interface pool
-                remove    -I <server id>                     : unregister local server from management servers pool
-                remove_vlan   -I <server id> -N <nic id> -V <Vlan Id>                     : unregister vlan network from vlan network pool
-                update    -n <nicname> -N <nic id> -I <server id>  : update specific nic info 
-                update_status   -N <nic id> -I <server id>  : update specific network interface status 
-                list      -I <server id>                     : show the registered network interface info with server id
-                check     -I <server id> -n <nic name> -N <nic id> : check if a regisetered network interface exists with nic name. exclude with nic id
-                check_vlan     -I <server id> -n <nic name> -N <nic id> -V <Vlan Id>: check if a regisetered vlan network interface exists with nic name. exclude with nic id
+                addvlan   -V <vlan id>  -i <Ipaddress> -m <Subnetmask> -g <gateway>      : register vlan network to the vlan network interface pool
+                remove    -S <server id>                     : unregister local server from management servers pool
+                remove_vlan   -S <server id> -N <nic id> -V <Vlan Id>                     : unregister vlan network from vlan network pool
+                update    -n <nicname> -N <nic id> -S <server id>  : update specific nic info 
+                update_status   -N <nic id> -S <server id>  : update specific network interface status 
+                list      -S <server id>                     : show the registered network interface info with server id
+                check     -S <server id> -n <nic name> -N <nic id> : check if a regisetered network interface exists with nic name. exclude with nic id
+                check_vlan     -S <server id> -n <nic name> -N <nic id> -V <Vlan Id>: check if a regisetered vlan network interface exists with nic name. exclude with nic id
         [options]
-                -a                                           : show all server info, default is true
-                -V <Vlan id>                               : show specific vlan info with vlan id    
+                -S                                           : Server Id 
+                -n                                           : Network Device Name
+                -N                                           : Network Device Id 
+                -V                                           : Vlan Id
+                -i                                           : Ip Address  
+                -m                                           : Nework SubnetMask
+                -g                                           : Gateway Ip 
                 -h, --help                                   : show this help message and exit
 """
         print(Usage)
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|show|status} [option]"
+    usage = "Usage: %prog {init|add|remove|update|show|status} [option]"
     parser = MyOptionParser(usage=usage)
     parser.add_option('-i', "--Ip", dest="IpAddress", help='IpAddress')
     parser.add_option('-m', "--SubnetMask", dest="SubnetMask", help='SubnetMask')
@@ -50,10 +55,10 @@ if __name__ == '__main__':
     parser.add_option('-I', "--InterfaceId", dest="InterfaceId", help='Network Interface Id')
     parser.add_option('-S', "--Serverid", dest="ServerId", help='Server Id')
     parser.add_option('-v', "--Vlanid", dest="VlanId", help='Vlan Id')
-    parser.add_option('-e', "--Description", dest="Description", default='', help='server description')
+    parser.add_option('-c', "--Description", dest="Description", default='', help='server description')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='debug mode')
     parser.add_option('-n', "--Name", dest="Name", help='Network Interface Name')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='Network Info in Detail')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='Network Info in Detail')
 
     options, args = parser.parse_args()
 
@@ -136,7 +141,7 @@ if __name__ == '__main__':
                 print(Ret.Result, Ret.Message)
             else:
                 print(Errmsg)
-    elif args[0] == 'delete_vlan':
+    elif args[0] == 'remove_vlan':
         if not (options.ServerId and options.NicId):
             parser.print_help()
         else:

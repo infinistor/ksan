@@ -15,26 +15,28 @@ import pdb
 
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.init import read_conf
-from ksan.user.user_manage import *
-from ksan.disk.disk_manage import *
+from common.init import read_conf, get_input
+from user.user_manage import *
+from disk.disk_manage import *
 from optparse import OptionParser
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanUser {add|delete|update|list} [option]
-                add       -n <user name> -E <email address>                         : Add S3user
-                remove    -I <User Id>                                              : Remove S3user
-                update    -I <User Id>                                              : Update S3User Info
+        Usage: ksanUser {add|remove|update|list} [option]
+                add       -N <user name> -n <disk pool name> -e <email address>     : Add S3user
+                remove    -N <user name>                                            : Remove S3user
+                addStorageclass  -N <user name> -n <disk pool name> -s <storage class> : Add S3user Storage Class
+                update    -N <user name>  -e <email address>                        : Update S3User Info
                 list                                                                : Display S3User Info
         [options]
-                -I                                                                  : S3User Id
-                -n                                                                  : S3User Name
-                -E                                                                  : Email Address
-                -P                                                                  : S3User password
-                -L                                                                  : S3User Detail information
+                -U                                                                  : S3User Id
+                -N                                                                  : S3User Name
+                -n                                                                  : Disk Pool Name
+                -e                                                                  : Email Address
+                -w                                                                  : S3User password
+                -l                                                                  : S3User Detail information
                 -h, --help                                                          : Show this help message and exit
 """
         print(Usage)
@@ -43,11 +45,14 @@ class MyOptionParser(OptionParser):
 if __name__ == '__main__':
     usage = "Usage: %prog {add|remove|update|list} [option]"
     parser = MyOptionParser(usage=usage)
-    parser.add_option('-I', "--UserId", dest="UserId", help='S3 User Id')
-    parser.add_option('-n', "--Name", dest="Name", help='User Name')
-    parser.add_option('-E', "--Email", dest="Email", help='User Email Info')
-    parser.add_option('-P', "--Password", dest="Password", help='User Password')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true',default=False, help='Detail info')
+    parser.add_option('-U', "--UserId", dest="UserId", help='S3 User Id')
+    parser.add_option('-P', "--DiskPoolId", dest="DiskPoolId", help='Disk Pool Id')
+    parser.add_option('-N', "--UserName", dest="UserName", help='User Name')
+    parser.add_option('-n', "--DiskPoolName", dest="DiskPoolName", help='Disk Pool Name')
+    parser.add_option('-s', "--StorageClass", dest="StorageClass", help='Storage Class')
+    parser.add_option('-e', "--Email", dest="Email", help='User Email Info')
+    parser.add_option('-w', "--Password", dest="Password", help='User Password')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true',default=False, help='Detail info')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()
@@ -73,32 +78,63 @@ if __name__ == '__main__':
         logger = logger.create()
 
     if args[0] == 'add':
-        if not (options.Name or options.Email):
-            print('User Roles Info is required')
+        if not (options.UserName and options.Email and (options.DiskPoolId or options.DiskPoolName)):
+            print('User Name, Default DiskPoolName and Email Info are required')
             sys.exit(-1)
 
-        Res, Errmsg, Ret = AddS3User(IfsPortalIp, IfsPortalPort, options.Name,  Email=options.Email, logger=logger)
+        Res, Errmsg, Ret = AddS3User(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+                                     DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
-            print(Ret.Result, Ret.Message)
+            print(Ret.Result)
         else:
             print(Errmsg)
     elif args[0] == 'remove':
-        if not options.UserId:
+        if not (options.UserId or options.UserName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveS3User(IfsPortalIp, IfsPortalPort, options.UserId, logger=logger)
+
+        Conf = dict()
+        Conf['isRemove']= get_input('Are you sure to remove user(yes|no)?', str, 'no', ValidAnsList=['yes', 'no'])
+        if Conf['isRemove'] == 'yes':
+            Res, Errmsg, Ret = RemoveS3User(IfsPortalIp, IfsPortalPort, UserId=options.UserId, UserName=options.UserName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result)
+            else:
+                print(Errmsg)
+
+    elif args[0] == 'addStorageclass':
+        if not ((options.UserId or options.UserName) and (options.DiskPoolId or options.DiskPoolName) and options.StorageClass):
+            print('User Name, Default DiskPoolName and Email Info are required')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = AddS3UserStorageClass(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+                                     DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
-            print(Ret.Result, Ret.Message)
+            print(Ret.Result)
         else:
             print(Errmsg)
+
+    elif args[0] == 'removeStorageclass':
+        if not ((options.UserId or options.UserName) and (options.DiskPoolId or options.DiskPoolName) and options.StorageClass):
+            print('User Name, Default DiskPoolName and Email Info are required')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = RemoveS3UserStorageClass(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+                                     DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result)
+        else:
+            print(Errmsg)
+
+
     elif args[0] == 'update':
-        if not options.UserId:
+        if not (options.UserId or options.UserName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateS3UserInfo(IfsPortalIp, IfsPortalPort, options.UserId, Name=options.Name,
-                                            Email=options.Email)
+        Res, Errmsg, Ret = UpdateS3UserInfo(IfsPortalIp, IfsPortalPort, UserId=options.UserId, UserName=options.UserName,
+                                            Email=options.Email, logger=logger)
         if Res == ResOk:
-            print(Ret.Result, Ret.Message)
+            print(Ret.Result)
         else:
             print(Errmsg)
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- encoding: utf-8 -*-
 """
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
@@ -12,9 +13,11 @@
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.service.service_manage import *
-from ksan.server.server_manage import *
-from ksan.common.init import GetConf
+from service.service_manage import *
+from server.server_manage import *
+from common.init import GetConf
+from common.define import TypeServiceMONGODB, TypeServiceS3, TypeServiceOSD, TypeServiceHaproxy, \
+    TypeServiceMonitor, TypeServiceEdge
 
 
 class MyOptionParser(OptionParser):
@@ -24,46 +27,110 @@ class MyOptionParser(OptionParser):
         """
 
         Usage = """
-        Usage: ksanService {add|delete|start|stop|set|list} [option]
-                remove    -I <Service Id>                                               : Delete Service
-                config    -I <Service Id>                                               : Config Service Conf
-                start     -I <Service Id>                                               : Start Service 
-                stop      -I <Service Id>                                               : Stop Service 
-                restart   -I <Service Id>                                               : Restart Service 
+        Usage: ksanService {add|remove|config|start|stop|update|list} [option]
+                add    -n <server id> -N <service name> -t <service type>               : Add Service
+                remove    -N <service name>                                               : Delete Service
+                config {list|get|add|update_version|remove}  -t <service type> 
+                -v <version>                                                            : Config Service Conf
+                start     -N <service name>                                               : Start Service 
+                stop      -N <service name>                                               : Stop Service 
                 list                                                                    : Display Service info
         [options]
                 -S                                                                      : Server Id
                 -I                                                                      : Service Id
-                -n                                                                      : Service Name
+                -N                                                                      : Service Name
                 -G                                                                      : Service Group Id
-                -T                                                                      : Service Type
-                -L                                                                      : Show Service Info in detail
-                -V                                                                      : Vlan Id
-                -F                                                                      : Config File Path
+                -t                                                                      : Service Type
+                -l                                                                      : Show Service Info in detail
                 -h, --help                                                              : show this help message and exit
 """
         print(Usage)
 
 
+def ConfigControl(PortalIp, PortalPort, args, options, logger):
+    if len(args) != 2:
+        parser.print_help()
+        sys.exit(-1)
+    if not options.ServiceType:
+        print('Service type(-t) is required')
+        sys.exit(-1)
+    if options.ServiceType not in [TypeServiceMONGODB, TypeServiceOSD, TypeServiceMonitor, TypeServiceS3,
+                                       TypeServiceMonitor, TypeServiceEdge]:
+        print('Invalid Service Type. Valid Service Type: %s' % ', '.join([TypeServiceMONGODB, TypeServiceOSD,
+                                                TypeServiceMonitor, TypeServiceS3, TypeServiceMonitor, TypeServiceEdge]))
+        sys.exit(-1)
+    if args[1] == 'add':
+        ServiceType = options.ServiceType
+        if options.File:
+            ConfigFile = options.File
+        else:
+           ConfigFile = None
+        Res, Errmsg, Ret = SetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, ConfigFilePath=ConfigFile, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            print(Ret.Message)
+
+    elif args[1] == 'get':
+        Version = options.version
+        ServiceType = options.ServiceType
+        Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, Version=Version, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            if(Ret.Result == ResultSuccess):
+                DsPServiceConf(Data)
+            else:
+                print(Ret.Message)
+
+    elif args[1] == 'update_version':
+        if not options.version:
+            parser.print_help()
+            print('config version is required.')
+            sys.exit(-1)
+        Version = options.version
+        ServiceType = options.ServiceType
+        Res, Errmsg, Ret = UpdateServiceConfigVersion(IfsPortalIp, IfsPortalPort, ServiceType, Version, logger=logger)
+        print(Ret.Result, Ret.Message)
+
+    elif args[1] == 'remove':
+        Version = options.version
+        ServiceType = options.ServiceType
+        Res, Errmsg, Ret = RemoveServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, Version, logger=None)
+        print(Ret.Result, Ret.Message)
+
+    elif args[1] == 'list':
+        Version = options.version
+        ServiceType = options.ServiceType
+        Res, Errmsg, Ret, Data = GetServiceConfigList(PortalIp, PortalPort, ServiceType, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            print(Ret.Result, Ret.Message)
+            ShowConfigList(Data)
+    else:
+        parser.print_help()
+        sys.exit(-1)
+
+
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|list|status} [option]"
+    usage = "Usage: %prog {add|remove|config|start|stop|update|list} [option]"
     parser = MyOptionParser(usage=usage)
     parser.add_option('-S', "--ServerId", dest="ServerId", help='Server Id')
     parser.add_option('-I', "--ServiceId", dest="ServiceId", help='Service Id')
-    parser.add_option('-n', "--Name", dest="Name", help='server description')
+    parser.add_option('-N', "--ServiceName", dest="ServiceName", help='Service Name')
+    parser.add_option('-n', "--ServerName", dest="ServerName", help='Server Name')
     parser.add_option('-G', "--GroupId", dest="GroupId", help='Group Id')
-    parser.add_option('-T', "--ServiceType", dest="ServiceType", help='Service Type')
+    parser.add_option('-t', "--ServiceType", dest="ServiceType", help='Service Type')
     parser.add_option('-F', "--File", dest="File", help='Config File Path')
-    parser.add_option('-V', "--VlanIds", dest="VlanIds", help='Vlan Id')
-    parser.add_option('-e', "--Description", dest="Description", help='Description')
-    parser.add_option('-s', "--State", dest="State", help='State')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='server info in detail')
+    #parser.add_option('-V', "--VlanIds", dest="VlanIds", help='Vlan Id')
+    parser.add_option('-v', "--version", dest="version", help='version')
+    parser.add_option('-c', "--Description", dest="Description", help='Description')
+    #parser.add_option('-s', "--State", dest="State", help='State')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='server info in detail')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='debug mode')
 
     options, args = parser.parse_args()
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(-1)
 
     IfsPortalIp = '127.0.0.1'
     IfsPortalPort = 5443
@@ -77,34 +144,41 @@ if __name__ == '__main__':
     logger = None
     if options.debug is True:
         logger = Logging(loglevel='debug')
-        logger = logger.create()
+    else:
+        logger = Logging(loglevel='error')
+    logger = logger.create()
+
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(-1)
 
     if args[0] == 'add':
-        if not (options.ServerId and options.Name and options.ServiceType):
+        if not ((options.ServerName or options.ServerId) and options.ServiceName and options.ServiceType):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = AddService(IfsPortalIp, IfsPortalPort, options.Name, options.ServiceType, options.ServerId,
-                                      options.GroupId, logger=logger)
+        Res, Errmsg, Ret = AddService(IfsPortalIp, IfsPortalPort, options.ServiceName, options.ServiceType, ServerId=options.ServerId,
+                                      ServerName=options.ServerName, GroupId=options.GroupId, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'remove':
-        if not options.ServiceId:
+        if not (options.ServiceId or options.ServiceName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = DeleteService(IfsPortalIp, IfsPortalPort, options.ServiceId, logger=logger)
+        Res, Errmsg, Ret = DeleteService(IfsPortalIp, IfsPortalPort, ServiceId=options.ServiceId,
+                                         ServiceName=options.ServiceName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'update':
-        if not options.ServiceId:
+        if not (options.ServiceId or options.ServiceName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateServiceInfo(IfsPortalIp, IfsPortalPort, options.ServiceId, Name=options.Name,
+        Res, Errmsg, Ret = UpdateServiceInfo(IfsPortalIp, IfsPortalPort, ServiceId=options.ServiceId, ServiceName=options.ServiceName,
                                              ServiceType=options.ServiceType,
-                                             GroupId=options.GroupId, Description=options.Description, State=options.State,
+                                             GroupId=options.GroupId, Description=options.Description,
                                               logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -112,7 +186,7 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'update_state':
-        Res, Errmsg, Ret = UpdateServiceState(IfsPortalIp, IfsPortalPort, options.ServiceId, State=options.State,
+        Res, Errmsg, Ret = UpdateServiceState(IfsPortalIp, IfsPortalPort, options.ServiceId,
                                               logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -127,17 +201,22 @@ if __name__ == '__main__':
         else:
             print(Errmsg)
     elif args[0] == 'config':
+        ConfigControl(IfsPortalIp, IfsPortalPort, args, options, logger)
+
+        """
         Res, Errmsg, Ret = UpdateServiceConf(IfsPortalIp, IfsPortalPort, options.ServiceId, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
+        """
     elif args[0] in ['start', 'stop']:
-        if not options.ServiceId:
+        if not (options.ServiceId or options.ServiceName):
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = ControlService(IfsPortalIp, IfsPortalPort, options.ServiceId, args[0], logger=logger)
+        Res, Errmsg, Ret = ControlService(IfsPortalIp, IfsPortalPort, args[0], ServiceId=options.ServiceId,
+                                          ServiceName=options.ServiceName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:

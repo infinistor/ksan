@@ -14,11 +14,10 @@ import os, sys
 import psutil
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import jsonpickle
-from ksan.common.httpapi import *
-from ksan.common.httpapi import RestApi, disp_serverinfo, get_res
-from ksan.common.define import *
+from common.httpapi import *
+from common.httpapi import RestApi, disp_serverinfo, get_res
+from common.define import *
 from optparse import OptionParser
-from ksan.common.log import Logging
 
 """
 ############## Servers ###############
@@ -44,7 +43,7 @@ class GetServerUsage(object):
 
 
 @catch_exceptions()
-def GetServerInfo(Ip, Port, ServerId=None, logger=None):
+def GetServerInfo(Ip, Port, ServerId=None, Name=None, logger=None):
     """
     get server info all or specific server info with Id
     :param ip:
@@ -52,10 +51,17 @@ def GetServerInfo(Ip, Port, ServerId=None, logger=None):
     :param disp:
     :return: if Id is None, ServerItemsDetail object is returned. otherwise ServerItems list returned
     """
-    ItemsHeader = True
-    ReturnType = None
+
     if ServerId is not None:
-        Url = "/api/v1/Servers/%s" % ServerId
+        TargetServer = ServerId
+    elif Name is not None:
+        TargetServer = Name
+    else:
+        TargetServer = None
+
+    ItemsHeader = True
+    if TargetServer is not None:
+        Url = "/api/v1/Servers/%s" % TargetServer
         ItemsHeader = False
         ReturnType = ServerItemsDetailModule
     else:
@@ -68,16 +74,9 @@ def GetServerInfo(Ip, Port, ServerId=None, logger=None):
     if Res == ResOk:
         AllServerInfo = list()
         if Ret.Result == ResultSuccess:
-            if ServerId is not None:
-                #svr_ = GetDataFromBodyReculsive(Ret.Data, ServerItemsDetailModule)
-                #ServerInfoDetail = jsonpickle.decode(json.dumps(Ret.Data))
+            if TargetServer is not None:
                 return Res, Errmsg, Ret, Ret.Data
             else:
-                #for svr in Ret.Data.Items:
-                    #svr_ = GetDataFromBody(svr, ServerItemsModule)
-                    #if Name is not None and svr_.Name != Name:
-                    #    continue
-                #AllServerInfo.append(svr)
                 return Res, Errmsg, Ret, Ret.Data.Items
         else:
             return Res, Errmsg, Ret, AllServerInfo
@@ -108,29 +107,31 @@ def GetAllServerDetailInfo(Ip, Port, logger=None):
 @catch_exceptions()
 def ShowServerInfo(Data, Id=None, Detail=False):
         if Detail:
-            ServerTitleLine = '%s' % ('=' * 194)
-            ServerDataLine = '%s' % ('-' * 194)
-            title ="|%s|%s|%s|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'CpuModel'.center(30),
-                                       'Clock'.center(20), 'State'.center(20), 'LoadAvg 1M 5M 15M'.center(15) ,'MemTotal'.center(20) , 'MemUsed'.center(20) ,'Id'.center(38))
+            ServerTitleLine = '%s' % ('=' * 148)
+            ServerDataLine = '%s' % ('-' * 148)
+            title ="|%s|%s|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'LoadAvg 1M 5M 15M'.center(15), 'MemTotal'.center(20), 'MemUsed'.center(20), 'Id'.center(38))
         else:
-            ServerTitleLine = '%s' % ('=' * 82)
-            ServerDataLine = '%s' % ('-' * 82)
-            title ="|%s|%s|%s|" % ('Name'.center(20), 'State'.center(20), 'Id'.center(38))
+            ServerTitleLine = '%s' % ('=' * 88)
+            ServerDataLine = '%s' % ('-' * 88)
+            title ="|%s|%s|%s|%s|" % ('Name'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'Id'.center(38))
         print(ServerTitleLine)
         print(title)
         print(ServerTitleLine)
         if Id is None:
             for svr in Data:
-                if Detail:
-                    _svr ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
-                          (svr.Name.center(20),
-                           '{:30.30}'.format(svr.CpuModel.center(30)), str(svr.Clock).center(20),
-                           svr.State.center(20), str(svr.LoadAverage1M).center(5), str(svr.LoadAverage5M).center(5) ,
-                           str(svr.LoadAverage15M).center(5), str(int(svr.MemoryTotal)).center(20),
-                           str(int(svr.MemoryUsed)).center(20) ,  svr.Id.center(38))
+                if len(svr.NetworkInterfaces) > 0:
+                    ManagementIp = svr.NetworkInterfaces[0].IpAddress
                 else:
-                    _svr = "|%s|%s|%s|" % \
-                           (svr.Name.center(20), svr.State.center(20), svr.Id.center(38))
+                    ManagementIp = '-'
+                if Detail:
+                    _svr ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
+                          (svr.Name.center(20), ManagementIp.center(15),
+                           svr.State.center(10), str(svr.LoadAverage1M).center(5), str(svr.LoadAverage5M).center(5) ,
+                           str(svr.LoadAverage15M).center(5), str(int(svr.MemoryTotal)).center(20),
+                           str(int(svr.MemoryUsed)).center(20),  svr.Id.center(38))
+                else:
+                    _svr = "|%s|%s|%s|%s|" % \
+                           (svr.Name.center(20), ManagementIp.center(15), svr.State.center(10), svr.Id.center(38))
 
                 print(_svr)
                 print(ServerDataLine)
@@ -167,6 +168,28 @@ def AddServer(ip, port, Description, logger=None):
     return Res, Errmsg, Ret
 
 
+
+@catch_exceptions()
+def ServerInit(ip, port, TargetServerIp, MqPort, logger=None):
+    """
+    register server info
+    :param ip: string
+    :param port: integer
+    :param Description:
+    :param logger:
+    :return:tuple(error code, error msg, Success to get result:header, fail to get result: None)
+    """
+    server = RequestServerInitInfo()
+    server.Set(TargetServerIp, ip, MqPort, port)
+    body = jsonpickle.encode(server, make_refs=False)
+    Url = '/api/v1/Servers/Initialize'
+    ReturnType = ResponseHeaderModule
+    Params = body
+    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Res, Errmsg, Ret = Conn.post(ReturnType=ReturnType)
+    return Res, Errmsg, Ret
+
+
 @catch_exceptions()
 def RegisterServer(ip, port, Description, Name=None, logger=None):
     """
@@ -189,7 +212,7 @@ def RegisterServer(ip, port, Description, Name=None, logger=None):
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             return Res, Errmsg, Ret, Ret.Data
-        elif Ret.Code == CodeServerDuplicated:
+        elif Ret.Code == CodeDuplicated:
             res, errmsg, ret, AllServerInfo = GetServerInfo(ip, port, logger=logger)
             if res == ResOk:
                 for svr in ret.Data.Items:
@@ -200,7 +223,7 @@ def RegisterServer(ip, port, Description, Name=None, logger=None):
 
 
 @catch_exceptions()
-def UpdateServerInfo(Ip, Port, ServerId, Name=None, Description=None, State=None, logger=None):
+def UpdateServerInfo(Ip, Port, ServerId=None, Name=None, Description=None, State=None, logger=None):
     """
     update server info
     :param ip:
@@ -209,7 +232,14 @@ def UpdateServerInfo(Ip, Port, ServerId, Name=None, Description=None, State=None
     :param Id:
     :param logger:
     """
-    Res, Errmsg, Ret, Data = GetServerInfo(Ip, Port, ServerId=ServerId, logger=logger)
+    if ServerId is not None:
+        TargetServer = ServerId
+    elif Name is not None:
+        TargetServer = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg, None
+
+    Res, Errmsg, Ret, Data = GetServerInfo(Ip, Port, ServerId=TargetServer, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             if Name is not None:
@@ -219,7 +249,7 @@ def UpdateServerInfo(Ip, Port, ServerId, Name=None, Description=None, State=None
             if State is not None:
                 Data.State = State
 
-            Url = '/api/v1/Servers/%s' % ServerId
+            Url = '/api/v1/Servers/%s' % TargetServer
             server = UpdateServerInfoItems()
             server.Set(Data.Name, Data.Description, Data.CpuModel, Data.Clock, Data.State, Data.Rack, Data.MemoryTotal)
             body = jsonpickle.encode(server, make_refs=False)
@@ -291,7 +321,7 @@ def UpdateServerState(Ip, Port, ServerId, State, logger=None):
 
 
 @catch_exceptions()
-def RemoveServer(ip, port, Id, logger=None):
+def RemoveServer(ip, port, ServerId=None, Name=None, logger=None):
     """
     delete server info from server pool
     :param ip:
@@ -300,7 +330,16 @@ def RemoveServer(ip, port, Id, logger=None):
     :param logger:
     :return:tuple(error code, error msg, ResponseHeader class)
     """
-    Url = '/api/v1/Servers/%s' % Id
+
+    if ServerId is not None:
+        TargetServer = ServerId
+    elif Name is not None:
+        TargetServer = Name
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' Id and Name are all None', None
+
+    Url = '/api/v1/Servers/%s' % TargetServer
+
     ReturnType = ResponseHeaderModule
     Conn = RestApi(ip, port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ReturnType=ReturnType)

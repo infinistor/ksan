@@ -2,7 +2,7 @@
 """
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version 
+* the GNU General Public License as published by the Free Software Foundation, either version
 * 3 of the License.  See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
@@ -20,81 +20,9 @@ import xml.etree.ElementTree as ET
 import signal
 
 
-class KsanGWConfig:
-    def __init__(self, LocalIp):
-        self.dbrepository = 'MariaDB'
-        self.dbhost = LocalIp
-        self.database = 'ksan'
-        self.dbport = '3306'
-        self.dbuser = 'ksan'
-        self.dbpass = ''
-        self.dbpoolsize = 20
-
-        self.gw_authorization = 'AWS_V2_OR_V4'
-        self.gw_endpoint = 'http://0.0.0.0:8080'
-        self.gw_secure_endpoint = 'https://0.0.0.0:8443'
-        self.gw_keystore_password = 'qwe123'
-        self.gw_max_file_size = '3221225472'
-        self.gw_max_list_size = '200000'
-        self.gw_maxtimeskew = '9000'
-        self.gw_replication = '1'
-        self.gw_osd_port = '8000'
-        self.gw_osd_client_count = 10
-        self.gw_objmanager_count = 10
-        self.gw_localip = LocalIp
-        self.apache_path = '/opt/apache-tomcat-9.0.53'
-
-    def Set(self, DbReposigory, DbHost, DbName, DbPort, DbUser, DbPassword, S3Authorization, S3Endpoint, S3SecureEndpoint,
-            S3KeystorPassword, S3MaxFileSize, S3MaxListSize, S3MaxTimeSkew, S3Replication, S3OsdPort,
-            OsdClientCount, ObjmanagerCount, S3LocalIp, ApachPath):
-        self.dbrepository = DbReposigory
-        self.dbhost = DbHost
-        self.database = DbName
-        self.dbport = DbPort
-        self.dbuser = DbUser
-        self.dbpass = DbPassword
-        self.gw_authorization = S3Authorization
-        self.gw_endpoint = S3Endpoint
-        self.gw_secure_endpoint = S3SecureEndpoint
-        self.gw_keystore_password = S3KeystorPassword
-        self.gw_max_file_size = S3MaxFileSize
-        self.gw_max_list_size = S3MaxListSize
-        self.gw_maxtimeskew = S3MaxTimeSkew
-        self.gw_replication = S3Replication
-        self.gw_osd_port = S3OsdPort
-        self.gw_osd_client_count = OsdClientCount
-        self.gw_objmanager_count = ObjmanagerCount
-        self.gw_localip = S3LocalIp
-        self.apache_path = ApachPath
 
 
-class KsanObjmanagerConfig:
-    def __init__(self, LocalIp):
-        self.dbrepository = 'MYSQL'
-        self.dbhost = LocalIp
-        self.dbport = '3306'
-        self.database = 'ksan'
-        self.dbuser = 'ksan'
-        self.dbpass = ''
-        self.mqhost = LocalIp
-        self.diskpool_queue = 'disk'
-        self.diskpool_exchange = 'disk'
-        self.osd_exchange = 'OSDExchange'
-
-    def Set(self, DbReposigory, DbHost, DbName, DbPort, DbUser, DbPassword, MqHost, DiskPoolQueue, DiskPoolExchange, OSDExchange):
-        self.dbrepository = DbReposigory
-        self.dbhost = DbHost
-        self.database = DbName
-        self.dbport = DbPort
-        self.dbuser = DbUser
-        self.dbpass = DbPassword
-        self.mqhost = MqHost
-        self.diskpool_queue = DiskPoolQueue
-        self.diskpool_exchange = DiskPoolExchange
-        self.osd_exchange = OSDExchange
-
-
-class KsanGW:
+class KsanLifecycle:
     def __init__(self, logger):
         self.logger = logger
         self.MonConf = None
@@ -169,4 +97,3 @@ class KsanGW:
         else:
             print('KsanGw ... Not Ok')
             return False, 'KsanGw ... Not Ok'
-

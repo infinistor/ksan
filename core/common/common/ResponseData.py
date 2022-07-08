@@ -13,7 +13,7 @@ import json
 
 
 
-from ksan.Enums.EnumResponseResult import EnumResponseResult
+from Enums.EnumResponseResult import EnumResponseResult
 
 
 class ResponseData:

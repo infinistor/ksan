@@ -15,41 +15,46 @@ import pdb
 
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.init import read_conf
-from ksan.disk.diskpool_manage import *
-from ksan.disk.disk_manage import *
+from common.init import read_conf
+from disk.diskpool_manage import *
+from disk.disk_manage import *
 from optparse import OptionParser
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanDiskpool {add|delete|update|list} [option]
-                add          -n <disk pool name>                                       : Create Disk Pool
-                remove       -I <disk pool id>                                         : Delete Disk Pool
-                update       -I                                                        : Update Disk Pool Info.
-                addDisk      -I <disk pool id> -D <"diskid">                           : Add Disk to Pool
-                removeDisk   -I <disk pool id> -D <"diskid">                           : Delete Disk from Pool
+        Usage: ksanDiskpool {add|remove|update|list} [option]
+                add          -N <disk pool name> -r <nreplica> -t <class type>         : Create Disk Pool
+                remove       -N <disk pool name>                                       : Delete Disk Pool
+                addDisk      -N <disk pool name> -n <"disk name">                           : Add Disk to Pool
+                removeDisk   -N <disk pool name> -n <"disk name">                           : Delete Disk from Pool
                 list                                                                   : Display disk Pool Info
         [options]
-                -I                                                                     : Disk Pool Id
-                -n                                                                     : Disk Pool Name
+                -P                                                                     : Disk Pool Id
                 -D                                                                     : Disk Id
-                -e                                                                     : Disk Pool Description
-                -L                                                                     : Disk Pool Detail information
+                -N                                                                     : Disk Pool Name
+                -n                                                                     : Disk Name
+                -r                                                                     : Replica Count. 1~3
+                -a                                                                     : Disk Pool Class Type. 'STANDARD' or 'ARCHIVE' 
+                -c                                                                     : Disk Pool Description
+                -l                                                                     : Disk Pool Detail information
                 -h, --help                                                             : show this help message and exit
 """
         print(Usage)
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|show|status} [option]"
+    usage = "Usage: %prog {init|add|remove|update|show|status} [option]"
     parser = MyOptionParser(usage=usage)
-    parser.add_option('-I', "--Id", dest="DiskPoolId", help='Disk Pool Id')
-    parser.add_option('-n', "--Name", dest="Name", help='Disk Pool Name')
+    parser.add_option('-P', "--Id", dest="DiskPoolId", help='Disk Pool Id')
+    parser.add_option('-N', "--DiskPoolName", dest="DiskPoolName", help='Disk Pool Name')
+    parser.add_option('-n', "--DiskName", dest="DiskName", help='Disk Name')
     parser.add_option('-D', "--DiskIds", dest="DiskIds", help='Disk Id List to Add to Pool')
-    parser.add_option('-e', "--Description", dest="Description", help='Description of Pool')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='Detail info')
+    parser.add_option('-c', "--Description", dest="Description", help='Description of Pool')
+    parser.add_option('-r', "--Nreplica", dest="replica", type='int', help='Replica Count. 1~3')
+    parser.add_option('-t', "--ClassType", dest="DiskPoolType", type='string', help='Disk Pool Type. \'STANDARD\' or \'ARCHIVE\'')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='Detail info')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()
@@ -97,17 +102,31 @@ if __name__ == '__main__':
             sys.exit(-1)
     """
     if args[0] == 'add':
-        Res, Errmsg, Ret = AddDiskPool(IfsPortalIp, IfsPortalPort, options.Name, Description=options.Description,
+        if not (options.DiskPoolName and options.replica and options.DiskPoolType):
+            parser.print_help()
+            sys.exit(-1)
+        if options.replica not in [1, 2, 3] or options.DiskPoolType not in [DiskPoolClassStandard, DiskPoolClassArchive]:
+            parser.print_help()
+            sys.exit(-1)
+        if options.replica == 2:
+            ReplicationType = DiskPoolReplica2
+        elif options.replica == 3:
+            ReplicationType = DiskPoolReplica3
+        else:
+            ReplicationType = DiskPoolReplica1
+
+        Res, Errmsg, Ret = AddDiskPool(IfsPortalIp, IfsPortalPort, options.DiskPoolName, options.DiskPoolType,
+                                       ReplicationType, Description=options.Description,
                                        logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'remove':
-        if not options.DiskPoolId:
+        if not (options.DiskPoolId or options.DiskPoolName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveDiskPool(IfsPortalIp, IfsPortalPort, options.DiskPoolId, logger=logger)
+        Res, Errmsg, Ret = RemoveDiskPool(IfsPortalIp, IfsPortalPort, DiskPoolId=options.DiskPoolId, DiskPoolName=options.DiskPoolName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -116,34 +135,41 @@ if __name__ == '__main__':
         AddDiskIds = None
         DelDiskIds = None
         if args[0] == 'addDisk':
-            if not (options.DiskPoolId and options.DiskIds):
+            if not ((options.DiskPoolId and options.DiskIds) or (options.DiskPoolName and options.DiskName)):
                 parser.print_help()
                 sys.exit(-1)
-            AddDiskIds = options.DiskIds.split()
+            if options.DiskIds is not None:
+                AddDiskIds = options.DiskIds.split()
+            elif options.DiskName is not None:
+                AddDiskIds = options.DiskName.split()
+            else:
+                parser.print_help()
+                print("Disk Ids or Disk Name is required")
+                sys.exit(-1)
         elif args[0] == 'removeDisk':
-            if not (options.DiskPoolId and options.DiskIds):
+            if not ((options.DiskPoolId and options.DiskIds) or (options.DiskPoolName and options.DiskName)):
                 parser.print_help()
                 sys.exit(-1)
             DelDiskIds = options.DiskIds.split()
-        Res, Errmsg, Ret = UpdateDiskPool(IfsPortalIp, IfsPortalPort, options.DiskPoolId, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
-                                           Name=options.Name, Description=options.Description, logger=logger)
+
+        Res, Errmsg, Ret = UpdateDiskPool(IfsPortalIp, IfsPortalPort, DiskPoolId=options.DiskPoolId, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
+                                           DiskPoolName=options.DiskPoolName, Description=options.Description, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'list':
-        if options.Detail:
-            Res, Errmsg, Ret, DiskPoolDetailList = GetAllDiskPoolListDetail(options.IpAddress, options.Port, logger=logger)
-            if Res != ResOk:
-                print(Errmsg)
-            else:
-                ShowDiskPoolInfo(DiskPoolDetailList, Detail=True)
+        Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(options.IpAddress, options.Port, DiskPoolId=options.DiskPoolId, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
         else:
-            Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(options.IpAddress, options.Port, PoolId=options.DiskPoolId,
-                                                         logger=logger)
+            Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, logger=logger)
             if Res != ResOk:
                 print(Errmsg)
             else:
-                ShowDiskPoolInfo(DiskPoolList)
+                if options.Detail:
+                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=True)
+                else:
+                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo)
     else:
         parser.print_help()

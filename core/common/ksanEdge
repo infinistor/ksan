@@ -15,51 +15,20 @@ import os, sys
 import pdb
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.utils import IsDaemonRunning
-from ksan.common.init import GetConf, InitMonServicedConf, UpdateConf, GetHostInfo
-from ksan.network.network_mq_handle import *
-from ksan.common.daemon import Daemon
-from ksan.service.service_manage import *
-from ksan.mqmanage.mq import *
+from common.utils import IsDaemonRunning, CreatePidFile
+from common.init import GetConf, InitMonServicedConf, UpdateConf, GetHostInfo
+from network.network_mq_handle import *
+from common.daemon import Daemon
+from common.shcommand import UpdateEtcHosts, shcall
+from service.service_manage import *
+from mqmanage.mq import *
 import time
 from optparse import OptionParser
 import threading
+import logging
 
 # Check Network Info
 
-
-# Check Disk Info
-def LoadServiceList(conf, ServiceList, LocalIpList):
-    Res, Errmsg, Ret, Data = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId)
-    if Res == ResOk:
-        if Ret.Result == ResultSuccess:
-            for service in Data.Services:
-                ServiceList['IdList'].append(service.Id)
-                ServiceList['Details'][service.Id] = service
-            for Interface in Data.NetworkInterfaces:
-                LocalIpList.append(Interface.IpAddress)
-    print(ServiceList)
-    print(LocalIpList)
-
-
-"""
-def TmpLoadServiceList(conf, ServiceList, LocalIpList):
-    Res, Errmsg, Ret, Data = GetServiceInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort)
-    #Res, Errmsg, Ret, Data = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId)
-    if Res == ResOk:
-        if Ret.Result == ResultSuccess:
-            for Svc in Data.Services:
-                res, errmsg, ret, data = GetServiceInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, ServiceId=Svc.Id)
-                if res == ResOk:
-                    if ret.Result == ResultSuccess:
-
-                ServiceList['IdList'].append(service.Id)
-                ServiceList['Details'][service.Id] = service
-            for Interface in Data.NetworkInterfaces:
-                LocalIpList.append(Interface.IpAddress)
-    print(ServiceList)
-    print(LocalIpList)
-"""
 
 def AddNewRoutingKeyWithServerId(conf):
     """
@@ -77,22 +46,32 @@ def AddNewRoutingKeyWithServerId(conf):
     EdgeRoutingKeyList.append("*.services.%s.config.osd.save" % conf.mgs.ServerId)
     EdgeRoutingKeyList.append("*.services.%s.control" % conf.mgs.ServerId)
 
-def MqHandler(conf, logger=None):
+def MqHandler(conf, GlobalFlag, logger=None):
     ServiceList = dict()
     LocalIpList = list()
     ServiceList['IdList'] = list()
     ServiceList['Details'] = dict()
-    LoadServiceList(conf, ServiceList, LocalIpList)
+    LoadServiceList(conf, ServiceList, LocalIpList, logger)
 
     AddNewRoutingKeyWithServerId(conf)
 
     mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', 'guest', 'guest',
             EdgeRoutingKeyList, ExchangeName,
-            'IfsEdge-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger)
+            'IfsEdge-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
     mq.Receiver()
 
 
-def Start(conf, logger=None, Foreground=False):
+
+def Start(LocalIp, logger=None, Foreground=False):
+    """
+    LocalIp is used for checking /etc/hosts right after register server.
+    local server info can be fail to get right after regster.
+    :param conf:
+    :param logger:
+    :param Foreground:
+    :param LocalIp:
+    :return:
+    """
     ret, conf = GetConf(MonServicedConfPath)
     if ret is False:
         print('Init conf first')
@@ -105,10 +84,22 @@ def Start(conf, logger=None, Foreground=False):
     if Foreground is False:
         D = Daemon(KsanEdgePidFile, 'ksanEdge')
         D.start()
-    th = threading.Thread(target=RegisterManagementNetwork, args=(conf,))
+
+
+    GlobalFlag = {'ServiceUpdated': Checked, 'NetworkUpdated': Checked, 'DiskUpdated': Checked, 'DiskPoolUpdated': Checked}
+
+    th = threading.Thread(target=RegisterManagementNetwork, args=(conf,logger, ))
     th.start()
 
-    MqHandler(conf, logger=logger)
+    th = threading.Thread(target=KsanServiceRegister, args=(conf, TypeServiceEdge, logger, ))
+    th.start()
+
+    th = threading.Thread(target=EdgeCheckEtcHosts, args=(conf, logger, LocalIp,))
+    th.start()
+
+    Pid = os.getpid()
+    CreatePidFile(Pid, KsanEdgePidFile)
+    MqHandler(conf, GlobalFlag, logger=logger)
 
 def Stop():
     D = Daemon(KsanEdgePidFile, 'ksanEdge')
@@ -116,31 +107,89 @@ def Stop():
 
 
 @catch_exceptions()
-def RegisterManagementNetwork(conf):
-    logger = Logging(loglevel='debug')
-    logger = logger.create()
-    time.sleep(10)
+def RegisterManagementNetwork(conf, logger):
+    time.sleep(5)
     netif = GetNetwork(logger=logger)
     nicinfo = netif.GetNicInfoWithNicName(conf.mgs.ManagementNetDev)
     netif = RequestNetworkInterfaceItems(conf.mgs.ManagementNetDev, Description='Management Network', logger=logger)
     netif.Set(nicinfo)
-    Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId,
-                                           netif, logger=logger)
-    if Res != ResOk:
-        print('fail to add Network Interface' + Errmsg)
-    else:
-        if Ret.Result != ResultSuccess:
-            print('fail to add Network Interface' + Ret.Message)
+    isNetworkAdded = False
+    RetryCnt = 0
+    while True:
+        RetryCnt += 1
+        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId,
+                                               netif, logger=logger)
+        if Res != ResOk:
+            logger.error('fail to add Network Interface %s retry:%d' %(Errmsg, RetryCnt))
         else:
-            print(Ret.Result, Ret.Message)
-            NetworkId = Ret.Data.Id
-            UpdateConf(MonServicedConfPath, 'mgs', 'DefaultNetworkId', NetworkId)
+            NetworkInterfaceId = None
+            if Ret.Result == ResultSuccess :
+                logging.log(logging.INFO, "success to add network %s %s" % (str(Ret.Result), str(Ret.Message)))
+                NetworkInterfaceId = Ret.Data.Id
+            elif Ret.Code == CodeDuplicated:
+                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort),
+                                                             conf.mgs.ServerId, InterfaceId=None, disp=False, logger=logger)
+                if Res != ResOk or Ret.Result != ResultSuccess:
+                    logging.log(logging.INFO, "%s %s" % (str(Ret.Result), str(Ret.Message)))
+                else:
+                    NetworkInterfaceId = Data[0].Id
+            else:
+                logger.error('fail to add Network Interface' + Ret.Message)
+            if NetworkInterfaceId is not None:
+                UpdateConf(MonServicedConfPath, 'mgs', 'DefaultNetworkId', NetworkInterfaceId)
+                isNetworkAdded = True
+        if RetryCnt <= 5:
+            time.sleep(5)
+        else:
+            logger.error('fail to add Network Interface. ' + Ret.Message)
+            break
+
+    if isNetworkAdded is True:
+        RegisterService(conf, TypeServiceEdge, logger)
+
+
+
+def GetValidEtcHostsInfo(Data):
+    ValidHostsInfo = list()
+    for svr in Data:
+        try:
+            if len(svr.NetworkInterfaces) > 0:
+                ManagementIp = svr.NetworkInterfaces[0].IpAddress
+            else:
+                continue
+            HostName = svr.Name
+            ValidHostsInfo.append((ManagementIp, HostName))
+        except Exception as err:
+            print(err)
+    return ValidHostsInfo
+
+
+def EdgeCheckEtcHosts(conf, logger, LocalIp):
+    """
+    check current serverlist and check /etc/hosts with the server info and update if not applied.
+    :param conf:
+    :return:
+    """
+    LocalHostInfo = list()
+    if LocalIp is not None: # run by ksanNodeRegister
+        out, err = shcall('hostname')
+        LocalHostName = out[:-1]
+        LocalHostInfo.append((LocalIp, LocalHostName))
+
+    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), logger=logger)
+    if Res == ResOk:
+        print(Ret.Result, Ret.Message)
+        ValidHostsInfo = GetValidEtcHostsInfo(Data)
+        ValidHostsInfo += LocalHostInfo
+        UpdateEtcHosts(ValidHostsInfo, 'add')
+    else:
+        logger.error('fail to get server info %s' % Errmsg)
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanEdge {init|start|stop|satatus} [option]
+        Usage: ksanEdge {init|start|stop|status} [option]
                 init                                                                   : Init configuration
                 start                                                                  : Start ksanEdge
                 stop                                                                   : Stop ksanEdge 
@@ -160,6 +209,7 @@ if __name__ == '__main__':
     #parser.add_option('-S', "--Server", action='store_true',
     #                  dest='Server', default=False, help='Server Option')
     parser.add_option('-S', "--ServerId", dest="id", help='server id')
+    parser.add_option('-i', "--LocalIp", dest="ip", default=None, help='Local Ip Address')
     parser.add_option('-D', "--Description", dest="desc", default='', help='server description')
     parser.add_option('-N', "--Name", dest="NicName", default=None, help='Network Interface Name')
     parser.add_option('-T', "--Detail", dest="Detail", default=None, help='server info in detail')
@@ -175,7 +225,9 @@ if __name__ == '__main__':
     logger = None
     if options.debug is True:
         logger = Logging(loglevel='debug')
-        logger = logger.create()
+    else:
+        logger = Logging(loglevel='error')
+    logger = logger.create()
 
     ret, conf = GetConf(MonServicedConfPath)
     if ret is False and args[0] != 'init':
@@ -188,13 +240,13 @@ if __name__ == '__main__':
         res, hostname, ip = GetHostInfo()
         if res is not True:
             print('fail to get HostName and Ip, %s' % hostname)
-            sys.exit()
+            sys.exit(-1)
         Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), options.desc,
                                                       Name=hostname, logger=logger)
         if Res != ResOk:
             print('fail to add Server' + Errmsg)
         else:
-            if Ret.Result == ResultSuccess or Ret.Code == CodeServerDuplicated:
+            if Ret.Result == ResultSuccess or Ret.Code == CodeDuplicated:
                 UpdateConf(MonServicedConfPath, 'mgs', 'ServerId', ServerInfo.Id)
                 print('Done')
             else:
@@ -204,7 +256,7 @@ if __name__ == '__main__':
         if options.id is None:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveServer(conf['mgs']['MgsIp'], int(conf['mgs']['IfsPortalPort']), options.id, logger=logger)
+        Res, Errmsg, Ret = RemoveServer(conf['mgs']['MgsIp'], int(conf['mgs']['IfsPortalPort']), ServerId=options.id, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -213,9 +265,9 @@ if __name__ == '__main__':
     elif args[0] == 'start':
         Ret, Pid = IsDaemonRunning(KsanEdgePidFile, 'ksanEdge')
         if Ret is True:
-            print('ksanEdge is already running')
+            print('Already running')
         else:
-            Start(conf, logger=logger, Foreground=options.Foreground)
+            Start(options.ip, logger=logger, Foreground=options.Foreground)
             print('Done')
 
     elif args[0] == 'stop':
