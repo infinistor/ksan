@@ -26,6 +26,9 @@ import java.util.concurrent.BlockingQueue;
  */
 public abstract class MessageQ{
     private final String host;
+    private String username = "guest";
+    private String password = "guest";
+    private int port;
     private final String qname;
     private final String exchangeName;
     private String bindingKey;
@@ -36,25 +39,40 @@ public abstract class MessageQ{
     private long responseDeliveryTag;
     private BasicProperties delivaryProp = null;
     
-    // for 1-1 sender
+     // for 1-1 sender  with default username and password
     public MessageQ(String host, String qname, boolean qdurablity) throws Exception{
+        this(host, 0, "guest", "guest", qname, qdurablity);
+    }
+    
+    // for 1-1 sender
+    public MessageQ(String host,  int port, String username, String password, String qname, boolean qdurablity) throws Exception{
         this.message = "";
         this.host = host;
         this.qname = qname;
         this.exchangeName = ""; 
         this.readerattached = false;
+        this.username = username;
+        this.password = password;
+        this.port = 0;
         this.connect();
         this.createQ(qdurablity);
     }
     
+    // for 1-1 receiver with default username and password
+    public MessageQ(String host, String qname, boolean qdurablity, MQCallback callback) throws Exception{
+        this(host, 0, "guest", "guest", qname, qdurablity, callback);
+    } 
     // for 1-1 receiver
-    public MessageQ(String host, String qname, boolean qdurablity, MQCallback callback) 
+    public MessageQ(String host, int port, String username, String password, String qname, boolean qdurablity, MQCallback callback) 
             throws Exception{
         this.message = "";
         this.host = host;
         this.qname = qname;
         this.exchangeName = ""; 
         this.readerattached = false;
+        this.username = username;
+        this.password = password;
+        this.port = port;
         this.connect();
         this.createQ(qdurablity);
         this.callback = callback;
@@ -62,8 +80,13 @@ public abstract class MessageQ{
             this.readFromQueue();
     }
     
+// for 1-n sender with default username and password
+    public MessageQ(String host, String exchangeName, String exchangeOption, String routingKey) throws Exception{
+        this(host, 0, "guest", "guest", exchangeName, exchangeOption, routingKey);
+    } 
+    
     // for 1-n sender
-    public MessageQ(String host, String exchangeName, String exchangeOption, String routingKey) 
+    public MessageQ(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey) 
             throws Exception{
         this.message = "";
         this.qname = "";
@@ -71,26 +94,38 @@ public abstract class MessageQ{
         this.bindingKey = routingKey;
         this.exchangeName = exchangeName; 
         this.readerattached = false;
+        this.username = username;
+        this.password = password;
+        this.port = port;
         this.connect();
         if (exchangeOption.isEmpty())
             this.createExchange("fanout");
         else
             this.createExchange(exchangeOption);
     }
+     
+    // for 1-n receiver with default username and password
+    public MessageQ(String host, String qname, String exchangeName, boolean qdurablity, 
+            String exchangeOption, String routingKey, MQCallback callback) throws Exception{
+        this(host, 0, "guest", "guest", qname, exchangeName, qdurablity, exchangeOption, routingKey, callback);
+    }
     
     // for 1-n receiver
-    public MessageQ(String host, String qname, String exchangeName, boolean qdurablity, 
+    public MessageQ(String host, int port, String username, String password, String qname, String exchangeName, boolean qdurablity, 
             String exchangeOption, String routingKey, MQCallback callback) throws Exception{
         this.message = "";
         this.host = host;
         this.qname = qname;
         this.bindingKey = routingKey;
         this.exchangeName = exchangeName;
-        this.readerattached = false;
+        this.readerattached = false; 
+        this.username = username;
+        this.password = password;
+        this.port = port;
         this.connect();
         this.createQ(qdurablity);
         this.callback = callback;
-        
+       
         if (this.callback != null)
             this.readFromQueue();
         
@@ -101,11 +136,15 @@ public abstract class MessageQ{
         
         this.bindExchange(); 
     }
-        
+    
     private int connect() throws Exception{
         int prefetchCount = 1;
         ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername(username);
+        factory.setPassword(password);
         factory.setHost(this.host);
+        if (port > 0)
+          factory.setPort(port);
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(10000); // 10 seconds
         Connection connection = factory.newConnection();

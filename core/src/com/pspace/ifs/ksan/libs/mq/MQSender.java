@@ -22,9 +22,20 @@ public class MQSender extends MessageQ{
         is1To1 = true;
     }
   
+    public MQSender(String host, int port, String username, String password, String qname, boolean qdurablity) throws Exception{
+        super(host, port, username, password, qname, qdurablity);
+        is1To1 = true;
+    }
+    
     public MQSender(String host, String exchangeName, String exchangeOption, String routingKey) 
             throws Exception{
         super(host, exchangeName, exchangeOption, routingKey);
+        is1To1 = false;
+    }
+    
+    public MQSender(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey) 
+            throws Exception{
+        super(host, port, username, password, exchangeName, exchangeOption, routingKey);
         is1To1 = false;
     }
     

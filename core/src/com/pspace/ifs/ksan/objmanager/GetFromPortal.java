@@ -43,6 +43,9 @@ public class GetFromPortal {
     private String portalHost;
     private long portalPort;
     private String portalKey;
+    private String mqUser;
+    private long mqPort;
+    private String mqPassword;
     private static Logger logger;
     
     public GetFromPortal() throws IOException{
@@ -73,6 +76,9 @@ public class GetFromPortal {
         portalHost = getStringConfig("MgsIp", "127.0.0.1");
         portalPort = getLongConfig("IfsPortalPort", 5443);
         portalKey = getStringConfig("IfsPortalKey", "");
+        mqUser = getStringConfig("MqUser", "guest");
+        mqPassword = getStringConfig("MqPassword", "guest");
+        mqPort = getLongConfig("MqPort", 0);
     }
     
     private String getString(JSONObject jsonObject, String key){
@@ -339,6 +345,9 @@ public class GetFromPortal {
         objc.dbUsername = (String)jsonConfig.get("objM.db_user");
         objc.dbPassword = (String)jsonConfig.get("objM.db_password");
         objc.mqHost = portalHost;
+        objc.mqUsername = mqUser;
+        objc.mqPassword = mqPassword;
+        objc.mqPort = mqPort;
         objc.mqOsdExchangename = "osdExchange"; //Fixme
         objc.mqExchangename = "diskPoolExchange"; //Fime
         objc.mqQueeuname = "diskPoolQueeu";

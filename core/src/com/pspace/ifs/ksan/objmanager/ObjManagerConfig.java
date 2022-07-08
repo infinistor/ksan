@@ -32,6 +32,9 @@ public class ObjManagerConfig {
     public String dbPassword;
     public String dbRepository;
     public String mqHost;
+    public String mqUsername;
+    public String mqPassword;
+    public long mqPort;
     public String mqQueeuname;
     public String mqExchangename;
     public String mqOsdExchangename;
