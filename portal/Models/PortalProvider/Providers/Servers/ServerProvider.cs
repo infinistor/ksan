@@ -145,7 +145,7 @@ namespace PortalProvider.Providers.Servers
 				Client.Connect();
 
 				// 명령어 생성 및 실행
-				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}");
+				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}");
 
 				// 결과 받아오기
 				await Task.Run(() => Commend.Execute());
