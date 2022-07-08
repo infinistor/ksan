@@ -14,6 +14,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using MTLib.Core;
 
@@ -43,8 +44,10 @@ namespace PortalSvr
 			Host.CreateDefaultBuilder(args)
 				.ConfigureWebHostDefaults(webBuilder =>
 				{
-					webBuilder.ConfigureKestrel(serverOptions =>
+					webBuilder.ConfigureKestrel((hostContext, serverOptions) =>
 						{
+							IConfiguration configuration = hostContext.Configuration;
+
 							serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024;
 
 							serverOptions.Listen(IPAddress.Any, 56080);
@@ -54,14 +57,14 @@ namespace PortalSvr
 								{
 									listenOptions.UseHttps(new HttpsConnectionAdapterOptions
 									{
-										ServerCertificate = new X509Certificate2("pspace.pfx", "pspaceqwe123!"),
+										ServerCertificate = new X509Certificate2(configuration["AppSettings:SharedAuthTicketKeyCertificateFilePath"], configuration["AppSettings:SharedAuthTicketKeyCertificatePassword"]),
 										SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
 									});
 								});
 							}
-							catch (Exception)
+							catch (Exception ex)
 							{
-								// ignored
+								NNException.Log(ex);
 							}
 						})
 						.UseStartup<Startup>();
