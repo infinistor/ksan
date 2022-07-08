@@ -13,88 +13,96 @@
 import psutil
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.service.service_manage import *
+from service.service_manage import *
 #import ksan.service.s3 as S3
-from ksan.service.osd import KsanOsd
-from ksan.common.utils import IsDaemonRunning
-from ksan.service.gw import KsanGW
-import ksan.mqmanage.mq
+from service.osd import KsanOsd
+from common.utils import IsDaemonRunning
+from common.define import ServiceMonitorInterval
+from service.gw import KsanGW
+from service.mongo import KsanMongoDB
+import mqmanage.mq
+import logging
 import xml.etree.ElementTree as ET
 
 @catch_exceptions()
-def MqServiceHandler(RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, logger=None):
+def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, GlobalFlag, logger):
     """
     Message Queue Service Handler
     """
-    print(RoutingKey, Body, Response)
-    ResponseReturn = ksan.mqmanage.mq.MqReturn(ResultSuccess)
+    logger.debug("%s %s %s" % (str(RoutingKey), str(Body), str(Response)))
+    ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
     Body = Body.decode('utf-8')
     Body = json.loads(Body)
     body = DictToObject(Body)
 
     # Service Control Handle
     if RoutKeyServiceControlFinder.search(RoutingKey):
-        if body.Id in ServiceList['IdList']:
-            Response.IsProcessed = True
-            ServiceType = ServiceList['Details'][body.Id].ServiceType
-            #if ServiceType == TypeHaproxy:
-            #    Ret = Hap.StartStop(Body)
-            #elif ServiceType == TypeS3:
-            #    Ret = S3.StartStop(Body)
-            if ServiceType == TypeOSD:
-                Osd = KsanOsd(logger)
-                if body.Control == START:
-                    Ret, ErrMsg = Osd.Start()
-                elif body.Control == STOP:
-                    Ret, ErrMsg = Osd.Stop()
-                elif body.Control == RESTART:
-                    Ret, ErrMsg = Osd.Restart()
-                else:
-                    Ret = False
-                    ErrMsg = 'Invalid Control Code'
-            elif ServiceType == TypeGW:
-                Gw = KsanGW(logger)
-                if body.Control == START:
-                    Ret, ErrMsg = Gw.Start()
-                elif body.Control == STOP:
-                    Ret, ErrMsg = Gw.Stop()
-                elif body.Control == RESTART:
-                    Ret, ErrMsg = Gw.Restart()
-                else:
-                    Ret = False
-                    ErrMsg = 'Invalid Control Code'
+        logging.log(logging.INFO, "%s" % str(Body))
+        #if body.Id not in ServiceList['IdList']:
+        #    LoadServiceList(MonConf, ServiceList, LocalIpList, logger)
+
+        Response.IsProcessed = True
+        #if body.Id not in ServiceList['Details']:
+        #    logger.error('Invalid Service Id %s' % body.Id)
+        #    return ResponseReturn
+        ServiceType = body.ServiceType
+        #if ServiceType == TypeHaproxy:
+        #    Ret = Hap.StartStop(Body)
+        #elif ServiceType == TypeS3:
+        #    Ret = S3.StartStop(Body)
+        if ServiceType == TypeServiceOSD:
+            Osd = KsanOsd(logger)
+            if body.Control == START:
+                Ret, ErrMsg = Osd.Start()
+            elif body.Control == STOP:
+                Ret, ErrMsg = Osd.Stop()
+            elif body.Control == RESTART:
+                Ret, ErrMsg = Osd.Restart()
             else:
                 Ret = False
-                ErrMsg = 'Invalid Serivce Type'
+                ErrMsg = 'Invalid Control Code'
+        elif ServiceType == TypeServiceS3:
+            Gw = KsanGW(logger)
+            if body.Control == START:
+                Ret, ErrMsg = Gw.Start()
+            elif body.Control == STOP:
+                Ret, ErrMsg = Gw.Stop()
+            elif body.Control == RESTART:
+                Ret, ErrMsg = Gw.Restart()
+            else:
+                Ret = False
+                ErrMsg = 'Invalid Control Code'
+        elif ServiceType == TypeServiceMONGODB:
+            mongo = KsanMongoDB(logger)
+            if body.Control == START:
+                Ret, ErrMsg = mongo.Start()
+            elif body.Control == STOP:
+                    Ret, ErrMsg = mongo.Stop()
+            elif body.Control == RESTART:
+                Ret, ErrMsg = mongo.Restart()
+            else:
+                Ret = False
+                ErrMsg = 'Invalid Control Code'
+        else:
+            Ret = False
+            ErrMsg = 'Invalid Serivce Type'
 
-            if Ret is False:
-                ResponseReturn = ksan.mqmanage.mq.MqReturn(Ret, Code=1, Messages=ErrMsg)
-            print(ResponseReturn)
+        if Ret is False:
+            ResponseReturn = mqmanage.mq.MqReturn(Ret, Code=1, Messages=ErrMsg)
+            logger.error(ResponseReturn)
+        else:
+            logging.log(logging.INFO, ResponseReturn)
         return ResponseReturn
     # Serivce Config Handle
     elif ".config." in RoutingKey:
         if body.Id in ServiceList['IdList']:
             Response.IsProcessed = True
-            if RoutKeyServiceOsdConfLoadFinder.search(RoutingKey):
-                Osd = KsanOsd(logger)
-                Ret, Errmsg, Data = Osd.ReadConf()
-                ResponseReturn = ksan.mqmanage.mq.MqReturn(Ret, Messages=Errmsg, Data=Data)
-                return ResponseReturn
-            elif RoutKeyServiceOsdConfSaveFinder.search(RoutingKey):
-                Osd = KsanOsd(logger)
-                Ret = Osd.UpdateConf(Body)
-            elif RoutKeyServiceGwConfLoadFinder.search(RoutingKey):
-                Gw = KsanGW
-                Ret, Errmsg, Data = Gw.ReadConf()
-                ResponseReturn = ksan.mqmanage.mq.MqReturn(Ret, Messages=Errmsg, Data=Data)
-            elif RoutKeyServiceGwConfSaveFinder.search(RoutingKey):
-                Gw = KsanGW
-                Ret = Gw.UpdateConf(Body)
-            else:
-                Ret = False
-            if Ret is False:
-                ResponseReturn = ksan.mqmanage.mq.MqReturn(Ret, Messages='fail')
-            print(ResponseReturn)
+            logger.debug(ResponseReturn)
+        return ResponseReturn
+    elif RoutingKey.endswith((".added", ".updated", ".removed")):
+        GlobalFlag['ServiceUpdated'] = Updated
+        Response.IsProcessed = True
+        logger.debug(ResponseReturn)
         return ResponseReturn
     else:
         Response.IsProcessed = True
@@ -114,29 +122,49 @@ class Process:
         self.GetUsage()
 
     def GetPidWithServiceType(self):
-        if self.ServiceType == TypeGW:
-            PidPath = self.GetPidFile()
-            Ret, Pid = IsDaemonRunning(PidPath, CmdLine='apache-tomcat')
+        if self.ServiceType == TypeServiceS3:
+            Ret, Pid = IsDaemonRunning(KsanGwPidFile, CmdLine='ksan-gw')
             if Ret is True:
                 self.Pid = int(Pid)
             else:
                 self.Pid = None
 
-        elif self.ServiceType == TypeOSD:
-            Ret, Pid = IsDaemonRunning(KsanOsdPidPath, CmdLine='ksanOsd.jar')
+        elif self.ServiceType == TypeServiceOSD:
+            Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine='ksan-osd')
             if Ret is True:
                 self.Pid = int(Pid)
             else:
                 self.Pid = None
+        elif self.ServiceType == TypeServiceEdge:
+            Ret, Pid = IsDaemonRunning(KsanEdgePidFile, CmdLine='ksanEdge')
+            if Ret is True:
+                self.Pid = int(Pid)
+            else:
+                self.Pid = None
+        elif self.ServiceType == TypeServiceMonitor:
+            Ret, Pid = IsDaemonRunning(KsanMonPidFile, CmdLine='ksanMon')
+            if Ret is True:
+                self.Pid = int(Pid)
+            else:
+                self.Pid = None
+
+        elif self.ServiceType == TypeServiceMONGODB:
+            Ret, Pid = IsDaemonRunning(KsanMongosPidFile, CmdLine='mongos')
+            if Ret is True:
+                self.Pid = int(Pid)
+            else:
+                self.Pid = None
+
         else:
             pass
 
     def GetUsage(self):
         try:
             p = psutil.Process(pid=self.Pid)
-            self.CpuUsage = p.cpu_percent()
+            self.CpuUsage = p.cpu_percent(interval=1)
             m = p.memory_full_info()
-            self.MemoryUsed = m.rss + m.vms + m.shared + m.data
+            #self.MemoryUsed = m.rss + m.vms + m.shared + m.data
+            self.MemoryUsed = m.rss
             self.ThreadCount = p.num_threads()
         except Exception as err:
             self.CpuUsage = 0
@@ -150,38 +178,25 @@ class Process:
         else:
             self.State = OFFLINE
 
-    def GetPidFile(self):
-        if self.ServiceType == TypeGW:
-            gw = KsanGW(None)
-            gw.ReadConf()
-            return gw.apache_pid_path
 
 
 @catch_exceptions()
-def ServiceMonitoring(conf):
-    MqServiceUsage = ksan.mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
+def ServiceMonitoring(conf, GlobalFlag, logger):
+    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
                         RoutKeyServiceUsage, ExchangeName, QueueName='')
-    MqServiceState = ksan.mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
+    MqServiceState = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
                                     RoutKeyServiceState, ExchangeName, QueueName='')
 
     # local service list
     LocalServices = list() # [{ 'Id': ServiceId, 'Type': 'Osd', 'ProcessObject':Object, 'IsEnable': True, 'GroupId': GroupId, 'Status': 'Online'}]
     while True:
-        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId)
+        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
-                CurrentEnabledServiceIds = list()  # the registered service id list in portal
-                TmpLocalServices = list()
+                LocalServices = list()
+                # Update Service Info
                 for Service in ServerDetail.Services:
-                    CurrentEnabledServiceIds.append(Service.Id)
-                    Exist = False
-                    for ExistService in LocalServices:
-                        if ExistService['Id'] == Service.Id:
-                            Exist = True
-                            ExistService['IsEnable'] = True
-                            TmpLocalServices.append(ExistService)
-
-                    if Exist is False: # append new service to monitoring pool
+                    try:
                         ProcObject = Process(Service.ServiceType)
                         NewService = dict()
                         NewService['Id'] = Service.Id
@@ -189,41 +204,51 @@ def ServiceMonitoring(conf):
                         NewService['Type'] = Service.ServiceType
                         NewService['ProcessObject'] = ProcObject
                         NewService['IsEnable'] = True
-                        TmpLocalServices.append(NewService)
+                        LocalServices.append(NewService)
+                    except Exception as err:
+                        logger.error("fail to get service info %s " % str(err))
 
-                LocalServices = TmpLocalServices
+                while True:
 
-        ServiceTypePool = list()
-        for Service in LocalServices:
-            ServiceId = Service['Id']
-            ProcObject = Service['ProcessObject']
-            ServiceType = Service['Type']
-            GroupId = Service['GroupId']
-            ProcObject.GetPidWithServiceType()
-            ProcObject.GetUsage()
-            ProcObject.GetState()
-            Usage = UpdateServiceUsageObject()
-            Usage.Set(ServiceId, ProcObject.CpuUsage, ProcObject.MemoryUsed, ProcObject.ThreadCount)
-            Usage = jsonpickle.encode(Usage, make_refs=False, unpicklable=False)
-            Usage = json.loads(Usage)
-            print(Usage)
-            MqServiceUsage.Sender(Usage)
+                    if GlobalFlag['ServiceUpdated'] == Updated:
+                        GlobalFlag['ServiceUpdated'] = Checked
+                        logging.log(logging.INFO,'Service Info is Updated')
+                        break
 
-            State = UpdateServicesStateObject()
-            State.Set(ServiceId, ProcObject.State)
-            print(State)
-            State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
-            State = json.loads(State)
-            MqServiceState.Sender(State)
-            ServiceStatus = ProcObject.State
-            CreateServicePoolXmlFile(ServiceTypePool)
-            UpdateServiceInfoDump(ServiceTypePool, ServiceId, ServiceType, GroupId, ServiceStatus)
+                    ServiceTypePool = list()
+                    for Service in LocalServices:
+                        try:
+                            ServiceId = Service['Id']
+                            ProcObject = Service['ProcessObject']
+                            ServiceType = Service['Type']
+                            GroupId = Service['GroupId']
+                            ProcObject.GetPidWithServiceType()
+                            ProcObject.GetUsage()
+                            ProcObject.GetState()
+                            Usage = UpdateServiceUsageObject()
+                            Usage.Set(ServiceId, ProcObject.CpuUsage, ProcObject.MemoryUsed, ProcObject.ThreadCount)
+                            Usage = jsonpickle.encode(Usage, make_refs=False, unpicklable=False)
+                            Usage = json.loads(Usage)
+                            MqServiceUsage.Sender(Usage)
+                        except Exception as err:
+                            logger.error("fail to get service info %s" % str(err))
+                            continue
 
-        root = CreateServicePoolXmlFile(ServiceTypePool)
-        indent(root)
-        tree = ET.ElementTree(root)
-        tree.write(ServicePoolXmlPath, encoding="utf-8", xml_declaration=True)
+                        State = UpdateServicesStateObject()
+                        State.Set(ServiceId, ProcObject.State)
+                        State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
+                        State = json.loads(State)
+                        MqServiceState.Sender(State)
+                        ServiceStatus = ProcObject.State
+                        CreateServicePoolXmlFile(ServiceTypePool)
+                        UpdateServiceInfoDump(ServiceTypePool, ServiceId, ServiceType, GroupId, ServiceStatus)
 
+                    root = CreateServicePoolXmlFile(ServiceTypePool)
+                    indent(root)
+                    tree = ET.ElementTree(root)
+                    tree.write(ServicePoolXmlPath, encoding="utf-8", xml_declaration=True)
+
+                    time.sleep(ServiceMonitorInterval)
         time.sleep(5)
 
 

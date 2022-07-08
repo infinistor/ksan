@@ -14,9 +14,9 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import pika
 import json
-from ksan.Enums.EnumResponseResult import EnumResponseResult
-from ksan.common.ResponseData import ResponseData
-from ksan.mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
+from Enums.EnumResponseResult import EnumResponseResult
+from common.ResponseData import ResponseData
+from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
 
 
 class RabbitMqSender:

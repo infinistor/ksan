@@ -18,12 +18,7 @@
 - Portal User Management
 - Swagger를 통한 Api 테스트 기능 제공(접속 주소 : `https://<ip>:<port>/api`)
 
-
 ## 빌드 가이드
-
-### 주의사항
-- DB 접속을 위해 [Devart](https://www.devart.com/dotconnect/eula.html)에서 제공하는 Devart.Data.MySql.EFCore 패키지를 이용하고 있습니다.
-- 빌드하여 사용하기 위해서는 평가판을 사용하시거나 라이센스를 구입하여 키를 발급 받은 뒤 appsettings.json의 DEVART_LICENSE_KEY 부분에 입력하여야 합니다.
 
 ### 환경 구성
 
@@ -217,6 +212,52 @@ chmod 777 /etc/systemd/system/ksangateway.service
   docker cp appsettings.json ksanapi:/app
   systemctl restart ksanapi
   ```
+- RabbitMQ, mariaDB의 접속 정보를 변경할 경우 모든 서비스의 설정에 반영해야 합니다.
+- appsettings.json
+  - PortalDatabase
+    - Mgs Ip : 포탈이 설치되는 서버의 Ipaddress.	예시 : `192.168.10.1`
+    - Database Name : 포탈의 메인 DB명	예시 : `ksan`
+  - SharedAuthTicketKey
+    - SharedAuthTicketKeyCertificateFilePath : ssl 인증서 파일의 이름. 발급 방법은 ssl 발급기관에서 직접 발급 받으면 됩니다.
+    - SharedAuthTicketKeyCertificatePassword : 발급 받은 인증서의 암호.
+  - RabbitMq
+    - Host : 포탈이 설치되는 서버의 Ipaddress	예시 : `192.168.10.1`
+    - Port : RabbitMq 통신 포트 번호 기본 값.
+    - User, Password : 기본값은 guest, guest. 아래의 RabbitMq 설정에 따라 이 값은 변경될 수 있습니다.
+``` json
+{
+	"ConnectionStrings": {
+		"PortalDatabase": "Server=<Mgs Ip>;Port=3306;Database=<Database Name>;Uid=<User>;Password=<Password>;CharSet=utf8;Pooling=True;Max Pool Size=100;"
+	},
+	"AppSettings": {
+		"Host": "",
+		"Domain": "",
+		"SharedAuthTicketKeyPath": "/home/session",
+		"SharedAuthTicketKeyCertificateFilePath": "sample.pfx",
+		"SharedAuthTicketKeyCertificatePassword": "<Password>",
+		"ExpireMinutes": 1440,
+		"CreateAccountWhenNotExist": true,
+		"RabbitMq": {
+			"Name": "PortalSvr",
+			"Host": "<Mgs Ip>",
+			"Port": 5672,
+			"VirtualHost": "/",
+			"User": "<RabbitMq User>",
+			"Password": "<RabbitMq Password>",
+			"Enabled": true
+		}
+	},
+	"Logging": {
+		"LogLevel": {
+			"Default": "Information",
+			"Microsoft": "Warning",
+			"Microsoft.Hosting.Lifetime": "Information",
+			"PortalProvider": "Information"
+		}
+	},
+	"AllowedHosts": "*"
+}
+```
 
 #### Portal 서비스 등록 및 실행
 ``` shell
@@ -241,32 +282,39 @@ systemctl start ksangateway
 
 ### Mariadb 설치 (docker 이용)
 ``` shell
-# mariadb 이미지 다운로드
-docker pull mariadb
-# mariadb container 실행 
-docker container run -d -p 3306:3306 \
--e MYSQL_ROOT_HOST=root@'%' \
+# mariadb 설치 밎 실행
+# MYSQL_ROOT_HOST => 접속 호스트 제한
+# MYSQL_ROOT_PASSWORD => root 권한자의 비밀번호
+# MYSQL_DATABASE => 최소 생성시 생성할 DB명
+docker run -d -p 3306:3306 \
+-e MYSQL_ROOT_HOST=% \
 -e MYSQL_ROOT_PASSWORD=qwe123 \
 -e MYSQL_DATABASE=ksan \
--v /MYSQL:/var/lib/mysql --name mariadb mariadb 
-# mariadb 외부 접속 권한 설정
-# 컨테이너 접속
-docker exec -it mariadb /bin/bash
-mysql -uroot -pqwe123
-use mysql;
-grant all privileges on *.* to 'root'@'%' identified by 'qwe123' with grant option;
-
+-v /MYSQL:/var/lib/mysql \
+--restart=unless-stopped \
+--name mariadb \
+mariadb
 ```
 
 ### rabbitmq 설치(docker 이용)
 ``` shell
 # rabbitmq 설치 및 실행
-docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 --restart=unless-stopped rabbitmq:3-management
+# RABBITMQ_DEFAULT_USER => 최초 생성시 유저 아이디
+# RABBITMQ_DEFAULT_PASS => 최초 생성시 유저 비밀번호
+docker run -d \
+-p 5672:5672 \
+-p 15672:15672 \
+-e RABBITMQ_DEFAULT_USER=guest \
+-e RABBITMQ_DEFAULT_PASS=guest \
+--restart=unless-stopped \
+--name rabbitmq \
+rabbitmq:3-management
+
 ```
 #### rabbitmq 접속방법
 - 서버주소 : http://<ip>:15672
-- username : guest
-- password : guest
+- username : RABBITMQ_DEFAULT_USER 값. 기본값 = guest
+- password : RABBITMQ_DEFAULT_PASS 값. 기본값 = guest
 
 ## 업데이트 가이드
 

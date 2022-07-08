@@ -18,13 +18,13 @@ import datetime
 import psutil
 import netifaces
 import dns.resolver
-from ksan.common.log import catch_exceptions
+from common.log import catch_exceptions
 import jsonpickle
 from optparse import OptionParser
-from ksan.common.define import *
-from ksan.common.httpapi import RestApi, disp_serverinfo, get_res
-from ksan.common.log import Logging
-from ksan.common.httpapi import *
+from common.define import *
+from common.httpapi import RestApi, disp_serverinfo, get_res
+from common.log import Logging
+from common.httpapi import *
 
 
 class GetNetwork(object):
@@ -35,7 +35,7 @@ class GetNetwork(object):
         self.IoCounterPerNic = psutil.net_io_counters(pernic=True)
 
     @catch_exceptions()
-    def GetNicInfo(self):
+    def GetNicInfo(self, Ip=None):
         """
         get all detail nic info list.
         :return:
@@ -70,6 +70,9 @@ class GetNetwork(object):
 
 
             self.nicinfo_list.append(tmp_dic)
+            if Ip is not None:
+                if Ip == tmp_dic['IpAddress']:
+                    return tmp_dic
 
     @catch_exceptions()
     def GetGatewayWithNic(self, NicName):

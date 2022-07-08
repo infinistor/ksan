@@ -14,13 +14,15 @@
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.daemon import Daemon
-from ksan.network.network_mq_handle import *
-from ksan.disk.disk_mq_handle import UpdateDiskStat
-from ksan.server.server_mq_handle import *
-from ksan.service.service_mq_handle import *
-from ksan.mqmanage.mq import Mq
-from ksan.common.init import GetConf
+from common.daemon import Daemon
+from network.network_mq_handle import *
+from disk.disk_mq_handle import DiskUsageMonitoring
+from server.server_mq_handle import *
+from service.service_mq_handle import *
+from mqmanage.mq import Mq
+from common.init import GetConf
+from common.utils import CreatePidFile
+from common.define import MonRoutingKeyList
 
 from optparse import OptionParser
 import threading
@@ -30,13 +32,19 @@ import threading
 
 # Check Disk Info
 
-def MqHandler(conf):
-    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', 'guest', 'guest',
-            ["*.services.*", "*.services.*.*", "*.services.*.*", "*.servers.*", "*.servers.*.*"], ExchangeName, 'IfsMon-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId)
+def MqHandler(conf, GlobalFlag, logger):
+    ServiceList = dict()
+    LocalIpList = list()
+    ServiceList['IdList'] = list()
+    ServiceList['Details'] = dict()
+    LoadServiceList(conf, ServiceList, LocalIpList, logger)
+    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', 'guest', 'guest', MonRoutingKeyList,
+            ExchangeName, 'IfsMon-%s' % conf.mgs.ServerId, ServiceList=ServiceList,
+            ServerId=conf.mgs.ServerId, GlobalFlag=GlobalFlag, logger=logger)
     mq.Receiver()
 
 
-def Start(conf, Foreground=False):
+def Start(Foreground=False):
     ret, conf = GetConf(MonServicedConfPath)
     if ret is False:
         print('Init conf first')
@@ -46,25 +54,38 @@ def Start(conf, Foreground=False):
             print('Local server is not registered. Excute ksanEdge register first')
             sys.exit(-1)
 
-    #MqHandler(conf)
     if Foreground is False:
         D = Daemon(KsanMonPidFile, 'ksanMon')
         D.start()
 
+    logger = Logging().create()
+
+    GlobalFlag = {'ServiceUpdated': Checked, 'NetworkUpdated': Checked, 'DiskUpdated': Checked, 'DiskPoolUpdated': Checked}
+
     threads = list()
-    th = threading.Thread(target=UpdateDiskStat, args=(conf,))
-    th.start()
-    threads.append(th)
-    th = threading.Thread(target=UpdateNetworkStat, args=(conf,))
-    th.start()
-    threads.append(th)
-    th = threading.Thread(target=MonUpdateServerUsage, args=(conf,))
-    th.start()
-    threads.append(th)
-    th = threading.Thread(target=ServiceMonitoring, args=(conf,))
+    th = threading.Thread(target=DiskUsageMonitoring, args=(conf, GlobalFlag, logger, ))
     th.start()
     threads.append(th)
 
+    th = threading.Thread(target=KsanServiceRegister, args=(conf, TypeServiceMonitor, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=UpdateNetworkStat, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=MonUpdateServerUsage, args=(conf, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=ServiceMonitoring, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    Pid = os.getpid()
+    CreatePidFile(Pid, KsanMonPidFile)
+    MqHandler(conf, GlobalFlag, logger)
     for th in threads:
         th.join()
 
@@ -113,7 +134,7 @@ if __name__ == '__main__':
         if Ret is True:
             print('ksanMon is already running')
         else:
-            Start(conf, Foreground=options.Foreground)
+            Start(Foreground=options.Foreground)
 
     elif args[0] == 'stop':
         Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')

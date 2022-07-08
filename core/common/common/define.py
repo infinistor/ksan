@@ -18,24 +18,34 @@ import time
 import inspect
 import re
 import requests
-from ksan.common.log import catch_exceptions
+from common.log import catch_exceptions
 
 """
 ######### environment configuration define ########
 """
+
 KsanEtcPath = '/usr/local/ksan/etc'
 KsanBinPath = '/usr/local/ksan/bin'
 
-"""
-######## Configuration Path ########
-"""
+##### global variable #####
+Updated = 1
+Checked = 0
+
+##### configuration path #####
 MonServicedConfPath = '/usr/local/ksan/etc/ksanMon.conf'
 OsdServiceConfPath = '/usr/local/ksan/etc/ksanOsd.conf'
 GwServiceConfPath = '/usr/local/ksan/etc/ksanGW.conf'
 ObjmanagerServiceConfPath = '/usr/local/ksan/etc/objmanger.conf'
 DiskPoolXmlPath = '/usr/local/ksan/etc/diskpools.xml'
 ServicePoolXmlPath = '/usr/local/ksan/etc/servicepools.xml'
-OsdXmlFilePath = '/usr/local/ksan/etc/ksan-osd.xml'
+OsdXmlFilePath = '/usr/local/ksan/etc/ksan-osd-log.xml'
+GwXmlFilePath = '/usr/local/ksan/etc/ksan-gw-log.xml'
+
+##### service binary #####
+KsanOsdBinaryName = 'ksan-osd.jar'
+KsanGwBinaryName = 'ksan-gw.jar'
+KsanRecovery = 'ksanRecovery'
+
 
 NormalCatalinaScriptPath = '/usr/local/ksan/bin/catalina.sh'
 NormalTomcatStartShellPath = '/usr/local/ksan/bin/startup.sh'
@@ -43,38 +53,42 @@ NormalTomcatShutdownShellPath = '/usr/local/ksan/bin/shutdown.sh'
 NormalTomcatWebXmlPath = '/usr/local/ksan/bin/web.xml'
 S3WarFilePath = '/usr/local/ksan/bin/S3.war'
 
-"""
-####### Default Configuration ########
-"""
+##### default ip, port #####
 DefaultMgsIp = '127.0.0.1'
 DefaultIfPortalPort = 5443
 DefaultIfMqPort = 5672
 
+##### Pid File Path #####
+KsanOsdPidFile = '/var/run/ksanOsd.pid'
+KsanGwPidFile = '/var/run/ksanGw.pid'
+KsanMonPidFile = '/var/run/ksanMon.pid'
+KsanEdgePidFile = '/var/run/ksanEdge.pid'
+KsanMongosPidFile = '/var/run/mongod.pid'
+
+##### INTERVAL #####
+DiskMonitorInterval = 10
+ProcessMonitorInterval = 10
+ServerMonitorInterval = 10
+ServiceMonitorInterval = 10
+NetworkMonitorInterval = 10
+
 
 """
-######## Pid File Path ########
-"""
-KsanOsdPidPath = '/var/run/ksanOsd.pid'
-
-"""
-######## PROTOCOL ########
+######## protocol ########
 """
 GET = 1
 POST = 2
 PUT = 3
 DELETE = 4
 
-"""
-######## SERVICE #######
-"""
+##### mq service status #####
 START = 'Start'
 STOP = 'Stop'
 RESTART = 'Restart'
 ONLINE = 'Online'
 OFFLINE = 'Offline'
-"""
-######### return code & messages define #########
-"""
+
+##### return code & messages define #####
 ResOk = 0
 ResNotFoundCode = 2
 ResNotFoundMsg = 'Not found '
@@ -94,12 +108,8 @@ ResFailToGetVlainId = 'Fail to get Vlan Id'
 ResultFail = 1  # fail to get data
 
 ResultSuccess = 'Success'
-"""
-########## return api code ########
-"""
-CodeServerDuplicated = 'EC036'
 
-
+CodeDuplicated = 'EC036'
 
 """
 ######### mq info define #########
@@ -116,7 +126,11 @@ MqDiskQueueRoutingKey = "*.services.disks.control"
 
 ## server routing key
 RoutKeyServerAdd = '*.servers.added'
+RoutKeyServerAddFinder = re.compile('.servers.added')
 RoutKeyServerDel = '*.servers.removed'
+RoutKeyServerDelFinder = re.compile('.servers.removed')
+RoutKeyServerUpdate = '*.servers.updated'
+RoutKeyServerUpdateFinder = re.compile('.servers.updated')
 RoutKeyServerState = '*.servers.state'
 RoutKeyServerUsage = '*.servers.usage'
 
@@ -128,6 +142,7 @@ RoutKeyNetworkVlanUsage = '*.servers.interfaces.vlans.usage'
 
 RoutKeyNetworkRpcFinder = re.compile('.servers.[\d\w-]+.interfaces.')
 RoutKeyNetworkAddFinder = re.compile('.servers.[\d\w-]+.interfaces.add')
+RoutKeyNetworkAddedFinder = re.compile('.servers.interfaces.added')
 RoutKeyNetworkUpdateFinder = re.compile('.servers.[\d\w-]+.interfaces.update')
 
 ## disk routing key
@@ -136,7 +151,8 @@ RoutKeyDiskAdded = '.servers.disks.added'
 RoutKeyDiskDel = '.servers.disks.removed'
 RoutKeyDiskState = '.servers.disks.state'
 RoutKeyDiskHaAction = '.servers.disks.haaction'
-RoutKeyDiskUsage = '.servers.disks.size'
+RoutKeyDiskUsage = '.servers.disks.usage'
+RoutKeyDiskUpdated = '.servers.disks.updated'
 RoutKeyDiskGetMode = '.servers.disks.rwmode'
 RoutKeyDiskSetMode = '.servers.disks.rwmode.update'
 RoutKeyDiskStartStop = '.servers.disks.control'
@@ -144,9 +160,6 @@ RoutKeyDiskStartStop = '.servers.disks.control'
 RoutKeyDiskRpcFinder = re.compile('.servers.[\w\d-]+.disks')
 RoutKeyDiskCheckMountFinder = re.compile('.servers.[\w\d-]+.disks.check_mount')
 RoutKeyDiskWirteDiskIdFinder = re.compile('.servers.[\w\d-]+.disks.write_disk_id')
-
-
-
 
 ## disk pool routing key
 RoutKeyDiskPool = 'servers.diskpools.'
@@ -166,6 +179,7 @@ RoutKeyServiceOsdConfSaveFinder = re.compile('.services.[\d\w-]+.config.osd.save
 RoutKeyServiceGwConfLoadFinder = re.compile('.services.[\d\w-]+.config.gw.load')
 RoutKeyServiceGwConfSaveFinder = re.compile('.services.[\d\w-]+.config.gw.save')
 
+"""
 EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.stat", "*.servers.usage",
                        "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
                        "*.servers.interfaces.linkstate", "*.servers.interfaces.usage", "*.servers.interfaces.vlans.added",
@@ -174,6 +188,23 @@ EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.stat
                        "*.servers.disks.size", "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
                        "*.servers.diskpools.removed",
                        "*.services.state", "*.services.stat", "*.services.haaction", "*.services.usage"]
+"""
+
+
+EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added",
+                       "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
+                       "*.servers.interfaces.vlans.added",
+                       "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",
+                       "*.servers.disks.added", "*.servers.disks.updated", "*.servers.disks.removed",
+                        "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
+                       "*.servers.diskpools.removed"]
+
+MonRoutingKeyList = ["*.servers.updated", "*.servers.removed", "*.servers.interfaces.added", "*.servers.added",
+                     "*.servers.interfaces.updated", "*.servers.interfaces.removed", "*.servers.interfaces.vlans.added"
+                    , "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",
+                     "*.servers.disks.added", "*.servers.disks.updated", "*.servers.disks.removed",
+                     "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
+                     "*.servers.diskpools.removed", "*.services.added", "*.services.updated"]
 
 ## Exchange Name
 ExchangeName = 'ksan.system'
@@ -195,25 +226,15 @@ DiskModeRw = 'ReadWrite'
 DiskModeRd = 'ReadOnly'
 DiskHaActionInit = 'Initializing'
 
-
-######### INTERVAL #########
-DiskMonitorInterval = 10
-ProcessMonitorInterval = 10
-ServerMonitorInterval = 10
-NetworkMonitorInterval = 10
-
-
 class MgsConf:
     def __init__(self, MgsIp, IfsPortalPort, MqPortal):
         self.MgsIp = MgsIp
         self.IfsPortalPort = IfsPortalPort
         self.MqPortal = MqPortal
 
-
 class MonservicdConf:
     def __init__(self, dic):
         pass
-
 
 
 #####  Conversion Dict to Object Class #####
@@ -301,7 +322,7 @@ class DiskItemsDetail:
         self.DiskPoolId = ''
         self.DiskNo = ''
         self.Path = ''
-        self.State = None
+        self.State = 'Good'
         self.TotalInode = 0
         self.ReservedInode = 0
         self.UsedInode = 0
@@ -364,16 +385,10 @@ class AllDiskItemsDetail:
 
 
 
-class DiskDetail:
+class DiskDetailMqBroadcast:
     def __init__(self):
-        self.Services = None
-        self.DiskPool = None
-        self.Server = None
         self.Id = ''
         self.ServerId = ''
-        self.DiskPoolId = ''
-        self.DiskNo = ''
-        self.Path = ''
         self.State = None
         self.TotalInode = 0
         self.ReservedInode = 0
@@ -381,18 +396,13 @@ class DiskDetail:
         self.TotalSize = 0
         self.ReservedSize = 0
         self.UsedSize = 0
-        self.RwMode = None
+        self.Read = 0
+        self.Write = 0
 
-    def Set(self, Services, DiskPool, Server, Id, ServerId, DiskPoolId, DiskNo, Path, State, TotalInode, ReservedInode,
-            UsedInode, TotalSize, ReservedSize, UsedSize, RwMode):
-        self.Services = Services
-        self.DiskPool = DiskPool
-        self.Server = Server
+    def Set(self, Id, ServerId, State, TotalInode, ReservedInode,
+            UsedInode, TotalSize, ReservedSize, UsedSize, Read, Write):
         self.Id = Id
         self.ServerId = ServerId
-        self.DiskPoolId = DiskPoolId
-        self.DiskNo = DiskNo
-        self.Path = Path
         self.State = State
         self.TotalInode = TotalInode
         self.ReservedInode = ReservedInode
@@ -400,7 +410,8 @@ class DiskDetail:
         self.TotalSize = TotalSize
         self.ReservedSize = ReservedSize
         self.UsedSize = UsedSize
-        self.RwMode = RwMode
+        self.Read = Read
+        self.Write = Write
 
 
 class RequestDiskPool:
@@ -408,11 +419,15 @@ class RequestDiskPool:
         self.Name = None
         self.Description = None
         self.DiskIds = []
+        self.DiskPoolType = 'STANDARD'
+        self.ReplicationType = 'OnePlusZero'
 
-    def Set(self, Name, Descrition, DiskIds):
+    def Set(self, Name, Descrition, DiskIds, DiskPoolType=None, ReplicationType=None):
         self.Name = Name
         self.Description = Descrition
         self.DiskIds = DiskIds
+        self.DiskPoolType = DiskPoolType
+        self.ReplicationType = ReplicationType
 
 class DiskPoolDetail:
     def __init__(self):
@@ -427,11 +442,6 @@ class DiskPoolDetail:
         self.RegDate = None
         self.RegId = None
         self.RegName = None
-
-
-
-
-
 
 
 class NetworkInterfaceItems:
@@ -542,8 +552,6 @@ class ResPonseItemsHeader(object):
                 print(err, sys.exc_info()[0].tb_lineno)
 
 
-
-
 """
 ######### disk define  ###########
 """
@@ -582,9 +590,9 @@ class ServerItems(object):
         self.State = dic["State"]
         self.Rack = dic["Rack"]
         self.CpuUsage = dic["CpuUsage"]
-        self.LoadAverage1M = dict['LoadAverage1M']
-        self.LoadAverage5M = dict['LoadAverage5M']
-        self.LoadAverage15M = dict['LoadAverage15M']
+        self.LoadAverage1M = dic['LoadAverage1M']
+        self.LoadAverage5M = dic['LoadAverage5M']
+        self.LoadAverage15M = dic['LoadAverage15M']
         self.MemoryTotal = dic["MemoryTotal"]
         self.MemoryUsed = dic["MemoryUsed"]
         self.ModDate = dic["ModDate"]
@@ -661,6 +669,20 @@ class RequestServerInfo(object):
                 logger.error(err, sys.exc_info()[2].tb_lineno)
             else:
                 print(err, sys.exc_info()[0].tb_lineno)
+
+
+class RequestServerInitInfo(object):
+    def __init__(self):
+        self.ServerIp = ''
+        self.MgsIp = ''
+        self.MQPort = 0
+        self.MgsPort = 0
+
+    def Set(self, ServerIp, MgsIp, MQPort, MgsPort):
+        self.ServerIp = ServerIp
+        self.MgsIp = MgsIp
+        self.MQPort = MQPort
+        self.MgsPort = MgsPort
 
 
 class RequestServerExistCheck(object):
@@ -870,6 +892,8 @@ class RequestVlanNetworkInterfaceCheck(object):
 """
 class AddDiskObject:
     def __init__(self):
+        self.DiskPoolId = ''
+        self.Name = ''
         self.Path = ''
         self.State = 'Stop'
         self.TotalInode = 0
@@ -880,8 +904,10 @@ class AddDiskObject:
         self.UsedSize = 0
         self.Rwmode = 'ReadOnly'
 
-    def Set(self, Path, State, TotalInode, ReservedInode, UsedInode, TotalSize, ReservedSize, UsedSize, RwMode):
+    def Set(self, Name, Path, State, TotalInode, ReservedInode, UsedInode, TotalSize, ReservedSize, UsedSize, RwMode, DiskPoolId=''):
 
+        self.DiskPoolId = DiskPoolId
+        self.Name = Name
         self.Path = Path
         self.State = State
         self.TotalInode = TotalInode
@@ -1026,13 +1052,36 @@ class DiskSizeItems:
         self.ReservedSize = ReservedSize
         self.UsedSize = UsedSize
 
+class DiskUsage:
+    def __init__(self):
+        self.Id = ''
+        self.ServerId = ''
+        self.DiskNo = 0
+        self.UsedSize = 0
+        self.UsedInode = 0
+        self.Read = 0
+        self.Write = 0
+
+    def Set(self, Id, ServerId, UsedSize, UsedInode, Read, Write):
+        self.Id = Id
+        self.ServerId = ServerId
+        self.UsedSize = UsedSize
+        self.UsedInode = UsedInode
+        self.Read = Read
+        self.Write = Write
 
 ######### SERVICE #########
-TypeHaproxy = 'HaProxy'
 TypeS3 = 'IfsS3'
 TypeTomcat = 'tomcat'
-TypeOSD = 'OSD'
-TypeGW = 'GW'
+TypeServiceOSD = 'OSD'
+TypeServiceS3 = 'S3'
+TypeServiceMONGODB = 'MongoDB'
+TypeServiceMARIADB = 'MariaDB'
+TypeServiceObjmanager = 'OBJMANAGER'
+TypeServiceS3Backend = 'S3Backend'
+TypeServiceMonitor = 'Monitor'
+TypeServiceEdge = 'Edge'
+TypeServiceHaproxy = 'HaProxy'
 SampleS3ConfFile = './objmanager.conf'
 S3ConfFile = '/opt/objmanager.conf'
 SampleHaproxyConfFile = './haproxy.cfg'
@@ -1041,16 +1090,19 @@ ServiceStart = 'Start'
 ServiceStop = 'Stop'
 ServiceRestart = 'Restart'
 
-KsanEdgePidFile = '/var/run/ksanEdge.pid'
-KsanMonPidFile = '/var/run/ksanMon.pid'
+
+KsanMongDbManagerBinPath = '/usr/local/ksan/bin/ksanMongoDBManager'
 
 ######### VOLUME ##########
 VolumeStateOnline = 'Online'
 VolumeStateOffline = 'Offline'
 
-VolumeReplica1 = 'OnePlusZero'
-VolumeReplica2 = 'OnePlusOne'
-VolumeReplica3 = 'OnePlusTwo'
+DiskPoolReplica1 = 'OnePlusZero'
+DiskPoolReplica2 = 'OnePlusOne'
+DiskPoolReplica3 = 'OnePlusTwo'
+
+DiskPoolClassStandard = 'STANDARD'
+DiskPoolClassArchive = 'ARCHIVE'
 
 class AddServiceInfoObject:
     def __init__(self):
@@ -1274,6 +1326,38 @@ class ServiceControl:
         self.Name = Name
         self.IpAddresses = IpAddresses
         self.Control = Control
+
+class ServiceConfigItems:
+    def __init__(self):
+        self.Type = ''
+        self.Version = 0
+        self.Config = ''
+        self.RegDate = ''
+
+    def Set(self, Type, Version, Config, RegDate):
+        self.Type = Type
+        self.Version = Version
+        self.Config = Config
+        self.RegDate = RegDate
+
+class ServiceMongoDBConfig:
+    def __init__(self, PrimaryHostName):
+        self.Shard1Port = 20001
+        self.Shard2Port = 20002
+        self.ConfigServerPort = 50000
+        self.MongoDbPort = 27017
+        self.HomeDir = '/var/lib/mongo'
+        self.PrimaryHost = PrimaryHostName
+
+    def Set(self, Shard1Port, Shard2Port, ConfigServerPort, MongoDbPort, HomeDir, PrimaryHostName):
+        self.Shard1Port = Shard1Port
+        self.Shard2Port = Shard2Port
+        self.ConfigServerPort = ConfigServerPort
+        self.MongoDbPort = MongoDbPort
+        self.HomeDir = HomeDir
+        self.PrimaryHostName = PrimaryHostName
+
+
 
 ######## HAPROXY CONFIG DEFINE ########
 class HaproxyConf:
@@ -1609,6 +1693,17 @@ class AddUserObject:
         self.Roles = Roles
         self.Status = Status
 
+class UserDiskPoolsInfo:
+    def __init__(self):
+        self.UserId = None
+        self.DiskPoolId = None
+        self.StorageClass = None
+
+    def Set(self, UserId, DiskPoolId, StorageClass):
+        self.UserId = UserId
+        self.DiskPoolId = DiskPoolId
+        self.StorageClass = StorageClass
+
 
 class UserOfVolumeObject:
     def __init__(self):
@@ -1706,13 +1801,15 @@ class S3UserObject:
     def __init__(self):
         self.Id = None
         self.Name = None
+        self.StandDiskPoolId = None
         self.Email = None
         self.AccessKey = None
         self.SecretKey = None
 
-    def Set(self, Name, Email, Id=None, AccessKey=None, SecretKey=None):
+    def Set(self, Name, DiskPoolId, Email, Id=None, AccessKey=None, SecretKey=None):
         self.Id = Id
         self.Name = Name
+        self.StandardDiskPoolId = DiskPoolId
         self.Email = Email
         self.AccessKey = AccessKey
         self.SecretKey = SecretKey
@@ -1726,6 +1823,34 @@ class S3UserUpdateObject:
         self.Name = Name
         self.Email = Email
 
+class S3UserInfoItems:
+    def __init__(self):
+        self.Id = None
+        self.Name = None
+        self.Email = None
+        self.AccessKey = None
+        self.SecretKey = None
+        self.UserDiskPools = None
+
+    def Set(self, Id, Name, DiskPoolId, Email, AccessKey, SecretKey):
+        self.Id = Id
+        self.Name = Name
+        self.StandardDiskPoolId = DiskPoolId
+        self.Email = Email
+        self.AccessKey = AccessKey
+        self.SecretKey = SecretKey
+
+class S3UserStorageClassObject:
+    def __init__(self):
+        self.UserId = None
+        self.DiskPoolId = None
+        self.StorageClass = None
+
+    def Set(self, UserId, DiskPoolId, StorageClass):
+        self.UserId = UserId
+        self.DiskPoolId = DiskPoolId
+        self.StorageClass = StorageClass
+
 
 class KsanMonConfig:
     def __init__(self):
@@ -1734,45 +1859,56 @@ class KsanMonConfig:
         self.MqPort = 5672
         self.ManagementNetDev = None
 
+class KcanOsdConfig:
+    def __init__(self):
+        self.PoolSize = 650
+        self.Port = 8000
+        self.osd.ec_schedule_minutes = 30000
+
+
+
 
 #####  Header of Response Body Class #####
-ResponseItemsHeaderModule = 'ksan.common.define.ResponseItemsHeader'
+ResponseItemsHeaderModule = 'common.define.ResponseItemsHeader'
 
-ResponseHeaderModule = 'ksan.common.define.ResponseHeader'
-ResponseHeaderWithDataModule = 'ksan.common.define.ResponseHeaderWithData'
-
-
-ServerItemsModule = 'ksan.common.define.ServerItems'
-ServerItemsDetailModule = 'ksan.common.define.ServerItemsDetail'
-ServerUsageItemsModule = 'ksan.common.define.ServerUsageItems'
-ServerStateItemsModule = 'ksan.common.define.ServerStateItems'
-
-DiskItemsDetailModule = 'ksan.common.define.DiskItemsDetail'
-DiskDetailModule = 'ksan.common.define.DiskDetail'
-AllDiskItemsDetailModule = 'ksan.common.define.AllDiskItemsDetail'
-DiskPoolItemsModule = 'ksan.common.define.DiskPoolItems'
-DiskPoolDetailModule = 'ksan.common.define.DiskPoolDetail'
-
-NetworkInterfaceItemsModule = 'ksan.common.define.NetworkInterfaceItems'
-VlanNetworkInterfaceItemsModule = 'ksan.common.define.VlanNetworkInterfaceItems'
+ResponseHeaderModule = 'common.define.ResponseHeader'
+ResponseHeaderWithDataModule = 'common.define.ResponseHeaderWithData'
 
 
-MonservicdConfModule = 'ksan.common.define.MonservicedConf'
-RequestNetworkInterfaceItemsModule = 'ksan.common.define.RequestNetworkInterfaceItems'
+ServerItemsModule = 'common.define.ServerItems'
+ServerItemsDetailModule = 'common.define.ServerItemsDetail'
+ServerUsageItemsModule = 'common.define.ServerUsageItems'
+ServerStateItemsModule = 'common.define.ServerStateItems'
 
-ServiceItemsDetailModule = 'ksan.common.define.ServiceItemsDetail'
-ServiceDetailModule = 'ksan.common.define.ServiceDetail'
-ServiceControlModule = 'ksan.common.define.ServiceControl'
-ServiceGroupItemsModule = 'ksan.common.define.ServiceGroupItems'
-ServiceGroupDetailModule = 'ksan.common.define.ServiceGroupDetail'
+DiskItemsDetailModule = 'common.define.DiskItemsDetail'
+DiskDetailModule = 'common.define.DiskDetail'
+AllDiskItemsDetailModule = 'common.define.AllDiskItemsDetail'
+DiskPoolItemsModule = 'common.define.DiskPoolItems'
+DiskPoolDetailModule = 'common.define.DiskPoolDetail'
 
-VolumeItemsModule = 'ksan.common.define.VolumeItems'
-VolumeObjectModule = 'ksan.common.define.VolumeObject'
+NetworkInterfaceItemsModule = 'common.define.NetworkInterfaceItems'
+VlanNetworkInterfaceItemsModule = 'common.define.VlanNetworkInterfaceItems'
 
-UserItemsModule = 'ksan.common.define.UserItems'
-VolumeUserObjectModule = 'ksan.common.define.VolumeUserObject'
-UserObjectModule = 'ksan.common.define.UserObject'
-S3UserObjectModule = 'ksan.common.define.S3UserObject'
+
+MonservicdConfModule = 'common.define.MonservicedConf'
+RequestNetworkInterfaceItemsModule = 'common.define.RequestNetworkInterfaceItems'
+
+ServiceItemsDetailModule = 'common.define.ServiceItemsDetail'
+ServiceDetailModule = 'common.define.ServiceDetail'
+ServiceControlModule = 'common.define.ServiceControl'
+ServiceGroupItemsModule = 'common.define.ServiceGroupItems'
+ServiceGroupDetailModule = 'common.define.ServiceGroupDetail'
+ServiceConfigModule = 'common.define.ServiceConfigItems'
+
+VolumeItemsModule = 'common.define.VolumeItems'
+VolumeObjectModule = 'common.define.VolumeObject'
+
+UserItemsModule = 'common.define.UserItems'
+VolumeUserObjectModule = 'common.define.VolumeUserObject'
+UserObjectModule = 'common.define.UserObject'
+S3UserObjectModule = 'common.define.S3UserObject'
+
+
 
 Parsing = dict()
 

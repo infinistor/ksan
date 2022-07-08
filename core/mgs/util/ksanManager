@@ -15,19 +15,19 @@ import pdb
 
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.init import read_conf
-from ksan.user.user_manage import *
+from common.init import read_conf
+from user.user_manage import *
 #from ksan.volume.volume_manage import *
-from ksan.disk.disk_manage import *
+from disk.disk_manage import *
 from optparse import OptionParser
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ifs_user {add|delete|start|stop|set|list} [option]
-                add       -n <user name> -I <login id> 
-                -E <email address> -r <Roles[Supervisor|User]>
+        Usage: ifs_user {add|remove|start|stop|set|list} [option]
+                add       -n <user name> -i <login id> 
+                -e <email address> -u <Roles[Supervisor|User]>
                                                                                     : Add user
                 remove    -U <User Id>                                              : Remove user
                 update    -U <User Id>                                              : Update User Info
@@ -39,16 +39,16 @@ class MyOptionParser(OptionParser):
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|show|status} [option]"
+    usage = "Usage: %prog {init|add|remove|update|show|status} [option]"
     parser = MyOptionParser(usage=usage)
-    parser.add_option('-I', "--LoginId", dest="LoginId", help='User Login Id')
+    parser.add_option('-i', "--LoginId", dest="LoginId", help='User Login Id')
     parser.add_option('-U', "--UserId", dest="UserId", help='User Id')
     parser.add_option('-n', "--Name", dest="Name", help='User Name')
-    parser.add_option('-E', "--Email", dest="Email", help='User Email Info')
-    parser.add_option('-P', "--Password", dest="Password", help='User Password')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='Detail info')
-    parser.add_option('-r', "--Roles", dest="Roles", help='User Roles')
-    parser.add_option('-s', "--Status", dest="Status", help='User Status')
+    parser.add_option('-e', "--Email", dest="Email", help='User Email Info')
+    parser.add_option('-w', "--Password", dest="Password", help='User Password')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='Detail info')
+    parser.add_option('-u', "--Roles", dest="Roles", help='User Roles')
+    #parser.add_option('-s', "--Status", dest="Status", help='User Status')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()

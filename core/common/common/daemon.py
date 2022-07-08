@@ -15,7 +15,7 @@ import os, sys
 import atexit
 import signal
 import time
-from ksan.common.utils import IsDaemonRunning
+from common.utils import IsDaemonRunning
 
 class Daemon(object):
     def __init__(self, PidFile, DaemonName):

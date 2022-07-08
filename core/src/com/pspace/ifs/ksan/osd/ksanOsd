@@ -12,9 +12,14 @@
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.service.osd import *
-from ksan.server.server_manage import *
+try:
+    from service.osd import *
+    from server.server_manage import *
+except (ModuleNotFoundError, ImportError) as e:
+    print('python common module is not installed')
+    sys.exit(-1)
 import pdb
+
 
 
 class MyOptionParser(OptionParser):
@@ -87,7 +92,7 @@ if __name__ == '__main__':
 
     Osd = KsanOsd(logger)
     if args[0] == 'init':
-        Osd.Init()
+        #Osd.Init()
         sys.exit(0)
 
     elif args[0] == 'start':

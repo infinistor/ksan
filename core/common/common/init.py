@@ -15,21 +15,21 @@ import os, sys
 import fcntl
 import pdb
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.define import *
+from common.define import *
 from configparser import ConfigParser
-from ksan.common.shcommand import GetHostInfo
-from ksan.common.log import *
-from ksan.common.utils import IsIpValid, IsUrlValid
+from common.shcommand import GetHostInfo
+from common.log import *
+from common.utils import IsIpValid, IsUrlValid
 
 
-def get_input(Description, type, default=None):
+def get_input(Description, type, default=None, ValidAnsList=None):
     try:
         while True:
             ans = input(Description + '(default: %s):' % str(default) if default is not None else ':')
             if ans:
                 if type == int:
                     if ans.isdigit():
-                        return ans
+                        return int(ans)
                     else:
                         print('Invalid Digit type')
                 elif type == 'ip':
@@ -43,12 +43,17 @@ def get_input(Description, type, default=None):
                     else:
                         print('Invalid Url Type')
                 else:
+                    if ValidAnsList is not None:
+                        if ans not in ValidAnsList:
+                            print('Invalid Answer Type. Only %s is supported' % ', '.join(ValidAnsList))
+                            continue
                     return ans
             else:
                 if default == '':
                     if type in ['pwd', 'net_device']:
                         print('Invalid %s type' % type)
                         continue
+
                 if default is not None:
                     return default
     except Exception as err:

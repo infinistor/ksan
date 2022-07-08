@@ -14,13 +14,15 @@
 import os, sys
 import pdb
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-import ksan.mqmanage
-from ksan.network.network_manage import *
-from ksan.mqmanage.mq import *
+import mqmanage.mq
+from common.shcommand import UpdateEtcHosts
+from network.network_manage import *
+from mqmanage.mq import *
 import jsonpickle
+import logging
 
 @catch_exceptions()
-def UpdateNetworkStat(conf):
+def UpdateNetworkStat(conf, GlobalFlag, logger):
 
     # Create Sender
     #mqSender = RabbitMqSender(config)
@@ -34,30 +36,36 @@ def UpdateNetworkStat(conf):
     #Res, Errmsg, Ret, AllNetDevs = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
 
     while True:
-        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), ServerId=conf.mgs.ServerId)
+        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), ServerId=conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
-                for dev in Svr.NetworkInterfaces:
-                    try:
-                        stat1 = LocalDev.IoCounterPerNic
-                        LocalDev.ReNewalNicStat()
-                        time.sleep(1)
-                        # Update Network Io(Rx/Tx) bytes per 1 sec
-                        stat2 = LocalDev.IoCounterPerNic
-                        RxPerSec = stat2[dev.Name].bytes_recv - stat1[dev.Name] .bytes_recv
-                        TxPerSec = stat2[dev.Name].bytes_sent - stat1[dev.Name] .bytes_sent
-                        stat = RequestNetworkInterfaceStat(dev.Id, dev.ServerId, RxPerSec, TxPerSec)
-                        MqSend = jsonpickle.encode(stat, unpicklable=False)
-                        MqSend = json.loads(MqSend)
-                        NetworkUsageMq.Sender(MqSend)
+                while True:
+                    if GlobalFlag['NetworkUpdated'] == Updated:
+                        GlobalFlag['NetworkUpdated'] = Checked
+                        logging.log(logging.INFO,'Network Info is Updated')
+                        break
 
-                        # Update Network Link Status
-                        LinkStat = NetworkInterfaceLinkStateItems(dev.Id, dev.ServerId, 'Up')
-                        MqSend = jsonpickle.encode(LinkStat, unpicklable=False)
-                        MqSend = json.loads(MqSend)
-                        NetworkLinkStateMq.Sender(MqSend)
-                    except Exception as err:
-                        print(err)
+                    for dev in Svr.NetworkInterfaces:
+                        try:
+                            stat1 = LocalDev.IoCounterPerNic
+                            LocalDev.ReNewalNicStat()
+                            time.sleep(1)
+                            # Update Network Io(Rx/Tx) bytes per 1 sec
+                            stat2 = LocalDev.IoCounterPerNic
+                            RxPerSec = stat2[dev.Name].bytes_recv - stat1[dev.Name] .bytes_recv
+                            TxPerSec = stat2[dev.Name].bytes_sent - stat1[dev.Name] .bytes_sent
+                            stat = RequestNetworkInterfaceStat(dev.Id, dev.ServerId, RxPerSec, TxPerSec)
+                            MqSend = jsonpickle.encode(stat, unpicklable=False)
+                            MqSend = json.loads(MqSend)
+                            NetworkUsageMq.Sender(MqSend)
+
+                            # Update Network Link Status
+                            LinkStat = NetworkInterfaceLinkStateItems(dev.Id, dev.ServerId, 'Up')
+                            MqSend = jsonpickle.encode(LinkStat, unpicklable=False)
+                            MqSend = json.loads(MqSend)
+                            NetworkLinkStateMq.Sender(MqSend)
+                        except Exception as err:
+                            print(err)
 
             else:
                 print('fail to get the registered network info', Ret.Message)
@@ -67,21 +75,38 @@ def UpdateNetworkStat(conf):
         time.sleep(NetworkMonitorInterval)
 
 @catch_exceptions()
-def MqNetworkHandler(RoutingKey, Body, Response, ServerId, ServiceList):
-    print(RoutingKey, Body, Response)
-    print("################################################################################")
-    ResponseReturn = ksan.mqmanage.mq.MqReturn(ResultSuccess)
+def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, GlobalFlag, logger):
+    logger.debug("%s %s %s" % (str(RoutingKey), str(Body), str(Response)))
+    ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
     Body = Body.decode('utf-8')
     Body = json.loads(Body)
     body = DictToObject(Body)
     if RoutKeyNetworkAddFinder.search(RoutingKey) or RoutKeyNetworkUpdateFinder.search(RoutingKey):
+        GlobalFlag['NetworkUpdated'] = Updated
         if body.ServerId == ServerId:
             Response.IsProcessed = True
             ret, errmsg = ManageNetworkInterface()
             if ret is False:
-                ResponseReturn = ksan.mqmanage.mq.MqReturn(ret, Code=1, Messages='fail')
+                ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages='fail')
             print(ResponseReturn)
         return ResponseReturn
+
+    elif RoutKeyNetworkAddedFinder.search(RoutingKey):
+            ServerId = body.ServerId
+            IpAddress = body.IpAddress
+            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.MgsIp, int(MonConf.mgs.IfsPortalPort), ServerId=ServerId, logger=logger)
+            if Res == ResOk:
+                if Ret.Result == ResultSuccess:
+                    HostName = Data.Name
+                    HostInfo = [(IpAddress, HostName)]
+                    UpdateEtcHosts(HostInfo, 'add')
+                    logging.log(logging.INFO, 'new host is added. %s' % str(HostInfo))
+                else:
+                    logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Ret.Message))
+            else:
+                logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Errmsg))
+
+
 
     else:
         Response.IsProcessed = True

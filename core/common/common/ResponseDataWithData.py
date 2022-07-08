@@ -11,7 +11,7 @@
 
 from typing import TypeVar, Generic, Type
 
-from ksan.Enums.EnumResponseResult import EnumResponseResult
+from Enums.EnumResponseResult import EnumResponseResult
 
 T = TypeVar('T')
 

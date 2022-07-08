@@ -16,30 +16,31 @@ import pdb
 
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.mqmanage.mq import *
-from ksan.disk.disk_manage import *
+from mqmanage.mq import *
+from disk.disk_manage import *
 from optparse import OptionParser
-from ksan.common.init import read_conf
+from common.init import read_conf
 
 
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanDisk {add|delete|start|stop|set|list} [option]
-                add       -S <server id> -p <disk path>                                : Add disk
-                remove    -I <disk id>                                                 : Remove disk
-                set       -I <disk id> [Rw|Ro]                                         : Set disk mode. Ro:ReadOnly, Rw: ReadWrite
-                start     -I <disk id>                                                 : Start disk 
-                stop      -I <disk id>                                                 : Stop disk 
-                update    -I <disk id>  -O <Disk Pool Id> -e <Description>             : Update Disk Info
-                list      -L <Detail>                                                  : Display disk info
+        Usage: ksanDisk {add|remove|set|start|stop|update|list} [option]
+                add       -n <server name> -p <disk path> -N <disk name>               : Add disk
+                remove    -N <disk name>                                               : Remove disk
+                set       -N <disk name> [Rw|Ro]                                       : Set disk mode. Ro:ReadOnly, Rw: ReadWrite
+                start     -N <disk name>                                               : Start disk 
+                stop      -N <disk name>                                               : Stop disk 
+                update    -N <disk name>  -P <Disk Pool Id> -c <Description>           : Update Disk Info
+                list      -l <Detail>                                                  : Display disk info
         [options]
-                -I                                                                     : Disk Id
-                -S                                                                     : Server Id
-                -p                                                                     : Disk Path
-                -e                                                                     : Description
-                -O                                                                     : Disk Pool Id
-                -L                                                                     : show information in detail
+                -D                                                                     : Disk Id
+                -N                                                                     : Disk Name
+                -n                                                                     : Server Name
+                -p                                                                     : Disk Mount Path
+                -c                                                                     : Description
+                -P                                                                     : Disk Pool Id
+                -l                                                                     : show Disk List in Detail
                 -h, --help                                                             : show this help message and exit
 """
         print(Usage)
@@ -54,17 +55,17 @@ def disk_control(IpAddress, Port, ServerId, DiskId, Action, logger=None):
 
 
 if __name__ == '__main__':
-    usage = "Usage: %prog {init|add|delete|update|show|status} [option]"
+    usage = "Usage: %prog {add|remove|set|start|stop|update|list} [option]"
     parser = MyOptionParser(usage=usage)
-    parser.add_option('-I', "--Id", dest="DiskId", help='Disk id')
+    parser.add_option('-D', "--Id", dest="DiskId", help='Disk id')
     parser.add_option('-p', "--Path", dest="Path", help='Disk mount path')
-    parser.add_option('-O', "--DiskPoolId", dest="DiskPoolId", help='Disk Pool Id')
+    parser.add_option('-P', "--DiskPoolId", dest="DiskPoolId", help='Disk Pool Id')
+    parser.add_option('-N', "--DiskName", dest="DiskName", help='Disk Name')
     parser.add_option('-S', "--Serverid", dest="ServerId", help='Server id')
-    parser.add_option('-s', "--State", dest="State", help='Disk state')
     parser.add_option('-z', "--Size", dest="TotalSize", help='Disk Total Size')
-    parser.add_option('-e', "--Description", dest="Description", help='Description')
-    parser.add_option('-n', "--Name", dest="Name", help='Disk Name')
-    parser.add_option('-L', "--Detail", dest="Detail", action='store_true', help='Detail info')
+    parser.add_option('-c', "--Description", dest="Description", help='Description')
+    parser.add_option('-n', "--ServerName", dest="ServerName", help='Server Name')
+    parser.add_option('-l', "--Detail", dest="Detail", action='store_true', help='Detail info')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()
@@ -91,7 +92,8 @@ if __name__ == '__main__':
         logger = Logging(loglevel='debug')
         logger = logger.create()
 
-    ServerId = None
+    #ServerId = None
+    """
     if args[0] in ['remove', 'update', 'start', 'stop', 'set', 'update_size']:
         Res, Errmsg, Ret, AllDiskList = GetDiskInfo(IfsPortalIp, IfsPortalPort, logger=logger)
         if Res == ResOk:
@@ -110,21 +112,23 @@ if __name__ == '__main__':
         else:
             print('fail to get ServerId with DiskID')
             sys.exit(-1)
+    """
 
     if args[0] == 'add':
-        if not options.ServerId:
+        if not ((options.ServerId or options.ServerName) and options.DiskName) :
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = AddDisk(IfsPortalIp, IfsPortalPort, options.ServerId, options.Path, logger=logger)
+        Res, Errmsg, Ret = AddDisk(IfsPortalIp, IfsPortalPort, options.Path, options.DiskName,
+                                   ServerId=options.ServerId, ServerName=options.ServerName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'remove':
-        if not options.DiskId:
+        if not (options.DiskId or options.DiskName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveDiskInfo(IfsPortalIp, IfsPortalPort, ServerId, options.DiskId, logger=logger)
+        Res, Errmsg, Ret = RemoveDiskInfo(IfsPortalIp, IfsPortalPort, DiskId=options.DiskId, Name=options.DiskName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -135,36 +139,18 @@ if __name__ == '__main__':
             sys.exit(-1)
         Res, Errmsg, Ret = UpdateDiskInfo(IfsPortalIp, IfsPortalPort, options.DiskId, Path=options.Path,
                                             DiskPoolId=options.DiskPoolId, Name=options.Name,
-                                          Description=options.Description, State=options.State, logger=logger)
+                                          Description=options.Description, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
-    elif args[0] == 'update_state':
-        if not (options.ServerId and options.DiskId and options.State):
-            parser.print_help()
-            sys.exit(-1)
-        Res, Errmsg, Ret = update_disk_state(IfsPortalIp, IfsPortalPort, options.ServerId, options.DiskId,
-                                             options.State, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
-    elif args[0] == 'update_hastate':
-        if not (options.ServerId and options.DiskId and options.State):
-            parser.print_help()
-            sys.exit(-1)
-        Res, Errmsg, Ret = update_disk_hastate(IfsPortalIp, IfsPortalPort, options.ServerId, options.DiskId,
-                                               options.State, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
+
+
     elif args[0] == 'update_size':
         if not options.DiskId:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateDiskSize(IfsPortalIp, IfsPortalPort, ServerId, options.DiskId,
+        Res, Errmsg, Ret = UpdateDiskSize(IfsPortalIp, IfsPortalPort, options.DiskId,
                                             TotalSize=options.TotalSize, UsedSize=options.TotalSize, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -172,7 +158,7 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'set':
-        if len(args) != 2 or not options.DiskId:
+        if len(args) != 2 or not (options.DiskId or options.DiskName):
             parser.print_help()
             sys.exit(-1)
         else:
@@ -180,19 +166,19 @@ if __name__ == '__main__':
                 parser.print_help()
                 sys.exit(-1)
             DiskMode = DiskModeRw if args[1] == 'Rw' else DiskModeRd
-            Res, Errmsg, Ret = ChangeDiskMode(IfsPortalIp, IfsPortalPort, ServerId, options.DiskId,
-                                              DiskMode, logger=logger)
+            Res, Errmsg, Ret = ChangeDiskMode(IfsPortalIp, IfsPortalPort, DiskMode, DiskId=options.DiskId,
+                                              Name=options.DiskName, logger=logger)
             if Res == ResOk:
                 print(Ret.Result, Ret.Message)
             else:
                 print(Errmsg)
 
     elif args[0] == 'start' or args[0] == 'stop':
-        if not options.DiskId or args[0] not in ['start', 'stop']:
+        if not(options.DiskId or options.DiskName) or args[0] not in ['start', 'stop']:
             parser.print_help()
             sys.exit(-1)
         Action = DiskStart if args[0] == 'start' else DiskStop
-        Res, Errmsg, Ret = StartStopDisk(options.IpAddress, options.Port, ServerId, options.DiskId, Action,
+        Res, Errmsg, Ret = StartStopDisk(options.IpAddress, options.Port, Action, DiskId=options.DiskId, Name=options.DiskName,
                                          logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)

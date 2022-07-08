@@ -13,9 +13,9 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from ksan.common.network import GetNetwork
-from ksan.common.display import *
-from ksan.server.server_manage import *
+from common.network import GetNetwork
+from common.display import *
+from server.server_manage import *
 
 
 def ManageNetworkInterface():
@@ -110,27 +110,35 @@ def ShowNetworkInterfaceInfo(ServersDetail, InterfaceId=None, Detail=False):
     :return:
     """
     if Detail:
-        title ="%s%s%s%s%s%s%s%s%s%s" % ('ServerName'.center(40), 'Interface Name'.center(20),   'Interface Id'.center(40),
-                                 'Description'.center(30), 'IpAddress'.center(20), 'MacAddress'.center(20),
-                                 'LinkStatus'.center(20),'BandWidth'.center(15),'Rx'.center(10),'Tx'.center(10)) # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+        NetworkTitleLine = '%s' % ('=' * 174)
+        NetworkDataLine = '%s' % ('-' * 174)
+        title ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'Interface Name'.center(15),   'Interface Id'.center(40),
+                                 'IpAddress'.center(20), 'MacAddress'.center(20),
+                                 'Link'.center(10),'BandWidth'.center(15),'Rx'.center(15),'Tx'.center(15)) # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
     else:
-        title ="%s%s%s%s%s%s" % ('ServerName'.center(40), 'Interface Name'.center(20), 'LinkStatus'.center(20),'BandWidth'.center(15),'Rx'.center(10),'Tx'.center(10))
+        NetworkTitleLine = '%s' % ('=' * 89)
+        NetworkDataLine = '%s' % ('-' * 89)
+        title ="|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'Interface Name'.center(15), 'Link'.center(10),'BandWidth'.center(15),'Rx'.center(15),'Tx'.center(15))
 
+    print(NetworkTitleLine)
     print(title)
+    print(NetworkTitleLine)
+
     for Svr in ServersDetail:
         for Net in Svr.NetworkInterfaces:
             if InterfaceId is not None and Net.Id != InterfaceId:
                 continue
             if Detail:
-                _Net ="%s%s%s%s%s%s%s%s%s%s" % (Svr.Name.center(40), Net.Name.center(20),
-                                        Net.Id.center(40),'{:30.30}'.format(str(Net.Description).center(30)),
+                _Net ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (Svr.Name.center(15), Net.Name.center(15),
+                                        Net.Id.center(40),
                                         '{:20.20}'.format(Net.IpAddress.center(20)), Net.MacAddress.center(20),
-                                        str(Net.LinkState).center(20), str(Net.BandWidth).center(15),
-                                        str(Net.Rx).center(10), str(Net.Tx).center(10))
+                                        str(Net.LinkState).center(10), str(Net.BandWidth).center(15),
+                                        str(Net.Rx).center(15), str(Net.Tx).center(15))
             else:
-                _Net ="%s%s%s%s%s%s" % (Svr.Name.center(40), Net.Name.center(20),str(Net.LinkState).center(20), str(Net.BandWidth).center(15),
-                                        str(Net.Rx).center(10), str(Net.Tx).center(10))
+                _Net ="|%s|%s|%s|%s|%s|%s|" % (Svr.Name.center(15), Net.Name.center(15),str(Net.LinkState).center(10), str(Net.BandWidth).center(15),
+                                        str(Net.Rx).center(15), str(Net.Tx).center(15))
             print(_Net)
+            print(NetworkDataLine)
 
             #for Vlan in Net.NetworkInterfaceVlans:
             #_nic ="%s%s%s%s%s%s%s%s" % (Svr.Id.center(40), Svr.Net.Name.center(40),
