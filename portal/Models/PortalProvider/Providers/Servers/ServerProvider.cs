@@ -39,6 +39,9 @@ namespace PortalProvider.Providers.Servers
 	public class ServerProvider : BaseProvider<PortalModel>, IServerProvider
 	{
 
+		/// <summary>API KEY 데이터 프로바이더 객체</summary>
+		readonly IApiKeyProvider m_apiKeyProvider;
+
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
 		/// <param name="configuration">역할 정보</param>
@@ -54,10 +57,12 @@ namespace PortalProvider.Providers.Servers
 			ISystemLogProvider systemLogProvider,
 			IUserActionLogProvider userActionLogProvider,
 			IServiceScopeFactory serviceScopeFactory,
-			ILogger<ServerProvider> logger
+			ILogger<ServerProvider> logger,
+			IApiKeyProvider apiKeyProvider
 		)
 			: base(dbContext, configuration, userManager, systemLogProvider, userActionLogProvider, serviceScopeFactory, logger)
 		{
+			m_apiKeyProvider = apiKeyProvider;
 		}
 
 		/// <summary>서버 등록</summary>
@@ -140,12 +145,19 @@ namespace PortalProvider.Providers.Servers
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
+				// 내부 서비스용 API 키를 가져온다.
+				var InternalServiceApiKey = await m_apiKeyProvider.GetMainApiKey();
+
+				if (InternalServiceApiKey == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
+
 				// SSH 접속
-				var Client = new SshClient(Request.ServerIp, "root", "qwe123");
+				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
 				Client.Connect();
 
 				// 명령어 생성 및 실행
-				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}");
+				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}" +
+					$" -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]} -k {m_apiKeyProvider.GetMainApiKey()}");
 
 				// 결과 받아오기
 				await Task.Run(() => Commend.Execute());
