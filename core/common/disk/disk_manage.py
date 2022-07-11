@@ -74,7 +74,7 @@ def WriteDiskId(Path, DiskId):
 
 
 @catch_exceptions()
-def AddDisk(Ip, Port, Path, DiskName, ServerId=None, ServerName=None, DiskPoolId='',logger=None):
+def AddDisk(Ip, Port, ApiKey, Path, DiskName, ServerId=None, ServerName=None, DiskPoolId='',logger=None):
 
     if ServerId is not None:
         TargetServer = ServerId
@@ -87,14 +87,14 @@ def AddDisk(Ip, Port, Path, DiskName, ServerId=None, ServerName=None, DiskPoolId
     disk = AddDiskObject()
     disk.Set(DiskName, Path, 'Stop', 0, 0, 0, 0, 0, 0, 'ReadWrite', DiskPoolId=DiskPoolId)
     body = jsonpickle.encode(disk, make_refs=False)
-    Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 
 @catch_exceptions()
-def UpdateDiskInfo(Ip, Port, DiskId=None, DiskPoolId=None, Path=None, Name=None, Description=None, State=None, logger=None):
-    Res, Errmsg, Disk, ServerId = GetDiskInfoWithId(Ip, Port, DiskId=DiskId, Name=Name, logger=logger)
+def UpdateDiskInfo(Ip, Port, ApiKey, DiskId=None, DiskPoolId=None, Path=None, Name=None, Description=None, State=None, logger=None):
+    Res, Errmsg, Disk, ServerId = GetDiskInfoWithId(Ip, Port, ApiKey, DiskId=DiskId, Name=Name, logger=logger)
     if Res != ResOk:
         return Res, Errmsg, None
 
@@ -119,7 +119,7 @@ def UpdateDiskInfo(Ip, Port, DiskId=None, DiskPoolId=None, Path=None, Name=None,
     #Url = '/api/v1/Servers/%s/Disks/%s' % (ServerId, DiskId)
     Url = '/api/v1/Disks/%s' % TargetDisk
     body = jsonpickle.encode(Disk, make_refs=False)
-    Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Ret = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     if Res == ResOk:
         return Res, Errmsg, Ret
@@ -128,7 +128,7 @@ def UpdateDiskInfo(Ip, Port, DiskId=None, DiskPoolId=None, Path=None, Name=None,
 
 
 @catch_exceptions()
-def RemoveDiskInfo(ip, port, DiskId=None, Name=None, logger=None):
+def RemoveDiskInfo(ip, port, ApiKey, DiskId=None, Name=None, logger=None):
     # get network interface info
     if DiskId is not None:
         TargetDisk = DiskId
@@ -139,7 +139,7 @@ def RemoveDiskInfo(ip, port, DiskId=None, Name=None, logger=None):
 
 
     Url = '/api/v1/Disks/%s' % TargetDisk
-    Conn = RestApi(ip, port, Url, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete()
     return Res, Errmsg, Ret
 
@@ -171,9 +171,9 @@ def update_disk_hastate(Ip, Port, ServerId, DiskId, HaAction, logger=None):
 
 
 @catch_exceptions()
-def UpdateDiskSize(Ip, Port,  DiskId, TotalSize=None, UsedSize=None,
+def UpdateDiskSize(Ip, Port,  ApiKey, DiskId, TotalSize=None, UsedSize=None,
                    TotalInode=None, UsedInode=None, logger=None):
-    Res, Errmgs, Ret, Disk = GetDiskInfo(Ip, Port,  DiskId=DiskId, logger=logger)
+    Res, Errmgs, Ret, Disk = GetDiskInfo(Ip, Port, ApiKey, DiskId=DiskId, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             Disk = Disk[0]
@@ -191,7 +191,7 @@ def UpdateDiskSize(Ip, Port,  DiskId, TotalSize=None, UsedSize=None,
 
             Url = '/api/v1/Disks/Size'
             body = jsonpickle.encode(NewDisk, make_refs=False)
-            Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
+            Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
             res, errmsg, ret = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
             if res == ResOk:
                 return res, errmsg, ret
@@ -204,7 +204,7 @@ def UpdateDiskSize(Ip, Port,  DiskId, TotalSize=None, UsedSize=None,
 
 
 @catch_exceptions()
-def ChangeDiskMode(Ip, Port, RwMode, DiskId=None, Name=None, logger=None):
+def ChangeDiskMode(Ip, Port, ApiKey, RwMode, DiskId=None, Name=None, logger=None):
 
     if DiskId is not None:
         TargetDisk = DiskId
@@ -217,13 +217,13 @@ def ChangeDiskMode(Ip, Port, RwMode, DiskId=None, Name=None, logger=None):
         return ResInvalidCode, ResInvalidMsg, None
     Url = '/api/v1/Disks/%s/RwMode/%s' % \
           (TargetDisk, RwMode)
-    Conn = RestApi(Ip, Port, Url, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.put()
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def StartStopDisk(Ip, Port, Action, DiskId=None, Name=None, logger=None):
+def StartStopDisk(Ip, Port, ApiKey, Action, DiskId=None, Name=None, logger=None):
 
     if DiskId is not None:
         TargetDisk = DiskId
@@ -234,12 +234,12 @@ def StartStopDisk(Ip, Port, Action, DiskId=None, Name=None, logger=None):
 
     Url = '/api/v1/Disks/%s/State/%s' % \
           (TargetDisk, Action)
-    Conn = RestApi(Ip, Port, Url, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.put()
     return Res, Errmsg, Ret
 
 
-def GetDiskInfo(Ip, Port, DiskId=None, Name=None, logger=None):
+def GetDiskInfo(Ip, Port, ApiKey, DiskId=None, Name=None, logger=None):
     """
     Get All Disk Info with Server Info
     :param Ip:
@@ -266,7 +266,7 @@ def GetDiskInfo(Ip, Port, DiskId=None, Name=None, logger=None):
 
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=Params, logger=logger)
 
     Res, Errmsg, Ret= Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
@@ -282,9 +282,9 @@ def GetDiskInfo(Ip, Port, DiskId=None, Name=None, logger=None):
 
 
 @catch_exceptions()
-def GetDiskInfoWithId(Ip, Port, DiskId=None, Name=None, logger=None):
+def GetDiskInfoWithId(Ip, Port, ApiKey, DiskId=None, Name=None, logger=None):
 
-    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(Ip, Port, logger=logger)
+    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(Ip, Port, ApiKey, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for Svr in Servers:

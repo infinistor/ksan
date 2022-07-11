@@ -21,7 +21,7 @@ from server.server_manage import *
 def ManageNetworkInterface():
     return True, ''
 
-def GetNetworkInterface(ip, port, ServerId, InterfaceId=None, disp=False, logger=None):
+def GetNetworkInterface(ip, port, ApiKey, ServerId, InterfaceId=None, disp=False, logger=None):
     """
     get server info all or specific server info with Id
     :param ip:
@@ -43,7 +43,7 @@ def GetNetworkInterface(ip, port, ServerId, InterfaceId=None, disp=False, logger
         Url = "/api/v1/Servers/%s/NetworkInterfaces" % ServerId
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         AllNetworks = list()
@@ -209,7 +209,7 @@ def AddNetworkInterfaceOld(ip, port, ServerId, NicName, Description=None, logger
     return Res, Errmsg, Ret
 
 @catch_exceptions()
-def AddNetworkInterface(ip, port, ServerId, NetworkInfo, logger=None):
+def AddNetworkInterface(ip, port, ApiKey, ServerId, NetworkInfo, logger=None):
     """
     add network interface with name
     :param ip:
@@ -226,7 +226,7 @@ def AddNetworkInterface(ip, port, ServerId, NetworkInfo, logger=None):
     ReturnType = NetworkInterfaceItemsModule
 
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 

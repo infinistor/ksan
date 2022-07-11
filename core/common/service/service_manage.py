@@ -55,13 +55,13 @@ S3DefaultDbHost = '127.0.0.1'
 S3DefaultDatabase = 'ksan'
 S3DefaultDbPort = 3306
 S3DefaultDbUser = 'root'
-S3DefaultDbPassword = 'qwe123'
+S3DefaultDbPassword = 'YOUR_DB_PASSWORD'
 S3DefaultDbPoolSize = 20
 S3DefaultGwAuthrization = 'AWS_V2_OR_V4'
 S3DefaultGwEndpoint = 'http://0.0.0.0:8080'
 S3DefaultGwSecureEndpoint = 'https://0.0.0.0:8443'
 S3DefaultGwKeyStorePath = '/usr/local/ksan/ssl/pspace.jks'
-S3DefaultGwtKeyStorePassword = 'qwe123'
+S3DefaultGwtKeyStorePassword = 'YOUR_JKS_PASSWORD'
 S3DefaultGwMaxFileSize = 3221225472
 S3DefaultGwMaxListSize = 200000
 S3DefaultGwMaxTimeSkew = 9000
@@ -79,7 +79,7 @@ ObjManagerDefaultDbHost = '127.0.0.1'
 ObjManagerDefaultDatabase = 'ksan'
 ObjManagerDefaultDbPort = 3306
 ObjManagerDefaultDbUser = 'root'
-ObjManagerDefaultDbPassword = 'qwe123'
+ObjManagerDefaultDbPassword = 'YOUR_DB_PASSWORD'
 ObjManagerDefaultMqHost = '127.0.0.1'
 ObjManagerDefaultMqName = 'disk'
 ObjManagerDefaultMqDiskpoolQueueName = 'disk'
@@ -157,8 +157,8 @@ MongoDbConfigInfo = [
 
 
 @catch_exceptions()
-def AddService(MgsIp, Port, ServiceName, ServiceType, ServerId=None, ServerName=None, GroupId='', Description='', logger=None):
-    VlanIds = GetVlanIdListFromServerDetail(MgsIp, Port, ServerId=ServerId, ServerName=ServerName, logger=logger)
+def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, ServerName=None, GroupId='', Description='', logger=None):
+    VlanIds = GetVlanIdListFromServerDetail(MgsIp, Port, ApiKey, ServerId=ServerId, ServerName=ServerName, logger=logger)
     if VlanIds is None:
         return ResEtcErrorCode, ResFailToGetVlainId, None
 
@@ -169,14 +169,14 @@ def AddService(MgsIp, Port, ServiceName, ServiceType, ServerId=None, ServerName=
 
     Url = "/api/v1/Services"
     body = jsonpickle.encode(Service, make_refs=False)
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 def RegisterService(Conf, ServiceType, logger):
     out, err = shcall('hostname')
     ServiceName = out[:-1] + '_%s' % ServiceType
-    Res, Errmsg, Ret = AddService(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort, ServiceName, ServiceType,
+    Res, Errmsg, Ret = AddService(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort, Conf.mgs.IfsPortalKey,  ServiceName, ServiceType,
                                   Conf.mgs.ServerId, logger=logger)
     if Res == ResOk:
         if Ret.Result != ResultSuccess:
@@ -190,7 +190,7 @@ def KsanServiceRegister(Conf, ServiceType, logger):
     Retry = 0
     while True:
         Retry += 1
-        Res, Errmsg, Ret, Data = GetServerInfo(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort, ServerId=Conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Data = GetServerInfo(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort,Conf.mgs.IfsPortalKey , ServerId=Conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 NetworkInterfaces = Data.NetworkInterfaces
@@ -208,7 +208,7 @@ def KsanServiceRegister(Conf, ServiceType, logger):
         RegisterService(Conf, ServiceType, logger)
 
 @catch_exceptions()
-def DeleteService(ip, port, ServiceId=None, ServiceName=None, logger=None):
+def DeleteService(ip, port, ApiKey, ServiceId=None, ServiceName=None, logger=None):
     """
     delete serviceinfo from server pool
     :param ip:
@@ -225,13 +225,13 @@ def DeleteService(ip, port, ServiceId=None, ServiceName=None, logger=None):
         return ResInvalidCode, ResInvalidMsg, None
 
     Url = '/api/v1/Services/%s' % TargetServcie
-    Conn = RestApi(ip, port, Url, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete()
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def GetServiceInfo(MgsIp, Port, ServiceId=None, ServiceName=None, logger=None):
+def GetServiceInfo(MgsIp, Port, ApiKey, ServiceId=None, ServiceName=None, logger=None):
     """
     get service info all or specific service info with Id
     :param ip:
@@ -256,7 +256,7 @@ def GetServiceInfo(MgsIp, Port, ServiceId=None, ServiceName=None, logger=None):
         ReturnType = ServiceItemsDetailModule
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(MgsIp, Port, Url, params=Params, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         AllServiceInfo = list()
@@ -270,7 +270,7 @@ def GetServiceInfo(MgsIp, Port, ServiceId=None, ServiceName=None, logger=None):
         return Res, Errmsg, None, None
 
 @catch_exceptions()
-def GetServiceMongoDBConfig(MgsIp, Port, logger=None):
+def GetServiceMongoDBConfig(MgsIp, Port, ApiKey, logger=None):
     """
     get service info all or specific service info with Id
     :param ip:
@@ -284,7 +284,7 @@ def GetServiceMongoDBConfig(MgsIp, Port, logger=None):
 
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(MgsIp, Port, Url, params=Params, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         AllServiceInfo = list()
@@ -314,9 +314,9 @@ def GetServiceConfigFromFile(ServiceType):
 
 
 @catch_exceptions()
-def UpdateServiceInfo(MgsIp, Port, ServiceId=None, ServiceName=None, GroupId=None, Description=None, ServiceType=None,
+def UpdateServiceInfo(MgsIp, Port, ApiKey, ServiceId=None, ServiceName=None, GroupId=None, Description=None, ServiceType=None,
                       HaAction=None, State=None, logger=None):
-    Res, Errmsg, Ret, Service = GetServiceInfo(MgsIp, Port, ServiceId=ServiceId, ServiceName=ServiceName, logger=logger)
+    Res, Errmsg, Ret, Service = GetServiceInfo(MgsIp, Port, ApiKey, ServiceId=ServiceId, ServiceName=ServiceName, logger=logger)
     if Res != ResOk:
         return Res, Errmsg, None
     else:
@@ -352,36 +352,36 @@ def UpdateServiceInfo(MgsIp, Port, ServiceId=None, ServiceName=None, GroupId=Non
 
     Url = "/api/v1/Services/%s" % TargetServcie
     body = jsonpickle.encode(NewService, make_refs=False)
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 
 
 @catch_exceptions()
-def UpdateServiceState(MgsIp, Port, ServiceId, State, logger=None):
+def UpdateServiceState(MgsIp, Port, ApiKey, ServiceId, State, logger=None):
 
     Url = "/api/v1/Services/%s/State/%s" % (ServiceId, State)
     body = dict()
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 
 @catch_exceptions()
-def UpdateServiceUsage(MgsIp, Port, ServiceId, logger=None):
+def UpdateServiceUsage(MgsIp, Port, ApiKey, ServiceId, logger=None):
     Usage = UpdateServiceUsageObject()
     Usage.Set(ServiceId, 48, 55555, 88)
     Url = "/api/v1/Services/Usage"
     body = jsonpickle.encode(Usage, make_refs=False)
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 
 @catch_exceptions()
-def ControlService(MgsIp, Port, Control, ServiceId=None, ServiceName=None, logger=None):
-    Res, Errmsg, Ret, Data = GetServiceInfo(MgsIp, Port, ServiceId=ServiceId, ServiceName=ServiceName, logger=logger)
+def ControlService(MgsIp, Port, ApiKey, Control, ServiceId=None, ServiceName=None, logger=None):
+    Res, Errmsg, Ret, Data = GetServiceInfo(MgsIp, Port, ApiKey, ServiceId=ServiceId, ServiceName=ServiceName, logger=logger)
     if Res != ResOk:
         return Res, Errmsg, None
     else:
@@ -397,7 +397,7 @@ def ControlService(MgsIp, Port, Control, ServiceId=None, ServiceName=None, logge
 
     Url = "/api/v1/Services/%s/%s" % (TargetServcie, Control)
     body = dict()
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
+    Conn = RestApi(MgsIp, Port, Url, authkey=ApiKey,params=body, logger=logger)
     Res, Errmsg, Data = Conn.post()
     return Res, Errmsg, Data
 
@@ -504,12 +504,12 @@ def ShowServiceInfoWithServerInfo(ServerList, Detail=False, Ip=None, Port=None):
 
 
 @catch_exceptions()
-def GetVlanIdListFromServerDetail(MgsIp, PortarPort, ServerId=None, ServerName=None, logger=None):
+def GetVlanIdListFromServerDetail(MgsIp, PortarPort, ApiKey, ServerId=None, ServerName=None, logger=None):
     retry = 0
     VlanIds = list()
     while True:
         retry += 1
-        Res, Errmsg, Ret, Data = GetServerInfo(MgsIp, PortarPort, ServerId=ServerId, Name=ServerName, logger=logger)
+        Res, Errmsg, Ret, Data = GetServerInfo(MgsIp, PortarPort, ApiKey, ServerId=ServerId, Name=ServerName, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 for net in Data.NetworkInterfaces:
@@ -774,7 +774,7 @@ def GetDspConfString(Conf, Prefix):
 
 
 @catch_exceptions()
-def GetServiceConfigList(PortalIp, PortalPort, ServiceType, logger=None):
+def GetServiceConfigList(PortalIp, PortalPort, ApiKey, ServiceType, logger=None):
     """
     Get config list from portal
     :param PortalIp:
@@ -789,7 +789,7 @@ def GetServiceConfigList(PortalIp, PortalPort, ServiceType, logger=None):
     Params = dict()
     Params['countPerPage'] = 100
 
-    Conn = RestApi(PortalIp, PortalPort, Url, params=Params, logger=logger)
+    Conn = RestApi(PortalIp, PortalPort, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         ConfigList = list()
@@ -860,7 +860,7 @@ def DsPServiceConf(Config, TopTitleLine=False):
 
 
 @catch_exceptions()
-def GetServiceConfig(PortalIp, PortalPort, ServiceType, Version=None, logger=None):
+def GetServiceConfig(PortalIp, PortalPort, ApiKey, ServiceType, Version=None, logger=None):
     Url = '/api/v1/Config/%s' % ServiceType
     if Version is not None:
         Url += '/%s' % Version
@@ -869,7 +869,7 @@ def GetServiceConfig(PortalIp, PortalPort, ServiceType, Version=None, logger=Non
     ReturnType = ServiceGroupItemsModule
 
     Params = dict()
-    Conn = RestApi(PortalIp, PortalPort, Url, params=Params, logger=logger)
+    Conn = RestApi(PortalIp, PortalPort, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         AllServiceInfo = list()
@@ -881,7 +881,7 @@ def GetServiceConfig(PortalIp, PortalPort, ServiceType, Version=None, logger=Non
         return Res, Errmsg, None, None
 
 @catch_exceptions()
-def UpdateServiceConfigVersion(PortalIp, PortalPort, ServiceType, Version, logger=None):
+def UpdateServiceConfigVersion(PortalIp, PortalPort, ApiKey, ServiceType, Version, logger=None):
     """
     Update config version
     :param PortalIp:
@@ -894,18 +894,18 @@ def UpdateServiceConfigVersion(PortalIp, PortalPort, ServiceType, Version, logge
 
     Url = "/api/v1/Config/%s/%s" % (ServiceType, Version)
     body = json.dumps(dict())
-    Conn = RestApi(PortalIp, PortalPort, Url, params=body, logger=logger)
+    Conn = RestApi(PortalIp, PortalPort, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
 
 @catch_exceptions()
-def SetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, ConfigFilePath=None, logger=None):
-    Conf = GetConfig(IfsPortalIp, IfsPortalPort, ServiceType, logger, ConfigFilePath=ConfigFilePath)
+def SetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, ConfigFilePath=None, logger=None):
+    Conf = GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfigFilePath=ConfigFilePath)
 
     Url = "/api/v1/Config/%s" % ServiceType
     body = Conf
-    Conn = RestApi(IfsPortalIp, IfsPortalPort, Url, params=body, logger=logger)
+    Conn = RestApi(IfsPortalIp, IfsPortalPort, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
@@ -915,7 +915,7 @@ def UpdateServiceConfig(ServiceType, Version=None, ConfigFile=False):
     pass
 
 @catch_exceptions()
-def RemoveServiceConfig(PortalIp, PortalPort, ServiceType, Version, logger=None):
+def RemoveServiceConfig(PortalIp, PortalPort, ApiKey, ServiceType, Version, logger=None):
     """
     delete service config from config list
     :param ip:
@@ -925,14 +925,14 @@ def RemoveServiceConfig(PortalIp, PortalPort, ServiceType, Version, logger=None)
     :return:tuple(error code, error msg, ResponseHeader class)
     """
     Url = '/api/v1/Config/%s/%s' % (ServiceType, Version)
-    Conn = RestApi(PortalIp, PortalPort, Url, logger=logger)
+    Conn = RestApi(PortalIp, PortalPort, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete()
     return Res, Errmsg, Ret
 
 
-def GetConfig(IfsPortalIp, IfsPortalPort, ServiceType, logger, ConfigFilePath=None):
+def GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfigFilePath=None):
     if ConfigFilePath is None:
-        Conf = GetConfigFromUser(IfsPortalIp, IfsPortalPort, ServiceType, logger)
+        Conf = GetConfigFromUser(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger)
         Conf = json.dumps(Conf)
         Conf = Conf.replace('"', '\\"')
         Conf = '"'+ Conf + '"'
@@ -941,9 +941,9 @@ def GetConfig(IfsPortalIp, IfsPortalPort, ServiceType, logger, ConfigFilePath=No
         pass
 
 
-def GetConfigFromUser(IfsPortalIp, IfsPortalPort, ServiceType, logger):
+def GetConfigFromUser(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger):
 
-    ConfigInfo = GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ServiceType, logger)
+    ConfigInfo = GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger)
 
     Conf = dict()
     for info in ConfigInfo:
@@ -959,8 +959,8 @@ def GetConfigFromUser(IfsPortalIp, IfsPortalPort, ServiceType, logger):
     return Conf
 
 
-def GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ServiceType, logger):
-    Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, logger=logger)
+def GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger):
+    Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger=logger)
     if Res != ResOk:
         logger.error('fail to get config %s' % Errmsg)
     else:

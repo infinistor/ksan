@@ -55,11 +55,13 @@ if __name__ == '__main__':
     IfsPortalIp = ''
     IfsPortalPort = 0
     IfsMqPort = 0
+    ApiKey = ''
     ret, conf = read_conf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf['mgs']['MgsIp']
         IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
         IfsMqPort = int(conf['mgs']['MqPort'])
+        ApiKey = conf['mgs']['IfsPortalKey']
     else:
         if args[0] != 'init':
             print("ksanMon.conf is not configured. ./ksanServer init first")
@@ -73,7 +75,7 @@ if __name__ == '__main__':
     if args[0] == 'init':
         InitMonServicedConf()
     elif args[0] == 'add':
-        Res, Errmsg, Ret = ServerInit(IfsPortalIp, IfsPortalPort, options.IpAddress, IfsMqPort, logger=logger)
+        Res, Errmsg, Ret = ServerInit(IfsPortalIp, IfsPortalPort, options.IpAddress, IfsMqPort, ApiKey, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -83,17 +85,17 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = RemoveServer(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name, logger=logger)
+        Res, Errmsg, Ret = RemoveServer(IfsPortalIp, IfsPortalPort, ApiKey, ServerId=options.ServerId, Name=options.Name, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'update':
-        if options.ServerId is None:
+        if not (options.ServerId or options.Name):
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name,
+        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServerId=options.ServerId, Name=options.Name,
                                             Description=options.Description, State=options.State, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -105,7 +107,7 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ServerId=options.ServerId, Name=options.Name, State=options.State, logger=logger)
+        Res, Errmsg, Ret = UpdateServerInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServerId=options.ServerId, Name=options.Name, State=options.State, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -114,7 +116,7 @@ if __name__ == '__main__':
         Detail = False
         if options.Detail:
             Detail = True
-        Res, errmsg, Ret, Data = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, logger=logger)
+        Res, errmsg, Ret, Data = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, ApiKey, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 ShowServerInfo(Data, Id=options.ServerId, Detail=options.Detail)
@@ -126,7 +128,7 @@ if __name__ == '__main__':
         if options.name is None:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = server_exist_check_with_servername(IfsPortalIp, IfsPortalPort, options.Name,
+        Res, Errmsg, Ret = server_exist_check_with_servername(IfsPortalIp, IfsPortalPort, options.Name, ApiKey,
                                                               ExcludeServerId=options.ServerId, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message, Ret.Data)

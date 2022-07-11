@@ -17,6 +17,7 @@ import jsonpickle
 from common.httpapi import *
 from common.httpapi import RestApi, disp_serverinfo, get_res
 from common.define import *
+from common.init import get_input
 from optparse import OptionParser
 
 """
@@ -43,7 +44,7 @@ class GetServerUsage(object):
 
 
 @catch_exceptions()
-def GetServerInfo(Ip, Port, ServerId=None, Name=None, logger=None):
+def GetServerInfo(Ip, Port, ApiKey, ServerId=None, Name=None, logger=None):
     """
     get server info all or specific server info with Id
     :param ip:
@@ -69,7 +70,7 @@ def GetServerInfo(Ip, Port, ServerId=None, Name=None, logger=None):
         ReturnType = ServerItemsModule
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         AllServerInfo = list()
@@ -84,13 +85,13 @@ def GetServerInfo(Ip, Port, ServerId=None, Name=None, logger=None):
         return Res, Errmsg, None, None
 
 
-def GetAllServerDetailInfo(Ip, Port, logger=None):
-    Res, Errmsg, Ret, Servers = GetServerInfo(Ip, Port, logger=logger)
+def GetAllServerDetailInfo(Ip, Port, Apikey, logger=None):
+    Res, Errmsg, Ret, Servers = GetServerInfo(Ip, Port, Apikey, logger=logger)
     if Res == ResOk:
         AllServerDetailInfo = list()
         if Ret.Result == ResultSuccess:
             for Svr in Servers:
-                Res, Errmsg, Ret, Detail = GetServerInfo(Ip, Port, ServerId=Svr.Id, logger=logger)
+                Res, Errmsg, Ret, Detail = GetServerInfo(Ip, Port, Apikey, ServerId=Svr.Id, logger=logger)
                 if Res == ResOk:
                     AllServerDetailInfo.append(Detail)
                 else:
@@ -149,7 +150,7 @@ def ShowServerInfo(Data, Id=None, Detail=False):
 
 
 @catch_exceptions()
-def AddServer(ip, port, Description, logger=None):
+def AddServer(ip, port, ApiKey,  Description, logger=None):
     """
     register server info
     :param ip: string
@@ -163,14 +164,14 @@ def AddServer(ip, port, Description, logger=None):
     Url = '/api/v1/Servers'
     ReturnType = ResponseHeaderModule
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 
 @catch_exceptions()
-def ServerInit(ip, port, TargetServerIp, MqPort, logger=None):
+def ServerInit(ip, port, TargetServerIp, MqPort, ApiKey, logger=None):
     """
     register server info
     :param ip: string
@@ -179,19 +180,21 @@ def ServerInit(ip, port, TargetServerIp, MqPort, logger=None):
     :param logger:
     :return:tuple(error code, error msg, Success to get result:header, fail to get result: None)
     """
+    SshUser = get_input('Insert Ssh User', str, default='root')
+    SshPassword = get_input('Insert Ssh Password', 'pwd', default='')
     server = RequestServerInitInfo()
-    server.Set(TargetServerIp, ip, MqPort, port)
+    server.Set(TargetServerIp, ip, MqPort, port, SshUser, SshPassword)
     body = jsonpickle.encode(server, make_refs=False)
     Url = '/api/v1/Servers/Initialize'
     ReturnType = ResponseHeaderModule
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def RegisterServer(ip, port, Description, Name=None, logger=None):
+def RegisterServer(ip, port, ApiKey, Description, Name=None, logger=None):
     """
     register server info to server pool
     :param ip: string
@@ -207,13 +210,14 @@ def RegisterServer(ip, port, Description, Name=None, logger=None):
     ItemsHeader = False
     ReturnType = ServerItemsDetailModule
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
+
     Res, Errmsg, Ret = Conn.post(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             return Res, Errmsg, Ret, Ret.Data
         elif Ret.Code == CodeDuplicated:
-            res, errmsg, ret, AllServerInfo = GetServerInfo(ip, port, logger=logger)
+            res, errmsg, ret, AllServerInfo = GetServerInfo(ip, port, ApiKey, logger=logger)
             if res == ResOk:
                 for svr in ret.Data.Items:
                     if svr.Name == Name:
@@ -223,7 +227,7 @@ def RegisterServer(ip, port, Description, Name=None, logger=None):
 
 
 @catch_exceptions()
-def UpdateServerInfo(Ip, Port, ServerId=None, Name=None, Description=None, State=None, logger=None):
+def UpdateServerInfo(Ip, Port, Authkey, ServerId=None, Name=None, Description=None, State=None, logger=None):
     """
     update server info
     :param ip:
@@ -239,7 +243,7 @@ def UpdateServerInfo(Ip, Port, ServerId=None, Name=None, Description=None, State
     else:
         return ResInvalidCode, ResInvalidMsg, None
 
-    Res, Errmsg, Ret, Data = GetServerInfo(Ip, Port, ServerId=TargetServer, logger=logger)
+    Res, Errmsg, Ret, Data = GetServerInfo(Ip, Port, Authkey, ServerId=TargetServer, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             if Name is not None:
@@ -254,7 +258,7 @@ def UpdateServerInfo(Ip, Port, ServerId=None, Name=None, Description=None, State
             server.Set(Data.Name, Data.Description, Data.CpuModel, Data.Clock, Data.State, Data.Rack, Data.MemoryTotal)
             body = jsonpickle.encode(server, make_refs=False)
             Params = body
-            Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
+            Conn = RestApi(Ip, Port, Url, authkey=Authkey, params=Params, logger=logger)
             Ret, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResPonseHeader)
             return Ret, Errmsg, Data
         else:
@@ -321,7 +325,7 @@ def UpdateServerState(Ip, Port, ServerId, State, logger=None):
 
 
 @catch_exceptions()
-def RemoveServer(ip, port, ServerId=None, Name=None, logger=None):
+def RemoveServer(ip, port, ApiKey, ServerId=None, Name=None, logger=None):
     """
     delete server info from server pool
     :param ip:
@@ -341,13 +345,13 @@ def RemoveServer(ip, port, ServerId=None, Name=None, logger=None):
     Url = '/api/v1/Servers/%s' % TargetServer
 
     ReturnType = ResponseHeaderModule
-    Conn = RestApi(ip, port, Url, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def server_exist_check_with_servername(ip, port, Name, ExcludeServerId=None, logger=None):
+def server_exist_check_with_servername(ip, port, Name, Authkey, ExcludeServerId=None, logger=None):
     """
     check if a specific server exists with Name.
     :param ip:
@@ -364,7 +368,7 @@ def server_exist_check_with_servername(ip, port, Name, ExcludeServerId=None, log
     else:
         Url = '/api/v1/Servers/Exist'
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=Authkey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post()
     return Res, Errmsg, Ret
 

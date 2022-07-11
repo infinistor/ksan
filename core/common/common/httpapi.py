@@ -27,7 +27,7 @@ import json
 import jsonpickle
 import pdb
 
-AuthKey = "5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8"
+#AuthKey = "5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8"
 IfsPortalIp = None
 IfsPortalPort = None
 
@@ -88,7 +88,7 @@ NETWORK_AUTHENTICATION_REQUIRED = 511
 
 class RestApi:
 
-    def __init__(self, ip, port, url, header=None, params=None, protocol='https', authkey=AuthKey, logger=None):
+    def __init__(self, ip, port, url, header=None, params=None, protocol='https', authkey=None, logger=None):
         self._ip = ip
         self._port = port
         self._params = params

@@ -46,14 +46,6 @@ class MyOptionParser(OptionParser):
         print(Usage)
 
 
-def disk_control(IpAddress, Port, ServerId, DiskId, Action, logger=None):
-    mq = Mq(IpAddress, Port, '/', 'guest', 'guest', MqDiskQueueRoutingKey, MqDiskQueueExchangeName, MqDiskQueueName)
-    Data = {"DiskNo": DiskId, "Mode": Action, "ServerId": ServerId}
-    if logger is not None:
-        logger.debug("Send >> %s" % str(Data))
-    print(mq.Sender(Data))
-
-
 if __name__ == '__main__':
     usage = "Usage: %prog {add|remove|set|start|stop|update|list} [option]"
     parser = MyOptionParser(usage=usage)
@@ -77,12 +69,13 @@ if __name__ == '__main__':
     IfsPortalIp = '127.0.0.1'
     IfsPortalPort = 5443
     IfsMqPort = 5672
+    IfsPortalKey = ''
     ret, conf = read_conf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf['mgs']['MgsIp']
         IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
         IfsMqPort = int(conf['mgs']['MqPort'])
-
+        IfsPortalKey = conf['mgs']['IfsPortalKey']
 
 
     options.IpAddress = IfsPortalIp
@@ -118,7 +111,7 @@ if __name__ == '__main__':
         if not ((options.ServerId or options.ServerName) and options.DiskName) :
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = AddDisk(IfsPortalIp, IfsPortalPort, options.Path, options.DiskName,
+        Res, Errmsg, Ret = AddDisk(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.Path, options.DiskName,
                                    ServerId=options.ServerId, ServerName=options.ServerName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -128,7 +121,7 @@ if __name__ == '__main__':
         if not (options.DiskId or options.DiskName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveDiskInfo(IfsPortalIp, IfsPortalPort, DiskId=options.DiskId, Name=options.DiskName, logger=logger)
+        Res, Errmsg, Ret = RemoveDiskInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, DiskId=options.DiskId, Name=options.DiskName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -137,7 +130,7 @@ if __name__ == '__main__':
         if not options.DiskId:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateDiskInfo(IfsPortalIp, IfsPortalPort, options.DiskId, Path=options.Path,
+        Res, Errmsg, Ret = UpdateDiskInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.DiskId, Path=options.Path,
                                             DiskPoolId=options.DiskPoolId, Name=options.Name,
                                           Description=options.Description, logger=logger)
         if Res == ResOk:
@@ -150,7 +143,7 @@ if __name__ == '__main__':
         if not options.DiskId:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateDiskSize(IfsPortalIp, IfsPortalPort, options.DiskId,
+        Res, Errmsg, Ret = UpdateDiskSize(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.DiskId,
                                             TotalSize=options.TotalSize, UsedSize=options.TotalSize, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -166,7 +159,7 @@ if __name__ == '__main__':
                 parser.print_help()
                 sys.exit(-1)
             DiskMode = DiskModeRw if args[1] == 'Rw' else DiskModeRd
-            Res, Errmsg, Ret = ChangeDiskMode(IfsPortalIp, IfsPortalPort, DiskMode, DiskId=options.DiskId,
+            Res, Errmsg, Ret = ChangeDiskMode(IfsPortalIp, IfsPortalPort,IfsPortalKey, DiskMode, DiskId=options.DiskId,
                                               Name=options.DiskName, logger=logger)
             if Res == ResOk:
                 print(Ret.Result, Ret.Message)
@@ -178,14 +171,14 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
         Action = DiskStart if args[0] == 'start' else DiskStop
-        Res, Errmsg, Ret = StartStopDisk(options.IpAddress, options.Port, Action, DiskId=options.DiskId, Name=options.DiskName,
+        Res, Errmsg, Ret = StartStopDisk(options.IpAddress, options.Port, IfsPortalKey, Action, DiskId=options.DiskId, Name=options.DiskName,
                                          logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'list':
-        Res, Errmsg, Ret, AllDisks = GetDiskInfo(options.IpAddress, options.Port, logger=logger)
+        Res, Errmsg, Ret, AllDisks = GetDiskInfo(options.IpAddress, options.Port, IfsPortalKey, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:
