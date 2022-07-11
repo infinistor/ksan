@@ -20,7 +20,7 @@
 
 ## 로그 파일
 
--   설정 파일 : ksan-metering.xml (/app/ksan-metering.xml)
+-   설정 파일 : ksanMetering.xml (/app/ksanMetering.xml)
 -   위치
     -   /home/ksan/logs/metering.log
 
@@ -72,12 +72,12 @@ systemctl start docker
 
 ### Build
 
-- 실행후 ksan-metering.tar 이미지 파일이 생성됩니다.
+- 실행후 ksanMetering.tar 이미지 파일이 생성됩니다.
 
 ```shell
 #!/bin/bash
-docker build --rm -t pspace/ksan-metering:latest -f DockerFile .
-docker save -o ksan-metering.tar pspace/ksan-metering
+docker build --rm -t pspace/ksanMetering:latest -f DockerFile .
+docker save -o ksanMetering.tar pspace/ksanMetering
 ```
 
 ## How to Use
@@ -87,12 +87,12 @@ docker save -o ksan-metering.tar pspace/ksan-metering
 ### 실행(CLI)
 
 ``` shell
-docker start ksan-metering
+docker start ksanMetering
 ```
 
 ### 서비스 등록후 실행
 ``` shell
-cp ksan-metering /etc/systemd/system/
-systemctl enable ksan-metering
-systemctl start ksan-metering
+cp ksanMetering /etc/systemd/system/
+systemctl enable ksanMetering
+systemctl start ksanMetering
 ```
