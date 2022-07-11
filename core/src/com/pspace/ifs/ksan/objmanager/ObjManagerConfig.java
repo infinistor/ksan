@@ -43,7 +43,7 @@ public class ObjManagerConfig {
         
     public ObjManagerConfig(String dbRepository, String dbHost, long dbport, 
             String dbName, String dbUsername, String dbPassword, 
-            String mqHost, String mqQueeuname, String mqExchangename, 
+            String mqHost, String mqUsername, String mqPassword, long mqPort, String mqQueeuname, String mqExchangename, 
             String mqOsdExchangename) throws IOException{
         this.dbRepository = dbRepository;
         this.dbHost = dbHost;
@@ -52,6 +52,9 @@ public class ObjManagerConfig {
         this.dbUsername = dbUsername;
         this.dbPassword = dbPassword;
         this.mqHost = mqHost;
+        this.mqUsername = mqUsername;
+        this.mqPassword = mqPassword;
+        this.mqPort = mqPort;
         this.mqQueeuname = mqQueeuname;
         this.mqExchangename = mqExchangename;
         this.mqOsdExchangename = mqOsdExchangename;
