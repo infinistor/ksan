@@ -5,7 +5,7 @@
      <!--로그 파일 저장 위치-->
     <property name="S3GW_LOGS_PATH" value="/var/log/ksan/s3gw" />
     <property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objManager" />
-    <property name="UTILS_LOG_PATH" value="/var/log/ksan/utils" />
+    <property name="LIBS_LOG_PATH" value="/var/log/ksan/utils" />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -39,10 +39,10 @@
             </encoder>
     </appender>
 
-    <appender name="UTILS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${UTILS_LOG_PATH}/utils.log</file>
+    <appender name="LIBS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LIBS_LOG_PATH}/libs.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${UTILS_LOGS_PATH}/utils.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${LIBS_LOGS_PATH}/libs.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
                 <maxHistory>30</maxHistory>
                 <maxFileSize>100MB</maxFileSize>
                 <totalSizeCap>5GB</totalSizeCap>
@@ -60,8 +60,8 @@
         <appender-ref ref="OBJMANAGER"/>
     </logger>
 
-    <logger name="com.pspace.ifs.ksan.utils" level="INFO">
-        <appender-ref ref="UTILS"/>
+    <logger name="com.pspace.ifs.ksan.libs" level="INFO">
+        <appender-ref ref="LIBS"/>
     </logger>
 
 </configuration>
