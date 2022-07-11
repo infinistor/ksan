@@ -122,8 +122,8 @@ namespace PortalProvider.Providers.Accounts
 					Id = Guid.NewGuid(),
 					Name = Request.Name,
 					Email = Email,
-					AccessKey = RandomText(ACCESS_KEY_LENGTH),
-					SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
+					AccessKey = CreateAccessKey(),
+					SecretKey = CreateSecretKey(),
 				};
 
 				// Ksan 사용자 등록
@@ -664,16 +664,16 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/************************************************************************************************************/
-		protected readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z가-힣]{1,}$");
-		protected readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
-		protected readonly int ACCESS_KEY_LENGTH = 20;
-		protected readonly int SECRET_KEY_LENGTH = 40;
-		protected readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
-		protected readonly char[] TEXT_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z가-힣]{1,}$");
+		protected static readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
+		protected static readonly int ACCESS_KEY_LENGTH = 20;
+		protected static readonly int SECRET_KEY_LENGTH = 40;
+		protected static readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+		protected static readonly char[] TEXT_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 		/// <summary>랜덤한 문자열(대문자+숫자)을 생성한다.</summary>
 		/// <param name="Length">문자열 길이</param>
 		/// <returns>생성한 문자열</returns>
-		protected string RandomText(int Length)
+		public static string RandomText(int Length)
 		{
 			var rand = new Random();
 			var chars = Enumerable.Range(0, Length).Select(x => TEXT[rand.Next(0, TEXT.Length)]);
@@ -683,11 +683,13 @@ namespace PortalProvider.Providers.Accounts
 		/// <summary>랜덤한 문자열(대문자+소문자+숫자)을 생성한다.</summary>
 		/// <param name="Length">문자열 길이</param>
 		/// <returns>생성한 문자열</returns>
-		protected string RandomTextLong(int Length)
+		public static string RandomTextLong(int Length)
 		{
 			var rand = new Random();
 			var chars = Enumerable.Range(0, Length).Select(x => TEXT_STRING[rand.Next(0, TEXT_STRING.Length)]);
 			return new string(chars.ToArray());
 		}
+		public static string CreateAccessKey() => RandomText(ACCESS_KEY_LENGTH);
+		public static string CreateSecretKey() => RandomText(SECRET_KEY_LENGTH);
 	}
 }

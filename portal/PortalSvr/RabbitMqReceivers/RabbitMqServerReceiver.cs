@@ -85,11 +85,11 @@ namespace PortalSvr.RabbitMqReceivers
 						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
 					// 내부 시스템 API 키 정보를 가져온다.
-					var ResponseApiKey = await ApiKeyProvider.GetApiKey(PredefinedApiKey.InternalSystemApiKey);
+					var ResponseApiKey = await ApiKeyProvider.GetMainApiKey();
 
 					// API 키를 가져오는데 실패한 경우
-					if (ResponseApiKey.Result == EnumResponseResult.Error)
-						return new ResponseMqData(EnumResponseResult.Error, ResponseApiKey.Code, ResponseApiKey.Message);
+					if (ResponseApiKey == null)
+						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 					// 서버 상태 관련인 경우
 					if (RoutingKey.EndsWith("servers.state"))
@@ -103,7 +103,7 @@ namespace PortalSvr.RabbitMqReceivers
 						var Request = JsonConvert.DeserializeObject<RequestServerState>(json);
 
 						// 서버 상태 수정
-						var Response = await DataProvider.UpdateState(Request, ResponseApiKey.Data.UserId, ResponseApiKey.Data.UserName);
+						var Response = await DataProvider.UpdateState(Request, ResponseApiKey.UserId, ResponseApiKey.UserName);
 
 						Result.CopyValueFrom(Response);
 						Result.IsProcessed = true;

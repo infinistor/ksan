@@ -19,6 +19,8 @@ using PortalProviderInterface;
 using Microsoft.Extensions.Logging;
 using MTLib.CommonData;
 using MTLib.Core;
+using PortalProvider.Providers.Accounts;
+using PortalResources;
 
 namespace PortalSvr.Services
 {
@@ -93,9 +95,9 @@ namespace PortalSvr.Services
 							Guid.Parse(Response.Data.Id),
 							new RequestApiKeyEx()
 							{
-								KeyName = "InternalService API KEY",
+								KeyName = Resource.INTERNALSERVICE_API_KEY,
 								ExpireDate = DateTime.MaxValue,
-								KeyValue = PredefinedApiKey.InternalSystemApiKey
+								KeyValue = KsanUserProvider.RandomText(64)
 							}
 						);
 
