@@ -425,10 +425,14 @@ public class EventObject {
 
 	public void regist() {
 		// MQReceiver(String host, String qname, String exchangeName, boolean queeuDurableity, String exchangeOption, String routingKey, MQCallback callback)
+		int mqPort = Integer.parseInt(config.getMqPort());
 		try
 		{
 			MQCallback moveObjectCallback = new MoveObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(),
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_MOVE_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
@@ -442,6 +446,9 @@ public class EventObject {
 		try {
 			MQCallback deleteObjectCallback = new DeleteObjectCallback();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_DELETE_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
@@ -455,6 +462,9 @@ public class EventObject {
 		try {
 			MQCallback getAttrObjectCallBack = new GetAttrObjectCallBack();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
@@ -468,6 +478,9 @@ public class EventObject {
 		try {
 			MQCallback copyObjectCallback = new CopyObjectCallback();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_COPY_OBJECT + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 

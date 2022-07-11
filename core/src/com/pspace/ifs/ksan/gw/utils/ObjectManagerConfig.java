@@ -27,6 +27,9 @@ public class ObjectManagerConfig {
     private String dbUserName;
     private String dbPassword;
     private String mqHost;
+    private int mqPort;
+    private String mqUser;
+    private String mqPassword;
     private String mqQueueName;
     private String mqExchangeName;
     private String mqOsdExchangeName;
@@ -142,6 +145,30 @@ public class ObjectManagerConfig {
 
     public void setMqOsdExchangeName(String mqOsdExchangeName) {
         this.mqOsdExchangeName = mqOsdExchangeName;
+    }
+
+    public void setMqPort(int port) {
+        this.mqPort = port;
+    }
+
+    public int getMqPort() {
+        return this.mqPort;
+    }
+
+    public void setMqUser(String userName) {
+        this.mqUser = userName;
+    }
+
+    public String getMqUser() {
+        return this.mqUser;
+    }
+
+    public void setMqPassword(String password) {
+        this.mqPassword = password;
+    }
+
+    public String getMqPassword() {
+        return this.mqPassword;
     }
 
     public void setConfig(JSONObject jsonConfig) {
