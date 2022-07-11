@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -38,6 +40,7 @@ public abstract class MessageQ{
     private MQCallback callback;
     private long responseDeliveryTag;
     private BasicProperties delivaryProp = null;
+    private Logger logger;
     
      // for 1-1 sender  with default username and password
     public MessageQ(String host, String qname, boolean qdurablity) throws Exception{
@@ -46,6 +49,7 @@ public abstract class MessageQ{
     
     // for 1-1 sender
     public MessageQ(String host,  int port, String username, String password, String qname, boolean qdurablity) throws Exception{
+        logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
         this.host = host;
         this.qname = qname;
@@ -65,6 +69,7 @@ public abstract class MessageQ{
     // for 1-1 receiver
     public MessageQ(String host, int port, String username, String password, String qname, boolean qdurablity, MQCallback callback) 
             throws Exception{
+        logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
         this.host = host;
         this.qname = qname;
@@ -88,6 +93,7 @@ public abstract class MessageQ{
     // for 1-n sender
     public MessageQ(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey) 
             throws Exception{
+        logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
         this.qname = "";
         this.host = host;
@@ -113,6 +119,7 @@ public abstract class MessageQ{
     // for 1-n receiver
     public MessageQ(String host, int port, String username, String password, String qname, String exchangeName, boolean qdurablity, 
             String exchangeOption, String routingKey, MQCallback callback) throws Exception{
+        logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
         this.host = host;
         this.qname = qname;
@@ -147,6 +154,8 @@ public abstract class MessageQ{
           factory.setPort(port);
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(10000); // 10 seconds
+        logger.debug("[MQconnect] from param host {} userName {} password {] port {}", host,  username, password, port);
+        logger.debug("[MQconnect] from factory host {} userName {} password {] port {}", factory.getHost(), factory.getUsername(), factory.getPassword(), factory.getPort());
         Connection connection = factory.newConnection();
         this.channel = connection.createChannel();
         this.channel.basicQos(prefetchCount);
