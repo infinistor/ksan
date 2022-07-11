@@ -21,6 +21,8 @@ public class Constants {
 	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortalPort";
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
+	public static final String KMON_PROPERTY_MQ_USER = "MqUser";
+	public static final String KMON_PROPERTY_MQ_PASSWORD = "MqPassword";
 	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
 
     public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";

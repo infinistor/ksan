@@ -80,11 +80,14 @@ public class OSDPortal {
     private OSDPortal() {
         config = MonConfig.getInstance(); 
         config.configure();
-
+		int mqPort = Integer.parseInt(config.getMqPort());
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME, 
 				false, 
@@ -99,6 +102,9 @@ public class OSDPortal {
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
 			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+				mqPort,
+				config.getMqUser(),
+				config.getMqPassword(),
 				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME, 
 				false, 

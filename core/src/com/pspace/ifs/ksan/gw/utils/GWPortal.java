@@ -136,7 +136,7 @@ class UserUpdateCallBack implements MQCallback{
 }
 
 public class GWPortal {
-	private MonConfig config;
+	private MonConfig monConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
 
@@ -149,14 +149,18 @@ public class GWPortal {
     }
 
     private GWPortal() {
-        config = MonConfig.getInstance(); 
-        config.configure();
-
+        monConfig = MonConfig.getInstance(); 
+        monConfig.configure();
+		int mqPort = Integer.parseInt(monConfig.getMqPort());
+		logger.info("port : {}, user :  {}, password : {}", mqPort, monConfig.getMqUser(), monConfig.getMqPassword());
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_CONFIG + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(),
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_CONFIG + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false,
 											   "", 
@@ -169,8 +173,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(),
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISK + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -183,8 +190,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(),
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISK + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -197,8 +207,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(), 
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISK + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -211,8 +224,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(), 
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISK + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -225,8 +241,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISK + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(), 
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISK + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -239,8 +258,11 @@ public class GWPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_DISKPOOL + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(), 
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_DISKPOOL + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -253,8 +275,11 @@ public class GWPortal {
 
 		try {
 			MQCallback userCB = new UserUpdateCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
-											   GWConstants.MQUEUE_NAME_GW_USER + config.getServerId(), 
+			MQReceiver mq1ton = new MQReceiver(monConfig.getPortalIp(), 
+											   mqPort,
+											   monConfig.getMqUser(),
+											   monConfig.getMqPassword(),
+											   GWConstants.MQUEUE_NAME_GW_USER + monConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
@@ -274,8 +299,8 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_S3);
-			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_S3);
+			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -298,6 +323,9 @@ public class GWPortal {
 
                 ObjectManagerConfig.getInstance().setConfig(jsonConfig);
 				ObjectManagerConfig.getInstance().setVersion(version);
+				ObjectManagerConfig.getInstance().setMqPort(Integer.parseInt(monConfig.getMqPort()));
+				ObjectManagerConfig.getInstance().setMqUser(monConfig.getMqUser()); 
+				ObjectManagerConfig.getInstance().setMqPassword(monConfig.getMqPassword());
                 ObjectManagerConfig.getInstance().saveConfigFile();
 				return;
 			}
@@ -316,8 +344,8 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_DISKPOOLS_DETAILS);
-			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_DISKPOOLS_DETAILS);
+			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -391,8 +419,8 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS);
-			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS);
+			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -434,8 +462,8 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + config.getPortalIp() + GWConstants.COLON + config.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS + GWConstants.SLASH + id);
-			getRequest.addHeader(GWConstants.AUTHORIZATION, config.getPortalKey());
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS + GWConstants.SLASH + id);
+			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
