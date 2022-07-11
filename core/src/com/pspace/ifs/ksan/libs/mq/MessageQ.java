@@ -148,7 +148,7 @@ public abstract class MessageQ{
         int prefetchCount = 1;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(this.host);
-        if (username.equalsIgnoreCase("guest")){
+        if (!username.equalsIgnoreCase("guest")){
             factory.setUsername(username);
             factory.setPassword(password);
         }
