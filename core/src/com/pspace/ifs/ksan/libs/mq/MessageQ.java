@@ -154,8 +154,8 @@ public abstract class MessageQ{
           factory.setPort(port);
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(10000); // 10 seconds
-        logger.debug("[MQconnect] from param host {} userName {} password {] port {}", host,  username, password, port);
-        logger.debug("[MQconnect] from factory host {} userName {} password {] port {}", factory.getHost(), factory.getUsername(), factory.getPassword(), factory.getPort());
+        logger.debug("[MQconnect] from param host {} userName {} password {} port {}", host,  username, password, port);
+        logger.debug("[MQconnect] from factory host {} userName {} password {} port {}", factory.getHost(), factory.getUsername(), factory.getPassword(), factory.getPort());
         Connection connection = factory.newConnection();
         this.channel = connection.createChannel();
         this.channel.basicQos(prefetchCount);
