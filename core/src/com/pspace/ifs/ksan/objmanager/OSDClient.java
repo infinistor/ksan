@@ -20,11 +20,11 @@ public class OSDClient {
     public OSDClient() throws IOException, Exception{
         ObjManagerConfig config = new ObjManagerConfig();
         System.out.format(" hosts : %s exchange %s\n", config.mqHost, config.mqOsdExchangename);
-        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "direct", ""); 
+        mqSender = new MQSender(config.mqHost, (int)config.mqPort, config.mqUsername, config.mqPassword, config.mqOsdExchangename, "direct", ""); 
     }
     
-    public OSDClient(MQSender mqSender){
-        this.mqSender = mqSender;
+    public OSDClient(ObjManagerConfig config) throws Exception{
+        this.mqSender = new MQSender(config.mqHost, (int)config.mqPort, config.mqUsername, config.mqPassword, config.mqOsdExchangename, "direct", ""); 
     }
     
     public int removeObject(String objId, String versionId, DISK dsk)throws Exception{
@@ -90,7 +90,7 @@ public class OSDClient {
         obj.put("TargetDiskPath", desDisk.getPath());
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.copy", srcDisk.getOSDServerId());
-        System.out.format("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
+        //System.out.format("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         MQResponse ret;
         if (!res.isEmpty())
@@ -116,7 +116,7 @@ public class OSDClient {
         obj.put("VersionId", versionId);
         bindingKey = String.format("*.services.osd.%s.object.getattr", osdServerId);
        
-        System.out.format("[getObjectAttr] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
+        //System.out.format("[getObjectAttr] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         //String res = ""; mqSender.send(obj.toString(), bindingKey);
         if (res.isEmpty())

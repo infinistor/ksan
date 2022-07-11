@@ -34,6 +34,9 @@ public class ObjManagerFactory implements PooledObjectFactory <ObjManager> {
             ObjectManagerConfig.getInstance().getDbUserName(),
             ObjectManagerConfig.getInstance().getDbPassword(),
             ObjectManagerConfig.getInstance().getMqHost(),
+            ObjectManagerConfig.getInstance().getMqUser(),
+            ObjectManagerConfig.getInstance().getMqPassword(),
+            (long)ObjectManagerConfig.getInstance().getMqPort(),
             ObjectManagerConfig.getInstance().getMqQueueName(),
             ObjectManagerConfig.getInstance().getMqExchangeName(),
             ObjectManagerConfig.getInstance().getMqOsdExchangeName());

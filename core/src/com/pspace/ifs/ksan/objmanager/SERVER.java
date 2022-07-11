@@ -265,11 +265,14 @@ public class SERVER {
                 
                 logger.debug("DiskId : {}  path : {} osdIp: {} currentDiskIdx: {} startIndex : {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), currentDiskIdx, startIndex); 
                 if (dsk.getStatus() != DiskStatus.GOOD){
+                    logger.debug("DiskId : {}  path : {} osdIp: {}  skppied DISK status {} expected {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), dsk.getStatus(), DiskStatus.GOOD);
                     continue;
                 }
 
-                if (dsk.getMode() != DiskMode.READWRITE)
+                if (dsk.getMode() != DiskMode.READWRITE){
+                    logger.debug("DiskId : {}  path : {} osdIp: {}  skppied DISK mode {} expected {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), dsk.getMode(), DiskMode.READWRITE);
                     continue;
+                }
 
                 return dsk;
             }

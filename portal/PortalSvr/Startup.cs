@@ -159,7 +159,7 @@ namespace PortalSvr
 					c.SwaggerDoc("v1", new OpenApiInfo { Title = "KSAN", Version = "v1" });
 					c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 					{
-						Description = $@"Bearer 체계를 사용하는 JWT Authorization 헤더.<br/>'Bearer'[공백]을 입력 한 다음 아래 텍스트 입력에 토큰을 입력하십시오.<br/>예 : '{PortalProviderInterface.PredefinedApiKey.InternalSystemApiKey}'",
+						Description = $@"Bearer 체계를 사용하는 JWT Authorization 헤더.<br/>'Bearer'[공백]을 입력 한 다음 아래 텍스트 입력에 토큰을 입력하십시오.",
 						Name = "Authorization",
 						In = ParameterLocation.Header,
 						Type = SecuritySchemeType.ApiKey,

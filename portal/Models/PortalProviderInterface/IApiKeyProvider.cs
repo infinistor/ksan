@@ -62,12 +62,9 @@ namespace PortalProviderInterface
 		/// <param name="KeyValue">키 값</param>
 		/// <returns>API 키 정보 목록 객체</returns>
 		Task<ResponseData<ResponseApiKey>> GetApiKey(string KeyValue);
-	}
 
-	/// <summary>미리 정의된 API 키</summary>
-	public class PredefinedApiKey
-	{
-		/// <summary>내부 시스템</summary>
-		public static readonly string InternalSystemApiKey = "5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8";
+		/// <summary> 메인키의 정보를 가져온다. </summary>
+		/// <returns> API 키 객체 </returns>
+		Task<ResponseApiKey> GetMainApiKey();
 	}
 }

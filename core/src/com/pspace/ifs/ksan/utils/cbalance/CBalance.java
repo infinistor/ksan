@@ -167,7 +167,7 @@ public class CBalance {
        long offset = 0; 
        long numObjects = 1000;
        long total_job = 0;
-       long one_round = 0;
+       long one_round;
        
        do{
             one_round = 0;

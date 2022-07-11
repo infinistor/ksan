@@ -74,8 +74,8 @@ namespace PortalProvider.Providers.Accounts
 					Address = Request.Address,
 					Port = Request.Port,
 					SSLPort = Request.SSLPort,
-					AccessKey = RandomText(ACCESS_KEY_LENGTH),
-					SecretKey = RandomTextLong(SECRET_KEY_LENGTH),
+					AccessKey = KsanUserProvider.CreateAccessKey(),
+					SecretKey = KsanUserProvider.CreateSecretKey(),
 				};
 
 				// 리전 등록
@@ -319,30 +319,6 @@ namespace PortalProvider.Providers.Accounts
 				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}
 			return Result;
-		}
-		/************************************************************************************************************/
-		protected readonly int ACCESS_KEY_LENGTH = 20;
-		protected readonly int SECRET_KEY_LENGTH = 40;
-		protected readonly char[] TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
-		protected readonly char[] TEXT_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
-		/// <summary>랜덤한 문자열(대문자+숫자)을 생성한다.</summary>
-		/// <param name="Length">문자열 길이</param>
-		/// <returns>생성한 문자열</returns>
-		protected string RandomText(int Length)
-		{
-			var rand = new Random();
-			var chars = Enumerable.Range(0, Length).Select(x => TEXT[rand.Next(0, TEXT.Length)]);
-			return new string(chars.ToArray());
-		}
-
-		/// <summary>랜덤한 문자열(대문자+소문자+숫자)을 생성한다.</summary>
-		/// <param name="Length">문자열 길이</param>
-		/// <returns>생성한 문자열</returns>
-		protected string RandomTextLong(int Length)
-		{
-			var rand = new Random();
-			var chars = Enumerable.Range(0, Length).Select(x => TEXT_STRING[rand.Next(0, TEXT_STRING.Length)]);
-			return new string(chars.ToArray());
 		}
 	}
 }

@@ -1792,4 +1792,8 @@
     <value>Invalid disk pool id.</value>
     <comment>유효하지 않은 디스크풀 아이디입니다.</comment>
   </data>
+  <data name="INTERNALSERVICE_API_KEY" xml:space="preserve">
+    <value>InternalService API KEY</value>
+    <comment>내부 시스템용 키</comment>
+  </data>
 </root>
