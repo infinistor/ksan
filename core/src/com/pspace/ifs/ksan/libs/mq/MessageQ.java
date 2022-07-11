@@ -147,9 +147,12 @@ public abstract class MessageQ{
     private int connect() throws Exception{
         int prefetchCount = 1;
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setUsername(username);
-        factory.setPassword(password);
         factory.setHost(this.host);
+        if (username.equalsIgnoreCase("guest")){
+            factory.setUsername(username);
+            factory.setPassword(password);
+        }
+        
         if (port > 0)
           factory.setPort(port);
         factory.setAutomaticRecoveryEnabled(true);
