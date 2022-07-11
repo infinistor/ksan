@@ -122,8 +122,7 @@ public class ObjManagerCache {
     }
    
     public String[] getBucketNameList(){
-        if (bucketMap.isEmpty())
-            dbm.loadBucketList();
+        dbm.loadBucketList();
         
         return bucketMap.keySet().toArray(new String[0]);
     }
@@ -131,8 +130,7 @@ public class ObjManagerCache {
     public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
-        if (bucketMap.isEmpty())
-            dbm.loadBucketList();
+        dbm.loadBucketList(); // get list always bucket from db 
         
         for (String key : bucketMap.keySet()) {
             Bucket bt = bucketMap.get(key);
@@ -143,10 +141,7 @@ public class ObjManagerCache {
             	btList.add(bsi);
 	    }
         }
-        
-        if (btList.isEmpty())
-            dbm.loadBucketList(); // load for the next request
-        
+         
         return btList;
     }
 
