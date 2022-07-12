@@ -115,8 +115,8 @@ CodeDuplicated = 'EC036'
 ######### mq info define #########
 """
 MqVirtualHost = '/'
-MqUser = 'guest'
-MqPassword = 'guest'
+MqUser = 'ksanmq'
+MqPassword = 'YOUR_MQ_PASSWORD'
 
 DiskStart = 'Good'
 DiskStop = 'Stop'
@@ -677,12 +677,16 @@ class RequestServerInitInfo(object):
         self.MgsIp = ''
         self.MQPort = 0
         self.MgsPort = 0
+        self.UserName = ''
+        self.Password = ''
 
-    def Set(self, ServerIp, MgsIp, MQPort, MgsPort):
+    def Set(self, ServerIp, MgsIp, MQPort, MgsPort, UserName, Password):
         self.ServerIp = ServerIp
         self.MgsIp = MgsIp
         self.MQPort = MQPort
         self.MgsPort = MgsPort
+        self.UserName = UserName
+        self.Password = Password
 
 
 class RequestServerExistCheck(object):
@@ -1017,14 +1021,18 @@ class MonservicedConf:
         self.ServerId = ''
         self.ManagementNetDev = ''
         self.DefaultNetworkId = ''
+        self.SshUser = ''
+        self.SshPassword = ''
 
-    def Set(self, Ip, PortalPort, MqPort, ServerId, ManagementNetDev, DefaultNetworkId):
+    def Set(self, Ip, PortalPort, MqPort, ServerId, ManagementNetDev, DefaultNetworkId, SshUser, SshPassword):
         self.MgsIp = Ip
         self.IfsPortalPort = PortalPort
         self.MqPort = MqPort
         self.ServerId = ServerId
         self.ManagementNetDev = ManagementNetDev
         self.DefaultNetworkId = DefaultNetworkId
+        self.SshUser = ''
+        self.SshPassword = ''
 
 
 class DiskSizeItems:

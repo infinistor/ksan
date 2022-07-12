@@ -87,7 +87,7 @@ class MyOptionParser(OptionParser):
 """
         print(Usage)
 
-def UpdateMonConfig(PortalIp, PortalPort, MqPort, LocalIp):
+def UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, ApiKey):
     if os.path.exists(MonServicedConfPath):
         ret, conf = read_conf(MonServicedConfPath)
         if ret is True:
@@ -105,12 +105,14 @@ def UpdateMonConfig(PortalIp, PortalPort, MqPort, LocalIp):
 [mgs]
 MgsIp = %s 
 IfsPortalPort = %s
+MqUser = %s 
+MqPassword = %s
 MqPort = %s
-IfsPortalKey = 5de46d7ccd5d0954fad7d11ffc22a417e2784cbedd9f1dae3992a46e97b367e8
+IfsPortalKey = %s 
 ServerId = 
 ManagementNetDev = %s
 DefaultNetworkId = 
-""" % (PortalIp, PortalPort, MqPort, NetDevice)
+""" % (PortalIp, PortalPort, MqUser, MqPassword, MqPort, ApiKey, NetDevice)
 
     if not os.path.exists(KsanEtcPath):
         os.makedirs(KsanEtcPath)
@@ -155,29 +157,38 @@ if __name__ == '__main__':
     parser.add_option('-m', "--portal-ip", dest="portalip", help='portal ip')
     parser.add_option('-p', "--portal-port", dest="portalport", help='portal port')
     parser.add_option('-q', "--mq-port", dest="mqport", help='mq port')
+    parser.add_option('-u', "--mq-user", dest="mquser", help='mq user')
+    parser.add_option('-w', "--mq-password", dest="mqpassword", help='mq password')
+    parser.add_option('-k', "--apikey", dest="apikey", help='portal api key')
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()
     PortalIp = options.portalip
     PortalPort = options.portalport
-    MqPort = options.mqport
     LocalIp = options.localip
+    MqPort = options.mqport
+    MqUser = options.mquser
+    MqPassword = options.mqpassword
+    ApiKey = options.apikey
 
-    if not(LocalIp and PortalIp and PortalPort and MqPort):
-        parser.print_help()
-        sys.exit(-1)
+
 
     #logger = None
     #if options.debug is True:
     logger = Logging(loglevel='debug')
     logger = logger.create()
 
+    if not(LocalIp and PortalIp and PortalPort and MqPort and MqUser and MqPassword and ApiKey):
+        logger.error('Option is ommitted')
+        parser.print_help()
+        sys.exit(-1)
+
     ret = DependencyCheck()
     if ret is False:
         logger.error('dependency fail')
         sys.exit(-1)
 
-    ret, err = UpdateMonConfig(PortalIp, PortalPort, MqPort, LocalIp)
+    ret, err = UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, ApiKey)
     if ret is False:
         print(err)
         logger.error('fail to update ksanMon.conf %s ' % str(err))

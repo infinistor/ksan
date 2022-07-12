@@ -32,7 +32,7 @@ def main():
         print(Errmsg)
         sys.exit(-1)
 
-    Res, Errmsg, Ret, AllDisks = GetDiskInfo(MgsIp, int(PortalPort))
+    Res, Errmsg, Ret, AllDisks = GetDiskInfo(MgsIp, int(PortalPort), conf.mgs.IfsPortalKey)
     if Res != ResOk:
         print(Errmsg)
 

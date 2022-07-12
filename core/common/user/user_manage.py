@@ -209,7 +209,7 @@ def ChangeUserPassword(Ip, Port, UserId, NewPassword, NewConfirmPassword, logger
         return res, errmsg, None
 
 
-def GetS3UserInfo(ip, port, UserId=None, UserName=None, logger=None):
+def GetS3UserInfo(ip, port, ApiKey, UserId=None, UserName=None, logger=None):
     """
     get server info all or specific server info with Id
     :param ip:
@@ -236,7 +236,7 @@ def GetS3UserInfo(ip, port, UserId=None, UserName=None, logger=None):
         Url = "/api/v1/KsanUsers"
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
@@ -251,7 +251,7 @@ def GetS3UserInfo(ip, port, UserId=None, UserName=None, logger=None):
 
 
 @catch_exceptions()
-def AddS3User(ip, port, Name, DiskPoolId=None, DiskPoolName=None, Email='user@example.com', logger=None):
+def AddS3User(ip, port, ApiKey, Name, DiskPoolId=None, DiskPoolName=None, Email='user@example.com', logger=None):
     """
     add network interface with name
     :param ip: portal ip
@@ -276,13 +276,13 @@ def AddS3User(ip, port, Name, DiskPoolId=None, DiskPoolName=None, Email='user@ex
     ReturnType = ResponseHeaderModule
 
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def UpdateS3UserInfo(Ip, Port, UserId=None, UserName=None, Email=None, logger=None):
+def UpdateS3UserInfo(Ip, Port, ApiKey, UserId=None, UserName=None, Email=None, logger=None):
 
     if UserId is not None:
         TargetUser = UserId
@@ -292,7 +292,7 @@ def UpdateS3UserInfo(Ip, Port, UserId=None, UserName=None, Email=None, logger=No
         return ResInvalidCode, ResInvalidMsg + ' UserId or UserName is required', None
 
 
-    Res, Errmsg, Ret, User = GetS3UserInfo(Ip, Port, UserId=UserId, UserName=UserName, logger=logger)
+    Res, Errmsg, Ret, User = GetS3UserInfo(Ip, Port, ApiKey, UserId=UserId, UserName=UserName, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             User = User[0]
@@ -306,7 +306,7 @@ def UpdateS3UserInfo(Ip, Port, UserId=None, UserName=None, Email=None, logger=No
             body = jsonpickle.encode(NewUser, make_refs=False)
             Url = '/api/v1/KsanUsers/%s' % TargetUser
             Params = body
-            Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
+            Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=Params, logger=logger)
             res, errmsg, ret = Conn.put()
             if res == ResOk:
                 return res, errmsg, ret
@@ -319,7 +319,7 @@ def UpdateS3UserInfo(Ip, Port, UserId=None, UserName=None, Email=None, logger=No
 
 
 @catch_exceptions()
-def RemoveS3User(Ip, Port, UserId=None, UserName=None, logger=None):
+def RemoveS3User(Ip, Port, ApiKey, UserId=None, UserName=None, logger=None):
     """
     delete server info from server pool
     :param ip:
@@ -338,13 +338,13 @@ def RemoveS3User(Ip, Port, UserId=None, UserName=None, logger=None):
 
     Url = '/api/v1/KsanUsers/%s' % TargetUser
     ReturnType = ResponseHeaderModule
-    Conn = RestApi(Ip, Port, Url, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def AddS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
+def AddS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
     """
     add network interface with name
     :param ip: portal ip
@@ -377,13 +377,13 @@ def AddS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None, Di
     ReturnType = ResponseHeaderModule
 
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
 @catch_exceptions()
-def RemoveS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
+def RemoveS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserName=None, DiskPoolId=None, DiskPoolName=None, logger=None):
     """
     add network interface with name
     :param ip: portal ip
@@ -416,7 +416,7 @@ def RemoveS3UserStorageClass(ip, port, StorageClass, UserId=None, UserName=None,
     ReturnType = ResponseHeaderModule
 
     Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 

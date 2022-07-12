@@ -38,7 +38,7 @@ def MqHandler(conf, GlobalFlag, logger):
     ServiceList['IdList'] = list()
     ServiceList['Details'] = dict()
     LoadServiceList(conf, ServiceList, LocalIpList, logger)
-    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', 'guest', 'guest', MonRoutingKeyList,
+    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/', conf.mgs.MqUser, conf.mgs.MqPassword, MonRoutingKeyList,
             ExchangeName, 'IfsMon-%s' % conf.mgs.ServerId, ServiceList=ServiceList,
             ServerId=conf.mgs.ServerId, GlobalFlag=GlobalFlag, logger=logger)
     mq.Receiver()

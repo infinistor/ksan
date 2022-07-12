@@ -13,6 +13,7 @@
 
 import os, sys
 import fcntl
+import getpass
 import pdb
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.define import *
@@ -22,10 +23,14 @@ from common.log import *
 from common.utils import IsIpValid, IsUrlValid
 
 
+
 def get_input(Description, type, default=None, ValidAnsList=None):
     try:
         while True:
-            ans = input(Description + '(default: %s):' % str(default) if default is not None else ':')
+            if type == 'pwd':
+                ans = getpass.getpass(Description + '(default: %s):' % str(default) if default is not None else ':')
+            else:
+                ans = input(Description + '(default: %s):' % str(default) if default is not None else ':')
             if ans:
                 if type == int:
                     if ans.isdigit():
@@ -72,6 +77,7 @@ def InitMonServicedConf():
     conf.MqPort = DefaultIfMqPort
     conf.ServerId = ''
     conf.ManagementNetDev = ''
+    conf.IfsPortalKey = ''
 
     ret, oldconfig = GetConf(MonServicedConfPath)
     if ret is True:
@@ -80,11 +86,14 @@ def InitMonServicedConf():
         conf.MqPort = int(oldconfig.mgs.MqPort)
         conf.ServerId = oldconfig.mgs.ServerId
         conf.ManagementNetDev = oldconfig.mgs.ManagementNetDev
+        conf.IfsPortalKey = oldconfig.mgs.IfsPortalKey
 
     conf.MgsIp = get_input('Insert Mgs Ip', str, default=conf.MgsIp)
     conf.IfsPortalPort = get_input('Insert Mgs Port', int, default=conf.IfsPortal)
     conf.MqPort = get_input('Insert Mq Port', int, default=conf.MqPort)
     conf.ManagementNetDev = get_input('Insert Management Network device', 'net_device', default=conf.ManagementNetDev)
+    conf.IfsPortalKey = get_input('Insert Portal Api Key', str, default=conf.IfsPortalKey)
+
     if not os.path.exists(KsanEtcPath):
         os.makedirs(KsanEtcPath)
 

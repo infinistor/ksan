@@ -23,8 +23,8 @@ import time
 import logging
 
 def MonUpdateServerUsage(conf, logger):
-    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerUsage, ExchangeName)
-    ServerStateMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyServerState, ExchangeName)
+    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerUsage, ExchangeName)
+    ServerStateMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerState, ExchangeName)
     while True:
         svr = GetServerUsage(conf.mgs.ServerId)
         svr.Get()

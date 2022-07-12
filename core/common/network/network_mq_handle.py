@@ -29,14 +29,12 @@ def UpdateNetworkStat(conf, GlobalFlag, logger):
     #mqSender.send(config.exchangeName, "*", data)
     LocalDev = GetNetwork()
 
-    #NetworkUsageMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', 'guest', 'guest', RoutKeyNetworkUsage, ExchangeName, QueueName='dsan.system')
-    #NetworkLinkStateMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', 'guest', 'guest', RoutKeyNetworkLinkState, ExchangeName, QueueName='dsan.system')
-    NetworkUsageMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', 'guest', 'guest', RoutKeyNetworkUsage, ExchangeName)
-    NetworkLinkStateMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', 'guest', 'guest', RoutKeyNetworkLinkState, ExchangeName)
+    NetworkUsageMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkUsage, ExchangeName)
+    NetworkLinkStateMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkLinkState, ExchangeName)
     #Res, Errmsg, Ret, AllNetDevs = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
 
     while True:
-        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), ServerId=conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, ServerId=conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 while True:
@@ -94,7 +92,7 @@ def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
     elif RoutKeyNetworkAddedFinder.search(RoutingKey):
             ServerId = body.ServerId
             IpAddress = body.IpAddress
-            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.MgsIp, int(MonConf.mgs.IfsPortalPort), ServerId=ServerId, logger=logger)
+            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.MgsIp, int(MonConf.mgs.IfsPortalPort),MonConf.mgs.IfsPortalKey,  ServerId=ServerId, logger=logger)
             if Res == ResOk:
                 if Ret.Result == ResultSuccess:
                     HostName = Data.Name
