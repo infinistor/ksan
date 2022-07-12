@@ -47,7 +47,7 @@ class MyOptionParser(OptionParser):
         print(Usage)
 
 
-def ConfigControl(PortalIp, PortalPort, args, options, logger):
+def ConfigControl(PortalIp, PortalPort, ApiKey, args, options, logger):
     if len(args) != 2:
         parser.print_help()
         sys.exit(-1)
@@ -65,7 +65,7 @@ def ConfigControl(PortalIp, PortalPort, args, options, logger):
             ConfigFile = options.File
         else:
            ConfigFile = None
-        Res, Errmsg, Ret = SetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, ConfigFilePath=ConfigFile, logger=logger)
+        Res, Errmsg, Ret = SetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, ConfigFilePath=ConfigFile, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:
@@ -74,7 +74,7 @@ def ConfigControl(PortalIp, PortalPort, args, options, logger):
     elif args[1] == 'get':
         Version = options.version
         ServiceType = options.ServiceType
-        Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, Version=Version, logger=logger)
+        Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, Version=Version, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:
@@ -90,19 +90,19 @@ def ConfigControl(PortalIp, PortalPort, args, options, logger):
             sys.exit(-1)
         Version = options.version
         ServiceType = options.ServiceType
-        Res, Errmsg, Ret = UpdateServiceConfigVersion(IfsPortalIp, IfsPortalPort, ServiceType, Version, logger=logger)
+        Res, Errmsg, Ret = UpdateServiceConfigVersion(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, Version, logger=logger)
         print(Ret.Result, Ret.Message)
 
     elif args[1] == 'remove':
         Version = options.version
         ServiceType = options.ServiceType
-        Res, Errmsg, Ret = RemoveServiceConfig(IfsPortalIp, IfsPortalPort, ServiceType, Version, logger=None)
+        Res, Errmsg, Ret = RemoveServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, Version, logger=None)
         print(Ret.Result, Ret.Message)
 
     elif args[1] == 'list':
         Version = options.version
         ServiceType = options.ServiceType
-        Res, Errmsg, Ret, Data = GetServiceConfigList(PortalIp, PortalPort, ServiceType, logger=logger)
+        Res, Errmsg, Ret, Data = GetServiceConfigList(PortalIp, PortalPort, ApiKey, ServiceType, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:
@@ -135,11 +135,13 @@ if __name__ == '__main__':
     IfsPortalIp = '127.0.0.1'
     IfsPortalPort = 5443
     IfsMqPort = 5672
+    IfsPortalKey = ''
     ret, conf = GetConf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf.mgs.MgsIp
         IfsPortalPort = int(conf.mgs.IfsPortalPort)
         IfsMqPort = int(conf.mgs.MqPort)
+        IfsPortalKey = conf.mgs.IfsPortalKey
 
     logger = None
     if options.debug is True:
@@ -156,7 +158,7 @@ if __name__ == '__main__':
         if not ((options.ServerName or options.ServerId) and options.ServiceName and options.ServiceType):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = AddService(IfsPortalIp, IfsPortalPort, options.ServiceName, options.ServiceType, ServerId=options.ServerId,
+        Res, Errmsg, Ret = AddService(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.ServiceName, options.ServiceType, ServerId=options.ServerId,
                                       ServerName=options.ServerName, GroupId=options.GroupId, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -166,7 +168,7 @@ if __name__ == '__main__':
         if not (options.ServiceId or options.ServiceName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = DeleteService(IfsPortalIp, IfsPortalPort, ServiceId=options.ServiceId,
+        Res, Errmsg, Ret = DeleteService(IfsPortalIp, IfsPortalPort, IfsPortalKey, ServiceId=options.ServiceId,
                                          ServiceName=options.ServiceName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -176,7 +178,7 @@ if __name__ == '__main__':
         if not (options.ServiceId or options.ServiceName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateServiceInfo(IfsPortalIp, IfsPortalPort, ServiceId=options.ServiceId, ServiceName=options.ServiceName,
+        Res, Errmsg, Ret = UpdateServiceInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, ServiceId=options.ServiceId, ServiceName=options.ServiceName,
                                              ServiceType=options.ServiceType,
                                              GroupId=options.GroupId, Description=options.Description,
                                               logger=logger)
@@ -186,7 +188,7 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'update_state':
-        Res, Errmsg, Ret = UpdateServiceState(IfsPortalIp, IfsPortalPort, options.ServiceId,
+        Res, Errmsg, Ret = UpdateServiceState(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.ServiceId,
                                               logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -194,14 +196,14 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'update_usage':
-        Res, Errmsg, Ret = UpdateServiceUsage(IfsPortalIp, IfsPortalPort, options.ServiceId,
+        Res, Errmsg, Ret = UpdateServiceUsage(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.ServiceId,
                                               logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'config':
-        ConfigControl(IfsPortalIp, IfsPortalPort, args, options, logger)
+        ConfigControl(IfsPortalIp, IfsPortalPort, IfsPortalKey, args, options, logger)
 
         """
         Res, Errmsg, Ret = UpdateServiceConf(IfsPortalIp, IfsPortalPort, options.ServiceId, logger=logger)
@@ -215,7 +217,7 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = ControlService(IfsPortalIp, IfsPortalPort, args[0], ServiceId=options.ServiceId,
+        Res, Errmsg, Ret = ControlService(IfsPortalIp, IfsPortalPort, IfsPortalKey, args[0], ServiceId=options.ServiceId,
                                           ServiceName=options.ServiceName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
@@ -223,9 +225,9 @@ if __name__ == '__main__':
             print(Errmsg)
     elif args[0] == 'list':
         if options.Detail:
-            Res, Errmsg, Ret, Data = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort,logger=logger)
+            Res, Errmsg, Ret, Data = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey,logger=logger)
         else:
-            Res, Errmsg, Ret, Data = GetServiceInfo(IfsPortalIp, IfsPortalPort,logger=logger)
+            Res, Errmsg, Ret, Data = GetServiceInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, logger=logger)
 
         if Res == ResOk:
             print(Ret.Result, Ret.Message)

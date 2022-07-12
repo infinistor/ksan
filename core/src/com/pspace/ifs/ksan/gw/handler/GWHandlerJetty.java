@@ -51,24 +51,24 @@ public class GWHandlerJetty extends AbstractHandler {
             throws IOException, ServletException {
         // TODO Auto-generated method stub
         try (InputStream is = request.getInputStream()) {
-            logger.info(baseRequest.getRootURL() + baseRequest.getOriginalURI());
-            List<NameValuePair> params = URLEncodedUtils.parse(baseRequest.getHttpURI().toURI(), Charset.forName(GWConstants.CHARSET_UTF_8));
+            // logger.info(baseRequest.getRootURL() + baseRequest.getOriginalURI());
+            // List<NameValuePair> params = URLEncodedUtils.parse(baseRequest.getHttpURI().toURI(), Charset.forName(GWConstants.CHARSET_UTF_8));
 
-            MultiMap<String> queryParameters = new MultiMap<String>();
-			for (NameValuePair param : params) {
-				logger.info(param.getName() + GWConstants.SPACE_COLON_SPACE + param.getValue());
+            // MultiMap<String> queryParameters = new MultiMap<String>();
+			// for (NameValuePair param : params) {
+			// 	logger.info(param.getName() + GWConstants.SPACE_COLON_SPACE + param.getValue());
 
-				String encodevalue = GWConstants.EMPTY_STRING;
-				if(param.getValue() != null) {
-					if(param.getName().equals(GWConstants.SIGNATURE))
-						encodevalue = param.getValue().replaceAll(GWConstants.SPACE, GWConstants.PLUS);
-					else
-						encodevalue = param.getValue();
-				}
+			// 	String encodevalue = GWConstants.EMPTY_STRING;
+			// 	if(param.getValue() != null) {
+			// 		if(param.getName().equals(GWConstants.SIGNATURE))
+			// 			encodevalue = param.getValue().replaceAll(GWConstants.SPACE, GWConstants.PLUS);
+			// 		else
+			// 			encodevalue = param.getValue();
+			// 	}
 
-				queryParameters.put(param.getName(), encodevalue);
-			}
-            baseRequest.setQueryParameters(queryParameters);
+			// 	queryParameters.put(param.getName(), encodevalue);
+			// }
+            // baseRequest.setQueryParameters(queryParameters);
             handler.doHandle(baseRequest, request, response, is);
 			baseRequest.setHandled(true);
         } catch (GWException e) {

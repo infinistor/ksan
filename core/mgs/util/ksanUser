@@ -64,11 +64,13 @@ if __name__ == '__main__':
     IfsPortalIp = '127.0.0.1'
     IfsPortalPort = 5443
     IfsMqPort = 5672
+    IfsPortalKey = ''
     ret, conf = read_conf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf['mgs']['MgsIp']
         IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
         IfsMqPort = int(conf['mgs']['MqPort'])
+        IfsPortalKey = conf['mgs']['IfsPortalKey']
 
     options.IpAddress = IfsPortalIp
     options.Port = IfsPortalPort
@@ -82,7 +84,7 @@ if __name__ == '__main__':
             print('User Name, Default DiskPoolName and Email Info are required')
             sys.exit(-1)
 
-        Res, Errmsg, Ret = AddS3User(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+        Res, Errmsg, Ret = AddS3User(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.UserName, DiskPoolId=options.DiskPoolId,
                                      DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
             print(Ret.Result)
@@ -96,7 +98,7 @@ if __name__ == '__main__':
         Conf = dict()
         Conf['isRemove']= get_input('Are you sure to remove user(yes|no)?', str, 'no', ValidAnsList=['yes', 'no'])
         if Conf['isRemove'] == 'yes':
-            Res, Errmsg, Ret = RemoveS3User(IfsPortalIp, IfsPortalPort, UserId=options.UserId, UserName=options.UserName, logger=logger)
+            Res, Errmsg, Ret = RemoveS3User(IfsPortalIp, IfsPortalPort, IfsPortalKey, UserId=options.UserId, UserName=options.UserName, logger=logger)
             if Res == ResOk:
                 print(Ret.Result)
             else:
@@ -107,7 +109,7 @@ if __name__ == '__main__':
             print('User Name, Default DiskPoolName and Email Info are required')
             sys.exit(-1)
 
-        Res, Errmsg, Ret = AddS3UserStorageClass(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+        Res, Errmsg, Ret = AddS3UserStorageClass(IfsPortalIp, IfsPortalPort, IfsPortalKey ,options.UserName, DiskPoolId=options.DiskPoolId,
                                      DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
             print(Ret.Result)
@@ -119,7 +121,7 @@ if __name__ == '__main__':
             print('User Name, Default DiskPoolName and Email Info are required')
             sys.exit(-1)
 
-        Res, Errmsg, Ret = RemoveS3UserStorageClass(IfsPortalIp, IfsPortalPort, options.UserName, DiskPoolId=options.DiskPoolId,
+        Res, Errmsg, Ret = RemoveS3UserStorageClass(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.UserName, DiskPoolId=options.DiskPoolId,
                                      DiskPoolName=options.DiskPoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
             print(Ret.Result)
@@ -131,7 +133,7 @@ if __name__ == '__main__':
         if not (options.UserId or options.UserName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateS3UserInfo(IfsPortalIp, IfsPortalPort, UserId=options.UserId, UserName=options.UserName,
+        Res, Errmsg, Ret = UpdateS3UserInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, UserId=options.UserId, UserName=options.UserName,
                                             Email=options.Email, logger=logger)
         if Res == ResOk:
             print(Ret.Result)
@@ -139,7 +141,7 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'list':
-        Res, Errmsg, Ret, Users = GetS3UserInfo(options.IpAddress, options.Port, UserId=options.UserId, logger=logger)
+        Res, Errmsg, Ret, Users = GetS3UserInfo(options.IpAddress, options.Port, IfsPortalKey, UserId=options.UserId, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:

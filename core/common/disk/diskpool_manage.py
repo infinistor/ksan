@@ -19,7 +19,7 @@ from common.httpapi import *
 import jsonpickle
 
 @catch_exceptions()
-def AddDiskPool(Ip, Port, Name, DiskPoolType, ReplicationType, Description=None, logger=None):
+def AddDiskPool(Ip, Port, ApiKey, Name, DiskPoolType, ReplicationType, Description=None, logger=None):
     pool = RequestDiskPool()
     DefaultDiskIds = list()
     pool.Set(Name, Description, DefaultDiskIds, DiskPoolType=DiskPoolType, ReplicationType=ReplicationType)
@@ -27,13 +27,13 @@ def AddDiskPool(Ip, Port, Name, DiskPoolType, ReplicationType, Description=None,
     Url = '/api/v1/DiskPools'
     ReturnType = ResponseHeaderModule
     body = jsonpickle.encode(pool, make_refs=False)
-    Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Data
 
 
 @catch_exceptions()
-def RemoveDiskPool(ip, port, DiskPoolId=None, DiskPoolName=None, logger=None):
+def RemoveDiskPool(ip, port, ApiKey, DiskPoolId=None, DiskPoolName=None, logger=None):
     # get network interface info
     if DiskPoolName is not None:
         TargetDiskPool = DiskPoolName
@@ -43,7 +43,7 @@ def RemoveDiskPool(ip, port, DiskPoolId=None, DiskPoolName=None, logger=None):
         return ResInvalidCode, ResInvalidMsg + ' DiskPoolId or DiskPoolName is required', None
     Url = '/api/v1/DiskPools/%s' % TargetDiskPool
     ReturnType = ResponseHeaderModule
-    Conn = RestApi(ip, port, Url, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
@@ -56,7 +56,7 @@ def GetDiskIdList(PoolDetailInfo):
 
 
 @catch_exceptions()
-def UpdateDiskPool(Ip, Port, DiskPoolId=None, AddDiskIds=None, DelDiskIds=None, DiskPoolName=None, Description='', logger=None):
+def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskIds=None, DiskPoolName=None, Description='', logger=None):
     if DiskPoolId is not None:
         TargetDiskPool = DiskPoolId
     elif DiskPoolName is not None:
@@ -64,7 +64,7 @@ def UpdateDiskPool(Ip, Port, DiskPoolId=None, AddDiskIds=None, DelDiskIds=None, 
     else:
         return ResInvalidCode, ResInvalidMsg + ' DiskPoolId or DiskPoolName is required', None
 
-    Res, Errmsg, Ret, PoolDetail = GetDiskPoolInfo(Ip, Port, DiskPoolId=DiskPoolId, DiskPoolName=DiskPoolName, logger=logger)
+    Res, Errmsg, Ret, PoolDetail = GetDiskPoolInfo(Ip, Port, ApiKey, DiskPoolId=DiskPoolId, DiskPoolName=DiskPoolName, logger=logger)
     if Res == ResOk:
         if Ret.Result != ResultSuccess:
             return Res, Errmsg, Ret, None
@@ -85,12 +85,12 @@ def UpdateDiskPool(Ip, Port, DiskPoolId=None, AddDiskIds=None, DelDiskIds=None, 
              ReplicationType=PoolDetail.ReplicationType )
     ReturnType = ResponseHeaderModule
     body = jsonpickle.encode(pool, make_refs=False)
-    Conn = RestApi(Ip, Port, Url, params=body, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Data
 
 
-def GetDiskPoolInfo(Ip, Port, DiskPoolId=None, DiskPoolName=None, logger=None):
+def GetDiskPoolInfo(Ip, Port, ApiKey,  DiskPoolId=None, DiskPoolName=None, logger=None):
     """
     Get All Disk Info with Server Info
     :param Ip:
@@ -117,7 +117,7 @@ def GetDiskPoolInfo(Ip, Port, DiskPoolId=None, DiskPoolName=None, logger=None):
 
     Params = dict()
     Params['countPerPage'] = 100
-    Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=Params, logger=logger)
 
     Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
     if Res == ResOk:
@@ -206,7 +206,7 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
 
         for pool in DiskPoolList:
             _pool = "|%s|%s|%s|%s|" % (pool.Name.center(20), str(pool.Id).center(38),
-                                       str(pool.DiskPoolType).center(15), str(pool.ReplicationType).center(15))
+                                       str(pool.DiskPoolType).center(15), GetReplicationDspType(str(pool.ReplicationType)).center(15))
 
             print(_pool)
             print(PoolDataLine)
@@ -221,7 +221,7 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
         DiskTitleLine = "%s%s" % (" " * 10, "-" * 135)
         for pool in DiskPools:
             _pool = "|%s|%s|%s|%s|%s|" % (pool['Name'].center(36), str(pool['Id']).center(38),
-                                           str(pool['DiskPoolType']).center(15), str(pool['ReplicationType']).center(15), " " * 35)
+                                           str(pool['DiskPoolType']).center(15), GetReplicationDspType(str(pool['ReplicationType'])).center(15), " " * 35)
             print(_pool)
             print(DiskPoolTitleLine)
             DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 10, 'Server Name'.center(15), '' 'DiskId'.center(38),
@@ -245,3 +245,13 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                 else:
                     print(DiskTitleLine)
 
+
+def GetReplicationDspType(StringType):
+    if StringType == 'OnePlusOne':
+        return '1+1'
+    elif StringType == 'OnePlusZero':
+        return '1+0'
+    elif StringType == 'OnePlusTwo':
+        return '1+2'
+    else:
+        return 'Invalid Replica'

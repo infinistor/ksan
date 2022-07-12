@@ -66,12 +66,13 @@ if __name__ == '__main__':
     IfsPortalIp = '127.0.0.1'
     IfsPortalPort = 5443
     IfsMqPort = 5672
+    IfsPortalKey = ''
     ret, conf = read_conf(MonServicedConfPath)
     if ret is True:
         IfsPortalIp = conf['mgs']['MgsIp']
         IfsPortalPort = int(conf['mgs']['IfsPortalPort'])
         IfsMqPort = int(conf['mgs']['MqPort'])
-
+        IfsPortalKey = conf['mgs']['IfsPortalKey']
 
     options.IpAddress = IfsPortalIp
     options.Port = IfsPortalPort
@@ -115,7 +116,7 @@ if __name__ == '__main__':
         else:
             ReplicationType = DiskPoolReplica1
 
-        Res, Errmsg, Ret = AddDiskPool(IfsPortalIp, IfsPortalPort, options.DiskPoolName, options.DiskPoolType,
+        Res, Errmsg, Ret = AddDiskPool(IfsPortalIp, IfsPortalPort, IfsPortalKey, options.DiskPoolName, options.DiskPoolType,
                                        ReplicationType, Description=options.Description,
                                        logger=logger)
         if Res == ResOk:
@@ -126,7 +127,7 @@ if __name__ == '__main__':
         if not (options.DiskPoolId or options.DiskPoolName):
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveDiskPool(IfsPortalIp, IfsPortalPort, DiskPoolId=options.DiskPoolId, DiskPoolName=options.DiskPoolName, logger=logger)
+        Res, Errmsg, Ret = RemoveDiskPool(IfsPortalIp, IfsPortalPort, IfsPortalKey, DiskPoolId=options.DiskPoolId, DiskPoolName=options.DiskPoolName, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
@@ -152,18 +153,18 @@ if __name__ == '__main__':
                 sys.exit(-1)
             DelDiskIds = options.DiskIds.split()
 
-        Res, Errmsg, Ret = UpdateDiskPool(IfsPortalIp, IfsPortalPort, DiskPoolId=options.DiskPoolId, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
+        Res, Errmsg, Ret = UpdateDiskPool(IfsPortalIp, IfsPortalPort, IfsPortalKey, DiskPoolId=options.DiskPoolId, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
                                            DiskPoolName=options.DiskPoolName, Description=options.Description, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif args[0] == 'list':
-        Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(options.IpAddress, options.Port, DiskPoolId=options.DiskPoolId, logger=logger)
+        Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(options.IpAddress, options.Port, IfsPortalKey, DiskPoolId=options.DiskPoolId, logger=logger)
         if Res != ResOk:
             print(Errmsg)
         else:
-            Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, logger=logger)
+            Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(IfsPortalIp, IfsPortalPort, IfsPortalKey, logger=logger)
             if Res != ResOk:
                 print(Errmsg)
             else:
