@@ -508,9 +508,12 @@ public class DiskMonitor {
                 logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
                     diskId, serverId, dskPoolId, mpath);
             } catch (ResourceNotFoundException ex) { // add disk if not exist
-                if (dskPool1 != null){
+                logger.debug(" NEW DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
+                            diskId, serverId, dskPoolId, mpath);
+                //if (dskPool1 != null){
                     SERVER svr;
                     try {
+                        dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                         svr = dskPool1.getServerById(serverId);
                     } catch (ResourceNotFoundException ex1) {
                         logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
@@ -530,7 +533,7 @@ public class DiskMonitor {
                     svr.addDisk(dsk2);
                     logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
                             diskId, serverId, dskPoolId, mpath);
-                }
+                //}
                 
             }
         }
