@@ -519,7 +519,8 @@ public class DiskMonitor {
                     logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
                     return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
                 }
-                DISK dsk2 = new DISK();
+                svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
+                /*DISK dsk2 = new DISK();
                 dsk2.setId(diskId);
                 dsk2.setInode(totalInode, userInode);
                 dsk2.setPath(mpath);
@@ -530,8 +531,8 @@ public class DiskMonitor {
                    dsk2.setMode(DiskMode.READWRITE);
                 else
                    dsk2.setMode(DiskMode.READONLY); 
-                svr.addDisk(dsk2);
-                dskPool1.addServer(svr);
+                svr.addDisk(dsk2);*/
+                //dskPool1.addServer(svr);
                
                 logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
                         diskId, serverId, dskPoolId, mpath); 
