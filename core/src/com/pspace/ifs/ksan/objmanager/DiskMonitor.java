@@ -508,7 +508,7 @@ public class DiskMonitor {
                 logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
                     diskId, serverId, dskPoolId, mpath);
             } catch (ResourceNotFoundException ex) { // add disk if not exist
-                if (dskPool1 != null && dsk1 == null){
+                if (dskPool1 != null){
                     SERVER svr;
                     try {
                         svr = dskPool1.getServerById(serverId);
@@ -528,6 +528,8 @@ public class DiskMonitor {
                     else
                        dskPool1.setDiskMode(serverId, diskId, DiskMode.READONLY); 
                     svr.addDisk(dsk2);
+                    logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
+                            diskId, serverId, dskPoolId, mpath);
                 }
                 
             }
