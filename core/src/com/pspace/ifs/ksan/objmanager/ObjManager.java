@@ -15,14 +15,12 @@ import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,6 @@ public class ObjManager {
     private DiskAllocation dAlloc;
     private static ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    private MQSender mqSender;
     private OSDClient osdc;
     private ObjManagerSharedResource obmsr;
     private ObjMultipart multipart;
@@ -54,15 +51,11 @@ public class ObjManager {
 
         dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
 
-        //config.loadDiskPools(obmCache);
-
         logger.debug(config.toString());
 
         dAlloc = new DiskAllocation(obmCache);
 
-        mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
-
-        osdc = new OSDClient(mqSender);
+        osdc = new OSDClient(config);
         
         multipart = new ObjMultipart(dbm);
     }

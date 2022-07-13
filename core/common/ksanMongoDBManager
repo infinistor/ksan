@@ -18,8 +18,11 @@ import socket
 from optparse import OptionParser
 from common.shcommand import UpdateEtcHosts
 from common.utils import CreatePidFile
+#from common.log import Logging
+import logging
 import json
 import re
+import time
 
 MongDbCluster = {'Shard1Port': 20001, 'Shard2Port': 20002, 'ConfigServerPort': 50000, 'MongoDbPort': 27017}
 
@@ -75,7 +78,8 @@ sslverify=0
 def SetMongosCmd(Shard1Port, Shard2Port, ConfigServerPort, MongoDbPort):
     if not os.path.exists(KsanMongoPath):
         os.makedirs(KsanMongoPath)
-
+    logging.log(logging.INFO, "Create Mongo Script with Shard1port:%s Shard2Port:%s ConfigServerPort:%s" %
+                (Shard1Port, Shard2Port, ConfigServerPort))
     # create start shard command
     with open(ShardStartCmd, 'w') as f:
         Contents = """
@@ -169,8 +173,8 @@ def InitMongos(Option):
     Shard2Port = Option.Shard2Port
     ConfigServerPort = Option.ConfigServerPort
     MongoDbPort = Option.MongoDbPort
-    if Option.MongoDbHomeDir:
-        MongoDbHomeDir = Option.MongoDbHomeDir
+    if Option.HomeDirectory:
+        MongoDbHomeDir = Option.HomeDirectory
 
     # create storage directory
     if not os.path.exists(MongoDbHomeDir):
@@ -199,35 +203,97 @@ def InitMongos(Option):
         StopMongoDb()
 
 def PrimaryNodeConfigure(Shard1Port, Shard2Port, ConfigServerPort):
-    SleepTime = 1
-    SetClusterCmd = ""
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % Shard1Port
-    SetClusterCmd += 'sleep %d;' % SleepTime
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % Shard1Port
-    SetClusterCmd += 'sleep %d;' % SleepTime
+    Retry = 0
+    while True:
+        Retry += 1
+        SetClusterCmd = "mongo --port %s --eval 'rs.initiate()';" % Shard1Port
+        os.system(SetClusterCmd)
+        CheckCmd = "mongo --port %s --eval 'rs.status()'|grep stateStr" % Shard1Port
+        out, err = shcall(CheckCmd)
 
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % Shard2Port
-    SetClusterCmd += 'sleep %d;' % SleepTime
+        if "PRIMARY" in out:
+            break
+        else:
+            if Retry > 3:
+                logging.log(logging.INFO, 'fail to set primary for Shard1')
+                break
+            else:
+                time.sleep(1)
 
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % Shard2Port
-    SetClusterCmd += 'sleep %d;' % SleepTime
+    Retry = 0
+    while True:
+        Retry += 1
+        SetClusterCmd = "mongo --port %s --eval 'rs.initiate()';" % Shard2Port
+        os.system(SetClusterCmd)
+        CheckCmd = "mongo --port %s --eval 'rs.status()'|grep stateStr" % Shard2Port
+        out, err = shcall(CheckCmd)
+
+        if "PRIMARY" in out:
+            break
+        else:
+            if Retry > 3:
+                logging.log(logging.INFO, 'fail to set primary for Shard2')
+                break
+            else:
+                time.sleep(1)
+
+    Retry = 0
+    while True:
+        Retry += 1
+        SetClusterCmd = "mongo --port %s --eval 'rs.initiate()';" % ConfigServerPort
+        os.system(SetClusterCmd)
+        CheckCmd = "mongo --port %s --eval 'rs.status()'|grep stateStr" % ConfigServerPort
+        out, err = shcall(CheckCmd)
+
+        if "PRIMARY" in out:
+            break
+        else:
+            if Retry > 3:
+                logging.log(logging.INFO, 'fail to set primary for ConfigServerPort')
+                break
+            else:
+                time.sleep(1)
 
 
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % ConfigServerPort
-    SetClusterCmd += 'sleep %d;' % SleepTime
-    SetClusterCmd += "mongo --port %s --eval 'rs.initiate()';" % ConfigServerPort
-
-    print(SetClusterCmd)
-    out, err = shcall(SetClusterCmd)
 
 def RunPrimaryCluster(Shard1Port, Shard2Port):
     out, err = shcall('hostname')
     PrimaryHostname = out[:-1]
-    RunCmd = ''
-    RunCmd += "mongo admin --eval 'db.runCommand({addshard:\"reps%s/%s:%s\"})';" % (Shard1Port, PrimaryHostname, Shard1Port)
-    RunCmd += "mongo admin --eval 'db.runCommand({addshard:\"reps%s/%s:%s\"})';" % (Shard2Port, PrimaryHostname, Shard2Port)
-    RunCmd += "mongo admin --eval 'sh.status()'"
-    shcall(RunCmd)
+    Retry = 0
+    while True:
+        Retry += 1
+        RunCmd = "mongo admin --eval 'db.runCommand({addshard:\"reps%s/%s:%s\"})';" % (Shard1Port, PrimaryHostname, Shard1Port)
+        os.system(RunCmd)
+
+        CheckCmd = "mongo admin --eval 'sh.status()'|grep reps"
+        out, err = shcall(CheckCmd)
+        if 'reps%s' % Shard1Port in out:
+            break
+        else:
+            if Retry > 3:
+                logging.log(logging.INFO, 'fail to add Shard1')
+                break
+            else:
+                time.sleep(1)
+
+
+    Retry = 0
+    while True:
+        Retry += 1
+        RunCmd = "mongo admin --eval 'db.runCommand({addshard:\"reps%s/%s:%s\"})';" % (Shard2Port, PrimaryHostname, Shard2Port)
+        os.system(RunCmd)
+
+        CheckCmd = "mongo admin --eval 'sh.status()'|grep reps"
+        out, err = shcall(CheckCmd)
+        if 'reps%s' % Shard2Port in out:
+            break
+        else:
+            if Retry > 3:
+                logging.log(logging.INFO, 'fail to add Shard2')
+                break
+            else:
+                time.sleep(1)
+
 
 def GetPortInfo():
     global MongDbCluster

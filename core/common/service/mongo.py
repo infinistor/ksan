@@ -44,17 +44,27 @@ class KsanMongoDB:
             return True, ''
 
     def GetMongoDBConf(self):
-        Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.mgs.MgsIp, int(self.MonConf.mgs.IfsPortalPort), logger=self.logger)
-        if Res == ResOk:
-            if Ret.Result == ResultSuccess:
-                DbConf = json.loads(Data.Config)
-                self.DbConf = DictToObject(DbConf)
-                self.isLocalPrimayNode()
-                return True, ''
+        Retry = 0
+        while True:
+            Retry += 1
+            Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.mgs.MgsIp, int(self.MonConf.mgs.IfsPortalPort),
+                                                             self.MonConf.mgs.IfsPortalKey, logger=self.logger)
+            if Res == ResOk:
+                if Ret.Result == ResultSuccess:
+                    DbConf = json.loads(Data.Config)
+                    self.DbConf = DictToObject(DbConf)
+                    self.isLocalPrimayNode()
+                    return True, ''
+                else:
+                    if Retry > 2:
+                        return False, 'fail to get MongoDB config %s' % ErrMsg
+                    else:
+                        time.slee(1)
             else:
-                return False, 'fail to get MongoDB config %s' % ErrMsg
-        else:
-            return False, 'fail to get MongoDB config'
+                if Retry > 2:
+                    return False, 'fail to get MongoDB config'
+                else:
+                    time.sleep(1)
 
     def isLocalPrimayNode(self):
         Ret, Hostname, Ip = GetHostInfo()

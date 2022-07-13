@@ -122,13 +122,16 @@ public class ObjManagerCache {
     }
    
     public String[] getBucketNameList(){
-    
+        dbm.loadBucketList();
+        
         return bucketMap.keySet().toArray(new String[0]);
     }
     
     public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
+        dbm.loadBucketList(); // get list always bucket from db 
+        
         for (String key : bucketMap.keySet()) {
             Bucket bt = bucketMap.get(key);
             if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
@@ -138,11 +141,15 @@ public class ObjManagerCache {
             	btList.add(bsi);
 	    }
         }
-
+         
         return btList;
     }
 
     public boolean bucketExist(String bucketName){
+        if (bucketMap.containsKey(bucketName))
+            return true;
+        
+        dbm.loadBucketList();
         return bucketMap.containsKey(bucketName);
     }
     

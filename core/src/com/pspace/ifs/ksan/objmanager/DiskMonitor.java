@@ -508,26 +508,41 @@ public class DiskMonitor {
                 logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
                     diskId, serverId, dskPoolId, mpath);
             } catch (ResourceNotFoundException ex) { // add disk if not exist
-                if (dskPool1 != null && dsk1 == null){
-                    SERVER svr;
-                    try {
-                        svr = dskPool1.getServerById(serverId);
-                    } catch (ResourceNotFoundException ex1) {
-                        logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                        return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
-                    }
-                    DISK dsk2 = new DISK();
-                    dsk2.setId(diskId);
-                    dsk2.setInode(totalInode, userInode);
-                    dsk2.setPath(mpath);
-                    dsk2.setOSDServerId(serverId);
-                    dsk2.setOSDIP(svr.getName());
-                    dsk2.setSpace(totalSize, usedSize, reservedSize);
-                    if (diskMood.equalsIgnoreCase(KEYS.RW.label))
-                       dsk2.setMode(DiskMode.READWRITE);
-                    else
-                       dskPool1.setDiskMode(serverId, diskId, DiskMode.READONLY); 
-                    svr.addDisk(dsk2);
+                logger.debug(" NEW DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
+                            diskId, serverId, dskPoolId, mpath);
+                
+                SERVER svr;
+                try {
+                    dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+                    svr = dskPool1.getServerById(serverId);
+                } catch (ResourceNotFoundException ex1) {
+                    logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                    return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+                }
+                svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
+                /*DISK dsk2 = new DISK();
+                dsk2.setId(diskId);
+                dsk2.setInode(totalInode, userInode);
+                dsk2.setPath(mpath);
+                dsk2.setOSDServerId(serverId);
+                dsk2.setOSDIP(svr.getName());
+                dsk2.setSpace(totalSize, usedSize, reservedSize);
+                if (diskMood.equalsIgnoreCase(KEYS.RW.label))
+                   dsk2.setMode(DiskMode.READWRITE);
+                else
+                   dsk2.setMode(DiskMode.READONLY); 
+                svr.addDisk(dsk2);*/
+                //dskPool1.addServer(svr);
+               
+                logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
+                        diskId, serverId, dskPoolId, mpath); 
+                try {
+                    DISK dsk3 = dskPool1.getDisk(mpath, diskId);
+                    logger.debug("DISK to add: Disk found at diskppol dsk {}!", dsk3); 
+                } catch (ResourceNotFoundException ex1) {
+                    logger.debug("DISK to add: Disk not found diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
+                        diskId, serverId, dskPoolId, mpath);
+                    svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
                 }
                 
             }

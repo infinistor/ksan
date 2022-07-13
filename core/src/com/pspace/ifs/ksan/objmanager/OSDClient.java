@@ -23,8 +23,8 @@ public class OSDClient {
         mqSender = new MQSender(config.mqHost, (int)config.mqPort, config.mqUsername, config.mqPassword, config.mqOsdExchangename, "direct", ""); 
     }
     
-    public OSDClient(MQSender mqSender){
-        this.mqSender = mqSender;
+    public OSDClient(ObjManagerConfig config) throws Exception{
+        this.mqSender = new MQSender(config.mqHost, (int)config.mqPort, config.mqUsername, config.mqPassword, config.mqOsdExchangename, "direct", ""); 
     }
     
     public int removeObject(String objId, String versionId, DISK dsk)throws Exception{

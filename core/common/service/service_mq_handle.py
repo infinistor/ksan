@@ -182,15 +182,15 @@ class Process:
 
 @catch_exceptions()
 def ServiceMonitoring(conf, GlobalFlag, logger):
-    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
+    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
                         RoutKeyServiceUsage, ExchangeName, QueueName='')
-    MqServiceState = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword,
+    MqServiceState = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
                                     RoutKeyServiceState, ExchangeName, QueueName='')
 
     # local service list
     LocalServices = list() # [{ 'Id': ServiceId, 'Type': 'Osd', 'ProcessObject':Object, 'IsEnable': True, 'GroupId': GroupId, 'Status': 'Online'}]
     while True:
-        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId, logger=logger)
+        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.IfsPortalKey, conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 LocalServices = list()
@@ -205,6 +205,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         NewService['ProcessObject'] = ProcObject
                         NewService['IsEnable'] = True
                         LocalServices.append(NewService)
+                        logging.log(logging.INFO, 'Service %s is added' % Service.ServiceType)
                     except Exception as err:
                         logger.error("fail to get service info %s " % str(err))
 
@@ -230,6 +231,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                             Usage = jsonpickle.encode(Usage, make_refs=False, unpicklable=False)
                             Usage = json.loads(Usage)
                             MqServiceUsage.Sender(Usage)
+                            logger.debug(Usage)
                         except Exception as err:
                             logger.error("fail to get service info %s" % str(err))
                             continue
@@ -242,6 +244,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         ServiceStatus = ProcObject.State
                         CreateServicePoolXmlFile(ServiceTypePool)
                         UpdateServiceInfoDump(ServiceTypePool, ServiceId, ServiceType, GroupId, ServiceStatus)
+
 
                     root = CreateServicePoolXmlFile(ServiceTypePool)
                     indent(root)

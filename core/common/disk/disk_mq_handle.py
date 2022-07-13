@@ -25,11 +25,11 @@ import xml.etree.ElementTree as ET
 
 @catch_exceptions()
 def DiskUsageMonitoring1(conf, GlobalFlag, logger):
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyDiskUsage, ExchangeName,
+    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
             QueueName='')
 
     while True:
-        Res, Errmsg, Ret, AllDiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
+        Res, Errmsg, Ret, AllDiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, conf.mgs.ServerId)
         #UpdateDiskPoolXml()
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
@@ -46,7 +46,7 @@ def DiskUsageMonitoring1(conf, GlobalFlag, logger):
                         stat.GetInode()
                         stat.GetUsage()
                         DiskStat = DiskDetailMqBroadcast()
-                        DiskStat.Set(disk.Id, disk.ServerId, disk.DiskNo, disk.State, stat.TotalInode, stat.ReservedInode,
+                        DiskStat.Set(disk.Id, disk.ServerId, disk.State, stat.TotalInode, stat.ReservedInode,
                                      stat.UsedInode, stat.TotalSize, stat.ReservedSize, stat.UsedSize, disk.Read, disk.Write)
                         Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
                         logger.debug(Mqsend)
@@ -139,10 +139,10 @@ def UpdateDiskPartitionInfo(DiskList):
 
 @catch_exceptions()
 def DiskUsageMonitoring(conf, GlobalFlag, logger):
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, MqUser, MqPassword, RoutKeyDiskUsage, ExchangeName,
+    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
             QueueName='')
     while True:
-        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort))
+        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 DiskStatInfo = UpdateDiskPartitionInfo(DiskList)
