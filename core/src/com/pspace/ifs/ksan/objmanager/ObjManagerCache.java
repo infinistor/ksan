@@ -153,7 +153,7 @@ public class ObjManagerCache {
         return bucketMap.containsKey(bucketName);
     }
     
-    public DISK getDiskWithPath( String dskPoolId, String dpath) throws ResourceNotFoundException{
+    /*public DISK getDiskWithPath( String dskPoolId, String dpath) throws ResourceNotFoundException{
         DISKPOOL dskPool;
         DISK dsk;
         
@@ -165,7 +165,7 @@ public class ObjManagerCache {
         logger.error("There is no disk in the the server with path : {} and disk pool id : {}!", dpath, dskPoolId);
         throw new ResourceNotFoundException("There is no disk in the the server with path : " + 
                 dpath +" and disk pool id : " + dskPoolId + "!"); 
-    }
+    }*/
     
     public DISK getDiskWithId( String dskPoolId, String diskid) throws ResourceNotFoundException{
         DISKPOOL dskPool;
@@ -173,7 +173,7 @@ public class ObjManagerCache {
         
         dskPool = getDiskPool(dskPoolId);
         if (dskPool != null){
-            dsk = dskPool.getDisk("", diskid);
+            dsk = dskPool.getDisk( diskid);
             return dsk;
         }
         logger.error("There is no disk in the the server with diskid : {} at disk pool id : {}!", diskid, dskPoolId);

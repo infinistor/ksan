@@ -88,8 +88,8 @@ public class GetFromPortal {
         
         return (String)obj;
     }
-    
-    private JSONObject parseGetSingleItem(String response, int index) throws ParseException{
+        
+    private JSONObject parseGetItem(String response) throws ParseException{
         if (response.isEmpty())
             return null;
         
@@ -105,7 +105,21 @@ public class GetFromPortal {
         if (jsonData.isEmpty())
             return null;
         
+        return jsonData;
+    }
+    
+    private JSONObject parseGetSingleItem(String response, int index) throws ParseException{
+        JSONObject jsonData = parseGetItem(response);
+        if (jsonData == null)
+            return null;
+        
+        if (jsonData.isEmpty())
+            return null;
+        
         JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+        if (jsonItems == null)
+            return null;
+        
         if (jsonItems.isEmpty())
             return null;
         
@@ -117,13 +131,14 @@ public class GetFromPortal {
     private JSONObject parseConfigResponse(String response) throws ParseException{
         JSONParser parser = new JSONParser();
         
-        JSONObject jsonItem = parseGetSingleItem(response, 0);
-        if (jsonItem == null)
+        JSONObject jsonData = parseGetItem(response);
+        if (jsonData == null)
             return null;
         
-        String config = getString(jsonItem,"Config");
+        String config = getString(jsonData,"Config");
         if (config.isEmpty())
             return null;
+      
         return (JSONObject)parser.parse(config);
     }
     
@@ -333,7 +348,7 @@ public class GetFromPortal {
     }
     
     public int getConfigFromPortal(ObjManagerConfig objc) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{    
-        String content = get("/api/v1/Config/List/S3");
+        String content = get("/api/v1/Config/GW");
         JSONObject jsonConfig = parseConfigResponse(content);
         if (jsonConfig == null)
             return -1;
@@ -344,13 +359,13 @@ public class GetFromPortal {
         objc.dbName = (String)jsonConfig.get("objM.db_name");
         objc.dbUsername = (String)jsonConfig.get("objM.db_user");
         objc.dbPassword = (String)jsonConfig.get("objM.db_password");
-        objc.mqHost = portalHost;
+        objc.mqHost = (String)jsonConfig.get("objM.mq_host");
         objc.mqUsername = mqUser;
         objc.mqPassword = mqPassword;
         objc.mqPort = mqPort;
-        objc.mqOsdExchangename = "osdExchange"; //Fixme
-        objc.mqExchangename = "diskPoolExchange"; //Fime
-        objc.mqQueeuname = "diskPoolQueeu";
+        objc.mqOsdExchangename = "ksan.OSDExchange";
+        objc.mqExchangename = "ksan.system";  
+        objc.mqQueeuname = "disk";  
         return 0;
     }
         
