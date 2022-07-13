@@ -21,6 +21,7 @@ namespace PortalModels
 		{
 			this.DiskPoolType = (PortalModels.EnumDbDiskPoolType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolType), "0");
 			this.ReplicationType = (PortalModels.EnumDbDiskPoolReplicaType)Enum.Parse(typeof(PortalModels.EnumDbDiskPoolReplicaType), "1");
+			this.DefaultDiskPool = false;
 			this.Disks = new List<Disk>();
 			this.UserDiskPools = new List<UserDiskPool>();
 			OnCreated();
@@ -57,6 +58,9 @@ namespace PortalModels
 		public virtual EnumDbDiskPoolType DiskPoolType { get; set; }
 
 		public virtual EnumDbDiskPoolReplicaType ReplicationType { get; set; }
+
+		/// <summary> 기본 디스크풀 여부 </summary>
+		public virtual bool DefaultDiskPool { get; set; }
 
 		/// <summary> 디스크 목록 </summary>
 		public virtual IList<Disk> Disks { get; set; }
