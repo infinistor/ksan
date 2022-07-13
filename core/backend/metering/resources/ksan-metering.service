@@ -1,5 +1,5 @@
 [Unit]
-Description=Systemd ksan-metering Daemon
+Description=Systemd ksanMetering Daemon
 After=network.target
 
 [Service]

@@ -16,9 +16,7 @@ using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Disks;
 using PortalData.Responses.Disks;
-using PortalData.Responses.Services;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
@@ -115,7 +113,7 @@ namespace PortalProvider.Providers.Disks
 				}
 
 				// 디스크가 이미 마운트되어 있는지 확인 요청
-				var Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{ServerId}.disks.check_mount", new
+				var Response = SendRpcMq($"*.servers.{ServerId}.disks.check_mount", new
 				{
 					ServerId = ServerId,
 					Request.Path
@@ -129,7 +127,7 @@ namespace PortalProvider.Providers.Disks
 				var NewId = Guid.NewGuid();
 
 				// 디스크 아이디 기록 요청
-				var ResponseWriteDiskId = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{ServerId}.disks.write_disk_id", new
+				var ResponseWriteDiskId = SendRpcMq($"*.servers.{ServerId}.disks.write_disk_id", new
 				{
 					Id = NewId.ToString(),
 					ServerId = ServerId,
@@ -172,7 +170,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 디스크 추가 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.added", Result.Data);
+						SendMq("*.servers.disks.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
@@ -255,7 +253,7 @@ namespace PortalProvider.Providers.Disks
 				if (Exist.Path != Request.Path)
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
-					var Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{Exist.ServerId}.disks.check_mount", new
+					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new
 					{
 						ServerId = Exist.ServerId,
 						Request.Path
@@ -293,7 +291,7 @@ namespace PortalProvider.Providers.Disks
 						var Response = (await this.Get(Id)).Data;
 
 						// 디스크 추가 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.updated", Response);
+						SendMq("*.servers.disks.updated", Response);
 					}
 					catch (Exception ex)
 					{
@@ -361,7 +359,7 @@ namespace PortalProvider.Providers.Disks
 						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State };
 
 						// 디스크 상태 수정 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.state", Message);
+						SendMq("*.servers.disks.state", Message);
 					}
 					catch (Exception ex)
 					{
@@ -513,7 +511,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 수정된 R/W 모드 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(Exist));
+						SendMq("*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -584,7 +582,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.disks.removed", new ResponseDisk().CopyValueFrom(Exist));
+						SendMq("*.servers.disks.removed", new ResponseDisk().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{

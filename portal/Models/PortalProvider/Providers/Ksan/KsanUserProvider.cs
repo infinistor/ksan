@@ -29,16 +29,12 @@ using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
 using MTLib.Reflection;
-using PortalProvider.Providers.RabbitMq;
 
 namespace PortalProvider.Providers.Accounts
 {
 	/// <summary>Ksan 사용자 프로바이더 클래스</summary>
 	public class KsanUserProvider : BaseProvider<PortalModel>, IKsanUserProvider
 	{
-		/// <summary>역할 매니져</summary>
-		protected readonly RoleManager<NNApplicationRole> m_roleManager;
-
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
 		/// <param name="configuration">역할 정보</param>
@@ -55,12 +51,10 @@ namespace PortalProvider.Providers.Accounts
 			ISystemLogProvider systemLogProvider,
 			IUserActionLogProvider userActionLogProvider,
 			IServiceScopeFactory serviceScopeFactory,
-			ILogger<KsanUserProvider> logger,
-			RoleManager<NNApplicationRole> roleManager
+			ILogger<KsanUserProvider> logger
 			)
 			: base(dbContext, configuration, userManager, systemLogProvider, userActionLogProvider, serviceScopeFactory, logger)
 		{
-			m_roleManager = roleManager;
 		}
 
 		/// <summary>Ksan 사용자를 추가한다.</summary>
@@ -98,23 +92,28 @@ namespace PortalProvider.Providers.Accounts
 					Email = Request.Email;
 				}
 
-				// 기본 디스크풀 ID가 유효하지 않을 경우
-				if (Request.StandardDiskPoolId.IsEmpty())
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-
 				// 디스크풀 정보를 가져온다.
 				DiskPool Exist = null;
-				// 아이디로 조회할 경우
-				if (Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolId))
-					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolId);
-				// 이름으로 조회할 경우
+
+				// 기본 디스크풀 ID가 유효하지 않을 경우
+				if (Request.StandardDiskPoolId.IsEmpty())
+				{
+					// 기본 디스크 풀 정보를 가져온다.
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.DefaultDiskPool == true);
+				}
 				else
-					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.StandardDiskPoolId);
+				{
+					// 아이디로 조회할 경우
+					if (Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolId))
+						Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolId);
+					// 이름으로 조회할 경우
+					else
+						Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.StandardDiskPoolId);
+				}
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
 
 				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
 				var User = new KsanUser
@@ -143,7 +142,7 @@ namespace PortalProvider.Providers.Accounts
 				Result.Data.CopyValueFrom(User);
 
 				// Ksan 사용자 등록 알림
-				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.added", Result.Data);
+				SendMq("*.services.gw.user.added", Result.Data);
 			}
 			catch (Exception ex)
 			{
@@ -239,7 +238,7 @@ namespace PortalProvider.Providers.Accounts
 				//Ksan 사용자 변경 알림
 				var responseKsanUser = new ResponseKsanUser();
 				responseKsanUser.CopyValueFrom(User);
-				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.updated", responseKsanUser);
+				SendMq("*.services.gw.user.updated", responseKsanUser);
 			}
 			catch (Exception ex)
 			{
@@ -287,7 +286,7 @@ namespace PortalProvider.Providers.Accounts
 				//Ksan 사용자 삭제 알림
 				var responseKsanUser = new ResponseKsanUser();
 				responseKsanUser.CopyValueFrom(Exist);
-				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.removed", responseKsanUser);
+				SendMq("*.services.gw.user.removed", responseKsanUser);
 			}
 			catch (Exception ex)
 			{
@@ -596,7 +595,7 @@ namespace PortalProvider.Providers.Accounts
 
 				//Ksan 사용자 변경 알림
 				User.UserDiskPools.Add(NewData);
-				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.updated", User);
+				SendMq("*.services.gw.user.updated", User);
 			}
 			catch (Exception ex)
 			{
@@ -644,7 +643,7 @@ namespace PortalProvider.Providers.Accounts
 
 				//Ksan 사용자 변경 알림
 				var User = await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Id == UserId).FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
-				SendMq(RabbitMqConfiguration.ExchangeName, "*.services.s3.user.updated", User);
+				SendMq("*.services.gw.user.updated", User);
 
 				Result.Result = EnumResponseResult.Success;
 				Result.Code = Resource.SC_COMMON__SUCCESS;

@@ -16,11 +16,10 @@ namespace PortalProviderInterface
 	public interface IRabbitMqSender
 	{
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
 		/// <param name="routingKey">라우팅 키</param>
 		/// <param name="sendingObject">전송할 객체</param>
 		/// <returns></returns>
-		ResponseData Send(string exchange, string routingKey, object sendingObject);
+		ResponseData Send(string routingKey, object sendingObject);
 
 		/// <summary>연결 종료</summary>
 		void Close();

@@ -18,7 +18,6 @@ using PortalData.Requests.Servers;
 using PortalData.Responses.Servers;
 using PortalData.Responses.Services;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
@@ -109,7 +108,7 @@ namespace PortalProvider.Providers.Servers
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 추가된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.added", Result.Data);
+						SendMq("*.servers.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
@@ -151,13 +150,18 @@ namespace PortalProvider.Providers.Servers
 				if (InternalServiceApiKey == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
 
+				// 명령 스크립트 생성
+				var cmd = $"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}" +
+					$" -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]} -k {InternalServiceApiKey.KeyValue}";
+				m_logger.LogDebug(cmd);
+
 				// SSH 접속
 				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
 				Client.Connect();
 
 				// 명령어 생성 및 실행
 				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}" +
-					$" -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]} -k {m_apiKeyProvider.GetMainApiKey()}");
+					$" -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]} -k {InternalServiceApiKey.KeyValue}");
 
 				// 결과 받아오기
 				await Task.Run(() => Commend.Execute());
@@ -290,7 +294,7 @@ namespace PortalProvider.Providers.Servers
 						var Response = (await this.Get(Id)).Data;
 
 						// 수정된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.updated", Response);
+						SendMq("*.servers.updated", Response);
 					}
 					catch (Exception ex)
 					{
@@ -620,7 +624,7 @@ namespace PortalProvider.Providers.Servers
 						Response.CopyValueFrom(Exist);
 
 						// 삭제된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.removed", Response);
+						SendMq("*.servers.removed", Response);
 					}
 					catch (Exception ex)
 					{

@@ -21,16 +21,16 @@ namespace PortalData.Enums
 		Unknown = -1,
 		/// <summary>OSD</summary>
 		OSD,
-		/// <summary>S3</summary>
-		S3,
-		/// <summary>S3 Backend</summary>
-		S3Backend,
+		/// <summary>GW</summary>
+		GW,
+		/// <summary>Recovery</summary>
+		Recovery,
 		/// <summary>HA Proxy</summary>
 		HaProxy,
 		/// <summary>Monitor</summary>
 		Monitor,
-		/// <summary>Edge</summary>
-		Edge,
+		/// <summary>Agent</summary>
+		Agent,
 		/// <summary>MariaDB</summary>
 		MariaDB,
 		/// <summary>MongoDB</summary>
@@ -42,8 +42,6 @@ namespace PortalData.Enums
 		/// <summary>Logging</summary>
 		Logging,
 		/// <summary>Metering</summary>
-		Metering,
-		/// <summary>Recovery</summary>
-		Recovery
+		Metering
 	}
 }

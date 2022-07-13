@@ -5,7 +5,7 @@
 	<artifactId>metering</artifactId>
 	<version>1.0</version>
 	<packaging>jar</packaging>
-	<name>ksan-metering</name>
+	<name>ksanMetering</name>
 	<description>Access InfiniStor backends via the S3 API</description>
 
 	<licenses>
@@ -127,7 +127,7 @@
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.5.0</version>
 				<configuration>
-					<programFile>ksan-metering</programFile>
+					<programFile>ksanMetering</programFile>
 				</configuration>
 				<executions>
 					<execution>

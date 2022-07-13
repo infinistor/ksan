@@ -40,11 +40,11 @@
 			</Documentation>
 			<Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
 			<Member Name="OSD" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
-			<Member Name="S3" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
+			<Member Name="GW" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
 			<Member Name="Recovery" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
 			<Member Name="HaProxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
 			<Member Name="Monitor" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
-			<Member Name="Edge" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
+			<Member Name="Agent" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
 			<Member Name="MariaDB" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
 			<Member Name="MongoDB" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
 			<Member Name="Lifecycle" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
@@ -1259,6 +1259,12 @@
 		</property>
 		<property name="ReplicationType" type="PortalModels.EnumDbDiskPoolReplicaType" p1:ValidateRequired="true" p1:Guid="e7ae1a03-18f3-4246-8b6e-73ed8dd85891">
 			<column name="" default="1" />
+		</property>
+		<property name="DefaultDiskPool" type="Boolean" p1:ValidateRequired="true" p1:Guid="6d126b8d-b25c-4a0f-83f9-7ddcd2c9137c">
+			<Documentation>
+				<Summary>기본 디스크풀 여부</Summary>
+			</Documentation>
+			<column name="" default="false" />
 		</property>
 	</class>
 	<class name="ServerUsage" entity-set="ServerUsages" p1:Guid="15e5f3ac-4577-4673-b411-47bac199d611">
