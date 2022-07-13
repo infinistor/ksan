@@ -63,10 +63,17 @@ public class ListObjects extends S3Request {
 
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {
-			if (Integer.valueOf(dataListBuckets.getMaxkeys()) < 0) {
+			try {
+				if (Integer.valueOf(dataListBuckets.getMaxkeys()) < 0) {
+					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+				} else if (Integer.valueOf(dataListBuckets.getMaxkeys()) > 1000) {
+					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
+				} else {
+					s3ObjectList.setMaxKeys(dataListBuckets.getMaxkeys());
+				}
+			} catch (NumberFormatException e) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
-			s3ObjectList.setMaxKeys(dataListBuckets.getMaxkeys());
 		} else {
 			s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 		}
