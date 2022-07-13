@@ -18,6 +18,6 @@ chmod +x "$FULLPATH"
 make_excuteable "ksanGetAttr"
 make_excuteable "ksanRecovery"
 make_excuteable "ksanFsck"
-make_excuteable "ksancbalance"
+make_excuteable "ksanCbalance"
 
 exit 0
