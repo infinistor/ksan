@@ -13,14 +13,6 @@ namespace PortalProvider.Providers.RabbitMq
 	/// <summary>Rabbit MQ 설정 클래스</summary>
 	public class RabbitMqConfiguration
 	{
-		/// <summary>Exchange 명</summary>
-		public static string ExchangeName
-		{
-			get
-			{
-				return "ksan.system";
-			}
-		}
 
 		/// <summary>연결 이름</summary>
 		public string Name { get; set; }
@@ -39,6 +31,9 @@ namespace PortalProvider.Providers.RabbitMq
 
 		/// <summary>비밀번호</summary>
 		public string Password { get; set; }
+		
+		/// <summary>Exchange 명</summary>
+		public string ExchangeName { get; set; }
 
 		/// <summary>활성화 여부</summary>
 		public bool Enabled { get; set; }

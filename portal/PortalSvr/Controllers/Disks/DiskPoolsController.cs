@@ -147,6 +147,25 @@ namespace PortalSvr.Controllers.Disks
 			return Json(await m_dataProvider.IsNameExist(ExceptId, Name));
 		}
 
+		/// <summary>기본 디스크풀을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPool>))]
+		[HttpPost("Default")]
+		public async Task<ActionResult> GetDefault()
+		{
+			return Json(await m_dataProvider.GetDefault());
+		}
+
+		/// <summary>기본 디스크풀을 변경한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPost("Default/{Id}")]
+		public async Task<ActionResult> SetDefault([FromRoute] string Id)
+		{
+			return Json(await m_dataProvider.SetDefault(Id));
+		}
+
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>

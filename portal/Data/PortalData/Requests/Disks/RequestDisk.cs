@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using PortalData.Enums;
 using PortalResources;
 using MTLib.CommonData;
+using MTLib.Core;
 
 namespace PortalData.Requests.Disks
 {
@@ -22,7 +23,13 @@ namespace PortalData.Requests.Disks
 		public string DiskPoolId { get; set; }
 
 		/// <summary>디스크 이름</summary>
-		public string Name { get; set; }
+		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_DISK_NAME", ErrorMessageResourceType = typeof(Resource))]
+		public string Name
+		{
+			get => m_name;
+			set => m_name = value.IsEmpty() ? "" : value.Trim();
+		}
+		private string m_name;
 
 		/// <summary>마운트 경로</summary>
 		[Required(ErrorMessageResourceName = "EM_DISKS_REQUIRE_PATH", ErrorMessageResourceType = typeof(Resource))]

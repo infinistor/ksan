@@ -17,12 +17,10 @@ using PortalData.Enums;
 using PortalData.Requests.Networks;
 using PortalData.Responses.Networks;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -95,7 +93,7 @@ namespace PortalProvider.Providers.Networks
 				var NewId = Guid.NewGuid();
 
 				// 네트워크 인터페이스 등록을 요청한다.
-				var Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{ServerId}.interfaces.add", new
+				var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.add", new
 				{
 					Id = NewId.ToString(),
 					ServerId = ServerId,
@@ -172,9 +170,9 @@ namespace PortalProvider.Providers.Networks
 						Result.Data = (await Get(ServerId, NewData.Id.ToString())).Data;
 
 						// 추가된 네트워크 인터페이스 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.added", new ResponseNetworkInterface().CopyValueFrom(NewData));
+						SendMq("*.servers.interfaces.added", new ResponseNetworkInterface().CopyValueFrom(NewData));
 						// 추가된 네트워크 인터페이스 VLAN 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.added", new ResponseNetworkInterfaceVlan().CopyValueFrom(NewVlan));
+						SendMq("*.servers.interfaces.vlans.added", new ResponseNetworkInterfaceVlan().CopyValueFrom(NewVlan));
 					}
 					catch (Exception ex)
 					{
@@ -267,7 +265,7 @@ namespace PortalProvider.Providers.Networks
 						if (m_dbContext.HasChanges())
 						{
 							// 네트워크 인터페이스 수정을 요청한다.
-							var Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.servers.{ServerId}.interfaces.update", new
+							var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.update", new
 							{
 								Id = Id,
 								ServerId = ServerId,
@@ -346,10 +344,10 @@ namespace PortalProvider.Providers.Networks
 						Result.Result = EnumResponseResult.Success;
 
 						// 수정된 네트워크 인터페이스 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.updated", new ResponseNetworkInterface().CopyValueFrom(Exist));
+						SendMq("*.servers.interfaces.updated", new ResponseNetworkInterface().CopyValueFrom(Exist));
 						// 수정된 네트워크 인터페이스 VLAN 정보 전송
 						if (ChangedVlan)
-							SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.updated", new ResponseNetworkInterfaceVlan().CopyValueFrom(ExistVlan));
+							SendMq("*.servers.interfaces.vlans.updated", new ResponseNetworkInterfaceVlan().CopyValueFrom(ExistVlan));
 					}
 					catch (Exception ex)
 					{
@@ -635,9 +633,9 @@ namespace PortalProvider.Providers.Networks
 
 						foreach (var vlan in Vlans)
 							// 삭제된 네트워크 인터페이스 VLAN 정보 전송
-							SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.vlans.deleted", new ResponseNetworkInterfaceVlan().CopyValueFrom(vlan));
+							SendMq("*.servers.interfaces.vlans.deleted", new ResponseNetworkInterfaceVlan().CopyValueFrom(vlan));
 						// 삭제된 네트워크 인터페이스 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.interfaces.deleted", new ResponseNetworkInterface().CopyValueFrom(Exist));
+						SendMq("*.servers.interfaces.deleted", new ResponseNetworkInterface().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{

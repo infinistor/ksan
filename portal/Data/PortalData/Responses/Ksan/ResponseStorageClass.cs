@@ -16,6 +16,9 @@ namespace PortalData.Responses.Ksan
 		/// <summary> 유저 아이디</summary>	
 		public string UserId { get; set; }
 		
+		/// <summary> 디스크풀 이름</summary>
+		public string DiskPoolName { get; set; }
+		
 		/// <summary> 디스크풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 

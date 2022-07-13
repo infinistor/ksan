@@ -36,8 +36,6 @@ namespace PortalSvr.RabbitMqReceivers
 		private IModel m_channel;
 		/// <summary>큐 이름</summary>
 		private readonly string m_queueName;
-		/// <summary>Exchange 이름</summary>
-		private readonly string m_exchangeName;
 		/// <summary>바인딩 키 목록</summary>
 		private readonly string[] m_bindingKeys;
 		/// <summary>Rabbit MQ 설정 객체</summary>
@@ -49,14 +47,12 @@ namespace PortalSvr.RabbitMqReceivers
 
 		/// <summary>생성자</summary>
 		/// <param name="queueName">큐 이름</param>
-		/// <param name="exchangeName">Exchange 이름</param>
 		/// <param name="bindingKeys">바인딩 키 목록</param>
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
 		/// <param name="serviceScopeFactory">서비스 팩토리</param>
 		public RabbitMqReceiver(
 			string queueName,
-			string exchangeName,
 			string[] bindingKeys,
 			IOptions<RabbitMqConfiguration> rabbitMqOptions,
 			ILogger logger,
@@ -67,8 +63,6 @@ namespace PortalSvr.RabbitMqReceivers
 			{
 				// 큐 이름 저장
 				m_queueName = queueName;
-				// Exchange 이름 저장
-				m_exchangeName = exchangeName;
 				// 바인딩 키 목록 저장
 				m_bindingKeys = bindingKeys;
 				// 설정 복사
@@ -114,12 +108,12 @@ namespace PortalSvr.RabbitMqReceivers
 				// 큐 설정
 				m_channel.QueueDeclare(queue: m_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
 				// Exchange 설절
-				m_channel.ExchangeDeclare(exchange: m_exchangeName, type: "topic");
+				m_channel.ExchangeDeclare(exchange: m_config.ExchangeName, type: "topic");
 				// 모든 바인딩 키 처리
 				if (m_bindingKeys != null)
 				{
 					foreach (var bindingKey in m_bindingKeys)
-						m_channel.QueueBind(queue: m_queueName, exchange: m_exchangeName, routingKey: bindingKey);
+						m_channel.QueueBind(queue: m_queueName, exchange: m_config.ExchangeName, routingKey: bindingKey);
 				}
 			}
 			catch (Exception ex)

@@ -1634,4 +1634,10 @@
   <data name="EN_DISK_POOLS_INVALID_ID" xml:space="preserve">
     <value>유효하지 않은 디스크풀 아이디입니다.</value>
   </data>
+  <data name="EM_DISKS_REQUIRE_DISK_NAME" xml:space="preserve">
+    <value>디스크 이름을 입력해주세요.</value>
+  </data>
+  <data name="EN_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
+    <value>유효하지 않은 스토리지 클래스 명입니다.</value>
+  </data>
 </root>

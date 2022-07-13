@@ -10,6 +10,7 @@
 */
 using System.ComponentModel.DataAnnotations;
 using MTLib.CommonData;
+using MTLib.Core;
 using PortalData.ValidationAttributes;
 using PortalResources;
 
@@ -19,7 +20,12 @@ namespace PortalData.Requests.Region
 	public class RequestRegion : CommonRequestData
 	{
 		/// <summary> 리전명 </summary>
-		public virtual string Name { get; set; }
+		public string Name
+		{
+			get => m_name;
+			set => m_name = value.IsEmpty() ? "" : value.Trim();
+		}
+		private string m_name;
 
 		/// <summary> 리전 주소 </summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]

@@ -8,18 +8,31 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System.ComponentModel.DataAnnotations;
+using MTLib.CommonData;
+using MTLib.Core;
+using PortalResources;
+
 namespace PortalData.Requests.Ksan
 {
 	/// <summary> 유저 디스크풀 응답 클래스 </summary>
-	public class RequestStorageClass
+	public class RequestStorageClass : CommonRequestData
 	{
 		/// <summary> 유저 아이디</summary>	
-		public string UserId { get; set; } = "";
-		
+		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_USERID", ErrorMessageResourceType = typeof(Resource))]
+		public string UserId { get; set; }
+
 		/// <summary> 디스크풀 아이디</summary>
-		public string DiskPoolId { get; set; } = "";
+		[Required(ErrorMessageResourceName = "EN_DISK_POOLS_INVALID_ID", ErrorMessageResourceType = typeof(Resource))]
+		public string DiskPoolId { get; set; }
 
 		/// <summary> 스토리지 클래스 </summary>
-		public string StorageClass { get; set; } = "";
+		[Required(ErrorMessageResourceName = "EN_STORAGE_CLASS_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
+		public string StorageClass
+		{
+			get => m_storageClass;
+			set => m_storageClass = value.IsEmpty() ? "" : value.Trim();
+		}
+		private string m_storageClass;
 	}
 }

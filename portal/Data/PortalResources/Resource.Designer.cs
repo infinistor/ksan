@@ -1357,6 +1357,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Please enter disk name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISKS_REQUIRE_DISK_NAME {
+            get {
+                return ResourceManager.GetString("EM_DISKS_REQUIRE_DISK_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Please enter disk no.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_DISKS_REQUIRE_DISK_NO {
@@ -1803,6 +1812,15 @@ namespace PortalResources {
         public static string EN_DISK_POOLS_INVALID_ID {
             get {
                 return ResourceManager.GetString("EN_DISK_POOLS_INVALID_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EN_STORAGE_CLASS_INVALID_NAME {
+            get {
+                return ResourceManager.GetString("EN_STORAGE_CLASS_INVALID_NAME", resourceCulture);
             }
         }
         

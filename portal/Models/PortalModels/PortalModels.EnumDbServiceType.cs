@@ -16,11 +16,11 @@ namespace PortalModels
 	{
 		Unknown = -1,
 		OSD = 0,
-		S3,
+		GW,
 		Recovery,
 		HaProxy,
 		Monitor,
-		Edge,
+		Agent,
 		MariaDB,
 		MongoDB,
 		Lifecycle,

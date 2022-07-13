@@ -27,7 +27,6 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using PortalData.Responses.Configs;
 using PortalData.Requests.Configs;
-using PortalProvider.Providers.RabbitMq;
 
 namespace PortalProvider.Providers.Services
 {
@@ -163,7 +162,6 @@ namespace PortalProvider.Providers.Services
 				if (string.IsNullOrEmpty(Request.Config))
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -257,7 +255,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
+						SendMq($"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
 					}
 					catch (Exception ex)
 					{

@@ -32,7 +32,7 @@ public final class GWConstants {
 
 	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
-	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.s3.config.*";
+	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
 	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
 	public static final String MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY = "*.servers.disks.added";
 	public static final String MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY = "*.servers.disks.updated";
@@ -42,9 +42,9 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_DISKPOOL = "ksan-gw-diskpool-";
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
 	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
-	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.s3.user.*";
+	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.gw.user.*";
 
-	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
+	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/GW";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
@@ -115,11 +115,6 @@ public final class GWConstants {
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	
 	public static final String MARIADB = "MariaDB";
-	// public static final String JDBC_DRIVER = "jdbc:apache:commons:dbcp:gwcp";
-	// public static final String JDBC_DRIVER_DBCP = "jdbc:apache:commons:dbcp:";
-	// public static final String CONNECTION_POOL = "gwcp";
-	// public static final String JDBC_MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
-	// public static final String DBCP2_DRIVER = "org.apache.commons.dbcp2.PoolingDriver";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
 	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8";
 	public static final String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
