@@ -18,26 +18,26 @@ namespace PortalData.Requests.Networks
 	/// <summary>특정 이름 존재여부 확인 요청 클래스</summary>
 	public class RequestIsNetworkInterfaceNameExist : CommonRequestData
 	{
-        /// <summary>인터페이스명</summary>
-        [Required(ErrorMessageResourceName = "EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
-        public string Name
-        {
-	        get => m_name;
-	        set => m_name = value.IsEmpty() ? "" : value.Trim();
-        }
-        private string m_name;
+		/// <summary>인터페이스명</summary>
+		[Required(ErrorMessageResourceName = "EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+		public string Name
+		{
+			get => m_name;
+			set => m_name = value.IsEmpty() ? "" : value.Trim();
+		}
+		private string m_name;
 
-        /// <summary>생성자</summary>
-        public RequestIsNetworkInterfaceNameExist()
-        {
-			
-        }
+		/// <summary>생성자</summary>
+		public RequestIsNetworkInterfaceNameExist()
+		{
 
-        /// <summary>생성자</summary>
-        /// <param name="name">초기화할 이름</param>
-        public RequestIsNetworkInterfaceNameExist(string name)
-        {
-	        this.Name = name;
-        }
+		}
+
+		/// <summary>생성자</summary>
+		/// <param name="name">초기화할 이름</param>
+		public RequestIsNetworkInterfaceNameExist(string name)
+		{
+			this.Name = name;
+		}
 	}
 }

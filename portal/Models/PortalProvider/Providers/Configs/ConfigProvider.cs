@@ -162,7 +162,6 @@ namespace PortalProvider.Providers.Services
 				if (string.IsNullOrEmpty(Request.Config))
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
-
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
