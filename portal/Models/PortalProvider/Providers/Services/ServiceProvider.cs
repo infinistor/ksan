@@ -18,7 +18,6 @@ using PortalData.Requests.Services;
 using PortalData.Responses.Networks;
 using PortalData.Responses.Services;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
@@ -172,7 +171,7 @@ namespace PortalProvider.Providers.Services
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 서비스 추가 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.added", new ResponseSerivceMq().CopyValueFrom(NewData));
+						SendMq("*.services.added", new ResponseSerivceMq().CopyValueFrom(NewData));
 					}
 					catch (Exception ex)
 					{
@@ -330,7 +329,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 변경 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -407,7 +406,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 변경 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -726,7 +725,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 삭제 메시지 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.services.removed", new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq("*.services.removed", new ResponseSerivceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -981,7 +980,7 @@ namespace PortalProvider.Providers.Services
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 시작 요청
-				ResponseData Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServerId}.control",
+				ResponseData Response = SendRpcMq($"*.services.{ServerId}.control",
 					new RequestServiceControl(Id, Server.Result.Data.ServiceType, EnumServiceControl.Start), 10);
 
 				// 실패인 경우
@@ -1039,7 +1038,7 @@ namespace PortalProvider.Providers.Services
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 중지 요청
-				var Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServerId}.control",
+				var Response = SendRpcMq($"*.services.{ServerId}.control",
 					new RequestServiceControl(Id, Server.Result.Data.ServiceType, EnumServiceControl.Stop), 10);
 
 				// 실패인 경우
@@ -1098,7 +1097,7 @@ namespace PortalProvider.Providers.Services
 				var ServerId = Server.Result.Data.Vlans[0].ServerId;
 
 				// 서비스 재시작 요청
-				ResponseData Response = SendRpcMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServerId}.control",
+				ResponseData Response = SendRpcMq($"*.services.{ServerId}.control",
 					new RequestServiceControl(Id, Server.Result.Data.ServiceType, EnumServiceControl.Restart), 10);
 
 				// 실패인 경우
