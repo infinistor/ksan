@@ -253,11 +253,7 @@ namespace PortalProvider.Providers.Disks
 				if (Exist.Path != Request.Path)
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
-					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new
-					{
-						ServerId = Exist.ServerId,
-						Request.Path
-					}, 10);
+					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path}, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)
@@ -270,6 +266,7 @@ namespace PortalProvider.Providers.Disks
 					{
 						// 정보를 수정한다.
 						Exist.DiskPoolId = GuidDiskPoolId == Guid.Empty ? null : GuidDiskPoolId;
+						Exist.Name = Request.Name;
 						Exist.Path = Request.Path;
 						Exist.State = (EnumDbDiskState)Request.State;
 						Exist.TotalInode = Request.TotalInode;
