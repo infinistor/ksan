@@ -201,28 +201,16 @@ public class DISKPOOL {
         return false;
     }
     
-    public DISK getDisk( String dpath, String diskid) throws ResourceNotFoundException{
+    public DISK getDisk( String diskid) throws ResourceNotFoundException{
         SERVER srv;
         DISK dsk;
         
-        /*if (!(dpath == null && diskid == null)){
-            
-        }*/
-        logger.debug("-- getDisk : path {}, disk id {}", dpath, diskid);
         for(String serverId : serverMap.keySet()){
             srv = serverMap.get(serverId);
             if (srv == null)
                 continue;
             
-            if (!dpath.isEmpty()){
-                if (srv.diskExistWithPath(dpath)){
-                    dsk = srv.getDiskByPath(dpath);
-                    dsk.setOSDIP(srv.getName());
-                    dsk.setOSDServerId(serverId);
-                    return dsk;
-                }
-            }
-            else if (!diskid.isEmpty()){
+            if (!diskid.isEmpty()){
                 if (srv.diskExistWithId(diskid)){
                     dsk = srv.getDiskById(diskid);
                     dsk.setOSDIP(srv.getName());
@@ -232,8 +220,8 @@ public class DISKPOOL {
             }
              
         }
-        logger.error("There is no disk in the the server with path : {} or diskid : {}!", dpath, diskid);
-        throw new ResourceNotFoundException("There is no disk in the the server with path : " + dpath +" or diskid : "+ diskid +"!"); 
+        logger.error("There is no disk in the the server with  diskid : {}!",  diskid);
+        throw new ResourceNotFoundException("There is no disk in the the server with  diskid : "+ diskid +"!"); 
     }
     
     public SERVER getServer( String dpath, String diskid) throws ResourceNotFoundException{

@@ -133,7 +133,7 @@ public class SERVER {
     }
     
     public DISK getDiskById(String diskid) throws ResourceNotFoundException{
-        logger.debug("--getDiskById {} : diskMap size {}", diskid, diskMap.size());
+        //logger.debug("--getDiskById {} : diskMap size {}", diskid, diskMap.size());
         DISK dsk = diskMap.get(diskid);
         if (dsk == null) {
             logger.error("There is no disk in the the server with id : {}!", diskid);
@@ -144,7 +144,7 @@ public class SERVER {
     
     public DISK getDiskByPath(String path) throws ResourceNotFoundException{
         DISK dsk;
-        logger.debug("--getDiskByPath {} : diskMap size {}", path, diskMap.size());
+        //logger.debug("--getDiskByPath {} : diskMap size {}", path, diskMap.size());
         for(String diskid : diskMap.keySet()){
             dsk = diskMap.get(diskid);
             if (dsk != null){

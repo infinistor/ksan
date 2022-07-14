@@ -104,7 +104,7 @@ public class Recovery {
         om = new ObjectMover(false, "RECOVERY");
         MQCallback mq = new RecoveryObjectCallback();
         mqReceiver = new MQReceiver(config.mqHost, queueN, exchange, false, option, bindingKey, mq);
-        osdc = new OSDClient(new MQSender(config.mqHost, config.mqOsdExchangename, option, "")); // *.servers.getattr.*
+        osdc = new OSDClient(config); // *.servers.getattr.*
     }
           
 }

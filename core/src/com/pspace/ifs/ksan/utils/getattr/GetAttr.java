@@ -219,6 +219,7 @@ public class GetAttr {
             gattr.getObjects();
             System.exit(0);  
         } catch (Exception ex) {
+            System.out.println(ex);
             Logger.getLogger(GetAttr.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
