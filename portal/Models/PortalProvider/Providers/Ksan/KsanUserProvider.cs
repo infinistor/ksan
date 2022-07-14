@@ -735,6 +735,6 @@ namespace PortalProvider.Providers.Accounts
 			return new string(chars.ToArray());
 		}
 		public static string CreateAccessKey() => RandomText(ACCESS_KEY_LENGTH);
-		public static string CreateSecretKey() => RandomText(SECRET_KEY_LENGTH);
+		public static string CreateSecretKey() => RandomTextLong(SECRET_KEY_LENGTH);
 	}
 }

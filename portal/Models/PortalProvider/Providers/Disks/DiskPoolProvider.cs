@@ -291,11 +291,8 @@ namespace PortalProvider.Providers.Disks
 
 						Result.Result = EnumResponseResult.Success;
 
-						// 상세 정보를 가져온다.
-						var Response = (await this.Get(Id)).Data;
-
 						// 수정된 디스크 풀 정보 전송
-						SendMq("*.servers.diskpools.updated", Response);
+						SendMq("*.servers.diskpools.updated", (await this.Get(Id)).Data);
 					}
 					catch (Exception ex)
 					{
@@ -370,7 +367,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 풀 정보 전송
-						SendMq("*.servers.diskpools.removed", new ResponseDiskPool().CopyValueFrom(Exist));
+						SendMq("*.servers.diskpools.removed", new {Exist.Id, Exist.Name});
 					}
 					catch (Exception ex)
 					{

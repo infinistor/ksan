@@ -247,8 +247,8 @@ namespace PortalProvider.Providers.Services
 
 						var NewData = new ResponseUpdateConfig()
 						{
-							RegDate = MyVersion.RegDate,
 							Version = MyVersion.Version,
+							RegDate = MyVersion.RegDate,
 						};
 
 						Result.Data = NewData;
