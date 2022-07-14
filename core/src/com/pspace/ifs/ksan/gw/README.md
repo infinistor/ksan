@@ -109,9 +109,10 @@ mvn clean package
 ## How to Use (빌드한 경우)
 
 * gw를 실행시키기 위하여 필요한 파일은 2개입니다.
- * ksan/core/src/com/pspace/ifs/ksan/gw/target/ksan-gw.jar - 소스 빌드 후, 생성된 실행 파일	
- * /usr/local/ksan/etc/ksan-gw-log.xml - log파일 관련 설정
- 
+```bash
+ksan/core/src/com/pspace/ifs/ksan/gw/target/ksan-gw.jar // 소스 빌드 후, 생성된 실행 파일	
+/usr/local/ksan/etc/ksan-gw-log.xml //log파일 관련 설정
+``` 
 * ksan-gw.jar를 /usr/local/ksan/bin 에 복사합니다.
 * ksan-gw-log.xml를 /usr/local/ksan/etc 에 복사합니다.
 
