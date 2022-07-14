@@ -47,7 +47,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Request">디스크 등록 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDisk>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskWithServerAndNetwork>))]
 		[HttpPost("{ServerId}")]
 		public async Task<ActionResult> Add([FromRoute] string ServerId, [FromBody] RequestDisk Request)
 		{

@@ -11,16 +11,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Accounts;
-using PortalData.Responses.Accounts;
 using PortalProviderInterface;
 using Microsoft.Extensions.Logging;
 using MTLib.CommonData;
 using MTLib.Core;
 using PortalProvider.Providers.Accounts;
 using PortalResources;
+using System.IO;
 
 namespace PortalSvr.Services
 {
@@ -97,12 +96,24 @@ namespace PortalSvr.Services
 							{
 								KeyName = Resource.INTERNALSERVICE_API_KEY,
 								ExpireDate = DateTime.MaxValue,
-								KeyValue = KsanUserProvider.RandomText(64)
+								KeyValue = KsanUserProvider.RandomTextLong(64)
 							}
 						);
 
 						if (ResponseApiKey.Result == EnumResponseResult.Success)
+						{
 							m_logger.LogInformation("API KEY has been created. : {KeyValue}", ResponseApiKey.Data.KeyValue);
+
+							//파일에 떨군다.
+							try
+							{
+								await File.WriteAllTextAsync("/home/share/ApiKey", ResponseApiKey.Data.KeyValue);
+							}
+							catch (Exception e)
+							{
+								NNException.Log(e);
+							}
+						}
 					}
 				}
 			}

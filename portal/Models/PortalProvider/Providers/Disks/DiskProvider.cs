@@ -113,11 +113,7 @@ namespace PortalProvider.Providers.Disks
 				}
 
 				// 디스크가 이미 마운트되어 있는지 확인 요청
-				var Response = SendRpcMq($"*.servers.{ServerId}.disks.check_mount", new
-				{
-					ServerId = ServerId,
-					Request.Path
-				}, 10);
+				var Response = SendRpcMq($"*.servers.{ServerId}.disks.check_mount", new { ServerId = ServerId, Request.Path }, 10);
 
 				// 실패인 경우
 				if (Response.Result != EnumResponseResult.Success)
@@ -166,8 +162,8 @@ namespace PortalProvider.Providers.Disks
 
 						await Transaction.CommitAsync();
 
-						Result.Result = EnumResponseResult.Success;
-						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
+						// 디스크 추가 정보 가져오기
+						Result = await this.Get(NewData.Id.ToString());
 
 						// 디스크 추가 정보 전송
 						SendMq("*.servers.disks.added", Result.Data);
@@ -284,11 +280,8 @@ namespace PortalProvider.Providers.Disks
 
 						Result.Result = EnumResponseResult.Success;
 
-						// 상세 정보를 가져온다.
-						var Response = (await this.Get(Id)).Data;
-
-						// 디스크 추가 정보 전송
-						SendMq("*.servers.disks.updated", Response);
+						// 디스크 변경 정보 전송
+						SendMq("*.servers.disks.updated", Exist);
 					}
 					catch (Exception ex)
 					{
@@ -353,9 +346,9 @@ namespace PortalProvider.Providers.Disks
 
 						Result.Result = EnumResponseResult.Success;
 
-						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State };
 
 						// 디스크 상태 수정 전송
+						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State };
 						SendMq("*.servers.disks.state", Message);
 					}
 					catch (Exception ex)
@@ -388,7 +381,7 @@ namespace PortalProvider.Providers.Disks
 			var Result = new ResponseData();
 			try
 			{
-				// 아이디가 유효하지 않은 경우
+				// 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
@@ -480,8 +473,9 @@ namespace PortalProvider.Providers.Disks
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
 
-				Disk Exist = null;
 				// 해당 정보를 가져온다.
+				Disk Exist = null;
+
 				// 아이디로 가져올 경우
 				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == GuidId);
@@ -508,7 +502,8 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 수정된 R/W 모드 정보 전송
-						SendMq("*.servers.disks.rwmode", new ResponseDiskRwMode().CopyValueFrom(Exist));
+						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskRwMode)Exist.RwMode };
+						SendMq("*.servers.disks.rwmode", Message);
 					}
 					catch (Exception ex)
 					{
@@ -579,7 +574,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 정보 전송
-						SendMq("*.servers.disks.removed", new ResponseDisk().CopyValueFrom(Exist));
+						SendMq("*.servers.disks.removed", new {Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name});
 					}
 					catch (Exception ex)
 					{

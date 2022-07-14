@@ -93,7 +93,7 @@ namespace PortalProvider.Providers.Networks
 				var NewId = Guid.NewGuid();
 
 				// 네트워크 인터페이스 등록을 요청한다.
-				var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.add", new
+				var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.check", new
 				{
 					Id = NewId.ToString(),
 					ServerId = ServerId,
@@ -265,7 +265,7 @@ namespace PortalProvider.Providers.Networks
 						if (m_dbContext.HasChanges())
 						{
 							// 네트워크 인터페이스 수정을 요청한다.
-							var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.update", new
+							var Response = SendRpcMq($"*.servers.{ServerId}.interfaces.check", new
 							{
 								Id = Id,
 								ServerId = ServerId,
@@ -631,11 +631,11 @@ namespace PortalProvider.Providers.Networks
 
 						Result.Result = EnumResponseResult.Success;
 
-						foreach (var vlan in Vlans)
+						foreach (var Vlan in Vlans)
 							// 삭제된 네트워크 인터페이스 VLAN 정보 전송
-							SendMq("*.servers.interfaces.vlans.deleted", new ResponseNetworkInterfaceVlan().CopyValueFrom(vlan));
+							SendMq("*.servers.interfaces.vlans.deleted", new { Id = Vlan.Id, Vlan.InterfaceId });
 						// 삭제된 네트워크 인터페이스 정보 전송
-						SendMq("*.servers.interfaces.deleted", new ResponseNetworkInterface().CopyValueFrom(Exist));
+						SendMq("*.servers.interfaces.deleted", new { Exist.Id, Exist.ServerId, Exist.Name });
 					}
 					catch (Exception ex)
 					{

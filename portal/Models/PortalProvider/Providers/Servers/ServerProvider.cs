@@ -619,12 +619,8 @@ namespace PortalProvider.Providers.Servers
 
 						Result.Result = EnumResponseResult.Success;
 
-						// MQ로 전송할 객체 생성
-						var Response = new ResponseServer();
-						Response.CopyValueFrom(Exist);
-
 						// 삭제된 서버 정보 전송
-						SendMq("*.servers.removed", Response);
+						SendMq("*.servers.removed", new { Id = Exist.Id, Name = Exist.Name });
 					}
 					catch (Exception ex)
 					{
