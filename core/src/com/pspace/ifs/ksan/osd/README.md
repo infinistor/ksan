@@ -6,7 +6,7 @@
 * s3gw의 요청을 받아 object에 대한 put, get, delete 수행
 
 ### 주요 기능
-* s3gw put 요청을 받아 Local disk에 object를 저장
+* s3gw put 요청을 받아 Local diisk에 object를 저장
 * s3gw get 요청을 받아 Local disk에 있는 object를 전송
 * s3gw delete 요청을 받아 Local disk에 있는 object를 삭제
 * s3gw copy 요청을 받아 Local disk에 있는 object를 복사
@@ -16,9 +16,14 @@
 * s3gw abort multipart 요청을 받아 저장되어 있는 parts를 삭제
 
 ## 실행 예시(CLI)
-``` shell
-java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
+```bash
+java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd-log.xml ksan-osd.jar &
 ```
+
+## 로그 파일
+* 설정 파일 : ksan-osd-log.xml (KSAN/etc/ksan-osd-log.xml)
+* 위치
+  * /var/log/ksan/osd/osd.log
 
 ## 구동 환경
 
@@ -30,50 +35,38 @@ java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.j
 ### Maven 설치
 * Maven이 설치되어 있는지 확인해야 합니다.
 
-``` shell
-mvn -v
-```
-* 위의 명령어로 확인하세요.
+* <kbd>mvn -v</kbd> 로 설치되어 있는지 확인하세요.
 
-* 설치가 되어 있지 않으면 다음 명령어로 설치를 해야 합니다.
-``` shell
-sudo apt install maven
-```
+* 설치가 되어 있지 않으면 다음 명령어로 설치를 해야 합니다. <br> 
+<kbd>sudo apt install maven</kbd>
 
 ### Build
-
-* pom.xml 파일이 있는 위치(KSAN/core/osd)에서 
-``` shell
-mvn package
-```
-* 위의 명령어를 실행하면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ksanOsd.jar가 생성됩니다.
-
-``` shell
+* osd를 build하기 위해서 ksan-libs.jar가 필요합니다. 
+```bash
+cd ksan/core/src/com/pspace/ifs/ksan/libs
+mvn clean package
 mvn install
 ```
-
-* 위의 명령어를 실행하면 local repository에 ksanOsd.jar가 저장됩니다. gw에서 참조합니다.
+* pom.xml 파일이 있는 위치(ksan/core/src/com/pspace/ifs/ksan/osd)에서 <kbd>mvn package</kbd> 명령어를 입력하시면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ksan-osd.jar가 생성됩니다.
+```bash
+cd ksan/core/src/com/pspace/ifs/ksan/osd
+mvn clean package
+```
 
 ## How to Use (빌드한 경우)
 
-* OSD를 실행시키기 위하여 필요한 파일은 4개입니다.
-``` shell
-  KSAN/osd/target/ksanOsd.jar // 소스 빌드 후, 생성된 실행 파일	
-  KSAN/etc/ksanOsd.conf       // 설정 파일
-  KSAN/etc/ksanOsdLog.xml     // log 관련 설정
-  KSAN/etc/diskpools.xml      // disk pool 관련 설정
+* osd를 실행시키기 위하여 필요한 파일은 2개입니다.
+```bash
+ksan/core/src/com/pspace/ifs/ksan/osd/target/ksan-osd.jar // 소스 빌드 후, 생성된 실행 파일	
+/usr/local/ksan/etc/ksan-osd-log.xml // log파일 관련 설정
 ```
+
+* ksan-osd.jar를 /usr/local/ksan/bin 에 복사합니다.
+* ksan-osd-log.xml를 /usr/local/ksan/etc 에 복사합니다.
+
+* ksan-osd.jar의 실행 권한을 확인합니다.
+ * ksan-osd.jar의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
+ <kbd>chmod +x ksan-osd.jar</kbd>
  
-* ksanOsd.jar를 /usr/local/ksan/bin 에 복사합니다.
-* ksanOsd.conf, ksanOsdLog.xml, diskpools.xml 를 /usr/local/ksan/etc 에 복사합니다.
-
-* ksanOsd.jar의 실행 권한을 확인합니다.
-* ksanOsd.jar의 실행 권한이 없는 경우 실행권한을 부여합니다.
-``` shell
-chmod +x ksanOsd.jar
-```
-
-* ksanOsd.jar를 실행합니다. (/usr/local/ksan/bin)
-``` shell 
-java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksanOsd.jar &
-```
+* ksan-osd.jar를 실행합니다. (/usr/local/ksan/bin)
+<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksan-osd.jar &</kbd>
