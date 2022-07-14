@@ -55,10 +55,12 @@ mvn clean package
 
 ## How to Use (빌드한 경우)
 
-* osd를 실행시키기 위하여 필요한 파일은 4개입니다.
- * ksan/core/src/com/pspace/ifs/ksan/osd/target/ksan-osd.jar - 소스 빌드 후, 생성된 실행 파일	
- * /usr/local/ksan/etc/ksan-osd-log.xml - log파일 관련 설정
- 
+* osd를 실행시키기 위하여 필요한 파일은 2개입니다.
+```bash
+ksan/core/src/com/pspace/ifs/ksan/osd/target/ksan-osd.jar // 소스 빌드 후, 생성된 실행 파일	
+/usr/local/ksan/etc/ksan-osd-log.xml // log파일 관련 설정
+```
+
 * ksan-osd.jar를 /usr/local/ksan/bin 에 복사합니다.
 * ksan-osd-log.xml를 /usr/local/ksan/etc 에 복사합니다.
 
