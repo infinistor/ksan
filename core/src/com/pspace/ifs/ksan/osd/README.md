@@ -16,7 +16,7 @@
 * s3gw abort multipart 요청을 받아 저장되어 있는 parts를 삭제
 
 ## 실행 예시(CLI)
-```json
+```bash
 java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd-log.xml ksan-osd.jar &
 ```
 

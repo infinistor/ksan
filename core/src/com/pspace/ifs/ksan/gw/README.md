@@ -66,7 +66,7 @@
 * PutPublicAccessBlock
 
 ## 실행 예시(CLI)
-```json
+```bash
 java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw-log.xml ksan-gw.jar &
 ```
 
