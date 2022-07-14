@@ -14,6 +14,7 @@ import java.util.Iterator;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.io.IOException;
 import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
@@ -158,8 +159,9 @@ public class DiskMonitor {
         MQResponse ret;
         JsonOutput jo;
         DISKPOOL dskPool = null;
-        if (routingKey.contains(".servers.disks.size"))
-            return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+        
+        //if (routingKey.contains(".servers.disks.size"))
+         //   return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
 
         logger.debug("BiningKey : {}{ body : {}\n", routingKey, body);
 
@@ -222,7 +224,12 @@ public class DiskMonitor {
         }     
         else 
             ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
-
+        
+        try {
+            obmCache.dumpCacheInFile(); // dump to file memory
+        } catch (IOException ex) {
+            logger.debug("failed to update memory in to a file {}", ex);
+        }
         return ret; 
     }  
        
