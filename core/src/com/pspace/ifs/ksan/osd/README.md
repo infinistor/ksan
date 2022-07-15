@@ -69,4 +69,4 @@ ksan/core/src/com/pspace/ifs/ksan/osd/target/ksan-osd.jar // 소스 빌드 후, 
  <kbd>chmod +x ksan-osd.jar</kbd>
  
 * ksan-osd.jar를 실행합니다. (/usr/local/ksan/bin)
-<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd.xml ksan-osd.jar &</kbd>
+<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-osd-log.xml ksan-osd.jar &</kbd>

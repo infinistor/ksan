@@ -121,4 +121,4 @@ ksan/core/src/com/pspace/ifs/ksan/gw/target/ksan-gw.jar // 소스 빌드 후, �
  <kbd>chmod +x ksan-gw.jar</kbd>
  
 * ksan-gw.jar를 실행합니다. (/usr/local/ksan/bin)
-<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw.xml ksan-gw.jar &</kbd>
+<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw-log.xml ksan-gw.jar &</kbd>
