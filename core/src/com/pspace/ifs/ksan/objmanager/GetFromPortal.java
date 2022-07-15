@@ -90,6 +90,9 @@ public class GetFromPortal {
     }
         
     private JSONObject parseGetItem(String response) throws ParseException{
+        if (response == null)
+            return null;
+        
         if (response.isEmpty())
             return null;
         
@@ -344,11 +347,15 @@ public class GetFromPortal {
             ResponseHandler<String> handler = new BasicResponseHandler();
             return handler.handleResponse(response);
         }
+        
         return null;
     }
     
     public int getConfigFromPortal(ObjManagerConfig objc) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{    
-        String content = get("/api/v1/Config/GW");
+        String content = get("/api/v1/Config/KsanGw");
+        if (content == null)
+            return -1;
+        
         JSONObject jsonConfig = parseConfigResponse(content);
         if (jsonConfig == null)
             return -1;

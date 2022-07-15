@@ -28,6 +28,7 @@ public class ObjManagerUtil {
     private DiskAllocation dAlloc;
     private ObjManagerCache  obmCache;
     private ObjManagerConfig config;
+    private OSDClient osdc;
     private ObjManagerSharedResource omsr;
     private static Logger logger;
     
@@ -41,6 +42,7 @@ public class ObjManagerUtil {
           
             dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
             
+            osdc = new OSDClient(config);
             //config.loadDiskPools(obmCache);
            
             //dbm.loadBucketList();
@@ -111,7 +113,7 @@ public class ObjManagerUtil {
         return ret;
     }
     
-    public List<Metadata> listObjects(String bucketName, String diskid, int listCtrl, long offset, long numObjects){
+    public List<Metadata> listObjects(String bucketName, String diskid, long offset, long numObjects){
         try {
             ListObject lo = new ListObject(dbm, bucketName, diskid, offset, (int)numObjects);
             return lo.getUnformatedList();
@@ -119,6 +121,16 @@ public class ObjManagerUtil {
             return new ArrayList();
         }
     }
+    
+    public List<Metadata> listObjects(String bucketName, long offset, long numObjects){
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, "", offset, (int)numObjects);
+            return lo.getUnformatedList();
+        } catch (SQLException ex) {
+            return new ArrayList();
+        }
+    }
+    
     /**
      * It will allocate a replica disk for recovery of failed replica object
      * @param bucketName   bucket name
@@ -223,5 +235,13 @@ public class ObjManagerUtil {
         } catch (SQLException ex) {
             return -1;
         }
+    }
+    
+    public OSDClient getOSDClient(){
+        return osdc;
+    }
+    
+    public DataRepository getDBRepository(){
+        return dbm;
     }
 }
