@@ -33,7 +33,7 @@ systemctl start docker
 #### dotnet 구성
 ``` shell
 cd setup/aspnetcore_for_api
-docker build -t pspace/aspnetcore_for_api:latest .
+docker build -t infinistor/aspnetcore_for_api:latest .
 ```
 ##### dotnet 구성이 안될 경우
 ``` shell
@@ -68,18 +68,18 @@ systemctl start docker
 ### gateway 빌드
 ``` shell
 cd setup/gateway
-docker build -t pspace/ksangateway:latest .
-docker save -o ~/Downloads/ksangateway.tar pspace/ksangateway
+docker build -t infinistor/ksangateway:latest .
+docker save -o ~/Downloads/ksangateway.tar infinistor/ksangateway
 ```
 
 ### ksanapi 빌드
 ``` shell
 #!/bin/bash
 #scripts/docker-build-api.sh
-docker rmi pspace/ksanapi:latest
+docker rmi infinistor/ksanapi:latest
 cp ./PortalSvr/.dockerignore ./.dockerignore
-docker build --rm -t pspace/ksanapi:latest -f ./PortalSvr/Dockerfile .
-docker save -o ~/Downloads/ksanapi.tar pspace/ksanapi
+docker build --rm -t infinistor/ksanapi:latest -f ./PortalSvr/Dockerfile .
+docker save -o ~/Downloads/ksanapi.tar infinistor/ksanapi
 docker rmi $(docker images -f "dangling=true" -q)
 ```
 
@@ -88,9 +88,9 @@ docker rmi $(docker images -f "dangling=true" -q)
 #!/bin/bash
 #scripts/docker-build-portal.sh
 docker rm ksanportal
-docker rmi pspace/ksanportal:latest
-docker build --rm -t pspace/ksanportal:latest -f ./Portal/Dockerfile ./Portal
-docker save -o ~/Downloads/ksanportal.tar pspace/ksanportal
+docker rmi infinistor/ksanportal:latest
+docker build --rm -t infinistor/ksanportal:latest -f ./Portal/Dockerfile ./Portal
+docker save -o ~/Downloads/ksanportal.tar infinistor/ksanportal
 docker rmi $(docker images -f "dangling=true" -q)
 
 ```
@@ -199,7 +199,7 @@ docker create -i -t \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
 --name ksanportal \
-pspace/ksanportal:latest
+infinistor/ksanportal:latest
 ```
 
 #### api 컨테이너 생성
@@ -215,7 +215,7 @@ docker create -i -t \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
 --name ksanapi \
-pspace/ksanapi:latest
+infinistor/ksanapi:latest
 ```
 
 #### gateway (nginx) 컨테이너 생성
@@ -226,7 +226,7 @@ docker create --net=host \
 -v /etc/localtime:/etc/localtime:ro \
 -v /home/ksan/share:/home/share \
 --name ksangateway \
-pspace/ksangateway:latest
+infinistor/ksangateway:latest
 ```
 
 #### 파일 복사 및 권한 수정
@@ -241,37 +241,9 @@ chmod 777 /etc/systemd/system/ksangateway.service
 ```
 
 #### 인증서 발급
-``` shell
-# 사설 인증기관에서 발급 받을 경우 pfx파일을 다운받아 사용하면 됩니다.
-# 로컬내에서 인증서 발급
-/usr/local/ksan/ssl/ifs_objstorage_sign init
-
-Enter Domain Name (default=PSPACE.KSAN): 
-Enter Orig Unit (default=KSAN): 
-Enter Alias (default=PSPACE): 
-Enter Location (default=SEOUL): 
-Enter Country (default=KOREA): 
-Enter External DNS (default=DNS:localhost): 
-Enter External IP (default=IP:127.0.0.1,IP:::1):
-Enter key store password (default=37b46b57dbe0862f5737eb7117d0f107): YOUR_JKS_PASSWORD
-Enter expire days (default=36500): 
-Creating new ssl configuration.
-
-# 생성된 인증서 파일을 pfx 파일로 변환
-# 생성될 파일명 : pspace.pfx
-
-cd /usr/local/ksan/ssl
-
-keytool -importkeystore \
--srckeystore pspace.jks\
- -srcstoretype JKS \
--srcstorepass YOUR_JKS_PASSWORD \
--destkeystore pspace.pfx \
--deststoretype PKCS12 \
--deststorepass YOUR_PFX_PASSWORD
-
-# 생성된 인증서 파일을 업로드
-docker cp /usr/local/ksan/ssl/pspace.pfx ksanapi:/app
+- 사설 인증기관에서 발급 받을 경우 pfx파일을 다운받아 사용하면 됩니다.
+#### 생성된 인증서 파일을 업로드
+docker cp infinistor.pfx ksanapi:/app
 ```
 
 #### Api 설정
@@ -370,7 +342,7 @@ docker cp ksanapi:/app/appsettings.json .
 
 # 기존 컨테이너, 이미지 제거
 docker rm ksanapi
-docker rmi pspace/ksanapi
+docker rmi infinistor/ksanapi
 
 # 새 이미지 업로드 및 컨테이너 생성
 docker load -i ksanapi.tar
@@ -385,7 +357,7 @@ docker create -i -t \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
 --name ksanapi \
-pspace/ksanapi:latest
+infinistor/ksanapi:latest
 
 # 설정 복구
 docker cp appsettings.json ksanapi:/app
@@ -407,7 +379,7 @@ systemctl stop ksanportal
 
 # 기존 컨테이너, 이미지 제거
 docker rm ksanportal
-docker rmi pspace/ksanportal
+docker rmi infinistor/ksanportal
 
 # 새 이미지 업로드 및 컨테이너 생성
 docker load -i ksanportal.tar
@@ -417,7 +389,7 @@ docker create --net=host \
 -v /etc/localtime:/etc/localtime:ro \
 -v /home/ksan/share:/home/share \
 --name ksangateway \
-pspace/ksangateway:latest
+infinistor/ksangateway:latest
 
 # 서비스 시작
 # docker로 시작했을 경우
