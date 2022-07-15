@@ -85,7 +85,7 @@ public final class OSDConstants {
     public static final String MQUEUE_NAME_OSD_COPY_OBJECT = "ksan-osd-copy-object-";
 	public static final String MQUEUE_NAME_OSD_CONFIG_ROUTING_KEY = "*.services.osd.config.*";
 	public static final String MQUEUE_NAME_OSD_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
-    public static final String PORTAL_REST_API_CONFIG_OSD = "/api/v1/Config/Osd";
+    public static final String PORTAL_REST_API_CONFIG_OSD = "/api/v1/Config/KsanOsd";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
     public static final String MQUEUE_NAME_OSD_OBJECT_ROUTING_KEY_PREFIX = "*.services.osd.";
     public static final String MQUEUE_NAME_OSD_MOVE_OBJECT_ROUTING_KEY_SUFFIX = ".object.move";

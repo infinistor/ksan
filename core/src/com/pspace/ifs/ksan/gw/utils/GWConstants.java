@@ -20,7 +20,7 @@ public final class GWConstants {
     public static final String GET_PROCESS_ID = "getProcessId";
 	public static final String LOG_GW_PID = "pid : {}";
 
-	public static final String S3 = "S3";
+	public static final String GW = "GW";
 	public static final String HTTPS = "https://";
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
@@ -44,7 +44,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
 	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.gw.user.*";
 
-	public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/GW";
+	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";

@@ -299,7 +299,7 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_S3);
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_GW);
 			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);

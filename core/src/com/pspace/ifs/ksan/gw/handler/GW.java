@@ -70,7 +70,7 @@ public class GW {
 		}
 
 		ExecutorThreadPool pool = new ExecutorThreadPool((int)GWConfig.getInstance().getJettyMaxThreads());
-		pool.setName(GWConstants.S3);
+		pool.setName(GWConstants.GW);
 		server = new Server(pool);
 
 		// if (GWConfig2.getInstance().servicePath() != null && !GWConfig2.getInstance().servicePath().isEmpty()) {
