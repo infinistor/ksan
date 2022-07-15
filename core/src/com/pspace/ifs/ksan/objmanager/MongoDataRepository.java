@@ -835,7 +835,7 @@ public class MongoDataRepository implements DataRepository{
             Document doc = (Document)it.next();
             count++;
             if (count > maxParts) {
-                resultParts.setPartNumberMarker(doc.getString(PARTNO));
+                resultParts.setPartNumberMarker((doc.getInteger(PARTNO)).toString());
                 resultParts.setTruncated(true);
                 break;
             }
