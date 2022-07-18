@@ -68,8 +68,8 @@ systemctl start docker
 
 ```shell
 #!/bin/bash
-docker build --rm -t pspace/ksanLifecycle:latest -f DockerFile .
-docker save -o ksanLifecycle.tar pspace/ksanLifecycle
+docker build --rm -t pspace/ksanlifecycle:latest -f DockerFile .
+docker save -o ksanLifecycle.tar pspace/ksanlifecycle
 ```
 
 ## How to Use
@@ -102,8 +102,8 @@ docker save -o ksanLifecycle.tar pspace/ksanLifecycle
 
 #### 로그 설정
 
--   파일명 : `ksanLifecycle.xml`
--   경로 : `/app/ksan-livecycle.xml`
+-   파일명 : `ksan-lifecycle.xml`
+-   경로 : `/app/ksan-lifecycle.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -132,16 +132,26 @@ docker save -o ksanLifecycle.tar pspace/ksanLifecycle
 
 #### 프로그램 설치
 ``` shell
-# 이미지 로드
+# 빌드 했을 경우 이미지 로드
 docker load -i /root/docker/ksanLifecycle.tar
+
 # 컨테니어 생성
-docker create -i -t --net ksannet --ip 172.10.0.31 -v /home/ksan/logs:/app/logs -v /etc/localtime:/etc/localtime:ro -v /home/ksan/share:/home/share -v /home/ksan/custom:/app/wwwroot/custom -v /usr/local/ksan/etc:/app/config --workdir=/app --name ksanLifecycle pspace/ksanLifecycle:latest
+docker create -i -t \
+--net ksannet \
+--ip 172.10.0.31 \
+-v /home/ksan/logs:/app/logs \
+-v /etc/localtime:/etc/localtime:ro \
+-v /home/ksan/share:/home/share \
+-v /home/ksan/custom:/app/wwwroot/custom \
+-v /usr/local/ksan/etc:/app/config \
+--name ksanlifecycle \
+pspace/ksanlifecycle:latest
 ```
 
 #### 실행예시(CLI)
 
 ```bash
-docker start ksanLifecycle
+docker start ksanlifecycle
 ```
 
 #### Crontab 설정
@@ -151,7 +161,7 @@ docker start ksanLifecycle
 # 등록
 crontab -e
 # 매일 오전 1시에 동작
-0 1 * * * docker start ksanLifecycle
+0 1 * * * docker start ksanlifecycle
 
 # 확인
 crontab -l
