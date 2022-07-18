@@ -1,7 +1,6 @@
 target/
 .vscode/
 .settings/
-resources/
-upload.ps1
+*.ps1
 .classpath
 .project

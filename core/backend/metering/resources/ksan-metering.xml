@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="10 seconds">
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>/app/logs/ksanMetering.log</file>
+		<file>/app/logs/metering.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>/app/logs/ksanMetering.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<fileNamePattern>/app/logs/metering.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
 			<maxHistory>30</maxHistory>
 			<maxFileSize>100MB</maxFileSize>
 		</rollingPolicy>
