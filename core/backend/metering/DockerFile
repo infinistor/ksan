@@ -7,14 +7,6 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 RUN mkdir -p /app/logs
 COPY --from=build /src/target/ksanMetering /app
-COPY ./resources/ksanMetering.xml /app
-COPY ./start.sh /app
+COPY ./resources/ksan-metering.xml /app
+COPY ./resources/start.sh /app
 CMD ["/app/start.sh"]
-
-# FROM openjdk:11-jre-slim as simple
-# WORKDIR /app
-# RUN mkdir -p /app/logs
-# COPY ./target/ksanMetering /app
-# COPY ./resources/ksanMetering.xml /app
-# COPY ./start.sh /app
-# CMD ["/app/start.sh"]
