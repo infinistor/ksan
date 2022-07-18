@@ -7,14 +7,6 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 RUN mkdir -p /app/logs
 COPY --from=build /src/target/ksanLifecycle /app
-COPY ./ksanLifecycle.xml /app
+COPY ./ksan-lifecycle.xml /app
 COPY ./start.sh /app
 CMD ["/app/start.sh"]
-
-# FROM openjdk:11-jre-slim as simple
-# WORKDIR /app
-# RUN mkdir -p /app/logs
-# COPY ./target/ksanLifecycle /app
-# COPY ./ksanLifecycle.xml /app
-# COPY ./start.sh /app
-# CMD ["/app/start.sh"]
