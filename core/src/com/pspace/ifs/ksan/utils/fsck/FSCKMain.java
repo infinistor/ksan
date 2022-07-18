@@ -11,12 +11,14 @@
 
 package com.pspace.ifs.ksan.utils.fsck;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
+import org.slf4j.LoggerFactory;
 //import static org.kohsuke.args4j.ExampleMode.ALL;
 
 /**
@@ -61,11 +63,11 @@ public class FSCKMain {
            return 0;
         
         if (!target.isEmpty()){
-            if (bucketName.isEmpty() || diskId.isEmpty())
+            if (!bucketName.isEmpty() || !diskId.isEmpty())
                 return 0;
         }
         
-        System.out.format(" target : %s bucketName : %s diskid : %s checkonly : %s", target, bucketName, diskId, checkOnly);
+        System.out.format(" target : %s bucketName : %s diskid : %s checkonly : %s \n", target, bucketName, diskId, checkOnly);
         System.err.format("Invalid argument is given \n");
         return -1;
     }
@@ -82,10 +84,14 @@ public class FSCKMain {
             } else if (target.equals("disk")){
                 job_done = ofsk.checkEachOneDiskAllBucket(diskId);
             }
+            ofsk.getResultSummary();
         } catch (Exception ex) {
-            Logger.getLogger(FSCKMain.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FSCKMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            return;
         }
-        System.out.println("Total job done : " + job_done);
+        
+        System.out.println("DONE!");
+        
     }
     
     static String getProgramName(){
@@ -100,15 +106,24 @@ public class FSCKMain {
         System.err.println();
         System.err.format("  Example:  %s --target bucket --bucketName bucket1 \n", getProgramName());
         System.err.format("  Example:  %s --target bucket --bucketName bucket1 --checkOnly \n", getProgramName());
-        System.err.format("  Example:  %s --target disk --diskid disk111 \n", getProgramName());
-        System.err.format("  Example:  %s --target disk --diskid disk111 --checkOnly \n", getProgramName());
+        System.err.format("  Example:  %s --target disk --diskId disk111 \n", getProgramName());
+        System.err.format("  Example:  %s --target disk --diskId disk111 --checkOnly \n", getProgramName());
         System.err.println();
+    }
+    
+    static void disableDebuglog(String driver){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(driver);
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
     }
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        
+        disableDebuglog("org.mongodb.driver");
+        disableDebuglog("com.pspace.ifs.ksan.objmanager");
         
         FSCKMain fmain = new FSCKMain();
         if (fmain.parseArgs(args) != 0){

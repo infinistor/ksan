@@ -231,7 +231,7 @@ public class Objmanagertest {
         
         try {
             ObjManagerUtil omu = new ObjManagerUtil();
-            List<Metadata> ml =omu.listObjects(bucketName, "", 0, 0, maxKeys);
+            List<Metadata> ml =omu.listObjects(bucketName, "", 0, maxKeys);
             System.out.println(ml.toString());
             System.out.println("leng >> " + ml.size());
             /*ObjManagerConfig config = new ObjManagerConfig();

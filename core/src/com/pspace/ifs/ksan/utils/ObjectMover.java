@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import com.pspace.ifs.ksan.objmanager.DISK;
 import com.pspace.ifs.ksan.objmanager.DataRepository;
+import com.pspace.ifs.ksan.objmanager.DataRepositoryLoader;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.MongoDataRepository;
 import com.pspace.ifs.ksan.objmanager.MysqlDataRepository;
@@ -43,22 +44,11 @@ public class ObjectMover {
     private DataRepository dbm;
     private ObjManagerUtil obmu;
     private OSDClient osdc;
-    
-    private int initDB(){
-        try {
-            ObjManagerConfig config = new ObjManagerConfig();
-            if (config.dbRepository.equalsIgnoreCase("MYSQL")){
-                 dbm = new MysqlDataRepository(null, config.dbHost, config.dbUsername, config.dbPassword, config.dbName);
-            } else if(config.dbRepository.equalsIgnoreCase("MONGO"))
-                 dbm = new MongoDataRepository(null, config.dbHost, config.dbUsername, config.dbPassword, config.dbName, 27017);
-        } catch (Exception ex) {
-            Logger.getLogger(ObjectMover.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return 0;
-    }
-    
+     
     public ObjectMover(boolean checkOnly, String utilName) throws Exception{
-        initDB();
+        obmu = new ObjManagerUtil();
+        dbm = obmu.getDBRepository();
+        osdc = obmu.getOSDClient();
         this.checkOnly = checkOnly;
         this.utilName = utilName;
         TotalNumObject = 0;
@@ -67,8 +57,6 @@ public class ObjectMover {
         Id = getNewId();
         List<Object> in = encode();
         List<Object> out= dbm.utilJobMgt("addJob", in);
-        obmu = new ObjManagerUtil();
-        osdc = new OSDClient();
     }
     
     public ObjectMover(String id) throws Exception{
@@ -80,11 +68,11 @@ public class ObjectMover {
         TotalNumObject = 0;
         NumJobDone = 0;
         in = encode();
-        initDB();
+        obmu = new ObjManagerUtil();
+        dbm = obmu.getDBRepository();
+        osdc = obmu.getOSDClient();
         out = dbm.utilJobMgt("getJob", in);
         decode(out);
-        obmu = new ObjManagerUtil();
-        osdc = new OSDClient();
         System.out.format(">>>Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, Status, TotalNumObject, checkOnly, utilName);
     }
     
@@ -159,6 +147,10 @@ public class ObjectMover {
         if (out.isEmpty())
             return -1;
         return 0;
+    }
+    
+    public ObjManagerUtil getObjManagerUtil(){
+        return obmu;
     }
     
     public int updateNumberObjectsProcessed(long totalChecked, long totalFixed){
