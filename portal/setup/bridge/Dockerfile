@@ -7,3 +7,4 @@ ADD ["pspace.key", "/etc/ssl/certs/"]
 ADD ["nginx.conf", "/etc/nginx/"]
 ADD ["proxy.conf", "/etc/nginx/"]
 CMD ["nginx", "-g", "daemon off;"]
+
