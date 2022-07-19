@@ -49,7 +49,7 @@ public class GetFromPortal {
     private static Logger logger;
     
     // constants
-    private final String KSANMONCONFIFILE =  "/usr/local/ksan/etc/ksanMon.conf";
+    private final String KSANMONCONFIFILE =  "/usr/local/ksan/etc/ksanMonitor.conf";
     private final String DEFAULTIP = "127.0.0.1";
     private final long DEFAULTPORTALPORT = 5443;
     private final String PORTAIP = "PortalIp";
