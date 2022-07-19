@@ -79,8 +79,11 @@ public class ListParts extends S3Request {
 		if (!Strings.isNullOrEmpty(maxParts)) {
 			if (Integer.valueOf(maxParts) < 0) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+			} else if (Integer.valueOf(maxParts) > 1000) {
+				maxPartsValue = GWConstants.MAX_PART_VALUE;
+			} else {
+				maxPartsValue = Integer.valueOf(maxParts);
 			}
-			maxPartsValue = Integer.valueOf(maxParts);
 		}
 		
 		ResultParts resultPart = null;
@@ -94,7 +97,9 @@ public class ListParts extends S3Request {
 				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
 			}
 			// check acl use multipart acl
+			logger.info("uploadId : {}, partNumberMarker : {}, maxPartValue : {}", uploadId, partNumberMarker, maxPartsValue);
 			resultPart = objMultipart.getParts(uploadId, partNumberMarker, maxPartsValue);
+			logger.info("listpart size : {}", resultPart.getListPart().size());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -137,19 +142,18 @@ public class ListParts extends S3Request {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_IS_TRUNCATED, GWConstants.XML_FALSE);
 			}
 
-			for (Iterator<Map.Entry<Integer, Part>> it = resultPart.getListPart().entrySet().iterator(); it.hasNext();) {
-                Map.Entry<Integer, Part> entry = it.next();
-
+			for (Map.Entry entry : resultPart.getListPart().entrySet()) {
 				xmlStreamWriter.writeStartElement(GWConstants.PART);
-				writeSimpleElement(xmlStreamWriter, GWConstants.PARTNUMBER, String.valueOf(entry.getValue().getPartNumber()));
-				writeSimpleElement(xmlStreamWriter, GWConstants.LAST_MODIFIED, formatDate(entry.getValue().getLastModified()));
-				writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, entry.getValue().getPartETag());
-				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, String.valueOf(entry.getValue().getPartSize()));
+				Part part = (Part) entry.getValue();
+				writeSimpleElement(xmlStreamWriter, GWConstants.PARTNUMBER, String.valueOf(part.getPartNumber()));
+				if (part.getLastModified() != null) {
+					writeSimpleElement(xmlStreamWriter, GWConstants.LAST_MODIFIED, formatDate(part.getLastModified()));
+				}
+				if (part.getPartETag() != null) {
+					writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, part.getPartETag());
+				}
+				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, String.valueOf(part.getPartSize()));
 				xmlStreamWriter.writeEndElement();
-				logger.debug(GWConstants.LOG_LIST_PARTS_PART_NUMBER, entry.getValue().getPartNumber());
-				logger.debug(GWConstants.LOG_LIST_PARTS_LAST_MODIFIED, formatDate(entry.getValue().getLastModified()));
-				logger.debug(GWConstants.LOG_LIST_PARTS_ETAG, entry.getValue().getPartETag());
-				logger.debug(GWConstants.LOG_LIST_PARTS_SIZE, String.valueOf(entry.getValue().getPartSize()));
 			}
 			
 			xmlStreamWriter.writeEndElement();

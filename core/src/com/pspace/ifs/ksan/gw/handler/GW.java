@@ -45,8 +45,14 @@ public class GW {
 
 	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
-		GWPortal.getInstance().getS3Users();
-		GWPortal.getInstance().getDiskPoolsDetails();
+
+		while (!GWPortal.getInstance().isAppliedDiskpools() || !GWPortal.getInstance().isAppliedUsers()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				PrintStack.logging(logger, e);
+			}
+		}
 	}
 
     public void init() throws Exception {

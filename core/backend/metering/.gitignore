@@ -1,5 +1,4 @@
 target/
 .vscode/
 .settings/
-build.ps1
-test.ps1
+*.ps1

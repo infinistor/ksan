@@ -48,7 +48,7 @@ class ConfigUpdateCallback implements MQCallback{
 		OSDPortal.getInstance().getConfig();
 		
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
-	}    
+	}
 }
 
 class DiskpoolsUpdateCallback implements MQCallback{
@@ -65,6 +65,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 }
 
 public class OSDPortal {
+	private boolean isAppliedDiskpools;
     private MonConfig config;
 
     private static final Logger logger = LoggerFactory.getLogger(OSDPortal.class);
@@ -115,7 +116,13 @@ public class OSDPortal {
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
+
+		isAppliedDiskpools = false;
     }
+
+	public boolean isAppliedDiskpools() {
+		return isAppliedDiskpools;
+	}
 
     public void getConfig() {
         try {
@@ -204,6 +211,7 @@ public class OSDPortal {
 				}
 				DiskManager.getInstance().configure();
 				DiskManager.getInstance().saveFile();
+				isAppliedDiskpools = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());

@@ -151,7 +151,7 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>1.11.837</version>
+			<version>1.12.261</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
