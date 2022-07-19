@@ -136,6 +136,8 @@ class UserUpdateCallBack implements MQCallback{
 }
 
 public class GWPortal {
+	private boolean isAppliedDiskpools;
+	private boolean isAppliedUsers;
 	private MonConfig monConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
@@ -289,7 +291,18 @@ public class GWPortal {
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
+
+		isAppliedDiskpools = false;
+		isAppliedUsers = false;
     }
+
+	public boolean isAppliedDiskpools() {
+		return isAppliedDiskpools;
+	}
+
+	public boolean isAppliedUsers() {
+		return isAppliedUsers;
+	}
 
     public void getConfig() {
         try {
@@ -402,6 +415,7 @@ public class GWPortal {
 					}
 				}
 
+				isAppliedDiskpools = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
@@ -445,6 +459,7 @@ public class GWPortal {
 					S3UserManager.getInstance().addUser(user);
 				}
 				S3UserManager.getInstance().printUsers();
+				isAppliedUsers = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
