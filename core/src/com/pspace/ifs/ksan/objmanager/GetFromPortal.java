@@ -67,7 +67,7 @@ public class GetFromPortal {
     private final String MQUSER="MqUser";
     private final String DEFAULTMQUSER="guest";
     private final String MQPASSWORD="MqPassword";
-    private final String MQPORT="MqPassword";
+    private final String MQPORT="MqPort";
     
     private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
