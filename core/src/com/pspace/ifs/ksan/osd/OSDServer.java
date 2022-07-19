@@ -63,6 +63,7 @@ public class OSDServer {
 
         try {
             OSDPortal.getInstance().getConfig();
+            OSDPortal.getInstance().getDiskPoolsDetails();
             while (!OSDPortal.getInstance().isAppliedDiskpools()) {
                 Thread.sleep(1000);
             }
