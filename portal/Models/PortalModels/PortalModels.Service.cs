@@ -34,6 +34,9 @@ namespace PortalModels
 		/// <summary> 서비스 아이디 </summary>
 		public virtual Guid Id { get; set; }
 
+		/// <summary> 서버 아이디 </summary>
+		public virtual Guid ServerId { get; set; }
+
 		/// <summary> 서비스 그룹 아이디 </summary>
 		public virtual Guid? GroupId { get; set; }
 
@@ -98,6 +101,8 @@ namespace PortalModels
 		public virtual IList<ServiceDisk> ServiceDisks { get; set; }
 
 		public virtual IList<ServiceUsage> ServiceUsages { get; set; }
+
+		public virtual Server Server { get; set; }
 
 		#region Extensibility Method Definitions
 
