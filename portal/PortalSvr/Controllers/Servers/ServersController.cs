@@ -172,7 +172,7 @@ namespace PortalSvr.Controllers.Servers
 		/// <summary>특정 서버 정보를 가져온다.</summary>
 		/// <param name="Id">서버 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServer>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServerDetail>))]
 		[HttpGet("{Id}")]
 		public async Task<ActionResult> GetServer([FromRoute] string Id)
 		{

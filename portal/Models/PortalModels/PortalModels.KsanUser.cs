@@ -13,6 +13,7 @@ using System.Collections.Generic;
 
 namespace PortalModels
 {
+	/// <summary> 유저 정보 </summary>
 	public partial class KsanUser
 	{
 
