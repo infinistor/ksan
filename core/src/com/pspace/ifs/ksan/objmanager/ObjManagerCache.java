@@ -121,8 +121,13 @@ public class ObjManagerCache {
         return bt;
     }
    
-    public String[] getBucketNameList(){
+    private void reloadBucketList(){
+        bucketMap.clear();
         dbm.loadBucketList();
+    }
+    
+    public String[] getBucketNameList(){
+        reloadBucketList();
         
         return bucketMap.keySet().toArray(new String[0]);
     }
@@ -130,7 +135,7 @@ public class ObjManagerCache {
     public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
-        dbm.loadBucketList(); // get list always bucket from db 
+        reloadBucketList(); // get list always bucket from db 
         
         for (String key : bucketMap.keySet()) {
             Bucket bt = bucketMap.get(key);

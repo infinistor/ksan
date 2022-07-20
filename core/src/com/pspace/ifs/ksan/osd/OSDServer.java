@@ -64,6 +64,9 @@ public class OSDServer {
         try {
             OSDPortal.getInstance().getConfig();
             OSDPortal.getInstance().getDiskPoolsDetails();
+            while (!OSDPortal.getInstance().isAppliedDiskpools()) {
+                Thread.sleep(1000);
+            }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
             System.exit(1);
