@@ -44,7 +44,7 @@ public final class Main {
 		}
 
 		// Read Configuration
-		var PortalData = new PortalConfig("/app/config/ksanMon.conf");
+		var PortalData = new PortalConfig("/usr/local/ksan/etc/ksanMonitor.conf");
 		if (!PortalData.GetConfig()) {
 			logger.error("Config Read Failed!");
 			return;

@@ -137,13 +137,10 @@ docker load -i /root/docker/ksanLifecycle.tar
 
 # 컨테니어 생성
 docker create -i -t \
---net ksannet \
---ip 172.10.0.31 \
--v /home/ksan/logs:/app/logs \
+--network=host \
 -v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/share:/home/share \
--v /home/ksan/custom:/app/wwwroot/custom \
--v /usr/local/ksan/etc:/app/config \
+-v /var/log/ksan:/app/logs \
+-v /usr/local/ksan/etc:/usr/local/ksan \
 --name ksanlifecycle \
 pspace/ksanlifecycle:latest
 ```

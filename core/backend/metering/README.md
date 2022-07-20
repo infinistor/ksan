@@ -84,6 +84,20 @@ docker save -o ksanMetering.tar infinistor/ksanmetering
 
 - KsanMon, KsanEdge, KsanPortal, MariaDB, KsanGw가 모두 동작하고 있어야 정상적으로 동작합니다.
 
+#### 프로그램 설치
+``` shell
+# 빌드 했을 경우 이미지 로드
+docker load -i /root/docker/ksanLifecycle.tar
+
+# 컨테니어 생성
+docker create -i -t \
+--network=host \
+-v /etc/localtime:/etc/localtime:ro \
+-v /var/log/ksan:/app/logs \
+-v /usr/local/ksan/etc:/usr/local/ksan \
+--name ksanmetering pspace/ksanmetering:latest
+```
+
 ### 실행(CLI)
 
 ``` shell
@@ -93,6 +107,6 @@ docker start ksanmetering
 ### 서비스 등록후 실행
 ``` shell
 cp ksanmetering.service /etc/systemd/system/
-systemctl enable ksanMetering
-systemctl start ksanMetering
+systemctl enable ksanmetering
+systemctl start ksanmetering
 ```

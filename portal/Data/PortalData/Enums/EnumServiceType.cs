@@ -19,29 +19,37 @@ namespace PortalData.Enums
 	{
 		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>OSD</summary>
-		OSD,
-		/// <summary>GW</summary>
-		GW,
-		/// <summary>Recovery</summary>
-		Recovery,
-		/// <summary>HA Proxy</summary>
-		HaProxy,
-		/// <summary>Monitor</summary>
-		Monitor,
-		/// <summary>Agent</summary>
-		Agent,
+		/// <summary>RabbitMq</summary>
+		RabbitMq,
 		/// <summary>MariaDB</summary>
 		MariaDB,
 		/// <summary>MongoDB</summary>
 		MongoDB,
+		/// <summary>HA Proxy</summary>
+		Haproxy,
+		/// <summary>ksanApiPortal</summary>
+		ksanApiPortal,
+		/// <summary>KsanPortal</summary>
+		KsanPortal,
+		/// <summary>ksanPortalBridge</summary>
+		ksanPortalBridge,
+		/// <summary>Monitor</summary>
+		KsanMonitor,
+		/// <summary>Agent</summary>
+		KsanAgent,
+		/// <summary>OSD</summary>
+		KsanOsd,
+		/// <summary>GW</summary>
+		KsanGw,
+		/// <summary>Recovery</summary>
+		KsanRecovery,
 		/// <summary>Lifecycle</summary>
-		Lifecycle,
+		KsanLifecycle,
 		/// <summary>Replication</summary>
-		Replication,
+		KsanReplication,
 		/// <summary>Logging</summary>
-		Logging,
+		KsanLogExport,
 		/// <summary>Metering</summary>
-		Metering
+		KsanMetering
 	}
 }
