@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""
+* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+* the GNU General Public License as published by the Free Software Foundation, either version 
+* 3 of the License.  See LICENSE for details
+*
+* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
+* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
+* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
+"""
+
+
+import os, sys
+import pdb
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from common.utils import IsDaemonRunning, CreatePidFile
+from common.init import GetConf, InitMonServicedConf, UpdateConf, GetHostInfo
+from network.network_mq_handle import *
+from common.daemon import Daemon
+from common.shcommand import UpdateEtcHosts, shcall
+from service.service_manage import *
+from service.service_mq_handle import ServiceMonitoring
+from server.server_mq_handle import MonUpdateServerUsage
+from disk.disk_mq_handle import DiskUsageMonitoring
+from mqmanage.mq import *
+import time
+from optparse import OptionParser
+import threading
+import logging
+
+# Check Network Info
+
+
+def AddNewRoutingKeyWithServerId(conf):
+    """
+    Add Rpc routing Key to Routing Key List
+    """
+    EdgeRoutingKeyList.append("*.servers.%s.interfaces.check" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.servers.%s.interfaces.update" % conf.mgs.ServerId)
+
+    EdgeRoutingKeyList.append("*.servers.%s.disks.write_disk_id" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.servers.%s.disks.check_mount" % conf.mgs.ServerId)
+
+    EdgeRoutingKeyList.append("*.services.%s.config.gw.load" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.services.%s.config.gw.save" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.services.%s.config.osd.load" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.services.%s.config.osd.save" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.services.%s.control" % conf.mgs.ServerId)
+
+def MqHandler(conf, GlobalFlag, logger=None):
+    ServiceList = dict()
+    LocalIpList = list()
+    ServiceList['IdList'] = list()
+    ServiceList['Details'] = dict()
+    LoadServiceList(conf, ServiceList, LocalIpList, logger)
+
+    AddNewRoutingKeyWithServerId(conf)
+
+    mq = Mq(conf.mgs.PortalIp, conf.mgs.MqPort, '/',  conf.mgs.MqUser, conf.mgs.MqPassword,
+            EdgeRoutingKeyList, ExchangeName,
+            'IfsEdge-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
+    mq.Receiver()
+
+def CheckAgentConf(Conf):
+    if not hasattr(Conf, 'monitor'):
+        class MonitorConf: pass
+        setattr(MonitorConf, 'ServerMonitorInterval', 10)
+        setattr(MonitorConf, 'NetworkMonitorInterval', 10)
+        setattr(MonitorConf, 'DiskMonitorInterval', 10)
+        setattr(MonitorConf, 'ServiceMonitorInterval', 10)
+        setattr(Conf, 'monitor', MonitorConf)
+    return Conf
+
+
+def Start(LocalIp, logger=None, Foreground=False):
+    """
+    LocalIp is used for checking /etc/hosts right after register server.
+    local server info can be fail to get right after regster.
+    :param conf:
+    :param logger:
+    :param Foreground:
+    :param LocalIp:
+    :return:
+    """
+    ret, conf = GetConf(MonServicedConfPath)
+    if ret is False:
+        print('Init conf first')
+        sys.exit(-1)
+    else:
+        if conf.mgs.ServerId == '':
+            print('Local server is not registered. Excute ksanAgent register first')
+            sys.exit(-1)
+        else:
+            conf = CheckAgentConf(conf)
+
+
+    if Foreground is False:
+        D = Daemon(KsanAgentPidFile, 'ksanAgent')
+        D.start()
+
+
+    GlobalFlag = {'ServiceUpdated': Checked, 'NetworkUpdated': Checked, 'DiskUpdated': Checked, 'DiskPoolUpdated': Checked}
+
+    threads = list()
+    th = threading.Thread(target=RegisterManagementNetwork, args=(conf,logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=KsanServiceRegister, args=(conf, TypeServiceAgent, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=EdgeCheckEtcHosts, args=(conf, logger, LocalIp,))
+    th.start()
+    threads.append(th)
+
+    threads = list()
+    th = threading.Thread(target=DiskUsageMonitoring, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=UpdateNetworkStat, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=MonUpdateServerUsage, args=(conf, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=ServiceMonitoring, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+
+    Pid = os.getpid()
+    CreatePidFile(Pid, KsanAgentPidFile)
+    MqHandler(conf, GlobalFlag, logger=logger)
+    for th in threads:
+        th.join()
+
+def Stop():
+    D = Daemon(KsanAgentPidFile, 'ksanAgent')
+    D.stop()
+
+
+@catch_exceptions()
+def RegisterManagementNetwork(conf, logger):
+    time.sleep(5)
+    netif = GetNetwork(logger=logger)
+    nicinfo = netif.GetNicInfoWithNicName(conf.mgs.ManagementNetDev)
+    netif = RequestNetworkInterfaceItems(conf.mgs.ManagementNetDev, Description='Management Network', logger=logger)
+    netif.Set(nicinfo)
+    isNetworkAdded = False
+    RetryCnt = 0
+    while True:
+        RetryCnt += 1
+        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, conf.mgs.ServerId,
+                                               netif, logger=logger)
+        if Res != ResOk:
+            logger.error('fail to add Network Interface %s retry:%d' %(Errmsg, RetryCnt))
+        else:
+            NetworkInterfaceId = None
+            if Ret.Result == ResultSuccess :
+                logging.log(logging.INFO, "success to add network %s %s" % (str(Ret.Result), str(Ret.Message)))
+                NetworkInterfaceId = Ret.Data.Id
+            elif Ret.Code == CodeDuplicated:
+                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey,
+                                                             conf.mgs.ServerId, InterfaceId=None, disp=False, logger=logger)
+                if Res != ResOk or Ret.Result != ResultSuccess:
+                    logging.log(logging.INFO, "%s %s" % (str(Ret.Result), str(Ret.Message)))
+                else:
+                    NetworkInterfaceId = Data[0].Id
+            else:
+                logger.error('fail to add Network Interface' + Ret.Message)
+            if NetworkInterfaceId is not None:
+                UpdateConf(MonServicedConfPath, 'mgs', 'DefaultNetworkId', NetworkInterfaceId)
+                isNetworkAdded = True
+                break
+        if RetryCnt <= 5:
+            time.sleep(5)
+        else:
+            logger.error('fail to add Network Interface. ' + Ret.Message)
+            break
+
+    if isNetworkAdded is True:
+        RegisterService(conf, TypeServiceAgent, logger)
+
+
+
+def GetValidEtcHostsInfo(Data):
+    ValidHostsInfo = list()
+    for svr in Data:
+        try:
+            if len(svr.NetworkInterfaces) > 0:
+                ManagementIp = svr.NetworkInterfaces[0].IpAddress
+            else:
+                continue
+            HostName = svr.Name
+            ValidHostsInfo.append((ManagementIp, HostName))
+        except Exception as err:
+            print(err)
+    return ValidHostsInfo
+
+
+def EdgeCheckEtcHosts(conf, logger, LocalIp):
+    """
+    check current serverlist and check /etc/hosts with the server info and update if not applied.
+    :param conf:
+    :return:
+    """
+    LocalHostInfo = list()
+    if LocalIp is not None: # run by ksanNodeRegister
+        out, err = shcall('hostname')
+        LocalHostName = out[:-1]
+        LocalHostInfo.append((LocalIp, LocalHostName))
+
+    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, logger=logger)
+    if Res == ResOk:
+        print(Ret.Result, Ret.Message)
+        ValidHostsInfo = GetValidEtcHostsInfo(Data)
+        ValidHostsInfo += LocalHostInfo
+        UpdateEtcHosts(ValidHostsInfo, 'add')
+    else:
+        logger.error('fail to get server info %s' % Errmsg)
+
+
+class MyOptionParser(OptionParser):
+    def print_help(self):
+        Usage = """
+        Usage: ksanAgent {start|stop|status} [option]
+                start                                                                  : Start ksanAgent
+                stop                                                                   : Stop ksanAgent 
+                status                                                                 : Status ksanAgent
+        [options]
+                -h, --help                                                             : show this help message and exit
+"""
+        print(Usage)
+
+
+if __name__ == '__main__':
+    usage = "Usage: %prog {start|stop|status} [option]"
+    parser = MyOptionParser(usage=usage)
+    #parser.add_option('-S', "--Server", action='store_true',
+    #                  dest='Server', default=False, help='Server Option')
+    parser.add_option('-S', "--ServerId", dest="id", help='server id')
+    parser.add_option('-i', "--LocalIp", dest="ip", default=None, help='Local Ip Address')
+    parser.add_option('-D', "--Description", dest="desc", default='', help='server description')
+    parser.add_option('-N', "--Name", dest="NicName", default=None, help='Network Interface Name')
+    parser.add_option('-T', "--Detail", dest="Detail", default=None, help='server info in detail')
+    parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
+    parser.add_option('-f', "--Foreground", dest="Foreground", action='store_true', default=False, help='Running as Foreground')
+
+    options, args = parser.parse_args()
+
+    if len(args) != 1:
+        parser.print_help()
+        sys.exit(-1)
+
+    logger = None
+    if options.debug is True:
+        logger = Logging(loglevel='debug')
+    else:
+        logger = Logging(loglevel='error')
+    logger = logger.create()
+
+    ret, conf = GetConf(MonServicedConfPath)
+    if ret is False and args[0] != 'init':
+        print('Check if configuration is done')
+        sys.exit(-1)
+
+    if args[0] == 'init':
+        InitMonServicedConf()
+    elif args[0] == 'register':
+        res, hostname, ip = GetHostInfo()
+        if res is not True:
+            print('fail to get HostName and Ip, %s' % hostname)
+            sys.exit(-1)
+        Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, options.desc,
+                                                      Name=hostname, logger=logger)
+        if Res != ResOk:
+            print('fail to add Server' + Errmsg)
+        else:
+            if Ret.Result == ResultSuccess or Ret.Code == CodeDuplicated:
+                UpdateConf(MonServicedConfPath, 'mgs', 'ServerId', ServerInfo.Id)
+                print('Done')
+            else:
+                print('fail to add Server' + Ret.Message)
+
+    elif args[0] == 'unregister':
+        if options.id is None:
+            parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = RemoveServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, ServerId=options.id, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif args[0] == 'start':
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
+        if Ret is True:
+            print('Already running')
+        else:
+            Start(options.ip, logger=logger, Foreground=options.Foreground)
+            print('Done')
+
+    elif args[0] == 'stop':
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
+        if Ret is False:
+            print('ksanAgent is not running')
+        else:
+            Stop()
+            print('Done')
+
+
+    elif args[0] == 'status':
+        print('KsanEdge ... ',end=' ')
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
+        if Ret is True:
+            print('Ok')
+        else:
+            print('Not Ok')
+    else:
+        parser.print_help()
