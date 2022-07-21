@@ -32,3 +32,6 @@ Gateway
 Portal
 appsettings sample.json
 appsettings.Development copy.json
+appsettings.Development.json
+appsettings.json
+pspace.pfx

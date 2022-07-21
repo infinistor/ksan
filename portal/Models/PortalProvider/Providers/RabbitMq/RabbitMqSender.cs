@@ -86,11 +86,10 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
-		/// <param name="Exchange">Exchange 명</param>
 		/// <param name="RoutingKey">라우팅 키</param>
 		/// <param name="SendingObject">전송할 객체</param>
 		/// <returns>전송 결과 응답 객체</returns>
-		public ResponseData Send(string Exchange, string RoutingKey, object SendingObject)
+		public ResponseData Send(string RoutingKey, object SendingObject)
 		{
 			var Result = new ResponseData();
 
@@ -104,14 +103,14 @@ namespace PortalProvider.Providers.RabbitMq
 				string Message = JsonConvert.SerializeObject(SendingObject);
 
 				// 메세지 전송
-				m_channel.BasicPublish(exchange: Exchange,
+				m_channel.BasicPublish(exchange: m_config.ExchangeName,
 					routingKey: RoutingKey,
 					basicProperties: null,
 					body: Message.GetBytes());
 
 				Result.Result = EnumResponseResult.Success;
 
-				m_logger.LogDebug("[Rabbit MQ] Data transfer was successful. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})", Exchange, RoutingKey, Message);
+				m_logger.LogDebug("[Rabbit MQ] Data transfer was successful. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})", m_config.ExchangeName, RoutingKey, Message);
 			}
 			catch (Exception ex)
 			{

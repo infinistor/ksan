@@ -63,7 +63,7 @@ public class CBalance {
             return res;
         
         do{
-            list = obmu.listObjects(bucketName, SrcDiskId, 1, offset, numObjects);
+            list = obmu.listObjects(bucketName, SrcDiskId, offset, numObjects);
             if (list == null)
                 return res;
             
@@ -172,7 +172,7 @@ public class CBalance {
        do{
             one_round = 0;
             for(Bucket bucket : bList){
-               list = obmu.listObjects(bucket.getName(), srcDiskId, 1, offset, numObjects); 
+               list = obmu.listObjects(bucket.getName(), srcDiskId, offset, numObjects); 
                Iterator<Metadata> it = list.iterator();
                 while(it.hasNext()){
                     it.next();
@@ -203,7 +203,7 @@ public class CBalance {
         
         do{
             for(Bucket bucket : bList){
-                list = obmu.listObjects(bucket.getName(), srcDiskId, 1, offset, numObjects);
+                list = obmu.listObjects(bucket.getName(), srcDiskId, offset, numObjects);
                 Iterator<Metadata> it = list.iterator();
                 while(it.hasNext()){
                     Metadata mt = it.next();

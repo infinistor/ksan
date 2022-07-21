@@ -16,7 +16,6 @@ using PortalData;
 using PortalData.Requests.Disks;
 using PortalData.Responses.Disks;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
@@ -89,16 +88,16 @@ namespace PortalProvider.Providers.Disks
 					foreach (var DiskId in Request.DiskIds)
 					{
 						// 아이디가 아니라 이름일 경우
-						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
+						if (!Guid.TryParse(DiskId, out Guid DiskGuid))
 						{
 							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
 							// 존재하지 않을 경우
 							if (Disk == null)
 								return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
 
-							GuidDiskId = Disk.Id;
+							DiskGuid = Disk.Id;
 						}
-						DiskIds.Add(GuidDiskId);
+						DiskIds.Add(DiskGuid);
 					}
 
 					// 주어진 디스크 아이디로 다른 그룹에 속하지 않는 디스크 아이디 수가 요청 개수와 다른 경우
@@ -107,6 +106,9 @@ namespace PortalProvider.Providers.Disks
 						.CountAsync() != DiskIds.Count)
 						return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
+
+				// 기본 디스크풀이 존재하는지 확인한다.
+				var Exist = await GetDefault();
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -125,7 +127,8 @@ namespace PortalProvider.Providers.Disks
 							ModName = LoginUserName,
 							ModDate = DateTime.Now,
 							DiskPoolType = (EnumDbDiskPoolType)Request.DiskPoolType,
-							ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType
+							ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType,
+							DefaultDiskPool = Exist.Result == EnumResponseResult.Success ? false : true,
 						};
 						await m_dbContext.DiskPools.AddAsync(newData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -149,7 +152,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Data = (await this.Get(newData.Id.ToString())).Data;
 
 						// 추가된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.added", Result.Data);
+						SendMq("*.servers.diskpools.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
@@ -182,28 +185,31 @@ namespace PortalProvider.Providers.Disks
 			var Result = new ResponseData();
 			try
 			{
-				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty())
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-				{
-					var DiskPool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
-
-					//서비스가 존재하지 않는 경우
-					if (DiskPool == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-					GuidId = DiskPool.Id;
-				}
-
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 해당 정보를 가져온다.
+				DiskPool Exist = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Id);
+
+				// 해당 정보가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData(Result.Result = EnumResponseResult.Success);
+
+
 				// 동일한 이름이 존재할경우
-				if (await this.IsNameExist(Request.Name, GuidId))
+				if (await this.IsNameExist(Request.Name, Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_DUPLICATED_NAME);
 
 				// 디스크 GUID 목록
@@ -216,27 +222,24 @@ namespace PortalProvider.Providers.Disks
 					foreach (var DiskId in Request.DiskIds)
 					{
 						// 아이디가 아니라 이름일 경우
-						if (!Guid.TryParse(DiskId, out Guid GuidDiskId))
+						if (!Guid.TryParse(DiskId, out Guid DiskGuid))
 						{
 							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Name == DiskId);
 							// 존재하지 않을 경우
 							if (Disk == null)
 								return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
 
-							GuidDiskId = Disk.Id;
+							DiskGuid = Disk.Id;
 						}
-						DiskIds.Add(GuidDiskId);
+						DiskIds.Add(DiskGuid);
 					}
 
 					// 주어진 디스크 아이디로 다른 그룹에 속하지 않는 디스크 아이디 수가 요청 개수와 다른 경우
 					if (await this.m_dbContext.Disks.AsNoTracking()
-						.Where(i => DiskIds.Contains(i.Id) && (i.DiskPoolId == null || i.DiskPoolId == GuidId))
+						.Where(i => DiskIds.Contains(i.Id) && (i.DiskPoolId == null || i.DiskPoolId == Exist.Id))
 						.CountAsync() != DiskIds.Count)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
-
-				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -247,7 +250,7 @@ namespace PortalProvider.Providers.Disks
 					try
 					{
 						// 이 디스크 풀 아이디를 사용하는 이전 디스크의 디스크 풀 아이디 초기화
-						var OldDisks = await m_dbContext.Disks.Where(i => i.DiskPoolId == GuidId).ToListAsync();
+						var OldDisks = await m_dbContext.Disks.Where(i => i.DiskPoolId == Exist.Id).ToListAsync();
 						if (OldDisks.Count > 0)
 						{
 							// 모든 디스크 아이디에 대해서 처리
@@ -266,7 +269,7 @@ namespace PortalProvider.Providers.Disks
 							var Disk = await m_dbContext.Disks.FirstOrDefaultAsync(i => i.Id == GuidDiskId);
 
 							// 디스크 풀 아이디 변경
-							Disk.DiskPoolId = GuidId;
+							Disk.DiskPoolId = Exist.Id;
 						}
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
@@ -287,11 +290,8 @@ namespace PortalProvider.Providers.Disks
 
 						Result.Result = EnumResponseResult.Success;
 
-						// 상세 정보를 가져온다.
-						var Response = (await this.Get(Id)).Data;
-
 						// 수정된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.updated", Response);
+						SendMq("*.servers.diskpools.updated", (await this.Get(Id)).Data);
 					}
 					catch (Exception ex)
 					{
@@ -328,15 +328,15 @@ namespace PortalProvider.Providers.Disks
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				DiskPool Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -366,7 +366,7 @@ namespace PortalProvider.Providers.Disks
 						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 풀 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.diskpools.removed", new ResponseDiskPool().CopyValueFrom(Exist));
+						SendMq("*.servers.diskpools.removed", new { Exist.Id, Exist.Name });
 					}
 					catch (Exception ex)
 					{
@@ -461,9 +461,9 @@ namespace PortalProvider.Providers.Disks
 				for (int i = 0; i < Result.Data.Items.Count; i++)
 				{
 					var DiskPool = Result.Data.Items[i];
-					if (!Guid.TryParse(DiskPool.Id, out Guid DiskPoolId)) continue;
+					if (!Guid.TryParse(DiskPool.Id, out Guid DiskPoolGuid)) continue;
 					var Data = await m_dbContext.Servers.AsNoTracking()
-						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolId))
+						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolGuid))
 						.Include(i => i.NetworkInterfaces)
 						.CreateListAsync<Server, ResponseServerDetail>();
 
@@ -505,15 +505,15 @@ namespace PortalProvider.Providers.Disks
 				if (Id.IsEmpty())
 					return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				ResponseDiskPoolWithDisks Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == GuidId).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -583,6 +583,110 @@ namespace PortalProvider.Providers.Disks
 			}
 
 			return false;
+		}
+
+
+		/// <summary>기본 디스크풀을 가져온다.</summary>
+		/// <returns>디스크 풀 객체</returns>
+		public async Task<ResponseData<ResponseDiskPool>> GetDefault()
+		{
+			var Result = new ResponseData<ResponseDiskPool>();
+
+			try
+			{
+				// 데이터를 가져온다.
+				var Exist = await m_dbContext.DiskPools
+					.AsNoTracking()
+					.Where(i => i.DefaultDiskPool == true)
+					.FirstOrDefaultAsync<DiskPool, ResponseDiskPool>();
+
+				// 존재하지 않을 경우
+				if (Exist == null)
+					return new ResponseData<ResponseDiskPool>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				Result.Result = EnumResponseResult.Success;
+				Result.Data = Exist;
+
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>기본 디스크풀을 변경한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <returns>디스크 풀 객체</returns>
+		public async Task<ResponseData> SetDefault(string Id)
+		{
+			var Result = new ResponseData();
+
+			try
+			{
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 해당 정보를 가져온다.
+				DiskPool Exist = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+				// 존재하지 않을 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 이미 기본 디스크풀일 경우
+				if (Exist.DefaultDiskPool)
+					return new ResponseData(EnumResponseResult.Success);
+
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				{
+					try
+					{
+						// 디스크 풀 목록을 가져온다.
+						var DiskPools = await this.m_dbContext.DiskPools.ToListAsync();
+
+						// 모든 디스크 풀에 대해서 처리
+						foreach (var DiskPool in DiskPools)
+						{
+							if (DiskPool.Id == Exist.Id) DiskPool.DefaultDiskPool = true;
+							else DiskPool.DefaultDiskPool = false;
+						}
+						if (m_dbContext.HasChanges())
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						await Transaction.CommitAsync();
+
+						Result.Result = EnumResponseResult.Success;
+					}
+					catch (Exception ex)
+					{
+						await Transaction.RollbackAsync();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+			}
+
+			return Result;
 		}
 
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
@@ -658,12 +762,12 @@ namespace PortalProvider.Providers.Disks
 			try
 			{
 				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid guidId))
+				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid DiskPoolGuid))
 					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 정보를 가져온다.
 				var Exist = await m_dbContext.DiskPools.AsNoTracking()
-					.Where(i => i.Id == guidId)
+					.Where(i => i.Id == DiskPoolGuid)
 					.FirstOrDefaultAsync<DiskPool, ResponseDiskPool>();
 
 				// 해당 데이터가 존재하지 않는 경우
@@ -683,7 +787,7 @@ namespace PortalProvider.Providers.Disks
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Disks.AsNoTracking()
 					.Where(i =>
-						(i.DiskPoolId == null || (!Id.IsEmpty() && i.DiskPoolId == guidId))
+						(i.DiskPoolId == null || (!Id.IsEmpty() && i.DiskPoolId == DiskPoolGuid))
 						&& (
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 							|| (SearchFields.Contains("path") && i.Path.Contains(SearchKeyword))

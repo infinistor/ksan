@@ -101,62 +101,62 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.OSD, Version));
 		}
 
-		/// <summary>S3 설정 목록을 가져온다.</summary>
+		/// <summary>GW 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/S3")]
-		public async Task<ActionResult> GetConfigListForS3()
+		[HttpGet("List/GW")]
+		public async Task<ActionResult> GetConfigListForGW()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.S3));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.GW));
 		}
 
-		/// <summary>S3 설정을 가져온다.</summary>
+		/// <summary>GW 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("S3")]
-		public async Task<ActionResult> GetConfigForS3()
+		[HttpGet("GW")]
+		public async Task<ActionResult> GetConfigForGW()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.S3));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.GW));
 		}
 
-		/// <summary>특정 버전의 S3 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 GW 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("S3/{Version}")]
-		public async Task<ActionResult> GetConfigForS3([FromRoute] int Version)
+		[HttpGet("GW/{Version}")]
+		public async Task<ActionResult> GetConfigForGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.S3, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.GW, Version));
 		}
 
-		/// <summary>S3 설정을 저장한다.</summary>
+		/// <summary>GW 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("S3")]
-		public async Task<ActionResult> SetConfigForS3([FromBody] string Config)
+		[HttpPost("GW")]
+		public async Task<ActionResult> SetConfigForGW([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.S3, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.GW, Config = Config }));
 		}
 
-		/// <summary>S3 설정의 버전을 변경한다.</summary>
+		/// <summary>GW 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("S3/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForS3([FromRoute] int Version)
+		[HttpPut("GW/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.S3, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.GW, Version));
 		}
 
-		/// <summary>S3 설정의 버전을 삭제한다.</summary>
+		/// <summary>GW 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("S3/{Version}")]
-		public async Task<ActionResult> RemoveConfigForS3([FromRoute] int Version)
+		[HttpDelete("GW/{Version}")]
+		public async Task<ActionResult> RemoveConfigForGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.S3, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.GW, Version));
 		}
 
 		/// <summary>Recovery 설정 목록을 가져온다.</summary>
@@ -333,62 +333,62 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Monitor, Version));
 		}
 
-		/// <summary>Edge 설정 목록을 가져온다.</summary>
+		/// <summary>Agent 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/Edge")]
-		public async Task<ActionResult> GetConfigListForEdge()
+		[HttpGet("List/Agent")]
+		public async Task<ActionResult> GetConfigListForAgent()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Edge));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.Agent));
 		}
 
-		/// <summary>Edge 설정을 가져온다.</summary>
+		/// <summary>Agent 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("Edge")]
-		public async Task<ActionResult> GetConfigForEdge()
+		[HttpGet("Agent")]
+		public async Task<ActionResult> GetConfigForAgent()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.Edge));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Agent));
 		}
 
-		/// <summary>특정 버전의 Edge 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 Agent 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("Edge/{Version}")]
-		public async Task<ActionResult> GetConfigForEdge([FromRoute] int Version)
+		[HttpGet("Agent/{Version}")]
+		public async Task<ActionResult> GetConfigForAgent([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.Edge, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.Agent, Version));
 		}
 
-		/// <summary>Edge 설정을 저장한다.</summary>
+		/// <summary>Agent 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("Edge")]
-		public async Task<ActionResult> SetConfigForEdge([FromBody] string Config)
+		[HttpPost("Agent")]
+		public async Task<ActionResult> SetConfigForAgent([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Edge, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.Agent, Config = Config }));
 		}
 
-		/// <summary>Edge 설정의 버전을 변경한다.</summary>
+		/// <summary>Agent 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("Edge/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForEdge([FromRoute] int Version)
+		[HttpPut("Agent/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForAgent([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Edge, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.Agent, Version));
 		}
 
-		/// <summary>Edge 설정의 버전을 삭제한다.</summary>
+		/// <summary>Agent 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("Edge/{Version}")]
-		public async Task<ActionResult> RemoveConfigForEdge([FromRoute] int Version)
+		[HttpDelete("Agent/{Version}")]
+		public async Task<ActionResult> RemoveConfigForAgent([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Edge, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.Agent, Version));
 		}
 
 		/// <summary>MongoDB 설정 목록을 가져온다.</summary>

@@ -26,12 +26,11 @@ namespace PortalProviderInterface
 	public interface IRabbitMqRpc
 	{
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
-		/// <param name="exchange">Exchange 명</param>
 		/// <param name="routingKey">라우팅 키</param>
 		/// <param name="sendingObject">전송할 객체</param>
 		/// <param name="waitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 응답 객체</returns>
-		ResponseData<string> Send(string exchange, string routingKey, object sendingObject, int waitForResponseTimeoutSec);
+		ResponseData<string> Send(string routingKey, object sendingObject, int waitForResponseTimeoutSec);
 
 		/// <summary>연결 종료</summary>
 		void Close();

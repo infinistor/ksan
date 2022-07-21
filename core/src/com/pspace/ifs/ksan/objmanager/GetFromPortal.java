@@ -48,6 +48,34 @@ public class GetFromPortal {
     private String mqPassword;
     private static Logger logger;
     
+    // constants
+    private final String KSANMONCONFIFILE =  "/usr/local/ksan/etc/ksanMonitor.conf";
+    private final String DEFAULTIP = "127.0.0.1";
+    private final long DEFAULTPORTALPORT = 5443;
+    private final String PORTAIP = "PortalIp";
+    private final String PORTALPORT = "PortalPort";
+    private final String PORTAAPIKEY = "PortalApiKey";
+    
+    private final String DBREPOSITORY = "objM.db_repository";
+    private final String DBHOST = "objM.db_host";
+    private final String DBPORT = "objM.db_port";
+    private final String DBNAME = "objM.db_name";
+    private final String DBUSER = "objM.db_user"; 
+    private final String DBPASSWORD = "objM.db_password";  
+       
+    private final String MQHOST="objM.mq_host";
+    private final String MQUSER="MqUser";
+    private final String DEFAULTMQUSER="guest";
+    private final String MQPASSWORD="MqPassword";
+    private final String MQPORT="MqPort";
+    
+    private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
+    private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
+    
+    private final String DATA_TAG = "Data";
+    private final String ITEM_TAG = "Items";
+    private final String CONFIG_TAG = "Config";
+    
     public GetFromPortal() throws IOException{
         getPortaConfig();
         logger = LoggerFactory.getLogger(GetFromPortal.class);
@@ -71,14 +99,14 @@ public class GetFromPortal {
     
     private void getPortaConfig() throws IOException{
         prop = new Properties();
-        InputStream is = new FileInputStream("/usr/local/ksan/etc/ksanMon.conf");
+        InputStream is = new FileInputStream(KSANMONCONFIFILE);
         prop.load(is);
-        portalHost = getStringConfig("MgsIp", "127.0.0.1");
-        portalPort = getLongConfig("IfsPortalPort", 5443);
-        portalKey = getStringConfig("IfsPortalKey", "");
-        mqUser = getStringConfig("MqUser", "guest");
-        mqPassword = getStringConfig("MqPassword", "guest");
-        mqPort = getLongConfig("MqPort", 0);
+        portalHost = getStringConfig(PORTAIP, DEFAULTIP);
+        portalPort = getLongConfig(PORTALPORT, DEFAULTPORTALPORT);
+        portalKey = getStringConfig(PORTAAPIKEY, "");
+        mqUser = getStringConfig(MQUSER, DEFAULTMQUSER);
+        mqPassword = getStringConfig(MQPASSWORD, DEFAULTMQUSER);
+        mqPort = getLongConfig(MQPORT, 0);
     }
     
     private String getString(JSONObject jsonObject, String key){
@@ -88,8 +116,11 @@ public class GetFromPortal {
         
         return (String)obj;
     }
-    
-    private JSONObject parseGetSingleItem(String response, int index) throws ParseException{
+        
+    private JSONObject parseGetItem(String response) throws ParseException{
+        if (response == null)
+            return null;
+        
         if (response.isEmpty())
             return null;
         
@@ -98,14 +129,28 @@ public class GetFromPortal {
         if (jsonObject == null)
             return null;
         
-        JSONObject jsonData = (JSONObject)jsonObject.get("Data");
+        JSONObject jsonData = (JSONObject)jsonObject.get(DATA_TAG);
         if (jsonData == null)
             return null;
         
         if (jsonData.isEmpty())
             return null;
         
-        JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+        return jsonData;
+    }
+    
+    private JSONObject parseGetSingleItem(String response, int index) throws ParseException{
+        JSONObject jsonData = parseGetItem(response);
+        if (jsonData == null)
+            return null;
+        
+        if (jsonData.isEmpty())
+            return null;
+        
+        JSONArray jsonItems = (JSONArray)jsonData.get(ITEM_TAG);
+        if (jsonItems == null)
+            return null;
+        
         if (jsonItems.isEmpty())
             return null;
         
@@ -117,35 +162,17 @@ public class GetFromPortal {
     private JSONObject parseConfigResponse(String response) throws ParseException{
         JSONParser parser = new JSONParser();
         
-        JSONObject jsonItem = parseGetSingleItem(response, 0);
-        if (jsonItem == null)
+        JSONObject jsonData = parseGetItem(response);
+        if (jsonData == null)
             return null;
         
-        String config = getString(jsonItem,"Config");
+        String config = getString(jsonData, CONFIG_TAG);
         if (config.isEmpty())
             return null;
+      
         return (JSONObject)parser.parse(config);
     }
-    
-    private String pareUserListResponse(String userName, String response) throws ParseException{
-        int idx = 0;
-        JSONObject jsonItem;
-        String name;
-        String diskPoolId;
-      
-        jsonItem = parseGetSingleItem(response, idx);
-        if (jsonItem == null)
-            return null;
-
-        name = (String)jsonItem.get("Name");
-        if ((userName.equalsIgnoreCase(name)) ){ 
-            diskPoolId = (String)jsonItem.get("DefaultDiskPoolId");
-            return diskPoolId;
-        } 
         
-        return null;
-    }
-    
     private  long ipaddrToLong(String ipaddr){
         long res = 0;
         long ip;
@@ -157,57 +184,7 @@ public class GetFromPortal {
         }
         return res;
     }
-    
-    private SERVER parseServerResponse(String serverId, String response) throws ParseException{
-        if (response.isEmpty())
-            return null;
         
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = (JSONObject)parser.parse(response);
-        if (jsonObject == null)
-            return null;
-        
-        JSONObject jsonData = (JSONObject)jsonObject.get("Data");
-        if (jsonData == null)
-            return null;
-        
-        if (jsonData.isEmpty())
-            return null;
-        
-        String serverName = (String)jsonData.get("Name");
-        String status =  (String)jsonData.get("State");
-        int rack =  Integer.parseInt((String)jsonData.get("Rack"));
-        
-        JSONArray jsonNetworkInterfaces = (JSONArray)jsonData.get("NetworkInterfaces");
-        if (jsonNetworkInterfaces.isEmpty())
-            return null;
-        
-        JSONObject jsonNetworkInterface = (JSONObject)jsonNetworkInterfaces.get(0);
-        if (jsonNetworkInterface.isEmpty())
-            return null;
-        
-        JSONArray jsonNetworkInterfaceVlans = (JSONArray)jsonNetworkInterface.get("NetworkInterfaceVlans");
-        if (jsonNetworkInterfaceVlans.isEmpty())
-            return null;
-        
-        JSONObject jsonNetworkInterfaceVlan = (JSONObject)jsonNetworkInterfaceVlans.get(0);
-        if (jsonNetworkInterfaceVlans.isEmpty())
-            return null;
-        
-        String ipAddress = (String)jsonNetworkInterfaceVlan.get("IpAddress");
-        SERVER svr = new SERVER(serverId, ipaddrToLong(ipAddress), serverName);
-        svr.setRack(rack);
-        if (status.equalsIgnoreCase("Online"))
-            svr.setStatus(ServerStatus.ONLINE);
-        else if (status.equalsIgnoreCase("Offline"))
-            svr.setStatus(ServerStatus.OFFLINE);
-        else if (status.equalsIgnoreCase("timeout"))
-            svr.setStatus(ServerStatus.TIMEOUT);
-        else
-            svr.setStatus(ServerStatus.UNKNOWN);
-        return svr;
-    }
-    
     private  SERVER parseDiskResponse(SERVER svr, JSONArray disks){
         for (int idx =0; idx < disks.size(); idx++){
             JSONObject disk = (JSONObject)disks.get(idx);
@@ -285,7 +262,7 @@ public class GetFromPortal {
         if (jsonObject == null)
             return;
         
-        JSONObject jsonData = (JSONObject)jsonObject.get("Data");
+        JSONObject jsonData = (JSONObject)jsonObject.get(DATA_TAG);
         if (jsonData == null){
             return;
         }
@@ -293,7 +270,7 @@ public class GetFromPortal {
         if (jsonData.isEmpty())
             return;
         
-        JSONArray jsonItems = (JSONArray)jsonData.get("Items");
+        JSONArray jsonItems = (JSONArray)jsonData.get(ITEM_TAG);
         if (jsonItems.isEmpty())
             return;
         
@@ -329,52 +306,41 @@ public class GetFromPortal {
             ResponseHandler<String> handler = new BasicResponseHandler();
             return handler.handleResponse(response);
         }
+        
         return null;
     }
     
     public int getConfigFromPortal(ObjManagerConfig objc) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{    
-        String content = get("/api/v1/Config/List/S3");
+        String content = get(KSANGWCONFIAPI);
+        if (content == null)
+            return -1;
+        
         JSONObject jsonConfig = parseConfigResponse(content);
         if (jsonConfig == null)
             return -1;
           
-        objc.dbRepository = (String)jsonConfig.get("objM.db_repository");
-        objc.dbHost = (String)jsonConfig.get("objM.db_host");
-        objc.dbport = Long.valueOf(jsonConfig.get("objM.db_port").toString());
-        objc.dbName = (String)jsonConfig.get("objM.db_name");
-        objc.dbUsername = (String)jsonConfig.get("objM.db_user");
-        objc.dbPassword = (String)jsonConfig.get("objM.db_password");
-        objc.mqHost = portalHost;
+        objc.dbRepository = (String)jsonConfig.get(DBREPOSITORY);
+        objc.dbHost = (String)jsonConfig.get(DBHOST);
+        objc.dbport = Long.valueOf(jsonConfig.get(DBPORT).toString());
+        objc.dbName = (String)jsonConfig.get(DBNAME);
+        objc.dbUsername = (String)jsonConfig.get(DBUSER);
+        objc.dbPassword = (String)jsonConfig.get(DBPASSWORD);
+        objc.mqHost = (String)jsonConfig.get(MQHOST);
         objc.mqUsername = mqUser;
         objc.mqPassword = mqPassword;
         objc.mqPort = mqPort;
-        objc.mqOsdExchangename = "osdExchange"; //Fixme
-        objc.mqExchangename = "diskPoolExchange"; //Fime
-        objc.mqQueeuname = "diskPoolQueeu";
+        objc.mqOsdExchangename = "ksan.OSDExchange";
+        objc.mqExchangename = "ksan.system";  
+        objc.mqQueeuname = "disk";  
         return 0;
     }
-        
-    public SERVER getOSDServer(String serverId) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{
-         String content = get("/api/v1/Servers/" + serverId);
-         System.out.println("[getOSDServer] content >" + content);
-         return parseServerResponse(serverId, content);
-    }
-    
+            
     public void loadDiskPoolList(ObjManagerCache omc) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{
-        String content = get("/api/v1/DiskPools/Details");
+        String content = get(DISKPOOLSAPI);
         if (content == null)
             return;
         
         parseDiskPoolsResponse(omc, content);
         omc.dumpCacheInFile();
-    }
-    
-    public String getUserDefaultDiskPoolId(String userName) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{
-        String content = get("/api/v1/KsanUsers?skip=0&countPerPage=100&searchFields=Name&searchKeyword=" + userName);
-        if (content == null)
-            return null;
-        
-        System.out.println("[getUserDefaultDiskPoolId] content >" + content);
-        return pareUserListResponse(userName, content);
     }
 }

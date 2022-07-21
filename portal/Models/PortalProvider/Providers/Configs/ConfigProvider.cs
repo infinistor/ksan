@@ -27,7 +27,6 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using PortalData.Responses.Configs;
 using PortalData.Requests.Configs;
-using PortalProvider.Providers.RabbitMq;
 
 namespace PortalProvider.Providers.Services
 {
@@ -36,7 +35,7 @@ namespace PortalProvider.Providers.Services
 	{
 		/// <summary>생성자</summary>
 		/// <param name="dbContext">DB 컨텍스트</param>
-		/// <param name="configuration">역할 정보</param>
+		/// <param name="configuration">설정 정보</param>
 		/// <param name="userManager">사용자 관리자</param>
 		/// <param name="systemLogProvider">시스템 로그 프로바이더</param>
 		/// <param name="userActionLogProvider">사용자 동작 로그 프로바이더</param>
@@ -155,14 +154,22 @@ namespace PortalProvider.Providers.Services
 		/// <returns>설정 결과 객체</returns>
 		public async Task<ResponseData<ResponseUpdateConfig>> SetConfig(RequestServiceConfig Request)
 		{
+			return await SetConfig(Request.Type, Request.Config);
+		}
+
+		/// <summary>주어진 설정 정보를 특정 서비스에 저장한다.</summary>
+		/// <param name="ServiceType">서비스 타입</param>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>설정 결과 객체</returns>
+		public async Task<ResponseData<ResponseUpdateConfig>> SetConfig(EnumServiceType ServiceType, string Config)
+		{
 			var Result = new ResponseData<ResponseUpdateConfig>();
 
 			try
 			{
 				// 설정이 유효하지 않은 경우
-				if (string.IsNullOrEmpty(Request.Config))
+				if (string.IsNullOrEmpty(Config))
 					return new ResponseData<ResponseUpdateConfig>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -171,8 +178,8 @@ namespace PortalProvider.Providers.Services
 						// 정보를 생성한다.
 						var NewData = new ServiceConfig()
 						{
-							Type = (EnumDbServiceType)Request.Type,
-							Config = Request.Config,
+							Type = (EnumDbServiceType)ServiceType,
+							Config = Config,
 							RegDate = DateTime.Now,
 							LastVersion = false,
 						};
@@ -183,7 +190,7 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Data = await m_dbContext.ServiceConfigs.AsNoTracking()
-							.Where(i => i.Type == (EnumDbServiceType)Request.Type)
+							.Where(i => i.Type == (EnumDbServiceType)ServiceType)
 							.OrderByDescending(i => i.Version)
 							.FirstOrDefaultAsync<ServiceConfig, ResponseUpdateConfig>();
 						Result.Result = EnumResponseResult.Success;
@@ -249,15 +256,15 @@ namespace PortalProvider.Providers.Services
 
 						var NewData = new ResponseUpdateConfig()
 						{
-							RegDate = MyVersion.RegDate,
 							Version = MyVersion.Version,
+							RegDate = MyVersion.RegDate,
 						};
 
 						Result.Data = NewData;
 						Result.Result = EnumResponseResult.Success;
 
 						// Config 변경 알림
-						SendMq(RabbitMqConfiguration.ExchangeName, $"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
+						SendMq($"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
 					}
 					catch (Exception ex)
 					{

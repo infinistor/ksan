@@ -129,12 +129,12 @@ public class DeleteObjects extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		
         String versioningStatus = getBucketInfo().getVersioning();
-
+		String currentVid = null;
 		Metadata objMeta = null;
 		try {
-			if (Strings.isNullOrEmpty(versionId)) {
+			if (Strings.isNullOrEmpty(versionId) || GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {
 				objMeta = open(bucket, object);
-				versionId = objMeta.getVersionId();
+				currentVid = objMeta.getVersionId();
 			} else {
 				objMeta = open(bucket, object, versionId);
 			}

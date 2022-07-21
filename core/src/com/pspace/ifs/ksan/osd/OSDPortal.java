@@ -48,23 +48,30 @@ class ConfigUpdateCallback implements MQCallback{
 		OSDPortal.getInstance().getConfig();
 		
 		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
-	}    
+	}
 }
 
 class DiskpoolsUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info("receive diskpools change ...");
-		logger.info("BiningKey : {}, body : {}}", routingKey, body);
-
-		OSDPortal.getInstance().getDiskPoolsDetails();
-
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		try {
+			logger.info("receive diskpools change ...");
+			logger.info("BiningKey : {}, body : {}}", routingKey, body);
+	
+			if (OSDPortal.getInstance().isAppliedDiskpools()) {
+				OSDPortal.getInstance().getDiskPoolsDetails();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		}
 	}    
 }
 
 public class OSDPortal {
+	private boolean isAppliedDiskpools;
     private MonConfig config;
 
     private static final Logger logger = LoggerFactory.getLogger(OSDPortal.class);
@@ -115,7 +122,13 @@ public class OSDPortal {
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
+
+		isAppliedDiskpools = false;
     }
+
+	public boolean isAppliedDiskpools() {
+		return isAppliedDiskpools;
+	}
 
     public void getConfig() {
         try {
@@ -175,7 +188,13 @@ public class OSDPortal {
 				logger.info(body);
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
+				
 				JSONObject jsonData = (JSONObject)jsonObject.get(DiskManager.DATA);
+				if ((long)jsonData.get("TotalCount") == 0) {
+					logger.info("diskpools total count is 0");
+					return;
+				}
+
 				JSONArray jsonItems = (JSONArray)jsonData.get(DiskManager.ITEMS);
 				DiskManager.getInstance().clearDiskPoolList();
 
@@ -204,6 +223,7 @@ public class OSDPortal {
 				}
 				DiskManager.getInstance().configure();
 				DiskManager.getInstance().saveFile();
+				isAppliedDiskpools = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());

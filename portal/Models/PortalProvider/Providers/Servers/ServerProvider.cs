@@ -18,7 +18,6 @@ using PortalData.Requests.Servers;
 using PortalData.Responses.Servers;
 using PortalData.Responses.Services;
 using PortalModels;
-using PortalProvider.Providers.RabbitMq;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.AspNetCore.Identity;
@@ -109,7 +108,7 @@ namespace PortalProvider.Providers.Servers
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 추가된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.added", Result.Data);
+						SendMq("*.servers.added", Result.Data);
 					}
 					catch (Exception ex)
 					{
@@ -151,13 +150,17 @@ namespace PortalProvider.Providers.Servers
 				if (InternalServiceApiKey == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
 
+				// 명령 스크립트 생성
+				var cmd = $"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.PortalIp} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} " +
+					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
+				m_logger.LogDebug(cmd);
+
 				// SSH 접속
 				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
 				Client.Connect();
 
 				// 명령어 생성 및 실행
-				var Commend = Client.CreateCommand($"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.MgsIp} -p {Request.MgsPort} -q {Request.MQPort}" +
-					$" -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]} -k {m_apiKeyProvider.GetMainApiKey()}");
+				var Commend = Client.CreateCommand(cmd);
 
 				// 결과 받아오기
 				await Task.Run(() => Commend.Execute());
@@ -205,37 +208,45 @@ namespace PortalProvider.Providers.Servers
 			var Result = new ResponseData();
 			try
 			{
-				// 아이디가 유효하지 않은 경우
-				if (Id.IsEmpty())
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-				{
-					var Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
-
-					//서버가 존재하지 않는 경우
-					if (Server == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
-
-					GuidId = Server.Id;
-				}
-
 				// 요청이 유효하지 않은 경우
 				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
-				// 동일한 이름이 존재하는 경우
-				if (await this.IsNameExist(Request.Name, GuidId))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
 
 				// 해당 정보를 가져온다.
-				var Exist = await m_dbContext.Servers
+				Server Exist = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid ServerGuid))
+					Exist = await m_dbContext.Servers
+					.Where(i => i.Id == ServerGuid)
+					.Include(i => i.Services)
 					.Include(i => i.NetworkInterfaces)
 					.ThenInclude(i => i.NetworkInterfaceVlans)
 					.ThenInclude(i => i.ServiceNetworkInterfaceVlans)
-					.ThenInclude(i => i.Service)
-					.FirstOrDefaultAsync(i => i.Id == GuidId);
+					.FirstOrDefaultAsync();
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Servers
+					.Where(i => i.Name == Id)
+					.Include(i => i.Services)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.ThenInclude(i => i.ServiceNetworkInterfaceVlans)
+					.FirstOrDefaultAsync();
+
+				//서버가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 동일한 이름이 존재하는 경우
+				if (await this.IsNameExist(Request.Name, Exist.Id))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_SERVERS_DUPLICATED_NAME);
+
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -290,7 +301,7 @@ namespace PortalProvider.Providers.Servers
 						var Response = (await this.Get(Id)).Data;
 
 						// 수정된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.updated", Response);
+						SendMq("*.servers.updated", Response);
 					}
 					catch (Exception ex)
 					{
@@ -329,15 +340,15 @@ namespace PortalProvider.Providers.Servers
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				Server Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid ServerGuid))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == ServerGuid);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -433,15 +444,15 @@ namespace PortalProvider.Providers.Servers
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				Server Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid ServerGuid))
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == ServerGuid);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -538,22 +549,22 @@ namespace PortalProvider.Providers.Servers
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				Server Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Name == Id);
 				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid ServerId))
+					Exist = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServerId);
+				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.Servers.FirstOrDefaultAsync(i => i.Id == GuidId);
+					Exist = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
 					return new ResponseData(Result.Result = EnumResponseResult.Success);
 
 				// 해당 서버에 연결된 디스크가 존재하는 경우
-				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == GuidId))
+				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_DISK);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
@@ -562,7 +573,7 @@ namespace PortalProvider.Providers.Servers
 					{
 						// 네트워크 인터페이스 목록을 가져온다.
 						var NetworkInterfaces = await m_dbContext.NetworkInterfaces.AsNoTracking()
-							.Where(i => i.ServerId == GuidId)
+							.Where(i => i.ServerId == Exist.Id)
 							.ToListAsync();
 
 						// 모든 네트워크 인터페이스에 대해서 처리
@@ -600,7 +611,7 @@ namespace PortalProvider.Providers.Servers
 
 						// 서버 사용 정보를 가져온다.
 						var ServerUsages = await m_dbContext.ServerUsages
-							.Where(i => i.Id == GuidId)
+							.Where(i => i.Id == Exist.Id)
 							.ToListAsync();
 
 						// 서버 사용 정보 삭제
@@ -615,12 +626,8 @@ namespace PortalProvider.Providers.Servers
 
 						Result.Result = EnumResponseResult.Success;
 
-						// MQ로 전송할 객체 생성
-						var Response = new ResponseServer();
-						Response.CopyValueFrom(Exist);
-
 						// 삭제된 서버 정보 전송
-						SendMq(RabbitMqConfiguration.ExchangeName, "*.servers.removed", Response);
+						SendMq("*.servers.removed", new { Id = Exist.Id, Name = Exist.Name });
 					}
 					catch (Exception ex)
 					{
@@ -740,24 +747,26 @@ namespace PortalProvider.Providers.Servers
 				if (Id.IsEmpty())
 					return new ResponseData<ResponseServerDetail>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
+				// 해당 정보를 가져온다.
 				ResponseServerDetail Exist = null;
 
-				// 해당 정보를 가져온다.
-				// 이름으로 조회할 경우
-				if (!Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.Servers.AsNoTracking()
-					.Where(i => i.Name == Id)
-					.Include(i => i.NetworkInterfaces)
-					.ThenInclude(i => i.NetworkInterfaceVlans)
-					.Include(i => i.Disks)
-					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
 				// Id로 조회할경우
-				else
+				if (Guid.TryParse(Id, out Guid GuidId))
 					Exist = await m_dbContext.Servers.AsNoTracking()
 					.Where(i => i.Id == GuidId)
+					.Include(i => i.Disks)
+					.Include(i => i.Services)
 					.Include(i => i.NetworkInterfaces)
 					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Servers.AsNoTracking()
+					.Where(i => i.Name == Id)
 					.Include(i => i.Disks)
+					.Include(i => i.Services)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
 					.FirstOrDefaultAsync<Server, ResponseServerDetail>();
 
 				// 해당 데이터가 존재하지 않는 경우
@@ -767,26 +776,14 @@ namespace PortalProvider.Providers.Servers
 				// 해당 서버 내의 모든 Vlan ID 목록
 				var VlanIds = new List<Guid>();
 
-				// 모든 네트워크 인터페이스의 Vlan ID들을 추가한다.
-				foreach (var NetworkInterfaceDetail in Exist.NetworkInterfaces)
-					VlanIds.AddRange(NetworkInterfaceDetail.NetworkInterfaceVlans.Select(i => Guid.Parse(i.Id)).ToList());
-
-				// 서버의 Vlan과 연결된 모든 서비스를 가져온다.
-				var Services = await m_dbContext.ServiceNetworkInterfaceVlans.AsNoTracking()
-					.Where(i => VlanIds.Contains(i.VlanId))
-					.Select(i => i.Service)
-					.ToListAsync<Service, ResponseService>();
-
-				if (Services.Count > 0) Exist.Services = Services;
-
 				//디스크 풀이름을 가져온다.
 				if (Exist.Disks.Count > 0)
 				{
 					foreach (var Disk in Exist.Disks)
 					{
-						Guid.TryParse(Disk.DiskPoolId, out Guid DiskpoolId);
+						Guid.TryParse(Disk.DiskPoolId, out Guid DiskpoolGuid);
 						string diskName = await m_dbContext.DiskPools.AsNoTracking()
-							.Where(i => i.Id == DiskpoolId)
+							.Where(i => i.Id == DiskpoolGuid)
 							.Select(i => i.Name)
 							.FirstOrDefaultAsync();
 						Disk.DiskPoolName = diskName;

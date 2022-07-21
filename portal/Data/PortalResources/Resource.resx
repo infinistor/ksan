@@ -1796,4 +1796,12 @@
     <value>InternalService API KEY</value>
     <comment>내부 시스템용 키</comment>
   </data>
+  <data name="EM_DISKS_REQUIRE_DISK_NAME" xml:space="preserve">
+    <value>Please enter disk name.</value>
+    <comment>디스크 이름을 입력해주세요.</comment>
+  </data>
+  <data name="EN_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
+    <value>Invalid storage class name.</value>
+    <comment>유효하지 않은 스토리지 클래스 명입니다.</comment>
+  </data>
 </root>

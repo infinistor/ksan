@@ -66,7 +66,7 @@ public class Objmanagertest {
                 path = tmp + idx; 
                 System.out.println("create bucket : " + bucket + " path : " + path);   
                 md =om.create(bucket, path); // to create on round robin osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, md.getPrimaryDisk().getPath(), md.isReplicaExist() ? md.getReplicaDisk().getPath() : "", "", "file");
+                om.close(bucket, path, md);
                 md = om.open(bucket, path);
                 System.out.println(md);
                 Thread.sleep(10000);
@@ -104,7 +104,7 @@ public class Objmanagertest {
                 Metadata md;
                 path = tmp + idx;
                 md =om.createLocal(bucket, path); // to create file on local osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, md.getPrimaryDisk().getPath(), md.getReplicaDisk().getPath(), "", "file");
+                om.close(bucket, path, md);
                 md = om.open(bucket, path);
                 
                 System.out.println(md);
@@ -154,7 +154,7 @@ public class Objmanagertest {
             for(idx=0; idx < 20000000; idx++){
                 path = tmp + idx;    
                 mt =om.create(bucket, path); // to create on round robin osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, mt.getPrimaryDisk().getPath(), mt.getReplicaDisk().getPath(), "", "file");
+                om.close(bucket, path,mt);
                 if ((idx + 1) % 1000000 == 0){
                     diff = System.nanoTime() - startTime1m;
                     System.out.println(mcount + ": Millon create excution time  : " + diff + "nanosecond");
@@ -231,7 +231,7 @@ public class Objmanagertest {
         
         try {
             ObjManagerUtil omu = new ObjManagerUtil();
-            List<Metadata> ml =omu.listObjects(bucketName, "", 0, 0, maxKeys);
+            List<Metadata> ml =omu.listObjects(bucketName, "", 0, maxKeys);
             System.out.println(ml.toString());
             System.out.println("leng >> " + ml.size());
             /*ObjManagerConfig config = new ObjManagerConfig();
@@ -375,7 +375,7 @@ public class Objmanagertest {
             for(idx=0; idx < 200; idx++){
                 path = tmp + idx;    
                 mt =om.create(bucket, path); // to create on round robin osd disk
-                om.close(bucket, path, etag, meta, tag, 0L, acl, mt.getPrimaryDisk().getPath(), mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : "", Long.toString(startTime), "file");
+                om.close(bucket, path, mt);
                 if ((idx + 1) % 1000000 == 0){
                     diff = System.nanoTime() - startTime1m;
                     System.out.println(mcount + ": Millon create excution time  : " + diff + "nanosecond");
@@ -447,7 +447,7 @@ public class Objmanagertest {
                 }
                 List<Integer> lst = mp.listParts(path, uploadId, 100, 0);
                 System.out.println("key : " + path + " uploadId : " + uploadId + " parts : " + lst.toString());
-                om.close(bucket, path, etag, meta, tag, 0L, acl, mt.getPrimaryDisk().getPath(), mt.getReplicaDisk().getPath(), Long.toString(System.nanoTime()), "file");
+                om.close(bucket, path, mt);
             }
             
             String delimiter = "/";

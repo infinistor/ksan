@@ -19,31 +19,37 @@ namespace PortalData.Enums
 	{
 		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>OSD</summary>
-		OSD,
-		/// <summary>S3</summary>
-		S3,
-		/// <summary>S3 Backend</summary>
-		S3Backend,
-		/// <summary>HA Proxy</summary>
-		HaProxy,
-		/// <summary>Monitor</summary>
-		Monitor,
-		/// <summary>Edge</summary>
-		Edge,
+		/// <summary>RabbitMq</summary>
+		RabbitMq,
 		/// <summary>MariaDB</summary>
 		MariaDB,
 		/// <summary>MongoDB</summary>
 		MongoDB,
-		/// <summary>Lifecycle</summary>
-		Lifecycle,
-		/// <summary>Replication</summary>
-		Replication,
-		/// <summary>Logging</summary>
-		Logging,
-		/// <summary>Metering</summary>
-		Metering,
+		/// <summary>HA Proxy</summary>
+		Haproxy,
+		/// <summary>ksanApiPortal</summary>
+		ksanApiPortal,
+		/// <summary>KsanPortal</summary>
+		KsanPortal,
+		/// <summary>ksanPortalBridge</summary>
+		ksanPortalBridge,
+		/// <summary>Monitor</summary>
+		KsanMonitor,
+		/// <summary>Agent</summary>
+		KsanAgent,
+		/// <summary>OSD</summary>
+		KsanOsd,
+		/// <summary>GW</summary>
+		KsanGw,
 		/// <summary>Recovery</summary>
-		Recovery
+		KsanRecovery,
+		/// <summary>Lifecycle</summary>
+		KsanLifecycle,
+		/// <summary>Replication</summary>
+		KsanReplication,
+		/// <summary>Logging</summary>
+		KsanLogExport,
+		/// <summary>Metering</summary>
+		KsanMetering
 	}
 }

@@ -64,6 +64,9 @@ public class OSDServer {
         try {
             OSDPortal.getInstance().getConfig();
             OSDPortal.getInstance().getDiskPoolsDetails();
+            while (!OSDPortal.getInstance().isAppliedDiskpools()) {
+                Thread.sleep(1000);
+            }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
             System.exit(1);
@@ -344,6 +347,7 @@ public class OSDServer {
             }
             
             socket.getOutputStream().flush();
+            // socket.getOutputStream().close();
             
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_END, readTotal);
             logger.info("from : {}", socket.getRemoteSocketAddress().toString());

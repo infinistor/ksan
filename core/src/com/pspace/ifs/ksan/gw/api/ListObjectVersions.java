@@ -71,10 +71,23 @@ public class ListObjectVersions extends S3Request {
 		s3ObjectList.setDelimiter(delimiter);
 		s3ObjectList.setEncodingType(encodingType);
 		s3ObjectList.setKeyMarker(keyMarker);
-		s3ObjectList.setMaxKeys(maxKeys);
-		if (Strings.isNullOrEmpty(s3ObjectList.getMaxKeys())) {
+
+		if (!Strings.isNullOrEmpty(maxKeys)) {
+			try {
+				if (Integer.valueOf(maxKeys) < 0) {
+					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+				} else if (Integer.valueOf(maxKeys) > 1000) {
+					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
+				} else {
+					s3ObjectList.setMaxKeys(maxKeys);
+				}
+			} catch (NumberFormatException e) {
+				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+			}
+		} else {
 			s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 		}
+
 		logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MAXKEYS, s3ObjectList.getMaxKeys());
 		if (Integer.valueOf(s3ObjectList.getMaxKeys()) < 0) {
 			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);

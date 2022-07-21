@@ -211,12 +211,11 @@ namespace PortalProvider
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
-		/// <param name="Exchange">Exchange 명</param>
 		/// <param name="RoutingKey">라우팅 키</param>
 		/// <param name="Request">전송할 객체</param>
 		/// <param name="WaitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 객체</returns>
-		protected ResponseData SendRpcMq(string Exchange, string RoutingKey, object Request, int WaitForResponseTimeoutSec)
+		protected ResponseData SendRpcMq(string RoutingKey, object Request, int WaitForResponseTimeoutSec)
 		{
 			var Result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
@@ -231,7 +230,7 @@ namespace PortalProvider
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					var Response = RabbitMqRpc.Send(Exchange, RoutingKey, Request, WaitForResponseTimeoutSec);
+					var Response = RabbitMqRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
 
 					// 에러인 경우
 					if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
@@ -278,7 +277,7 @@ namespace PortalProvider
 						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					var Response = RabbitMqRpc.Send(Exchange, RoutingKey, Request, WaitForResponseTimeoutSec);
+					var Response = RabbitMqRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
 					// 에러인 경우
 					if (Response.Result == EnumResponseResult.Error)
 						Result.CopyValueFrom(Response);
@@ -305,11 +304,10 @@ namespace PortalProvider
 		}
 
 		/// <summary>RPC로 Message Queue를 전송한다.</summary>
-		/// <param name="Exchange">Exchange 명</param>
 		/// <param name="RoutingKey">라우팅 키</param>
 		/// <param name="Request">전송할 객체</param>
 		/// <returns>전송 결과 객체</returns>
-		protected ResponseData SendMq(string Exchange, string RoutingKey, object Request)
+		protected ResponseData SendMq(string RoutingKey, object Request)
 		{
 			var Result = new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
@@ -325,7 +323,7 @@ namespace PortalProvider
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 추가된 디스크 정보 전송
-					Result = RabbitMqSender.Send(Exchange, RoutingKey, Request);
+					Result = RabbitMqSender.Send(RoutingKey, Request);
 					RabbitMqSender.Close();
 				}
 			}

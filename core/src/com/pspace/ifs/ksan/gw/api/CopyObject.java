@@ -273,6 +273,9 @@ public class CopyObject extends S3Request {
 		logger.debug(GWConstants.LOG_COPY_OBJECT_METADATA_DIRECTIVE, metadataDirective);
 		if (!Strings.isNullOrEmpty(metadataDirective) && metadataDirective.equalsIgnoreCase(GWConstants.REPLACE)) {
             bReplaceMetadata = true;
+		} else {
+			s3Metadata.setUserMetadataMap(srcMetadata.getUserMetadataMap());
+			s3Metadata.setContentType(srcMetadata.getContentType());
 		}
 		
         s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());

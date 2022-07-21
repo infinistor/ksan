@@ -23,8 +23,6 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-// ReSharper disable TemplateIsNotCompileTimeConstantProblem
-
 namespace PortalProvider.Providers.RabbitMq
 {
 	/// <summary>Rabbit MQ로 정보를 송/수신하는 클래스</summary>
@@ -124,7 +122,7 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <param name="SendingObject">전송할 객체</param>
 		/// <param name="WaitForResponseTimeoutSec">응답 대기 타임 아웃 시간 (초)</param>
 		/// <returns>전송 결과 응답 객체</returns>
-		public ResponseData<string> Send(string Exchange, string RoutingKey, object SendingObject, int WaitForResponseTimeoutSec)
+		public ResponseData<string> Send(string RoutingKey, object SendingObject, int WaitForResponseTimeoutSec)
 		{
 			ResponseData<string> Result = new ResponseData<string>();
 
@@ -139,12 +137,12 @@ namespace PortalProvider.Providers.RabbitMq
 				var Message = JsonConvert.SerializeObject(SendingObject);
 
 				// 메세지 전송
-				m_channel.BasicPublish(exchange: Exchange,
+				m_channel.BasicPublish(exchange: m_config.ExchangeName,
 					routingKey: RoutingKey,
 					basicProperties: m_properties,
 					body: Message.GetBytes());
 
-				m_logger.LogDebug($"[Rabbit MQ] RPC Data transfer was successful and wait for Response. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})");
+				m_logger.LogDebug($"[Rabbit MQ] RPC Data transfer was successful and wait for Response. (exchange: {m_config.ExchangeName}, routingKey: {RoutingKey}, Message: {Message})");
 
 				// 응답 수신
 				m_channel.BasicConsume(
@@ -163,7 +161,7 @@ namespace PortalProvider.Providers.RabbitMq
 				}
 				catch (Exception /*e*/)
 				{
-					m_logger.LogError($"[Rabbit MQ] Response timed out for RPC Data transfer. (exchange: {Exchange}, routingKey: {RoutingKey}, Message: {Message})");
+					m_logger.LogError($"[Rabbit MQ] Response timed out for RPC Data transfer. (exchange: {m_config.ExchangeName}, routingKey: {RoutingKey}, Message: {Message})");
 
 					Result.Code = Resource.EC_COMMON__EXCEPTION;
 					Result.Message = Resource.EM_COMMON__COMMUNICATION_TIMEOUT;

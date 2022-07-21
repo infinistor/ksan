@@ -71,6 +71,15 @@ namespace PortalProviderInterface
 		/// <returns>해당 이름이 존재하는지 여부</returns>
 		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
 
+		/// <summary>기본 디스크풀을 가져온다.</summary>
+		/// <returns>디스크 풀 객체</returns>
+		Task<ResponseData<ResponseDiskPool>> GetDefault();
+		
+		/// <summary>기본 디스크풀을 변경한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <returns>디스크 풀 객체</returns>
+		Task<ResponseData> SetDefault(string Id);
+
 		/// <summary>해당 디스크 타입으로 참여가 가능한 디스크 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>

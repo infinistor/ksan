@@ -57,16 +57,22 @@ class ConfigUpdateCallback implements MQCallback{
 }
 
 class DiskUpdateCallback implements MQCallback{
-	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
+	private static final Logger logger = LoggerFactory.getLogger(DiskUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info(GWConstants.GWPORTAL_RECEIVED_DISK_CHANGE);
-		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
-
-		GWPortal.getInstance().getDiskPoolsDetails();
-		ObjManagerHelper.updateAllDiskpools(routingKey, body);
-
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		try {
+			logger.info(GWConstants.GWPORTAL_RECEIVED_DISK_CHANGE);
+			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+	
+			if (GWPortal.getInstance().isAppliedDiskpools()) {
+				GWPortal.getInstance().getDiskPoolsDetails();
+				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+			} 
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		}
 	}
 }
 
@@ -74,18 +80,24 @@ class DiskpoolsUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info(GWConstants.GWPORTAL_RECEIVED_DISKPOOLS_CHANGE);
-		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
-
-		GWPortal.getInstance().getDiskPoolsDetails();
-		ObjManagerHelper.updateAllDiskpools(routingKey, body);
-
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		try {
+			logger.info(GWConstants.GWPORTAL_RECEIVED_DISKPOOLS_CHANGE);
+			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+	
+			if (GWPortal.getInstance().isAppliedDiskpools()) {
+				GWPortal.getInstance().getDiskPoolsDetails();
+				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+			} 
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		}
 	}    
 }
 
 class UserUpdateCallBack implements MQCallback{
-	private static final Logger logger = LoggerFactory.getLogger(DiskpoolsUpdateCallback.class);
+	private static final Logger logger = LoggerFactory.getLogger(UserUpdateCallBack.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
 		logger.info(GWConstants.GWPORTAL_RECEIVED_USER_CHANGE);
@@ -136,6 +148,8 @@ class UserUpdateCallBack implements MQCallback{
 }
 
 public class GWPortal {
+	private boolean isAppliedDiskpools;
+	private boolean isAppliedUsers;
 	private MonConfig monConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
@@ -289,7 +303,18 @@ public class GWPortal {
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
+
+		isAppliedDiskpools = false;
+		isAppliedUsers = false;
     }
+
+	public boolean isAppliedDiskpools() {
+		return isAppliedDiskpools;
+	}
+
+	public boolean isAppliedUsers() {
+		return isAppliedUsers;
+	}
 
     public void getConfig() {
         try {
@@ -299,7 +324,7 @@ public class GWPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_S3);
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + monConfig.getPortalIp() + GWConstants.COLON + monConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_GW);
 			getRequest.addHeader(GWConstants.AUTHORIZATION, monConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
@@ -355,6 +380,12 @@ public class GWPortal {
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
 				JSONObject jsonData = (JSONObject)jsonObject.get(DiskManager.DATA);
+
+				if ((long)jsonData.get("TotalCount") == 0) {
+					logger.info("diskpools total count is 0");
+					return;
+				}
+
 				JSONArray jsonItems = (JSONArray)jsonData.get(DiskManager.ITEMS);
 				DiskManager.getInstance().clearDiskPoolList();
 
@@ -402,6 +433,7 @@ public class GWPortal {
 					}
 				}
 
+				isAppliedDiskpools = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
@@ -445,6 +477,7 @@ public class GWPortal {
 					S3UserManager.getInstance().addUser(user);
 				}
 				S3UserManager.getInstance().printUsers();
+				isAppliedUsers = true;
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());

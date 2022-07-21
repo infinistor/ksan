@@ -41,7 +41,6 @@ namespace PortalSvr.RabbitMqReceivers
 			IServiceScopeFactory serviceScopeFactory
 		) : base(
 			"portalsvr.servers",
-			RabbitMqConfiguration.ExchangeName,
 			new[]
 			{
 				"*.servers.*",
@@ -76,6 +75,7 @@ namespace PortalSvr.RabbitMqReceivers
 			{
 				// 수신된 데이터를 문자열로 변환
 				string json = Body.GetString();
+				m_logger.LogDebug(json);
 
 				using (var scope = m_serviceScopeFactory.CreateScope())
 				{

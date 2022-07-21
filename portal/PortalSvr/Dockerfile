@@ -1,6 +1,6 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM pspace/aspnetcore_for_api AS base
+FROM infinistor/aspnetcore_for_api AS base
 WORKDIR /app
 EXPOSE 55080
 EXPOSE 55443

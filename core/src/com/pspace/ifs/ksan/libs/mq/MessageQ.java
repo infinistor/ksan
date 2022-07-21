@@ -157,8 +157,8 @@ public abstract class MessageQ{
           factory.setPort(port);
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(10000); // 10 seconds
-        logger.debug("[MQconnect] from param host {} userName {} password {} port {}", host,  username, password, port);
-        logger.debug("[MQconnect] from factory host {} userName {} password {} port {}", factory.getHost(), factory.getUsername(), factory.getPassword(), factory.getPort());
+        //logger.debug("[MQconnect] from param host {} userName {} password {} port {}", host,  username, password, port);
+        //logger.debug("[MQconnect] from factory host {} userName {} password {} port {}", factory.getHost(), factory.getUsername(), factory.getPassword(), factory.getPort());
         Connection connection = factory.newConnection();
         this.channel = connection.createChannel();
         this.channel.basicQos(prefetchCount);
@@ -212,7 +212,7 @@ public abstract class MessageQ{
     private void bindExchange() throws Exception{
         if (!this.qname.isEmpty() && !this.exchangeName.isEmpty()){
             this.channel.queueBind(this.qname, this.exchangeName, this.bindingKey);
-            System.out.println(" Queue Name : " + this.qname + " exchange name : " + this.exchangeName);
+            //System.out.println(" Queue Name : " + this.qname + " exchange name : " + this.exchangeName);
         } 
        
     }    

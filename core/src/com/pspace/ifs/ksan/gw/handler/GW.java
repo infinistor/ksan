@@ -47,6 +47,14 @@ public class GW {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getDiskPoolsDetails();
+		
+		while (!GWPortal.getInstance().isAppliedDiskpools() || !GWPortal.getInstance().isAppliedUsers()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				PrintStack.logging(logger, e);
+			}
+		}
 	}
 
     public void init() throws Exception {
@@ -70,7 +78,7 @@ public class GW {
 		}
 
 		ExecutorThreadPool pool = new ExecutorThreadPool((int)GWConfig.getInstance().getJettyMaxThreads());
-		pool.setName(GWConstants.S3);
+		pool.setName(GWConstants.GW);
 		server = new Server(pool);
 
 		// if (GWConfig2.getInstance().servicePath() != null && !GWConfig2.getInstance().servicePath().isEmpty()) {

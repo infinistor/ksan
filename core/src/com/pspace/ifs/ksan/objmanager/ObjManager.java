@@ -332,7 +332,7 @@ public class ObjManager {
      * @throws ResourceNotFoundException 
      * @throws java.sql.SQLException 
      */
-    public int close(String bucketName, String path, String etag, String meta, String tag, long size, String acl, String pdskPath, String rdskPath, String versionId, String deleteMarker) 
+    /*public int close(String bucketName, String path, String etag, String meta, String tag, long size, String acl, String pdskPath, String rdskPath, String versionId, String deleteMarker) 
             throws InvalidParameterException, ResourceNotFoundException, SQLException{
         Metadata mt;
         Bucket bt;
@@ -366,7 +366,7 @@ public class ObjManager {
      
         mt.setReplicaCount(bt.getReplicaCount());
         return this.close(bucketName, path, mt);
-    }
+    }*/
     
     public int close(String bucketName, String path, Metadata mt) throws ResourceNotFoundException, SQLException{
         Bucket bt;

@@ -36,6 +36,12 @@ namespace PortalProviderInterface
 		Task<ResponseData<ResponseServiceConfig>> GetConfig(EnumServiceType ServiceType, int Version);
 
 		/// <summary>주어진 설정 정보를 저장한다.</summary>
+		/// <param name="ServiceType">서비스 타입</param>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>설정 결과 객체</returns>
+		Task<ResponseData<ResponseUpdateConfig>> SetConfig(EnumServiceType ServiceType, string Config);
+
+		/// <summary>주어진 설정 정보를 저장한다.</summary>
 		/// <param name="Request">서비스 설정 객체</param>
 		/// <returns>설정 결과 객체</returns>
 		Task<ResponseData<ResponseUpdateConfig>> SetConfig(RequestServiceConfig Request);
