@@ -17,7 +17,7 @@ setup(
     name='ksan-mgs-util',
     version=Version,
     data_files=[('/usr/local/ksan/bin', [\
-                 './ksan', 'ksanCbalance.jar',  'ksanFsck.jar',  'ksanGetAttr.jar', 'ksanCbalance', 'ksanFsck', 'ksanGetAttr'
+                 './ksan'
     ])],
 )
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")
