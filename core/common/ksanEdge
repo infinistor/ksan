@@ -34,7 +34,7 @@ def AddNewRoutingKeyWithServerId(conf):
     """
     Add Rpc routing Key to Routing Key List
     """
-    EdgeRoutingKeyList.append("*.servers.%s.interfaces.add" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.servers.%s.interfaces.check" % conf.mgs.ServerId)
     EdgeRoutingKeyList.append("*.servers.%s.interfaces.update" % conf.mgs.ServerId)
 
     EdgeRoutingKeyList.append("*.servers.%s.disks.write_disk_id" % conf.mgs.ServerId)
@@ -55,7 +55,7 @@ def MqHandler(conf, GlobalFlag, logger=None):
 
     AddNewRoutingKeyWithServerId(conf)
 
-    mq = Mq(conf.mgs.MgsIp, conf.mgs.MqPort, '/',  conf.mgs.MqUser, conf.mgs.MqPassword,
+    mq = Mq(conf.mgs.PortalIp, conf.mgs.MqPort, '/',  conf.mgs.MqUser, conf.mgs.MqPassword,
             EdgeRoutingKeyList, ExchangeName,
             'IfsEdge-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
     mq.Receiver()
@@ -117,7 +117,7 @@ def RegisterManagementNetwork(conf, logger):
     RetryCnt = 0
     while True:
         RetryCnt += 1
-        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, conf.mgs.ServerId,
+        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, conf.mgs.ServerId,
                                                netif, logger=logger)
         if Res != ResOk:
             logger.error('fail to add Network Interface %s retry:%d' %(Errmsg, RetryCnt))
@@ -127,7 +127,7 @@ def RegisterManagementNetwork(conf, logger):
                 logging.log(logging.INFO, "success to add network %s %s" % (str(Ret.Result), str(Ret.Message)))
                 NetworkInterfaceId = Ret.Data.Id
             elif Ret.Code == CodeDuplicated:
-                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey,
+                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey,
                                                              conf.mgs.ServerId, InterfaceId=None, disp=False, logger=logger)
                 if Res != ResOk or Ret.Result != ResultSuccess:
                     logging.log(logging.INFO, "%s %s" % (str(Ret.Result), str(Ret.Message)))
@@ -138,6 +138,7 @@ def RegisterManagementNetwork(conf, logger):
             if NetworkInterfaceId is not None:
                 UpdateConf(MonServicedConfPath, 'mgs', 'DefaultNetworkId', NetworkInterfaceId)
                 isNetworkAdded = True
+                break
         if RetryCnt <= 5:
             time.sleep(5)
         else:
@@ -176,7 +177,7 @@ def EdgeCheckEtcHosts(conf, logger, LocalIp):
         LocalHostName = out[:-1]
         LocalHostInfo.append((LocalIp, LocalHostName))
 
-    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, logger=logger)
+    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, logger=logger)
     if Res == ResOk:
         print(Ret.Result, Ret.Message)
         ValidHostsInfo = GetValidEtcHostsInfo(Data)
@@ -237,7 +238,7 @@ if __name__ == '__main__':
         if res is not True:
             print('fail to get HostName and Ip, %s' % hostname)
             sys.exit(-1)
-        Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, options.desc,
+        Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, options.desc,
                                                       Name=hostname, logger=logger)
         if Res != ResOk:
             print('fail to add Server' + Errmsg)
@@ -252,7 +253,7 @@ if __name__ == '__main__':
         if options.id is None:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveServer(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, ServerId=options.id, logger=logger)
+        Res, Errmsg, Ret = RemoveServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, ServerId=options.id, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:

@@ -29,12 +29,12 @@ def UpdateNetworkStat(conf, GlobalFlag, logger):
     #mqSender.send(config.exchangeName, "*", data)
     LocalDev = GetNetwork()
 
-    NetworkUsageMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkUsage, ExchangeName)
-    NetworkLinkStateMq = Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkLinkState, ExchangeName)
+    NetworkUsageMq = Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkUsage, ExchangeName)
+    NetworkLinkStateMq = Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkLinkState, ExchangeName)
     #Res, Errmsg, Ret, AllNetDevs = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
 
     while True:
-        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, ServerId=conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, ServerId=conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 while True:
@@ -50,8 +50,8 @@ def UpdateNetworkStat(conf, GlobalFlag, logger):
                             time.sleep(1)
                             # Update Network Io(Rx/Tx) bytes per 1 sec
                             stat2 = LocalDev.IoCounterPerNic
-                            RxPerSec = stat2[dev.Name].bytes_recv - stat1[dev.Name] .bytes_recv
-                            TxPerSec = stat2[dev.Name].bytes_sent - stat1[dev.Name] .bytes_sent
+                            RxPerSec = stat2[dev.Name].bytes_recv - stat1[dev.Name].bytes_recv
+                            TxPerSec = stat2[dev.Name].bytes_sent - stat1[dev.Name].bytes_sent
                             stat = RequestNetworkInterfaceStat(dev.Id, dev.ServerId, RxPerSec, TxPerSec)
                             MqSend = jsonpickle.encode(stat, unpicklable=False)
                             MqSend = json.loads(MqSend)
@@ -65,12 +65,14 @@ def UpdateNetworkStat(conf, GlobalFlag, logger):
                         except Exception as err:
                             print(err)
 
+                    time.sleep(int(conf.monitor.NetworkMonitorInterval))
+
             else:
                 print('fail to get the registered network info', Ret.Message)
         else:
             print('fail to get the registered network info', Errmsg)
 
-        time.sleep(NetworkMonitorInterval)
+        time.sleep(IntervalMiddle)
 
 @catch_exceptions()
 def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, GlobalFlag, logger):
@@ -92,7 +94,7 @@ def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
     elif RoutKeyNetworkAddedFinder.search(RoutingKey):
             ServerId = body.ServerId
             IpAddress = body.IpAddress
-            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.MgsIp, int(MonConf.mgs.IfsPortalPort),MonConf.mgs.IfsPortalKey,  ServerId=ServerId, logger=logger)
+            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.PortalIp, int(MonConf.mgs.PortalPort),MonConf.mgs.PortalApiKey,  ServerId=ServerId, logger=logger)
             if Res == ResOk:
                 if Ret.Result == ResultSuccess:
                     HostName = Data.Name

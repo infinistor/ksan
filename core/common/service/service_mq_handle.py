@@ -19,6 +19,7 @@ from service.osd import KsanOsd
 from common.utils import IsDaemonRunning
 from common.define import ServiceMonitorInterval
 from service.gw import KsanGW
+from service.monitor import KsanMonitor
 from service.mongo import KsanMongoDB
 import mqmanage.mq
 import logging
@@ -72,17 +73,35 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
             else:
                 Ret = False
                 ErrMsg = 'Invalid Control Code'
-        elif ServiceType == TypeServiceMONGODB:
+        elif ServiceType == TypeServiceMongoDB:
             mongo = KsanMongoDB(logger)
+            Ret, ErrMsg = mongo.GetMongoDBConf()
+            if Ret is True:
+                if body.Control == START:
+                    Ret, ErrMsg = mongo.Start()
+                elif body.Control == STOP:
+                        Ret, ErrMsg = mongo.Stop()
+                elif body.Control == RESTART:
+                    Ret, ErrMsg = mongo.Restart()
+                else:
+                    Ret = False
+                    ErrMsg = 'Invalid Control Code'
+
+
+        elif ServiceType == TypeServiceMonitor:
+            Monitor = KsanMonitor(logger)
             if body.Control == START:
-                Ret, ErrMsg = mongo.Start()
+                Ret, ErrMsg = Monitor.Start()
             elif body.Control == STOP:
-                    Ret, ErrMsg = mongo.Stop()
+                Ret, ErrMsg = Monitor.Stop()
             elif body.Control == RESTART:
-                Ret, ErrMsg = mongo.Restart()
+                Ret, ErrMsg = Monitor.Restart()
             else:
                 Ret = False
                 ErrMsg = 'Invalid Control Code'
+        elif ServiceType == TypeServiceAgent:
+            Ret = True
+            ErrMsg = ''
         else:
             Ret = False
             ErrMsg = 'Invalid Serivce Type'
@@ -135,20 +154,20 @@ class Process:
                 self.Pid = int(Pid)
             else:
                 self.Pid = None
-        elif self.ServiceType == TypeServiceEdge:
-            Ret, Pid = IsDaemonRunning(KsanEdgePidFile, CmdLine='ksanEdge')
+        elif self.ServiceType == TypeServiceAgent:
+            Ret, Pid = IsDaemonRunning(KsanAgentPidFile, CmdLine='ksanAgent')
             if Ret is True:
                 self.Pid = int(Pid)
             else:
                 self.Pid = None
         elif self.ServiceType == TypeServiceMonitor:
-            Ret, Pid = IsDaemonRunning(KsanMonPidFile, CmdLine='ksanMon')
+            Ret, Pid = IsDaemonRunning(KsanMonitorPidFile, CmdLine='ksanMonitor')
             if Ret is True:
                 self.Pid = int(Pid)
             else:
                 self.Pid = None
 
-        elif self.ServiceType == TypeServiceMONGODB:
+        elif self.ServiceType == TypeServiceMongoDB:
             Ret, Pid = IsDaemonRunning(KsanMongosPidFile, CmdLine='mongos')
             if Ret is True:
                 self.Pid = int(Pid)
@@ -182,15 +201,15 @@ class Process:
 
 @catch_exceptions()
 def ServiceMonitoring(conf, GlobalFlag, logger):
-    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
+    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
                         RoutKeyServiceUsage, ExchangeName, QueueName='')
-    MqServiceState = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
+    MqServiceState = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
                                     RoutKeyServiceState, ExchangeName, QueueName='')
 
     # local service list
     LocalServices = list() # [{ 'Id': ServiceId, 'Type': 'Osd', 'ProcessObject':Object, 'IsEnable': True, 'GroupId': GroupId, 'Status': 'Online'}]
     while True:
-        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.IfsPortalKey, conf.mgs.ServerId, logger=logger)
+        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.PortalIp, conf.mgs.PortalPort, conf.mgs.PortalApiKey, conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 LocalServices = list()
@@ -205,7 +224,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         NewService['ProcessObject'] = ProcObject
                         NewService['IsEnable'] = True
                         LocalServices.append(NewService)
-                        logging.log(logging.INFO, 'Service %s is added' % Service.ServiceType)
+                        #logging.log(logging.INFO, 'Service %s is added' % Service.ServiceType)
                     except Exception as err:
                         logger.error("fail to get service info %s " % str(err))
 
@@ -213,7 +232,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
 
                     if GlobalFlag['ServiceUpdated'] == Updated:
                         GlobalFlag['ServiceUpdated'] = Checked
-                        logging.log(logging.INFO,'Service Info is Updated')
+                        #logging.log(logging.INFO,'Service Info is Updated')
                         break
 
                     ServiceTypePool = list()
@@ -229,6 +248,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                             Usage = UpdateServiceUsageObject()
                             Usage.Set(ServiceId, ProcObject.CpuUsage, ProcObject.MemoryUsed, ProcObject.ThreadCount)
                             Usage = jsonpickle.encode(Usage, make_refs=False, unpicklable=False)
+                            logger.debug(Usage)
                             Usage = json.loads(Usage)
                             MqServiceUsage.Sender(Usage)
                             logger.debug(Usage)
@@ -240,6 +260,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         State.Set(ServiceId, ProcObject.State)
                         State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
                         State = json.loads(State)
+                        logger.debug(State)
                         MqServiceState.Sender(State)
                         ServiceStatus = ProcObject.State
                         CreateServicePoolXmlFile(ServiceTypePool)
@@ -251,8 +272,8 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                     tree = ET.ElementTree(root)
                     tree.write(ServicePoolXmlPath, encoding="utf-8", xml_declaration=True)
 
-                    time.sleep(ServiceMonitorInterval)
-        time.sleep(5)
+                    time.sleep(conf.monitor.ServiceMonitorInterval)
+        time.sleep(IntervalMiddle)
 
 
 @catch_exceptions()

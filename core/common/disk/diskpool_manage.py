@@ -16,7 +16,9 @@ import pdb
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.httpapi import *
+from server.server_manage import GetAllServerDetailInfo
 import jsonpickle
+
 
 @catch_exceptions()
 def AddDiskPool(Ip, Port, ApiKey, Name, DiskPoolType, ReplicationType, Description=None, logger=None):
@@ -47,12 +49,40 @@ def RemoveDiskPool(ip, port, ApiKey, DiskPoolId=None, DiskPoolName=None, logger=
     Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
+@catch_exceptions()
+def SetDefaultDiskPool(ip, port, ApiKey, DiskPoolId=None, DiskPoolName=None, logger=None):
+    # get network interface info
+    if DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    elif DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    else:
+        return ResInvalidCode, ResInvalidMsg + ' DiskPoolName is required', None
+    Url = '/api/v1/DiskPools/Default/%s' % TargetDiskPool
+    ReturnType = ResponseHeaderModule
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
+    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Ret
+
+@catch_exceptions()
+def GetDefaultDiskPool(ip, port, ApiKey, logger=None):
+    # get network interface info
+    Url = '/api/v1/DiskPools/Default'
+    ReturnType = DiskPoolDetailModule
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
+    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Ret
+
+
+
 
 def GetDiskIdList(PoolDetailInfo):
-    DiskListOfPool = list()
+    DiskIdListOfPool = list()
+    DiskNameListOfPool = list()
     for disk in PoolDetailInfo.Disks:
-        DiskListOfPool.append(disk.Id)
-    return DiskListOfPool
+        DiskIdListOfPool.append(disk.Id)
+        DiskNameListOfPool.append(disk.Name)
+    return DiskIdListOfPool, DiskNameListOfPool
 
 
 @catch_exceptions()
@@ -67,13 +97,34 @@ def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskId
     Res, Errmsg, Ret, PoolDetail = GetDiskPoolInfo(Ip, Port, ApiKey, DiskPoolId=DiskPoolId, DiskPoolName=DiskPoolName, logger=logger)
     if Res == ResOk:
         if Ret.Result != ResultSuccess:
-            return Res, Errmsg, Ret, None
-    DiskIdListOfPool = GetDiskIdList(PoolDetail)
+            return Res, Errmsg, Ret
+
+
+    UpdateDiskListOfPool = list()
+    DiskIdListOfPool, DiskNameListOfPool = GetDiskIdList(PoolDetail)
     if AddDiskIds is not None:
         DiskIdListOfPool = DiskIdListOfPool + AddDiskIds
+        UpdateDiskListOfPool = DiskIdListOfPool
+
+    isDiskIdListOfPoolUpdated = False
+    isDiskNameListOfPoolUpdated = False
     if DelDiskIds is not None:
         for DiskId in DelDiskIds:
-            DiskIdListOfPool.remove(DiskId)
+            if DiskId in DiskIdListOfPool:
+                DiskIdListOfPool.remove(DiskId)
+                isDiskIdListOfPoolUpdated = True
+
+        for DiskName in DelDiskIds:
+            if DiskName in DiskNameListOfPool:
+                DiskNameListOfPool.remove(DiskName)
+                isDiskNameListOfPoolUpdated = False
+
+    if isDiskIdListOfPoolUpdated is True:
+        UpdateDiskListOfPool = DiskIdListOfPool
+    else:
+        if isDiskNameListOfPoolUpdated is True:
+            UpdateDiskListOfPool = DiskNameListOfPool
+
     if DiskPoolName is not None:
         PoolDetail.Name = DiskPoolName
 
@@ -81,7 +132,7 @@ def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskId
         PoolDetail.Description = Description
     Url = '/api/v1/DiskPools/%s' % TargetDiskPool
     pool = RequestDiskPool()
-    pool.Set(PoolDetail.Name, PoolDetail.Description, DiskIdListOfPool, DiskPoolType=PoolDetail.DiskPoolType,
+    pool.Set(PoolDetail.Name, PoolDetail.Description, UpdateDiskListOfPool, DiskPoolType=PoolDetail.DiskPoolType,
              ReplicationType=PoolDetail.ReplicationType )
     ReturnType = ResponseHeaderModule
     body = jsonpickle.encode(pool, make_refs=False)
@@ -224,7 +275,7 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                                            str(pool['DiskPoolType']).center(15), GetReplicationDspType(str(pool['ReplicationType'])).center(15), " " * 35)
             print(_pool)
             print(DiskPoolTitleLine)
-            DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 10, 'Server Name'.center(15), '' 'DiskId'.center(38),
+            DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 10, 'HostName'.center(15), '' 'DiskId'.center(38),
                                         'DiskPath'.center(20), 'TotalSize'.center(15), 'UsedSize'.center(15),
                                                       'Read'.center(12), 'Write'.center(12))
             print(DiskTitle)
@@ -255,3 +306,109 @@ def GetReplicationDspType(StringType):
         return '1+2'
     else:
         return 'Invalid Replica'
+
+def DiskpoolUtilHandler(Conf, Action, Parser, logger):
+
+    options, args = Parser.parse_args()
+    PortalIp = Conf.mgs.PortalIp
+    PortalPort = Conf.mgs.PortalPort
+    PortalApiKey = Conf.mgs.PortalApiKey
+    MqPort = Conf.mgs.MqPort
+    MqPassword = Conf.mgs.MqPassword
+
+    if Action is None:
+        Parser.print_help()
+        sys.exit(-1)
+
+    if Action.lower() == 'add':
+        if not (options.DiskpoolName and options.RepType and options.DiskpoolType):
+            Parser.print_help()
+            sys.exit(-1)
+        if options.RepType not in ['1', '2', 'ec'] or options.DiskpoolType.lower() not in [DiskPoolClassStandard.lower(), DiskPoolClassArchive.lower()]:
+            Parser.print_help()
+            sys.exit(-1)
+        if options.RepType == '1':
+            ReplicationType = DiskPoolReplica1
+        elif options.RepType == '2':
+            ReplicationType = DiskPoolReplica2
+        else:
+            #ReplicationType = DiskPoolReplica1
+            print('Not supported yet!')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = AddDiskPool(PortalIp, PortalPort, PortalApiKey, options.DiskpoolName, options.DiskpoolType,
+                                       ReplicationType,
+                                       logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove':
+        if not options.DiskpoolName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = RemoveDiskPool(PortalIp, PortalPort, PortalApiKey, DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'set-default':
+        if not options.DiskpoolName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = SetDefaultDiskPool(PortalIp, PortalPort, PortalApiKey, DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'get-default':
+        Res, Errmsg, Ret = GetDefaultDiskPool(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        if Res == ResOk:
+            if Ret.Data is not None:
+                print(Ret.Data.Name)
+            else:
+                print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() in ['add-disk', 'remove-disk', 'update']:
+        AddDiskIds = None
+        DelDiskIds = None
+        if Action.lower() == 'add-disk':
+            if not (options.DiskpoolName and options.DiskName):
+                Parser.print_help()
+                sys.exit(-1)
+            if options.DiskName is not None:
+                AddDiskIds = options.DiskName.split()
+            else:
+                Parser.print_help()
+                print("Disk Ids or Disk Name is required")
+                sys.exit(-1)
+        elif Action.lower() == 'remove-disk':
+            if not ((options.DiskpoolName and options.DiskName)):
+                Parser.print_help()
+                sys.exit(-1)
+            DelDiskIds = options.DiskName.split()
+
+        Res, Errmsg, Ret = UpdateDiskPool(PortalIp, PortalPort, PortalApiKey, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
+                                           DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'list':
+        Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+            if Res != ResOk:
+                print(Errmsg)
+            else:
+                if options.Detail:
+                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=True)
+                else:
+                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo)
+    else:
+        Parser.print_help()
+
