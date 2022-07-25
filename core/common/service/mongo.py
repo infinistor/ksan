@@ -31,7 +31,6 @@ class KsanMongoDB:
         self.DbConf = None
         self.isLocalPrimary = False
         self.GetMonConf()
-        self.GetMongoDBConf()
 
     def GetMonConf(self):
         if not os.path.exists(MonServicedConfPath):
@@ -47,8 +46,8 @@ class KsanMongoDB:
         Retry = 0
         while True:
             Retry += 1
-            Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.mgs.MgsIp, int(self.MonConf.mgs.IfsPortalPort),
-                                                             self.MonConf.mgs.IfsPortalKey, logger=self.logger)
+            Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.mgs.PortalIp, int(self.MonConf.mgs.PortalPort),
+                                                             self.MonConf.mgs.PortalApiKey, logger=self.logger)
             if Res == ResOk:
                 if Ret.Result == ResultSuccess:
                     DbConf = json.loads(Data.Config)
@@ -107,28 +106,13 @@ class KsanMongoDB:
         return True, ''
 
     def Start(self):
-        ret, errmsg = self.PreRequest()
-        if ret is False:
-            return ret, errmsg
+        #ret, errmsg = self.PreRequest()
+        #if ret is False:
+        #    return ret, errmsg
         MongoDbStartCmd = 'nohup %s start &' % KsanMongDbManagerBinPath
         os.system(MongoDbStartCmd)
         return True, 'MongoDB ... Ok'
 
-        MongoDbStatusCmd = '%s status ' % KsanMongDbManagerBinPath
-        out, err = shcall(MongoDbStartCmd)
-        logging.log(logging.INFO, "MongoDB start: %s %s " % (out, str(err)))
-        RetryCnt = 0
-        while True:
-            out, err = shcall(MongoDbStatusCmd)
-            RetryCnt += 1
-            if 'Ok' in out:
-                return True, 'MongoDB ... Ok'
-            else:
-                if RetryCnt > 5:
-                    logging.log(logging.INFO, "MongoDB Status: %s %d/5"  % (out, RetryCnt))
-                    return False, 'MongoDB ... Not Ok'
-                else:
-                    time.sleep(2)
 
     def Stop(self):
         MongoDbStopCmd = '%s stop '% KsanMongDbManagerBinPath

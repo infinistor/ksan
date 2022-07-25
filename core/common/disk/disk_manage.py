@@ -213,7 +213,7 @@ def ChangeDiskMode(Ip, Port, ApiKey, RwMode, DiskId=None, Name=None, logger=None
     else:
         return ResInvalidCode, ResInvalidMsg + ' DiskId and Name are all None', None
 
-    if RwMode not in [DiskModeRw, DiskModeRd]:
+    if RwMode not in [DiskModeRw, DiskModeRo]:
         return ResInvalidCode, ResInvalidMsg, None
     Url = '/api/v1/Disks/%s/RwMode/%s' % \
           (TargetDisk, RwMode)
@@ -335,7 +335,7 @@ def GetDiskIdWithdiskNo(Ip, Port, DiskNo, logger=None):
 
 
 @catch_exceptions()
-def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=False):
+def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=None):
     """
     Display Disk list
     :param DiskList: DiskItems object list
@@ -345,17 +345,24 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=False):
     :return:
     """
 
-    if Detail is True:
-        DiskTitleLine = '%s' % ('=' * 355)
-        DiskDataLine = '%s' % ('-' * 355)
-        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'DiskId'.center(38), 'Path'.center(15),
-               'State'.center(10), 'TotalSize'.center(20), 'UsedSize'.center(20), 'FreeSize'.center(20),
+    if Detail is 'Detail':
+        DiskTitleLine = '%s' % ('=' * 277)
+        DiskDataLine = '%s' % ('-' * 277)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15),
+               'TotalSize'.center(20), 'UsedSize'.center(20), 'FreeSize'.center(20),
                 'TotalInode'.center(20), 'UsedInode'.center(20), 'ReservedInode'.center(20), 'Read'.center(20), 'Write'.center(20),
-                    'RwMode'.center(10), 'DiskPoolId'.center(38), 'ServerId'.center(38))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+                    'RwMode'.center(10), 'DiskPoolId'.center(38), 'State'.center(10))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+    elif Detail is 'Simple':
+        DiskTitleLine = '%s' % ('=' * 176)
+        DiskDataLine = '%s' % ('-' * 176)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15),
+                'TotalSize'.center(20), 'UsedSize'.center(20), 'FreeSize'.center(20),
+                'Read'.center(20), 'Write'.center(20),
+                    'RwMode'.center(10), 'State'.center(10))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
     else:
-        DiskTitleLine = '%s' % ('=' * 99)
-        DiskDataLine = '%s' % ('-' * 99)
-        title = "|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'DiskId'.center(38), 'Path'.center(15),'State'.center(10))
+        DiskTitleLine = '%s' % ('=' * 71)
+        DiskDataLine = '%s' % ('-' * 71)
+        title = "|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15), 'RwMode'.center(10), 'State'.center(10))
     print(DiskTitleLine)
     print(title)
     print(DiskTitleLine)
@@ -367,20 +374,130 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=False):
         #    svr = GetDataFromBody(disk.Server, ServerItemsModule)
         #if ServerId is not None and ServerId != svr.Id:
         #    continue
-        if Detail is True:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
-                                       str(disk.Id).center(38),
+        if Detail == 'Detail':
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
                                        '{:15.15}'.format(disk.Path.center(15)),
-                                       disk.State.center(10), str(int(disk.TotalSize)).center(20),
+                                        str(int(disk.TotalSize)).center(20),
                                        str(int(disk.UsedSize)).center(20), str(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize)).center(20),
                                         str(int(disk.TotalInode)).center(20), str(int(disk.UsedInode)).center(20), str(int(disk.ReservedInode)).center(20),
                                         str(disk.Read).center(20), str(disk.Write).center(20),
-                                        disk.RwMode.center(10), str(disk.DiskPoolId).center(38), disk.Server.Id.center(38))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+                                        disk.RwMode.center(10), str(disk.DiskPoolId).center(38), disk.State.center(10))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+        elif Detail == 'Simple':
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
+                                       '{:15.15}'.format(disk.Path.center(15)),
+                                        str(int(disk.TotalSize)).center(20),
+                                       str(int(disk.UsedSize)).center(20), str(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize)).center(20),
+                                        str(disk.Read).center(20), str(disk.Write).center(20),
+                                        disk.RwMode.center(10), disk.State.center(10))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
         else:
 
             _dsp = "|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
-                                             str(disk.Id).center(38), disk.Path.center(15),
+                                             disk.Path.center(15), disk.RwMode.center(10),
                                              disk.State.center(10))
 
         print(_dsp)
         print(DiskDataLine)
+
+
+def DiskUtilHandler(Conf, Action, Parser, logger):
+
+    options, args = Parser.parse_args()
+    PortalIp = Conf.mgs.PortalIp
+    PortalPort = Conf.mgs.PortalPort
+    PortalApiKey = Conf.mgs.PortalApiKey
+    MqPort = Conf.mgs.MqPort
+    MqPassword = Conf.mgs.MqPassword
+
+    if Action is None:
+        Parser.print_help()
+        sys.exit(-1)
+
+    if Action.lower() == 'add':
+        if not (options.ServerName and options.DiskPath and options.DiskName) :
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = AddDisk(PortalIp, PortalPort, PortalApiKey, options.DiskPath, options.DiskName,
+                                   ServerName=options.ServerName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove':
+        if not options.DiskName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = RemoveDiskInfo(PortalIp, PortalPort, PortalApiKey, Name=options.DiskName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'update':
+        if not options.DiskName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = UpdateDiskInfo(PortalIp, PortalPort, PortalApiKey, Path=options.Path,
+                                            DiskPoolId=options.DiskPoolId, Name=options.DiskName,
+                                          Description=options.Description, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+
+    elif Action.lower() == 'update_size':
+        if not options.DiskName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = UpdateDiskSize(PortalIp, PortalPort, PortalApiKey, options.DiskName,
+                                            TotalSize=options.TotalSize, UsedSize=options.TotalSize, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower().startswith('set'):
+        if len(args) != 2 or not (options.DiskName and options.Mode):
+            Parser.print_help()
+            sys.exit(-1)
+        else:
+            if options.Mode.lower not in ['ro', 'readonly', 'rw', 'readwrite']:
+                Parser.print_help()
+                sys.exit(-1)
+            DiskMode = DiskModeRo if options.Mode in ['ro', 'readonly'] else DiskModeRw
+            Res, Errmsg, Ret = ChangeDiskMode(PortalIp, PortalPort,PortalApiKey, DiskMode,
+                                              Name=options.DiskName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result, Ret.Message)
+            else:
+                print(Errmsg)
+
+    elif Action.lower() == 'start' or Action.lower() == 'stop':
+        if not options.DiskName or Action.lower() not in ['start', 'stop']:
+            Parser.print_help()
+            sys.exit(-1)
+        Action = DiskStart if Action.lower() == 'start' else DiskStop
+        Res, Errmsg, Ret = StartStopDisk(PortalIp, PortalPort, PortalApiKey, Action, Name=options.DiskName,
+                                         logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'list':
+        while True:
+            Res, Errmsg, Ret, AllDisks = GetDiskInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+            if Res != ResOk:
+                print(Errmsg)
+            else:
+                if options.Detail:
+                    Detail = 'Detail'
+                elif options.Simple:
+                    Detail = 'Simple'
+                else:
+                    Detail = None
+                ShowDiskInfo(AllDisks, Detail=Detail, Continue=options.Continue)
+            if options.Continue is None:
+                break
+            else:
+                time.sleep(int(options.Continue))
+    else:
+        Parser.print_help()
