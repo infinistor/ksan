@@ -1258,6 +1258,24 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   The disk does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_DOES_NOT_EXIST {
+            get {
+                return ResourceManager.GetString("EM_DISK_DOES_NOT_EXIST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The disk pool does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOL_DOES_NOT_EXIST {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOL_DOES_NOT_EXIST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   A disk pool with the same name exists.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_DISK_POOLS_DUPLICATED_NAME {
@@ -1281,6 +1299,15 @@ namespace PortalResources {
         public static string EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED {
             get {
                 return ResourceManager.GetString("EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The default disk pool is not deleted.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOLS_NOT_DELETE_DEFAULT_DISK_POOL {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOLS_NOT_DELETE_DEFAULT_DISK_POOL", resourceCulture);
             }
         }
         
@@ -1389,15 +1416,6 @@ namespace PortalResources {
         public static string EM_DISKS_REQUIRE_SERVER_ID {
             get {
                 return ResourceManager.GetString("EM_DISKS_REQUIRE_SERVER_ID", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   The disk pool does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string EM_DISKS_THERE_IS_NO_DISK_POOL {
-            get {
-                return ResourceManager.GetString("EM_DISKS_THERE_IS_NO_DISK_POOL", resourceCulture);
             }
         }
         

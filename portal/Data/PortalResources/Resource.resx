@@ -1417,9 +1417,9 @@
     <value>Invalid disk pool id.</value>
     <comment>유효하지 않은 디스크 풀 아이디 입니다.</comment>
   </data>
-  <data name="EM_DISKS_THERE_IS_NO_DISK_POOL" xml:space="preserve">
+  <data name="EM_DISK_POOL_DOES_NOT_EXIST" xml:space="preserve">
     <value>The disk pool does not exist.</value>
-    <comment>해당 디스크 풀 정보가 존재하지 않습니다.</comment>
+    <comment>디스크 풀 정보가 존재하지 않습니다.</comment>
   </data>
   <data name="EM_DISK_POOLS_REQUIRE_NAME" xml:space="preserve">
     <value>Please enter disk pool name.</value>
@@ -1870,5 +1870,13 @@
   </data>
   <data name="ENV_SERVICE_API_KEY" xml:space="preserve">
     <value>SERVICE_API_KEY</value>
+  </data>
+  <data name="EM_DISK_DOES_NOT_EXIST" xml:space="preserve">
+    <value>The disk does not exist.</value>
+    <comment>디스크가 존재하지 않습니다.</comment>
+  </data>
+  <data name="EM_DISK_POOLS_NOT_DELETE_DEFAULT_DISK_POOL" xml:space="preserve">
+    <value>The default disk pool is not deleted.</value>
+    <comment>기본 디스크 풀은 삭제되지 않습니다.</comment>
   </data>
 </root>

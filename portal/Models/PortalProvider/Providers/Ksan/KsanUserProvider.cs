@@ -112,7 +112,7 @@ namespace PortalProvider.Providers.Accounts
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 
 				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
 				var NewUser = new KsanUser
@@ -600,7 +600,7 @@ namespace PortalProvider.Providers.Accounts
 
 				// 디스크풀 정보를 찾을 수 없는 경우
 				if (DiskPool == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EN_DISK_POOLS_INVALID_ID);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 
 				// 중복 체크
 				if (await CheckStorageClassDuplicated(User.Id, DiskPool.Id))
@@ -667,7 +667,7 @@ namespace PortalProvider.Providers.Accounts
 
 				// 디스크풀 정보를 찾을 수 없는 경우
 				if (DiskPool == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EN_DISK_POOLS_INVALID_ID);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 
 				// 유저의 스토리지 클래스 조회
 				var Data = await m_dbContext.UserDiskPools

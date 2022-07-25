@@ -157,10 +157,7 @@ namespace PortalProvider.Providers.Accounts
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
-				{
-					Result.Code = Resource.EC_COMMON__NOT_FOUND;
-					Result.Message = Resource.EM_COMMON__NOT_FOUND;
-				}
+					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 				// 해당 데이터가 존재하는 경우
 				else
 				{
@@ -282,34 +279,29 @@ namespace PortalProvider.Providers.Accounts
 
 					// 해당 데이터가 존재하지 않는 경우
 					if (Exist == null)
-					{
-						Result.Code = Resource.EC_COMMON__NOT_FOUND;
-						Result.Message = Resource.EM_COMMON__NOT_FOUND;
-					}
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
 					// 해당 데이터가 존재하는 경우
-					else
+					using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 					{
-						using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+						try
 						{
-							try
-							{
-								// 해당 데이터 삭제
-								m_dbContext.ApiKeys.Remove(Exist);
-								await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+							// 해당 데이터 삭제
+							m_dbContext.ApiKeys.Remove(Exist);
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
-								await Transaction.CommitAsync();
+							await Transaction.CommitAsync();
 
-								Result.Result = EnumResponseResult.Success;
-							}
-							catch (Exception ex)
-							{
-								await Transaction.RollbackAsync();
+							Result.Result = EnumResponseResult.Success;
+						}
+						catch (Exception ex)
+						{
+							await Transaction.RollbackAsync();
 
-								NNException.Log(ex);
+							NNException.Log(ex);
 
-								Result.Code = Resource.EC_COMMON__EXCEPTION;
-								Result.Message = Resource.EM_COMMON__EXCEPTION;
-							}
+							Result.Code = Resource.EC_COMMON__EXCEPTION;
+							Result.Message = Resource.EM_COMMON__EXCEPTION;
 						}
 					}
 				}
@@ -345,13 +337,13 @@ namespace PortalProvider.Providers.Accounts
 				if (Exist == null)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
-				Result.Data = Exist;
 
 				// 해당 사용자 정보를 가져온다.
 				var User = await m_userManager.FindByIdAsync(Exist.UserId);
 				if (User != null)
 					Result.Data.UserName = User.Name;
 
+				Result.Data = Exist;
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
