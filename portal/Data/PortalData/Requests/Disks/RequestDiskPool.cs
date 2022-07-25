@@ -32,9 +32,6 @@ namespace PortalData.Requests.Disks
 		/// <summary>설명</summary>
 		public string Description { get; set; }
 
-		/// <summary>디스크 목록</summary>
-		public List<string> DiskIds { get; set; } = new List<string>();
-
 		/// <summary> 디스크풀 타입 </summary>
 		public EnumDiskPoolType DiskPoolType { get; set; } = EnumDiskPoolType.STANDARD;
 		

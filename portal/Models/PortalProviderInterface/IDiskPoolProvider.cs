@@ -106,5 +106,17 @@ namespace PortalProviderInterface
 			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = "");
+
+		/// <summary>디스크 풀 등록</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>디스크 풀 등록 결과 객체</returns>
+		Task<ResponseData> AddDisks(string Id, RequestDisks Request);
+
+		/// <summary>디스크 풀 삭제</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>디스크 풀 삭제 결과 객체</returns>
+		Task<ResponseData> RemoveDisks(string Id, RequestDisks Request);
 	}
 }
