@@ -347,6 +347,7 @@ public class OSDServer {
             }
             
             socket.getOutputStream().flush();
+            // socket.getOutputStream().close();
             
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_END, readTotal);
             logger.info("from : {}", socket.getRemoteSocketAddress().toString());

@@ -11,6 +11,7 @@
 
 namespace PortalModels
 {
+	/// <summary> 리전 정보 </summary>
 	public partial class Region
 	{
 

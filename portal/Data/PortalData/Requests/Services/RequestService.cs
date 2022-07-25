@@ -32,6 +32,10 @@ namespace PortalData.Requests.Services
 		}
 		private string m_name;
 
+		/// <summary>서버 아이디</summary>
+		[Required(ErrorMessageResourceName = "EM_SERVERS_REQUIRE_ID", ErrorMessageResourceType = typeof(Resource))]
+		public string ServerId { get; set; }
+
 		/// <summary>설명</summary>
 		public string Description { get; set; }
 

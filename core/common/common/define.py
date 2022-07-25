@@ -32,7 +32,7 @@ Updated = 1
 Checked = 0
 
 ##### configuration path #####
-MonServicedConfPath = '/usr/local/ksan/etc/ksanMon.conf'
+MonServicedConfPath = '/usr/local/ksan/etc/ksanMonitor.conf'
 OsdServiceConfPath = '/usr/local/ksan/etc/ksanOsd.conf'
 GwServiceConfPath = '/usr/local/ksan/etc/ksanGW.conf'
 ObjmanagerServiceConfPath = '/usr/local/ksan/etc/objmanger.conf'
@@ -45,6 +45,8 @@ GwXmlFilePath = '/usr/local/ksan/etc/ksan-gw-log.xml'
 KsanOsdBinaryName = 'ksan-osd.jar'
 KsanGwBinaryName = 'ksan-gw.jar'
 KsanRecovery = 'ksanRecovery'
+KsanMonitorBinaryName = 'ksanMonitor'
+KsanAgentBinaryName = 'ksanAgent'
 
 
 NormalCatalinaScriptPath = '/usr/local/ksan/bin/catalina.sh'
@@ -61,8 +63,8 @@ DefaultIfMqPort = 5672
 ##### Pid File Path #####
 KsanOsdPidFile = '/var/run/ksanOsd.pid'
 KsanGwPidFile = '/var/run/ksanGw.pid'
-KsanMonPidFile = '/var/run/ksanMon.pid'
-KsanEdgePidFile = '/var/run/ksanEdge.pid'
+KsanMonitorPidFile = '/var/run/ksanMonitor.pid'
+KsanAgentPidFile = '/var/run/ksanAgent.pid'
 KsanMongosPidFile = '/var/run/mongod.pid'
 
 ##### INTERVAL #####
@@ -71,7 +73,15 @@ ProcessMonitorInterval = 10
 ServerMonitorInterval = 10
 ServiceMonitorInterval = 10
 NetworkMonitorInterval = 10
+IntervalShort = 1
+IntervalMiddle = 5
+IntervalLong = 10
 
+##### RETRY COUNT #####
+ServiceContolRetryCount = 3
+
+
+##### Sleep #####
 
 """
 ######## protocol ########
@@ -110,6 +120,7 @@ ResultFail = 1  # fail to get data
 ResultSuccess = 'Success'
 
 CodeDuplicated = 'EC036'
+ResutlNotFound = 'EC014'
 
 """
 ######### mq info define #########
@@ -223,7 +234,7 @@ DiskTypeOsd = 'Osd'
 DiskStatOnline = 'Online'
 DiskStatOffline = 'Offline'
 DiskModeRw = 'ReadWrite'
-DiskModeRd = 'ReadOnly'
+DiskModeRo = 'ReadOnly'
 DiskHaActionInit = 'Initializing'
 
 class MgsConf:
@@ -674,17 +685,15 @@ class RequestServerInfo(object):
 class RequestServerInitInfo(object):
     def __init__(self):
         self.ServerIp = ''
-        self.MgsIp = ''
-        self.MQPort = 0
-        self.MgsPort = 0
+        self.PortalIp = ''
+        self.PortalPort = 0
         self.UserName = ''
         self.Password = ''
 
-    def Set(self, ServerIp, MgsIp, MQPort, MgsPort, UserName, Password):
+    def Set(self, ServerIp, PortalIp, PortalPort, UserName, Password):
         self.ServerIp = ServerIp
-        self.MgsIp = MgsIp
-        self.MQPort = MQPort
-        self.MgsPort = MgsPort
+        self.PortalIp = PortalIp
+        self.PortalPort = PortalPort
         self.UserName = UserName
         self.Password = Password
 
@@ -1081,14 +1090,15 @@ class DiskUsage:
 ######### SERVICE #########
 TypeS3 = 'IfsS3'
 TypeTomcat = 'tomcat'
-TypeServiceOSD = 'OSD'
-TypeServiceS3 = 'S3'
-TypeServiceMONGODB = 'MongoDB'
-TypeServiceMARIADB = 'MariaDB'
+TypeServiceOSD = 'KsanOsd'
+TypeServiceS3 = 'KsanGw'
+TypeServiceMongoDB = 'MongoDB'
+TypeServiceMariaDB = 'MariaDB'
 TypeServiceObjmanager = 'OBJMANAGER'
 TypeServiceS3Backend = 'S3Backend'
-TypeServiceMonitor = 'Monitor'
-TypeServiceEdge = 'Edge'
+TypeServiceMonitor = 'KsanMonitor'
+TypeServiceAgent = 'KsanAgent'
+TypeServiceRabbitMq = 'RabbitMq'
 TypeServiceHaproxy = 'HaProxy'
 SampleS3ConfFile = './objmanager.conf'
 S3ConfFile = '/opt/objmanager.conf'
@@ -1097,6 +1107,17 @@ HaproxyConfFile = '/opt/haproxy.cfg'
 ServiceStart = 'Start'
 ServiceStop = 'Stop'
 ServiceRestart = 'Restart'
+
+ServiceTypeConversion = dict()
+ServiceTypeConversion['ksanosd'] = TypeServiceOSD
+ServiceTypeConversion['ksangw'] = TypeServiceS3
+ServiceTypeConversion['mongodb'] = TypeServiceMongoDB
+ServiceTypeConversion['mariadb'] = TypeServiceMariaDB
+ServiceTypeConversion['ksanmonitor'] = TypeServiceMonitor
+ServiceTypeConversion['ksanagent'] = TypeServiceAgent
+ServiceTypeConversion['rabbitmq'] = TypeServiceRabbitMq
+ServiceTypeConversion['haproxy'] = TypeServiceHaproxy
+
 
 
 KsanMongDbManagerBinPath = '/usr/local/ksan/bin/ksanMongoDBManager'
@@ -1116,15 +1137,17 @@ class AddServiceInfoObject:
     def __init__(self):
         self.GroupId = None
         self.Name = None
+        self.ServerId = None
         self.Description = None
         self.ServiceType = None
         self.HaAction = "Initializing"
         self.State = "Offline"
         self.VlanIds = None
 
-    def Set(self, Name, ServiceType, GroupId, VlanIds, State='Offline', Description='', HaAction='Initializing'):
+    def Set(self, Name, ServerId, ServiceType, GroupId, VlanIds, State='Offline', Description='', HaAction='Initializing'):
         self.GroupId = GroupId
         self.Name = Name
+        self.ServerId = ServerId
         self.Description = Description
         self.ServiceType = ServiceType
         self.HaAction = HaAction

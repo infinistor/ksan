@@ -53,6 +53,7 @@ class KsanGW:
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, GwXmlFilePath, KsanGwBinaryName)
+            self.logger.debug(StartCmd)
             os.system(StartCmd)
             time.sleep(2)
 
@@ -62,13 +63,17 @@ class KsanGW:
             else:
                 return False, 'Fail to start ksanGw'
 
-    def Stop(self):
+    def Stop(self, Force=False):
         Ret, Pid = IsDaemonRunning(KsanGwPidFile, CmdLine=KsanGwBinaryName)
         if Ret is False:
-            return False, 'ksanGw is not running'
+            if Force is True:
+                return True, ''
+            else:
+                return False, 'ksanGw is not running'
         else:
 
             try:
+                self.logger.debug('kill %s' % KsanGwBinaryName)
                 os.kill(int(Pid), signal.SIGTERM)
                 os.unlink(KsanGwPidFile)
                 print('Done')
@@ -77,14 +82,29 @@ class KsanGW:
                 return False, 'Fail to stop. %s' % err
 
     def Restart(self):
-        Ret, ErrMsg = self.Stop()
-        if Ret is not True:
-            print(ErrMsg)
-        Ret, ErrMsg = self.Start()
-        if Ret is not True:
-            print(ErrMsg)
-        else:
-            print('Done')
+        RetryCnt = 0
+        while True:
+            RetryCnt += 1
+            Ret, ErrMsg = self.Stop(Force=True)
+            if Ret is False:
+                if RetryCnt > ServiceContolRetryCount:
+                    return False, ErrMsg
+                else:
+                    time.sleep(IntervalShort)
+            else:
+                break
+
+        RetryCnt = 0
+        while True:
+            RetryCnt += 1
+            Ret, ErrMsg = self.Start()
+            if Ret is False:
+                if RetryCnt > ServiceContolRetryCount:
+                    return False, ErrMsg
+                else:
+                    time.sleep(IntervalShort)
+            else:
+                return Ret, ErrMsg
 
 
     def Status(self):

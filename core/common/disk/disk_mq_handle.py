@@ -22,74 +22,6 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 
-
-@catch_exceptions()
-def DiskUsageMonitoring1(conf, GlobalFlag, logger):
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
-            QueueName='')
-
-    while True:
-        Res, Errmsg, Ret, AllDiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey, conf.mgs.ServerId)
-        #UpdateDiskPoolXml()
-        if Res == ResOk:
-            if Ret.Result == ResultSuccess:
-                while True:
-                    if GlobalFlag['DiskUpdated'] == Updated:
-                        GlobalFlag['DiskUpdated'] = Checked
-                        logging.log(logging.INFO,'Disk Info is Updated')
-                        break
-                    for disk in AllDiskList:
-                        if conf.mgs.ServerId != disk.ServerId:
-                            continue
-
-                        stat = Disk(disk.Path)
-                        stat.GetInode()
-                        stat.GetUsage()
-                        DiskStat = DiskDetailMqBroadcast()
-                        DiskStat.Set(disk.Id, disk.ServerId, disk.State, stat.TotalInode, stat.ReservedInode,
-                                     stat.UsedInode, stat.TotalSize, stat.ReservedSize, stat.UsedSize, disk.Read, disk.Write)
-                        Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
-                        logger.debug(Mqsend)
-                        Mqsend = json.loads(Mqsend)
-                        MqDiskUpdated.Sender(Mqsend)
-
-                    time.sleep(DiskMonitorInterval)
-        else:
-            time.sleep(5)
-
-
-def GetDiskStat1(Mq, DiskList, LapTime, logger):
-    # get disk partition info
-    DiskIo = psutil.disk_io_counters(perdisk=True)
-    Now = time.time()
-    for part in psutil.disk_partitions():
-        for disk in DiskList:
-            if disk['Path'] == part.mountpoint:
-                Device = re.sub('/dev/', '', part.device)
-                TimeInterval = int(Now - LapTime['time'])
-                WritePerSec = 0
-                ReadPerSec = 0
-                if TimeInterval > 1:
-                    WritePerSec = (DiskIo[Device].write_bytes - disk['Write'])/TimeInterval
-                    ReadPerSec = (DiskIo[Device].read_bytes - disk['Read'])/TimeInterval
-                    disk['Write'] = DiskIo[Device].write_bytes
-                    disk['Read'] = DiskIo[Device].read_bytes
-                DiskStat = os.statvfs(disk['Path'])
-                disk['UsedInode'] = DiskStat.f_files - DiskStat.f_ffree
-                diskUsage = psutil.disk_usage(disk['Path'])
-                disk['UsedSize'] = diskUsage.used
-
-                DiskStat = DiskDetailMqBroadcast()
-                DiskStat.Set(disk.Id, disk.ServerId, disk.DiskNo, disk.State, DiskStat.TotalInode, DiskStat.ReservedInode,
-                             DiskStat.UsedInode, DiskStat.TotalSize, DiskStat.ReservedSize, DiskStat.UsedSize, ReadPerSec, WritePerSec)
-                Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
-                logger.debug(Mqsend)
-                Mqsend = json.loads(Mqsend)
-                Mq.Sender(Mqsend)
-
-    LapTime['time'] = Now
-
-
 def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
     # get disk partition info
     Now = time.time()
@@ -99,7 +31,7 @@ def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
     Device = DiskStatInfo['Device']
     PrevWrite = DiskStatInfo['Write']
     PrevRead = DiskStatInfo['Read']
-    if TimeInterval > 1:
+    if TimeInterval >= 1:
         WritePerSec = (CurrentDiskIo[Device].write_bytes - PrevWrite) / TimeInterval
         ReadPerSec = (CurrentDiskIo[Device].read_bytes - PrevRead) / TimeInterval
         DiskStatInfo['Write'] = CurrentDiskIo[Device].write_bytes
@@ -139,10 +71,10 @@ def UpdateDiskPartitionInfo(DiskList):
 
 @catch_exceptions()
 def DiskUsageMonitoring(conf, GlobalFlag, logger):
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
+    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
             QueueName='')
     while True:
-        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.IfsPortalKey)
+        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 DiskStatInfo = UpdateDiskPartitionInfo(DiskList)
@@ -173,13 +105,13 @@ def DiskUsageMonitoring(conf, GlobalFlag, logger):
                         Mqsend = json.loads(Mqsend)
                         MqDiskUpdated.Sender(Mqsend)
 
-                    time.sleep(DiskMonitorInterval)
+                    time.sleep(int(conf.monitor.DiskMonitorInterval))
             else:
                 logger.error('fail to get Disk Info %s' % Ret.Message)
         else:
             logger.error('fail to get Disk Info %s' % Errmsg)
 
-        time.sleep(5)
+        time.sleep(IntervalMiddle)
 
 
 def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
@@ -257,7 +189,7 @@ def UpdateDiskPoolXml():
     # DiskPools = [{"PoolName":"pool1", "PoolId":"abc123", "Servers": [{"Id": "", "Ip":"", "Status":"Online", "Disks":
     # [{"DiskId": "", "Mode":"Rw", "Path": "", "Status": "GOOD"}]}]}]
     DiskPools = list()
-    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), logger=None)
+    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, logger=None)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for Svr in Servers:

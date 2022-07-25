@@ -28,6 +28,7 @@ namespace PortalModels
 			this.NetworkInterfaces = new List<NetworkInterface>();
 			this.Disks = new List<Disk>();
 			this.ServerUsages = new List<ServerUsage>();
+			this.Services = new List<Service>();
 			OnCreated();
 		}
 
@@ -86,6 +87,8 @@ namespace PortalModels
 		public virtual IList<Disk> Disks { get; set; }
 
 		public virtual IList<ServerUsage> ServerUsages { get; set; }
+
+		public virtual IList<Service> Services { get; set; }
 
 		#region Extensibility Method Definitions
 

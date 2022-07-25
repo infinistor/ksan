@@ -104,8 +104,8 @@ namespace PortalProvider.Providers.Accounts
 				else
 				{
 					// 아이디로 조회할 경우
-					if (Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolId))
-						Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolId);
+					if (Guid.TryParse(Request.StandardDiskPoolId, out Guid DiskPoolGuid))
+						Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
 					// 이름으로 조회할 경우
 					else
 						Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.StandardDiskPoolId);
@@ -134,14 +134,11 @@ namespace PortalProvider.Providers.Accounts
 				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
 				// 유저 정보를 조회한다.
-				var User = await GetUser(NewUser.Id);
-
-				Result.Data = new ResponseKsanUser();
-				Result.Data.CopyValueFrom(User);
+				Result.Data = await GetUser(NewUser.Id);
 				Result.Result = EnumResponseResult.Success;
 
 				// Ksan 사용자 등록 알림
-				SendMq("*.services.gw.user.added", User);
+				SendMq("*.services.gw.user.added", Result.Data);
 			}
 			catch (Exception ex)
 			{
@@ -170,8 +167,8 @@ namespace PortalProvider.Providers.Accounts
 				KsanUser Exist = null;
 
 				// 이름으로 조회할 경우
-				if (Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.KsanUsers.Include(i=> i.UserDiskPools).FirstOrDefaultAsync(i => i.Id == GuidId);
+				if (Guid.TryParse(Id, out Guid UserGuid))
+					Exist = await m_dbContext.KsanUsers.Include(i=> i.UserDiskPools).FirstOrDefaultAsync(i => i.Id == UserGuid);
 				else
 					Exist = await m_dbContext.KsanUsers.Include(i=> i.UserDiskPools).FirstOrDefaultAsync(i => i.Name == Id);
 
@@ -221,7 +218,7 @@ namespace PortalProvider.Providers.Accounts
 				Result.Message = Resource.SM_COMMON__UPDATED;
 
 				//Ksan 사용자 변경 알림
-				SendMq("*.services.gw.user.updated", Exist);
+				SendMq("*.services.gw.user.updated", await GetUser(Exist.Id));
 			}
 			catch (Exception ex)
 			{
@@ -251,8 +248,8 @@ namespace PortalProvider.Providers.Accounts
 				KsanUser Exist = null;
 
 				// 아이디로 조회할 경우
-				if (Guid.TryParse(Id, out Guid GuidId))
-					Exist = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == GuidId);
+				if (Guid.TryParse(Id, out Guid UserGuid))
+					Exist = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == UserGuid);
 				// 이름으로 조회할 경우
 				else
 					Exist = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
@@ -320,9 +317,9 @@ namespace PortalProvider.Providers.Accounts
 				{
 					foreach (var Storage in User.UserDiskPools)
 					{
-						if (Guid.TryParse(Storage.DiskPoolId, out Guid DiksPoolId))
+						if (Guid.TryParse(Storage.DiskPoolId, out Guid DiksPoolGuid))
 						{
-							var DiskPool = DiskPools.Where(i => i.Id == DiksPoolId).FirstOrDefault();
+							var DiskPool = DiskPools.Where(i => i.Id == DiksPoolGuid).FirstOrDefault();
 							if (DiskPool != null)
 								Storage.DiskPoolName = DiskPool.Name;
 						}
@@ -444,10 +441,10 @@ namespace PortalProvider.Providers.Accounts
 				// 유저 정보를 가져온다.
 				ResponseKsanUser Exist = null;
 				// 아이디로 조회할 경우
-				if (Guid.TryParse(Id, out Guid GuidId))
+				if (Guid.TryParse(Id, out Guid UserGuid))
 					Exist = await m_dbContext.KsanUsers
 							.AsNoTracking()
-							.Where(i => i.Id == GuidId)
+							.Where(i => i.Id == UserGuid)
 							.Include(i => i.UserDiskPools)
 							.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
 				// 이름으로 조회할 경우
@@ -486,7 +483,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="Id">사용자 식별자</param>
 		/// <param name="includeDeletedUser">삭제된 사용자도 포함할지 여부</param>
 		/// <returns>사용자 정보 객체</returns>
-		public async Task<KsanUser> GetUser(Guid Id)
+		public async Task<ResponseKsanUser> GetUser(Guid Id)
 		{
 			try
 			{
@@ -494,7 +491,7 @@ namespace PortalProvider.Providers.Accounts
 							.AsNoTracking()
 							.Where(i => i.Id == Id)
 							.Include(i => i.UserDiskPools)
-							.FirstOrDefaultAsync();
+							.FirstOrDefaultAsync<KsanUser, ResponseKsanUser>();
 			}
 			catch (Exception ex)
 			{

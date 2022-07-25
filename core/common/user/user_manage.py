@@ -15,6 +15,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from server.server_manage import *
+from disk.diskpool_manage import GetDefaultDiskPool
 
 
 def GetUserInfo(ip, port, UserId=None, logger=None):
@@ -423,14 +424,14 @@ def RemoveS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserNa
 
 
 @catch_exceptions()
-def ShowS3UserInfo(UserList, Detail=False):
+def ShowS3UserInfo(UserList, Detail=None):
     """
     Display Network Interface Info
     :param InterfaceList: NetworkInterfaceItems class list
     :param NicId:
     :return:
     """
-    if Detail is False:
+    if Detail is None:
         UserTitleLine = '=' * 92
         UserDataLine = '-' * 92
         title ="|%s|%s|%s|" % ('Name'.center(20), 'Email'.center(30), 'Id'.center(38))
@@ -443,20 +444,20 @@ def ShowS3UserInfo(UserList, Detail=False):
                                       'SecretKey'.center(42), 'Email'.center(30), 'Id'.center(38))
 
         UserDiskPoolStorageClassLine = '%s%s' % (' ' * 101, '-' * 65)
-        UserDiskPoolStorageClassTitle = "%s|%s|%s|" % (' ' * 101, "DiskPoolId".center(42), "StorageClass".center(20))
+        UserDiskPoolStorageClassTitle = "%s|%s|%s|%s|" % (' ' * 101, "DiskPoolName".center(20), "StorageClass".center(20), " "*21)
 
     print(UserTitleLine)
     print(title)
     print(UserTitleLine)
     for user in UserList:
         _userdiskpool = ''
-        if Detail is False:
+        if Detail is None:
             _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
         else:
             _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)),
                                         user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
             for diskpool in user.UserDiskPools:
-                _userdiskpool += "%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolId'].center(42), diskpool['StorageClass'].center(20))
+                _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].center(20), diskpool['StorageClass'].center(20), " "*21)
                 _userdiskpool += "%s%s" % (' ' * 101, '-' * 65)
 
         print(_user)
@@ -466,4 +467,102 @@ def ShowS3UserInfo(UserList, Detail=False):
             print(UserDiskPoolStorageClassLine)
             print(_userdiskpool)
             print(UserDataLine)
+
+
+def UserUtilHandler(Conf, Action, Parser, logger):
+
+    options, args = Parser.parse_args()
+    PortalIp = Conf.mgs.PortalIp
+    PortalPort = Conf.mgs.PortalPort
+    PortalApiKey = Conf.mgs.PortalApiKey
+    MqPort = Conf.mgs.MqPort
+    MqPassword = Conf.mgs.MqPassword
+
+    if Action is None:
+        Parser.print_help()
+        sys.exit(-1)
+
+    if Action.lower() == 'add':
+        if not (options.UserName and options.Email):
+            print('User Name and Email Info are required')
+            sys.exit(-1)
+        DefaultDiskpoolName = None
+        Res, Errmsg, Ret =  GetDefaultDiskPool(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        if Res == ResOk:
+            if Ret.Data is not None:
+                DefaultDiskpoolName = Ret.Data.Name
+
+        if options.DefaultDiskpool:
+            DefaultDiskpoolName = options.DefaultDiskpool
+
+        if DefaultDiskpoolName is None:
+            print('Default Diskpool is not configured')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = AddS3User(PortalIp, PortalPort, PortalApiKey, options.UserName,
+                                     DiskPoolName=DefaultDiskpoolName, Email=options.Email, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove':
+        if not options.UserName:
+            Parser.print_help()
+            sys.exit(-1)
+
+        Conf = dict()
+        Conf['isRemove']= get_input('Are you sure to remove user(yes|no)?', str, 'no', ValidAnsList=['yes', 'no'])
+        if Conf['isRemove'] == 'yes':
+            Res, Errmsg, Ret = RemoveS3User(PortalIp, PortalPort, PortalApiKey, UserName=options.UserName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result)
+            else:
+                print(Errmsg)
+
+    elif Action.lower() == 'add2storageclass':
+        if not (options.UserName and options.StorageClass and options.DiskpoolName):
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = AddS3UserStorageClass(PortalIp, PortalPort, PortalApiKey ,options.StorageClass,
+                                                 UserName=options.UserName, DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'remove2storageclass':
+        if not (options.UserName and options.StorageClass and options.DiskpoolName):
+            print('User Name, Default DiskPoolName and Email Info are required')
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = RemoveS3UserStorageClass(PortalIp, PortalPort, PortalApiKey, options.StorageClass, UserName=options.UserName, DiskPoolName=options.DiskpoolName,
+                                      logger=logger)
+        if Res == ResOk:
+            print(Ret.Result)
+        else:
+            print(Errmsg)
+
+
+    elif Action.lower() == 'set':
+        if not ((options.UserId or options.UserName) and options.Email ):
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = UpdateS3UserInfo(PortalIp, PortalPort, PortalApiKey, UserName=options.UserName,
+                                            Email=options.Email, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'list':
+        Res, Errmsg, Ret, Users = GetS3UserInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        if Res != ResOk:
+            print(Errmsg)
+        else:
+            if Ret.Result != ResultSuccess:
+                print(Ret.Message)
+            else:
+                ShowS3UserInfo(Users, Detail=options.Detail)
+    else:
+        Parser.print_help()
 

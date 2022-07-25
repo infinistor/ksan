@@ -17,15 +17,7 @@ setup(
     name='ksan-mgs-util',
     version=Version,
     data_files=[('/usr/local/ksan/bin', [\
-                 './ksanServer',\
-                 './ksanDisk',\
-                 './ksanDiskpool',\
-                 './ksanService',\
-                 './ksanServicegroup',\
-                 './ksanUser',\
-                 './ksanManager',\
-                 './ksanSysinfo',\
-                 './ksanNetwork'
+                 './ksan'
     ])],
 )
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")

@@ -44,21 +44,21 @@ def MqHandler(conf, GlobalFlag, logger):
     mq.Receiver()
 
 
-def Start(Foreground=False):
+def Start(logger, Foreground=False):
     ret, conf = GetConf(MonServicedConfPath)
     if ret is False:
         print('Init conf first')
         sys.exit(-1)
     else:
         if conf.mgs.ServerId == '':
-            print('Local server is not registered. Excute ksanEdge register first')
+            print('Local server is not registered. Excute ksanAgent register first')
             sys.exit(-1)
 
     if Foreground is False:
-        D = Daemon(KsanMonPidFile, 'ksanMon')
+        D = Daemon(KsanMonitorPidFile, 'ksanMonitor')
         D.start()
 
-    logger = Logging().create()
+    #logger = Logging().create()
 
     GlobalFlag = {'ServiceUpdated': Checked, 'NetworkUpdated': Checked, 'DiskUpdated': Checked, 'DiskPoolUpdated': Checked}
 
@@ -84,13 +84,13 @@ def Start(Foreground=False):
     threads.append(th)
 
     Pid = os.getpid()
-    CreatePidFile(Pid, KsanMonPidFile)
+    CreatePidFile(Pid, KsanMonitorPidFile)
     MqHandler(conf, GlobalFlag, logger)
     for th in threads:
         th.join()
 
 def Stop():
-    D = Daemon(KsanMonPidFile, 'ksanMon')
+    D = Daemon(KsanMonitorPidFile, 'ksanMonitor')
     D.stop()
 
 
@@ -98,9 +98,9 @@ def Stop():
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanMon {start|stop|satatus}
-                start                                                                  : Start ksanMon 
-                stop                                                                   : Stop ksanMon 
+        Usage: ksanMonitor {start|stop|satatus}
+                start                                                                  : Start ksanMonitor 
+                stop                                                                   : Stop ksanMonitor 
         [options]
                 -h, --help                                                             : show this help message and exit
 """
@@ -119,10 +119,19 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(-1)
 
+    #logger = None
+    #if options.debug is True:
+    #    logger = Logging(loglevel='debug')
+    #    logger = logger.create()
+
     logger = None
     if options.debug is True:
         logger = Logging(loglevel='debug')
-        logger = logger.create()
+    else:
+        logger = Logging(loglevel='error')
+    logger = logger.create()
+
+
 
     ret, conf = GetConf(MonServicedConfPath)
     #if ret is False and args[0] != 'init':
@@ -130,22 +139,22 @@ if __name__ == '__main__':
     #    sys.exit(-1)
 
     if args[0] == 'start':
-        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        Ret, Pid = IsDaemonRunning(KsanMonitorPidFile, 'ksanMonitor')
         if Ret is True:
-            print('ksanMon is already running')
+            print('ksanMonitor is already running')
         else:
-            Start(Foreground=options.Foreground)
+            Start(logger, Foreground=options.Foreground)
 
     elif args[0] == 'stop':
-        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        Ret, Pid = IsDaemonRunning(KsanMonitorPidFile, 'ksanMonitor')
         if Ret is False:
-            print('ksanMon is not running')
+            print('ksanMonitor is not running')
         else:
             Stop()
 
     elif args[0] == 'status':
         print('KsanMon ... ',end=' ')
-        Ret, Pid = IsDaemonRunning(KsanMonPidFile, 'ksanMon')
+        Ret, Pid = IsDaemonRunning(KsanMonitorPidFile, 'ksanMonitor')
         if Ret is True:
             print('Ok')
         else:

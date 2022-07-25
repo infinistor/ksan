@@ -21,6 +21,9 @@ from network.network_mq_handle import *
 from common.daemon import Daemon
 from common.shcommand import UpdateEtcHosts, shcall
 from service.service_manage import *
+from service.service_mq_handle import ServiceMonitoring
+from server.server_mq_handle import MonUpdateServerUsage
+from disk.disk_mq_handle import DiskUsageMonitoring
 from mqmanage.mq import *
 import time
 from optparse import OptionParser
@@ -60,6 +63,15 @@ def MqHandler(conf, GlobalFlag, logger=None):
             'IfsEdge-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
     mq.Receiver()
 
+def CheckAgentConf(Conf):
+    if not hasattr(Conf, 'monitor'):
+        class MonitorConf: pass
+        setattr(MonitorConf, 'ServerMonitorInterval', 10)
+        setattr(MonitorConf, 'NetworkMonitorInterval', 10)
+        setattr(MonitorConf, 'DiskMonitorInterval', 10)
+        setattr(MonitorConf, 'ServiceMonitorInterval', 10)
+        setattr(Conf, 'monitor', MonitorConf)
+    return Conf
 
 
 def Start(LocalIp, logger=None, Foreground=False):
@@ -78,31 +90,58 @@ def Start(LocalIp, logger=None, Foreground=False):
         sys.exit(-1)
     else:
         if conf.mgs.ServerId == '':
-            print('Local server is not registered. Excute ksanEdge register first')
+            print('Local server is not registered. Excute ksanAgent register first')
             sys.exit(-1)
+        else:
+            conf = CheckAgentConf(conf)
+
 
     if Foreground is False:
-        D = Daemon(KsanEdgePidFile, 'ksanEdge')
+        D = Daemon(KsanAgentPidFile, 'ksanAgent')
         D.start()
 
 
     GlobalFlag = {'ServiceUpdated': Checked, 'NetworkUpdated': Checked, 'DiskUpdated': Checked, 'DiskPoolUpdated': Checked}
 
+    threads = list()
     th = threading.Thread(target=RegisterManagementNetwork, args=(conf,logger, ))
     th.start()
+    threads.append(th)
 
-    th = threading.Thread(target=KsanServiceRegister, args=(conf, TypeServiceEdge, logger, ))
+    th = threading.Thread(target=KsanServiceRegister, args=(conf, TypeServiceAgent, logger, ))
     th.start()
+    threads.append(th)
 
     th = threading.Thread(target=EdgeCheckEtcHosts, args=(conf, logger, LocalIp,))
     th.start()
+    threads.append(th)
+
+    threads = list()
+    th = threading.Thread(target=DiskUsageMonitoring, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=UpdateNetworkStat, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=MonUpdateServerUsage, args=(conf, logger, ))
+    th.start()
+    threads.append(th)
+
+    th = threading.Thread(target=ServiceMonitoring, args=(conf, GlobalFlag, logger, ))
+    th.start()
+    threads.append(th)
+
 
     Pid = os.getpid()
-    CreatePidFile(Pid, KsanEdgePidFile)
+    CreatePidFile(Pid, KsanAgentPidFile)
     MqHandler(conf, GlobalFlag, logger=logger)
+    for th in threads:
+        th.join()
 
 def Stop():
-    D = Daemon(KsanEdgePidFile, 'ksanEdge')
+    D = Daemon(KsanAgentPidFile, 'ksanAgent')
     D.stop()
 
 
@@ -146,7 +185,7 @@ def RegisterManagementNetwork(conf, logger):
             break
 
     if isNetworkAdded is True:
-        RegisterService(conf, TypeServiceEdge, logger)
+        RegisterService(conf, TypeServiceAgent, logger)
 
 
 
@@ -190,10 +229,10 @@ def EdgeCheckEtcHosts(conf, logger, LocalIp):
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
-        Usage: ksanEdge {start|stop|status} [option]
-                start                                                                  : Start ksanEdge
-                stop                                                                   : Stop ksanEdge 
-                status                                                                 : Status ksanEdge
+        Usage: ksanAgent {start|stop|status} [option]
+                start                                                                  : Start ksanAgent
+                stop                                                                   : Stop ksanAgent 
+                status                                                                 : Status ksanAgent
         [options]
                 -h, --help                                                             : show this help message and exit
 """
@@ -260,7 +299,7 @@ if __name__ == '__main__':
             print(Errmsg)
 
     elif args[0] == 'start':
-        Ret, Pid = IsDaemonRunning(KsanEdgePidFile, 'ksanEdge')
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
         if Ret is True:
             print('Already running')
         else:
@@ -268,9 +307,9 @@ if __name__ == '__main__':
             print('Done')
 
     elif args[0] == 'stop':
-        Ret, Pid = IsDaemonRunning(KsanEdgePidFile, 'ksanEdge')
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
         if Ret is False:
-            print('ksanEdge is not running')
+            print('ksanAgent is not running')
         else:
             Stop()
             print('Done')
@@ -278,7 +317,7 @@ if __name__ == '__main__':
 
     elif args[0] == 'status':
         print('KsanEdge ... ',end=' ')
-        Ret, Pid = IsDaemonRunning(KsanEdgePidFile, 'ksanEdge')
+        Ret, Pid = IsDaemonRunning(KsanAgentPidFile, 'ksanAgent')
         if Ret is True:
             print('Ok')
         else:
