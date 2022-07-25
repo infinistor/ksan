@@ -1804,4 +1804,71 @@
     <value>Invalid storage class name.</value>
     <comment>유효하지 않은 스토리지 클래스 명입니다.</comment>
   </data>
+  <data name="EM_SERVERS_SERVICE_ALREADY_REGISTERED" xml:space="preserve">
+    <value>This service is already registered with the server.</value>
+    <comment>이 서비스는 이미 서버에 등록되어 있습니다.</comment>
+  </data>
+  <data name="ENV_ALLOWED_HOSTS" xml:space="preserve">
+    <value>ALLOWED_HOSTS</value>
+  </data>
+  <data name="ENV_CERTIFICATE_FILE_PATH" xml:space="preserve">
+    <value>CERTIFICATE_FILE_PATH</value>
+  </data>
+  <data name="ENV_CERTIFICATE_PASSWORD" xml:space="preserve">
+    <value>CERTIFICATE_PASSWORD</value>
+  </data>
+  <data name="ENV_DATABASE" xml:space="preserve">
+    <value>DATABASE</value>
+  </data>
+  <data name="ENV_DATABASE_TYPE" xml:space="preserve">
+    <value>DATABASE_TYPE</value>
+  </data>
+  <data name="ENV_LOG_LAVEL" xml:space="preserve">
+    <value>LOG_LAVEL</value>
+  </data>
+  <data name="ENV_MARIADB_HOST" xml:space="preserve">
+    <value>MARIADB_HOST</value>
+  </data>
+  <data name="ENV_MARIADB_LICENSEKEY" xml:space="preserve">
+    <value>MARIADB_LICENSEKEY</value>
+  </data>
+  <data name="ENV_MARIADB_PORT" xml:space="preserve">
+    <value>MARIADB_PORT</value>
+  </data>
+  <data name="ENV_MARIADB_ROOT_PASSWORD" xml:space="preserve">
+    <value>MARIADB_ROOT_PASSWORD</value>
+  </data>
+  <data name="ENV_MARIADB_ROOT_USER" xml:space="preserve">
+    <value>MARIADB_ROOT_USER</value>
+  </data>
+  <data name="ENV_MONGODB_HOST" xml:space="preserve">
+    <value>MONGODB_HOST</value>
+  </data>
+  <data name="ENV_MONGODB_PORT" xml:space="preserve">
+    <value>MONGODB_PORT</value>
+  </data>
+  <data name="ENV_MONGODB_ROOT_PASSWORD" xml:space="preserve">
+    <value>MONGODB_ROOT_PASSWORD</value>
+  </data>
+  <data name="ENV_MONGODB_ROOT_USER" xml:space="preserve">
+    <value>MONGODB_ROOT_USER</value>
+  </data>
+  <data name="ENV_PORTAL_HOST" xml:space="preserve">
+    <value>PORTAL_HOST</value>
+  </data>
+  <data name="ENV_RABBITMQ_HOST" xml:space="preserve">
+    <value>RABBITMQ_HOST</value>
+  </data>
+  <data name="ENV_RABBITMQ_PASSWORD" xml:space="preserve">
+    <value>RABBITMQ_PASSWORD</value>
+  </data>
+  <data name="ENV_RABBITMQ_PORT" xml:space="preserve">
+    <value>RABBITMQ_PORT</value>
+  </data>
+  <data name="ENV_RABBITMQ_USER" xml:space="preserve">
+    <value>RABBITMQ_USER</value>
+  </data>
+  <data name="ENV_SERVICE_API_KEY" xml:space="preserve">
+    <value>SERVICE_API_KEY</value>
+  </data>
 </root>

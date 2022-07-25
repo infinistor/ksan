@@ -1640,4 +1640,7 @@
   <data name="EN_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
     <value>유효하지 않은 스토리지 클래스 명입니다.</value>
   </data>
+  <data name="EM_SERVERS_SERVICE_ALREADY_REGISTERED" xml:space="preserve">
+    <value>이 서비스는 이미 서버에 등록되어 있습니다.</value>
+  </data>
 </root>
