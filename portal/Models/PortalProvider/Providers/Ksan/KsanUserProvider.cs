@@ -28,7 +28,6 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using MTLib.Reflection;
 
 namespace PortalProvider.Providers.Accounts
 {
@@ -162,7 +161,7 @@ namespace PortalProvider.Providers.Accounts
 			{
 				// 유효하지 않은 경우
 				if (Request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				KsanUser Exist = null;
 
@@ -339,15 +338,15 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/// <summary>Ksan 사용자 이름 중복 여부를 검사한다.</summary>
-		/// <param name="userName">Ksan 사용자 이름</param>
+		/// <param name="UserName">Ksan 사용자 이름</param>
 		/// <returns>검사 결과 객체</returns>
-		public async Task<ResponseData> CheckUserNameDuplicated(string userName)
+		public async Task<ResponseData> CheckUserNameDuplicated(string UserName)
 		{
 			var Result = new ResponseData();
 			try
 			{
 				// 요청이 유효하지 않을 경우
-				if (userName.IsEmpty())
+				if (UserName.IsEmpty())
 				{
 					Result.Code = Resource.EC_COMMON__INVALID_INFORMATION;
 					Result.Message = Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME;
@@ -357,7 +356,7 @@ namespace PortalProvider.Providers.Accounts
 				else
 				{
 					// 해당 사용자 이름이 존재하는 경우
-					if (await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == userName).AnyAsync())
+					if (await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == UserName).AnyAsync())
 					{
 						Result.Code = Resource.EC_COMMON__DUPLICATED_DATA;
 						Result.Message = Resource.EM_COMMON_NAME_ALREADY_EXIST;
@@ -546,14 +545,12 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="UserId">사용자 아이디</param>
 		/// <param name="DiskPoolId"> 디스크풀 아이디 </param>
 		/// <param name="StorageClass"> 스토리지 클래스 명 </param>
-		public async Task<bool> CheckStorageClassDuplicated(Guid UserId, Guid DiskPoolId, string StorageClass)
+		public async Task<bool> CheckStorageClassDuplicated(Guid UserId, Guid DiskPoolId)
 		{
 			try
 			{
 				// 중복 여부를 확인한다.
-				var Data = await m_dbContext.UserDiskPools.AsNoTracking()
-					.Where(i => i.UserId == UserId && i.DiskPoolId == DiskPoolId && i.StorageClass == StorageClass)
-					.FirstOrDefaultAsync();
+				var Data = await m_dbContext.UserDiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.UserId == UserId && i.DiskPoolId == DiskPoolId);
 
 				if (Data == null) return false;
 				return true;
@@ -606,7 +603,7 @@ namespace PortalProvider.Providers.Accounts
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EN_DISK_POOLS_INVALID_ID);
 
 				// 중복 체크
-				if (await CheckStorageClassDuplicated(User.Id, DiskPool.Id, Request.StorageClass))
+				if (await CheckStorageClassDuplicated(User.Id, DiskPool.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_STORAGE_CLASS_ALREADY_EXIST);
 
 				// 유저에 스토리지 클래스 추가

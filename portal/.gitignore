@@ -357,3 +357,6 @@ MigrationBackup/
 # Settings
 appsettings.Development.json
 appsettings.json
+
+# Publish Only
+PortalSvr/Resources
