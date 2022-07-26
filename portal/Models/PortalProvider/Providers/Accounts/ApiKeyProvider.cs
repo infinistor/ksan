@@ -337,14 +337,14 @@ namespace PortalProvider.Providers.Accounts
 				if (Exist == null)
 					return new ResponseData<ResponseApiKey>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
+				// 정보를 저장한다.
+				Result.Data = Exist;
+				Result.Result = EnumResponseResult.Success;
 
 				// 해당 사용자 정보를 가져온다.
 				var User = await m_userManager.FindByIdAsync(Exist.UserId);
 				if (User != null)
 					Result.Data.UserName = User.Name;
-
-				Result.Data = Exist;
-				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{
