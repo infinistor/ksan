@@ -82,7 +82,7 @@ public class GWConfig {
     private static final String DB_USER = "gw.db_user";
     private static final String DB_PASSWORD = "gw.db_password";
     private static final String DB_POOL_SIZE = "gw.db_pool_size";
-    private static final String CACHE_PATH = "gw.cache_path";
+    private static final String CACHE_PATH = "gw.cache_disk";
     private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
     private static final String EVENT_LOG = "gw.eventlog";
 
