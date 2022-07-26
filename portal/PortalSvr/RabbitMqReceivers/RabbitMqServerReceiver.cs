@@ -75,7 +75,7 @@ namespace PortalSvr.RabbitMqReceivers
 			{
 				// 수신된 데이터를 문자열로 변환
 				string json = Body.GetString();
-				m_logger.LogDebug(json);
+				m_logger.LogInformation(json);
 
 				using (var scope = m_serviceScopeFactory.CreateScope())
 				{
