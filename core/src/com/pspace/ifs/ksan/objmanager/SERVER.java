@@ -247,6 +247,7 @@ public class SERVER {
     public DISK getNextDisk() throws ResourceNotFoundException{
         DISK dsk;
         int startIndex;
+        int dskCounter = 0;
         
         if (diskMap.isEmpty()){
             logger.error("There is no disk in the server!");
@@ -257,19 +258,26 @@ public class SERVER {
             logger.debug("diskMap size : {} currentDiskIdx {}", diskMap.size(), currentDiskIdx);
             startIndex = currentDiskIdx;
             while((dsk = diskMap.get(getNextDiskId())) != null){
-                if (dsk == null)
+               if (dskCounter > diskMap.size())
+                   break;
+               
+                if (dsk == null){ 
+                    dskCounter++;
                     continue;
+                }
 
                 // if (startIndex == currentDiskIdx)
                 //     break;
                 
                 logger.debug("DiskId : {}  path : {} osdIp: {} currentDiskIdx: {} startIndex : {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), currentDiskIdx, startIndex); 
                 if (dsk.getStatus() != DiskStatus.GOOD){
+                    dskCounter++;
                     logger.debug("DiskId : {}  path : {} osdIp: {}  skppied DISK status {} expected {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), dsk.getStatus(), DiskStatus.GOOD);
                     continue;
                 }
 
                 if (dsk.getMode() != DiskMode.READWRITE){
+                    dskCounter++;
                     logger.debug("DiskId : {}  path : {} osdIp: {}  skppied DISK mode {} expected {}", dsk.getId(), dsk.getPath(), dsk.getOsdIp(), dsk.getMode(), DiskMode.READWRITE);
                     continue;
                 }

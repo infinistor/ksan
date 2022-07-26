@@ -16,7 +16,7 @@ import psutil
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from server.server_manage import *
-from common.init import get_input
+from common.init import get_input, GetConf
 from common.shcommand import shcall
 import logging
 
@@ -38,7 +38,7 @@ OsdDefaultCacheLimitMinute = 5
 OsdDefaultTrashScheduleMinute = 5
 OsdDefaultPerformanceMode = 'NO_OPTION'
 
-OsdConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert Connection Pool size'},
+OsdDefaultConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert Connection Pool size'},
                   {'key': 'osd.port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert Osd Port'},
                   {'key': 'osd.ec_schedule_minutes', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC Schedule Minutes'},
                   {'key': 'osd.ec_apply_minutes', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC Apply Minutes'},
@@ -50,7 +50,7 @@ OsdConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': i
                   {'key': 'osd.trash_schedule_minutes', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert Trash Schedule Minute'}]
 
 
-S3DefaultDbRepository = TypeServiceMARIADB
+S3DefaultDbRepository = TypeServiceMariaDB
 S3DefaultDbHost = '127.0.0.1'
 S3DefaultDatabase = 'ksan'
 S3DefaultDbPort = 3306
@@ -74,7 +74,7 @@ S3DefaultGwPerformanceMode = 'NO_OPTION'
 S3DefaultCacheDisk = ''
 S3DefaultCacheFileSize = 1024
 
-ObjManagerDefaultDbRepository = TypeServiceMARIADB
+ObjManagerDefaultDbRepository = TypeServiceMariaDB
 ObjManagerDefaultDbHost = '127.0.0.1'
 ObjManagerDefaultDatabase = 'ksan'
 ObjManagerDefaultDbPort = 3306
@@ -82,14 +82,12 @@ ObjManagerDefaultDbUser = 'root'
 ObjManagerDefaultDbPassword = 'YOUR_DB_PASSWORD'
 ObjManagerDefaultMqHost = '127.0.0.1'
 ObjManagerDefaultMqName = 'disk'
-ObjManagerDefaultMqDiskpoolQueueName = 'disk'
-ObjManagerDefaultMqDiskpoolExchangeName = 'disk'
-ObjManagerDefaultMqExchangeName = 'disk'
+ObjManagerDefaultMqExchangeName = 'ksan.system'
 ObjManagerDefaultMqOsdExchangeName = 'OSDExchange'
 
-S3ConfigInfo = [
-    {'key': 'gw.db_repository', 'value': S3DefaultDbRepository, 'type': str, 'question': 'Insert Gw DB Repository', 'valid_answer_list': [TypeServiceMARIADB, TypeServiceMONGODB]},
-    {'key': 'gw.db_host', 'value': S3DefaultDbHost, 'type': 'ip', 'question': 'Insert Gw DB Host'},
+S3DefaultConfigInfo = [
+    {'key': 'gw.db_repository', 'value': S3DefaultDbRepository, 'type': str, 'question': 'Insert Gw DB Repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
+    {'key': 'gw.db_host', 'value': S3DefaultDbHost, 'type': str, 'question': 'Insert Gw DB Host'},
     {'key': 'gw.db_name', 'value': S3DefaultDatabase, 'type': str, 'question': 'Insert Gw DB Name'},
     {'key': 'gw.db_port', 'value': S3DefaultDbPort, 'type': int, 'question': 'Insert Gw DB Port'},
     {'key': 'gw.db_user', 'value': S3DefaultDbUser, 'type': str, 'question': 'Insert Gw DB User'},
@@ -118,15 +116,15 @@ S3ConfigInfo = [
     {'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert Cache File Size'},
     {'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
      'question': 'Insert Object DB Repository'},
-    {'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': 'ip', 'question': 'Insert Object DB Host', 'valid_answer_list': [TypeServiceMARIADB, TypeServiceMONGODB]},
+    {'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert Object DB Host', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
     {'key': 'objM.db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert Object DB Name'},
     {'key': 'objM.db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert Object DB Port'},
     {'key': 'objM.db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert Object DB User'},
     {'key': 'objM.db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert Object DB Password'},
-    {'key': 'objM.mq_host', 'value': ObjManagerDefaultMqHost, 'type': str, 'question': 'Insert MQ Host'},
-    {'key': 'objM.mq_queue_name', 'value': ObjManagerDefaultMqName, 'type': str, 'question': 'Insert MQ Name'},
-    {'key': 'objM.mq_exchange_name', 'value': ObjManagerDefaultMqExchangeName, 'type': str, 'question': 'Insert MQ Exchange Name'},
-    {'key': 'objM.mq_osd_exchange_name', 'value': ObjManagerDefaultMqOsdExchangeName, 'type': str, 'question': 'Insert MQ Osd Exchange Name'}
+    {'key': 'objM.mq_host', 'value': ObjManagerDefaultMqHost, 'type': str, 'question': 'Insert MQ Host', 'Activate': False},
+    {'key': 'objM.mq_queue_name', 'value': ObjManagerDefaultMqName, 'type': str, 'question': 'Insert MQ Name', 'Activate': False},
+    {'key': 'objM.mq_exchange_name', 'value': ObjManagerDefaultMqExchangeName, 'type': str, 'question': 'Insert MQ Exchange Name', 'Activate': False},
+    {'key': 'objM.mq_osd_exchange_name', 'value': ObjManagerDefaultMqOsdExchangeName, 'type': str, 'question': 'Insert MQ Osd Exchange Name', 'Activate': False}
     #{'key': 'objM.mq.host', 'value': ObjManagerDefaultMqHost, 'type': 'ip', 'question': 'Insert MQ Host'},
     #{'key': 'objM.mq.diskpool.queuename', 'value': ObjManagerDefaultMqDiskpoolQueueName, 'type': str,
     # 'question': 'Insert MQ Disk pool Queue Name'},
@@ -157,13 +155,20 @@ MongoDbConfigInfo = [
 
 
 @catch_exceptions()
-def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, ServerName=None, GroupId='', Description='', logger=None):
-    VlanIds = GetVlanIdListFromServerDetail(MgsIp, Port, ApiKey, ServerId=ServerId, ServerName=ServerName, logger=logger)
-    if VlanIds is None:
-        return ResEtcErrorCode, ResFailToGetVlainId, None
+def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, VlanIds=[], ServerName=None, GroupId='', Description='', logger=None):
+    #VlanIds = GetVlanIdListFromServerDetail(MgsIp, Port, ApiKey, ServerId=ServerId, ServerName=ServerName, logger=logger)
+    #if VlanIds is None:
+    #    return ResEtcErrorCode, ResFailToGetVlainId, None
+    if ServerId is not None:
+        TargetServer = ServerId
+    elif ServerName is not None:
+        TargetServer = ServerName
+    else:
+        return ResInvalidCode, ResInvalidMsg + 'ServerName is required', None
+
 
     Service = AddServiceInfoObject()
-    Service.Set(ServiceName, ServiceType, GroupId, VlanIds, State='Offline', Description=Description, HaAction='Initializing')
+    Service.Set(ServiceName, TargetServer, ServiceType, GroupId, VlanIds, State='Offline', Description=Description, HaAction='Initializing')
     if ServiceType is None:
         return ResInvalidCode, ResInvalidMsg + 'ServiceType is required', None
 
@@ -176,11 +181,12 @@ def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, Ser
 def RegisterService(Conf, ServiceType, logger):
     out, err = shcall('hostname')
     ServiceName = out[:-1] + '_%s' % ServiceType
-    Res, Errmsg, Ret = AddService(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort, Conf.mgs.IfsPortalKey,  ServiceName, ServiceType,
+    Res, Errmsg, Ret = AddService(Conf.mgs.PortalIp, Conf.mgs.PortalPort, Conf.mgs.PortalApiKey,  ServiceName, ServiceType,
                                   Conf.mgs.ServerId, logger=logger)
     if Res == ResOk:
         if Ret.Result != ResultSuccess:
-            logger.error("%s %s" % (str(Ret.Result), str(Ret.Message)))
+            if Ret.Result != CodeDuplicated:
+                logger.error("%s %s" % (str(Ret.Result), str(Ret.Message)))
         else:
             logging.log(logging.INFO, "%s is registered. %s %s" % (ServiceType, str(Ret.Result), str(Ret.Message)))
     else:
@@ -190,7 +196,7 @@ def KsanServiceRegister(Conf, ServiceType, logger):
     Retry = 0
     while True:
         Retry += 1
-        Res, Errmsg, Ret, Data = GetServerInfo(Conf.mgs.MgsIp, Conf.mgs.IfsPortalPort,Conf.mgs.IfsPortalKey , ServerId=Conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Data = GetServerInfo(Conf.mgs.PortalIp, Conf.mgs.PortalPort,Conf.mgs.PortalApiKey , ServerId=Conf.mgs.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 NetworkInterfaces = Data.NetworkInterfaces
@@ -732,17 +738,26 @@ def ShowServiceGroup(Groups, Detail=False):
 
 
 @catch_exceptions()
-def GetSeviceConfStringForDisplay(Conf, Prefix):
+def GetSeviceConfStringForDisplay(Conf, Prefix, ConfFile=None):
     Conf = json.loads(Conf)
     StrConf = ''
-    for key1, val1 in Conf.items():
-        if isinstance(val1, dict):
-            for key2, val2 in val1.items():
-                ConfLineStr = "%s_%s=%s" % (key1, key2, str(val2))
-                StrConf += "%s%s|\n" % (Prefix, ConfLineStr.ljust(100-13))
-        else:
-            ConfLineStr = "%s=%s" % (key1, str(val1))
-            StrConf += '%s%s|\n' % (Prefix, ConfLineStr.ljust(100-13))
+    if ConfFile is None:
+        for key1, val1 in Conf.items():
+            if isinstance(val1, dict):
+                for key2, val2 in val1.items():
+                    ConfLineStr = "%s_%s=%s" % (key1, key2, str(val2))
+                    StrConf += "%s%s|\n" % (Prefix, ConfLineStr.ljust(100-13))
+            else:
+                ConfLineStr = "%s=%s" % (key1, str(val1))
+                StrConf += '%s%s|\n' % (Prefix, ConfLineStr.ljust(100-13))
+    else:
+        for key1, val1 in Conf.items():
+            if isinstance(val1, dict):
+                for key2, val2 in val1.items():
+                    StrConf += "%s_%s=%s\n" % (key1, key2, str(val2))
+            else:
+                StrConf += "%s=%s\n" % (key1, str(val1))
+
     return StrConf
 
 @catch_exceptions()
@@ -802,7 +817,7 @@ def GetServiceConfigList(PortalIp, PortalPort, ApiKey, ServiceType, logger=None)
 
 @catch_exceptions()
 def LoadServiceList(conf, ServiceList, LocalIpList, logger):
-    Res, Errmsg, Ret, Data = GetServerInfo(conf.mgs.MgsIp, conf.mgs.IfsPortalPort, conf.mgs.ServerId, logger=logger)
+    Res, Errmsg, Ret, Data = GetServerInfo(conf.mgs.PortalIp, conf.mgs.PortalPort, conf.mgs.PortalApiKey, conf.mgs.ServerId, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for service in Data.Services:
@@ -826,25 +841,26 @@ def ShowConfigList(ConfigList, Detail=False):
     for Config in ConfigList.Items:
         DsPServiceConf(Config)
 
-def DsPServiceConf(Config, TopTitleLine=False):
+def DsPServiceConf(Config, TopTitleLine=False, ConfFile=None):
     """
     Display service config with type
     :param Config:
     :param TopTitleLine:
     :return:
     """
-    if TopTitleLine is not True:
-        print(ConfigCompartLine)
     Type = Config.Type
     Version = Config.Version
     Conf = Config.Config
     ConfPartPrefix = '|%s|' % (' ' * 10)
     RegiDate = Config.RegDate
-    StrConf = GetSeviceConfStringForDisplay(Conf, ConfPartPrefix)
-    if StrConf is None:
-        print('Invalid Conf. version:%d \n%s' % (Version, str(Conf)))
-    else:
-        ConfigStr = """|%s|%s|
+    StrConf = GetSeviceConfStringForDisplay(Conf, ConfPartPrefix, ConfFile=ConfFile)
+    if ConfFile is None:
+        if StrConf is None:
+            print('Invalid Conf. version:%d \n%s' % (Version, str(Conf)))
+        else:
+            #if TopTitleLine is not True:
+            #    print(ConfigCompartLine)
+            ConfigStr = """|%s|%s|
 %s 
 |%s|%s| 
 %s
@@ -852,11 +868,14 @@ def DsPServiceConf(Config, TopTitleLine=False):
 %s
 |%s|%s| 
 %s%s 
-""" % ('Type'.center(10), Type.center(ConfigMaxValueLen), ConfigTitleLine, 'Version'.center(10),
-           str(Version).center(ConfigMaxValueLen), ConfigTitleLine, 'Date'.center(10), RegiDate.center(ConfigMaxValueLen),
-           ConfigTitleLine,
-           'Conf'.center(10), ' ' * (100 - 13), StrConf.center(ConfigMaxValueLen), ConfigCompartLine)
-        print(ConfigStr)
+    """ % ('Type'.center(10), Type.center(ConfigMaxValueLen), ConfigTitleLine, 'Version'.center(10),
+               str(Version).center(ConfigMaxValueLen), ConfigTitleLine, 'Date'.center(10), RegiDate.center(ConfigMaxValueLen),
+               ConfigTitleLine,
+               'Conf'.center(10), ' ' * (100 - 13), StrConf.center(ConfigMaxValueLen), ConfigCompartLine)
+            print(ConfigStr)
+    else:
+        with open(ConfFile, 'w') as f:
+            f.write(StrConf)
 
 
 @catch_exceptions()
@@ -900,8 +919,11 @@ def UpdateServiceConfigVersion(PortalIp, PortalPort, ApiKey, ServiceType, Versio
 
 
 @catch_exceptions()
-def SetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, ConfigFilePath=None, logger=None):
-    Conf = GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfigFilePath=ConfigFilePath)
+def SetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, ConfFile=None, logger=None):
+    # Get Current Service config
+    Ret, Conf = GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfFile=ConfFile)
+    if Ret is False:
+        return Ret, Conf, None
 
     Url = "/api/v1/Config/%s" % ServiceType
     body = Conf
@@ -930,20 +952,32 @@ def RemoveServiceConfig(PortalIp, PortalPort, ApiKey, ServiceType, Version, logg
     return Res, Errmsg, Ret
 
 
-def GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfigFilePath=None):
-    if ConfigFilePath is None:
+def GetConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger, ConfFile=None):
+    if ConfFile is None:
         Conf = GetConfigFromUser(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger)
         Conf = json.dumps(Conf)
         Conf = Conf.replace('"', '\\"')
         Conf = '"'+ Conf + '"'
-        return Conf
+        return True, Conf
     else:
-        pass
+        if os.path.exists(ConfFile):
+            Ret, Conf = GetConf(ConfFile, FileType='non-ini', ReturnType='dict')
+            if Ret is True:
+                Conf = json.dumps(Conf)
+                Conf = Conf.replace('"', '\\"')
+                Conf = '"' + Conf + '"'
+                return True, Conf
+            else:
+                return Ret, Conf
+        else:
+            return False, '%s is not found' % ConfFile
+
+
 
 
 def GetConfigFromUser(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger):
 
-    ConfigInfo = GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger)
+    ConfigInfo = GetServiceCurrentConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger)
 
     Conf = dict()
     for info in ConfigInfo:
@@ -955,12 +989,27 @@ def GetConfigFromUser(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger):
             ValueAnswerList = info['valid_answer_list']
         else:
             ValueAnswerList = None
+        if 'Activate' in info:
+            if info['Activate'] is False:
+                Conf[ConfKey] = info['value']
+                continue
         Conf[ConfKey]= get_input(QuestionString, ValueType, DefaultValue, ValidAnsList=ValueAnswerList)
     return Conf
 
 
-def GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger):
-    Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger=logger)
+def GetServiceCurrentConfigInfo(PortalIp, PortalPort, PortalApiKey, ServiceType, logger):
+    # Get MqConfig
+    """
+    Get Current Config if exists, or Default Config if not exists.
+    :param PortalIp:
+    :param PortalPort:
+    :param PortalApiKey:
+    :param ServiceType:
+    :param logger:
+    :return:
+    """
+
+    Res, Errmsg, Ret, Data = GetServiceConfig(PortalIp, PortalPort, PortalApiKey, ServiceType, logger=logger)
     if Res != ResOk:
         logger.error('fail to get config %s' % Errmsg)
     else:
@@ -973,37 +1022,107 @@ def GetServiceConfigInfo(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, logger
     if ServiceType == TypeServiceOSD:
         if Data:
             CurrentConf = json.loads(Data.Config)
-            for info in OsdConfigInfo:
+            for info in OsdDefaultConfigInfo:
                 try:
                     ConfKey = info['key']
                     info['value'] = CurrentConf[ConfKey]
                 except Exception as err:
                     pass
-        ConfigInfo = OsdConfigInfo
+        ConfigInfo = OsdDefaultConfigInfo
 
     elif ServiceType == TypeServiceS3:
+
         if Data:
+
             CurrentConf = json.loads(Data.Config)
-            for info in OsdConfigInfo:
+            for info in S3DefaultConfigInfo:
                 try:
                     ConfKey = info['key']
                     info['value'] = CurrentConf[ConfKey]
                 except Exception as err:
                     pass
-        ConfigInfo = S3ConfigInfo
+        else:
 
-    elif ServiceType == TypeServiceMONGODB:
+            # Get RaggitMq Config
+            Ret, MqConfig = GetBaseConfig(PortalIp, PortalPort, PortalApiKey, TypeServiceRabbitMq, logger)
+            if Ret is False:
+                return None
+            CurrentMqConfig = json.loads(MqConfig.Config)
+
+            # Get MariaDB Config
+            Ret, MariaDBConfig = GetBaseConfig(PortalIp, PortalPort, PortalApiKey, TypeServiceMariaDB, logger)
+            if Ret is False:
+                return None
+
+            CurrentMariaDBConfig = json.loads(MariaDBConfig.Config)
+
+            UpdateGwBaseConfig(S3DefaultConfigInfo, CurrentMqConfig, CurrentMariaDBConfig)
+
+        ConfigInfo = S3DefaultConfigInfo
+
+    elif ServiceType == TypeServiceMongoDB:
         if Data:
             CurrentConf = json.loads(Data.Config)
-            for info in OsdConfigInfo:
+            for info in OsdDefaultConfigInfo:
                 try:
                     ConfKey = info['key']
-                    info['value'] = CurrentConf[ConfKey]
+                    if ConfKey == 'objM.mq_host':
+                        info['value'] = CurrentConf['Host']
+                    elif ConfKey == 'objM.mq_osd_exchange_name':
+                        info['value'] = CurrentConf['ExchangeName']
                 except Exception as err:
                     pass
         ConfigInfo = MongoDbConfigInfo
 
     return ConfigInfo
+
+def GetBaseConfig(PortalIp, PortalPort, PortalApiKey, ConfigType, logger ):
+    """
+    Get Base(Mariadb, RabbitMq) Config
+    :param PortalIp:
+    :param PortalPort:
+    :param PortalApiKey:
+    :param ConfigType:
+    :param logger:
+    :return:
+    """
+
+    Res, Errmsg, Ret, MqConfig = GetServiceConfig(PortalIp, PortalPort, PortalApiKey, ConfigType, logger=logger)
+    if Res != ResOk:
+        logger.error('fail to get %s config %s' % (ConfigType, Errmsg))
+    else:
+        if (Ret.Result == ResultSuccess):
+            #DsPServiceConf(MqConfig)
+            return True, MqConfig
+        else:
+            logger.error('fail to get %s config %s' % (ConfigType, Ret.Message))
+    return False, None
+
+def UpdateGwBaseConfig(GwConfig, MqConfig, MariaDBConfig):
+    """
+    Merge GwConfig and MqConfig.
+    :param GwConfig:
+    :param MqConfig:
+    :return:
+    """
+    MqKeyMap = {"objM.mq_host": "Host", "objM.mq_exchange_name": "ExchangeName"}
+    MariaDBKeyMap = {"gw.db_host": "Host", "gw.db_name": "Name", "gw.db_port": "Port", "gw.db_user": "User",
+                  "gw.db_password": "Password", "objM.db_host": "Host", "objM.db_name": "Name", "objM.db_port": "Port",
+                     "objM.db_user=root": "User", "objM.db_password": "Password"}
+
+
+    for info in GwConfig:
+        try:
+            ConfKey = info['key']
+            if ConfKey in MqKeyMap:
+                BaseKey = MqKeyMap[ConfKey]
+                info['value'] = MqConfig[BaseKey]
+            elif ConfKey in MariaDBKeyMap:
+                BaseKey = MariaDBKeyMap[ConfKey]
+                info['value'] = MariaDBConfig[BaseKey]
+
+        except Exception as err:
+            print('fail to update Gw Mq & MariaDB Config %s' % str(err))
 
 
 class MyOptionParser(OptionParser):
@@ -1075,3 +1194,101 @@ if __name__ == '__main__':
         else:
             print(Errmsg)
 """
+
+
+
+def ServiceUtilHandler(Conf, Action, Parser, logger):
+    #if Action == 'init'
+    options, args = Parser.parse_args()
+    PortalIp = Conf.mgs.PortalIp
+    PortalPort = Conf.mgs.PortalPort
+    PortalApiKey = Conf.mgs.PortalApiKey
+    MqPort = Conf.mgs.MqPort
+    MqPassword = Conf.mgs.MqPassword
+
+    if Action is None:
+        Parser.print_help()
+        sys.exit(-1)
+
+    if Action.lower() == 'add':
+        if not ((options.ServerName or options.ServerId) and options.ServiceName and options.ServiceType):
+            Parser.print_help_service.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = AddService(PortalIp, PortalPort, PortalApiKey, options.ServiceName, options.ServiceType,
+                                      ServerName=options.ServerName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove':
+        if not options.ServiceName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = DeleteService(PortalIp, PortalPort, PortalApiKey,
+                                         ServiceName=options.ServiceName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'list':
+        if options.Detail:
+            Res, Errmsg, Ret, Data = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey,logger=logger)
+        else:
+            Res, Errmsg, Ret, Data = GetServiceInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+
+        if Res == ResOk:
+            if Ret.Result == ResultSuccess:
+                if options.Detail:
+                    ShowServiceInfoWithServerInfo(Data, Detail=options.Detail)
+                    #ShowServiceInfo(Data, Detail=options.Detail)
+                else:
+                    ShowServiceInfo(Data, Detail=options.Detail)
+            else:
+                print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'update':
+        if not (options.ServiceId or options.ServiceName):
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = UpdateServiceInfo(PortalIp, PortalPort, PortalApiKey, ServiceId=options.ServiceId, ServiceName=options.ServiceName,
+                                             ServiceType=options.ServiceType,
+                                             GroupId=options.GroupId, Description=options.Description,
+                                              logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'update_state':
+        Res, Errmsg, Ret = UpdateServiceState(PortalIp, PortalPort, PortalApiKey, options.ServiceId,
+                                              logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'update_usage':
+        Res, Errmsg, Ret = UpdateServiceUsage(PortalIp, PortalPort, PortalApiKey, options.ServiceId,
+                                              logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() in ['start', 'stop', 'restart']:
+        if not options.ServiceName:
+            Parser.print_help()
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = ControlService(PortalIp, PortalPort, PortalApiKey, Action.lower(),
+                                          ServiceName=options.ServiceName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    else:
+        Parser.print_help()
+

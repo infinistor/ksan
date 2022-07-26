@@ -1,3 +1,4 @@
+*/.vscode
 *.classpath
 *.project
 *.prefs
@@ -7,3 +8,4 @@
 .factorypath
 .vscode/settings.json
 **/dependency-reduced-pom.xml
+*.ps1

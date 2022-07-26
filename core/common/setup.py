@@ -16,10 +16,9 @@ Version = '0.8.0'
 setup(
     name='ksan-common',
     version=Version,
-    data_files=[('/usr/local/ksan/bin', ['./ksanEdge', './ksanMon', './ksanNodeRegister', 'ksanMongoDBManager']),
-	('/usr/local/ksan/ssl', ['./ifs_objstorage_sign', './ifs_passwd_enc', 'ifs_passwd_dec'])
+    data_files=[('/usr/local/ksan/bin', ['./ksanAgent', './ksanMonitor', './ksanNodeRegister', 'ksanMongoDBManager'])
 	],\
-    packages=['server', 'disk','common' \
+    packages=['server', 'disk','common', 'configure' \
                ,'Enums','mqmanage','network', \
                'server','service','user'],
 )

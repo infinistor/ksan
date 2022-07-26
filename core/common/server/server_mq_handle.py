@@ -23,8 +23,8 @@ import time
 import logging
 
 def MonUpdateServerUsage(conf, logger):
-    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerUsage, ExchangeName)
-    ServerStateMq = mqmanage.mq.Mq(conf.mgs.MgsIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerState, ExchangeName)
+    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerUsage, ExchangeName)
+    ServerStateMq = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerState, ExchangeName)
     while True:
         svr = GetServerUsage(conf.mgs.ServerId)
         svr.Get()
@@ -41,7 +41,7 @@ def MonUpdateServerUsage(conf, logger):
         Mqsend = json.loads(Mqsend)
         ServerStateMq.Sender(Mqsend)
 
-        time.sleep(ServerMonitorInterval)
+        time.sleep(conf.monitor.ServerMonitorInterval)
 
 
 def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
@@ -68,7 +68,7 @@ def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
                     logging.log(logging.INFO, 'success to remove queue')
                 if os.path.exists(MonServicedConfPath):
                     os.unlink(MonServicedConfPath)
-                    logging.log(logging.INFO, 'ksanMon.conf is removed')
+                    logging.log(logging.INFO, 'ksanMonitor.conf is removed')
 
         '''
         if RoutKeyServerUpdateFinder.search(RoutingKey):
@@ -91,10 +91,10 @@ def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
 def RemoveQueue():
     ret, conf = GetConf(MonServicedConfPath)
     if ret is True:
-        QueueHost = conf.mgs.MgsIp
+        QueueHost = conf.mgs.PortalIp
         QueueName = 'IfsEdge-%s' % conf.mgs.ServerId
         mqmanage.mq.RemoveQueue(QueueHost, QueueName)
         return True, ''
     else:
-        return False, 'fail to read ksanMon.conf'
+        return False, 'fail to read ksanMonitor.conf'
 

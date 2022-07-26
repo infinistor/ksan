@@ -139,6 +139,7 @@ public class DISKPOOL {
             lock.lock();
             SERVER srv;
             int startIndex;
+            int svrCounter = 0;
             boolean retried = false;
 
             if (serverMap.isEmpty()){
@@ -148,8 +149,12 @@ public class DISKPOOL {
 
             startIndex = currentServerIdx;
             while((srv = serverMap.get(getNextServerId())) != null){
+                if (svrCounter > serverMap.size()){
+                    break;
+                }
                  if (srv == null && retried == false){ // to rotate one more time
                      retried = true; 
+                     svrCounter++;
                      continue;
                  }
 
@@ -166,6 +171,7 @@ public class DISKPOOL {
                  
                  logger.debug("ServerId : {} OSDIP : {} currentServerIdx : {} startIndex {} ", srv.getId(), srv.getName(), currentServerIdx, startIndex);
                  if (srv.getStatus() != ServerStatus.ONLINE){
+                     svrCounter++;
                      continue;
                  }
                  

@@ -26,10 +26,12 @@ def shcall(command):
     return p.communicate()
 
 
-def GetHostInfo():
+def GetHostInfo(hostname=None, ip=None):
     try:
-        hostname = socket.gethostname()
-        ip = socket.gethostbyname(hostname)
+        if hostname is None:
+            hostname = socket.gethostname()
+        if ip is None:
+            ip = socket.gethostbyname(hostname)
         return True, hostname, ip
     except socket.error as err:
         return False, str(err), None

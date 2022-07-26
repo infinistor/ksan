@@ -81,6 +81,7 @@ class KsanOsd:
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, OsdXmlFilePath, KsanOsdBinaryName)
+            self.logger.debug(StartCmd)
             os.system(StartCmd)
             time.sleep(2)
 
@@ -90,12 +91,16 @@ class KsanOsd:
             else:
                 return False, 'Fail to start ksanOsd'
 
-    def Stop(self):
+    def Stop(self, Force=False):
         Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
         if Ret is False:
-            return False, 'ksanOsd is not running'
+            if Force is True:
+                return True, ''
+            else:
+                return False, 'ksanOsd is not running'
         else:
             try:
+                self.logger.debug('kill %s' % KsanOsdBinaryName)
                 os.kill(int(Pid), signal.SIGTERM)
                 os.unlink(KsanOsdPidFile)
                 print('Done')
@@ -104,8 +109,30 @@ class KsanOsd:
                 return False, 'Fail to stop. %s' % err
 
     def Restart(self):
-        self.Stop()
-        self.Start()
+        RetryCnt = 0
+        while True:
+            RetryCnt += 1
+            Ret, ErrMsg = self.Stop(Force=True)
+            if Ret is False:
+                if RetryCnt > ServiceContolRetryCount:
+                    return False, ErrMsg
+                else:
+                    time.sleep(IntervalShort)
+            else:
+                break
+
+        RetryCnt = 0
+        while True:
+            RetryCnt += 1
+            Ret, ErrMsg = self.Start()
+            if Ret is False:
+                if RetryCnt > ServiceContolRetryCount:
+                    return False, ErrMsg
+                else:
+                    time.sleep(IntervalShort)
+            else:
+                return Ret, ErrMsg
+
 
     def Status(self):
         Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)

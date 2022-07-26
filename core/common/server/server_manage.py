@@ -18,6 +18,8 @@ from common.httpapi import *
 from common.httpapi import RestApi, disp_serverinfo, get_res
 from common.define import *
 from common.init import get_input
+from common.shcommand import GetHostInfo
+from common.utils import IsIpValid
 from optparse import OptionParser
 
 """
@@ -110,11 +112,11 @@ def ShowServerInfo(Data, Id=None, Detail=False):
         if Detail:
             ServerTitleLine = '%s' % ('=' * 148)
             ServerDataLine = '%s' % ('-' * 148)
-            title ="|%s|%s|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'LoadAvg 1M 5M 15M'.center(15), 'MemTotal'.center(20), 'MemUsed'.center(20), 'Id'.center(38))
+            title ="|%s|%s|%s|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'LoadAvg 1M 5M 15M'.center(15), 'MemTotal'.center(20), 'MemUsed'.center(20), 'Id'.center(38))
         else:
             ServerTitleLine = '%s' % ('=' * 88)
             ServerDataLine = '%s' % ('-' * 88)
-            title ="|%s|%s|%s|%s|" % ('Name'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'Id'.center(38))
+            title ="|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'Id'.center(38))
         print(ServerTitleLine)
         print(title)
         print(ServerTitleLine)
@@ -171,7 +173,7 @@ def AddServer(ip, port, ApiKey,  Description, logger=None):
 
 
 @catch_exceptions()
-def ServerInit(ip, port, TargetServerIp, MqPort, ApiKey, logger=None):
+def ServerInit(PortalIp, PortalPort, PortalApiKey, TargetServerIp, logger=None):
     """
     register server info
     :param ip: string
@@ -182,13 +184,27 @@ def ServerInit(ip, port, TargetServerIp, MqPort, ApiKey, logger=None):
     """
     SshUser = get_input('Insert Ssh User', str, default='root')
     SshPassword = get_input('Insert Ssh Password', 'pwd', default='')
+    if PortalIp is None:  # if ksanMonitor.conf is not configured
+        PortalIp = get_input('Insert Portal Host', str, default='')
+        PortalPort = get_input('Insert Portal Port', int, default='')
+        PortalApiKey = get_input('Insert Portal Api Key', str, default='')
+
+    if not IsIpValid(PortalIp):
+        Ret, Hostname, Ip = GetHostInfo(hostname=PortalIp)
+        if Ret is False:
+            print('Invalid Hostname')
+            sys.exit(-1)
+        else:
+            PortalIp = Ip
+
+
     server = RequestServerInitInfo()
-    server.Set(TargetServerIp, ip, MqPort, port, SshUser, SshPassword)
+    server.Set(TargetServerIp, PortalIp, PortalPort, SshUser, SshPassword)
     body = jsonpickle.encode(server, make_refs=False)
     Url = '/api/v1/Servers/Initialize'
     ReturnType = ResponseHeaderModule
     Params = body
-    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
+    Conn = RestApi(PortalIp, PortalPort, Url, authkey=PortalApiKey, params=Params, logger=logger)
     Res, Errmsg, Ret = Conn.post(ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
@@ -389,3 +405,250 @@ class MyOptionParser(OptionParser):
                 -h, --help                                   : show this help message and exit
 """
         print(Usage)
+
+def ShowInfo(AllServers, AllDisks, ServerNetworks):
+    print("[ SERVER / NETWORK / DISK ]")
+    ServerTitleLine = "%s" % ('=' * 197)
+    print(ServerTitleLine)
+    ServerTitle = "|%s|%s|%s|%s|%s|%s|%s|%s|" % ('Name'.center(21), 'CpuModel'.center(31),
+                                    'Clock'.center(21), 'State'.center(21), 'LoadAvg(1M 5M 15M)'.center(19),
+                                    'MemTotal'.center(21), 'MemUsed'.center(21), 'Id'.center(31))
+    print(ServerTitle)
+    print(ServerTitleLine)
+
+    ServerDataLine = "%s" % ('-' * 197)
+
+    for idx, Svr in enumerate(AllServers):
+        if idx > 0:
+            print(ServerDataLine)
+        ServerData = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
+            (Svr.Name.center(21),
+                '{:31.31}'.format(Svr.CpuModel.center(31)), str(Svr.Clock).center(21),
+                Svr.State.center(21), str(Svr.LoadAverage1M).center(5), str(Svr.LoadAverage5M).center(5),
+                str(Svr.LoadAverage15M).center(5), str(int(Svr.MemoryTotal)).center(20),
+                str(int(Svr.MemoryUsed)).center(20), Svr.Id.center(30))
+        print(ServerData)
+        print(ServerDataLine)
+
+        NetworkTitle = "%s|%s|%s|%s|%s|%s|%s|" % (' '.center(70), 'Network Device'.center(20) ,
+                                               'IpAddress'.center(20), 'Rx'.center(10), 'Tx'.center(10),
+                                               'LinkStatus'.center(20), 'Id'.center(40))
+        print(NetworkTitle)
+        NetworkTitleLine = "%s%s" % (' ' * 70, '-' * 127)
+        print(NetworkTitleLine)
+
+        for interface in ServerNetworks[Svr.Id]:
+            NetData = "%s|%s|%s|%s|%s|%s|%s|" % (' '.center(70),
+                                                 '{:20.20}'.format(interface.Name.center(20)),
+                                                 '{:20.20}'.format(interface.IpAddress.center(20)),
+                                                 str(int(interface.Rx)).center(10),
+                                                 str(int(interface.Tx)).center(10), interface.LinkState.center(20),
+                                                 interface.Id.center(40),)  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+            print(NetData)
+
+        DiskTitleLine = "%s%s" % (' ' * 54, '-' * 143)
+        print(DiskTitleLine)
+        DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 54, 'DiskId'.center(40), 'Path'.center(15),
+                                              'State'.center(10), 'Total'.center(20), 'Used'.center(20), 'Free'.center(20), 'RwMode'.center(10))
+        print(DiskTitle)
+        print(DiskTitleLine)
+        for disk in AllDisks:
+            DiskSvr = DeserializeResponse(disk.Server, ServerItemsModule)
+            if Svr.Id != DiskSvr.Id:
+                continue
+
+            # svr = GetDataFromBody(disk.Server, ServerItemsModule)
+            DiskData = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 54, str(disk.Id).center(40),
+                                           '{:15.15}'.format(disk.Path.center(15)),
+                                           disk.State.center(10), str(int(disk.TotalSize)).center(20),
+                                           str(int(disk.UsedSize)).center(20),
+                                           str(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize)).center(20),
+                                           disk.RwMode.center(10))
+            print(DiskData)
+
+    print(ServerTitleLine)
+    print()
+    """
+    print("[ NETWORK ]")
+    compart = "%s" % ('-' * 209)
+    print(compart)
+    title ="|%s|%s|%s|%s|%s|%s|%s|%s|" % ('Id'.center(40), 'Server Name'.center(40),  'Network Device'.center(20),
+         'IpAddress'.center(20), 'Rx'.center(10), 'Tx'.center(10),
+        'LinkStatus'.center(20), 'ServerId'.center(40))
+
+    print(title)
+    print(compart)
+    for Svr in AllServers:
+        for interface in ServerNetworks[Svr.Id]:
+            _nic =" %s %s %s %s %s %s %s %s" % (interface.Id.center(40), '{:40.40}'.format(Svr.Name.center(40)),
+                                      '{:20.20}'.format(interface.Name.center(20)),
+                                      '{:20.20}'.format(interface.IpAddress.center(20)),
+                                       str(int(interface.Rx)).center(10), str(int(interface.Tx)).center(10), interface.LinkState.center(20), Svr.Id.center(40)) # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+            print(_nic)
+    """
+
+#main()
+
+
+def ShowSysInfo(AllServersDetail):
+    print("[ SERVER / NETWORK / DISK ]")
+    ServerTitleLine = "%s" % ('=' * 197)
+    print(ServerTitleLine)
+    ServerTitle = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('Name'.center(21), 'CpuModel'.center(20),
+                                                 'Clock'.center(10), 'State'.center(10),
+                                                 'LoadAvg(1M 5M 15M)'.center(19),
+                                                 'MemTotal(MB)'.center(15), 'MemUsed(MB)'.center(15), 'Id'.center(38),
+                                                    ' '.center(39))
+    print(ServerTitle)
+    print(ServerTitleLine)
+
+    ServerDataLine = "%s" % ('-' * 197)
+
+    for idx, Svr in enumerate(AllServersDetail):
+        if idx > 0:
+            print(ServerDataLine)
+        ServerData = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
+            (Svr.Name.center(21),
+                '{:20.20}'.format(Svr.CpuModel.center(20)), str(Svr.Clock).center(10),
+                Svr.State.center(10), str(Svr.LoadAverage1M).center(6), str(Svr.LoadAverage5M).center(5),
+                str(Svr.LoadAverage15M).center(6), str(int(Svr.MemoryTotal/1000000)).center(15),
+                str(int(Svr.MemoryUsed/1000000)).center(15), Svr.Id.center(38))
+        print(ServerData)
+        print(ServerDataLine)
+
+        DiskTitleLine = "%s%s" % (' ' * 21, '-' * 176)
+        DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 21, 'DiskId'.center(40), 'Path'.center(15),
+                                                           'State'.center(10), 'Total Size(MB)'.center(15),
+                                                           'Used Size(MB)'.center(15),
+                                                           'Free Size(MB)'.center(15), 'Total Inode'.center(15),
+                                                           'Used Inode'.center(15), 'Free Inode'.center(15),
+                                                           'RwMode'.center(10))
+        print(DiskTitle)
+        print(DiskTitleLine)
+
+        for disk in Svr.Disks:
+            # svr = GetDataFromBody(disk.Server, ServerItemsModule)
+            DiskData = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 21, str(disk.Id).center(40),
+                                                     '{:15.15}'.format(disk.Path.center(15)),
+                                                     disk.State.center(10), str(int(disk.TotalSize/1000000)).center(15),
+                                                     str(int(disk.UsedSize/1000000)).center(15),
+                                                     str(int(
+                                                         (disk.TotalSize - disk.UsedSize - disk.ReservedSize)/1000000)).center(
+                                                         15), str(int(disk.TotalInode)).center(15), str(int(disk.UsedInode)).center(15), str(int(
+                                                         disk.TotalInode - disk.UsedInode - disk.ReservedInode)).center(
+                                                         15),
+                                                     disk.RwMode.center(10))
+            print(DiskData)
+            print(DiskTitleLine)
+
+
+
+        NetworkTitle = "%s|%s|%s|%s|%s|%s|%s|" % (' '.center(70), 'Network Device'.center(20) ,
+                                               'IpAddress'.center(20), 'Rx'.center(10), 'Tx'.center(10),
+                                               'LinkStatus'.center(20), 'Id'.center(40))
+        print(NetworkTitle)
+        NetworkTitleLine = "%s%s" % (' ' * 70, '-' * 127)
+        print(NetworkTitleLine)
+
+        for net in Svr.NetworkInterfaces:
+            NetData = "%s|%s|%s|%s|%s|%s|%s|" % (' '.center(70),
+                                                 '{:20.20}'.format(net.Name.center(20)),
+                                                 '{:20.20}'.format(net.IpAddress.center(20)),
+                                                 str(int(net.Rx)).center(10),
+                                                 str(int(net.Tx)).center(10), net.LinkState.center(20),
+                                                 net.Id.center(40),)  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+            print(NetData)
+
+
+    print(ServerTitleLine)
+    print()
+
+
+
+def ServerUtilHandler(Conf, Action, Parser, logger):
+    #if Action.lower() == 'init'
+
+    options, args = Parser.parse_args()
+    if Conf is None:
+        if Action == 'add':
+            PortalIp = None
+            PortalPort = -1
+            PortalApiKey = None
+        else:
+            print('%s is not configured' % MonServicedConfPath)
+            sys.exit(-1)
+    else:
+        PortalIp = Conf.mgs.PortalIp
+        PortalPort = Conf.mgs.PortalPort
+        PortalApiKey = Conf.mgs.PortalApiKey
+
+    if Action is None:
+        Parser.print_help()
+        sys.exit(-1)
+
+    if Action.lower() == 'add':
+        if not options.Host:
+            Parser.print_help()
+            sys.exit(-1)
+        Host = options.Host
+        if not IsIpValid(Host):
+            Ret, Hostname, Ip = GetHostInfo(hostname=Host)
+            if Ret is False:
+                print('Invalid Hostname')
+                sys.exit(-1)
+            else:
+                Host = Ip
+
+        Res, Errmsg, Ret = ServerInit(PortalIp, PortalPort, PortalApiKey, Host, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove':
+        if not options.ServerName:
+            Parser.print_help()
+            sys.exit(-1)
+        Res, Errmsg, Ret = RemoveServer(PortalIp, PortalPort, PortalApiKey, Name=options.ServerName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'update':
+        if not options.ServerName:
+            Parser.print_help()
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = UpdateServerInfo(PortalIp, PortalPort, PortalApiKey, Name=options.ServerName,
+                                            Description=options.Description, State=options.State, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() == 'update_state':
+        if options.ServerName is None:
+            Parser.print_help()
+            sys.exit(-1)
+
+        Res, Errmsg, Ret = UpdateServerInfo(PortalIp, PortalPort, PortalApiKey, Name=options.ServerName, State=options.State, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'list':
+        Detail = False
+        if options.Detail:
+            Detail = True
+        Res, errmsg, Ret, Data = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        if Res == ResOk:
+            if Ret.Result == ResultSuccess:
+                ShowServerInfo(Data, Detail=options.Detail)
+            else:
+                print(Ret.Result, Ret.Message)
+        else:
+            print(errmsg)
+    else:
+        Parser.print_help()
+
+
+

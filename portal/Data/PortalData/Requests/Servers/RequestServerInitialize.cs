@@ -30,14 +30,10 @@ namespace PortalData.Requests.Servers
 
 		/// <summary>메니지먼트 아이피</summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string MgsIp { get; set; }
-
-		/// <summary>서버 포트</summary>
-		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public int MQPort { get; set; }
+		public string PortalIp { get; set; }
 
 		/// <summary>메니지먼트 포트</summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public int MgsPort { get; set; }
+		public int PortalPort { get; set; }
 	}
 }

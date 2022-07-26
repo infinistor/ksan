@@ -10,9 +10,19 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
 
-import os
+import os, sys
 import re
 from common.shcommand import shcall
+import signal
+
+
+def AvoidSigInt():
+    signal.signal(signal.SIGINT, SigIntHandler)
+
+def SigIntHandler(signum, frame):
+    signal_received = (signum, frame)
+    sys.exit(-1)
+
 
 def IsDaemonRunning(PidPath, CmdLine=None):
     """
@@ -123,10 +133,10 @@ def GetCmdOfDaemon(daemon):
         return '/usr/local/ksan/bin/ksanOsd start'
     elif daemon in ['ksan-gw.jar']:
         return '/usr/local/ksan/bin/ksanGw start'
-    elif daemon in ['ksanMon']:
-        return '/usr/local/ksan/bin/ksanMon start'
-    elif daemon in ['ksanEdge']:
-        return '/usr/local/ksan/bin/ksanEdge start'
+    elif daemon in ['ksanMonitor']:
+        return '/usr/local/ksan/bin/ksanMonitor start'
+    elif daemon in ['ksanAgent']:
+        return '/usr/local/ksan/bin/ksanAgent start'
     else:
         return None
 

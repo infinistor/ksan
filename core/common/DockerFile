@@ -1,0 +1,6 @@
+FROM python:3.8-slim
+WORKDIR /app
+COPY . .
+RUN python /app/setup.py install
+RUN pip install -r requirements.txt
+CMD ["/app/start.sh"]

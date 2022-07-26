@@ -16,7 +16,6 @@ using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Servers;
 using PortalData.Responses.Servers;
-using PortalData.Responses.Services;
 using PortalModels;
 using PortalProviderInterface;
 using PortalResources;
@@ -29,7 +28,6 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using MTLib.Reflection;
 using Renci.SshNet;
 
 namespace PortalProvider.Providers.Servers
