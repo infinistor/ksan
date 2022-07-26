@@ -19,9 +19,11 @@ namespace PortalData.Requests.Servers
 	public class RequestServerInitialize : CommonRequestData
 	{
 		/// <summary>서버 접속 아이디 </summary>
+		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_USERID", ErrorMessageResourceType = typeof(Resource))]
 		public string UserName { get; set; }
 		
 		/// <summary>서버 접속 비밀번호 </summary>
+		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_PASSWORD", ErrorMessageResourceType = typeof(Resource))]
 		public string Password { get; set; }
 
 		/// <summary>서버 아이피</summary>
