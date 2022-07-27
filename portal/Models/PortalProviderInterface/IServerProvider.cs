@@ -24,7 +24,7 @@ namespace PortalProviderInterface
 		/// <summary>서버 등록</summary>
 		/// <param name="Request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
-		Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request);
+		Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서버 초기화</summary>
 		/// <param name="Request">서버 초기화 요청 객체</param>

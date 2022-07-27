@@ -18,7 +18,7 @@ using PortalModels;
 using PortalProvider.Loaders;
 using PortalProvider.Logs;
 using PortalProvider.Providers.Accounts;
-using PortalProvider.Providers.Disks;
+using PortalProvider.Providers.DiskGuids;
 using PortalProvider.Providers.Networks;
 using PortalProvider.Providers.RabbitMq;
 using PortalProvider.Providers.Servers;
@@ -163,6 +163,7 @@ namespace PortalSvr
 				Services.AddTransient<IAccountInitializer, AccountInitializer>();
 				Services.AddTransient<IRoleInitializer, RoleInitializer>();
 				Services.AddTransient<IConfigurationInitializer, ConfigurationInitializer>();
+				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
@@ -249,6 +250,7 @@ namespace PortalSvr
 		/// <param name="roleInitializer">역할 초기화 객체</param>
 		/// <param name="accountInitializer">계정 초기화 객체</param>
 		/// <param name="configurationInitializer">설정 초기화 객체</param>
+		/// <param name="serverInitializer">서버 초기화 객체</param>
 		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
 		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
 		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
@@ -256,7 +258,7 @@ namespace PortalSvr
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
 			, ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
 			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer
-			, IConfigurationInitializer configurationInitializer
+			, IConfigurationInitializer configurationInitializer, IServerInitializer serverInitializer
 			, IAllowConnectionIpsManager allowAddressManager, ISystemConfigLoader systemConfigLoader
 			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
 		)
@@ -293,16 +295,12 @@ namespace PortalSvr
 					OnPrepareResponse = ctx =>
 					{
 						const int durationInSeconds = 60 * 60 * 24;
-						ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-							"public,max-age=" + durationInSeconds;
+						ctx.Context.Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + durationInSeconds;
 					}
 				});
 
 				// 역방향 프록시 세팅 (For Nginx : Nginx로 헤더 및 프로토콜 전달)
-				app.UseForwardedHeaders(new ForwardedHeadersOptions
-				{
-					ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-				});
+				app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
 
 				// 마이그레이션 수행
 				dbContext.Migrate();
@@ -317,8 +315,11 @@ namespace PortalSvr
 				roleInitializer?.Initialize().Wait();
 				accountInitializer?.Initialize().Wait();
 
-				// 설정을 초기화 한다.
+				// 최초 기동시 설정을 등록 한다.
 				configurationInitializer?.Initialize().Wait();
+
+				// 최초 기동시 서버를 등록 한다.
+				serverInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);

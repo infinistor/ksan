@@ -24,7 +24,7 @@ namespace PortalProviderInterface
 		/// <summary>서비스 등록</summary>
 		/// <param name="Request">서비스 등록 요청 객체</param>
 		/// <returns>서비스 등록 결과 객체</returns>
-		Task<ResponseData<ResponseServiceWithVlans>> Add(RequestService Request);
+		Task<ResponseData<ResponseServiceWithVlans>> Add(RequestService Request, Guid? ModId = null, string ModName = null);
 
 		/// <summary>서비스 수정</summary>
 		/// <param name="Id">서비스 아이디 / 이름</param>
