@@ -380,8 +380,9 @@ public class ObjManager {
         if (bt == null)
            throw new ResourceNotFoundException("Bucket(" + bucketName +") not exist!");
         try{
-            dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path, mt.getVersionId());
+            Metadata mt2 = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, path, mt.getVersionId());
             if (!getBucketVersioning(bucketName).equalsIgnoreCase("Enabled")){//bt.getVersioning().equalsIgnoreCase("Enabled")
+               logger.debug("[OVERWRITE OBJECT] {}", mt2);
                dbm.deleteObject(bucketName, path, mt.getVersionId()); 
             }
         } catch(ResourceNotFoundException ex){
