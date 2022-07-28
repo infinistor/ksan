@@ -18,7 +18,7 @@ using PortalModels;
 using PortalProvider.Loaders;
 using PortalProvider.Logs;
 using PortalProvider.Providers.Accounts;
-using PortalProvider.Providers.Disks;
+using PortalProvider.Providers.DiskGuids;
 using PortalProvider.Providers.Networks;
 using PortalProvider.Providers.RabbitMq;
 using PortalProvider.Providers.Servers;
@@ -44,6 +44,7 @@ using MTLib.AspNetCore;
 using MTLib.Core;
 using MTLib.EntityFramework;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using PortalProvider.Providers.DB;
 
 namespace PortalSvr
 {
@@ -58,6 +59,9 @@ namespace PortalSvr
 
 		/// <summary>서비스 프로바이더 싱글톤 객체</summary>
 		public static System.IServiceProvider ServiceProviderSignleton { get; set; }
+
+		/// <summary>Mysql 버전정보 객체</summary>
+		public MySqlServerVersion Versions = new MySqlServerVersion(new Version(10, 5, 12));
 
 		/// <summary>생성자</summary>
 		/// <param name="env">호스팅 환경 객체</param>
@@ -115,11 +119,34 @@ namespace PortalSvr
 		{
 			try
 			{
-				// 데이터베이스 연결 설정
-				Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+				if (Configuration["AppSettings:DatabaseType"].Equals("MongoDB"))
+				{
+					// TODO : Mongo 설정 지원시 변경
+					// MariaDB 설정
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
 
-				// 사용자 인증 관련 데이터베이스 연결 설정
-				Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"]));
+					// 데이터베이스 연결 설정
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+
+					// 사용자 인증 관련 데이터베이스 연결 설정
+					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+				}
+				else
+				{
+					// MariaDB 설정
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+
+					// 데이터베이스 연결 설정
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
+
+					// 사용자 인증 관련 데이터베이스 연결 설정
+					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					// Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
+				}
+
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -135,6 +162,8 @@ namespace PortalSvr
 				Services.AddScoped<IUserClaimsPrincipalFactory<NNApplicationUser>, ApiKeyClaimsPrincipalFactory>();
 				Services.AddTransient<IAccountInitializer, AccountInitializer>();
 				Services.AddTransient<IRoleInitializer, RoleInitializer>();
+				Services.AddTransient<IConfigurationInitializer, ConfigurationInitializer>();
+				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
@@ -220,6 +249,8 @@ namespace PortalSvr
 		/// <param name="dbContext">DB 컨텍스트</param>
 		/// <param name="roleInitializer">역할 초기화 객체</param>
 		/// <param name="accountInitializer">계정 초기화 객체</param>
+		/// <param name="configurationInitializer">설정 초기화 객체</param>
+		/// <param name="serverInitializer">서버 초기화 객체</param>
 		/// <param name="allowAddressManager">허용된 주소 검사 관리자 객체</param>
 		/// <param name="systemConfigLoader">시스템 환경 설정 로더</param>
 		/// <param name="smtpConfigLoader">SMTP 설정 로더</param>
@@ -227,6 +258,7 @@ namespace PortalSvr
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IPathProvider pathProvider
 			, ApplicationIdentityDbContext identityDbContext, PortalModel dbContext
 			, IRoleInitializer roleInitializer, IAccountInitializer accountInitializer
+			, IConfigurationInitializer configurationInitializer, IServerInitializer serverInitializer
 			, IAllowConnectionIpsManager allowAddressManager, ISystemConfigLoader systemConfigLoader
 			, ISmtpConfigLoader smtpConfigLoader, IUploadConfigLoader uploadConfigLoader
 		)
@@ -263,16 +295,12 @@ namespace PortalSvr
 					OnPrepareResponse = ctx =>
 					{
 						const int durationInSeconds = 60 * 60 * 24;
-						ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-							"public,max-age=" + durationInSeconds;
+						ctx.Context.Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + durationInSeconds;
 					}
 				});
 
 				// 역방향 프록시 세팅 (For Nginx : Nginx로 헤더 및 프로토콜 전달)
-				app.UseForwardedHeaders(new ForwardedHeadersOptions
-				{
-					ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-				});
+				app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
 
 				// 마이그레이션 수행
 				dbContext.Migrate();
@@ -287,9 +315,14 @@ namespace PortalSvr
 				roleInitializer?.Initialize().Wait();
 				accountInitializer?.Initialize().Wait();
 
+				// 최초 기동시 설정을 등록 한다.
+				configurationInitializer?.Initialize().Wait();
+
+				// 최초 기동시 서버를 등록 한다.
+				serverInitializer?.Initialize().Wait();
+
 				// 환경 설정을 초기화 및 로드 한다.
-				ConfigInitializeAndLoad(dbContext, systemConfigLoader
-										, smtpConfigLoader, uploadConfigLoader);
+				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);
 
 				// 허용된 아이피 목록을 로드한다.
 				allowAddressManager.LoadAllowedConnectionIps(dbContext);

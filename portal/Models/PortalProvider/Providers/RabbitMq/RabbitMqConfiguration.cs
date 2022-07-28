@@ -15,27 +15,27 @@ namespace PortalProvider.Providers.RabbitMq
 	{
 
 		/// <summary>연결 이름</summary>
-		public string Name { get; set; }
+		public string Name { get; set; } = "PortalSvr";
 
 		/// <summary>호스트</summary>
-		public string Host { get; set; }
+		public string Host { get; set; } = "localhost";
 
 		/// <summary>포트</summary>
-		public int Port { get; set; }
+		public int Port { get; set; } = 5672;
 
 		/// <summary>Virtual 호스트</summary>
-		public string VirtualHost { get; set; }
+		public string VirtualHost { get; set; } = "/";
 
 		/// <summary>사용자</summary>
-		public string User { get; set; }
+		public string User { get; set; } = "guest";
 
 		/// <summary>비밀번호</summary>
-		public string Password { get; set; }
+		public string Password { get; set; } = "guest";
 		
 		/// <summary>Exchange 명</summary>
-		public string ExchangeName { get; set; }
+		public string ExchangeName { get; set; } = "ksan.system";
 
 		/// <summary>활성화 여부</summary>
-		public bool Enabled { get; set; }
+		public bool Enabled { get; set; } = true;
 	}
 }

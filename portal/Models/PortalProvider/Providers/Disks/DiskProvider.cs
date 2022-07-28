@@ -28,9 +28,8 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using MTLib.Reflection;
 
-namespace PortalProvider.Providers.Disks
+namespace PortalProvider.Providers.DiskGuids
 {
 	/// <summary>디스크 데이터 프로바이더 클래스</summary>
 	public class DiskProvider : BaseProvider<PortalModel>, IDiskProvider
@@ -111,7 +110,7 @@ namespace PortalProvider.Providers.Disks
 
 					// 해당 디스크 풀이 존재하지 않는 경우
 					if (diskPool == null)
-						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 				}
 
 				// 디스크가 이미 마운트되어 있는지 확인 요청
@@ -226,7 +225,7 @@ namespace PortalProvider.Providers.Disks
 
 					// 해당 디스크 풀이 존재하지 않는 경우
 					if (DiskPool == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_THERE_IS_NO_DISK_POOL);
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 				}
 
 				// 해당 정보를 가져온다.
@@ -241,7 +240,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				// 동일한 이름이 존재할 경우
 				if (await this.IsNameExist(Request.Name, Exist.Id))
@@ -333,7 +332,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -401,7 +400,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -488,7 +487,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -555,7 +554,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Success);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				// 연결된 디스크 풀이 존재하는 경우
 				if (Exist.DiskPool != null)
@@ -761,7 +760,7 @@ namespace PortalProvider.Providers.Disks
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
-					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
 				Result.Data = Exist;
 				Result.Result = EnumResponseResult.Success;

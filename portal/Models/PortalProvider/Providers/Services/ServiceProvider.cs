@@ -61,7 +61,7 @@ namespace PortalProvider.Providers.Services
 		/// <summary>서비스 등록</summary>
 		/// <param name="Request">서비스 등록 요청 객체</param>
 		/// <returns>서비스 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseServiceWithVlans>> Add(RequestService Request)
+		public async Task<ResponseData<ResponseServiceWithVlans>> Add(RequestService Request, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData<ResponseServiceWithVlans>();
 			try
@@ -148,11 +148,11 @@ namespace PortalProvider.Providers.Services
 							HaAction = (EnumDbHaAction)Request.HaAction,
 							State = (EnumDbServiceState)Request.State,
 							MemoryTotal = Server.MemoryTotal,
-							RegId = LoginUserId,
-							RegName = LoginUserName,
+							RegId = ModId != null? ModId : LoginUserId,
+							RegName = ModName != null? ModName : LoginUserName,
 							RegDate = DateTime.Now,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
+							ModId = ModId != null? ModId : LoginUserId,
+							ModName = ModName != null? ModName : LoginUserName,
 							ModDate = DateTime.Now
 						};
 						await m_dbContext.Services.AddAsync(NewData);

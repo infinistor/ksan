@@ -16,7 +16,6 @@ using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Servers;
 using PortalData.Responses.Servers;
-using PortalData.Responses.Services;
 using PortalModels;
 using PortalProviderInterface;
 using PortalResources;
@@ -29,7 +28,6 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using MTLib.Reflection;
 using Renci.SshNet;
 
 namespace PortalProvider.Providers.Servers
@@ -67,7 +65,7 @@ namespace PortalProvider.Providers.Servers
 		/// <summary>서버 등록</summary>
 		/// <param name="Request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request)
+		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData<ResponseServerDetail>();
 			try
@@ -95,10 +93,11 @@ namespace PortalProvider.Providers.Servers
 							State = (EnumDbServerState)Request.State,
 							Rack = Request.Rack,
 							MemoryTotal = Request.MemoryTotal,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
+							ModId = ModId != null? ModId : LoginUserId,
+							ModName = ModName != null? ModName : LoginUserName,
 							ModDate = DateTime.Now
 						};
+						
 						await m_dbContext.Servers.AddAsync(NewData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
@@ -153,7 +152,7 @@ namespace PortalProvider.Providers.Servers
 				// 명령 스크립트 생성
 				var cmd = $"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.PortalIp} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} " +
 					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
-				m_logger.LogDebug(cmd);
+				m_logger.LogInformation(cmd);
 
 				// SSH 접속
 				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
