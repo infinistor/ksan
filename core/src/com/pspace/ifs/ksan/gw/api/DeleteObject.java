@@ -134,9 +134,14 @@ public class DeleteObject extends S3Request {
 						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
 							remove(bucket, object, GWConstants.OBJECT_TYPE_MARK);
 						} else {
-							// put delete marker
-							putDeleteMarker(bucket, object, s3Metadata, objMeta);
+							remove(bucket, object, objMeta.getVersionId());
+							objectOperation.deleteObject();
+							logger.info("delete object - bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 						}
+					} else {
+						remove(bucket, object, objMeta.getVersionId());
+						objectOperation.deleteObject();
+						logger.info("delete object - bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 					}
 				} else {	// request with versionId
 					remove(bucket, object, versionId);
