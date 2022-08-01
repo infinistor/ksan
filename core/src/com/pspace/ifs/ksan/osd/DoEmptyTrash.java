@@ -18,6 +18,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
@@ -29,9 +31,9 @@ public class DoEmptyTrash implements Runnable {
 
     @Override
     public void run() {
-        logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
+        logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
         
-        if (OSDConfig.getInstance().getCacheDisk() != null) {
+        if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
             recursiveEmptyCache(OSDConfig.getInstance().getCacheDisk());
         }
 
@@ -70,6 +72,7 @@ public class DoEmptyTrash implements Runnable {
         File[] files = dir.listFiles();
 
         for (int i = 0; i < files.length; i++) {
+            logger.info("delete : {}", files[i].getAbsolutePath());
             files[i].delete();
         }
     }
