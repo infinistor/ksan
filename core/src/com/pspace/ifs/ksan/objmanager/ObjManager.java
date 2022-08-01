@@ -567,12 +567,16 @@ public class ObjManager {
     }
 
     public Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        Bucket bt = dbm.selectBucket(bucketName);
+        if (bt != null){
+           obmCache.setBucketInCache(bt); 
+        }
+        /*Bucket bt = obmCache.getBucketFromCache(bucketName);
         if (bt == null){
             bt = dbm.selectBucket(bucketName);
             if (bt != null)
               obmCache.setBucketInCache(bt);
-        }
+        }*/
         
         return bt;
     }
