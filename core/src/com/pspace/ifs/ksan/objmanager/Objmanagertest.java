@@ -231,7 +231,7 @@ public class Objmanagertest {
         
         try {
             ObjManagerUtil omu = new ObjManagerUtil();
-            List<Metadata> ml =omu.listObjects(bucketName, "", 0, maxKeys);
+            List<Metadata> ml =omu.listObjects(bucketName, "", "", maxKeys);
             System.out.println(ml.toString());
             System.out.println("leng >> " + ml.size());
             /*ObjManagerConfig config = new ObjManagerConfig();
@@ -472,7 +472,7 @@ public class Objmanagertest {
         String prefix = "";//parentDir1/subDir";
         String diskid = "4";
         
-        try {
+        /*try {
             ObjManager om = new ObjManager();
             List<Metadata> ml =om.listObject(bucketName, delimiter, marker, null, null, maxKeys, prefix);
             System.out.println(ml.toString());
@@ -483,7 +483,7 @@ public class Objmanagertest {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
     
     public static void main(String[] args) {

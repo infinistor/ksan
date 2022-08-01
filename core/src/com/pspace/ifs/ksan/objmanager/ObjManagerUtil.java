@@ -113,18 +113,18 @@ public class ObjManagerUtil {
         return ret;
     }
     
-    public List<Metadata> listObjects(String bucketName, String diskid, long offset, long numObjects){
+    public List<Metadata> listObjects(String bucketName, String diskid, String lastObjId, long numObjects){
         try {
-            ListObject lo = new ListObject(dbm, bucketName, diskid, offset, (int)numObjects);
+            ListObject lo = new ListObject(dbm, bucketName, diskid, lastObjId, (int)numObjects);
             return lo.getUnformatedList();
         } catch (SQLException ex) {
             return new ArrayList();
         }
     }
     
-    public List<Metadata> listObjects(String bucketName, long offset, long numObjects){
+    public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
         try {
-            ListObject lo = new ListObject(dbm, bucketName, "", offset, (int)numObjects);
+            ListObject lo = new ListObject(dbm, bucketName, "", lastObjId, (int)numObjects);
             return lo.getUnformatedList();
         } catch (SQLException ex) {
             return new ArrayList();
@@ -159,13 +159,18 @@ public class ObjManagerUtil {
         return dAlloc.allocDisk(dskPoolId, mt);
     }
     
-    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
+    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
         String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
         if (dskPoolId == null)
             return false;
         
-        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId);
+        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId, allowedToMoveToLocalDisk);
     }
+    
+    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
+        return allowedToReplicate(bucketName, primary,  replica, DstDiskId, false);
+    }
+   
     /**
      * Replace replica disk with new one after recovery
      * @param bucketName  bucket name
@@ -227,6 +232,14 @@ public class ObjManagerUtil {
             System.out.println(ex);
             return -1;
         } 
+    }
+    
+    public DISK getDISK(String bucketName, String diskId) throws ResourceNotFoundException{
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt == null)
+            throw new ResourceNotFoundException("[getDISK]unable to find bucket with the name " + bucketName + "!");
+        
+        return obmCache.getDiskWithId(bt.getDiskPoolId(), diskId);
     }
     
     public int removeUserDiskPool(String userId, String diskPoolId){

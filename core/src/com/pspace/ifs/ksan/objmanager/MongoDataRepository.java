@@ -130,38 +130,50 @@ public class MongoDataRepository implements DataRepository{
     private static final String STARTTIME = "startTime";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
-        //System.out.format(">>[MongoDataRepository] hosts : %s username : %s dbname : %s\n", hosts, username, dbname);
-        parseDBHostNames2URL(hosts, port);
         this.username = username;
         this.passwd = passwd;
         this.dbname = dbname;
         this.obmCache = obmCache;
+        parseDBHostNames2URL(hosts, port);
         connect();
         createBucketsHolder();
         createUserDiskPoolHolder();
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
+        String credential;
+        String authSRC;
+        
+        /*if (!username.isEmpty()){
+            credential = String.format("%s:%s@", username, passwd);
+            authSRC = String.format("/?authSource=%s", dbname);
+        }
+        else*/{
+           credential = "";
+           authSRC = "";
+        }
+        
         if (hosts.contains(",")){
             if (hosts.contains(":"))
-                url = "mongodb://" + hosts;
+                url = "mongodb://" + credential + hosts;
             else{
                 String hostList[] = hosts.split(",");
-                url = "mongodb://";
+                url = "mongodb://" + credential;
                 for( String host: hostList)
                     url = url + host + ":" + port + ",";
             }
         } else
-            this.url = "mongodb://" + hosts + ":" + port;
+            url = "mongodb://" + credential + hosts + ":" + port;
+        url = url + authSRC;
+        
+        System.out.println("url >>" + url);
     }
-    
+
     private void connect() throws UnknownHostException{
         MongoClient mongo;
         
         mongo = MongoClients.create(url);
-        
-        MongoCredential credential = MongoCredential.createCredential(username, dbname, passwd.toCharArray()); 
-        
+                
         database = mongo.getDatabase(dbname);
     }
     
@@ -1159,13 +1171,21 @@ public class MongoDataRepository implements DataRepository{
         String diskPoolId = "1";
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        BasicDBObject sortBy = new BasicDBObject(OBJKEY, 1 );
+        BasicDBObject sortBy ;
         BasicDBObject mongoQuery =(BasicDBObject)query;
+        String queryString = mongoQuery.toJson();
         
-        if (!mongoQuery.containsField(LASTVERSION)){
+        if (queryString.contains(OBJID)){ // for utlity list 
+            sortBy = new BasicDBObject(OBJID, 1 );
+        } else{
+            sortBy = new BasicDBObject(OBJKEY, 1 );
+        }
+            
+        if (!queryString.contains(LASTVERSION)){
             sortBy.append(LASTMODIFIED, -1);
             sortBy.append("_id", -1);
         }
+        
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
         Iterator it = oit.iterator();

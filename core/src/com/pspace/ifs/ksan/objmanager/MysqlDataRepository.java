@@ -260,6 +260,37 @@ public class MysqlDataRepository implements DataRepository{
         return 0;
     }
     
+    /*private int updateObjectEtag(Metadata md, String etag){
+        try {
+            PreparedStatement pstupdateEtag = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateEtagQuery);
+            pstupdateMetadata.clearParameters();
+            pstupdateMetadata.setString(1, md.getEtag());
+            pstupdateMetadata.setString(2, md.getMeta());
+            pstupdateMetadata.setString(3, md.getTag());
+            pstupdateMetadata.setString(4, md.getAcl());
+            pstupdateMetadata.setLong(5, md.getSize());
+            pstupdateMetadata.setLong(6, md.getLastModified());
+            pstupdateMetadata.setString(7, md.getPrimaryDisk().getId());
+            try{
+                if (md.isReplicaExist())
+                    pstupdateMetadata.setString(8, md.getReplicaDisk().getId());
+                else 
+                   pstupdateMetadata.setString(8,  ""); 
+            } catch(ResourceNotFoundException ex){
+               pstupdateMetadata.setString(8,  "");
+            }
+            pstupdateMetadata.setString(9, md.getVersionId());
+            pstupdateMetadata.setString(10, md.getDeleteMarker());
+            pstupdateMetadata.setBoolean(11, md.getLastVersion());
+            pstupdateMetadata.setString(12, md.getObjId());
+            pstupdateMetadata.execute();
+        } catch (SQLException ex) {
+            ex_message( ex);
+            return -1;
+        }
+        return 0;
+    }*/
+    
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject, 
             long NumJobDone, boolean checkOnly, String utilName, String startTime){
         List<Object> res = new ArrayList<>();

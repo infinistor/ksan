@@ -329,7 +329,7 @@ public class GetFromPortal {
         objc.mqUsername = mqUser;
         objc.mqPassword = mqPassword;
         objc.mqPort = mqPort;
-        objc.mqOsdExchangename = "ksan.OSDExchange";
+        objc.mqOsdExchangename = "ksan.osdExchange";
         objc.mqExchangename = "ksan.system";  
         objc.mqQueeuname = "disk";  
         return 0;

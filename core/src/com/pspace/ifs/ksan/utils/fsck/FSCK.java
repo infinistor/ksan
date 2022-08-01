@@ -157,7 +157,7 @@ public class FSCK {
     
     private long checkEachObject(String bucketName, String diskid) throws Exception{
         List<Metadata> list;
-        long offset = 0;
+        String lastObjId = " ";
         long numObjects = 100;
         long job_done = 0;
         int ret;
@@ -168,7 +168,7 @@ public class FSCK {
             return 0;
         
         do{
-            list = obmu.listObjects(bucketName, diskid, offset, numObjects);
+            list = obmu.listObjects(bucketName, diskid, lastObjId, numObjects);
             if (list == null)
                 return 0;
             
@@ -186,6 +186,7 @@ public class FSCK {
                 }
                 
                 Metadata mt = it.next();
+                lastObjId = mt.getObjId();
                 try {
                     /*System.out.format("[checkEachObject] bucket : %s path : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
                             mt.getBucket(), mt.getPath(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());*/
@@ -199,7 +200,7 @@ public class FSCK {
                 }    
             }
             
-            offset = offset + numObjects;
+            //offset = offset + numObjects;
             //System.out.println("----------------------------------------------------------->" + job_done);
         } while(list.size() == numObjects );
         //totalFixed = totalFixed + job_done;
@@ -211,7 +212,7 @@ public class FSCK {
       
     private long checkEachObject(String bucketName) throws Exception{
         List<Metadata> list;
-        long offset = 0;
+        String lastObjId = " ";
         long numObjects = 100;
         long job_done = 0;
         int ret;
@@ -223,7 +224,7 @@ public class FSCK {
             return 0;
         
         do{
-            list = obmu.listObjects(bucketName,  offset, numObjects);
+            list = obmu.listObjects(bucketName,  lastObjId, numObjects);
             if (list == null)
                 return 0;
             
@@ -242,6 +243,7 @@ public class FSCK {
                 }
                 
                 Metadata mt = it.next();
+                lastObjId = mt.getObjId();
                 try {
                     /*System.out.format("[checkEachObject] bucket : %s path : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
                             mt.getBucket(), mt.getPath(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());*/
@@ -263,7 +265,7 @@ public class FSCK {
                 }    
             }
             
-            offset = offset + numObjects;
+            //offset = offset + numObjects;
             //System.out.println("----------------------------------------------------------->" + job_done);
         } while(list.size() == numObjects );
         //totalFixed = totalFixed + job_done;

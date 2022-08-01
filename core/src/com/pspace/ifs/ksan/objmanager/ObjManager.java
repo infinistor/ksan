@@ -696,10 +696,10 @@ public class ObjManager {
         return list.getList();
     }
 
-    public List<Metadata> listObject(String bucketName, String delimiter, String keyMarker, String versionIdMarker, String continuationToken, int maxKeys, String prefix) throws SQLException{
+    /*public List<Metadata> listObject(String bucketName, String delimiter, String keyMarker, String versionIdMarker, String continuationToken, int maxKeys, String prefix) throws SQLException{
         ListObject list = new ListObject(dbm, bucketName, delimiter, keyMarker, versionIdMarker, continuationToken, maxKeys, prefix);
         return list.getUnformatedList();
-    }
+    }*/
     
     public ObjMultipart getMultipartInsatance(String Bucket){
         multipart.setBucket(Bucket);

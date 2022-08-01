@@ -53,6 +53,9 @@ public class CBalanceMain {
     @Option(name="--size", usage="Specify the capacity to move")
     public String cpacityToMove = "";
     
+    @Option(name="--okLocalMove",usage="To allow to move to local another disk")
+    public boolean localMoveAllowed = false;
+    
     @Option(name="--help",usage="To display this help menu")
     public boolean getHelp = false;
     
@@ -63,22 +66,24 @@ public class CBalanceMain {
     }
     
     int getSizeInByte(){
+        long nByte = 1024;
+        long nBite = 1000;
         if (cpacityToMove.endsWith("TB"))
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* 1024* 1024* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* nByte* nByte* nByte * nByte;
         else if(cpacityToMove.endsWith("T")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("T", ""))* 1024* 1024* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("T", ""))* nBite* nBite* nBite * nBite;
         else if(cpacityToMove.endsWith("GB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* 1024* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* nByte* nByte * nByte;
         else if( cpacityToMove.endsWith("G")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("G", ""))* 1024* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("G", ""))* nBite* nBite * nBite ;
         else if(cpacityToMove.endsWith("MB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* nByte * nByte;
         else if(cpacityToMove.endsWith("M")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("M", ""))* 1024* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("M", ""))* nBite * nBite;
         else if(cpacityToMove.endsWith("KB")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", ""))* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", "")) * nByte;
         else if( cpacityToMove.endsWith("K")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("K", ""))* 1024;
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("K", "")) * nBite;
         else{
             amountToMove = Long.parseUnsignedLong(cpacityToMove);
         }
@@ -195,8 +200,9 @@ public class CBalanceMain {
                 else
                     moved_amount = cb.moveWithSize(SrcDiskId, amountToMove);
                 
-                System.out.format("Object(s) with amount %d moved\n", moved_amount);
+                System.out.format("Object(s) with amount %d bytes are moved\n", moved_amount);
             } catch (ResourceNotFoundException ex) {
+                ex.printStackTrace();
                 System.err.println("Bucket or osd disk not exist!");
             } catch (AllServiceOfflineException ex) {
                 System.err.println("All service are offline!");

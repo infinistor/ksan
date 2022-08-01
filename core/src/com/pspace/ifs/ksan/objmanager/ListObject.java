@@ -45,7 +45,8 @@ public class ListObject{
     private String continuationToken;
     private String listType;
     private String diskid;
-    private long offset;
+    //private long offset;
+    private String lastObjId;
   
     private BasicDBObject mongoQuery;
     
@@ -155,11 +156,11 @@ public class ListObject{
     }
     
      // for utility
-    public ListObject(DataRepository dbm, String bucketName, String diskid, long offset, int maxKeys) throws SQLException{
+    public ListObject(DataRepository dbm, String bucketName, String diskid, String lastObjId, int maxKeys) throws SQLException{
         this.dbm = dbm;
         this.bucketName = bucketName;
         this.diskid = diskid;
-        this.offset = offset;
+        this.lastObjId = lastObjId;
         this.maxKeys = maxKeys;
         listType = "utility";
         mongoQuery = null;
@@ -188,39 +189,43 @@ public class ListObject{
         if (!listType.equalsIgnoreCase("utility"))
             return this.fetchList();
 
-        query1 = makeQueryWithDiskId(diskid, offset);
+        query1 = makeQueryWithDiskId(diskid, lastObjId);
         if (query1 != null){
-            return dbm.getObjectList(bucketName, query1, maxKeys, offset);
+            return dbm.getObjectList(bucketName, query1, maxKeys, 0);
         }
         else{
             String sql = (String)query1;
             PreparedStatement stmt = (PreparedStatement)dbm.getStatement(sql);
-            return dbm.getObjectList(bucketName, stmt, maxKeys, offset);
+            return dbm.getObjectList(bucketName, stmt, maxKeys, 0);
         }
     }
     
-    public void updateOffset(String diskid, long offset){
+    public void updateOffset(String diskid, String lastObjId){
         if (!listType.equalsIgnoreCase("utility"))
             return;
         
         this.diskid = diskid;
-        this.offset = offset;
+        this.lastObjId = lastObjId;
     }
     
-    private Object makeQueryWithDiskId(String diskid, long offset){
+    private Object makeQueryWithDiskId(String diskid, String lastObjId){
          if (dbm instanceof MongoDataRepository){
              BasicDBObject orObjQuery;
              
              if (!diskid.isEmpty()){
                 BasicDBObject or[] = new BasicDBObject[2];
+                BasicDBObject and1[] = new BasicDBObject[2];
 
                 or[0] = new BasicDBObject("pdiskid", new BasicDBObject("$eq", diskid));
                 or[1] = new BasicDBObject("rdiskid", new BasicDBObject("$eq", diskid));
                
-                orObjQuery  = new BasicDBObject("$or", or);
+                //orObjQuery  = new BasicDBObject("$or", or);
+                and1[0] =  new BasicDBObject("$or", or);
+                and1[1] = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                orObjQuery  = new BasicDBObject("$and", and1);
              }
              else {
-                 orObjQuery = new BasicDBObject();
+                 orObjQuery = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
                  //orObjQuery.put("bucketName", new BasicDBObject("$regex", bucketName).append("$options", "i"));
              }
              //System.out.println(" orObjQuery>>" +orObjQuery);
@@ -230,13 +235,13 @@ public class ListObject{
             if (!diskid.isEmpty()){
                 sql = "SELECT * FROM `" + bucketName + "`"
                         + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
-                        + "' OR rdiskid like '" + diskid + "') ORDER BY objKey LIMIT " 
-                        + maxKeys + " OFFSET " + offset;
+                        + "' OR rdiskid like '" + diskid + "') AND objId > '"+ lastObjId + "' ORDER BY objId LIMIT " 
+                        + maxKeys ;
             }
             else {
                 sql = "SELECT * FROM '" + bucketName + "'"
-                        + "WHERE bucket='" + bucketName +  "' ORDER BY objKey LIMIT " 
-                        + maxKeys + " OFFSET " + offset;
+                        + "WHERE bucket='" + bucketName + "'AND objId > '"+ lastObjId +  "' ORDER BY objKey LIMIT " 
+                        + maxKeys;
             }
             return sql;
          }   
@@ -438,7 +443,7 @@ public class ListObject{
         }
 
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, 0);
     }
     
     private List<Metadata> bindAndExcuteV2() throws SQLException{
@@ -461,7 +466,7 @@ public class ListObject{
 	}
         
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, 0);
     }
     
     private List<Metadata> bindAndExcuteVersion() throws SQLException{
@@ -486,13 +491,13 @@ public class ListObject{
         }
 
         //System.out.println(pstmt.toString());
-        return dbm.getObjectList(bucketName, pstmt, maxKeys, offset);
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, 0);
     }
     
     private List<Metadata> bindAndExcute() throws SQLException{
         if (dbm instanceof MongoDataRepository){
             logger.debug(">> bucketName : {} >>mongo query : {}  maxKeys : {}", bucketName, mongoQuery.toString(), maxKeys);
-            return dbm.getObjectList(bucketName, mongoQuery, maxKeys + 1, offset);
+            return dbm.getObjectList(bucketName, mongoQuery, maxKeys + 1, 0);
         }
         if (listType.equalsIgnoreCase("listObject")) 
             return bindAndExcuteV1();

@@ -38,6 +38,7 @@ public final class DataRepositoryQuery {
     public  static  String objUpdateObjectMetaQuery = "UPDATE %s SET meta=? WHERE objid=? AND versionid=?";
     public  static String objUpdateTaggingQuery = "UPDATE %s SET tag=?, meta=? WHERE objid=? AND versionid=?";
     public  static  String objUpdateAclQuery = "UPDATE %s SET acl=? WHERE objid=? AND versionid=?";
+    public  static  String objUpdateEtagQuery = "UPDATE %s SET etag=? WHERE objid=? AND versionid=?";
     
     // for bucket
     public  static String createBucketQuery = "CREATE TABLE IF NOT EXISTS BUCKETS("

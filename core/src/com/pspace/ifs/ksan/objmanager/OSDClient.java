@@ -37,6 +37,7 @@ public class OSDClient {
         obj.put("DiskId", dsk.getId());
         obj.put("DiskPath", dsk.getPath());
         bindingKey = String.format("*.services.osd.%s.object.unlink", dsk.getOSDServerId());
+        System.out.format("[removeObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         mqSender.send(obj.toString(), bindingKey);
         return 0;
     }
@@ -90,18 +91,22 @@ public class OSDClient {
         obj.put("TargetDiskPath", desDisk.getPath());
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.copy", srcDisk.getOSDServerId());
-        //System.out.format("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
+        System.out.format("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
         MQResponse ret;
         if (!res.isEmpty())
             ret = new MQResponse(res);
-        else
+        else{
+            System.out.format("[copyObject] failed obj : %s response empty\n", obj.toString());
             return -1;
+        }
         
         if (ret.getResult().equalsIgnoreCase("Success"))
             return 0;
-        else
+        else{
+            System.out.format("[copyObject] failed obj : %s response: %s\n", obj.toString(), ret);
             return -1;
+        }
     }
     
     public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws Exception{
