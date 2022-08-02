@@ -71,6 +71,7 @@ public class GetFromPortal {
     
     private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
+    private final String GETDISKLISTAPI = "/api/v1/Disks";
     
     private final String DATA_TAG = "Data";
     private final String ITEM_TAG = "Items";
@@ -152,6 +153,9 @@ public class GetFromPortal {
             return null;
         
         if (jsonItems.isEmpty())
+            return null;
+        
+        if (jsonItems.size() <= index)
             return null;
         
         JSONObject jsonItem = (JSONObject)jsonItems.get(index);
@@ -342,5 +346,33 @@ public class GetFromPortal {
         
         parseDiskPoolsResponse(omc, content);
         omc.dumpCacheInFile();
+    }
+    
+    public String getDiskId(String diskName) throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException, ParseException{
+        int idx = 0;
+        JSONObject diskObj;
+        
+        String content = get(GETDISKLISTAPI);
+        if (content == null)
+            return "";
+        
+        if (content.isEmpty())
+            return "";
+        
+        do{
+            diskObj = parseGetSingleItem(content, idx);
+            if (diskObj == null)
+                return "";
+
+            if (diskObj.isEmpty())
+                return "";
+            
+            String diskN = (String)diskObj.get("Name");
+            if (diskN.equalsIgnoreCase(diskName)){
+                return (String)diskObj.get("Id");
+            }
+            idx++;
+        } while(true);
+   
     }
 }

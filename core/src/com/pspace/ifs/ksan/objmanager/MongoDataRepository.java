@@ -166,7 +166,7 @@ public class MongoDataRepository implements DataRepository{
             url = "mongodb://" + credential + hosts + ":" + port;
         url = url + authSRC;
         
-        System.out.println("url >>" + url);
+        //System.out.println("url >>" + url);
     }
 
     private void connect() throws UnknownHostException{

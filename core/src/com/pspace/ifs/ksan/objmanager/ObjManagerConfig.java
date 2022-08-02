@@ -10,11 +10,11 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +78,19 @@ public class ObjManagerConfig {
     public void loadDiskPools(ObjManagerCache omc) throws Exception{
         portal.loadDiskPoolList(omc);
     }
-        
+    
+    public String getDiskIdWithName(String diskName) throws ResourceNotFoundException{
+        try {
+            String diskId = portal.getDiskId(diskName);
+            if (diskId.isEmpty())
+                throw new ResourceNotFoundException("Disk name " + diskName + " not found in the system!");
+            
+            return diskId;
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | KeyManagementException | ParseException ex) {
+            return " ";
+        }
+    } 
+    
     @Override
     public String toString(){
         return String.format(

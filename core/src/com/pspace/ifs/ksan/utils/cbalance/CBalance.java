@@ -100,6 +100,9 @@ public class CBalance {
                 res.add(mt);
                 if (size_counter > size)
                     return res;
+                
+                if (list.size() == numObjects)
+                   return res; 
             }
             
             //offset = offset + numObjects;
@@ -119,6 +122,14 @@ public class CBalance {
             });
         }
         return bList;
+    }
+    
+    public String getDiskIdWithName(String diskName) throws ResourceNotFoundException{
+       
+        if (diskName.isEmpty())
+            return " ";
+        
+        return obmu.getObjManagerConfig().getDiskIdWithName(diskName);
     }
     
     public long moveWithSize(String bucketName, String srcDiskId, long amountToMove, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
@@ -152,11 +163,14 @@ public class CBalance {
                     if (mt.getSize() == 0)
                         continue;
                     
-                    //ret = 1;
-                    if (dstDiskId.isEmpty())
-                        ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId);
-                    else
-                        ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId, dstDiskId);
+                    try{
+                        if (dstDiskId.isEmpty())
+                            ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId);
+                        else
+                            ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId, dstDiskId);
+                    } catch( ResourceNotFoundException ex){
+                        continue; //ignore
+                    }
                     
                     /*try {
                         System.out.format("[moveWithSize] bucketName : %s primary : %s replica : %s new : %s size : %d  amountToMove : %d  size_counter : %d \n", bucketName, mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId(), dstDiskId, mt.getSize(), amountToMove, size_counter );

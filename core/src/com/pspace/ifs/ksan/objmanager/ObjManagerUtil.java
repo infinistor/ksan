@@ -261,4 +261,8 @@ public class ObjManagerUtil {
     public DataRepository getDBRepository(){
         return dbm;
     }
+    
+    public ObjManagerConfig getObjManagerConfig(){
+        return config;
+    }
 }
