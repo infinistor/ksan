@@ -16,6 +16,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -172,7 +174,10 @@ public abstract class MessageQ{
            } catch(IOException ex){
                if (!this.channel.isOpen())
                    this.connect();
-                this.channel.queueDeclare(this.qname, durable, false, false, null);  
+                Map<String, Object> arguments = new HashMap<>();
+                arguments.put("x-queue-type", "quorum");
+                arguments.put("x-single-active-consumer", true);
+                this.channel.queueDeclare(this.qname, durable, false, false, arguments);  
            } 
        }
        return 0;
