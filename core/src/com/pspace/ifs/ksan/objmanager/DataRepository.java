@@ -45,6 +45,7 @@ public interface DataRepository {
     public void updateObjectMeta(Metadata mt) throws SQLException;
     public void updateObjectTagging(Metadata mt) throws SQLException;
     public void updateObjectAcl(Metadata mt) throws SQLException;
+    public void updateObjectEtag(Metadata mt, String etag) throws SQLException;
     
     // for bucket
     public Bucket insertBucket(Bucket bt)throws ResourceAlreadyExistException;

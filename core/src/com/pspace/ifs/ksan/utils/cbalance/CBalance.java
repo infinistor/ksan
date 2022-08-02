@@ -38,16 +38,17 @@ public class CBalance {
     private long totalFixed;
     private boolean isallowedToMoveTolocalDisk;
     
-    public CBalance() throws Exception{
+    public CBalance(boolean isallowedToMoveTolocalDisk) throws Exception{
         //ObjManagerConfig config = new ObjManagerConfig();
         obmu = new ObjManagerUtil();
         //mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
         dskList = obmu.getExistedDiskList();
         bukList = obmu.getExistedBucketList();
         objm = new ObjectMover(obmu, false, "CBalance");
+        objm.enableDisableLocalDiskMove(isallowedToMoveTolocalDisk);
         totalChecked = 0;
         totalFixed = 0;
-        isallowedToMoveTolocalDisk = false;
+        this.isallowedToMoveTolocalDisk = isallowedToMoveTolocalDisk;
     }
     
     private List<Metadata> getListOfObjects(String bucketName, String SrcDiskId, long size, String lastObjId, String DstDiskId){

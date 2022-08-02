@@ -141,7 +141,7 @@ public class FSCK {
                 obmu.updateObject(mt.getBucket(), mt.getObjId(), mt, 2);
                 break;
             case 4: // update meta md5
-                obmu.updateObject(mt.getBucket(), mt.getObjId(), mt, 1);
+                obmu.updateObjectEtag(mt.getBucket(), mt, primary.md5);
                 break;
             case 5:
                 System.out.format("[fixObject] bucket : %s objId : %s versionId : %s  md5{meta, primary, replica} : {%s, %s, %s} all are different\n", 

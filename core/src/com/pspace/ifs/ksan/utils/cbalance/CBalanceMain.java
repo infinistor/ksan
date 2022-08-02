@@ -147,7 +147,7 @@ public class CBalanceMain {
      
         CBalance cb;
         try {
-            cb = new CBalance();
+            cb = new CBalance(localMoveAllowed);
         } catch (Exception ex) {
             //Logger.getLogger(CBalanceMain.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("[" + CBalanceMain.class.getName() + "]" + ex);

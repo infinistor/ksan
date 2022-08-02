@@ -930,7 +930,12 @@ public class MongoDataRepository implements DataRepository{
     public void updateObjectMeta(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
     }
-
+    
+    @Override
+    public void updateObjectEtag(Metadata mt, String etag) throws SQLException{
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), ETAG, etag);
+    }
+    
     private int updateBucket(String bucketName, String key, String value){
         FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         Document doc =(Document)fit.first();

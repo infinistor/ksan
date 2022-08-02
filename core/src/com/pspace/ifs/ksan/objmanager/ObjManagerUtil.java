@@ -113,6 +113,10 @@ public class ObjManagerUtil {
         return ret;
     }
     
+    public void updateObjectEtag(String bucketName, Metadata mt, String newEtag) throws SQLException{
+        dbm.updateObjectEtag(mt, newEtag);
+    }
+    
     public List<Metadata> listObjects(String bucketName, String diskid, String lastObjId, long numObjects){
         try {
             ListObject lo = new ListObject(dbm, bucketName, diskid, lastObjId, (int)numObjects);
