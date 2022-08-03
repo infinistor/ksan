@@ -16,6 +16,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,6 +136,15 @@ public class ObjManagerUtil {
         }
     }
     
+    public long listObjectsCount(String bucketName, String diskid){
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, diskid, "", 0);
+            return lo.getUnformatedListCount();
+        } catch (SQLException ex) {
+            return 0;
+        }
+    }
+    
     /**
      * It will allocate a replica disk for recovery of failed replica object
      * @param bucketName   bucket name
@@ -164,7 +174,14 @@ public class ObjManagerUtil {
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
-        String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
+        
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt == null){
+            System.out.format("[allowedToReplicate] buckeName : %s \n", bucketName);
+            return false;
+        }
+        
+        String dskPoolId = bt.getDiskPoolId();
         if (dskPoolId == null)
             return false;
         
@@ -205,7 +222,7 @@ public class ObjManagerUtil {
              System.out.println("Replica problem 2");
             return -1; // invalide update
         }
-        System.out.println("call update db");
+        //System.out.println("call update db");
         return dbm.updateDisks(md, updatePrimary, newDisk);
     }
     

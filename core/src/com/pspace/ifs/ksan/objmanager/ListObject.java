@@ -200,6 +200,13 @@ public class ListObject{
         }
     }
     
+    public long getUnformatedListCount() throws SQLException{
+        Object queryStmt;
+        
+        queryStmt = makeQueryWithDiskIdToCount(diskid);
+        return dbm.getObjectListCount(bucketName, queryStmt);
+    }
+    
     public void updateOffset(String diskid, String lastObjId){
         if (!listType.equalsIgnoreCase("utility"))
             return;
@@ -225,7 +232,7 @@ public class ListObject{
                 orObjQuery  = new BasicDBObject("$and", and1);
              }
              else {
-                 orObjQuery = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                orObjQuery = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
                  //orObjQuery.put("bucketName", new BasicDBObject("$regex", bucketName).append("$options", "i"));
              }
              //System.out.println(" orObjQuery>>" +orObjQuery);
@@ -245,6 +252,23 @@ public class ListObject{
             }
             return sql;
          }   
+    }
+    
+    private Object makeQueryWithDiskIdToCount(String diskid){
+        if (dbm instanceof MongoDataRepository){
+            return makeQueryWithDiskId(diskid, " ");
+        }
+        
+        String sql;
+        if (!diskid.isEmpty()){
+            sql = "SELECT count(*) FROM `" + bucketName + "`"
+                        + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
+                        + "' OR rdiskid like '" + diskid + "')";
+        }
+        else {
+            sql = "SELECT count(*) FROM '" + bucketName + "'"; 
+        }
+        return sql;
     }
     
     private void makeQueryV1(){

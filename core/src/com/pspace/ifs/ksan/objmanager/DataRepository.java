@@ -41,6 +41,7 @@ public interface DataRepository {
     public List<String> getAllUsedDiskId() throws SQLException;
     public Object getStatement(String query) throws SQLException;
     public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys, long offset) throws SQLException;
+    public long getObjectListCount(String bucketName, Object pstmt) throws SQLException;
     //public void updateObjectMeta(String bucket, String objkey, String versionid, String meta) throws SQLException;
     public void updateObjectMeta(Metadata mt) throws SQLException;
     public void updateObjectTagging(Metadata mt) throws SQLException;

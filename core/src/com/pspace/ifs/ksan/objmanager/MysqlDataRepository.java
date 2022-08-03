@@ -1205,8 +1205,8 @@ public class MysqlDataRepository implements DataRepository{
         DISK rdsk = null;
         String diskPoolId = "1";
         Bucket bt = obmCache.getBucketFromCache(bucketName);
-        obmCache.displayBucketList();
-        obmCache.displayDiskPoolList();
+        //obmCache.displayBucketList();
+        //obmCache.displayDiskPoolList();
         if (bt != null)
             //return list;
             diskPoolId = bt.getDiskPoolId();
@@ -1252,4 +1252,15 @@ public class MysqlDataRepository implements DataRepository{
         return list;
     }
     
+    @Override
+    public long getObjectListCount(String bucketName, Object pstmt) throws SQLException {
+        ResultSet rs = null;
+        long rowCount = 0;
+        
+        rs = ((PreparedStatement)pstmt).executeQuery();
+        if (rs.next()) {
+           rowCount = rs.getLong(0); 
+        }
+        return rowCount;
+    }
 }

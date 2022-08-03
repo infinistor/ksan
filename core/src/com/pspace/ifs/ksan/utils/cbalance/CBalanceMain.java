@@ -28,39 +28,39 @@ import org.slf4j.LoggerFactory;
  */
 public class CBalanceMain {
     private CmdLineParser parser;
-    
-    //@Option(name="--target", usage="Specify the target of the operation as moving a single object or specfic amount of objects move or empty disk")
-    //public String target = "";
-    
-    @Option(name="--emptydisk", aliases={"--emptyDisk", "--EmptyDisk"}, usage="set to enable empty disk operation")
+      
+    @Option(name="--EmptyDisk",  usage="set to enable empty disk operation")
     public boolean emptyDisk =false;
     
-    @Option(name="--bucketName", aliases={"--bucketname", "--BucketName"}, usage="Specify the name of the bucket you wish to balance")
+    @Option(name="--BucketName",  usage="Specify the name of the bucket you wish to balance")
     public String bucketName = "";
     
-    @Option(name="--key", usage="Specify the object key")
+    @Option(name="--Key", usage="Specify the object key")
     public String key = "";
    
-    @Option(name="--objId", aliases={"--objid"}, usage="Specify the object Id insted of object key")
+    @Option(name="--ObjId", usage="Specify the object Id insted of object key")
     public String objId = "";
     
-    @Option(name="--versionId", aliases={"--versionid"}, usage="Specify the object version Id if you wish particular version of an object")
+    @Option(name="--VersionId", usage="Specify the object version Id if you wish particular version of an object")
     private String versionId ="null";
     
-    @Option(name="--SrcDiskName", aliases={"--srcdiskname", "--srcDiskName", "--srcDiskname", "--srcdiskName"}, usage="Specify the source disk Name")
+    @Option(name="--SrcDiskName",  usage="Specify the source disk Name")
     public String SrcDiskName = "";
     
-    @Option(name="--DstDiskName", aliases={"--dstdiskname", "--dstDiskName", "--dstDiskname", "--dstdiskName"}, usage="Specify the distination disk Name")
+    @Option(name="--DstDiskName",  usage="Specify the distination disk Name")
     public String DstDiskName = "";
     
-    @Option(name="--size", usage="Specify the capacity to move")
+    @Option(name="--Size", usage="Specify the capacity to move")
     public String cpacityToMove = "";
     
-    @Option(name="--okLocalMove", aliases={"--Oklocalmove", "--OkLocalmove", "---OklocalMove"}, usage="To allow to move to local another disk")
+    @Option(name="--OkLocalMove",  usage="To allow to move to local another disk")
     public boolean localMoveAllowed = false;
     
-    @Option(name="--help",usage="To display this help menu")
+    @Option(name="--Help", usage="To display this help menu")
     public boolean getHelp = false;
+    
+    @Option(name="--Debug", usage="To display debug log to the terminal")
+    public boolean debug = false;
     
     public long amountToMove;
     
@@ -104,7 +104,7 @@ public class CBalanceMain {
              parser.parseArgument(args);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --emptydisk --bucketName <bucket Name> --key <object key> --versionId <object version Id> --size <capacity to move> --SrcDiskName <Source disk name> --DstDiskName <Destination disk Name>\n", getProgramName());
+           System.err.format("%s --Emptydisk --BucketName <bucket Name> --Key <object key> --VersionId <object version Id> --Size <capacity to move> --SrcDiskName <Source disk name> --DstDiskName <Destination disk Name> --OkLocalMove \n", getProgramName());
            return -1;
         }
         
@@ -133,17 +133,17 @@ public class CBalanceMain {
         parser.printUsage(System.err);
         System.err.println();
         System.err.println("Example : To move a single object and the object can be idetified either key or object Id");
-        System.err.format("          %s  --bucketName bucket1 --key file1.txt --SrcDiskName osd1_disk1 \n", getProgramName());
-        System.err.format("          %s  --bucketName bucket1 --key file1.txt --versionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
-        System.err.format("          %s  --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --versionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
-        System.err.format("          %s  --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 \n", getProgramName());
-        System.err.format("          %s  --bucketName bucket1 --key file1.txt --DstDiskName osd2_disk2\n", getProgramName());
-        System.err.format("          %s  --bucketName bucket1 --key file1.txt --versionId 526554498818254 --DstDiskName osd3_disk2\n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --DstDiskName osd2_disk2\n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2\n", getProgramName());
         System.err.println("\nExample : To move a spefic amount of object from one disk to others");
-        System.err.format("          %s  --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --size 2GB \n", getProgramName());
-        System.err.format("          %s  --SrcDiskName osd1_disk1 --size 2GB \n", getProgramName());
+        System.err.format("          %s  --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB \n", getProgramName());
+        System.err.format("          %s  --SrcDiskName osd1_disk1 --Size 2GB \n", getProgramName());
         System.err.println("\nExample : To empty a disk");
-        System.err.format("          %s --emptydisk --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s --Emptydisk --SrcDiskName osd1_disk1 \n", getProgramName());
         System.err.println();
     }
     
@@ -158,6 +158,8 @@ public class CBalanceMain {
             cb = new CBalance(localMoveAllowed);
             SrcDiskId = cb.getDiskIdWithName(SrcDiskName);
             DstDiskId = cb.getDiskIdWithName(DstDiskName);
+            if (debug)
+                cb.setDebugModeOn();
         } catch (Exception ex) {
             System.err.println("[" + CBalanceMain.class.getName() + "]" + ex);
             return;
@@ -213,7 +215,7 @@ public class CBalanceMain {
                 else
                     System.out.format("Object(s) with amount %d bytes from %s disk to %s disk are moved\n", moved_amount, SrcDiskName, DstDiskName);
             } catch (ResourceNotFoundException ex) {
-                ex.printStackTrace();
+                //ex.printStackTrace();
                 System.err.println(" osd disk not exist!");
             } catch (AllServiceOfflineException ex) {
                 System.err.println("All service are offline!");

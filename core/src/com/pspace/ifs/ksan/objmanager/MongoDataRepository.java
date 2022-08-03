@@ -263,10 +263,10 @@ public class MongoDataRepository implements DataRepository{
     public int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         MongoCollection<Document> objects;
         objects = database.getCollection(md.getBucket());
-        System.out.format("objId :%s versionid : %s pdiskid : %s newDiskid : %s \n", md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), newDisk.getId());
+        //System.out.format("objId :%s versionid : %s pdiskid : %s newDiskid : %s \n", md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), newDisk.getId());
        
         UpdateResult res = objects.updateOne(Filters.and(Filters.eq(OBJID, md.getObjId()), eq(VERSIONID, md.getVersionId())), Updates.set(updatePrimary ? PDISKID : RDISKID, newDisk.getId()));
-       System.out.println("after update!");
+       //System.out.println("after update!");
        
        return (int)res.getModifiedCount(); 
     }
@@ -1238,7 +1238,16 @@ public class MongoDataRepository implements DataRepository{
         }
         return list;
     }
-
+    
+    @Override
+    public long getObjectListCount(String bucketName, Object query) throws SQLException {
+        MongoCollection<Document> objects;
+        objects = database.getCollection(bucketName);
+        BasicDBObject mongoQuery =(BasicDBObject)query;
+        
+        return objects.countDocuments(mongoQuery);
+    }
+    
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
