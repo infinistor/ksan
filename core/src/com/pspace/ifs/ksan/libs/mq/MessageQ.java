@@ -174,10 +174,10 @@ public abstract class MessageQ{
            } catch(IOException ex){
                if (!this.channel.isOpen())
                    this.connect();
-                Map<String, Object> arguments = new HashMap<>();
+                /*Map<String, Object> arguments = new HashMap<>();
                 arguments.put("x-queue-type", "quorum");
-                arguments.put("x-single-active-consumer", true);
-                this.channel.queueDeclare(this.qname, durable, false, false, arguments);  
+                arguments.put("x-single-active-consumer", true);*/
+                this.channel.queueDeclare(this.qname, durable, false, false, null);  
            } 
        }
        return 0;
