@@ -179,6 +179,9 @@ public class DiskAllocation {
         HashMap<String, String> osdDistanceMap; 
          
         try {
+            if (replicaDiskId.isEmpty())
+                return true;
+            
             if (replicaDiskId.equals(primary.getId()))
                 return false;
             

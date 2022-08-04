@@ -140,7 +140,7 @@ public class CBalance {
     public String getDiskIdWithName(String diskName) throws ResourceNotFoundException{
        
         if (diskName.isEmpty())
-            return " ";
+            return "";
         
         return obmu.getObjManagerConfig().getDiskIdWithName(diskName);
     }
@@ -183,13 +183,15 @@ public class CBalance {
                     //ret = 0;
                     objm.log("[moveWithSize] objid: %s size : %d amountToMove : %d size_counter : %d\n", mt.getObjId(), mt.getSize(), amountToMove, size_counter);
                     try{
-                        if (!obmu.allowedToReplicate(bucket.getName(), mt.getPrimaryDisk(), mt.getReplicaDisk(), dstDiskId, isallowedToMoveTolocalDisk))
-                            continue;
                         
-                        if (dstDiskId.isEmpty())
+                        if (dstDiskId.isEmpty()){
                             ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId);
-                        else
+                        } else{
+                            if (!obmu.allowedToReplicate(bucket.getName(), mt.getPrimaryDisk(), mt.getReplicaDisk(), dstDiskId, isallowedToMoveTolocalDisk)){
+                                continue;
+                            }
                             ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId, dstDiskId);
+                        }
                     } catch( ResourceNotFoundException ex){
                         continue; //ignore
                     }
