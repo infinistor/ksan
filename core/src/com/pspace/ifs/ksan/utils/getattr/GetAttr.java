@@ -34,25 +34,25 @@ import org.slf4j.LoggerFactory;
 
 public class GetAttr {
     
-    @Option(name="--bucketName", usage="Specify the name of the bucket")
+    @Option(name="--BucketName", usage="Specify the name of the bucket")
     private  String bucketName = "";
     
-    @Option(name="--key", usage="Specify the object path")
+    @Option(name="--Key", usage="Specify the object key")
     private String ObjectPath = "";
     
-    @Option(name="--objId", usage="Specify the object Id if you with to display with Id rather than object key")
+    @Option(name="--ObjId", usage="Specify the object Id if you with to display with Id rather than object key")
     private String objId = "";
     
-    @Option(name="--versionId", usage="Specify the object version Id if you wish particular version of an object")
+    @Option(name="--VersionId", usage="Specify the object version Id if you wish particular version of an object")
     private String versionId ="null";
     
-    @Option(name="--checksum", usage="To display the checksum of an object")
+    @Option(name="--Checksum", usage="To display the checksum and size of the object from OSD")
     private boolean checksum = false;
      
    // @Option(name="--isBucket", usage="set it if you wish to display the attribute of a bucket")
     private boolean isFile = true;
     
-    @Option(name="--help",usage="To display this help menu")
+    @Option(name="--Help",usage="To display this help menu")
     public boolean getHelp = false;
     
     private CmdLineParser parser;
@@ -68,7 +68,7 @@ public class GetAttr {
  
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --bucketName <bucket Name> [--key <object path> |--objId <object id>] [--versionId <versionId>]\n", getProgramName());
+           System.err.format("%s --BucketName <bucket Name> [--Key <object path> |--ObjId <object id>] [--VersionId <versionId>] --Checksum\n", getProgramName());
            return -1;
         }
         
@@ -96,11 +96,11 @@ public class GetAttr {
         
         parser.printUsage(System.err);
         System.err.println();
-        System.err.format("  Example: %s --bucketName bucket1 --key file1.txt \n", getProgramName());
-        System.err.format("  Example: %s --bucketName bucket1 --key file1.txt --checksum \n", getProgramName());
-        System.err.format("  Example: %s --bucketName bucket1 --key file1.txt --versionId fgsddasas \n", getProgramName());
-        System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
-        System.err.format("  Example: %s --bucketName bucket1 --objid bd01856bfd2065d0d1ee20c03bd3a9af --versionId fgsddasas \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --Checksum \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --VersionId fgsddasas \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Objid bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Objid bd01856bfd2065d0d1ee20c03bd3a9af --VersionId fgsddasas \n", getProgramName());
         System.err.println();
     }
      

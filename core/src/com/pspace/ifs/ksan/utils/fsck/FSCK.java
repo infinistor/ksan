@@ -14,18 +14,14 @@ package com.pspace.ifs.ksan.utils.fsck;
 import java.util.Iterator;
 import java.util.List;
 
-import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.OSDClient;
 import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
-import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.utils.ObjectMover;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -122,7 +118,7 @@ public class FSCK {
             if (check == 0)
                 return 0;
         } catch (Exception ex) {
-            System.out.format("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
+           objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
             return -1;
         }
         
@@ -144,7 +140,7 @@ public class FSCK {
                 obmu.updateObjectEtag(mt.getBucket(), mt, primary.md5);
                 break;
             case 5:
-                System.out.format("[fixObject] bucket : %s objId : %s versionId : %s  md5{meta, primary, replica} : {%s, %s, %s} all are different\n", 
+               objm.log("[fixObject] bucket : %s objId : %s versionId : %s  md5{meta, primary, replica} : {%s, %s, %s} all are different\n", 
                         mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getEtag(), primary.md5, replica.md5);
                 break;
         }
@@ -194,7 +190,7 @@ public class FSCK {
                         job_done++;
                 
                 } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
-                    System.out.format(" Bucket : %s path : %s pdisk : %s \n",
+                   objm.log(" Bucket : %s path : %s pdisk : %s \n",
                             mt.getBucket(), mt.getPath(),
                             mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : "");
                 }    
@@ -250,7 +246,7 @@ public class FSCK {
                     if ((ret = fixObject(mt))== 0)
                        job_done++;
                     /*if (!mt.isReplicaExist()){
-                        System.out.format(">> Bucket : %s path : %s pdisk : %s rdisk : %s \n",
+                       objm.log(">> Bucket : %s path : %s pdisk : %s rdisk : %s \n",
                                 mt.getBucket(), mt.getPath(),
                                 mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : " Empty",
                                 mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : " Empty");
@@ -259,7 +255,7 @@ public class FSCK {
                         job_done++;
                     }*/
                 } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
-                    System.out.format(" Bucket : %s path : %s pdisk : %s \n",
+                   objm.log(" Bucket : %s path : %s pdisk : %s \n",
                             mt.getBucket(), mt.getPath(),
                             mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : "");
                 }    
@@ -273,6 +269,18 @@ public class FSCK {
         objm.finishedJob();
         
         return job_done;  
+    }
+    
+    public void setDebugModeOn(boolean debugOn){
+        if (debugOn)
+            objm.setDebugModeOn();
+    }
+    
+    public String getDiskId(String diskName) throws ResourceNotFoundException{
+        if (diskName.isEmpty())
+            return diskName;
+        
+        return objm.getObjManagerUtil().getObjManagerConfig().getDiskIdWithName(diskName);
     }
     
     public long checkEachDisk(String bucketName) throws Exception{
@@ -301,7 +309,7 @@ public class FSCK {
     }
     
     public long checkBucketDisk(String bucket, String diskId) throws Exception{
-       System.out.format("[checkBucketDisk] bucket : %s  \n", bucket);
+      objm.log("[checkBucketDisk] bucket : %s  \n", bucket);
        return checkEachObject(bucket, diskId);
     }
     

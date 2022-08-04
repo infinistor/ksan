@@ -28,7 +28,7 @@ public class RecoveryMain {
     
     private CmdLineParser parser;
     
-    @Option(name="--help",usage="To display this help menu")
+    @Option(name="--Help",usage="To display this help menu")
     public boolean getHelp = false;
     
     @Option(name="--daemon",usage="To run the program in daemon mode")
