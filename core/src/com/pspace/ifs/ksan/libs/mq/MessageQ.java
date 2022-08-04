@@ -167,6 +167,13 @@ public abstract class MessageQ{
         return 0;
     }
     
+    private Map<String, Object> getQuorumQueueMap(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("x-queue-type", "quorum");
+        map.put("x-single-active-consumer", true);
+        return map;
+    }
+    
     private int createQ(boolean durable) throws Exception{
        if (!this.qname.isEmpty()){
            try{
@@ -174,14 +181,17 @@ public abstract class MessageQ{
            } catch(IOException ex){
                if (!this.channel.isOpen())
                    this.connect();
-                /*Map<String, Object> arguments = new HashMap<>();
-                arguments.put("x-queue-type", "quorum");
-                arguments.put("x-single-active-consumer", true);*/
-                this.channel.queueDeclare(this.qname, durable, false, false, null);  
+                
+                this.channel.queueDeclare(this.qname, true, false, false, getQuorumQueueMap()); 
+                //this.channel.queueDeclare(this.qname, durable, false, false, null);
            } 
        }
        return 0;
     }
+    
+    private String createQurumQueue(String replyQueue) throws IOException {
+       return channel.queueDeclare(replyQueue, true, false, false, getQuorumQueueMap()).getQueue();
+    } 
     
     public void deleteQ(){
         try{
@@ -199,7 +209,7 @@ public abstract class MessageQ{
             } catch(IOException ex){
                 if (!this.channel.isOpen())
                    this.connect();
-                
+           
                 this.channel.exchangeDeclare(this.exchangeName, option);
             }
         }
@@ -223,8 +233,13 @@ public abstract class MessageQ{
     }    
     
     public int sendToQueue(String mesg) throws Exception{
+        String replyQueueName = this.qname;
         
-        String replyQueueName = channel.queueDeclare().getQueue();
+        if (qname.isEmpty()){
+            final String corrId = UUID.randomUUID().toString();
+            replyQueueName = createQurumQueue("replyQ." + corrId);
+        }
+        //String replyQueueName = channel.queueDeclare().getQueue();
         
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -244,7 +259,9 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        String replyQueueName = channel.queueDeclare().getQueue();
+        final String corrId = UUID.randomUUID().toString();
+        String replyQueueName = createQurumQueue("replyQ." + corrId);
+        //String replyQueueName = channel.queueDeclare().getQueue();
         
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -258,7 +275,8 @@ public abstract class MessageQ{
     
     public String sendToExchangeWithResponse(String mesg, String routingKey) throws Exception{
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = channel.queueDeclare().getQueue();
+        String replyQueueName = createQurumQueue("replyQ." + corrId);
+        //String replyQueueName = channel.queueDeclare().getQueue();
         BasicProperties props = new BasicProperties
                 .Builder()
                 .correlationId(corrId)
@@ -269,14 +287,15 @@ public abstract class MessageQ{
             this.connect();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());  
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes()); 
         String res = this.getReplay(replyQueueName);
         return res;
     }
     
     public String sendToQueueWithResponse(String mesg) throws Exception{
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = channel.queueDeclare().getQueue();
+        //String replyQueueName = channel.queueDeclare().getQueue();
+        String replyQueueName = createQurumQueue("replyQ." + corrId);
         BasicProperties props = new BasicProperties
                 .Builder()
                 .correlationId(corrId)
