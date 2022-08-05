@@ -68,8 +68,8 @@ systemctl start docker
 
 ```shell
 #!/bin/bash
-docker build --rm -t pspace/ksanlifecycle:latest -f DockerFile .
-docker save -o ksanLifecycle.tar pspace/ksanlifecycle
+docker build --rm -t pspace/ksan-lifecycle:latest -f DockerFile .
+docker save -o ksanLifecycle.tar pspace/ksan-lifecycle
 ```
 
 ## How to Use
@@ -141,14 +141,14 @@ docker create -i -t \
 -v /etc/localtime:/etc/localtime:ro \
 -v /var/log/ksan:/app/logs \
 -v /usr/local/ksan/etc:/usr/local/ksan \
---name ksanlifecycle \
-pspace/ksanlifecycle:latest
+--name ksan-lifecycle \
+pspace/ksan-lifecycle:latest
 ```
 
 #### 실행예시(CLI)
 
 ```bash
-docker start ksanlifecycle
+docker start ksan-lifecycle
 ```
 
 #### Crontab 설정
@@ -158,7 +158,7 @@ docker start ksanlifecycle
 # 등록
 crontab -e
 # 매일 오전 1시에 동작
-0 1 * * * docker start ksanlifecycle
+0 1 * * * docker start ksan-lifecycle
 
 # 확인
 crontab -l

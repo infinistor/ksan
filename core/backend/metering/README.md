@@ -76,8 +76,8 @@ systemctl start docker
 
 ```shell
 #!/bin/bash
-docker build --rm -t infinistor/ksanmetering:latest -f DockerFile .
-docker save -o ksanMetering.tar infinistor/ksanmetering
+docker build --rm -t infinistor/ksan-metering:latest -f DockerFile .
+docker save -o ksanMetering.tar infinistor/ksan-metering
 ```
 
 ## How to Use
@@ -95,18 +95,18 @@ docker create -i -t \
 -v /etc/localtime:/etc/localtime:ro \
 -v /var/log/ksan:/app/logs \
 -v /usr/local/ksan/etc:/usr/local/ksan \
---name ksanmetering pspace/ksanmetering:latest
+--name ksan-metering pspace/ksan-metering:latest
 ```
 
 ### 실행(CLI)
 
 ``` shell
-docker start ksanmetering
+docker start ksan-metering
 ```
 
 ### 서비스 등록후 실행
 ``` shell
-cp ksanmetering.service /etc/systemd/system/
-systemctl enable ksanmetering
-systemctl start ksanmetering
+cp ksan-metering.service /etc/systemd/system/
+systemctl enable ksan-metering
+systemctl start ksan-metering
 ```
