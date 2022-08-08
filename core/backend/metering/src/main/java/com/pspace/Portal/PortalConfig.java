@@ -22,10 +22,10 @@ public class PortalConfig {
 	private final String STR_FILENAME = "/usr/local/ksan/etc/ksanMonitor.conf";
 	/////////////////////////// MGS /////////////////////////////////////
 	private final String STR_MG = "mgs";
-	private final String STR_MGS_IP = "MgsIp";
-	private final String STR_MGS_PORT = "IfsPortalPort";
-	private final String STR_MGS_KEY = "IfsPortalKey";
-
+	private final String STR_MGS_IP = "PortalIp";
+	private final String STR_MGS_PORT = "PortalPort";
+	private final String STR_MGS_KEY = "PortalApiKey";
+		
 	/*********************************************************************************************************/
 	static final Logger logger = LoggerFactory.getLogger(PortalConfig.class);
 	public final String FileName;
