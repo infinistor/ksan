@@ -68,10 +68,10 @@ public class CBalance {
         
         do{
             list = obmu.listObjects(bucketName, SrcDiskId, lastObjId, numObjects *2 );
-           objm.log("[getListOfObjects] bucketName : %s list.size : %d res.size : %d  size : %d \n",  bucketName, list.size(), res.size(), size);
             if (list == null)
                 return res;
             
+            objm.log("[getListOfObjects] bucketName : %s list.size : %d res.size : %d  size : %d \n",  bucketName, list.size(), res.size(), size);
             if (list.isEmpty())
                 return res;
             
