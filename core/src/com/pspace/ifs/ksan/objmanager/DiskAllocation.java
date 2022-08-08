@@ -126,20 +126,31 @@ public class DiskAllocation {
          DISK primaryDisk;
          DISK replicaDisk;
          DISKPOOL dskPool;
+         SERVER primary;
+         
          try{
-             //logger.debug("disk pool id : {}", dskPoolId);
              dskPool = getDiskPool(dskPoolId);
              if (dskPool == null) {
                 logger.error("[allocDisk] There is no diskpool with Id {} for bucketName : {} key: {} objId in the system!", dskPoolId, md.getBucket(), md.getPath(), md.getObjId());
                 throw new ResourceNotFoundException("[allocDisk] There is no diskpool in the system!");
              }
              
-             SERVER primary = this.allocPrimaryServer(algorithm, dskPool);
-             primaryDisk = primary.getNextDisk();
+             try{
+                primary = allocPrimaryServer(algorithm, dskPool);
+                primaryDisk = primary.getNextDisk();
+                
+             } catch(ResourceNotFoundException e){
+                primary = allocPrimaryServer(AllocAlgorithm.ROUNDROBIN, dskPool);
+                primaryDisk = primary.getNextDisk();
+                if ( algorithm == AllocAlgorithm.LOCALPRIMARY)
+                    logger.debug("[allocDisk] allocation algorithm changed to Local to ROUNDROBIN ..");
+             }
+             
              primaryDisk.setOSDIP(primary.getName());
              primaryDisk.setOSDServerId(primary.getId());
              md.setPrimaryDisk(primaryDisk);
              md.setReplicaCount(replicaCount);
+             
              if (replicaCount == 1){
                  return 0;
              }
@@ -179,6 +190,9 @@ public class DiskAllocation {
         HashMap<String, String> osdDistanceMap; 
          
         try {
+            if (replicaDiskId.isEmpty())
+                return true;
+            
             if (replicaDiskId.equals(primary.getId()))
                 return false;
             

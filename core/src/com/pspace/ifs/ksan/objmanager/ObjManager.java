@@ -223,6 +223,21 @@ public class ObjManager {
     }
     
     /**
+     * Return a new primary and replica disk mount path allocated for the path provided with round robin algorithm.
+     * @param diskpoolId the diskpoolId used to create object
+     * @param bucket bucket name
+     * @param path the path or key of the metadata is going to be created
+     * @param versionId the versionId of the object
+     * @return a basics of metadata object with allocated disk information 
+     * @throws IOException 
+     * @throws AllServiceOfflineException 
+     * @throws ResourceNotFoundException 
+     */
+    public Metadata create(String diskpoolId, String bucket, String path, String versionId)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+        return create(bucket, path, versionId, AllocAlgorithm.ROUNDROBIN);
+    }
+    
+    /**
      * Return a new primary and replica disk mount path allocated for the path provided with primary object at local osd algorithm.
      * @param bucket bucket name 
      * @param path the path or key of the metadata is going to be created
@@ -246,6 +261,20 @@ public class ObjManager {
      * @throws ResourceNotFoundException 
      */
     public Metadata createLocal(String bucket, String path, String versionId)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
+        return create(bucket, path, versionId, AllocAlgorithm.LOCALPRIMARY);
+    }
+    /**
+     * Return a new primary and replica disk mount path allocated for the path provided with primary object at local osd algorithm.
+     * @param diskPoolId the diskpoolId used to create object
+     * @param bucket bucket name 
+     * @param path the path or key of the metadata is going to be created
+     * @param versionId the versionId of the object
+     * @return a basics of metadata object with allocated disk information with primary on local osd 
+     * @throws IOException , AllServiceOfflineException, ResourceNotFoundException
+     * @throws AllServiceOfflineException 
+     * @throws ResourceNotFoundException 
+     */
+    public Metadata createLocal(String diskPoolId, String bucket, String path, String versionId)throws IOException, AllServiceOfflineException, ResourceNotFoundException{
         return create(bucket, path, versionId, AllocAlgorithm.LOCALPRIMARY);
     }
     
