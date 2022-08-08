@@ -386,20 +386,17 @@ public class DiskMonitor {
             }
         } catch (ResourceNotFoundException ex) {
            if (jo.action.equalsIgnoreCase(KEYS.ADD.label)){
-               if (svr == null){
-                   try {
-                       JsonOutput jsonSvr = this.decodeSubJsonObject(body, "Server");
-                       //return addRemoveServer(dskPool, jsonSvr);
-                       dskPool.addServer(jsonSvr.serverid, jsonSvr.IPaddr, jsonSvr.hostname, jsonSvr.rack);
-                       svr = dskPool.getServerById(jo.serverid);
-                       svr.setRack(jsonSvr.rack);
-                       svr.setStatus(ServerStatus.ONLINE);
-                       svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
-                       logger.debug("[addRemoveDisk] OSD server and disk added {}", body);
-                   } catch (ParseException | ResourceNotFoundException ex1) {
-                      logger.debug("[addRemoveDisk] unable to add disk because the server not exist request {}", body);
-                   }
-               }
+                try {
+                    JsonOutput jsonSvr = this.decodeSubJsonObject(body, "Server");
+                    dskPool.addServer(jsonSvr.serverid, jsonSvr.IPaddr, jsonSvr.hostname, jsonSvr.rack);
+                    svr = dskPool.getServerById(jo.serverid);
+                    svr.setRack(jsonSvr.rack);
+                    svr.setStatus(ServerStatus.ONLINE);
+                    svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
+                    logger.debug("[addRemoveDisk] OSD server and disk added {}", body);
+                } catch (ParseException | ResourceNotFoundException ex1) {
+                   logger.debug("[addRemoveDisk] unable to add disk because the server not exist request {}", body);
+                } 
            }
         }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
