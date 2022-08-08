@@ -178,7 +178,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskWithServerAndNetwork>))]
-		[HttpGet("{Id}")]
+		[HttpGet("Detail/{Id}")]
 		public async Task<ActionResult> Get([FromRoute] string Id)
 		{
 			return Json(await m_dataProvider.Get(Id));

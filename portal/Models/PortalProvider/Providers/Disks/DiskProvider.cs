@@ -72,7 +72,6 @@ namespace PortalProvider.Providers.DiskGuids
 				if (ServerId.IsEmpty())
 					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
 
-				
 				// 서버 정보를 가져온다.
 				Server Server = null;
 
@@ -626,7 +625,7 @@ namespace PortalProvider.Providers.DiskGuids
 			{
 				// 서버 아이디가 존재하지 않는 경우
 				if (ServerId.IsEmpty() || !Guid.TryParse(ServerId, out Guid ServerGuid))
-					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_SERVER_ID);
+					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
 
 				// 기본 정렬 정보 추가
 				ClearDefaultOrders();

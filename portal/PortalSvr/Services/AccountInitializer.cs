@@ -19,7 +19,6 @@ using MTLib.CommonData;
 using MTLib.Core;
 using PortalProvider.Providers.Accounts;
 using PortalResources;
-using System.IO;
 
 namespace PortalSvr.Services
 {
@@ -89,6 +88,17 @@ namespace PortalSvr.Services
 					// "internalservice" 계정 생성에 성공한 경우, API KEY를 생성한다.
 					if (Response.Result == EnumResponseResult.Success)
 					{
+						string APIKey = null;
+						try
+						{
+							// 환경변수로 api key 값을 입력할 경우
+							APIKey = Environment.GetEnvironmentVariable(Resource.ENV_SERVICE_API_KEY);
+						}
+						catch
+						{
+							APIKey = null;
+						}
+
 						// API 키를 발급한다.
 						var ResponseApiKey = await m_apiKeyProvider.IssueApiKey(
 							Guid.Parse(Response.Data.Id),
@@ -96,24 +106,12 @@ namespace PortalSvr.Services
 							{
 								KeyName = Resource.INTERNALSERVICE_API_KEY,
 								ExpireDate = DateTime.MaxValue,
-								KeyValue = KsanUserProvider.RandomTextLong(64)
+								KeyValue = APIKey.IsEmpty() ? KsanUserProvider.RandomTextLong(64) : APIKey
 							}
 						);
 
 						if (ResponseApiKey.Result == EnumResponseResult.Success)
-						{
 							m_logger.LogInformation("API KEY has been created. : {KeyValue}", ResponseApiKey.Data.KeyValue);
-
-							//파일에 떨군다.
-							try
-							{
-								await File.WriteAllTextAsync("/home/share/ApiKey", ResponseApiKey.Data.KeyValue);
-							}
-							catch (Exception e)
-							{
-								NNException.Log(e);
-							}
-						}
 					}
 				}
 			}

@@ -150,7 +150,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <summary>기본 디스크풀을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPool>))]
-		[HttpPost("Default")]
+		[HttpGet("Default")]
 		public async Task<ActionResult> GetDefault()
 		{
 			return Json(await m_dataProvider.GetDefault());

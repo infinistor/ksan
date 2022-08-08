@@ -26,100 +26,99 @@ systemctl stop firewalld // docker 에서 udp 사용이 가능하도록 방화�
 ```
 ### dotnet 구성
 ```bash
-# [dotnet 설치]
-# git package의 portal 디렉토리(ksan-master/portal/) 에서 아래 수행
-cd setup/aspnetcore_for_api
-docker build -t pspace/aspnetcore_for_api:latest .
-```
-
-dotnet 구성 실패하는 경우 아래 수행
-```bash
-# [docker 버전 확인]
-# 버전이 1.13.1일 경우 docker 업데이트 해야함.
-docker -v
-Docker version 1.13.1, build 0be3e21/1.13.1
-# [docker 버전 업데이트]
 yum update
-yum remove -y docker-common # 기존 버전 삭제
-yum install -y yum-utils device-mapper-persistent-data lvm2 # Docker Update에 필요한 Tool 설치
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo  # Docker 공식 Repository 추가
+yum -y install docker
+systemctl enable docker
+systemctl start docker
 
-# [peer's certificate issuer is not recognized에러 발생시]
-yum -y install ca-certificates
-update-ca-trust force-enable
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo # 다시 Docker 공식 Repository 추가
-
-# [ 최신 docker 설치]
-yum list docker-ce --showduplicates | sort -r  # 설치 가능한 버전 정보 확인
-yum install -y docker-ce  
-systemctl enable docker  # Docker를 부팅시 실행되도록 설정
-systemctl start docker  # Docker 시작
-
-cd setup/aspnetcore_for_api 
-docker build -t pspace/aspnetcore_for_api:latest . # dotnet 설치
-```
-
-### portal 용 mariadb 설치
-```bash
-# [mariadb 이미지 다운로드] 
-docker rmi mariadb # 기존 이미지 삭제
-docker pull mariadb
-
-# [mariadb container 생성 및 시작] 
-# DB 포트는 3306, DB 는 ksan, DB 패스워드는 'qwe123' , mysql 용 볼륨패스는 local 서버의 /MYSQL 로 설정
-# local 서버의 볼륨 패스의 기존 파일들은 모두 삭제
-docker container run -d -p 3306:3306 \
--e MYSQL_ROOT_HOST=root@'%' \
--e MYSQL_ROOT_PASSWORD=qwe123 \
--e MYSQL_DATABASE=ksan \
--v /MYSQL:/var/lib/mysql --name mariadb mariadb 
-
-# [mariadb 접속 확인]
-# local ip 로 접속
-mysql -uroot -pqwe123 -h 192.168.0.100
-```
-
-### 빌드
- * 모든 이미지는 /opt/ksan_build 에 저장 
-
-```bash
-# [gateway 빌드]
-cd ksan-master/portal/setup/gateway
-docker rmi pspace/ksangateway:latest # 기존 이미지 존재하면 삭제
-docker build -t pspace/ksangateway:latest .
-mkdir /opt/ksan_build
-docker save -o /opt/ksan_build/ksangateway.tar pspace/ksangateway  // 빌드 이미지 저장
-
-# [ksanapi 빌드]
-cd ksan-master/portal
-docker rmi pspace/ksanapi:latest # 기존 이미지 존재하면 삭제
-cp ./PortalSvr/.dockerignore ./.dockerignore
-docker build --rm -t pspace/ksanapi:latest -f ./PortalSvr/Dockerfile .
-docker save -o /opt/ksan_build/ksanapi.tar pspace/ksanapi
-docker rmi $(docker images -f "dangling=true" -q)  # 에러 발생할 경우 -f 옵션 적용
-
-# [ksanportal 빌드]
-cd ksan-master/portal
-docker rm ksanportal # 기존 컨테이너 존재하며 삭제
-docker rmi pspace/ksanportal:latest  # 기존 이미지 존재하면 삭제
-docker build --rm -t pspace/ksanportal:latest -f ./Portal/Dockerfile ./Portal
-docker save -o /opt/ksan_build/ksanportal.tar pspace/ksanportal
-docker rmi $(docker images -f "dangling=true" -q)
-
+# docker 방화벽 설정
+## Docker에서 80, 443 포트 접속이 가능하도록 추가
+sudo firewall-cmd --zone=public --permanent --add-port=443/tcp
+sudo firewall-cmd --zone=public --permanent --add-port=80/tcp
+sudo firewall-cmd --reload
 # docker 위치 변경
-# 기본 위치가 루트로 추후 용량부족이 발생할 수 있음.
+## docker의 이미지 및 컨테이너 이용 폴더가 기본적으로 루트이기 때문에 나중에 용량 부족 등이 발생할 수 있음
 sudo systemctl stop docker
 sudo mv /var/lib/docker /home/docker
 sudo ln -s /home/docker /var/lib/docker
 sudo systemctl start docker
 ```
 
+### mariadb 설치
+```bash
+# mariadb 설치 밎 실행
+# MYSQL_ROOT_HOST => 접속 호스트 제한
+# MYSQL_ROOT_PASSWORD => root 권한자의 비밀번호
+# MYSQL_DATABASE => 최소 생성시 생성할 DB명
+docker run -d \
+--net=host \
+-e MYSQL_ROOT_HOST=% \
+-e MYSQL_ROOT_PASSWORD=YOUR_DB_PASSWORD \
+-e MYSQL_DATABASE=ksan \
+-v /etc/localtime:/etc/localtime:ro \
+-v /MYSQL:/var/lib/mysql \
+--name mariadb \
+mariadb
+
+# [mariadb 접속 확인]
+# local ip 로 접속
+mysql -uroot -pqwe123 -h 192.168.0.100
+```
+
+### rabbitmq 설치
+``` shell
+# rabbitmq 설치 및 실행
+# RABBITMQ_DEFAULT_USER => 최초 생성시 유저 아이디
+# RABBITMQ_DEFAULT_PASS => 최초 생성시 유저 비밀번호
+docker run -d \
+--net=host \
+-e RABBITMQ_DEFAULT_USER=ksanmq \
+-e RABBITMQ_DEFAULT_PASS=YOUR_MQ_PASSWORD \
+-v /etc/localtime:/etc/localtime:ro \
+-v /var/log/ksan/rabbitmq/:/var/log/rabbitmq/ \
+--name rabbitmq \
+rabbitmq:3-management
+```
+
+### 빌드
+ * 모든 이미지는 /opt/ksan_build 에 저장 
+
+```bash
+# 사전 구성
+cd /ksan-master/portal/setup/aspnetcore_for_api
+docker build -t pspace/aspnetcore_for_api:latest .
+
+# [bridge 빌드]
+cd ksan-master/portal/setup/bridge
+docker rmi pspace/ksan-portal-bridge:latest # 기존 이미지 존재하면 삭제
+docker build -t pspace/ksan-portal-bridge:latest .
+mkdir /opt/ksan_build
+docker save -o /opt/ksan_build/ksan-portal-bridge.tar pspace/ksan-portal-bridge  // 빌드 이미지 저장
+
+# [api 빌드]
+cd ksan-master/portalSvr
+docker rmi pspace/ksan-portal-api:latest # 기존 이미지 존재하면 삭제
+cp ./PortalSvr/.dockerignore ./.dockerignore
+docker build --rm -t pspace/ksan-portal-api:latest -f ./PortalSvr/Dockerfile .
+docker save -o /opt/ksan_build/ksan-portal-api.tar pspace/ksan-portal-api
+docker rmi $(docker images -f "dangling=true" -q)  # 에러 발생할 경우 -f 옵션 적용
+
+# [portal 빌드]
+cd ksan-master/portal
+docker rm ksan-portal # 기존 컨테이너 존재하며 삭제
+docker rmi pspace/ksan-portal:latest  # 기존 이미지 존재하면 삭제
+docker build --rm -t pspace/ksan-portal:latest -f ./Portal/Dockerfile ./Portal
+docker save -o /opt/ksan_build/ksan-portal.tar pspace/ksan-portal
+docker rmi $(docker images -f "dangling=true" -q)
+
+```
+
 ### portal 이미지 로드 및 내부 ip 생성
 ```bash
 cd /opt/ksan_build
-docker load -i ksangateway.tar
-docker load -i ksanapi.tar
-docker load -i ksanportal.tar
+docker load -i ksan-portal-bridge.tar
+docker load -i ksan-portal-api.tar
+docker load -i ksan-portal.tar
 
 docker network create --subnet=172.10.0.0/24 ksannet
 ```
@@ -143,8 +142,8 @@ docker create -i -t \
 -v /home/ksan/custom:/app/wwwroot/custom \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
---name ksanportal \
-pspace/ksanportal:latest
+--name ksan-portal \
+pspace/ksan-portal:latest
 
 # [api 컨테이너 생성]
 docker create -i -t \
@@ -157,38 +156,38 @@ docker create -i -t \
 -v /home/ksan/data:/app/wwwroot/data \
 -v /home/ksan/session:/home/session \
 --workdir="/app" \
---name ksanapi \
-pspace/ksanapi:latest
+--name ksan-portal-api \
+pspace/ksan-portal-api:latest
 
-# [gateway(nginx) 컨테이터 생성]
+# [bridge(nginx) 컨테이터 생성]
 docker create --net=host \
 -p 80:80 \
 -p 443:443 \
 -v /etc/localtime:/etc/localtime:ro \
 -v /home/ksan/share:/home/share \
---name ksangateway \
-pspace/ksangateway:latest
+--name ksan-portal-bridge \
+pspace/ksan-portal-bridge:latest
 
 # [service 관리 파일 복사 및 권한 수정]
 cd ksan-master/portal/
-cp ./setup/ksanapi.service /etc/systemd/system/ksanapi.service
-cp ./setup/ksanportal.service /etc/systemd/system/ksanportal.service
-cp ./setup/ksangateway.service /etc/systemd/system/ksangateway.service
+cp ./setup/ksan-portal-api.service /etc/systemd/system/ksan-portal-api.service
+cp ./setup/ksan-portal.service /etc/systemd/system/ksan-portal.service
+cp ./setup/ksan-portal-bridge.service /etc/systemd/system/ksan-portal-bridge.service
 
-chmod 777 /etc/systemd/system/ksanapi.service
-chmod 777 /etc/systemd/system/ksanportal.service
-chmod 777 /etc/systemd/system/ksangateway.service
+chmod 777 /etc/systemd/system/ksan-portal-api.service
+chmod 777 /etc/systemd/system/ksan-portal.service
+chmod 777 /etc/systemd/system/ksan-portal-bridge.service
 
 # [portal service 등록 실행]
-systemctl enable ksanapi.service
-systemctl enable ksanportal.service
-systemctl enable ksangateway.service
+systemctl enable ksan-portal-api.service
+systemctl enable ksan-portal.service
+systemctl enable ksan-portal-bridge.service
 
 # [portal service 실행]
-# ksangateway는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료 해야함.
-systemctl start ksanapi
-systemctl start ksanportal
-systemctl start ksangateway
+# ksanbridge는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료 해야함.
+systemctl start ksan-portal-api
+systemctl start ksan-portal
+systemctl start ksan-portal-bridge
 ```
 
 ### rabbitmq 설치

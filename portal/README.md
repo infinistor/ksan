@@ -37,14 +37,9 @@ docker build -t infinistor/aspnetcore_for_api:latest .
 ```
 ##### dotnet 구성이 안될 경우
 ``` shell
-# docker 버전 확인
-docker -v
-Docker version 1.13.1, build 0be3e21/1.13.1
-# 버전이 1.13.1일 경우 버전 업데이트
+# 업데이트
 yum update
-# 기존 버전 삭제
-yum remove -y docker-common
-# Docker Update에 필요한 Tool 설치
+# 필요한 Tool 설치
 yum install -y yum-utils device-mapper-persistent-data lvm2
 # Docker 공식 Repository 추가
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -65,33 +60,26 @@ systemctl enable docker
 systemctl start docker
 ```
 
-### gateway 빌드
+### ksan-portal-bridge 빌드
 ``` shell
-cd setup/gateway
-docker build -t infinistor/ksangateway:latest .
-docker save -o ~/Downloads/ksangateway.tar infinistor/ksangateway
+cd setup/bridge
+docker build -t infinistor/ksan-portal-bridge:latest .
+docker save -o ~/Downloads/ksan-portal-bridge.tar infinistor/ksan-portal-bridge
 ```
 
-### ksanapi 빌드
+### ksan-api-portal 빌드
 ``` shell
 #!/bin/bash
-#scripts/docker-build-api.sh
-docker rmi infinistor/ksanapi:latest
 cp ./PortalSvr/.dockerignore ./.dockerignore
-docker build --rm -t infinistor/ksanapi:latest -f ./PortalSvr/Dockerfile .
-docker save -o ~/Downloads/ksanapi.tar infinistor/ksanapi
-docker rmi $(docker images -f "dangling=true" -q)
+docker build --rm -t infinistor/ksan-api-portal:latest -f ./PortalSvr/Dockerfile .
+docker save -o ~/Downloads/ksan-api-portal.tar infinistor/ksan-api-portal
 ```
 
-### ksanportal 빌드
+### ksan-portal 빌드
 ``` shell
 #!/bin/bash
-#scripts/docker-build-portal.sh
-docker rm ksanportal
-docker rmi infinistor/ksanportal:latest
-docker build --rm -t infinistor/ksanportal:latest -f ./Portal/Dockerfile ./Portal
-docker save -o ~/Downloads/ksanportal.tar infinistor/ksanportal
-docker rmi $(docker images -f "dangling=true" -q)
+docker build --rm -t infinistor/ksan-portal:latest -f ./Portal/Dockerfile ./Portal
+docker save -o ~/Downloads/ksan-portal.tar infinistor/ksan-portal
 
 ```
 
@@ -123,18 +111,35 @@ sudo ln -s /home/docker /var/lib/docker
 sudo systemctl start docker
 ```
 
+#### 공유용 폴더 생성
+``` shell
+mkdir /usr/local/ksan
+mkdir /usr/local/ksan/etc
+mkdir /usr/local/ksan/ssl
+mkdir /usr/local/ksan/bin
+mkdir /usr/local/ksan/sbin
+mkdir /usr/local/ksan/share
+mkdir /usr/local/ksan/custom
+mkdir /usr/local/ksan/data
+mkdir /usr/local/ksan/session
+mkdir /var/log/ksan
+mkdir /var/log/ksan/rabbitmq
+chmod 775 /var/log/ksan/rabbitmq
+```
+
 ### Mariadb 설치 (docker 이용)
 ``` shell
 # mariadb 설치 밎 실행
 # MYSQL_ROOT_HOST => 접속 호스트 제한
 # MYSQL_ROOT_PASSWORD => root 권한자의 비밀번호
 # MYSQL_DATABASE => 최소 생성시 생성할 DB명
-docker run -d -p 3306:3306 \
+docker run -d \
+--net=host \
 -e MYSQL_ROOT_HOST=% \
--e MYSQL_ROOT_PASSWORD=Password \
+-e MYSQL_ROOT_PASSWORD=YOUR_DB_PASSWORD \
 -e MYSQL_DATABASE=ksan \
+-v /etc/localtime:/etc/localtime:ro \
 -v /MYSQL:/var/lib/mysql \
---restart=unless-stopped \
 --name mariadb \
 mariadb
 ```
@@ -153,26 +158,26 @@ mysql -u UserName -p Password -h IP
 # RABBITMQ_DEFAULT_USER => 최초 생성시 유저 아이디
 # RABBITMQ_DEFAULT_PASS => 최초 생성시 유저 비밀번호
 docker run -d \
--p 5672:5672 \
--p 15672:15672 \
--e RABBITMQ_DEFAULT_USER=guest \
--e RABBITMQ_DEFAULT_PASS=guest \
---restart=unless-stopped \
+--net=host \
+-e RABBITMQ_DEFAULT_USER=ksanmq \
+-e RABBITMQ_DEFAULT_PASS=YOUR_MQ_PASSWORD \
+-v /etc/localtime:/etc/localtime:ro \
+-v /var/log/ksan/rabbitmq/:/var/log/rabbitmq/ \
 --name rabbitmq \
 rabbitmq:3-management
-
 ```
+
 #### rabbitmq 접속방법
 - 서버주소 : http://<ip>:15672
 - username : RABBITMQ_DEFAULT_USER 값. 기본값 = guest
 - password : RABBITMQ_DEFAULT_PASS 값. 기본값 = guest
 
 ### Portal 설치
-#### docker 기본 이미지 로드하기 (오프라인)
+#### docker 기본 이미지 로드하기 (빌드 할 경우)
 ``` shell
-docker load -i ksangateway.tar
-docker load -i ksanapi.tar
-docker load -i ksanportal.tar
+docker load -i ksan-portal-bridge.tar
+docker load -i ksan-api-portal.tar
+docker load -i ksan-portal.tar
 ```
 
 #### docker 내부에서 사용할 아이피 생성
@@ -180,70 +185,53 @@ docker load -i ksanportal.tar
 docker network create --subnet=172.10.0.0/24 ksannet
 ```
 
-#### session 공유용 폴더 생성
+#### ksan-portal-bridge (nginx) 컨테이너 생성
 ``` shell
-mkdir /home/ksan
-mkdir /home/ksan/ksan
-mkdir /home/ksan/session
+docker create --net=host \
+-v /etc/localtime:/etc/localtime:ro \
+--name ksan-portal-bridge \
+infinistor/ksan-portal-bridge:latest
 ```
 
-#### web 컨테이너 생성
+#### ksan-portal 컨테이너 생성
 ``` shell
 docker create -i -t \
 --net ksannet \
 --ip 172.10.0.11 \
 -v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/logs:/app/logs \
--v /home/ksan/share:/home/share \
--v /home/ksan/custom:/app/wwwroot/custom \
--v /home/ksan/session:/home/session \
---workdir="/app" \
---name ksanportal \
-infinistor/ksanportal:latest
+-v /var/log/ksan/:/app/logs \
+-v /usr/local/ksan:/usr/local/ksan \
+--name ksan-portal \
+infinistor/ksan-portal:latest
 ```
 
-#### api 컨테이너 생성
+#### ksan-api-portal 컨테이너 생성
 ``` shell
 docker create -i -t \
 --net ksannet \
 --ip 172.10.0.21 \
 -v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/logs:/app/logs \
--v /home/ksan/share:/home/share \
--v /home/ksan/custom:/app/wwwroot/custom \
--v /home/ksan/data:/app/wwwroot/data \
--v /home/ksan/session:/home/session \
---workdir="/app" \
---name ksanapi \
-infinistor/ksanapi:latest
-```
-
-#### gateway (nginx) 컨테이너 생성
-``` shell
-docker create --net=host \
--p 80:80 \
--p 443:443 \
--v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/share:/home/share \
---name ksangateway \
-infinistor/ksangateway:latest
+-v /var/log/ksan/:/app/logs \
+-v /usr/local/ksan:/usr/local/ksan \
+--name ksan-api-portal \
+infinistor/ksan-api-portal:latest
 ```
 
 #### 파일 복사 및 권한 수정
 ``` shell
-cp ./setup/ksanapi.service /etc/systemd/system/ksanapi.service
-cp ./setup/ksanportal.service /etc/systemd/system/ksanportal.service
-cp ./setup/ksangateway.service /etc/systemd/system/ksangateway.service
+cp ./setup/ksan-api-portal.service /etc/systemd/system/ksan-api-portal.service
+cp ./setup/ksan-portal.service /etc/systemd/system/ksan-portal.service
+cp ./setup/ksan-portal-bridge.service /etc/systemd/system/ksan-portal-bridge.service
 
-chmod 777 /etc/systemd/system/ksanapi.service
-chmod 777 /etc/systemd/system/ksanportal.service
-chmod 777 /etc/systemd/system/ksangateway.service
+chmod 777 /etc/systemd/system/ksan-api-portal.service
+chmod 777 /etc/systemd/system/ksan-portal.service
+chmod 777 /etc/systemd/system/ksan-portal-bridge.service
 ```
 
 #### 인증서 발급
 - 사설 인증기관에서 발급 받을 경우 pfx파일을 다운받아 사용하면 됩니다.
 #### 생성된 인증서 파일을 업로드
-docker cp infinistor.pfx ksanapi:/app
+docker cp infinistor.pfx ksan-api-portal:/app
 ```
 
 #### Api 설정
@@ -251,12 +239,12 @@ docker cp infinistor.pfx ksanapi:/app
 - 예시에 맞게 설정한 뒤 파일명을 `appsettings.json`으로 변경해야합니다.
 - 이후 아래의 명령어로 적용 가능합니다.
   ``` shell
-  docker cp appsettings.json ksanapi:/app
+  docker cp appsettings.json ksan-api-portal:/app
   ```
 - 기존 설정을 변경 하고 싶을 경우
   ``` shell
-  docker cp appsettings.json ksanapi:/app
-  systemctl restart ksanapi
+  docker cp appsettings.json ksan-api-portal:/app
+  systemctl restart ksan-api-portal
   ```
 - RabbitMQ, mariaDB의 접속 정보를 변경할 경우 모든 서비스의 설정에 반영해야 합니다.
 - appsettings.json
@@ -272,13 +260,10 @@ docker cp infinistor.pfx ksanapi:/app
     - User, Password : 기본값은 guest, guest. RabbitMq 설정에 따라 이 값은 변경될 수 있습니다.
 ``` json
 {
-	"ConnectionStrings": {
-		"PortalDatabase": "Server=<Mgs Ip>;Port=3306;Database=<Database Name>;Uid=<User>;Password=<Password>;CharSet=utf8;Pooling=True;Max Pool Size=100;"
-	},
 	"AppSettings": {
-		"Host": "",
+		"Host": "ksan_mgnt",
 		"Domain": "",
-		"SharedAuthTicketKeyPath": "/home/session",
+		"SharedAuthTicketKeyPath": "/usr/local/ksan/session",
 		"SharedAuthTicketKeyCertificateFilePath": "sample.pfx",
 		"SharedAuthTicketKeyCertificatePassword": "<Password>",
 		"ExpireMinutes": 1440,
@@ -292,6 +277,21 @@ docker cp infinistor.pfx ksanapi:/app
 			"Password": "<RabbitMq Password>",
 			"Enabled": true
 		}
+	},
+	"MariaDB":{
+		"Host": "localhost",
+		"Name": "ksan",
+		"Port": 3306,
+		"User":"<User>",
+		"Password": "<Password>",
+		"LicenseKey":""
+	},
+	"MongoDB": {
+		"Host": "localhost",
+		"Name": "ksan",
+		"Port": 3306,
+		"User":"<User>",
+		"Password": "<Password>"
 	},
 	"Logging": {
 		"LogLevel": {
@@ -308,19 +308,19 @@ docker cp infinistor.pfx ksanapi:/app
 #### Portal 서비스 등록 및 실행
 ``` shell
 # 서비스 등록
-systemctl enable ksanapi.service
-systemctl enable ksanportal.service
-systemctl enable ksangateway.service
+systemctl enable ksan-api-portal.service
+systemctl enable ksan-portal.service
+systemctl enable ksan-portal-bridge.service
 
 # 서비스 실행
-systemctl start ksanapi
-systemctl start ksanportal
-systemctl start ksangateway
+systemctl start ksan-api-portal
+systemctl start ksan-portal
+systemctl start ksan-portal-bridge
 
-# ksangateway는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료
-# httpd를 종료하고 ksangateway 재실행
+# ksan-portal-bridge는 80포트를 사용하기 때문에 해당 포트를 사용중인 프로그램을 종료
+# httpd를 종료하고 ksan-portal-bridge 재실행
 systemctl stop httpd
-systemctl start ksangateway
+systemctl start ksan-portal-bridge
 ```
 #### Swagger 접속 주소
 - `https://<ip>:<port>/api`
@@ -333,67 +333,65 @@ systemctl start ksangateway
 ``` shell
 # 서비스 정지
 # docker로 시작했을 경우
-docker stop ksanapi
+docker stop ksan-api-portal
 # service로 시작했을 경우
-systemctl stop ksanapi
+systemctl stop ksan-api-portal
 
 # 기존 설정 백업
-docker cp ksanapi:/app/appsettings.json .
+docker cp ksan-api-portal:/app/appsettings.json .
 
 # 기존 컨테이너, 이미지 제거
-docker rm ksanapi
-docker rmi infinistor/ksanapi
+docker rm ksan-api-portal
+docker rmi infinistor/ksan-api-portal
 
 # 새 이미지 업로드 및 컨테이너 생성
-docker load -i ksanapi.tar
+docker load -i ksan-api-portal.tar
 docker create -i -t \
 --net ksannet \
 --ip 172.10.0.21 \
 -v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/logs:/app/logs \
--v /home/ksan/share:/home/share \
--v /home/ksan/custom:/app/wwwroot/custom \
--v /home/ksan/data:/app/wwwroot/data \
--v /home/ksan/session:/home/session \
---workdir="/app" \
---name ksanapi \
-infinistor/ksanapi:latest
+-v /var/log/ksan/:/app/logs \
+-v /usr/local/ksan:/usr/local/ksan \
+--name ksan-api-portal \
+infinistor/ksan-api-portal:latest
 
 # 설정 복구
-docker cp appsettings.json ksanapi:/app
+docker cp appsettings.json ksan-api-portal:/app
 
 # 서비스 시작
 # docker로 시작했을 경우
-docker start ksanapi
+docker start ksan-api-portal
 # service로 시작했을 경우
-systemctl start ksanapi
+systemctl start ksan-api-portal
 ```
 
 ### Portal 업데이트
 ``` shell
 # 서비스 정지
 # docker로 시작했을 경우
-docker stop ksanportal
+docker stop ksan-portal
 # service로 시작했을 경우
-systemctl stop ksanportal
+systemctl stop ksan-portal
 
 # 기존 컨테이너, 이미지 제거
-docker rm ksanportal
-docker rmi infinistor/ksanportal
+docker rm ksan-portal
+docker rmi infinistor/ksan-portal
 
 # 새 이미지 업로드 및 컨테이너 생성
-docker load -i ksanportal.tar
-docker create --net=host \
--p 80:80 \
--p 443:443 \
+docker load -i ksan-portal.tar
+docker create -i -t \
+--net ksannet \
+--ip 172.10.0.11 \
 -v /etc/localtime:/etc/localtime:ro \
--v /home/ksan/share:/home/share \
---name ksangateway \
-infinistor/ksangateway:latest
+-v /var/log/ksan/:/app/logs \
+-v /usr/local/ksan:/usr/local/ksan \
+--workdir="/app" \
+--name ksan-portal \
+infinistor/ksan-portal:latest
 
 # 서비스 시작
 # docker로 시작했을 경우
-docker start ksanportal
+docker start ksan-portal
 # service로 시작했을 경우
-systemctl start ksanportal
+systemctl start ksan-portal
 ```

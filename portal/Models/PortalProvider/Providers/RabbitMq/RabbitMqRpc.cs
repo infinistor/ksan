@@ -68,7 +68,7 @@ namespace PortalProvider.Providers.RabbitMq
 				m_properties = m_channel.CreateBasicProperties();
 				string correlationId = Guid.NewGuid().ToString();
 				m_properties.CorrelationId = correlationId;
-				m_receiverQueueName = m_channel.QueueDeclare().QueueName;
+				m_receiverQueueName = $"ksan-api-portal.{correlationId}";
 				m_properties.ReplyTo = m_receiverQueueName;
 
 				// 결과 수신 객체 생성
