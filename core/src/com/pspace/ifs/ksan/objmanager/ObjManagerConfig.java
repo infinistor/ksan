@@ -91,6 +91,10 @@ public class ObjManagerConfig {
         }
     } 
     
+    public GetFromPortal getPortalHandel(){
+        return portal;
+    }
+    
     @Override
     public String toString(){
         return String.format(
