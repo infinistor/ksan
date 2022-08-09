@@ -15,7 +15,6 @@ import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
-import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
 //import org.json.simple.JSONArray;
@@ -145,13 +144,15 @@ public class DiskMonitor {
     //private MQReceiver mq1ton;
     private JSONParser parser;
     private static Logger logger;
+    private ObjManagerConfig config;
     
-    public DiskMonitor(ObjManagerCache obmCache, String mqHost, String mqQueue, String mqExchange)
+    public DiskMonitor(ObjManagerCache obmCache, ObjManagerConfig config)
             throws Exception{
         logger = LoggerFactory.getLogger(DiskMonitor.class);
         this.obmCache = obmCache;
+        this.config = config;
         //MQCallback callback = new MQReader();
-        //mq1ton = new MQReceiver(mqHost, mqQueue, mqExchange, false, "topic", "*.servers.*.*", callback);
+        //mq1ton = new MQReceiver(config.mqHost, config.mqQueue, config.mqExchange, false, "topic", "*.servers.*.*", callback);
         parser = new JSONParser();
     }
     
@@ -196,7 +197,7 @@ public class DiskMonitor {
             else if (routingKey.contains(".updated") || routingKey.contains(".size"))
                 ret =updateDiskSpace(dskPool, jo);
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
         }  
         else if (routingKey.contains("servers.diskpools.")){
             if (routingKey.contains(".added"))
@@ -206,7 +207,7 @@ public class DiskMonitor {
             else if (routingKey.contains(".updated"))
                 ret= updateDiskPool(dskPool, jo,  body);
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
         }
         else if (routingKey.contains("servers.volumes.")){
             ret = volumeMGNT(dskPool, jo, body);
@@ -220,10 +221,10 @@ public class DiskMonitor {
                 ret =updateServerStatus(dskPool, jo);
 
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
         }     
         else 
-            ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManger not supported the request!", 0);
+            ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
         
         try {
             obmCache.dumpCacheInFile(); // dump to file memory
@@ -276,7 +277,12 @@ public class DiskMonitor {
         if (jO.containsKey(KEYS.DISKPOOLID.label)){
             res.dpoolid = (String)jO.get(KEYS.DISKPOOLID.label);
             //System.out.println("dskpoolId >" + res.dpoolid);
-        } if (jO.containsKey(KEYS.HOSTNAME.label))
+        }
+        else{
+            res.dpoolid = res.id;
+        }
+        
+        if (jO.containsKey(KEYS.HOSTNAME.label))
             res.hostname = (String)jO.get(KEYS.HOSTNAME.label);
         if (jO.containsKey(KEYS.IPADD.label))
             res.IPaddr = (String)jO.get(KEYS.IPADD.label);
@@ -386,20 +392,17 @@ public class DiskMonitor {
             }
         } catch (ResourceNotFoundException ex) {
            if (jo.action.equalsIgnoreCase(KEYS.ADD.label)){
-               if (svr == null){
-                   try {
-                       JsonOutput jsonSvr = this.decodeSubJsonObject(body, "Server");
-                       //return addRemoveServer(dskPool, jsonSvr);
-                       dskPool.addServer(jsonSvr.serverid, jsonSvr.IPaddr, jsonSvr.hostname, jsonSvr.rack);
-                       svr = dskPool.getServerById(jo.serverid);
-                       svr.setRack(jsonSvr.rack);
-                       svr.setStatus(ServerStatus.ONLINE);
-                       svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
-                       logger.debug("[addRemoveDisk] OSD server and disk added {}", body);
-                   } catch (ParseException | ResourceNotFoundException ex1) {
-                      logger.debug("[addRemoveDisk] unable to add disk because the server not exist request {}", body);
-                   }
-               }
+                try {
+                    JsonOutput jsonSvr = this.decodeSubJsonObject(body, "Server");
+                    dskPool.addServer(jsonSvr.serverid, jsonSvr.IPaddr, jsonSvr.hostname, jsonSvr.rack);
+                    svr = dskPool.getServerById(jo.serverid);
+                    svr.setRack(jsonSvr.rack);
+                    svr.setStatus(ServerStatus.ONLINE);
+                    svr.addDisk(jo.mpath, jo.diskid, 0, DiskStatus.STOPPED);
+                    logger.debug("[addRemoveDisk] OSD server and disk added {}", body);
+                } catch (ParseException | ResourceNotFoundException ex1) {
+                   logger.debug("[addRemoveDisk] unable to add disk because the server not exist request {}", body);
+                } 
            }
         }
         res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
@@ -478,7 +481,7 @@ public class DiskMonitor {
         return res;
     }
     
-    private MQResponse updateDiskPool(DISKPOOL dskPool, JsonOutput jo, String msg){
+    private MQResponse updateDiskPool(DISKPOOL dskPool, JsonOutput jo, String msg) {
         MQResponse res;
         JSONObject dsk;
         JSONArray dskArray = decodeJsonArray(msg, "Disks");
@@ -535,12 +538,21 @@ public class DiskMonitor {
                 try {
                     dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                     svr = dskPool1.getServerById(serverId);
+                    svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
                 } catch (ResourceNotFoundException ex1) {
-                    logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                    return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
+                    try {
+                        svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
+                        if (svr == null){
+                            logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                            return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+                        }
+                        dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+                        dskPool1.addServer(svr);
+                    } catch (ResourceNotFoundException ex2) {
+                        logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                        return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+                    }
                 }
-                svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
-          
                 logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
                         diskId, serverId, dskPoolId, mpath); 
             }

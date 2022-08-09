@@ -76,7 +76,7 @@ public class DiskAllocation {
          osdDistanceMap = getOSDDistanceMap(mt);
          do{
             replica = dskPool.getNextServer();
-            if (replica == null && numRoatate > 2){
+            if (replica == null || numRoatate > 2){
                 logger.error("[allocReplicaDisk] There is no osd server for replica allocation!");
                 throw new ResourceNotFoundException("there is no osd server for replica allocation!");
             }
@@ -85,25 +85,18 @@ public class DiskAllocation {
                 numRoatate++;
                 continue;
             }
-           /*if (mt.isPrimaryExist()){
-               
-               if (mt.getPrimaryDisk().getOSDServerId().equals(replica.getId())){
-                   numRoatate++;
-                   continue;
-               }
-           }
-           if (mt.isReplicaExist()){
-               if (mt.getReplicaDisk().getOSDServerId().equals(replica.getId())){
-                   numRoatate++;
-                   continue;
-               }
-           }*/
- 
-            break;
+            
+            try{
+                dsk = replica.getNextDisk();
+                dsk.setOSDIP(replica.getName());
+                dsk.setOSDServerId(replica.getId());
+                break;
+            } catch(ResourceNotFoundException ex){
+                // to check in another osd
+            }
+
          }while(true);
-         dsk = replica.getNextDisk();
-         dsk.setOSDIP(replica.getName());
-         dsk.setOSDServerId(replica.getId());
+         
          logger.debug("[ReplicaAllocation] bucket : {} key : {} versionId : {}  DiskId {} osdIp {} ", mt.getBucket(), mt.getPath(), mt.getVersionId(), dsk.getId(), replica.getName());
          return dsk;
     }

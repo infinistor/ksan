@@ -50,7 +50,7 @@ public class CBalanceMain {
     @Option(name="--DstDiskName",  usage="Specify the distination disk Name")
     public String DstDiskName = "";
     
-    @Option(name="--Size", usage="Specify the capacity to move")
+    @Option(name="--Size", usage="Specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units. ")
     public String cpacityToMove = "";
     
     @Option(name="--OkLocalMove",  usage="To allow to move to local another disk")
@@ -75,22 +75,26 @@ public class CBalanceMain {
         if (cpacityToMove.isEmpty())
             return 0; // ignore
         
-        if (cpacityToMove.endsWith("TB"))
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* nByte* nByte* nByte * nByte;
-        else if(cpacityToMove.endsWith("T")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("T", ""))* nBite* nBite* nBite * nBite;
-        else if(cpacityToMove.endsWith("GB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* nByte* nByte * nByte;
-        else if( cpacityToMove.endsWith("G")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("G", ""))* nBite* nBite * nBite ;
-        else if(cpacityToMove.endsWith("MB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* nByte * nByte;
-        else if(cpacityToMove.endsWith("M")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("M", ""))* nBite * nBite;
-        else if(cpacityToMove.endsWith("KB")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", "")) * nByte;
-        else if( cpacityToMove.endsWith("K")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("K", "")) * nBite;
+        if (cpacityToMove.endsWith("PiB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("PiB", ""))* nByte* nByte* nByte * nByte * nByte;
+        else if (cpacityToMove.endsWith("PB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("PB", ""))* nBite* nBite* nBite * nBite * nBite;
+        else if (cpacityToMove.endsWith("TiB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TiB", ""))* nByte* nByte* nByte * nByte;
+        else if(cpacityToMove.endsWith("TB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* nBite* nBite* nBite * nBite;
+        else if(cpacityToMove.endsWith("GiB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GiB", ""))* nByte* nByte * nByte;
+        else if( cpacityToMove.endsWith("GB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* nBite* nBite * nBite ;
+        else if(cpacityToMove.endsWith("MiB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MiB", ""))* nByte * nByte;
+        else if(cpacityToMove.endsWith("MB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* nBite * nBite;
+        else if(cpacityToMove.endsWith("KiB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KiB", "")) * nByte;
+        else if( cpacityToMove.endsWith("KB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", "")) * nBite;
         else{
             amountToMove = Long.parseUnsignedLong(cpacityToMove);
         }
@@ -143,7 +147,7 @@ public class CBalanceMain {
         System.err.format("          %s  --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB \n", getProgramName());
         System.err.format("          %s  --SrcDiskName osd1_disk1 --Size 2GB \n", getProgramName());
         System.err.println("\nExample : To empty a disk");
-        System.err.format("          %s --Emptydisk --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s --EmptyDisk --SrcDiskName osd1_disk1 \n", getProgramName());
         System.err.println();
     }
     
