@@ -20,6 +20,7 @@ public class DISK{
     private double usedInode;
     private String osdIp;
     private String osdServerId;
+    private String diskPoolId;
     private int role; // primary or replica
     private DiskMode mode;
     private DiskStatus status; // GOOD, STOPPED, BROKEN, UNKNOWN;
@@ -73,6 +74,10 @@ public class DISK{
         return osdServerId;
     }
     
+    public String getDiskPoolId(){
+        return diskPoolId;
+    }
+    
     public void setOSDServerId(String osdServerId){
         this.osdServerId = osdServerId;
     }
@@ -112,10 +117,14 @@ public class DISK{
         this.osdIp = osdIP;
     }
     
+    public void setDiskPoolId(String diskPoolId){
+        this.diskPoolId = diskPoolId;
+    }
+    
     @Override
     public String toString(){
         return String.format(
-                "{ OsdIP : %s, path : %s, diskid : %s, mode : %s,  status : %s }", 
-                this.getOsdIp(), this.getPath(), this.getId(), this.getMode(), this.getStatus());
+                "{ OsdIP : %s, diskPoolId : %s, path : %s, diskid : %s, mode : %s,  status : %s }", 
+                getOsdIp(), getDiskPoolId(), getPath(), getId(), getMode(), getStatus());
     }
 }

@@ -310,7 +310,7 @@ public class MongoDataRepository implements DataRepository{
         String deleteMarker = doc.getString(DELETEMARKER);
         boolean lastversion = doc.getBoolean(LASTVERSION);
         String pdiskId      = doc.getString(PDISKID);
-        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();
         String rdiskId      = doc.getString(RDISKID);
         DISK rdsk;
         if (rdiskId == null)
@@ -318,7 +318,7 @@ public class MongoDataRepository implements DataRepository{
         else if (rdiskId.isEmpty())
             rdsk = new DISK();
         else
-            rdsk = obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId);
+            rdsk = obmCache.getDiskWithId(rdiskId);
         
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
@@ -1219,7 +1219,7 @@ public class MongoDataRepository implements DataRepository{
             mt.setLastModified(lastModified);
                 
             try {
-                mt.setPrimaryDisk(obmCache.getDiskWithId(diskPoolId, pdiskid));
+                mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));
             } catch (ResourceNotFoundException ex) {
                 mt.setPrimaryDisk(new DISK());
             }
@@ -1230,7 +1230,7 @@ public class MongoDataRepository implements DataRepository{
                 else if(rdiskid.isEmpty())
                     mt.setReplicaDISK(new DISK());
                 else
-                    mt.setReplicaDISK(obmCache.getDiskWithId(diskPoolId, rdiskid));
+                    mt.setReplicaDISK(obmCache.getDiskWithId(rdiskid));
             } catch (ResourceNotFoundException ex) {
                 mt.setReplicaDISK(new DISK());
             }
@@ -1314,7 +1314,7 @@ public class MongoDataRepository implements DataRepository{
             if (pdiskId == null || obmCache == null)
                 pdsk = new DISK();
             else 
-                pdsk = obmCache.getDiskWithId(diskPoolId, pdiskId);
+                pdsk = obmCache.getDiskWithId(pdiskId);
         } catch (ResourceNotFoundException ex) {
             pdsk = new DISK();
         }

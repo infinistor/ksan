@@ -414,11 +414,11 @@ public class MysqlDataRepository implements DataRepository{
         String rdiskPath;
         
         while(rs.next()){
-            pdsk = this.obmCache.getDiskWithId(diskPoolId, rs.getString(9));
+            pdsk = this.obmCache.getDiskWithId(rs.getString(9));
             try{
                 rdiskPath = rs.getString(10);
                 if (!rdiskPath.isEmpty())
-                    rdsk = this.obmCache.getDiskWithId(diskPoolId, rs.getString(10));
+                    rdsk = this.obmCache.getDiskWithId(rs.getString(10));
                 else
                     rdsk = new DISK();
             } catch(ResourceNotFoundException ex){
@@ -851,7 +851,7 @@ public class MysqlDataRepository implements DataRepository{
         Metadata mt;
         DISK pdsk;
         try {
-            pdsk = pdiskId != null ? obmCache.getDiskWithId(diskPoolId, pdiskId) : new DISK();
+            pdsk = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();
         } catch (ResourceNotFoundException ex) {
              pdsk = new DISK();
         }
@@ -1225,9 +1225,9 @@ public class MysqlDataRepository implements DataRepository{
             String pdiskid = rs.getString("pdiskid");
             String rdiskid = rs.getString("rdiskid");
             try {
-                pdsk = obmCache.getDiskWithId(diskPoolId, pdiskid);
+                pdsk = obmCache.getDiskWithId( pdiskid);
                 if (!rdiskid.isEmpty())
-                    rdsk = this.obmCache.getDiskWithId(diskPoolId, rdiskid);
+                    rdsk = this.obmCache.getDiskWithId( rdiskid);
                 else
                     rdsk = new DISK();
             } catch (ResourceNotFoundException ex) {

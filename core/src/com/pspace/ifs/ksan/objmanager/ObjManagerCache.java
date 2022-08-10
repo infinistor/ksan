@@ -19,7 +19,6 @@ import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -93,6 +92,22 @@ public class ObjManagerCache {
         }
         logger.error("There is no server in the disk pool with that serverid : {}!", serverId);
        throw new ResourceNotFoundException("There is no server in the disk pool with that serverid : " + serverId +"!"); 
+    }
+    
+    public DISKPOOL getDiskPoolFromCacheWithDiskId(String diskId) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        
+        for(String diskPoolId : diskPoolMap.keySet()){
+            dskPool = getDiskPool(diskPoolId);
+            try {
+                dskPool.getDisk(diskId);
+                return dskPool;
+            } catch (ResourceNotFoundException ex) {
+                // check the next diskPool   
+            }
+        }
+        logger.error("[getDiskPoolFromCacheWithDiskId] There is no disk pool that hold a disk with that Id  : {}!", diskId);
+       throw new ResourceNotFoundException("[getDiskPoolFromCacheWithDiskId] There is no disk pool that hold a disk with that Id  : " + diskId +"!"); 
     }
     
     public void setBucketInCache(Bucket bt){
@@ -184,6 +199,20 @@ public class ObjManagerCache {
         logger.error("There is no disk in the the server with diskid : {} at disk pool id : {}!", diskid, dskPoolId);
         throw new ResourceNotFoundException("There is no disk in the the server with diskid : " + 
                 diskid +" at diskpool id : "+ dskPoolId +"!"); 
+    }
+    
+    public DISK getDiskWithId(String diskid) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        DISK dsk;
+        
+        dskPool = getDiskPoolFromCacheWithDiskId(diskid);
+        if (dskPool != null){
+            dsk = dskPool.getDisk( diskid);
+            dsk.setDiskPoolId(dskPool.getId());
+            return dsk;
+        }
+        logger.error("[getDiskWithId] There is no disk in the the server with diskid : {}!", diskid);
+        throw new ResourceNotFoundException("[getDiskWithId] There is no disk in the the server with diskid :" + diskid +"!"); 
     }
     
     public boolean validateDisk(String dskPoolId, String diskid, String dskPath){
