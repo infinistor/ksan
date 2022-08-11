@@ -20,6 +20,7 @@ using PortalProvider.Providers.RabbitMq;
 using PortalProvider.Providers.DB;
 using Newtonsoft.Json;
 using System.IO;
+using System.Collections.Generic;
 
 namespace PortalSvr.Services
 {
@@ -36,6 +37,9 @@ namespace PortalSvr.Services
 		/// <summary>설정에 대한 프로바이더</summary>
 		private readonly IConfigProvider m_configProvider;
 
+		/// <summary> Api Key 프로바이더</summary>
+		protected readonly IApiKeyProvider m_apiKeyProvider;
+
 		/// <summary>설정 정보</summary>
 		protected readonly IConfiguration m_configuration;
 
@@ -44,15 +48,18 @@ namespace PortalSvr.Services
 
 		/// <summary>생성자</summary>
 		/// <param name="configProvider">설정에 대한 프로바이더 객체</param>
+		/// <param name="apiKeyProvider">API Key에 대한 프로바이더 객체</param>
 		/// <param name="configuration">설정 정보</param>
 		/// <param name="logger">로거</param>
 		public ConfigurationInitializer(
 			IConfigProvider configProvider,
+			IApiKeyProvider apiKeyProvider,
 			IConfiguration configuration,
 			ILogger<ConfigurationInitializer> logger
 		)
 		{
 			m_configProvider = configProvider;
+			m_apiKeyProvider = apiKeyProvider;
 			m_configuration = configuration;
 			m_logger = logger;
 		}
@@ -119,6 +126,36 @@ namespace PortalSvr.Services
 					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanOsd, StrKsanOsd);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Result.Data.Version);
 				}
+
+				// ksanMonitor.conf파일을 생성한다.
+				// 내부 서비스용 API 키를 가져온다.
+				var ApiKey = await m_apiKeyProvider.GetMainApiKey();
+
+				if (ApiKey == null)
+					throw new Exception("Internal Service ApiKey is null");
+				var Datas = new List<string>()
+					{
+						"[mgs]",
+						$"PortalIp = {m_configuration["AppSettings:Host"]}",
+						"PortalPort = 5443",
+						$"MqHost = {m_configuration["AppSettings:RabbitMq:Host"]}",
+						$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
+						$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
+						$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
+						$"PortalApiKey = {ApiKey.KeyValue}",
+						"ServerId = ",
+						"ManagementNetDev = ",
+						"DefaultNetworkId = ",
+						"",
+						"[monitor]",
+						"ServerMonitorInterval = 5",
+						"NetworkMonitorInterval = 5",
+						"DiskMonitorInterval = 5",
+						"ServiceMonitorInterval = 5",
+					};
+
+				await File.WriteAllLinesAsync("/usr/local/ksan/etc/ksanMonitor.conf", Datas);
+				m_logger.LogInformation("Save ksanMonitor.conf");
 			}
 			catch (Exception ex)
 			{

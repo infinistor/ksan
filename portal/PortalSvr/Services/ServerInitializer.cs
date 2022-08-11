@@ -107,41 +107,40 @@ namespace PortalSvr.Services
 
 					if (Response.Result == EnumResponseResult.Success)
 					{
-						Server = Response;
-						m_logger.LogInformation($"{ServerName} Add Success");
+						// Server = Response;
+						// m_logger.LogInformation($"{ServerName} Add Success");
 
-						// 서버등록에 성공할 경우 ksanMonitor.conf파일을 생성한다.
-						var Datas = new List<string>()
-							{
-								"[mgs]",
-								$"PortalIp = {m_configuration["AppSettings:RabbitMq:Host"]}",
-								"PortalPort = 5443",
-								$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
-								$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
-								$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
-								$"PortalApiKey = {ApiKey.KeyValue}",
-								$"ServerId = {Response.Data.Id}",
-								"ManagementNetDev = ",
-								"DefaultNetworkId = ",
-								"",
-								"[monitor]",
-								"ServerMonitorInterval = 5",
-								"NetworkMonitorInterval = 5",
-								"DiskMonitorInterval = 5",
-								"ServiceMonitorInterval = 5",
-							};
+						// // 서버등록에 성공할 경우 ksanMonitor.conf파일을 생성한다.
+						// var Datas = new List<string>()
+						// 	{
+						// 		"[mgs]",
+						// 		$"PortalIp = {m_configuration["AppSettings:RabbitMq:Host"]}",
+						// 		"PortalPort = 5443",
+						// 		$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
+						// 		$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
+						// 		$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
+						// 		$"PortalApiKey = {ApiKey.KeyValue}",
+						// 		$"ServerId = {Response.Data.Id}",
+						// 		"ManagementNetDev = ",
+						// 		"DefaultNetworkId = ",
+						// 		"",
+						// 		"[monitor]",
+						// 		"ServerMonitorInterval = 5",
+						// 		"NetworkMonitorInterval = 5",
+						// 		"DiskMonitorInterval = 5",
+						// 		"ServiceMonitorInterval = 5",
+						// 	};
 
-						await File.WriteAllLinesAsync("/usr/local/ksan/etc/ksanMonitor.conf", Datas);
-						m_logger.LogInformation("Save ksanMonitor.conf");
+						// await File.WriteAllLinesAsync("/usr/local/ksan/etc/ksanMonitor.conf", Datas);
+						// m_logger.LogInformation("Save ksanMonitor.conf");
 					}
 					else
 						throw new Exception($"{ServerName} Add Failure");
-
 				}
 				var ServerId = Server.Data.Id;
 
 				// 자기자신의 서비스가 등록되어있는지 확인한다.
-				var ServiceName = "ksanapiportal";
+				var ServiceName = HostName+"_api";
 				var Service = await m_serviceProvider.Get(ServiceName);
 
 				//서비스가 등록되지 않았을 경우

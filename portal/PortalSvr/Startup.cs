@@ -319,8 +319,8 @@ namespace PortalSvr
 				// 최초 기동시 설정을 등록 한다.
 				configurationInitializer?.Initialize().Wait();
 
-				// 최초 기동시 서버를 등록 한다.
-				serverInitializer?.Initialize().Wait();
+				// // 최초 기동시 서버를 등록 한다.
+				// serverInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);
