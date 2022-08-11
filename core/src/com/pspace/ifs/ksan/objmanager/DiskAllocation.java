@@ -90,6 +90,7 @@ public class DiskAllocation {
                 dsk = replica.getNextDisk();
                 dsk.setOSDIP(replica.getName());
                 dsk.setOSDServerId(replica.getId());
+                dsk.setDiskPoolId(dskPool.getId());
                 break;
             } catch(ResourceNotFoundException ex){
                 // to check in another osd
@@ -141,6 +142,7 @@ public class DiskAllocation {
              
              primaryDisk.setOSDIP(primary.getName());
              primaryDisk.setOSDServerId(primary.getId());
+             primaryDisk.setDiskPoolId(dskPoolId);
              md.setPrimaryDisk(primaryDisk);
              md.setReplicaCount(replicaCount);
              
@@ -150,6 +152,7 @@ public class DiskAllocation {
              
              try{
                 replicaDisk = this.allocReplicaDisk(dskPool, md);
+                replicaDisk.setDiskPoolId(dskPoolId);
                 md.setReplicaDISK(replicaDisk);
              } catch(ResourceNotFoundException e){
                 logger.error("[allocDisk]Replica disk not allocated for bucketName {} key {} objId {}!", md.getBucket(), md.getPath(), md.getObjId());
@@ -174,6 +177,7 @@ public class DiskAllocation {
         }
         
         replicaDisk = this.allocReplicaDisk(dskPool, mt);
+        replicaDisk.setDiskPoolId(dskPoolId);
         return replicaDisk;
     }
     
