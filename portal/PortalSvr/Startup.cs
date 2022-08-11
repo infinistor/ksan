@@ -138,6 +138,7 @@ namespace PortalSvr
 					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
 
+					Console.WriteLine(mariaDBConfiguration.GetConnectionString());
 					// 데이터베이스 연결 설정
 					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
 					// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
