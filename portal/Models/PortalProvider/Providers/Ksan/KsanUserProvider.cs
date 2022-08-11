@@ -571,7 +571,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 리퀘스트가 유효하지 않을 경우
-				if (Request.IsValid())
+				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 사용자 계정을 가져온다.
@@ -638,7 +638,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 리퀘스트가 유효하지 않을 경우
-				if (Request.IsValid())
+				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 사용자 계정을 가져온다.
