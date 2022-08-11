@@ -13,6 +13,17 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>30.1-jre</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
+		</dependency>
+		<!-- AWS SDK -->
+		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-bom</artifactId>
 			<version>1.12.261</version>
@@ -23,15 +34,16 @@
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.12.261</version>
 		</dependency>
+		<!-- Ksan Libs -->
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>30.1-jre</version>
+			<groupId>com.pspace.ifs.ksan.libs</groupId>
+			<artifactId>ksan-libs</artifactId>
+			<version>0.7.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
+			<groupId>com.pspace.ifs.ksan.objmanager</groupId>
+			<artifactId>ksan-objmanager</artifactId>
+			<version>0.7.1</version>
 		</dependency>
 		<!-- Json -->
 		<dependency>
@@ -54,6 +66,21 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.28</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>3.12.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-core</artifactId>
+			<version>3.12.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>bson</artifactId>
+			<version>3.12.8</version>
 		</dependency>
 		<!-- INI Reader -->
 		<dependency>

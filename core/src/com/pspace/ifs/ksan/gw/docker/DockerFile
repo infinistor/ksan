@@ -21,4 +21,4 @@ RUN mkdir -p /app/logs
 COPY --from=build /src/target/ksan-gw.jar /app
 COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.xml /app
 COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.sh /app
-CMD ["/app/start-gw.sh"]
+CMD ["/app/ksan-gw.sh"]

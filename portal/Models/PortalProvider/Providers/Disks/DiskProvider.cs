@@ -84,7 +84,7 @@ namespace PortalProvider.Providers.DiskGuids
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Server == null)
-						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
 
 				// 이름이 유효하지 않을경우
 				if (Request.Name.IsEmpty())
@@ -249,7 +249,7 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist.Path != Request.Path)
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
-					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path}, 10);
+					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path }, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)
@@ -401,6 +401,9 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
+				// 임계값을 가져온다.
+				var Threshold = await GetThreshold();
+
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -415,10 +418,6 @@ namespace PortalProvider.Providers.DiskGuids
 						Exist.Read = Request.Read;
 						Exist.Write = Request.Write;
 
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
 						// 사용정보 추가
 						m_dbContext.DiskUsages.Add(new DiskUsage()
 						{
@@ -431,12 +430,29 @@ namespace PortalProvider.Providers.DiskGuids
 						});
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
-
-						// // 서비스 상태가 변경될 경우
-						// if (Exist.State != (EnumDbDiskState)Request.State)
-						// 	Result = await UpdateState(Request.ServerId, Exist.Id.ToString(), Request.State);
-
 						Result.Result = EnumResponseResult.Success;
+
+						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작을 경우 디스크의 상태를 Weak로 변경
+						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize < Threshold.Data.ThresholdDiskWeak)
+						{
+							Exist.State = EnumDbDiskState.Weak;
+							Exist.RwMode = EnumDbDiskRwMode.ReadOnly;
+						}
+
+						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 클경우 디스크의 상태를 Good로 변경
+						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize > Threshold.Data.ThresholdDiskGood)
+						{
+							Exist.State = EnumDbDiskState.Good;
+							Exist.RwMode = EnumDbDiskRwMode.ReadWrite;
+						}
+
+						// 데이터가 변경된 경우 저장
+						if (m_dbContext.HasChanges())
+						{
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+							SendMq("*.servers.disks.state", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State });
+							SendMq("*.servers.disks.rwmode", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, RwMode = (EnumDiskRwMode)Exist.RwMode });
+						}
 					}
 					catch (Exception ex)
 					{
@@ -576,7 +592,7 @@ namespace PortalProvider.Providers.DiskGuids
 						Result.Result = EnumResponseResult.Success;
 
 						// 삭제된 디스크 정보 전송
-						SendMq("*.servers.disks.removed", new {Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name});
+						SendMq("*.servers.disks.removed", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name });
 					}
 					catch (Exception ex)
 					{
@@ -738,7 +754,7 @@ namespace PortalProvider.Providers.DiskGuids
 
 				// 해당 정보를 가져온다.
 				ResponseDiskWithServerAndNetwork Exist = null;
-				
+
 				// 아이디로 가져올 경우
 				if (Guid.TryParse(Id, out Guid DiskGuid))
 					Exist = await m_dbContext.Disks.AsNoTracking()
@@ -792,6 +808,111 @@ namespace PortalProvider.Providers.DiskGuids
 			}
 
 			return false;
+		}
+
+		public static readonly string THRESHOLD_DISK_GOOD = "THRESHOLD.DISK_GOOD";
+		public static readonly string THRESHOLD_DISK_WEAK = "THRESHOLD.DISK_WEAK";
+
+		public static readonly long DEFAULT_THRESHOLD_DISK_GOOD = 1000000000;
+		public static readonly long DEFAULT_THRESHOLD_DISK_WEAK = 500000000;
+
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <returns>임계값 정보 객체</returns>
+		public async Task<ResponseData<ResponseDiskThreshold>> GetThreshold()
+		{
+
+			var Result = new ResponseData<ResponseDiskThreshold>();
+
+			try
+			{
+				// 해당 정보를 가져온다.
+				var DiskGoodConfig = await m_dbContext.Configs.AsNoTracking().Where(i => i.Key == THRESHOLD_DISK_GOOD).FirstOrDefaultAsync();
+				var DiskWeakConfig = await m_dbContext.Configs.AsNoTracking().Where(i => i.Key == THRESHOLD_DISK_WEAK).FirstOrDefaultAsync();
+
+				Result.Data = new ResponseDiskThreshold();
+
+				if (DiskGoodConfig != null && long.TryParse(DiskGoodConfig.Value, out long ThresholdDiskGood)) Result.Data.ThresholdDiskGood = ThresholdDiskGood;
+				else Result.Data.ThresholdDiskGood = DEFAULT_THRESHOLD_DISK_GOOD;
+				if (DiskWeakConfig != null && long.TryParse(DiskGoodConfig.Value, out long ThresholdDiskWeak)) Result.Data.ThresholdDiskWeak = ThresholdDiskWeak;
+				else Result.Data.ThresholdDiskWeak = DEFAULT_THRESHOLD_DISK_WEAK;
+
+				Result.Result = EnumResponseResult.Success;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <param name="Request">임계값 정보 객체</param>
+		/// <returns>처리 결과</returns>
+		public async Task<ResponseData> SetThreshold(RequestDiskThreshold Request)
+		{
+
+			var Result = new ResponseData();
+
+			try
+			{
+				// 요청이 유효하지 않은 경우
+				if (Request.ThresholdDiskGood < 1 || Request.ThresholdDiskWeak < 1 || Request.ThresholdDiskGood < Request.ThresholdDiskWeak)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISKS_INVALID_THRESHOLD);
+
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				{
+					try
+					{
+						// 해당 정보를 가져온다.
+						var DiskGoodConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_GOOD);
+						var DiskWeakConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_DISK_WEAK);
+
+						// 해당 정보가 존재하지 않는 경우 추가한다.
+						if (DiskGoodConfig == null)
+							await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_GOOD, Value = Request.ThresholdDiskGood.ToString() });
+						// 존재할 경우 수정한다.
+						else
+							DiskGoodConfig.Value = Request.ThresholdDiskGood.ToString();
+
+						// 해당 정보가 존재하지 않는 경우 추가한다.
+						if (DiskWeakConfig == null)
+							await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_DISK_WEAK, Value = Request.ThresholdDiskWeak.ToString() });
+						// 존재할 경우 수정한다.
+						else
+							DiskWeakConfig.Value = Request.ThresholdDiskWeak.ToString();
+
+						// 데이터가 변경된 경우 저장
+						if (m_dbContext.HasChanges())
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						await Transaction.CommitAsync();
+
+						Result.Result = EnumResponseResult.Success;
+					}
+					catch (Exception ex)
+					{
+						await Transaction.RollbackAsync();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
 		}
 	}
 }

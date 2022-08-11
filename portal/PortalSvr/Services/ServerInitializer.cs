@@ -99,6 +99,8 @@ namespace PortalSvr.Services
 						CpuModel = "",
 						Clock = 0,
 						State = EnumServerState.Online,
+						Rack = "0",
+						MemoryTotal = 0,
 					};
 
 					var Response = await m_serverProvider.Add(Request, UserGuid, ApiKey.UserName);
@@ -113,7 +115,7 @@ namespace PortalSvr.Services
 							{
 								"[mgs]",
 								$"PortalIp = {m_configuration["AppSettings:RabbitMq:Host"]}",
-								$"PortalPort = 5443",
+								"PortalPort = 5443",
 								$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
 								$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
 								$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
@@ -121,6 +123,7 @@ namespace PortalSvr.Services
 								$"ServerId = {Response.Data.Id}",
 								"ManagementNetDev = ",
 								"DefaultNetworkId = ",
+								"",
 								"[monitor]",
 								"ServerMonitorInterval = 5",
 								"NetworkMonitorInterval = 5",

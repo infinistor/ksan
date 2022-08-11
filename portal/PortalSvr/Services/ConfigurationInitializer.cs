@@ -71,7 +71,7 @@ namespace PortalSvr.Services
 					RabbitMqConfiguration Configuration = Section.Get<RabbitMqConfiguration>();
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.RabbitMq, JsonConvert.SerializeObject(Configuration));
-					await m_configProvider.SetConfigLastVersion(EnumServiceType.RabbitMq, Result.Data.Version);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.RabbitMq, Result.Data.Version);
 				}
 
 				// MariaDB 설정이 없는 경우
@@ -83,7 +83,7 @@ namespace PortalSvr.Services
 					MariaDBConfiguration Configuration = Section.Get<MariaDBConfiguration>();
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.MariaDB, JsonConvert.SerializeObject(Configuration));
-					await m_configProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Result.Data.Version);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Result.Data.Version);
 				}
 
 				// MariaDB 설정이 없는 경우
@@ -95,7 +95,7 @@ namespace PortalSvr.Services
 					MongoDBConfiguration Configuration = Section.Get<MongoDBConfiguration>();
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.MongoDB, JsonConvert.SerializeObject(Configuration));
-					await m_configProvider.SetConfigLastVersion(EnumServiceType.MongoDB, Result.Data.Version);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MongoDB, Result.Data.Version);
 				}
 
 				// KsanGw 설정이 없는 경우
@@ -106,7 +106,7 @@ namespace PortalSvr.Services
 					string StrKsanGw = File.ReadAllText("Resources/ksangw.json");
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanGw, StrKsanGw);
-					await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanGw, Result.Data.Version);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanGw, Result.Data.Version);
 				}
 
 				// KsanOsd 설정이 없는 경우
@@ -117,7 +117,7 @@ namespace PortalSvr.Services
 					string StrKsanOsd = File.ReadAllText("Resources/ksanosd.json");
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanOsd, StrKsanOsd);
-					await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Result.Data.Version);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Result.Data.Version);
 				}
 			}
 			catch (Exception ex)
