@@ -1240,6 +1240,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Threshold is invalid과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON_THRESHOLD_INVALID {
+            get {
+                return ResourceManager.GetString("EM_COMMON_THRESHOLD_INVALID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   The version is already set to the latest version.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_CONFIGS_ALREADY_LAST_VERSION {
@@ -1290,6 +1299,15 @@ namespace PortalResources {
         public static string EM_DISK_POOLS_INVALID_DISK_ID {
             get {
                 return ResourceManager.GetString("EM_DISK_POOLS_INVALID_DISK_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOLS_INVALID_ID {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOLS_INVALID_ID", resourceCulture);
             }
         }
         
@@ -1830,33 +1848,6 @@ namespace PortalResources {
         public static string EMAIL_COMMON_ACCOUNT_RESET_PASSWORD {
             get {
                 return ResourceManager.GetString("EMAIL_COMMON_ACCOUNT_RESET_PASSWORD", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string EN_DISK_POOLS_INVALID_ID {
-            get {
-                return ResourceManager.GetString("EN_DISK_POOLS_INVALID_ID", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Threshold is invalid과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string EN_DISKS_INVALID_THRESHOLD {
-            get {
-                return ResourceManager.GetString("EN_DISKS_INVALID_THRESHOLD", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string EN_STORAGE_CLASS_INVALID_NAME {
-            get {
-                return ResourceManager.GetString("EN_STORAGE_CLASS_INVALID_NAME", resourceCulture);
             }
         }
         

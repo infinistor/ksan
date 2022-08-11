@@ -194,7 +194,7 @@ namespace PortalSvr.Controllers.Disks
 		}
 
 		/// <summary>디스크 임계값을 설정한다.</summary>
-		/// <param name="Request">임계값 정보 객체</param>
+		/// <param name="Request">임계값 정보 객체(Byte)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPut("Threshold")]

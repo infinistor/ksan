@@ -816,11 +816,10 @@ namespace PortalProvider.Providers.DiskGuids
 		public static readonly long DEFAULT_THRESHOLD_DISK_GOOD = 1000000000;
 		public static readonly long DEFAULT_THRESHOLD_DISK_WEAK = 500000000;
 
-		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <summary>디스크 임계값을 가져온다.</summary>
 		/// <returns>임계값 정보 객체</returns>
 		public async Task<ResponseData<ResponseDiskThreshold>> GetThreshold()
 		{
-
 			var Result = new ResponseData<ResponseDiskThreshold>();
 
 			try
@@ -849,19 +848,18 @@ namespace PortalProvider.Providers.DiskGuids
 			return Result;
 		}
 
-		/// <summary>해당 이름이 존재하는지 여부</summary>
+		/// <summary>디스크 임계값을 설정한다.</summary>
 		/// <param name="Request">임계값 정보 객체</param>
 		/// <returns>처리 결과</returns>
 		public async Task<ResponseData> SetThreshold(RequestDiskThreshold Request)
 		{
-
 			var Result = new ResponseData();
 
 			try
 			{
 				// 요청이 유효하지 않은 경우
 				if (Request.ThresholdDiskGood < 1 || Request.ThresholdDiskWeak < 1 || Request.ThresholdDiskGood < Request.ThresholdDiskWeak)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISKS_INVALID_THRESHOLD);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON_THRESHOLD_INVALID);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
