@@ -76,6 +76,7 @@ public class Objects {
         
         try { 
             bt = bucketMGT.getBucket(bucketName);
+            logger.debug("[_create] in_diskPoolId {} default_diskpoolId {}", diskPoolId == null ? "null" : diskPoolId, bt.getDiskPoolId());
             if (diskPoolId == null)
                diskPoolId = bt.getDiskPoolId();
             else if (diskPoolId.isEmpty())

@@ -325,6 +325,7 @@ public class MongoDataRepository implements DataRepository{
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(rdsk);
         mt.setLastModified(lastModified);
+        mt.setReplicaCount(bt.getReplicaCount());
         //mt.setSize(size);
         mt.setVersionId(versionid, deleteMarker, lastversion);
         return mt;
@@ -350,7 +351,7 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
-        MongoCollection<Document> objects;
+        MongoCollection<Document> objects;       
         objects = database.getCollection(bucketName);
         FindIterable<Document> oit = objects.find((BasicDBObject)query).limit(maxKeys).sort(new BasicDBObject(OBJKEY, 1 ));
         Iterator it = oit.iterator();
@@ -1217,6 +1218,7 @@ public class MongoDataRepository implements DataRepository{
             mt.setVersionId(versionid, deletem, lastversion);
             mt.set(etag, tag, meta, acl, size);
             mt.setLastModified(lastModified);
+            mt.setReplicaCount(bt.getReplicaCount());
                 
             try {
                 mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));

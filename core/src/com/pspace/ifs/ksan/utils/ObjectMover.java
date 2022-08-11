@@ -259,6 +259,23 @@ public class ObjectMover {
         return moveObject(bucket, objId, versionId, srcDisk, desDisk, srcDisk);
     }
     
+    public int copyObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        Metadata mt = obmu.getObject(bucket, objId, versionId);
+        DISK srcDisk = getDisk(mt, srcDiskId);
+        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        
+        if (!(mt.getPrimaryDisk().getId().equals(srcDisk.getId())) && !(mt.getPrimaryDisk().getId().equals(desDisk.getId())))
+            return -1;
+        
+        if (!(mt.getReplicaDisk().getId().equals(srcDisk.getId())) && !(mt.getReplicaDisk().getId().equals(desDisk.getId())))
+            return -1;
+        
+        if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
+            return -1;
+        
+        return 0;
+    }
+    
     public int moveObject1(String bucket, String key, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         //System.out.format("[moveObject1] bucket : %s key : %s versionId : %s \n", bucket, key,  versionId);
         Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);

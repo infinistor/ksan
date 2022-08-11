@@ -412,6 +412,10 @@ public class MysqlDataRepository implements DataRepository{
         DISK pdsk;
         DISK rdsk;
         String rdiskPath;
+               
+        Bucket bt  = obmCache.getBucketFromCache(rs.getString(1));
+        if (bt == null)
+            throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ rs.getString(1) +" not found in the db");
         
         while(rs.next()){
             pdsk = this.obmCache.getDiskWithId(rs.getString(9));
@@ -433,9 +437,10 @@ public class MysqlDataRepository implements DataRepository{
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
             mt.setVersionId(rs.getString(11), rs.getString(12), rs.getBoolean(13));
+            mt.setReplicaCount(bt.getReplicaCount());
             return mt;
         }
-        throw new ResourceNotFoundException("path not found in the db");
+        throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ rs.getString(1)+" key " + rs.getString(2)+ " not found in the db");
     }
     
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId) throws ResourceNotFoundException {
@@ -1243,6 +1248,7 @@ public class MysqlDataRepository implements DataRepository{
             mt.setVersionId(versionid, "", lastversion);
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
+            mt.setReplicaCount(bt.getReplicaCount());
             list.add(mt);
         }
         
