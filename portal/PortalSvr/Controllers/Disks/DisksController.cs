@@ -183,5 +183,24 @@ namespace PortalSvr.Controllers.Disks
 		{
 			return Json(await m_dataProvider.Get(Id));
 		}
+
+		/// <summary>디스크 임계값을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskThreshold>))]
+		[HttpGet("Threshold")]
+		public async Task<ActionResult> GetThreshold()
+		{
+			return Json(await m_dataProvider.GetThreshold());
+		}
+
+		/// <summary>디스크 임계값을 설정한다.</summary>
+		/// <param name="Request">임계값 정보 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("Threshold")]
+		public async Task<ActionResult> SetThreshold([FromBody] RequestDiskThreshold Request)
+		{
+			return Json(await m_dataProvider.SetThreshold(Request));
+		}
 	}
 }

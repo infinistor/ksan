@@ -1843,6 +1843,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Threshold is invalid과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EN_DISKS_INVALID_THRESHOLD {
+            get {
+                return ResourceManager.GetString("EN_DISKS_INVALID_THRESHOLD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EN_STORAGE_CLASS_INVALID_NAME {

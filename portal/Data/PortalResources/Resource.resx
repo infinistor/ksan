@@ -1879,4 +1879,8 @@
     <value>The default disk pool is not deleted.</value>
     <comment>기본 디스크 풀은 삭제되지 않습니다.</comment>
   </data>
+  <data name="EN_DISKS_INVALID_THRESHOLD" xml:space="preserve">
+    <value>Threshold is invalid</value>
+    <comment>임계값이 유효하지 않습니다.</comment>
+  </data>
 </root>
