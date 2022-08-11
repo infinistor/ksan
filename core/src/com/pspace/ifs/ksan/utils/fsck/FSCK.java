@@ -71,16 +71,17 @@ public class FSCK {
         if (mt.getReplicaCount() > 1 ){ // when only one object exist
             if (!mt.isPrimaryExist()){
                 problemType1++;
-                return 1; // copy replica to primary
+                return 6; // copy replica to primary
             }
             
             if (!mt.isReplicaExist()){
                 problemType2++;
-                return 2; // copy primary to replica
+                return 7; // copy primary to replica
             }
             
             primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
             replica = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId(), mt.getReplicaDisk().getPath(), mt.getReplicaDisk().getOSDServerId()); 
+            objm.log("[checkObjectCorrectness] bucket : %s objId : %s msize : %d psize : %d rsize : %d\n", mt.getBucket(), mt.getObjId(),  mt.getSize(), primary.size, replica.size);
             if (primary.md5.equals(replica.md5) && primary.md5.equals(mt.getEtag())){ 
                 if (primary.size == replica.size && primary.size == mt.getSize())
                     return 0;
@@ -90,9 +91,11 @@ public class FSCK {
             else if (!primary.md5.equals(replica.md5)){
                 if (primary.md5.equals(mt.getEtag())){
                     problemType2++;
+                    //System.out.println("copy primary -> replica");
                     return 2; //cpy primary
                 }else if(replica.md5.equals(mt.getEtag())){
                     problemType1++;
+                    //System.out.println("copy replica -> primary");
                     return 1; // cpy relica
                 } else{
                     problemType5++;
@@ -118,7 +121,7 @@ public class FSCK {
             if (check == 0)
                 return 0;
         } catch (Exception ex) {
-           objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
+            objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
             return -1;
         }
         
@@ -128,10 +131,20 @@ public class FSCK {
             
         switch(check){
             case 1:
-                ret = objm.moveObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId());
+                ret = objm.copyObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId(), mt.getPrimaryDisk().getId());
+                if (ret != 0 )
+                    ret = objm.moveObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId());
                 break;
             case 2:
+                ret = objm.copyObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());
+                if (ret != 0 )
+                    ret = objm.moveObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId());
+                break;
+            case 6:
                 ret = objm.moveObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId());
+                break;
+            case 7:
+                ret = objm.moveObject(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId());
                 break;
             case 3: // update meta size
                 obmu.updateObject(mt.getBucket(), mt.getObjId(), mt, 2);
