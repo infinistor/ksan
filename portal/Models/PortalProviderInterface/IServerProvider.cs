@@ -81,7 +81,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> SearchStates,
+			List<EnumServerState> SearchStates = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -103,5 +103,14 @@ namespace PortalProviderInterface
 		/// <param name="ExceptId">이름 검색 시 제외할 서버 아이디</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
 		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
+
+		/// <summary>서버 타임아웃 임계값을 가져온다.</summary>
+		/// <returns>임계값 정보 객체</returns>
+		Task<ResponseData<long>> GetThreshold();
+
+		/// <summary>서버 타임아웃 임계값을 설정한다.</summary>
+		/// <param name="Timeout">임계값 정보 객체</param>
+		/// <returns>처리 결과</returns>
+		Task<ResponseData> SetThreshold(long Timeout);
 	}
 }
