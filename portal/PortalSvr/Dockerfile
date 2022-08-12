@@ -20,5 +20,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY --from=publish /app/publish/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./PortalSvr/Resources /app/
 RUN mkdir -p /usr/local/ksan/
 ENTRYPOINT ["/usr/bin/supervisord"]
