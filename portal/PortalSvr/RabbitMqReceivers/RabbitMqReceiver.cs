@@ -110,7 +110,6 @@ namespace PortalSvr.RabbitMqReceivers
 				var arguments = new Dictionary<string, object>
 				{
 					{ "x-queue-type", "quorum" },
-					{"x-single-active-consumer", true }
 				};
 				m_channel.QueueDeclare(queue: m_queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 				// Exchange 설절
