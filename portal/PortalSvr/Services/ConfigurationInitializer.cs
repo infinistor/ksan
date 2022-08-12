@@ -46,6 +46,8 @@ namespace PortalSvr.Services
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
 
+		private static string KsanConfig = "/usr/local/ksan/etc/ksanMonitor.conf";
+
 		/// <summary>생성자</summary>
 		/// <param name="configProvider">설정에 대한 프로바이더 객체</param>
 		/// <param name="apiKeyProvider">API Key에 대한 프로바이더 객체</param>
@@ -128,12 +130,14 @@ namespace PortalSvr.Services
 				}
 
 				// ksanMonitor.conf파일을 생성한다.
-				// 내부 서비스용 API 키를 가져온다.
-				var ApiKey = await m_apiKeyProvider.GetMainApiKey();
+				if (!File.Exists(KsanConfig))
+				{
+					// 내부 서비스용 API 키를 가져온다.
+					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
 
-				if (ApiKey == null)
-					throw new Exception("Internal Service ApiKey is null");
-				var Datas = new List<string>()
+					if (ApiKey == null)
+						throw new Exception("Internal Service ApiKey is null");
+					var Datas = new List<string>()
 					{
 						"[mgs]",
 						$"PortalIp = {m_configuration["AppSettings:Host"]}",
@@ -154,8 +158,9 @@ namespace PortalSvr.Services
 						"ServiceMonitorInterval = 5",
 					};
 
-				await File.WriteAllLinesAsync("/usr/local/ksan/etc/ksanMonitor.conf", Datas);
-				m_logger.LogInformation("Save ksanMonitor.conf");
+					await File.WriteAllLinesAsync(KsanConfig, Datas);
+					m_logger.LogInformation("Save ksanMonitor.conf");
+				}
 			}
 			catch (Exception ex)
 			{
