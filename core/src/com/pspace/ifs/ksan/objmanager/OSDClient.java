@@ -8,6 +8,7 @@ package com.pspace.ifs.ksan.objmanager;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import org.json.simple.JSONObject;
 
 /**
@@ -63,7 +64,7 @@ public class OSDClient {
         return 0;
     }
     
-    public int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws Exception{
+    public int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws InterruptedException, IOException, TimeoutException{
         JSONObject obj;
         String bindingKey;
         
@@ -77,7 +78,7 @@ public class OSDClient {
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.move", srcDisk.getOSDServerId());
         log("[moveObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
-        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey, 10000);
         MQResponse ret;
         if (!res.isEmpty())
             ret = new MQResponse(res);
@@ -90,7 +91,7 @@ public class OSDClient {
             return -1;
     }
     
-    public int copyObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws Exception{
+    public int copyObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws InterruptedException, IOException, TimeoutException {
         JSONObject obj;
         String bindingKey;
         
@@ -104,7 +105,7 @@ public class OSDClient {
         obj.put("TargetOSDIP", desDisk.getOsdIp());
         bindingKey = String.format("*.services.osd.%s.object.copy", srcDisk.getOSDServerId());
        log("[copyObject] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
-        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey, 10000);
         MQResponse ret;
         if (!res.isEmpty())
             ret = new MQResponse(res);
@@ -121,7 +122,7 @@ public class OSDClient {
         }
     }
     
-    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws Exception{
+    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws IOException, InterruptedException, TimeoutException {
         JSONObject obj;
         String bindingKey; 
         
@@ -134,7 +135,7 @@ public class OSDClient {
         bindingKey = String.format("*.services.osd.%s.object.getattr", osdServerId);
        
         //System.out.format("[getObjectAttr] bindingKey : %s obj : %s ExchangeName : %s \n", bindingKey, obj.toJSONString(), mqSender.getExchangeName());
-        String res = mqSender.sendWithResponse(obj.toString(), bindingKey);
+        String res = mqSender.sendWithResponse(obj.toString(), bindingKey, 3000);
         //String res = ""; mqSender.send(obj.toString(), bindingKey);
         if (res.isEmpty())
             return res;
