@@ -446,7 +446,7 @@ namespace PortalProvider.Providers.DiskGuids
 			{
 				// 아이디가 존재하고, 아이디가 유효하지 않은 경우
 				if (!ExceptId.IsEmpty() && !Guid.TryParse(ExceptId, out GuidId))
-					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
+					return new ResponseData<bool>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_INVALID_ID);
 
 				// 요청 객체가 유효하지 않은 경우
 				if (Name.IsEmpty())
@@ -663,7 +663,7 @@ namespace PortalProvider.Providers.DiskGuids
 			{
 				// 아이디가 유효하지 않은 경우
 				if (Id.IsEmpty() || !Guid.TryParse(Id, out Guid DiskPoolGuid))
-					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EN_DISK_POOLS_INVALID_ID);
+					return new ResponseList<ResponseDisk>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOLS_INVALID_ID);
 
 				// 정보를 가져온다.
 				var Exist = await m_dbContext.DiskPools.AsNoTracking()

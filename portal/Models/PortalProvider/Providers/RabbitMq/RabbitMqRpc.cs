@@ -159,12 +159,14 @@ namespace PortalProvider.Providers.RabbitMq
 
 				// N초 후 취소
 				CancellationTokenSource.CancelAfter(1000 * WaitForResponseTimeoutSec);
-
 				try
 				{
 					// 응답 데이터를 가져온다.
 					Result.Data = m_responseQueue.Take(CancellationTokenSource.Token);
 					Result.Result = EnumResponseResult.Success;
+
+					// 응답 데이터를 가져온 후 rpc 삭제
+					m_channel.BasicCancel(m_receiver.ConsumerTags[0]);
 				}
 				catch (Exception /*e*/)
 				{

@@ -19,10 +19,10 @@ namespace PortalData.Requests.Disks
 	/// <summary>임계값 등록/수정 요청 클래스</summary>
 	public class RequestDiskThreshold : CommonRequestData
 	{
-		/// <summary>Weak 상태로 변환될 디스크 사이즈</summary>
+		/// <summary>Weak 상태로 변환될 디스크 사이즈(Byte)</summary>
 		public decimal ThresholdDiskWeak { get; set; }
 
-		/// <summary>Good 상태로 변환될 디스크 사이즈</summary>
+		/// <summary>Good 상태로 변환될 디스크 사이즈(Byte)</summary>
 		public decimal ThresholdDiskGood { get; set; }
 	}
 }

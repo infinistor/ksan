@@ -436,6 +436,24 @@ namespace PortalSvr.Controllers.Servers
 			return Json(await m_networkInterfaceVlanProvider.IsTagExist(ServerId, InterfaceId, ExceptId, Request));
 		}
 
+		/// <summary>서버 타임아웃 임계값을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<long>))]
+		[HttpGet("Threshold")]
+		public async Task<ActionResult> GetThreshold()
+		{
+			return Json(await m_dataProvider.GetThreshold());
+		}
+
+		/// <summary>서버 타임아웃 임계값을 설정한다.</summary>
+		/// <param name="Timeout">임계값 정보 객체(millisecond)</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("Threshold")]
+		public async Task<ActionResult> SetThreshold([FromBody] long Timeout)
+		{
+			return Json(await m_dataProvider.SetThreshold(Timeout));
+		}
 		#endregion
 	}
 }

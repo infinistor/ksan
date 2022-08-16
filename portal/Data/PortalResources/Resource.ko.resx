@@ -1391,14 +1391,11 @@
   <data name="EM_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
     <value>유효하지 않은 스토리지 클래스 이름입니다.</value>
   </data>
-  <data name="EN_DISK_POOLS_INVALID_ID" xml:space="preserve">
+  <data name="EM_DISK_POOLS_INVALID_ID" xml:space="preserve">
     <value>유효하지 않은 디스크풀 아이디입니다.</value>
   </data>
   <data name="EM_DISKS_REQUIRE_DISK_NAME" xml:space="preserve">
     <value>디스크 이름을 입력해주세요.</value>
-  </data>
-  <data name="EN_STORAGE_CLASS_INVALID_NAME" xml:space="preserve">
-    <value>유효하지 않은 스토리지 클래스 명입니다.</value>
   </data>
   <data name="EM_DISK_DOES_NOT_EXIST" xml:space="preserve">
     <value>디스크가 존재하지 않습니다.</value>
@@ -1409,7 +1406,7 @@
   <data name="EM_SERVERS_SERVICE_ALREADY_REGISTERED" xml:space="preserve">
     <value>이 서비스는 이미 서버에 등록되어 있습니다.</value>
   </data>
-  <data name="EN_DISKS_INVALID_THRESHOLD" xml:space="preserve">
+  <data name="EM_DISKS_INVALID_THRESHOLD" xml:space="preserve">
     <value>임계값이 유효하지 않습니다.</value>
   </data>
 </root>
