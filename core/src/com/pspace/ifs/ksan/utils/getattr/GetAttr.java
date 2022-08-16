@@ -99,8 +99,8 @@ public class GetAttr {
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt \n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --Checksum \n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 \n", getProgramName());
-        System.err.format("  Example: %s --BucketName bucket1 --Objid bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
-        System.err.format("  Example: %s --BucketName bucket1 --Objid bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 \n", getProgramName());
         System.err.println();
     }
      

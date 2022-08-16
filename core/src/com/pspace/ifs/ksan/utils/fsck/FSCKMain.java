@@ -51,7 +51,7 @@ public class FSCKMain {
              parser.parseArgument(args);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format(" %s [--CheckOnly] --BucketName <bucket Name> --DiskName <osd disk name>\n", getProgramName());
+           System.err.format(" %s [--CheckOnly] --BucketName <bucket Name> --DiskName <osd disk Name>\n", getProgramName());
            return -1;
         }
         
