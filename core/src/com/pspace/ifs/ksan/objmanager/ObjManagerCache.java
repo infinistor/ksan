@@ -68,6 +68,24 @@ public class ObjManagerCache {
         return dskPool;
     }
     
+    private DISKPOOL getDiskPoolfromMetadata(Metadata mt, String default_diskPoolId, boolean fromPrimary) throws ResourceNotFoundException{
+        String diskPoolId;
+        
+        if (fromPrimary){
+            diskPoolId = mt.getPrimaryDisk().getDiskPoolId();
+        }
+        else{
+            diskPoolId = mt.getReplicaDisk().getDiskPoolId();
+        }
+        
+        if (diskPoolId == null)
+            diskPoolId = default_diskPoolId;
+        else if (diskPoolId.isEmpty())
+            diskPoolId = default_diskPoolId;
+        
+        return getDiskPool(diskPoolId);
+    }
+    
     public DISKPOOL getDiskPoolFromCache(String diskPoolId) throws ResourceNotFoundException{
         DISKPOOL dskPool;
         dskPool = getDiskPool(diskPoolId);
@@ -227,23 +245,28 @@ public class ObjManagerCache {
     
     public boolean isDiskSeparatedAndValid(String dskPoolId, Metadata mt){
         DISKPOOL dskPool;
-         
-        dskPool = getDiskPool(dskPoolId);
-        if (dskPool == null)
-            return false; // diskpool not exist
-        
-        if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), ""))
-            return false; // primary disk not exist
-        
-        if (!mt.isReplicaExist())
-           return true;
-                
+            
         try {
+            dskPool = getDiskPoolfromMetadata(mt, dskPoolId, true);
+            if (dskPool == null)
+                return false; // diskpool not exist
+        
+            if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), ""))
+                return false; // primary disk not exist
+        
+            if (!mt.isReplicaExist())
+                return true;
+            
+            dskPool = getDiskPoolfromMetadata(mt, dskPoolId, false);
+            if (dskPool == null)
+                return false; // diskpool not exist
+            
             if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), ""))
                 return false; // replica disk not exist
             
             if ((mt.getPrimaryDisk().getOsdIp()).equals(mt.getReplicaDisk().getOsdIp()))
                 return false;
+            
         } catch (ResourceNotFoundException ex) {
             return true;
         }
