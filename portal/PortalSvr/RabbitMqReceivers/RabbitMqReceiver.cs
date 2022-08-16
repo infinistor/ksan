@@ -22,6 +22,7 @@ using MTLib.Reflection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Collections.Generic;
 
 // ReSharper disable TemplateIsNotCompileTimeConstantProblem
 
@@ -106,7 +107,11 @@ namespace PortalSvr.RabbitMqReceivers
 				// 채널 생성
 				m_channel = m_connection.CreateModel();
 				// 큐 설정
-				m_channel.QueueDeclare(queue: m_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+				var arguments = new Dictionary<string, object>
+				{
+					{ "x-queue-type", "quorum" },
+				};
+				m_channel.QueueDeclare(queue: m_queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 				// Exchange 설절
 				m_channel.ExchangeDeclare(exchange: m_config.ExchangeName, type: "topic");
 				// 모든 바인딩 키 처리

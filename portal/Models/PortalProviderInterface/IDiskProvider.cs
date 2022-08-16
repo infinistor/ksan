@@ -101,5 +101,15 @@ namespace PortalProviderInterface
 		/// <param name="Name">검색할 이름</param>
 		/// <returns>해당 이름이 존재하는지 여부</returns>
 		Task<bool> IsNameExist(string Name, Guid? ExceptId = null);
+
+		/// <summary>디스크 임계값을 가져온다.</summary>
+		/// <returns>임계값 정보 객체</returns>
+		Task<ResponseData<ResponseDiskThreshold>> GetThreshold();
+
+		/// <summary>디스크 임계값을 설정한다.</summary>
+		/// <param name="Request">임계값 정보 객체</param>
+		/// <returns>처리 결과</returns>
+		Task<ResponseData> SetThreshold(RequestDiskThreshold Request);
+
 	}
 }

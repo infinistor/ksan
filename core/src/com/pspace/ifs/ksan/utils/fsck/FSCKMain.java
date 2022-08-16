@@ -12,6 +12,7 @@
 package com.pspace.ifs.ksan.utils.fsck;
 
 import ch.qos.logback.classic.LoggerContext;
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,21 +27,21 @@ import org.slf4j.LoggerFactory;
  * @author legesse
  */
 public class FSCKMain {
-   
-    @Option(name="--target", usage="Specify the target of the operation as either bucket or disk")
-    private String target = "";
-    
-    @Option(name="--bucketName", usage="Specify the name of the bucket you wish to fix or check")
+       
+    @Option(name="--BucketName", usage="Specify the name of the bucket you wish to fix or check")
     private String bucketName = "";
     
-    @Option(name="--diskId", usage="Specify the disk Id you wish to fix or check")
-    private String diskId="";
+    @Option(name="--DiskName", usage="Specify the disk Name you wish to fix or check")
+    private String diskName="";
     
-    @Option(name="--checkOnly",usage="Specify if you wish only to check not to fix")
+    @Option(name="--CheckOnly",usage="Specify if you wish only to check not to fix")
     private boolean checkOnly = false;
     
-    @Option(name="--help",usage="To display this help menu")
+    @Option(name="--Help",usage="To display this help menu")
     public boolean getHelp = false;
+    
+    @Option(name="--Debug", usage="To enable display debug log")
+    public boolean debugOn = false;
     
     private CmdLineParser parser;
     
@@ -48,50 +49,56 @@ public class FSCKMain {
         parser = new CmdLineParser(this);
         try{
              parser.parseArgument(args);
-             /*if( parser.getArguments().isEmpty() ){
-                 System.out.format(" target : %s bucketName : %s diskid : %s checkonly : %s", target, bucketName, diskId, checkOnly);
-                 System.err.format("No argument is given \n");
-                 return -1;
-             }*/
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format(" %s [--checkOnly] --target <bucket | disk > --bucketName <bucket Name> --diskid <osd disk id>\n", getProgramName());
+           System.err.format(" %s [--CheckOnly] --BucketName <bucket Name> --DiskName <osd disk Name>\n", getProgramName());
            return -1;
         }
         
         if (getHelp)
            return 0;
         
-        if (!target.isEmpty()){
-            if (!bucketName.isEmpty() || !diskId.isEmpty())
-                return 0;
-        }
+        if (!bucketName.isEmpty() || !diskName.isEmpty())
+            return 0;
         
-        System.out.format(" target : %s bucketName : %s diskid : %s checkonly : %s \n", target, bucketName, diskId, checkOnly);
+        if (debugOn)
+           System.out.format(" BucketName : %s Diskid : %s Checkonly : %s \n", bucketName, diskName, checkOnly);
+        
         System.err.format("Invalid argument is given \n");
         return -1;
     }
     
      void runInBackground(){
         long job_done = 0;
+        String diskId;
+        
         try {
             FSCK ofsk = new FSCK(checkOnly);
-            if (target.equals("bucket")){
-                if (diskId.isEmpty())
-                    job_done = ofsk.checkEachDisk(bucketName);
-                else
-                    job_done = ofsk.checkBucketDisk(bucketName, diskId);
-            } else if (target.equals("disk")){
+            diskId = ofsk.getDiskId(diskName);
+            ofsk.setDebugModeOn(debugOn);
+            
+            if (!bucketName.isEmpty() && !diskName.isEmpty())
+                job_done = ofsk.checkBucketDisk(bucketName, diskId);
+            else if (!bucketName.isEmpty())
+                job_done = ofsk.checkEachDisk(bucketName);
+            else if (!diskName.isEmpty())
                 job_done = ofsk.checkEachOneDiskAllBucket(diskId);
+            else {
+                System.err.format("Not supported yet!\n");
+                return;
             }
+                
             ofsk.getResultSummary();
-        } catch (Exception ex) {
+        } catch (ResourceNotFoundException ex){
+            System.err.format("Disk Name (%s) not found in the system!\n", diskName);
+            return;
+        } catch (Exception ex) { 
+            ex.printStackTrace();
             Logger.getLogger(FSCKMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
             return;
         }
         
-        System.out.println("DONE!");
-        
+        System.out.println("DONE!");    
     }
     
     static String getProgramName(){
@@ -104,10 +111,10 @@ public class FSCKMain {
         
         parser.printUsage(System.err);
         System.err.println();
-        System.err.format("  Example:  %s --target bucket --bucketName bucket1 \n", getProgramName());
-        System.err.format("  Example:  %s --target bucket --bucketName bucket1 --checkOnly \n", getProgramName());
-        System.err.format("  Example:  %s --target disk --diskId disk111 \n", getProgramName());
-        System.err.format("  Example:  %s --target disk --diskId disk111 --checkOnly \n", getProgramName());
+        System.err.format("  Example:  %s --BucketName bucket1 \n", getProgramName());
+        System.err.format("  Example:  %s --BucketName bucket1 --CheckOnly \n", getProgramName());
+        System.err.format("  Example:  %s --DiskName osd2_disk1 \n", getProgramName());
+        System.err.format("  Example:  %s --DiskName osd2_disk1 --CheckOnly \n", getProgramName());
         System.err.println();
     }
     

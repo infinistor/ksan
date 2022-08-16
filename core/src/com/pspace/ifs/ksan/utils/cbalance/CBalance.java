@@ -20,6 +20,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.utils.ObjectMover;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,19 +37,22 @@ public class CBalance {
     private ObjectMover objm;
     private long totalChecked;
     private long totalFixed;
+    private boolean isallowedToMoveTolocalDisk;
     
-    public CBalance() throws Exception{
+    public CBalance(boolean isallowedToMoveTolocalDisk) throws Exception{
         //ObjManagerConfig config = new ObjManagerConfig();
         obmu = new ObjManagerUtil();
         //mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
         dskList = obmu.getExistedDiskList();
         bukList = obmu.getExistedBucketList();
-        objm = new ObjectMover(false, "CBalance");
+        objm = new ObjectMover(obmu, false, "CBalance");
+        objm.enableDisableLocalDiskMove(isallowedToMoveTolocalDisk);
         totalChecked = 0;
         totalFixed = 0;
+        this.isallowedToMoveTolocalDisk = isallowedToMoveTolocalDisk;
     }
     
-    private List<Metadata> getListOfObjects(String bucketName, String SrcDiskId, long size, long offset, String DstDiskId){
+    private List<Metadata> getListOfObjects(String bucketName, String SrcDiskId, long size, String lastObjId, String DstDiskId){
         List<Metadata> res;
         List<Metadata> list;
         //long offset = 0;
@@ -63,10 +67,11 @@ public class CBalance {
             return res;
         
         do{
-            list = obmu.listObjects(bucketName, SrcDiskId, offset, numObjects);
+            list = obmu.listObjects(bucketName, SrcDiskId, lastObjId, numObjects *2 );
             if (list == null)
                 return res;
             
+            objm.log("[getListOfObjects] bucketName : %s list.size : %d res.size : %d  size : %d \n",  bucketName, list.size(), res.size(), size);
             if (list.isEmpty())
                 return res;
             
@@ -75,26 +80,40 @@ public class CBalance {
             {
                 totalChecked++;
                 Metadata mt = it.next();
+                lastObjId = mt.getObjId();
+                
                 if (mt.getSize() > size || mt.getSize() <= 0)
                     continue;
                 
+               objm.log("[getListOfObjects] objid: %s size : %d \n", mt.getObjId(), mt.getSize());
                 try {
-                    if(!obmu.allowedToReplicate(bucketName, mt.getPrimaryDisk(), mt.getReplicaDisk(), DstDiskId))
+                    if(!obmu.allowedToReplicate(bucketName, mt.getPrimaryDisk(), mt.getReplicaDisk(), DstDiskId, isallowedToMoveTolocalDisk)){
+                       objm.log("[getListOfObjects] objid: %s pdisk : %s  rdisk : %s  newdisk : %s\n", mt.getObjId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId(), DstDiskId);
                         continue;
+                    }
                     
                 } catch (ResourceNotFoundException ex) {
-                     if(!obmu.allowedToReplicate(bucketName, mt.getPrimaryDisk(), null, DstDiskId))
-                        continue;
+                     if(!obmu.allowedToReplicate(bucketName, mt.getPrimaryDisk(), null, DstDiskId)){
+                         objm.log("[getListOfObjects] objid: %s size : %d Ex skipped\n", mt.getObjId(), mt.getSize());
+                          continue;
+                     }
                 }
-                
-                size_counter = size_counter + mt.getSize();    
+                /*try {
+                   objm.log("[getListOfObjects] bucketName : %s primary : %s replica : %s new : %s \n", bucketName, mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId(), DstDiskId);
+                } catch (ResourceNotFoundException ex) {
+                  objm.log("[getListOfObjects] bucketName : %s primary : %s  new : %s \n", bucketName, mt.getPrimaryDisk().getId(),  DstDiskId);
+                }*/
+                size_counter = size_counter + mt.getSize();
+                //System.out.format("[getListOfObjects] path :  %s size : %d counter : %d  expected : %d\n", mt.getPath(), mt.getSize(), size_counter, size);
                 res.add(mt);
                 if (size_counter > size)
                     return res;
+                
+                if (res.size() == numObjects)
+                   return res; 
             }
             
-            offset = offset + numObjects;
-        } while(list.size() == numObjects );        
+        } while(res.size() < numObjects );        
         return res;  
     } 
         
@@ -105,120 +124,169 @@ public class CBalance {
             bList= bukList;
         else{
             bList = new ArrayList();
-            bukList.stream().filter(bucket -> (bucket.getName().equals(bucketName))).forEachOrdered(bucket -> {
+            for (Bucket bt : bukList)
+                 bList.add(bt);
+            /*bukList.stream().filter(bucket -> (bucket.getName().equals(bucketName))).forEachOrdered(bucket -> {
                 bList.add(bucket);
-            });
+            });*/
         }
         return bList;
     }
     
+    public void setDebugModeOn(){
+        objm.setDebugModeOn();
+    }
+    
+    public String getDiskIdWithName(String diskName) throws ResourceNotFoundException{
+       
+        if (diskName.isEmpty())
+            return "";
+        
+        return obmu.getObjManagerConfig().getDiskIdWithName(diskName);
+    }
+    
     public long moveWithSize(String bucketName, String srcDiskId, long amountToMove, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         int ret;
-        long offset = 0;
-        long size;
+        String lastObjId;
         long size_counter = 0;
         long total_object;
         long checked_object = 0;
         List<Metadata> list;
         List<Bucket> bList;
+        HashMap<String, String> lastObjectMap = new HashMap();;
         
         bList = getBucketList(bucketName);
         total_object = countEntry(bList,  srcDiskId); 
-        System.out.println("total_job :> " + total_object);
+       objm.log("total_job :> " + total_object + "\n");
         if (total_object == 0)
             return 0;
         
-        size = amountToMove / bList.size();
-        do{    
-            for(Bucket bucket : bList){    
-                list = getListOfObjects(bucket.getName(), srcDiskId, size,  offset, dstDiskId);
+        do{     
+            for(Bucket bucket : bList){
+                lastObjId = lastObjectMap.get(bucket.getName());
+                if (lastObjId == null)
+                    lastObjId = " ";
+                
+                list = obmu.listObjects(bucket.getName(), srcDiskId, lastObjId, 100);
+                //list = getListOfObjects(bucket.getName(), srcDiskId, size,  lastObjId, dstDiskId);
                 //System.out.format("[moveWithSize] list_size : %d  bucketName : %s \n", list.size(), bucket.getName());
                 Iterator<Metadata> it = list.iterator();
                 while(it.hasNext())
                 {
                     Metadata mt = it.next();
+                    lastObjId = mt.getObjId();
                     checked_object++;
-                    if (mt.getSize() == 0)
+                    
+                    if (mt.getSize() == 0 || mt.getSize() > amountToMove)
                         continue;
                     
-                    if (dstDiskId.isEmpty())
-                        ret = moveSingleObject(bucket.getName(), mt.getObjId(), srcDiskId);
-                    else
-                        ret = moveSingleObject(bucket.getName(), mt.getObjId(), srcDiskId, dstDiskId);
+                    //ret = 0;
+                    objm.log("[moveWithSize] objid: %s size : %d amountToMove : %d size_counter : %d\n", mt.getObjId(), mt.getSize(), amountToMove, size_counter);
+                    try{
+                        
+                        if (dstDiskId.isEmpty()){
+                            ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId);
+                        } else{
+                            if (!obmu.allowedToReplicate(bucket.getName(), mt.getPrimaryDisk(), mt.getReplicaDisk(), dstDiskId, isallowedToMoveTolocalDisk)){
+                                continue;
+                            }
+                            ret = moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId, dstDiskId);
+                        }
+                    } catch( ResourceNotFoundException ex){
+                        continue; //ignore
+                    }
                     
-                    if (ret > 0)
+                    /*try {
+                       objm.log("[moveWithSize] bucketName : %s primary : %s replica : %s new : %s size : %d  amountToMove : %d  size_counter : %d \n", bucketName, mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId(), dstDiskId, mt.getSize(), amountToMove, size_counter );
+                    } catch (ResourceNotFoundException ex) {
+                       objm.log("[getListOfObjects] bucketName : %s primary : %s  new : %s  size_counter : %d \n", bucketName, mt.getPrimaryDisk().getId(),  dstDiskId, size_counter);
+                    }*/
+                    if (ret == 0)
                         size_counter = size_counter + mt.getSize();
 
-                    if (size_counter >= amountToMove)
+                    if (size_counter >= amountToMove){
+                       objm.log("[moveWithSize] size_counter : %d amountToMove : %d end \n", size_counter, amountToMove);
                         return size_counter;
-                }    
+                    }
+                }
+               lastObjectMap.put(bucket.getName(), lastObjId);
             }
-            offset = offset + 100;
-            if (offset > total_object)
-                break;
-            //System.out.format("[moveWithSize] total_object : %d offset : %d  checked_object : %d\n", total_object, offset, checked_object);
+            
+            //if (lastObjId.isEmpty())
+            //    break;
+            //offset = offset + 100;
+            //if (offset > total_object)
+            //    break;
+           objm.log("[moveWithSize] total_object : %d checked_object : %d\n", total_object, checked_object);
         }while(checked_object < total_object);
         
         return size_counter;
     }
    
     private long countEntry(List<Bucket> bList, String srcDiskId){
-       List<Metadata> list;
-       long offset = 0; 
-       long numObjects = 1000;
        long total_job = 0;
-       long one_round;
        
-       do{
-            one_round = 0;
-            for(Bucket bucket : bList){
-               list = obmu.listObjects(bucket.getName(), srcDiskId, offset, numObjects); 
-               Iterator<Metadata> it = list.iterator();
-                while(it.hasNext()){
-                    it.next();
-                    total_job++;
-                    one_round++;
-                }
-            }
-            offset += numObjects;
-            if (one_round == 0)
-                break;
+       for(Bucket bucket : bList){
+           total_job += obmu.listObjectsCount(bucket.getName(), srcDiskId);
+           //System.out.format("[countEntry] bucket : %s total_job : %d\n", bucket.getName(), total_job);
        }
-       while(true);
        return total_job;
     }
     
     public long emptyDisk(String srcDiskId){
         List<Metadata> list;
         List<Bucket> bList;
-        long numObjects = 100;
-        long offset = 0;
+        long numObjects = 1000;
+        //long offset = 0;
         long job_done = 0;
+        long not_processed = 0;
+        long direct_count = 0;
+        String lastObjId;
         
         bList = getBucketList("");
         long total_job = countEntry(bList,  srcDiskId); 
-        System.out.println("total_job :> " + total_job);
+       objm.log("total_job :> " + total_job);
         if (total_job == 0)
             return total_job;
         
-        do{
-            for(Bucket bucket : bList){
-                list = obmu.listObjects(bucket.getName(), srcDiskId, offset, numObjects);
+        //do{
+        for(Bucket bucket : bList){
+            lastObjId = " ";
+            do{
+                list = obmu.listObjects(bucket.getName(), srcDiskId, lastObjId, numObjects);
+               objm.log("[emptyDisk] bucket : %s diskid : %s lastObjId : %s numObject: %d listSize : %d empty : %b \n", bucket.getName(), srcDiskId, lastObjId, numObjects, list.size(), list.isEmpty());
                 Iterator<Metadata> it = list.iterator();
                 while(it.hasNext()){
                     Metadata mt = it.next();
+                    lastObjId = mt.getObjId();
+                    if (mt.getPath().endsWith("/")){
+                       objm.log("[emptyDisk] DIR bucket : %s path : %s objid : %s skipped\n",
+                                mt.getBucket(), mt.getPath(), mt.getObjId());
+                        direct_count++;
+                        continue;
+                    }
                     try {
-                        objm.moveObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId);
-                        job_done++;
+                       objm.log("[emptyDisk] bucket : %s path : %s objid : %s version : %s pdiskid : %s (%s) rdiskid: %s (%s)\n",
+                                mt.getBucket(), mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getOsdIp()
+                                , mt.getReplicaDisk().getId(), mt.getReplicaDisk().getOsdIp());
+                    } catch (ResourceNotFoundException ex) {
+                       objm.log("[emptyDisk] bucket : %s path : %s objid : %s version : %s pdiskid : %s (%s) \n",
+                                mt.getBucket(), mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getOsdIp());
+                    }
+                    
+                    try {
+                        if (moveSingleObject(bucket.getName(), mt.getObjId(), mt.getVersionId(), srcDiskId) == 0)
+                            job_done++;
+                        else
+                            not_processed++;
                     } catch ( Exception ex) {
                         Logger.getLogger(CBalance.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                 }
-            }
-        } 
-        while(job_done < total_job);
+            } while (!list.isEmpty());
+        }
         
-        //System.out.format("[emptyDisk-2] total_job : %d job_done : %d\n", total_job, job_done);
+       objm.log("[emptyDisk] total_job : %d job_done : %d  failed : %d directory_count : %d\n", total_job, job_done, not_processed, direct_count);
         return job_done;
     }
     

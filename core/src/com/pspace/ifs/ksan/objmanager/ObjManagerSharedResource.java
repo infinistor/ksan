@@ -36,7 +36,7 @@ public class ObjManagerSharedResource {
             
             config.loadDiskPools(obmCache);
             if (dumpCache){    
-                diskM = new DiskMonitor(obmCache, config.mqHost, config.mqQueeuname, config.mqExchangename);
+                diskM = new DiskMonitor(obmCache, config);
             }
         }
     }

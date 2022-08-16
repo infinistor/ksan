@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using MTLib.Core;
+using PortalSvr.Services;
 
 namespace PortalSvr
 {
@@ -29,10 +30,15 @@ namespace PortalSvr
 		{
 			try
 			{
+				// 최초 실행시 환경변수를 통한 설정 정보 수정
+				var Ini = new EnvironmentInitializer();
+				Ini.Initialize();
+
 				CreateHostBuilder(args).Build().Run();
 			}
 			catch (Exception ex)
 			{
+				Console.WriteLine(ex);
 				NNException.Log(ex);
 			}
 		}

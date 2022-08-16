@@ -16,6 +16,7 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,21 +114,34 @@ public class ObjManagerUtil {
         return ret;
     }
     
-    public List<Metadata> listObjects(String bucketName, String diskid, long offset, long numObjects){
+    public void updateObjectEtag(String bucketName, Metadata mt, String newEtag) throws SQLException{
+        dbm.updateObjectEtag(mt, newEtag);
+    }
+    
+    public List<Metadata> listObjects(String bucketName, String diskid, String lastObjId, long numObjects){
         try {
-            ListObject lo = new ListObject(dbm, bucketName, diskid, offset, (int)numObjects);
+            ListObject lo = new ListObject(dbm, bucketName, diskid, lastObjId, (int)numObjects);
             return lo.getUnformatedList();
         } catch (SQLException ex) {
             return new ArrayList();
         }
     }
     
-    public List<Metadata> listObjects(String bucketName, long offset, long numObjects){
+    public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
         try {
-            ListObject lo = new ListObject(dbm, bucketName, "", offset, (int)numObjects);
+            ListObject lo = new ListObject(dbm, bucketName, "", lastObjId, (int)numObjects);
             return lo.getUnformatedList();
         } catch (SQLException ex) {
             return new ArrayList();
+        }
+    }
+    
+    public long listObjectsCount(String bucketName, String diskid){
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, diskid, "", 0);
+            return lo.getUnformatedListCount();
+        } catch (SQLException ex) {
+            return 0;
         }
     }
     
@@ -159,13 +173,25 @@ public class ObjManagerUtil {
         return dAlloc.allocDisk(dskPoolId, mt);
     }
     
-    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
-        String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
+    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
+        
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt == null){
+            System.out.format("[allowedToReplicate] buckeName : %s \n", bucketName);
+            return false;
+        }
+        
+        String dskPoolId = bt.getDiskPoolId();
         if (dskPoolId == null)
             return false;
         
-        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId);
+        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId, allowedToMoveToLocalDisk);
     }
+    
+    public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
+        return allowedToReplicate(bucketName, primary,  replica, DstDiskId, false);
+    }
+   
     /**
      * Replace replica disk with new one after recovery
      * @param bucketName  bucket name
@@ -196,7 +222,7 @@ public class ObjManagerUtil {
              System.out.println("Replica problem 2");
             return -1; // invalide update
         }
-        System.out.println("call update db");
+        //System.out.println("call update db");
         return dbm.updateDisks(md, updatePrimary, newDisk);
     }
     
@@ -229,6 +255,14 @@ public class ObjManagerUtil {
         } 
     }
     
+    public DISK getDISK(String bucketName, String diskId) throws ResourceNotFoundException{
+        Bucket bt = obmCache.getBucketFromCache(bucketName);
+        if (bt == null)
+            throw new ResourceNotFoundException("[getDISK]unable to find bucket with the name " + bucketName + "!");
+        
+        return obmCache.getDiskWithId(bt.getDiskPoolId(), diskId);
+    }
+    
     public int removeUserDiskPool(String userId, String diskPoolId){
         try {
             return dbm.deleteUserDiskPool(userId, diskPoolId);
@@ -243,5 +277,9 @@ public class ObjManagerUtil {
     
     public DataRepository getDBRepository(){
         return dbm;
+    }
+    
+    public ObjManagerConfig getObjManagerConfig(){
+        return config;
     }
 }

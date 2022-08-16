@@ -150,7 +150,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <summary>기본 디스크풀을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseDiskPool>))]
-		[HttpPost("Default")]
+		[HttpGet("Default")]
 		public async Task<ActionResult> GetDefault()
 		{
 			return Json(await m_dataProvider.GetDefault());
@@ -209,6 +209,28 @@ namespace PortalSvr.Controllers.Disks
 				, Skip, CountPerPage
 				, OrderFields, OrderDirections
 				, SearchFields, SearchKeyword));
+		}
+		
+		/// <summary>디스크 풀에 디스크를 할당한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("Disks/{Id}")]
+		public async Task<ActionResult> AddDisks([FromRoute] string Id, [FromBody] RequestDisks Request)
+		{
+			return Json(await m_dataProvider.AddDisks(Id, Request));
+		}
+		
+		/// <summary>디스크 풀에 디스크를 제거한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("Disks/{Id}")]
+		public async Task<ActionResult> RemoveDisks([FromRoute] string Id, [FromBody] RequestDisks Request)
+		{
+			return Json(await m_dataProvider.RemoveDisks(Id, Request));
 		}
 	}
 }

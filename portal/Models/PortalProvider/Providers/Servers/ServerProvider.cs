@@ -16,7 +16,6 @@ using PortalData;
 using PortalData.Enums;
 using PortalData.Requests.Servers;
 using PortalData.Responses.Servers;
-using PortalData.Responses.Services;
 using PortalModels;
 using PortalProviderInterface;
 using PortalResources;
@@ -29,7 +28,6 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using MTLib.Reflection;
 using Renci.SshNet;
 
 namespace PortalProvider.Providers.Servers
@@ -67,7 +65,7 @@ namespace PortalProvider.Providers.Servers
 		/// <summary>서버 등록</summary>
 		/// <param name="Request">서버 등록 요청 객체</param>
 		/// <returns>서버 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request)
+		public async Task<ResponseData<ResponseServerDetail>> Add(RequestServer Request, Guid? ModId = null, string ModName = null)
 		{
 			var Result = new ResponseData<ResponseServerDetail>();
 			try
@@ -95,10 +93,11 @@ namespace PortalProvider.Providers.Servers
 							State = (EnumDbServerState)Request.State,
 							Rack = Request.Rack,
 							MemoryTotal = Request.MemoryTotal,
-							ModId = LoginUserId,
-							ModName = LoginUserName,
+							ModId = ModId != null ? ModId : LoginUserId,
+							ModName = ModName != null ? ModName : LoginUserName,
 							ModDate = DateTime.Now
 						};
+
 						await m_dbContext.Servers.AddAsync(NewData);
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
@@ -151,9 +150,9 @@ namespace PortalProvider.Providers.Servers
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
 
 				// 명령 스크립트 생성
-				var cmd = $"/usr/local/ksan/bin/ksanNodeRegister -i {Request.ServerIp} -m {Request.PortalIp} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} " +
+				var cmd = $"/usr/local/ksan/bin/util/ksanNodeRegister -i {Request.ServerIp} -m {Request.PortalIp} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} " +
 					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
-				m_logger.LogDebug(cmd);
+				m_logger.LogInformation(cmd);
 
 				// SSH 접속
 				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
@@ -661,7 +660,7 @@ namespace PortalProvider.Providers.Servers
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		public async Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> SearchStates,
+			List<EnumServerState> SearchStates = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -681,7 +680,7 @@ namespace PortalProvider.Providers.Servers
 				InitSearchFields(ref SearchFields);
 
 				short Clock = -1;
-				if (SearchFields.Contains("clock"))
+				if (SearchFields != null && SearchFields.Contains("clock"))
 				{
 					if (!short.TryParse(SearchKeyword, out Clock))
 						Clock = -1;
@@ -853,6 +852,93 @@ namespace PortalProvider.Providers.Servers
 			}
 
 			return false;
+		}
+
+		public static readonly string THRESHOLD_SERVER_TIMEOUT = "THRESHOLD.SERVER_TIMEOUT";
+		public static readonly long DEFAULT_THRESHOLD_SERVER_TIMEOUT = 30000;
+
+		/// <summary>서버 타임아웃 임계값을 가져온다.</summary>
+		/// <returns>임계값 정보 객체</returns>
+		public async Task<ResponseData<long>> GetThreshold()
+		{
+			var Result = new ResponseData<long>();
+
+			try
+			{
+				// 해당 정보를 가져온다.
+				var ServerConfig = await m_dbContext.Configs.AsNoTracking().Where(i => i.Key == THRESHOLD_SERVER_TIMEOUT).FirstOrDefaultAsync();
+
+				if (ServerConfig != null && long.TryParse(ServerConfig.Value, out long ServerTimeout)) Result.Data = ServerTimeout;
+				else Result.Data = DEFAULT_THRESHOLD_SERVER_TIMEOUT;
+
+				Result.Result = EnumResponseResult.Success;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>서버 타임아웃 임계값을 설정한다.</summary>
+		/// <param name="Timeout">임계값 정보 객체</param>
+		/// <returns>처리 결과</returns>
+		public async Task<ResponseData> SetThreshold(long Timeout)
+		{
+			var Result = new ResponseData();
+
+			try
+			{
+				// 요청이 유효하지 않은 경우
+				if (Timeout < 1)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON_THRESHOLD_INVALID);
+
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				{
+					try
+					{
+						// 해당 정보를 가져온다.
+						var ServerConfig = await m_dbContext.Configs.FirstOrDefaultAsync(i => i.Key == THRESHOLD_SERVER_TIMEOUT);
+
+						// 해당 정보가 존재하지 않는 경우 추가한다.
+						if (ServerConfig == null)
+							await m_dbContext.Configs.AddAsync(new Config() { Key = THRESHOLD_SERVER_TIMEOUT, Value = Timeout.ToString() });
+						// 존재할 경우 수정한다.
+						else
+							ServerConfig.Value = Timeout.ToString();
+
+						// 데이터가 변경된 경우 저장
+						if (m_dbContext.HasChanges())
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						await Transaction.CommitAsync();
+
+						Result.Result = EnumResponseResult.Success;
+					}
+					catch (Exception ex)
+					{
+						await Transaction.RollbackAsync();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
 		}
 	}
 }

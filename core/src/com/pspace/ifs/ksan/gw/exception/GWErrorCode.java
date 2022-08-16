@@ -17,7 +17,7 @@ import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * List of S3 error codes.  Reference:
+ * List of GW error codes.  Reference:
  * http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html
  */
 public enum GWErrorCode {

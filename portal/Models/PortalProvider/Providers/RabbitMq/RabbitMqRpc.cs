@@ -22,6 +22,7 @@ using MTLib.Reflection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Collections.Generic;
 
 namespace PortalProvider.Providers.RabbitMq
 {
@@ -68,7 +69,13 @@ namespace PortalProvider.Providers.RabbitMq
 				m_properties = m_channel.CreateBasicProperties();
 				string correlationId = Guid.NewGuid().ToString();
 				m_properties.CorrelationId = correlationId;
-				m_receiverQueueName = m_channel.QueueDeclare().QueueName;
+				m_receiverQueueName = $"ksan-api-portal.{correlationId}";
+				var arguments = new Dictionary<string, object>
+				{
+					{ "x-queue-type", "quorum" },
+				};
+				
+				m_channel.QueueDeclare(queue: m_receiverQueueName, durable:true, exclusive:false, autoDelete: false, arguments:arguments);
 				m_properties.ReplyTo = m_receiverQueueName;
 
 				// 결과 수신 객체 생성
@@ -142,7 +149,7 @@ namespace PortalProvider.Providers.RabbitMq
 					basicProperties: m_properties,
 					body: Message.GetBytes());
 
-				m_logger.LogDebug($"[Rabbit MQ] RPC Data transfer was successful and wait for Response. (exchange: {m_config.ExchangeName}, routingKey: {RoutingKey}, Message: {Message})");
+				m_logger.LogInformation($"[Rabbit MQ] RPC Data transfer was successful and wait for Response. (exchange: {m_config.ExchangeName}, routingKey: {RoutingKey}, Message: {Message})");
 
 				// 응답 수신
 				m_channel.BasicConsume(
@@ -152,12 +159,14 @@ namespace PortalProvider.Providers.RabbitMq
 
 				// N초 후 취소
 				CancellationTokenSource.CancelAfter(1000 * WaitForResponseTimeoutSec);
-
 				try
 				{
 					// 응답 데이터를 가져온다.
 					Result.Data = m_responseQueue.Take(CancellationTokenSource.Token);
 					Result.Result = EnumResponseResult.Success;
+
+					// 응답 데이터를 가져온 후 rpc 삭제
+					m_channel.BasicCancel(m_receiver.ConsumerTags[0]);
 				}
 				catch (Exception /*e*/)
 				{

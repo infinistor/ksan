@@ -1240,6 +1240,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Threshold is invalid과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON_THRESHOLD_INVALID {
+            get {
+                return ResourceManager.GetString("EM_COMMON_THRESHOLD_INVALID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   The version is already set to the latest version.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_CONFIGS_ALREADY_LAST_VERSION {
@@ -1254,6 +1263,24 @@ namespace PortalResources {
         public static string EM_CONFIGS_LIST_VERSION_CANNOT_DELETE {
             get {
                 return ResourceManager.GetString("EM_CONFIGS_LIST_VERSION_CANNOT_DELETE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The disk does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_DOES_NOT_EXIST {
+            get {
+                return ResourceManager.GetString("EM_DISK_DOES_NOT_EXIST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The disk pool does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOL_DOES_NOT_EXIST {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOL_DOES_NOT_EXIST", resourceCulture);
             }
         }
         
@@ -1276,11 +1303,29 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOLS_INVALID_ID {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOLS_INVALID_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   The disk id that cannot be used has been used. 과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED {
             get {
                 return ResourceManager.GetString("EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   The default disk pool is not deleted.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_DISK_POOLS_NOT_DELETE_DEFAULT_DISK_POOL {
+            get {
+                return ResourceManager.GetString("EM_DISK_POOLS_NOT_DELETE_DEFAULT_DISK_POOL", resourceCulture);
             }
         }
         
@@ -1389,15 +1434,6 @@ namespace PortalResources {
         public static string EM_DISKS_REQUIRE_SERVER_ID {
             get {
                 return ResourceManager.GetString("EM_DISKS_REQUIRE_SERVER_ID", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   The disk pool does not exist.과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string EM_DISKS_THERE_IS_NO_DISK_POOL {
-            get {
-                return ResourceManager.GetString("EM_DISKS_THERE_IS_NO_DISK_POOL", resourceCulture);
             }
         }
         
@@ -1618,6 +1654,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   This service is already registered with the server.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_SERVERS_SERVICE_ALREADY_REGISTERED {
+            get {
+                return ResourceManager.GetString("EM_SERVERS_SERVICE_ALREADY_REGISTERED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   It includes the services that belong to other groups.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_SERVICE_GROUPS_CONTAINS_DIFFERENT_SERVICE_GROUP_SERVICE {
@@ -1807,20 +1852,191 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Invalid disk pool id.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   ALLOWED_HOSTS과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string EN_DISK_POOLS_INVALID_ID {
+        public static string ENV_ALLOWED_HOSTS {
             get {
-                return ResourceManager.GetString("EN_DISK_POOLS_INVALID_ID", resourceCulture);
+                return ResourceManager.GetString("ENV_ALLOWED_HOSTS", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Invalid storage class name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   CERTIFICATE_FILE_PATH과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string EN_STORAGE_CLASS_INVALID_NAME {
+        public static string ENV_CERTIFICATE_FILE_PATH {
             get {
-                return ResourceManager.GetString("EN_STORAGE_CLASS_INVALID_NAME", resourceCulture);
+                return ResourceManager.GetString("ENV_CERTIFICATE_FILE_PATH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   CERTIFICATE_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_CERTIFICATE_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_CERTIFICATE_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DATABASE과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DATABASE {
+            get {
+                return ResourceManager.GetString("ENV_DATABASE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DATABASE_TYPE과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DATABASE_TYPE {
+            get {
+                return ResourceManager.GetString("ENV_DATABASE_TYPE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   LOG_LAVEL과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_LOG_LAVEL {
+            get {
+                return ResourceManager.GetString("ENV_LOG_LAVEL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MARIADB_HOST과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MARIADB_HOST {
+            get {
+                return ResourceManager.GetString("ENV_MARIADB_HOST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MARIADB_LICENSEKEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MARIADB_LICENSEKEY {
+            get {
+                return ResourceManager.GetString("ENV_MARIADB_LICENSEKEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MARIADB_PORT과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MARIADB_PORT {
+            get {
+                return ResourceManager.GetString("ENV_MARIADB_PORT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MARIADB_ROOT_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MARIADB_ROOT_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_MARIADB_ROOT_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MARIADB_ROOT_USER과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MARIADB_ROOT_USER {
+            get {
+                return ResourceManager.GetString("ENV_MARIADB_ROOT_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MONGODB_HOST과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MONGODB_HOST {
+            get {
+                return ResourceManager.GetString("ENV_MONGODB_HOST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MONGODB_PORT과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MONGODB_PORT {
+            get {
+                return ResourceManager.GetString("ENV_MONGODB_PORT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MONGODB_ROOT_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MONGODB_ROOT_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_MONGODB_ROOT_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MONGODB_ROOT_USER과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_MONGODB_ROOT_USER {
+            get {
+                return ResourceManager.GetString("ENV_MONGODB_ROOT_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   PORTAL_HOST과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_PORTAL_HOST {
+            get {
+                return ResourceManager.GetString("ENV_PORTAL_HOST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   RABBITMQ_HOST과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_RABBITMQ_HOST {
+            get {
+                return ResourceManager.GetString("ENV_RABBITMQ_HOST", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   RABBITMQ_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_RABBITMQ_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_RABBITMQ_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   RABBITMQ_PORT과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_RABBITMQ_PORT {
+            get {
+                return ResourceManager.GetString("ENV_RABBITMQ_PORT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   RABBITMQ_USER과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_RABBITMQ_USER {
+            get {
+                return ResourceManager.GetString("ENV_RABBITMQ_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SERVICE_API_KEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_SERVICE_API_KEY {
+            get {
+                return ResourceManager.GetString("ENV_SERVICE_API_KEY", resourceCulture);
             }
         }
         

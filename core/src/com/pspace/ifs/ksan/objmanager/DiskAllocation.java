@@ -17,8 +17,7 @@ import java.io.IOException;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
+import java.util.HashMap;
 /**
  *
  * @author legesse
@@ -43,40 +42,62 @@ public class DiskAllocation {
          if (algorithm == AllocAlgorithm.LOCALPRIMARY)
              return dskPool.getLocalServer();//.getNextDisk();
          
-        logger.error("Allocation algorithm is not defined or set!");
+        logger.error("[allocPrimaryServer]Allocation algorithm is not defined or set!");
          throw new ResourceNotFoundException("Allocation algorithm is not defined or set!");  
-     }
-     
+    }
+    
+    private HashMap<String, String> getOSDDistanceMap(DISK primary, DISK replica){
+        HashMap<String, String> osdDistanceMap = new HashMap();
+        if (primary != null)
+            osdDistanceMap.put(primary.getOsdIp(), primary.getId());
+        
+        if (replica != null){
+            osdDistanceMap.put(replica.getOsdIp(), replica.getId());
+            
+        }
+        //System.out.println("[OSDDistanceMap] " + osdDistanceMap.toString());
+        return osdDistanceMap;
+    }
+    
+    private HashMap<String, String> getOSDDistanceMap(Metadata mt){
+        try {
+            return getOSDDistanceMap(mt.getPrimaryDisk(), mt.getReplicaDisk());
+        } catch (ResourceNotFoundException ex) {
+            return getOSDDistanceMap(mt.getPrimaryDisk(), null);
+        }
+    }
+    
     private DISK allocReplicaDisk(DISKPOOL dskPool, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
          SERVER replica;
          DISK dsk;
          int numRoatate = 0;
+         HashMap<String, String> osdDistanceMap; 
          
+         osdDistanceMap = getOSDDistanceMap(mt);
          do{
             replica = dskPool.getNextServer();
-            if (replica == null && numRoatate > 2){
-                logger.error("there is no osd server for replica allocation!");
+            if (replica == null || numRoatate > 2){
+                logger.error("[allocReplicaDisk] There is no osd server for replica allocation!");
                 throw new ResourceNotFoundException("there is no osd server for replica allocation!");
             }
             
-           if (mt.isPrimaryExist()){
-               if (mt.getPrimaryDisk().getOSDServerId().equals(replica.getId())){
-                   numRoatate++;
-                   continue;
-               }
-           }
-           if (mt.isReplicaExist()){
-               if (mt.getReplicaDisk().getOSDServerId().equals(replica.getId())){
-                   numRoatate++;
-                   continue;
-               }
-           }
- 
-            break;
+            if (osdDistanceMap.containsKey(replica.getName())){
+                numRoatate++;
+                continue;
+            }
+            
+            try{
+                dsk = replica.getNextDisk();
+                dsk.setOSDIP(replica.getName());
+                dsk.setOSDServerId(replica.getId());
+                dsk.setDiskPoolId(dskPool.getId());
+                break;
+            } catch(ResourceNotFoundException ex){
+                // to check in another osd
+            }
+
          }while(true);
-         dsk = replica.getNextDisk();
-         dsk.setOSDIP(replica.getName());
-         dsk.setOSDServerId(replica.getId());
+         
          logger.debug("[ReplicaAllocation] bucket : {} key : {} versionId : {}  DiskId {} osdIp {} ", mt.getBucket(), mt.getPath(), mt.getVersionId(), dsk.getId(), replica.getName());
          return dsk;
     }
@@ -99,31 +120,42 @@ public class DiskAllocation {
          DISK primaryDisk;
          DISK replicaDisk;
          DISKPOOL dskPool;
+         SERVER primary;
+         
          try{
-             logger.debug("disk pool id : {}", dskPoolId);
              dskPool = getDiskPool(dskPoolId);
              if (dskPool == null) {
-                logger.error("there is no diskpool in the system!");
-                throw new ResourceNotFoundException("there is no diskpool in the system!");
+                logger.error("[allocDisk] There is no diskpool with Id {} for bucketName : {} key: {} objId in the system!", dskPoolId, md.getBucket(), md.getPath(), md.getObjId());
+                throw new ResourceNotFoundException("[allocDisk] There is no diskpool in the system!");
              }
              
-             SERVER primary = this.allocPrimaryServer(algorithm, dskPool);
-             primaryDisk = primary.getNextDisk();
+             try{
+                primary = allocPrimaryServer(algorithm, dskPool);
+                primaryDisk = primary.getNextDisk();
+                
+             } catch(ResourceNotFoundException e){
+                primary = allocPrimaryServer(AllocAlgorithm.ROUNDROBIN, dskPool);
+                primaryDisk = primary.getNextDisk();
+                if ( algorithm == AllocAlgorithm.LOCALPRIMARY)
+                    logger.debug("[allocDisk] allocation algorithm changed to Local to ROUNDROBIN ..");
+             }
+             
              primaryDisk.setOSDIP(primary.getName());
              primaryDisk.setOSDServerId(primary.getId());
+             primaryDisk.setDiskPoolId(dskPoolId);
              md.setPrimaryDisk(primaryDisk);
              md.setReplicaCount(replicaCount);
+             
              if (replicaCount == 1){
                  return 0;
              }
              
              try{
                 replicaDisk = this.allocReplicaDisk(dskPool, md);
+                replicaDisk.setDiskPoolId(dskPoolId);
                 md.setReplicaDISK(replicaDisk);
              } catch(ResourceNotFoundException e){
-                //replicaDisk = new DISK();
-                logger.error("Replica disk not allocated!");
-                // System.out.println(">>Replica disk not allocated!");
+                logger.error("[allocDisk]Replica disk not allocated for bucketName {} key {} objId {}!", md.getBucket(), md.getPath(), md.getObjId());
              }
          } catch(ResourceNotFoundException e){
             logger.error(e.getMessage());
@@ -137,39 +169,55 @@ public class DiskAllocation {
         DISK replicaDisk;
         DISKPOOL dskPool;
         
-        logger.debug("disk pool id : {}", dskPoolId);
+        //logger.debug("disk pool id : {}", dskPoolId);
         dskPool = getDiskPool(dskPoolId);
         if (dskPool == null) {
-            logger.error("there is no bucket in the system!");
-            throw new ResourceNotFoundException("there is no bucket in the system!");
+            logger.error("[allocDisk]There is no diskpool with the Id "+ dskPoolId+"!");
+            throw new ResourceNotFoundException("[allocDisk]There is no diskpool with the Id "+ dskPoolId+"!");
         }
         
         replicaDisk = this.allocReplicaDisk(dskPool, mt);
+        replicaDisk.setDiskPoolId(dskPoolId);
         return replicaDisk;
     }
     
-    public boolean isReplicationAllowedInDisk(String dskPoolId, DISK primary, DISK replica, String replicaDiskId){
+    public boolean isReplicationAllowedInDisk(String dskPoolId, DISK primary, DISK replica, String replicaDiskId, boolean allowdToUseLocalDisk){
         DISKPOOL dskPool;
-        SERVER psvr;
         SERVER rsvr;
-        SERVER rsvr2;
-        
+        HashMap<String, String> osdDistanceMap; 
+         
         try {
+            if (replicaDiskId.isEmpty())
+                return true;
+            
+            if (replicaDiskId.equals(primary.getId()))
+                return false;
+            
+            if (replica != null){
+                if (replicaDiskId.equals(replica.getId()))
+                    return false;
+            }
+            
             dskPool = getDiskPool(dskPoolId);
             if (dskPool == null)
                 return false;
              
-            rsvr2 = dskPool.getServer("", replicaDiskId);
-            if (rsvr2 == null)
+            rsvr = dskPool.getServer("", replicaDiskId);
+            if (rsvr == null)
                 return false;
             
-            psvr = dskPool.getServer(primary.getPath(), primary.getId());
-            if (replica != null){
-                rsvr = dskPool.getServer(replica.getPath(), replica.getId());
-                return !(rsvr2.getId().equals(psvr.getId())) && !(rsvr2.getId().equals(psvr.getId()));
+            
+            osdDistanceMap = getOSDDistanceMap(primary, replica);
+            if (allowdToUseLocalDisk){
+                if (osdDistanceMap.containsKey(rsvr.getName()))
+                    return true; // to let move from local one disk to other
             }
-            return !(rsvr2.getId().equals(psvr.getId()));
-                
+            
+            if (osdDistanceMap.containsKey(rsvr.getName())){
+                return false;
+            }
+            return true;
+     
          } catch (ResourceNotFoundException ex) {
              return false;
          }

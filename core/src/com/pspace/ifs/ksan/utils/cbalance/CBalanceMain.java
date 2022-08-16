@@ -28,33 +28,39 @@ import org.slf4j.LoggerFactory;
  */
 public class CBalanceMain {
     private CmdLineParser parser;
+      
+    @Option(name="--EmptyDisk",  usage="set to enable empty disk operation")
+    public boolean emptyDisk =false;
     
-    @Option(name="--target", usage="Specify the target of the operation as moving a single object or specfic amount of objects move or empty disk")
-    public String target = "";
-    
-    @Option(name="--bucketName", usage="Specify the name of the bucket you wish to balance")
+    @Option(name="--BucketName",  usage="Specify the name of the bucket you wish to balance")
     public String bucketName = "";
     
-    @Option(name="--key", usage="Specify the object path")
+    @Option(name="--Key", usage="Specify the object key")
     public String key = "";
    
-    @Option(name="--objId", usage="Specify the object Id insted of object key")
+    @Option(name="--ObjId", usage="Specify the object Id insted of object key")
     public String objId = "";
     
-    @Option(name="--versionId", usage="Specify the object version Id if you wish particular version of an object")
+    @Option(name="--VersionId", usage="Specify the object version Id if you wish particular version of an object")
     private String versionId ="null";
     
-    @Option(name="--SrcDiskId", usage="Specify the source disk Id")
-    public String SrcDiskId = "";
+    @Option(name="--SrcDiskName",  usage="Specify the source disk Name")
+    public String SrcDiskName = "";
     
-    @Option(name="--DstDiskId", usage="Specify the distination disk Id")
-    public String DstDiskId = "";
+    @Option(name="--DstDiskName",  usage="Specify the distination disk Name")
+    public String DstDiskName = "";
     
-    @Option(name="--size", usage="Specify the capacity to move")
+    @Option(name="--Size", usage="Specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units. ")
     public String cpacityToMove = "";
     
-    @Option(name="--help",usage="To display this help menu")
+    @Option(name="--OkLocalMove",  usage="To allow to move to local another disk")
+    public boolean localMoveAllowed = false;
+    
+    @Option(name="--Help", usage="To display this help menu")
     public boolean getHelp = false;
+    
+    @Option(name="--Debug", usage="To display debug log to the terminal")
+    public boolean debug = false;
     
     public long amountToMove;
     
@@ -63,22 +69,32 @@ public class CBalanceMain {
     }
     
     int getSizeInByte(){
-        if (cpacityToMove.endsWith("TB"))
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* 1024* 1024* 1024* 1024;
-        else if(cpacityToMove.endsWith("T")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("T", ""))* 1024* 1024* 1024* 1024;
-        else if(cpacityToMove.endsWith("GB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* 1024* 1024* 1024;
-        else if( cpacityToMove.endsWith("G")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("G", ""))* 1024* 1024* 1024;
-        else if(cpacityToMove.endsWith("MB") ) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* 1024* 1024;
-        else if(cpacityToMove.endsWith("M")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("M", ""))* 1024* 1024;
-        else if(cpacityToMove.endsWith("KB")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", ""))* 1024;
-        else if( cpacityToMove.endsWith("K")) 
-            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("K", ""))* 1024;
+        long nByte = 1024;
+        long nBite = 1000;
+        
+        if (cpacityToMove.isEmpty())
+            return 0; // ignore
+        
+        if (cpacityToMove.endsWith("PiB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("PiB", ""))* nByte* nByte* nByte * nByte * nByte;
+        else if (cpacityToMove.endsWith("PB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("PB", ""))* nBite* nBite* nBite * nBite * nBite;
+        else if (cpacityToMove.endsWith("TiB"))
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TiB", ""))* nByte* nByte* nByte * nByte;
+        else if(cpacityToMove.endsWith("TB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("TB", ""))* nBite* nBite* nBite * nBite;
+        else if(cpacityToMove.endsWith("GiB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GiB", ""))* nByte* nByte * nByte;
+        else if( cpacityToMove.endsWith("GB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("GB", ""))* nBite* nBite * nBite ;
+        else if(cpacityToMove.endsWith("MiB") ) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MiB", ""))* nByte * nByte;
+        else if(cpacityToMove.endsWith("MB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("MB", ""))* nBite * nBite;
+        else if(cpacityToMove.endsWith("KiB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KiB", "")) * nByte;
+        else if( cpacityToMove.endsWith("KB")) 
+            amountToMove = Long.parseUnsignedLong(cpacityToMove.replace("KB", "")) * nBite;
         else{
             amountToMove = Long.parseUnsignedLong(cpacityToMove);
         }
@@ -92,24 +108,23 @@ public class CBalanceMain {
              parser.parseArgument(args);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --target <object | size | empty > --bucketName <bucket Name> --key <object path> --versionId <object version Id> --size <capacity to move> --SrcDiskId <Source disk id> --DstDiskId <Destination disk Id>\n", getProgramName());
+           System.err.format("%s --Emptydisk --BucketName <bucket Name> --Key <object key> --VersionId <object version Id> --Size <capacity to move> --SrcDiskName <Source disk name> --DstDiskName <Destination disk Name> --OkLocalMove \n", getProgramName());
            return -1;
         }
         
         if (getHelp)
             return 0;
         
-        if (!target.isEmpty()){
-            if (!bucketName.isEmpty() && (!key.isEmpty() || !objId.isEmpty()) && !SrcDiskId.isEmpty())
-                return 0;
-            
-            if (target.equalsIgnoreCase("empty") && !SrcDiskId.isEmpty())
-                return 0;
-            
-            getSizeInByte();
-            if (!SrcDiskId.isEmpty() && !cpacityToMove.isEmpty())
-                return 0;
-        }
+        
+        if (!bucketName.isEmpty() && (!key.isEmpty() || !objId.isEmpty()) && !SrcDiskName.isEmpty())
+            return 0;
+
+        if (emptyDisk && !SrcDiskName.isEmpty())
+            return 0;
+
+        getSizeInByte();
+        if (!SrcDiskName.isEmpty() && !cpacityToMove.isEmpty())
+            return 0;
         
         System.err.format("Invalid argument is given \n");
         return -1;
@@ -122,36 +137,41 @@ public class CBalanceMain {
         parser.printUsage(System.err);
         System.err.println();
         System.err.println("Example : To move a single object and the object can be idetified either key or object Id");
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --SrcDiskId disk111 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 --SrcDiskId disk111 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --versionId 526554498818254 --SrcDiskId disk11 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --objId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskId disk11 \n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --DstDiskId disk222\n", getProgramName());
-        System.err.format("          %s --target object --bucketName bucket1 --key file1.txt --versionId 526554498818254 --DstDiskId disk222\n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 \n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --DstDiskName osd2_disk2\n", getProgramName());
+        System.err.format("          %s  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2\n", getProgramName());
         System.err.println("\nExample : To move a spefic amount of object from one disk to others");
-        System.err.format("          %s --target size --SrcDiskId disk111  --DstDiskId disk222 --size 2GB \n", getProgramName());
-        System.err.format("          %s --target size --SrcDiskId disk111 --size 2GB \n", getProgramName());
+        System.err.format("          %s  --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB \n", getProgramName());
+        System.err.format("          %s  --SrcDiskName osd1_disk1 --Size 2GB \n", getProgramName());
         System.err.println("\nExample : To empty a disk");
-        System.err.format("          %s --target empty --SrcDiskId disk111 \n", getProgramName());
+        System.err.format("          %s --EmptyDisk --SrcDiskName osd1_disk1 \n", getProgramName());
         System.err.println();
     }
     
     void runInBackground() throws Exception{
+        String SrcDiskId;
+        String DstDiskId;
         long moved_amount = 0;
         int ret;
      
         CBalance cb;
         try {
-            cb = new CBalance();
+            cb = new CBalance(localMoveAllowed);
+            SrcDiskId = cb.getDiskIdWithName(SrcDiskName);
+            DstDiskId = cb.getDiskIdWithName(DstDiskName);
+            if (debug)
+                cb.setDebugModeOn();
         } catch (Exception ex) {
-            //Logger.getLogger(CBalanceMain.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("[" + CBalanceMain.class.getName() + "]" + ex);
             return;
         }
         
-        if (target.equals("object")){
+        if (!bucketName.isEmpty()){
             try {
-                if (key.isEmpty() && !objId.isEmpty()){
+                if (!objId.isEmpty()){
                     if (!DstDiskId.isEmpty() && !SrcDiskId.isEmpty())
                         ret = cb.moveSingleObject(bucketName, objId, versionId, SrcDiskId, DstDiskId);
                     else if (!SrcDiskId.isEmpty())
@@ -160,9 +180,9 @@ public class CBalanceMain {
                         ret = cb.moveSingleObject(bucketName, objId, versionId);
                     
                     if (ret  >= 0)
-                        System.out.format("A Single Object(bucket : %s, objid : %s) moved\n", bucketName, objId);
+                        System.out.format("A Single Object(bucket : %s, objid : %s versionId : %s) moved\n", bucketName, objId, versionId);
                     else
-                        System.err.format("failed to move single Object(bucket : %s, objid : %s) ret : %d\n", bucketName, objId, ret);
+                        System.err.format("failed to move single Object(bucket : %s, objid : %s versionId : %s ) ret : %d\n", bucketName, objId, versionId, ret);
                 }
                 else if (!key.isEmpty()){
                     if (!DstDiskId.isEmpty() && !SrcDiskId.isEmpty()){
@@ -174,9 +194,9 @@ public class CBalanceMain {
                     }
                 
                     if (ret  >= 0)
-                        System.out.format("A Single Object(bucket : %s, key : %s) moved\n", bucketName, key);
+                        System.out.format("A Single Object(bucket : %s, key : %s versionId : %s ) moved\n", bucketName,  key, versionId);
                     else
-                        System.err.format("failed to move single Object(bucket : %s, key : %s)\n", bucketName, key);
+                        System.err.format("failed to move single Object(bucket : %s, key : %s versionId : %s )\n", bucketName, key, versionId);
                 }
                 
             } catch (ResourceNotFoundException ex) {
@@ -186,7 +206,7 @@ public class CBalanceMain {
             }
             return;
         }
-        else if(target.equals("size")){
+        else if(!cpacityToMove.isEmpty()){
             try {
                 if (!SrcDiskId.isEmpty() && !DstDiskId.isEmpty())
                     moved_amount = cb.moveWithSize(bucketName, SrcDiskId, amountToMove, DstDiskId);
@@ -194,24 +214,27 @@ public class CBalanceMain {
                     moved_amount = cb.moveWithSize(bucketName, SrcDiskId, amountToMove);
                 else
                     moved_amount = cb.moveWithSize(SrcDiskId, amountToMove);
-                
-                System.out.format("Object(s) with amount %d moved\n", moved_amount);
+                if (DstDiskId.isEmpty())
+                    System.out.format("Object(s) with amount %d bytes from %s disk are moved\n", moved_amount, SrcDiskName);
+                else
+                    System.out.format("Object(s) with amount %d bytes from %s disk to %s disk are moved\n", moved_amount, SrcDiskName, DstDiskName);
             } catch (ResourceNotFoundException ex) {
-                System.err.println("Bucket or osd disk not exist!");
+                //ex.printStackTrace();
+                System.err.println(" osd disk not exist!");
             } catch (AllServiceOfflineException ex) {
                 System.err.println("All service are offline!");
             }
             return;
         }
-        else if(target.equals("empty")){
+        else if(emptyDisk){
             if (SrcDiskId.isEmpty()) 
                System.err.format("Source disk Id not provided! \n");
             else{
                 moved_amount =cb.emptyDisk(SrcDiskId);
                 if (moved_amount > 0)
-                    System.out.format("Disk(%s) emptied with a total of %d objects moved\n", SrcDiskId, moved_amount);
+                    System.out.format("Disk(%s) emptied with a total of %d objects moved\n", SrcDiskName, moved_amount);
                 else
-                    System.out.format("Disk(%s) nothing moved!\n", SrcDiskId);
+                    System.out.format("Disk(%s) nothing moved!\n", SrcDiskName);
             }
             return;
         }

@@ -41,7 +41,7 @@ namespace PortalSvr.RabbitMqReceivers
 			ILogger<RabbitMqServiceReceiver> logger,
 			IServiceScopeFactory serviceScopeFactory
 		) : base(
-			"portalsvr.services",
+			"ksan-api-portal.services",
 			new[]
 			{
 				"*.services.*",

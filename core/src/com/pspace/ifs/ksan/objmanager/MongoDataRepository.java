@@ -130,38 +130,50 @@ public class MongoDataRepository implements DataRepository{
     private static final String STARTTIME = "startTime";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
-        //System.out.format(">>[MongoDataRepository] hosts : %s username : %s dbname : %s\n", hosts, username, dbname);
-        parseDBHostNames2URL(hosts, port);
         this.username = username;
         this.passwd = passwd;
         this.dbname = dbname;
         this.obmCache = obmCache;
+        parseDBHostNames2URL(hosts, port);
         connect();
         createBucketsHolder();
         createUserDiskPoolHolder();
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
+        String credential;
+        String authSRC;
+        
+        /*if (!username.isEmpty()){
+            credential = String.format("%s:%s@", username, passwd);
+            authSRC = String.format("/?authSource=%s", dbname);
+        }
+        else*/{
+           credential = "";
+           authSRC = "";
+        }
+        
         if (hosts.contains(",")){
             if (hosts.contains(":"))
-                url = "mongodb://" + hosts;
+                url = "mongodb://" + credential + hosts;
             else{
                 String hostList[] = hosts.split(",");
-                url = "mongodb://";
+                url = "mongodb://" + credential;
                 for( String host: hostList)
                     url = url + host + ":" + port + ",";
             }
         } else
-            this.url = "mongodb://" + hosts + ":" + port;
+            url = "mongodb://" + credential + hosts + ":" + port;
+        url = url + authSRC;
+        
+        //System.out.println("url >>" + url);
     }
-    
+
     private void connect() throws UnknownHostException{
         MongoClient mongo;
         
         mongo = MongoClients.create(url);
-        
-        MongoCredential credential = MongoCredential.createCredential(username, dbname, passwd.toCharArray()); 
-        
+                
         database = mongo.getDatabase(dbname);
     }
     
@@ -251,10 +263,10 @@ public class MongoDataRepository implements DataRepository{
     public int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         MongoCollection<Document> objects;
         objects = database.getCollection(md.getBucket());
-        System.out.format("objId :%s versionid : %s pdiskid : %s newDiskid : %s \n", md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), newDisk.getId());
+        //System.out.format("objId :%s versionid : %s pdiskid : %s newDiskid : %s \n", md.getObjId(), md.getVersionId(), md.getPrimaryDisk().getId(), newDisk.getId());
        
         UpdateResult res = objects.updateOne(Filters.and(Filters.eq(OBJID, md.getObjId()), eq(VERSIONID, md.getVersionId())), Updates.set(updatePrimary ? PDISKID : RDISKID, newDisk.getId()));
-       System.out.println("after update!");
+       //System.out.println("after update!");
        
        return (int)res.getModifiedCount(); 
     }
@@ -298,7 +310,7 @@ public class MongoDataRepository implements DataRepository{
         String deleteMarker = doc.getString(DELETEMARKER);
         boolean lastversion = doc.getBoolean(LASTVERSION);
         String pdiskId      = doc.getString(PDISKID);
-        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(bt.getDiskPoolId(), pdiskId) : new DISK();
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();
         String rdiskId      = doc.getString(RDISKID);
         DISK rdsk;
         if (rdiskId == null)
@@ -306,13 +318,14 @@ public class MongoDataRepository implements DataRepository{
         else if (rdiskId.isEmpty())
             rdsk = new DISK();
         else
-            rdsk = obmCache.getDiskWithId(bt.getDiskPoolId(), rdiskId);
+            rdsk = obmCache.getDiskWithId(rdiskId);
         
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(rdsk);
         mt.setLastModified(lastModified);
+        mt.setReplicaCount(bt.getReplicaCount());
         //mt.setSize(size);
         mt.setVersionId(versionid, deleteMarker, lastversion);
         return mt;
@@ -338,7 +351,7 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
-        MongoCollection<Document> objects;
+        MongoCollection<Document> objects;       
         objects = database.getCollection(bucketName);
         FindIterable<Document> oit = objects.find((BasicDBObject)query).limit(maxKeys).sort(new BasicDBObject(OBJKEY, 1 ));
         Iterator it = oit.iterator();
@@ -918,7 +931,12 @@ public class MongoDataRepository implements DataRepository{
     public void updateObjectMeta(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
     }
-
+    
+    @Override
+    public void updateObjectEtag(Metadata mt, String etag) throws SQLException{
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), ETAG, etag);
+    }
+    
     private int updateBucket(String bucketName, String key, String value){
         FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         Document doc =(Document)fit.first();
@@ -1159,13 +1177,21 @@ public class MongoDataRepository implements DataRepository{
         String diskPoolId = "1";
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        BasicDBObject sortBy = new BasicDBObject(OBJKEY, 1 );
+        BasicDBObject sortBy ;
         BasicDBObject mongoQuery =(BasicDBObject)query;
+        String queryString = mongoQuery.toJson();
         
-        if (!mongoQuery.containsField(LASTVERSION)){
+        if (queryString.contains(OBJID)){ // for utlity list 
+            sortBy = new BasicDBObject(OBJID, 1 );
+        } else{
+            sortBy = new BasicDBObject(OBJKEY, 1 );
+        }
+            
+        if (!queryString.contains(LASTVERSION)){
             sortBy.append(LASTMODIFIED, -1);
             sortBy.append("_id", -1);
         }
+        
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
         Iterator it = oit.iterator();
@@ -1192,9 +1218,10 @@ public class MongoDataRepository implements DataRepository{
             mt.setVersionId(versionid, deletem, lastversion);
             mt.set(etag, tag, meta, acl, size);
             mt.setLastModified(lastModified);
+            mt.setReplicaCount(bt.getReplicaCount());
                 
             try {
-                mt.setPrimaryDisk(obmCache.getDiskWithId(diskPoolId, pdiskid));
+                mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));
             } catch (ResourceNotFoundException ex) {
                 mt.setPrimaryDisk(new DISK());
             }
@@ -1205,7 +1232,7 @@ public class MongoDataRepository implements DataRepository{
                 else if(rdiskid.isEmpty())
                     mt.setReplicaDISK(new DISK());
                 else
-                    mt.setReplicaDISK(obmCache.getDiskWithId(diskPoolId, rdiskid));
+                    mt.setReplicaDISK(obmCache.getDiskWithId(rdiskid));
             } catch (ResourceNotFoundException ex) {
                 mt.setReplicaDISK(new DISK());
             }
@@ -1213,7 +1240,16 @@ public class MongoDataRepository implements DataRepository{
         }
         return list;
     }
-
+    
+    @Override
+    public long getObjectListCount(String bucketName, Object query) throws SQLException {
+        MongoCollection<Document> objects;
+        objects = database.getCollection(bucketName);
+        BasicDBObject mongoQuery =(BasicDBObject)query;
+        
+        return objects.countDocuments(mongoQuery);
+    }
+    
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
@@ -1280,7 +1316,7 @@ public class MongoDataRepository implements DataRepository{
             if (pdiskId == null || obmCache == null)
                 pdsk = new DISK();
             else 
-                pdsk = obmCache.getDiskWithId(diskPoolId, pdiskId);
+                pdsk = obmCache.getDiskWithId(pdiskId);
         } catch (ResourceNotFoundException ex) {
             pdsk = new DISK();
         }

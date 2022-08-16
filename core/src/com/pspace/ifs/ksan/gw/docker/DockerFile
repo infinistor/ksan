@@ -1,0 +1,24 @@
+FROM maven:3.8.6-jdk-11 as libsbuild
+WORKDIR /src
+COPY ./core/src/com/pspace/ifs/ksan/libs/ /src/
+RUN mvn -f /src/pom.xml package install
+########################################################################
+FROM maven:3.8.6-jdk-11 as objmanagerbuild
+WORKDIR /src
+COPY --from=libsbuild /root/.m2 /root/.m2
+COPY ./core/src/com/pspace/ifs/ksan/objmanager/ /src/
+RUN mvn -f /src/pom.xml package install
+########################################################################
+FROM maven:3.8.6-jdk-11 as build
+WORKDIR /src
+COPY --from=objmanagerbuild /root/.m2 /root/.m2
+COPY ./core/src/com/pspace/ifs/ksan/gw/ /src/
+RUN mvn -f /src/pom.xml package
+########################################################################
+FROM openjdk:11-jre-slim
+WORKDIR /app
+RUN mkdir -p /app/logs
+COPY --from=build /src/target/ksan-gw.jar /app
+COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.xml /app
+COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.sh /app
+CMD ["/app/ksan-gw.sh"]

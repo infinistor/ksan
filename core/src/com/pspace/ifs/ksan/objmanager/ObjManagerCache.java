@@ -19,7 +19,6 @@ import java.util.List;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -62,11 +61,31 @@ public class ObjManagerCache {
         DISKPOOL dskPool;
         dskPool = diskPoolMap.get(diskPoolId);
         if (dskPool == null) {
-            //this.loadDiskPools();
+            this.reloadDiskPoolList();
             dskPool = diskPoolMap.get(diskPoolId);
         }
         
         return dskPool;
+    }
+    
+    private DISKPOOL getDiskPoolfromMetadata(Metadata mt, String default_diskPoolId, boolean fromPrimary) throws ResourceNotFoundException{
+        String diskPoolId;
+        
+        if (fromPrimary){
+            diskPoolId = mt.getPrimaryDisk().getDiskPoolId();
+        }
+        else{
+            diskPoolId = mt.getReplicaDisk().getDiskPoolId();
+        }
+        
+        if (diskPoolId == null)
+            diskPoolId = default_diskPoolId;
+        else if (diskPoolId.isEmpty())
+            diskPoolId = default_diskPoolId;
+        
+        DISKPOOL tmp = getDiskPool(diskPoolId);
+        logger.debug("[getDiskPoolfromMetadata] key : {} primary {} def_diskpoolId : {} sel_diskPoolId : {} diskPool : {}", mt.getPath(), fromPrimary, default_diskPoolId, diskPoolId, tmp);
+        return tmp;
     }
     
     public DISKPOOL getDiskPoolFromCache(String diskPoolId) throws ResourceNotFoundException{
@@ -93,6 +112,19 @@ public class ObjManagerCache {
         }
         logger.error("There is no server in the disk pool with that serverid : {}!", serverId);
        throw new ResourceNotFoundException("There is no server in the disk pool with that serverid : " + serverId +"!"); 
+    }
+    
+    public DISKPOOL getDiskPoolFromCacheWithDiskId(String diskId) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        
+        for(String diskPoolId : diskPoolMap.keySet()){
+            dskPool = getDiskPool(diskPoolId);
+            if (dskPool.diskExistInPool(diskId, "")) {
+                return dskPool;
+            } // check the next diskPool
+        }
+        logger.error("[getDiskPoolFromCacheWithDiskId] There is no disk pool that hold a disk with that Id  : {}!", diskId);
+       throw new ResourceNotFoundException("[getDiskPoolFromCacheWithDiskId] There is no disk pool that hold a disk with that Id  : " + diskId +"!"); 
     }
     
     public void setBucketInCache(Bucket bt){
@@ -178,12 +210,27 @@ public class ObjManagerCache {
         
         dskPool = getDiskPool(dskPoolId);
         if (dskPool != null){
-            dsk = dskPool.getDisk( diskid);
+            dsk = dskPool.getDisk(diskid);
+            dsk.setDiskPoolId(dskPool.getId());
             return dsk;
         }
         logger.error("There is no disk in the the server with diskid : {} at disk pool id : {}!", diskid, dskPoolId);
         throw new ResourceNotFoundException("There is no disk in the the server with diskid : " + 
                 diskid +" at diskpool id : "+ dskPoolId +"!"); 
+    }
+    
+    public DISK getDiskWithId(String diskid) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        DISK dsk;
+        
+        dskPool = getDiskPoolFromCacheWithDiskId(diskid);
+        if (dskPool != null){
+            dsk = dskPool.getDisk( diskid);
+            dsk.setDiskPoolId(dskPool.getId());
+            return dsk;
+        }
+        logger.error("[getDiskWithId] There is no disk in the the server with diskid : {}!", diskid);
+        throw new ResourceNotFoundException("[getDiskWithId] There is no disk in the the server with diskid :" + diskid +"!"); 
     }
     
     public boolean validateDisk(String dskPoolId, String diskid, String dskPath){
@@ -198,23 +245,38 @@ public class ObjManagerCache {
     
     public boolean isDiskSeparatedAndValid(String dskPoolId, Metadata mt){
         DISKPOOL dskPool;
-         
-        dskPool = getDiskPool(dskPoolId);
-        if (dskPool == null)
-            return false; // diskpool not exist
-        
-        if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), ""))
-            return false; // primary disk not exist
-        
-        if (!mt.isReplicaExist())
-           return true;
-                
-        try {
-            if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), ""))
-                return false; // replica disk not exist
             
-            if ((mt.getPrimaryDisk().getOsdIp()).equals(mt.getReplicaDisk().getOsdIp()))
+        try {
+            dskPool = getDiskPoolfromMetadata(mt, dskPoolId, true);
+            if (dskPool == null){
+                //logger.debug("[isDiskSeparatedAndValid] key : {} diskpool not found primaryDiskPool : {} diskId : {}", mt.getPath(), mt.getPrimaryDisk().getDiskPoolId(), mt.getPrimaryDisk().getId());
+                return false; // diskpool not exist
+            }
+        
+            if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), "")){
+                //logger.debug("[isDiskSeparatedAndValid] key : {} primary disk not exist in diskpoolId : {} diskId : {}", mt.getPath(), dskPool.getId(), mt.getPrimaryDisk().getId());
+                return false; // primary disk not exist
+            }
+        
+            if (!mt.isReplicaExist())
+                return true;
+            
+            dskPool = getDiskPoolfromMetadata(mt, dskPoolId, false);
+            if (dskPool == null){
+                //logger.debug("[isDiskSeparatedAndValid] key : {} diskpool not found replicaDiskPool : {} diskId : {}", mt.getPath(), mt.getReplicaDisk().getDiskPoolId(), mt.getReplicaDisk().getId());
+                return false; // diskpool not exist
+            }
+            
+            if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), "")){
+                //logger.debug("[isDiskSeparatedAndValid] key : {} replica disk not exist in diskpoolId : {} diskId : {}", mt.getPath(), dskPool.getId(), mt.getReplicaDisk().getId());
+                return false; // replica disk not exist
+            }
+            
+            if ((mt.getPrimaryDisk().getOsdIp()).equals(mt.getReplicaDisk().getOsdIp())){
+                //logger.debug("[isDiskSeparatedAndValid] key : {} posd_IP : {} rosd IP : {}", mt.getPath(), mt.getPrimaryDisk().getOsdIp(), mt.getReplicaDisk().getOsdIp());
                 return false;
+            }
+            
         } catch (ResourceNotFoundException ex) {
             return true;
         }

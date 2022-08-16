@@ -35,7 +35,9 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
  */
 public class ObjectMover {
     private String Id;
+    private boolean debugOn;
     private boolean checkOnly;
+    private boolean allowedToMoveLocalDisk;
     private String Status;
     private String utilName;
     private long TotalNumObject;
@@ -46,6 +48,7 @@ public class ObjectMover {
     private OSDClient osdc;
      
     public ObjectMover(boolean checkOnly, String utilName) throws Exception{
+        this.debugOn = false;
         obmu = new ObjManagerUtil();
         dbm = obmu.getDBRepository();
         osdc = obmu.getOSDClient();
@@ -53,13 +56,31 @@ public class ObjectMover {
         this.utilName = utilName;
         TotalNumObject = 0;
         NumJobDone = 0;
+        allowedToMoveLocalDisk = false;
         Status = "INIT";
         Id = getNewId();
         List<Object> in = encode();
         List<Object> out= dbm.utilJobMgt("addJob", in);
     }
     
+    public ObjectMover(ObjManagerUtil obmu, boolean checkOnly, String utilName) throws Exception{
+        this.debugOn = false;
+        this.obmu = obmu;
+        dbm = obmu.getDBRepository();
+        osdc = obmu.getOSDClient();
+        this.checkOnly = checkOnly;
+        this.utilName = utilName;
+        TotalNumObject = 0;
+        NumJobDone = 0;
+        Status = "INIT";
+        allowedToMoveLocalDisk = false;
+        Id = getNewId();
+        List<Object> in = encode();
+        List<Object> out= dbm.utilJobMgt("addJob", in);
+    }
+    
     public ObjectMover(String id) throws Exception{
+        this.debugOn = false;
         List<Object> in;
         List<Object> out;
         Id = id;
@@ -67,13 +88,28 @@ public class ObjectMover {
         Status = "";
         TotalNumObject = 0;
         NumJobDone = 0;
+        allowedToMoveLocalDisk = false;
         in = encode();
         obmu = new ObjManagerUtil();
         dbm = obmu.getDBRepository();
         osdc = obmu.getOSDClient();
         out = dbm.utilJobMgt("getJob", in);
         decode(out);
-        System.out.format(">>>Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, Status, TotalNumObject, checkOnly, utilName);
+        log(">>>Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, Status, TotalNumObject, checkOnly, utilName);
+    }
+    
+    public void setDebugModeOn(){
+        this.debugOn = true;
+        osdc.setDebugModeOn();
+    }
+    
+    public boolean isDebugModeOn(){
+        return debugOn;
+    }
+    
+    public void log(String format, Object... args ){
+        if (debugOn)
+            System.out.format(format, args);
     }
     
     private List<Object> encode(){
@@ -102,7 +138,7 @@ public class ObjectMover {
         checkOnly = Boolean.getBoolean(en.get(4).toString());
         utilName = en.get(5).toString();
         startTime = en.get(6).toString();
-        System.out.format("<<<Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, Status, TotalNumObject, checkOnly, utilName);
+       log("<<<Id : %s status : %s TotalNumObject : %d checkOnly : %s utilName : %s \n", Id, Status, TotalNumObject, checkOnly, utilName);
     }
     
     private String getNewId(){
@@ -153,6 +189,10 @@ public class ObjectMover {
         return obmu;
     }
     
+    public void enableDisableLocalDiskMove(boolean allowedToMoveLocalDisk){
+        this.allowedToMoveLocalDisk = allowedToMoveLocalDisk;
+    }
+    
     public int updateNumberObjectsProcessed(long totalChecked, long totalFixed){
         TotalNumObject = totalChecked;
         NumJobDone = totalFixed;
@@ -183,15 +223,7 @@ public class ObjectMover {
          
          throw new ResourceNotFoundException("There is no disk with ID " + diskID + " in the metadata!");
     }
-    // main move
-    /*private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk) throws ResourceNotFoundException, Exception{
-        // move object in osd
-        if (osdc.moveObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
-            return -1;
-        //System.out.println("bucketName :>" + bucket);
-       return obmu.replaceDisk(bucket, objId, versionId, srcDisk.getId(), desDisk.getId()); 
-    }*/
-    
+   
     private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk, DISK diskToChange)throws ResourceNotFoundException, Exception{
         if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
             return -1;
@@ -199,23 +231,49 @@ public class ObjectMover {
         obmu.replaceDisk(bucket, objId, versionId,  diskToChange.getId(), desDisk.getId());
         
         osdc.removeObject(objId, versionId, diskToChange);
+       log("********************************End****************************************************************\n");
         return 0;
     }
     
     public int moveObject(String bucket, String objId, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        System.out.println("[moveObject] objId " + objId + " versionId : " + versionId);
-        Metadata mt = obmu.getObject(bucket, objId, versionId);
+      log("********************************start****************************************************************\n");
+        //log("[moveObject] bucket : %s objId : %s  versionId : %s", bucket,  objId,  versionId);
+        Metadata mt = obmu.getObject(bucket, objId, versionId); 
         DISK srcDisk = getDisk(mt, srcDiskId);
         DISK replica = obmu.allocReplicaDisk(bucket, mt);
-        return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), replica, srcDisk);
+        checkDiskDistance(mt,  replica);
+        //System.out.format("[moveObject] Bucket : %s objId : %s versionId : %s sourceD : %s Des_D : %s \n", mt.getBucket(), objId, versionId, srcDiskId, replica.getId());
+        //if (!mt.getPrimaryDisk().getId().equals(srcDiskId))
+        return moveObject(bucket, objId, versionId, srcDisk, replica, srcDisk);
+        
+        //return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), replica, srcDisk);
     }
     
     public int moveObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        System.out.println("[moveObject] objId " + objId + " versionId : " + versionId);
+        //System.out.println("[moveObject] bucket : "+ bucket +" objId " + objId + " versionId : " + versionId);
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK desDisk = getDisk(mt, desDiskId);
-        return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), desDisk, srcDisk);
+        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        checkDiskDistance(mt,  desDisk);
+        //return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), desDisk, srcDisk);
+        return moveObject(bucket, objId, versionId, srcDisk, desDisk, srcDisk);
+    }
+    
+    public int copyObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        Metadata mt = obmu.getObject(bucket, objId, versionId);
+        DISK srcDisk = getDisk(mt, srcDiskId);
+        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        
+        if (!(mt.getPrimaryDisk().getId().equals(srcDisk.getId())) && !(mt.getPrimaryDisk().getId().equals(desDisk.getId())))
+            return -1;
+        
+        if (!(mt.getReplicaDisk().getId().equals(srcDisk.getId())) && !(mt.getReplicaDisk().getId().equals(desDisk.getId())))
+            return -1;
+        
+        if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
+            return -1;
+        
+        return 0;
     }
     
     public int moveObject1(String bucket, String key, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
@@ -224,15 +282,30 @@ public class ObjectMover {
         DISK srcDisk = getDisk(mt, srcDiskId);
         //System.out.println("[moveObject1] mt " + mt.getObjId() + " versionId :" + mt.getVersionId());
         DISK replica = obmu.allocReplicaDisk(bucket, mt);
+        checkDiskDistance(mt,  replica);
         //System.out.println("srcDiskId >" + srcDiskId + " newDiskid >" + replica.getId());
-        return moveObject(bucket, mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk(), replica, srcDisk);
+        return moveObject(bucket, mt.getObjId(), mt.getVersionId(), srcDisk, replica, srcDisk);
     }
     
     public int moveObject1(String bucket, String key, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, Exception{
        Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);
        DISK srcDisk = getDisk(mt, srcDiskId);
        DISK desDisk = getDisk(mt, desDiskId);
-       return moveObject(bucket, mt.getObjId(), versionId, mt.getPrimaryDisk(), desDisk, srcDisk);
+       checkDiskDistance(mt,  desDisk);
+       return moveObject(bucket, mt.getObjId(), versionId, srcDisk, desDisk, srcDisk);
+    }
+    
+    private void checkDiskDistance(Metadata mt, DISK newDisk) throws ResourceNotFoundException {
+        boolean check;
+        
+        try {
+            check = obmu.allowedToReplicate(mt.getBucket(), mt.getPrimaryDisk(), mt.getReplicaDisk(), newDisk.getId(), allowedToMoveLocalDisk);
+        } catch (ResourceNotFoundException ex) {
+            check = obmu.allowedToReplicate(mt.getBucket(), mt.getPrimaryDisk(), null, newDisk.getId(), allowedToMoveLocalDisk);
+        }
+        
+        if (!check)
+            throw new ResourceNotFoundException("[checkDiskDistance] It is not allowd to put primary and replica in the same osd!");
     }
     
     public int startJob(){

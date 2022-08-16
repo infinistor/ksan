@@ -18,6 +18,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
+import java.util.logging.Level;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -71,10 +72,14 @@ public class GetFromPortal {
     
     private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
+    private final String GETDISKLISTAPI = "/api/v1/Disks";
+    private final String GETSERVERTAPI = "/api/v1/Servers/";
     
     private final String DATA_TAG = "Data";
     private final String ITEM_TAG = "Items";
     private final String CONFIG_TAG = "Config";
+    private final String NETWORKINTERFACE_TAG = "NetworkInterfaces";
+    private final String DISKS_TAG = "Disks";
     
     public GetFromPortal() throws IOException{
         getPortaConfig();
@@ -154,6 +159,9 @@ public class GetFromPortal {
         if (jsonItems.isEmpty())
             return null;
         
+        if (jsonItems.size() <= index)
+            return null;
+        
         JSONObject jsonItem = (JSONObject)jsonItems.get(index);
       
         return jsonItem;
@@ -185,9 +193,16 @@ public class GetFromPortal {
         return res;
     }
         
-    private  SERVER parseDiskResponse(SERVER svr, JSONArray disks){
+    private  SERVER parseDiskResponse(SERVER svr, JSONArray disks, String dskPoolId){
         for (int idx =0; idx < disks.size(); idx++){
             JSONObject disk = (JSONObject)disks.get(idx);
+            Object dskpoolIdObj = disk.get("DiskPoolId");
+            if (dskpoolIdObj == null)
+                continue;
+    
+            if (!dskpoolIdObj.equals(dskPoolId))
+                continue;
+            
             String diskId = (String)disk.get("Id");
             String path = (String)disk.get("Path");
             String status = (String)disk.get("State");
@@ -225,6 +240,7 @@ public class GetFromPortal {
     }
     
     private DISKPOOL parseDiskPoolResponse(DISKPOOL dskp, JSONArray servers){
+        int rack;
         for (int idx =0; idx < servers.size(); idx++){
             JSONObject server = (JSONObject)servers.get(idx);
             JSONArray disks = (JSONArray)server.get("Disks");
@@ -234,7 +250,14 @@ public class GetFromPortal {
             //String osdName = (String)server.get("Name");
             String status = (String)server.get("State");
             String  serverId = (String)server.get("Id");
-            int rack =  Integer.parseInt((String)server.get("Rack"));
+            rack = 0;
+            if (server.containsKey("Rack")){
+                logger.debug(">>>Server >> {}", server);
+                Object rackStr = server.get("Rack");
+                if (rackStr != null)
+                    rack =  Integer.valueOf((String)rackStr);
+            }
+                
             SERVER svr = new SERVER(serverId, ipaddrToLong(osdIP), osdIP);
             svr.setRack(rack);
             if (status.equalsIgnoreCase("Online"))
@@ -246,7 +269,7 @@ public class GetFromPortal {
             else
                 svr.setStatus(ServerStatus.UNKNOWN);
             
-            svr = parseDiskResponse(svr, disks);
+            svr = parseDiskResponse(svr, disks, dskp.getId());
             dskp.addServer(svr);
             //logger.debug("SERVERS {}", svr.toString());
         }
@@ -292,6 +315,39 @@ public class GetFromPortal {
         }
     }
     
+    private SERVER parseServerDiskResponse(String response, String dskPoolId) throws ParseException{
+        if (response.isEmpty())
+            return null;
+        
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject)parser.parse(response);
+        if (jsonObject == null)
+            return null;
+        
+        JSONObject jsonData = (JSONObject)jsonObject.get(DATA_TAG);
+        if (jsonData == null){
+            return null;
+        }
+        
+        if (jsonData.isEmpty())
+            return null;
+        
+        JSONArray jsonServer = (JSONArray)jsonData.get(NETWORKINTERFACE_TAG);
+        if (jsonServer.isEmpty())
+            return null;
+        
+        JSONObject netInterface = (JSONObject)jsonServer.get(0);
+        String osdIpAddress = (String)netInterface.get("IpAddress");
+        String serverId = (String)netInterface.get("ServerId");
+        SERVER svr = new SERVER(serverId, ipaddrToLong(osdIpAddress), osdIpAddress);
+        
+        JSONArray jsonDisks = (JSONArray)jsonData.get(DISKS_TAG);
+        if (jsonDisks.isEmpty())
+            return svr;
+        
+        return parseDiskResponse(svr, jsonDisks, dskPoolId);
+    }
+    
     private String get(String key) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException{
         HttpClient client = HttpClients.custom()
                 .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
@@ -329,7 +385,7 @@ public class GetFromPortal {
         objc.mqUsername = mqUser;
         objc.mqPassword = mqPassword;
         objc.mqPort = mqPort;
-        objc.mqOsdExchangename = "ksan.OSDExchange";
+        objc.mqOsdExchangename = "ksan.osdExchange";
         objc.mqExchangename = "ksan.system";  
         objc.mqQueeuname = "disk";  
         return 0;
@@ -342,5 +398,49 @@ public class GetFromPortal {
         
         parseDiskPoolsResponse(omc, content);
         omc.dumpCacheInFile();
+    }
+    
+    public String getDiskId(String diskName) throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException, ParseException{
+        int idx = 0;
+        JSONObject diskObj;
+        
+        String content = get(GETDISKLISTAPI);
+        if (content == null)
+            return "";
+        
+        if (content.isEmpty())
+            return "";
+        
+        do{
+            diskObj = parseGetSingleItem(content, idx);
+            if (diskObj == null)
+                return "";
+
+            if (diskObj.isEmpty())
+                return "";
+            
+            String diskN = (String)diskObj.get("Name");
+            if (diskN.equalsIgnoreCase(diskName)){
+                return (String)diskObj.get("Id");
+            }
+            idx++;
+        } while(true);
+   
+    }
+    
+    public SERVER loadOSDserver(String serverId, String dskPoolId){
+        try {
+            String content = get(GETSERVERTAPI + serverId);
+            if (content == null)
+                return null;
+            
+            if (content.isEmpty())
+                return null;
+            
+            return parseServerDiskResponse(content, dskPoolId);
+        } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException | ParseException ex) {
+            logger.debug("[loadOSDserver] unable to load server({}) info from portal with exception > {}", serverId, ex);
+            return null;
+        }
     }
 }

@@ -198,6 +198,7 @@ public class PostObject extends S3Request {
 			}
 		}
 
+		long contentLength = dataPostObject.getPayload().length;
 		s3Parameter.setInputStream(new ByteArrayInputStream(dataPostObject.getPayload()));
 		
 		String cacheControl = dataPostObject.getCacheControl();
@@ -214,6 +215,7 @@ public class PostObject extends S3Request {
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataPostObject.getUserMetadata());
+		s3Metadata.setContentLength(contentLength);
 
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {

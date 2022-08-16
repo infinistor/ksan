@@ -95,8 +95,8 @@ public class Recovery {
     public Recovery() throws Exception{
         queueN = "recoveryQueue";
         exchange = "UtilityExchange"; 
-        option ="fanout";
-        bindingKey = "*.utility.recovery.*";
+        option ="direct";
+        bindingKey = "*.services.recoverd.report.fail_of_replication";
         
         logger = LoggerFactory.getLogger(Recovery.class);
         ObjManagerConfig config = new ObjManagerConfig();

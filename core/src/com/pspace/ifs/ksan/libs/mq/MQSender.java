@@ -10,6 +10,9 @@
 */
 package com.pspace.ifs.ksan.libs.mq;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 /**
  *
  * @author legesse
@@ -52,11 +55,11 @@ public class MQSender extends MessageQ{
         return 0;
     }
     
-    public String sendWithResponse(String mesg, String routingKey) throws Exception{
-        return super.sendToExchangeWithResponse(mesg, routingKey);
+    public String sendWithResponse(String mesg, String routingKey, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
+        return super.sendToExchangeWithResponse(mesg, routingKey, timeoutInMilliSec);
     }
     
-    public String sendWithResponse(String mesg) throws Exception{
-        return super.sendToQueueWithResponse(mesg);
+    public String sendWithResponse(String mesg, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
+        return super.sendToQueueWithResponse(mesg, timeoutInMilliSec);
     }
 }
