@@ -11,6 +11,7 @@
 """
 
 import os, sys
+import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.init import *
 from common.utils import IsDaemonRunning, CheckParams
@@ -48,8 +49,8 @@ class KsanGW:
             return ret, errmsg
         Ret, Pid = IsDaemonRunning(KsanGwPidFile, CmdLine=KsanGwBinaryName)
         if Ret is True:
-            print('Already Running')
-            return False, 'ksanGw is alread running'
+            print('already Running')
+            return False, 'ksanGw is already running'
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, GwXmlFilePath, KsanGwBinaryName)

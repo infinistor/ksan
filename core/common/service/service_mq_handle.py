@@ -17,16 +17,80 @@ from service.service_manage import *
 #import ksan.service.s3 as S3
 from service.osd import KsanOsd
 from common.utils import IsDaemonRunning
-from common.define import ServiceMonitorInterval
+from const.mq import RoutKeyServiceState, MqVirtualHost, ExchangeName, RoutKeyServiceControlFinder, \
+    RoutKeyServiceUsage
+from const.service import UpdateServicesStateObject
 from service.gw import KsanGW
 from service.monitor import KsanMonitor
 from service.mongo import KsanMongoDB
+from service.control import ServiceUnit
 import mqmanage.mq
 import logging
 import xml.etree.ElementTree as ET
 
 @catch_exceptions()
 def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, GlobalFlag, logger):
+    """
+    Message Queue Service Handler
+    """
+    logger.debug("%s %s %s" % (str(RoutingKey), str(Body), str(Response)))
+    ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
+    Body = Body.decode('utf-8')
+    Body = json.loads(Body)
+    body = DictToObject(Body)
+
+    # Service Control Handle
+    if RoutKeyServiceControlFinder.search(RoutingKey):
+        logging.log(logging.INFO, "%s" % str(Body))
+        #if body.Id not in ServiceList['IdList']:
+        #    LoadServiceList(MonConf, ServiceList, LocalIpList, logger)
+
+        Response.IsProcessed = True
+        #if body.Id not in ServiceList['Details']:
+        #    logger.error('Invalid Service Id %s' % body.Id)
+        #    return ResponseReturn
+        ServiceType = body.ServiceType
+        #if ServiceType == TypeHaproxy:
+        #    Ret = Hap.StartStop(Body)
+        #elif ServiceType == TypeS3:
+        #    Ret = S3.StartStop(Body)
+        service = ServiceUnit(logger, ServiceType)
+        if body.Control == START:
+            Ret, ErrMsg = service.Start()
+        elif body.Control == STOP:
+            Ret, ErrMsg = service.Stop()
+        elif body.Control == RESTART:
+            Ret, ErrMsg = service.Restart()
+        elif ServiceType == TypeServiceAgent:
+            Ret = True
+            ErrMsg = ''
+        else:
+            Ret = False
+            ErrMsg = 'Invalid Serivce Type'
+
+        if Ret is False:
+            ResponseReturn = mqmanage.mq.MqReturn(Ret, Code=1, Messages=ErrMsg)
+            logger.error(ResponseReturn)
+        else:
+            logging.log(logging.INFO, ResponseReturn)
+        return ResponseReturn
+    # Serivce Config Handle
+    elif ".config." in RoutingKey:
+        if body.Id in ServiceList['IdList']:
+            Response.IsProcessed = True
+            logger.debug(ResponseReturn)
+        return ResponseReturn
+    elif RoutingKey.endswith((".added", ".updated", ".removed")):
+        GlobalFlag['ServiceUpdated'] = Updated
+        Response.IsProcessed = True
+        logger.debug(ResponseReturn)
+        return ResponseReturn
+    else:
+        Response.IsProcessed = True
+        return ResponseReturn
+
+
+def Old_MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, GlobalFlag, logger):
     """
     Message Queue Service Handler
     """
@@ -128,6 +192,8 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
         return ResponseReturn
 
 
+
+
 class Process:
     def __init__(self,ServiceType):
         self.ServiceType = ServiceType
@@ -206,6 +272,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
     MqServiceState = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
                                     RoutKeyServiceState, ExchangeName, QueueName='')
 
+
     # local service list
     LocalServices = list() # [{ 'Id': ServiceId, 'Type': 'Osd', 'ProcessObject':Object, 'IsEnable': True, 'GroupId': GroupId, 'Status': 'Online'}]
     while True:
@@ -260,7 +327,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         State.Set(ServiceId, ProcObject.State)
                         State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
                         State = json.loads(State)
-                        logger.debug(State)
+                        logger.error(State)
                         MqServiceState.Sender(State)
                         ServiceStatus = ProcObject.State
                         CreateServicePoolXmlFile(ServiceTypePool)

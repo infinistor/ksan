@@ -16,9 +16,8 @@ Version = '0.8.0'
 setup(
     name='ksan-mgs-util',
     version=Version,
-    data_files=[('/usr/local/ksan/bin', [\
-                 './ksan', 'ksanCbalance', 'ksanFsck', 'ksanGetAttr'
-    ]), ('/usr/local/ksan/bin/util', ['ksanCbalance.jar', 'ksanFsck.jar', 'ksanGetAttr.jar'])],
+    data_files=[('/usr/local/ksan/sbin', [\
+                 './recovery/ksanRecovery', 'ksanRecovery.jar'])],
 )
-os.system("chmod 755 /usr/local/ksan/bin/ksan*")
+os.system("chmod 755 /usr/local/ksan/sbin/*")
 

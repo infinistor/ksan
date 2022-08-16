@@ -27,8 +27,8 @@ class MyOptionParser(OptionParser):
         Usage: ksanDiskpool {add|remove|update|list} [option]
                 add          -N <disk pool name> -r <nreplica> -t <class type>         : Create Disk Pool
                 remove       -N <disk pool name>                                       : Delete Disk Pool
-                addDisk      -N <disk pool name> -n <"disk name">                           : Add Disk to Pool
-                removeDisk   -N <disk pool name> -n <"disk name">                           : Delete Disk from Pool
+                addDisk      -N <disk pool name> -n <"disk name">                      : Add Disk to Pool
+                removeDisk   -N <disk pool name> -n <"disk name">                      : Delete Disk from Pool
                 list                                                                   : Display disk Pool Info
         [options]
                 -P                                                                     : Disk Pool Id
@@ -36,7 +36,7 @@ class MyOptionParser(OptionParser):
                 -N                                                                     : Disk Pool Name
                 -n                                                                     : Disk Name
                 -r                                                                     : Replica Count. 1~3
-                -a                                                                     : Disk Pool Class Type. 'STANDARD' or 'ARCHIVE' 
+                -t                                                                     : Disk Pool Class Type. 'STANDARD' or 'ARCHIVE' 
                 -c                                                                     : Disk Pool Description
                 -l                                                                     : Disk Pool Detail information
                 -h, --help                                                             : show this help message and exit

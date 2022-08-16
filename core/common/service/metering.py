@@ -15,6 +15,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.init import *
 from common.utils import IsDaemonRunning, CheckParams
 from common.shcommand import *
+import time
 from service.service_manage import AddService
 import xml.etree.ElementTree as ET
 import signal
@@ -51,8 +52,8 @@ class KsanMetering:
             return ret, errmsg
         Ret, Pid = IsDaemonRunning(KsanGwPidFile, CmdLine=KsanGwBinaryName)
         if Ret is True:
-            print('Already Running')
-            return False, 'ksanGw is alread running'
+            print('already running')
+            return False, 'ksanGw is already running'
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, GwXmlFilePath, KsanGwBinaryName)

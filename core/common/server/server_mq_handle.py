@@ -15,9 +15,12 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 #from common.common.mqutils import Mq
 from server.server_manage import *
 import mqmanage.mq
-from common.define import *
+from const.common import *
+from const.server import ServerUsageItems, ServerStateItems
 from common.init import GetConf
 from common.shcommand import UpdateEtcHosts
+from const.mq import MqVirtualHost, RoutKeyServerUsage, ExchangeName, RoutKeyServerState, \
+    RoutKeyServerUpdateFinder, RoutKeyServerAddFinder, RoutKeyServerDelFinder
 import socket
 import time
 import logging
@@ -35,7 +38,7 @@ def MonUpdateServerUsage(conf, logger):
         Mqsend = json.loads(Mqsend)
         ServerUsageMq.Sender(Mqsend)
 
-        ServerState = ServerStateItems('Online')
+        ServerState = ServerStateItems(conf.mgs.ServerId, 'Online')
         Mqsend = jsonpickle.encode(ServerState, make_refs=False, unpicklable=False)
         print(Mqsend)
         Mqsend = json.loads(Mqsend)

@@ -16,15 +16,22 @@ import fcntl
 import getpass
 import pdb
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.define import *
+from const.common import *
 from configparser import ConfigParser
 from common.shcommand import GetHostInfo
 from common.log import *
 from common.utils import IsIpValid, IsUrlValid
 
 
-
 def get_input(Description, type, default=None, ValidAnsList=None):
+    """
+    get info from user
+    :param Description:
+    :param type:
+    :param default:
+    :param ValidAnsList:
+    :return:
+    """
     try:
         while True:
             if type == 'pwd':
@@ -66,94 +73,9 @@ def get_input(Description, type, default=None, ValidAnsList=None):
 
 
 @catch_exceptions()
-def InitMonServicedConf():
-    Ret, HostName, LocalIp = GetHostInfo()
-    if Ret is False:
-        print('Fail to get host by name')
-        sys.exit(-1)
-    conf = MonservicedConf()
-    conf.MgsIp = LocalIp
-    conf.IfsPortal = DefaultIfPortalPort
-    conf.MqPort = DefaultIfMqPort
-    conf.ServerId = ''
-    conf.ManagementNetDev = ''
-    conf.IfsPortalKey = ''
-
-    ret, oldconfig = GetConf(MonServicedConfPath)
-    if ret is True:
-        conf.MgsIp = oldconfig.mgs.MgsIp
-        conf.IfsPortal = int(oldconfig.mgs.IfsPortalPort)
-        conf.MqPort = int(oldconfig.mgs.MqPort)
-        conf.ServerId = oldconfig.mgs.ServerId
-        conf.ManagementNetDev = oldconfig.mgs.ManagementNetDev
-        conf.IfsPortalKey = oldconfig.mgs.IfsPortalKey
-
-    conf.MgsIp = get_input('Insert Mgs Ip', str, default=conf.MgsIp)
-    conf.IfsPortalPort = get_input('Insert Mgs Port', int, default=conf.IfsPortal)
-    conf.MqPort = get_input('Insert Mq Port', int, default=conf.MqPort)
-    conf.ManagementNetDev = get_input('Insert Management Network device', 'net_device', default=conf.ManagementNetDev)
-    conf.IfsPortalKey = get_input('Insert Portal Api Key', str, default=conf.IfsPortalKey)
-
-    if not os.path.exists(KsanEtcPath):
-        os.makedirs(KsanEtcPath)
-
-    config = ConfigParser()
-    config.optionxform = str
-    config['mgs'] = conf.__dict__
-    #config['mgs']['MgsIp'] = mgsip
-    #config['mgs']['IfsPortalPort'] = str(mgsport)
-    #config['mgs']['MqPort'] = str(mqport)
-    #config['mgs']['ManagementNetDev'] = ManagementNetDev
-    #config['mgs']['ServerId'] = conf.ServerId
-    with open(MonServicedConfPath, 'w') as configfile:
-        config.write(configfile)
-
-
-@catch_exceptions()
-def KsanInitConf(ConfPath, ConfClass, FileType='INI', ReturnType='Object'):
-    """
-    ConfPath: Conf file to read or write
-    ConfClass: Configuration Class
-    FileType: INI for ini file. Normal for key-value file
-    ReturnType: 'Object' for object(class). 'Dict' for dictionary type
-    """
-
-    if not os.path.exists(KsanEtcPath):
-        os.makedirs(KsanEtcPath)
-
-    if os.path.exists(ConfPath):
-        return GetConf(ConfPath, FileType=FileType, ReturnType=ReturnType)
-    else:
-        # return Default configuration
-        return True, ConfClass
-
-
-
-
-def readconf_type1(path, fo=None, lock_sh=False):
-    config = dict()
-    openfile = True
-    if fo: openfile = False
-    if openfile:
-        try:
-            fo = open(path)
-        except IOError as err:
-            return config
-    if lock_sh: fcntl.flock(fo.fileno(), fcntl.LOCK_SH)
-    lines = fo.readlines()
-    for line in lines:
-        mo = re.search("([\d\w_\-]+)[\s]{0,3}=[\s]{0,3}([\d\w_\-])")
-        if mo:
-            config[mo.group(1)] = mo.group(2)
-    if lock_sh: fcntl.flock(fo.fileno(), fcntl.LOCK_UN)
-    if openfile: fo.close()
-    return config
-
-
-@catch_exceptions()
 def read_conf(path):
     """
-    ini type conf file
+    read conf file
     """
     if not os.path.exists(path):
         print('init first')
@@ -174,7 +96,12 @@ def read_conf(path):
 def read_conf_normal(path, fo=None, lock_sh=False):
     """
     normal key=value type conf file
+    :param path:
+    :param fo:
+    :param lock_sh:
+    :return: dict
     """
+
     config = {}
     openfile = True
     if fo: openfile = False
@@ -198,19 +125,19 @@ def read_conf_normal(path, fo=None, lock_sh=False):
 
 
 @catch_exceptions()
-def GetConf(filename, FileType='INI', ReturnType='Object'):
+def GetConf(filename, FileType=ConfigTypeINI, ReturnType=ConfigTypeObject):
     """
     filename: configuration file Path
     """
     if not os.path.exists(filename):
         return False, None
-    if FileType == 'INI':
+    if FileType == ConfigTypeINI:
         Res, Conf = read_conf(filename)
     else:
         Res, Conf = read_conf_normal(filename)
 
     if Res is True:
-        if ReturnType == 'Object':
+        if ReturnType == ConfigTypeObject:
             return Res, DictToObject(Conf)
         else:
             # return dictionary type
@@ -220,14 +147,23 @@ def GetConf(filename, FileType='INI', ReturnType='Object'):
         return Res, None
 
 
-def UpdateConf(Path, Section, Key, Value, Force=True):
+def UpdateConf(Path, Section, Key, Value, logger, Force=True):
+    """
+    Update NetowrkId and ServerId in ksanMonitor.conf
+    :param Path:
+    :param Section:
+    :param Key:
+    :param Value:
+    :param Force:
+    :return:
+    """
     res, conf = read_conf(Path)
     if res is True:
         if Section not in conf:
-            print('Invalid Section: %s in %s' % (Section, Path))
+            logger.error('Invalid Section: %s in %s' % (Section, Path))
             return False
         if Key not in conf[Section] and Force is False:
-            print('Invalid Key: %s in %s' % (Key, Path))
+            logger.error('Invalid Key: %s in %s' % (Key, Path))
             return False
         conf[Section][Key] = Value
         config = ConfigParser()
@@ -242,12 +178,3 @@ def UpdateConf(Path, Section, Key, Value, Force=True):
         return True
     else:
         return False
-
-
-
-
-
-if __name__ == '__main__':
-    InitMonServicedConf()
-    res, ret = read_conf(MonServicedConfPath)
-    print(ret)

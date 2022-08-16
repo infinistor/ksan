@@ -13,9 +13,15 @@
 
 import os, sys
 import pdb
+import time
+
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.httpapi import *
+from const.common import *
+from common.utils import Byte2HumanValue, DisplayDiskState, DisplayDiskMode
+from const.disk import RequestDiskPool, DiskPoolDetailModule, DiskPoolItemsModule, DiskAdd2DiskPoolItems
+from const.http import ResponseHeaderModule
 from server.server_manage import GetAllServerDetailInfo
 import jsonpickle
 
@@ -70,7 +76,7 @@ def GetDefaultDiskPool(ip, port, ApiKey, logger=None):
     Url = '/api/v1/DiskPools/Default'
     ReturnType = DiskPoolDetailModule
     Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
-    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
+    Res, Errmsg, Ret = Conn.get(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 
@@ -83,6 +89,45 @@ def GetDiskIdList(PoolDetailInfo):
         DiskIdListOfPool.append(disk.Id)
         DiskNameListOfPool.append(disk.Name)
     return DiskIdListOfPool, DiskNameListOfPool
+
+
+@catch_exceptions()
+def AddDisk2DiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DiskPoolName=None, logger=None):
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ErrMsgDiskpoolNameMissing, None
+
+    Url = '/api/v1/DiskPools/Disks/%s' % TargetDiskPool
+    pool = DiskAdd2DiskPoolItems()
+    pool.Set(AddDiskIds)
+    ReturnType = ResponseHeaderModule
+    body = jsonpickle.encode(pool, make_refs=False)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
+    Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Data
+
+@catch_exceptions()
+def RemoveDisk2DiskPool(Ip, Port, ApiKey, DiskPoolId=None,DelDiskIds=None, DiskPoolName=None, logger=None):
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        return ResInvalidCode, ResInvalidMsg + ErrMsgDiskpoolNameMissing, None
+
+    Url = '/api/v1/DiskPools/Disks/%s' % TargetDiskPool
+    pool = DiskAdd2DiskPoolItems()
+    pool.Set(DelDiskIds)
+    ReturnType = ResponseHeaderModule
+    body = jsonpickle.encode(pool, make_refs=False)
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
+    Res, Errmsg, Data = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
+    return Res, Errmsg, Data
+
+
 
 
 @catch_exceptions()
@@ -189,7 +234,7 @@ def GetAllDiskPoolListDetail(Ip, Port, logger=None):
         if Ret.Result == ResultSuccess:
             DiskPoolDetailList = list()
             for pool in DiskPoolList:
-                res, errmsg, ret, DiskPoolDetail = GetDiskPoolInfo(Ip, Port, PoolId=pool.Id, logger=logger)
+                res, errmsg, ret, DiskPoolDetail = GetDiskPoolInfo(Ip, Port, DiskPoolId=pool.Id, logger=logger)
                 if Res == ResOk:
                     if Ret.Result == ResultSuccess:
                         DiskPoolDetailList.append(DiskPoolDetail)
@@ -237,6 +282,7 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                     continue
 
                 TmpDisk = dict()
+                TmpDisk['DiskName'] = disk.Name
                 TmpDisk['DiskId'] = disk.Id
                 TmpDisk['ServerName'] = ServerName
                 TmpDisk['Path'] = disk.Path
@@ -244,40 +290,28 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                 TmpDisk['UsedSize'] = disk.UsedSize
                 TmpDisk['Read'] = disk.Read
                 TmpDisk['Write'] = disk.Write
+                TmpDisk['State'] = disk.State
+                TmpDisk['RwMode'] = disk.RwMode
                 pool['DiskList'].append(TmpDisk)
 
 
-    if Detail is False:
-        PoolTitleLine = '%s' % ('=' * 93)
-        PoolDataLine = '%s' % ('-' * 93)
-        title = "|%s|%s|%s|%s|" % ('Name'.center(20),  'PoolId'.center(38), 'DiskPoolType'.center(15), 'ReplicationType'.center(15))
-        print(PoolTitleLine)
-        print(title)
-        print(PoolTitleLine)
-
-        for pool in DiskPoolList:
-            _pool = "|%s|%s|%s|%s|" % (pool.Name.center(20), str(pool.Id).center(38),
-                                       str(pool.DiskPoolType).center(15), GetReplicationDspType(str(pool.ReplicationType)).center(15))
-
-            print(_pool)
-            print(PoolDataLine)
-    else:
-        TopTitleLine = "%s" % ("=" * 145)
-        DiskPoolTitleLine = "%s" % ("-" * 145)
+    if Detail == DetailInfo:
+        TopTitleLine = "%s" % ("=" * 173)
+        DiskPoolTitleLine = "%s" % ("-" * 173)
         print(TopTitleLine)
-        DiskPoolTitle = "|%s|%s|%s|%s|%s|" % ('Name'.center(36),  'PoolId'.center(38), 'DiskPoolType'.center(15), 'ReplicationType'.center(15), " " * 35)
+        DiskPoolTitle = "|%s|%s|%s|%s|%s|" % ('Name'.center(26),  'PoolId'.center(38), 'DiskPoolType'.center(15), 'ReplicationType'.center(15), " " * 73)
         print(DiskPoolTitle)
         print(TopTitleLine)
 
-        DiskTitleLine = "%s%s" % (" " * 10, "-" * 135)
+        DiskTitleLine = "%s%s" % (" " * 27, "-" * 146)
         for pool in DiskPools:
-            _pool = "|%s|%s|%s|%s|%s|" % (pool['Name'].center(36), str(pool['Id']).center(38),
-                                           str(pool['DiskPoolType']).center(15), GetReplicationDspType(str(pool['ReplicationType'])).center(15), " " * 35)
+            _pool = "|%s|%s|%s|%s|%s|" % (pool['Name'].center(26), str(pool['Id']).center(38),
+                                           str(pool['DiskPoolType']).center(15), GetReplicationDspType(str(pool['ReplicationType'])).center(15), " " * 73)
             print(_pool)
             print(DiskPoolTitleLine)
-            DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 10, 'HostName'.center(15), '' 'DiskId'.center(38),
-                                        'DiskPath'.center(20), 'TotalSize'.center(15), 'UsedSize'.center(15),
-                                                      'Read'.center(12), 'Write'.center(12))
+            DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 27, 'HostName'.center(15), '' 'DiskName'.center(20),
+                                        'DiskPath'.center(20), 'TotalSize'.center(9), 'UsedSize'.center(8),
+                                                      'Read'.center(6), 'Write'.center(6), 'RwMode'.center(6), 'State'.center(7), 'DiskId'.center(38))
             print(DiskTitle)
             if len(pool['DiskList']) > 0:
                 print(DiskTitleLine)
@@ -285,16 +319,65 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                 print(DiskPoolTitleLine)
 
             for idx, disk in enumerate(pool['DiskList']):
-                _disk = "%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 10, disk['ServerName'].center(15), disk['DiskId'].center(38),
-                                          disk['Path'].center(20), str(int(disk['TotalSize'])).center(15),
-                                          str(int(disk['UsedSize'])).center(15), str(int(disk['Read'])).center(12),
-                                          str(int(disk['Write'])).center(12))
+                _disk = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 27, disk['ServerName'].center(15), disk['DiskName'].center(20),
+                                          disk['Path'].center(20), str(Byte2HumanValue(int(disk['TotalSize']), 'TotalSize')).center(9),
+                                          str(Byte2HumanValue(int(disk['UsedSize']), 'UsedSize')).center(8), str(Byte2HumanValue(int(disk['Read']), 'DiskRw')).center(6),
+                                          str(Byte2HumanValue(int(disk['Write']), 'DiskRw')).center(6), DisplayDiskMode(disk['RwMode']).center(6), DisplayDiskState(disk['State']).center(7), disk['DiskId'].center(38))
 
                 print(_disk)
                 if len(pool['DiskList']) - 1 == idx:
                     print(DiskPoolTitleLine)
                 else:
                     print(DiskTitleLine)
+
+    elif Detail == SimpleInfo:
+        TopTitleLine = "%s" % ("=" * 135)
+        DiskPoolTitleLine = "%s" % ("-" * 135)
+        print(TopTitleLine)
+        DiskPoolTitle = "|%s|%s|%s|%s|%s|" % ('Name'.center(26),  'PoolId'.center(38), 'DiskPoolType'.center(15), 'ReplicationType'.center(15), " " * 35)
+        print(DiskPoolTitle)
+        print(TopTitleLine)
+
+        DiskTitleLine = "%s%s" % (" " * 28, "-" * 107)
+        for pool in DiskPools:
+            _pool = "|%s|%s|%s|%s|%s|" % (pool['Name'].center(26), str(pool['Id']).center(38),
+                                           str(pool['DiskPoolType']).center(15), GetReplicationDspType(str(pool['ReplicationType'])).center(15), " " * 35)
+            print(_pool)
+            print(DiskPoolTitleLine)
+            DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 28, 'HostName'.center(15), '' 'DiskName'.center(20),
+                                        'DiskPath'.center(20), 'TotalSize'.center(9), 'UsedSize'.center(8),
+                                                      'Read'.center(6), 'Write'.center(6), 'RwMode'.center(6), 'State'.center(7))
+            print(DiskTitle)
+            if len(pool['DiskList']) > 0:
+                print(DiskTitleLine)
+            else:
+                print(DiskPoolTitleLine)
+
+            for idx, disk in enumerate(pool['DiskList']):
+                _disk = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 28, disk['ServerName'].center(15), disk['DiskName'].center(20),
+                                          disk['Path'].center(20), str(Byte2HumanValue(int(disk['TotalSize']), 'TotalSize')).center(9),
+                                          str(Byte2HumanValue(int(disk['UsedSize']), 'UsedSize')).center(8), str(Byte2HumanValue(int(disk['Read']), 'DiskRw')).center(6),
+                                          str(Byte2HumanValue(int(disk['Write']), 'DiskRw')).center(6), DisplayDiskMode(disk['RwMode']).center(6), DisplayDiskState(disk['State']).center(7))
+
+                print(_disk)
+                if len(pool['DiskList']) - 1 == idx:
+                    print(DiskPoolTitleLine)
+                else:
+                    print(DiskTitleLine)
+
+    else:
+        PoolTitleLine = '%s' % ('=' * 93)
+        PoolDataLine = '%s' % ('-' * 93)
+        DiskPoolTitle = "|%s|%s|%s|%s|" % ('Name'.center(20),  'PoolId'.center(38), 'DiskPoolType'.center(15), 'ReplicationType'.center(15))
+        print(PoolTitleLine)
+        print(DiskPoolTitle)
+        print(PoolTitleLine)
+
+        for pool in DiskPoolList:
+            _pool = "|%s|%s|%s|%s|" % (pool.Name.center(20), str(pool.Id).center(38),
+                                       str(pool.DiskPoolType).center(15), GetReplicationDspType(str(pool.ReplicationType)).center(15))
+            print(_pool)
+            print(PoolDataLine)
 
 
 def GetReplicationDspType(StringType):
@@ -352,8 +435,8 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
-    elif Action.lower() == 'set-default':
-        if not options.DiskpoolName:
+    elif Action.lower() == 'set':
+        if not (options.DefaultDiskpool and options.DiskpoolName):
             Parser.print_help()
             sys.exit(-1)
         Res, Errmsg, Ret = SetDefaultDiskPool(PortalIp, PortalPort, PortalApiKey, DiskPoolName=options.DiskpoolName, logger=logger)
@@ -361,7 +444,7 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
             print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
-    elif Action.lower() == 'get-default':
+    elif Action.lower() == 'get':
         Res, Errmsg, Ret = GetDefaultDiskPool(PortalIp, PortalPort, PortalApiKey, logger=logger)
         if Res == ResOk:
             if Ret.Data is not None:
@@ -370,11 +453,41 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
                 print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
+    elif Action.lower() == 'add2disk':
+        AddDiskIds = None
+        if not (options.DiskpoolName and options.DiskName):
+            Parser.print_help()
+            sys.exit(-1)
+        if options.DiskName is not None:
+            AddDiskIds = options.DiskName.split()
+        else:
+            Parser.print_help()
+            print("Disk Ids or Disk Name is required")
+            sys.exit(-1)
 
-    elif Action.lower() in ['add-disk', 'remove-disk', 'update']:
+        Res, Errmsg, Ret = AddDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, AddDiskIds=AddDiskIds,
+                                           DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+    elif Action.lower() == 'remove2disk':
+        if not ((options.DiskpoolName and options.DiskName)):
+            Parser.print_help()
+            sys.exit(-1)
+        DelDiskIds = options.DiskName.split()
+
+        Res, Errmsg, Ret = RemoveDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, DelDiskIds=DelDiskIds,
+                                           DiskPoolName=options.DiskpoolName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+    elif Action.lower() in ['update']:
         AddDiskIds = None
         DelDiskIds = None
-        if Action.lower() == 'add-disk':
+        if Action.lower() == 'add2disk':
             if not (options.DiskpoolName and options.DiskName):
                 Parser.print_help()
                 sys.exit(-1)
@@ -384,7 +497,7 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
                 Parser.print_help()
                 print("Disk Ids or Disk Name is required")
                 sys.exit(-1)
-        elif Action.lower() == 'remove-disk':
+        elif Action.lower() == 'remove2disk':
             if not ((options.DiskpoolName and options.DiskName)):
                 Parser.print_help()
                 sys.exit(-1)
@@ -397,18 +510,27 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
         else:
             print(Errmsg)
     elif Action.lower() == 'list':
-        Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
-        if Res != ResOk:
-            print(Errmsg)
-        else:
-            Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+        while True:
+            Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
             if Res != ResOk:
                 print(Errmsg)
             else:
                 if options.Detail:
-                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=True)
+                    Detail = DetailInfo
+                elif options.Simple:
+                    Detail = SimpleInfo
                 else:
-                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo)
+                    Detail = None
+
+                Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+                if Res != ResOk:
+                    print(Errmsg)
+                else:
+                    ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=Detail)
+            if options.Continue is None:
+                break
+            else:
+                time.sleep(int(options.Continue))
     else:
         Parser.print_help()
 

@@ -16,8 +16,8 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from service.service_manage import *
 from server.server_manage import *
 from common.init import GetConf
-from common.define import TypeServiceMONGODB, TypeServiceS3, TypeServiceOSD, TypeServiceHaproxy, \
-    TypeServiceMonitor, TypeServiceEdge
+from common.define import TypeServiceMongoDB, TypeServiceS3, TypeServiceOSD, TypeServiceHaproxy, \
+    TypeServiceMonitor, TypeServiceAgent
 
 
 class MyOptionParser(OptionParser):
@@ -29,18 +29,18 @@ class MyOptionParser(OptionParser):
         Usage = """
         Usage: ksanService {add|remove|config|start|stop|update|list} [option]
                 add    -n <server id> -N <service name> -t <service type>               : Add Service
-                remove    -N <service name>                                               : Delete Service
+                remove    -N <service name>                                             : Delete Service
                 config {list|get|add|update_version|remove}  -t <service type> 
                 -v <version>                                                            : Config Service Conf
-                start     -N <service name>                                               : Start Service 
-                stop      -N <service name>                                               : Stop Service 
+                start     -N <service name>                                             : Start Service 
+                stop      -N <service name>                                             : Stop Service 
                 list                                                                    : Display Service info
         [options]
                 -S                                                                      : Server Id
                 -I                                                                      : Service Id
                 -N                                                                      : Service Name
                 -G                                                                      : Service Group Id
-                -t                                                                      : Service Type
+                -t                                                                      : Service Type. <osd, gw, monitor, agent, mongodb>
                 -l                                                                      : Show Service Info in detail
                 -h, --help                                                              : show this help message and exit
 """
@@ -54,10 +54,10 @@ def ConfigControl(PortalIp, PortalPort, ApiKey, args, options, logger):
     if not options.ServiceType:
         print('Service type(-t) is required')
         sys.exit(-1)
-    if options.ServiceType not in [TypeServiceMONGODB, TypeServiceOSD, TypeServiceMonitor, TypeServiceS3,
-                                       TypeServiceMonitor, TypeServiceEdge]:
-        print('Invalid Service Type. Valid Service Type: %s' % ', '.join([TypeServiceMONGODB, TypeServiceOSD,
-                                                TypeServiceMonitor, TypeServiceS3, TypeServiceMonitor, TypeServiceEdge]))
+    if options.ServiceType not in [TypeServiceMongoDB, TypeServiceOSD, TypeServiceMonitor, TypeServiceS3,
+                                       TypeServiceMonitor, TypeServiceAgent]:
+        print('Invalid Service Type. Valid Service Type: %s' % ', '.join([TypeServiceMongoDB, TypeServiceOSD,
+                                                TypeServiceMonitor, TypeServiceS3, TypeServiceMonitor, TypeServiceAgent]))
         sys.exit(-1)
     if args[1] == 'add':
         ServiceType = options.ServiceType
@@ -73,6 +73,7 @@ def ConfigControl(PortalIp, PortalPort, ApiKey, args, options, logger):
 
     elif args[1] == 'get':
         Version = options.version
+        File = options.File
         ServiceType = options.ServiceType
         Res, Errmsg, Ret, Data = GetServiceConfig(IfsPortalIp, IfsPortalPort, ApiKey, ServiceType, Version=Version, logger=logger)
         if Res != ResOk:

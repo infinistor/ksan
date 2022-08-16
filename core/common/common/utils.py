@@ -13,6 +13,8 @@
 import os, sys
 import re
 from common.shcommand import shcall
+from const.common import OneTBUnit, OneGBUnit, OneMBUnit, OneKBUnit, DiskStart, DiskStop, DiskWeak, DiskDisable, \
+    DiskModeRo, DiskModeRw, DiskModeRoShort, DiskModeRwShort
 import signal
 
 
@@ -124,63 +126,6 @@ PidNotFound = -2
 MainDaemonList = ['GW', 'OSD', 'RABBITMQ', 'MON', 'EDGE', 'DB']
 
 
-def GetCmdOfDaemon(daemon):
-    global g_isPortalRunning
-
-    if daemon in ['mariadb']:
-        return 'systemctl start mariadb'
-    elif daemon in ['ksan-osd.jar']:
-        return '/usr/local/ksan/bin/ksanOsd start'
-    elif daemon in ['ksan-gw.jar']:
-        return '/usr/local/ksan/bin/ksanGw start'
-    elif daemon in ['ksanMonitor']:
-        return '/usr/local/ksan/bin/ksanMonitor start'
-    elif daemon in ['ksanAgent']:
-        return '/usr/local/ksan/bin/ksanAgent start'
-    else:
-        return None
-
-
-def UpdateMonitoringList(MonDaemonDict, DaemonKeyList, daemon_black_list):
-    global g_mgs
-    """
-    Set Each Daemon's property(pid parsing type, command to start, current pid with init)
-    :param MonDaemonDict:
-    :param DaemonKeyList:
-    :return:
-    """
-    global KeyDaemonMap
-
-    DaemonToMonitor = list()
-    # Add New Daemon list
-    for Key in DaemonKeyList:  # MGS, MDS, OSD, ...
-        if Key not in MainDaemonList or Key in daemon_black_list:
-            continue
-
-        for daemon in KeyDaemonMap[Key]: # ifs_mgsd, ifs_mdsd, ifs_osdd, ...
-            if daemon in daemon_black_list:
-                continue
-            DaemonToMonitor.append(daemon)
-            if daemon not in MonDaemonDict:
-                MonDaemonDict[daemon] = dict()
-                if daemon == 'ifss-jmds':
-                    MonDaemonDict[daemon]['PidFinder'] = re.compile("([\d]+) java [\s\/\d\w\-_=\.]+%s" % daemon)
-                else:
-                    MonDaemonDict[daemon]['PidFinder'] = re.compile("([\d]+)[\s][\s\/\d\w\-_=\.]+%s" % daemon)
-                MonDaemonDict[daemon]['Pid'] = PidInit
-                MonDaemonDict[daemon]['Cmd'] = GetCmdOfDaemon(daemon)
-                g_monlogger.error("([\d]+)[\s][\s\/\d\w\-_=\.]+%s %s" % (daemon, GetCmdOfDaemon(daemon)))
-
-
-    # Delete No need to Monitor list
-    for daemon in MonDaemonDict.keys():
-        if daemon not in DaemonToMonitor:
-            try:
-                del MonDaemonDict[daemon]
-            except KeyError:
-                pass
-
-
 def GetPsResult():
     InfiniPsCmd = "ps --ppid 1 -o pid,args  |grep -e 'ifs_' -e 'mysql' -e 'mariadbd' -e 'httpd' -e 'dotnet' -e 'memcached' " \
                   "-e 'ifss-' -e 'ifs-' -e 'ifs_logbucket' -e 'smbd' -e '/usr/sbin/haproxy'  " \
@@ -259,7 +204,86 @@ def ParsingPidFromPsResult(MonDaemonDict, PsResult, snmp_trap_daemon_list):
             if Found is False:
                 g_monlogger.error('daemon %s fail to get pid %s' % (daemon, detail['Pid']))
                 detail['Pid'] = PidNotFound
+class clr:
+    okpur = '\033[95m'
+    okbl = '\033[94m'
+    warnye = '\033[93m'
+    okgr = '\033[92m'
+    badre = '\033[91m'
+    end = '\033[0m'
 
+
+def Byte2HumanValue(Byte, Title):
+
+    if Title == 'TotalSize':
+        if (int(Byte) / OneTBUnit) > 0.99: # TB
+            TB = int(Byte) / OneTBUnit
+            return (clr.okbl + "%8.1f" % round(TB, 1) + 'T' + clr.end)
+        elif (int(Byte) / OneGBUnit) > 0.99: # GB
+            GB = int(Byte) / OneGBUnit
+            return (clr.okbl + "%8.1f" % round(GB, 1) + 'G' + clr.end)
+        elif (int(Byte) / OneMBUnit) > 0.99: # MB
+            MB = int(Byte) / OneMBUnit
+            return (clr.okgr + "%8.1f" % round(MB, 1)+'M' + clr.end)
+
+        elif (int(Byte) / OneKBUnit) > 0.99:  # MB
+            MB = int(Byte) / OneKBUnit
+            return (clr.warnye + "%8.1f" % round(MB, 1) + 'K' + clr.end)
+        else:# KB
+            KB = int(Byte)
+            return (clr.badre + "%8.1f" % round(KB, 1)+'B' + clr.end)
+    elif Title == 'UsedSize' or Title == 'FreeSize':
+        if (int(Byte) / OneTBUnit) > 0.99:  # TB
+            TB = int(Byte) / OneTBUnit
+            return (clr.okbl + "%7.1f" % round(TB, 1) + 'T' + clr.end)
+        elif (int(Byte) / OneGBUnit) > 0.99:  # GB
+            GB = int(Byte) / OneGBUnit
+            return (clr.okbl + "%7.1f" % round(GB, 1) + 'G' + clr.end)
+        elif (int(Byte) / OneMBUnit) > 0.99:  # MB
+            MB = int(Byte) / OneMBUnit
+            return (clr.okgr + "%7.1f" % round(MB, 1) + 'M' + clr.end)
+
+        elif (int(Byte) / OneKBUnit) > 0.99:  # MB
+            MB = int(Byte) / OneKBUnit
+            return (clr.warnye + "%7.1f" % round(MB, 1) + 'K' + clr.end)
+        else:  # KB
+            KB = int(Byte)
+            return (clr.badre + "%7.1f" % round(KB, 1) + 'B' + clr.end)
+    elif Title == 'DiskRw':
+        if (int(Byte) / OneTBUnit) > 0.99:  # TB
+            TB = int(Byte) / OneTBUnit
+            return (clr.okbl + "%5.1f" % round(TB, 1) + 'T' + clr.end)
+        elif (int(Byte) / OneGBUnit) > 0.99:  # GB
+            GB = int(Byte) / OneGBUnit
+            return (clr.okbl + "%5.1f" % round(GB, 1) + 'G' + clr.end)
+        elif (int(Byte) / OneMBUnit) > 0.99:  # MB
+            MB = int(Byte) / OneMBUnit
+            return (clr.okgr + "%5.1f" % round(MB, 1) + 'M' + clr.end)
+
+        elif (int(Byte) / OneKBUnit) > 0.99:  # MB
+            MB = int(Byte) / OneKBUnit
+            return (clr.warnye + "%5.1f" % round(MB, 1) + 'K' + clr.end)
+        else:  # KB
+            KB = int(Byte)
+            return (clr.badre + "%5.1f" % round(KB, 1) + 'B' + clr.end)
+
+
+def DisplayDiskState(State):
+    if State == DiskStart:
+        return (clr.okgr + "%7s" % State + clr.end)
+    elif State == DiskStop:
+        return (clr.badre + "%7s" % State + clr.end)
+    elif State == DiskWeak:
+        return (clr.warnye + "%7s" % State + clr.end)
+    elif State == DiskDisable:
+        return (clr.badre + "%7s" % State + clr.end)
+
+
+def DisplayDiskMode(Mode):
+    if Mode == DiskModeRw:
+        return DiskModeRwShort
+    else:
+        return DiskModeRoShort
 
 
 

@@ -13,16 +13,25 @@ UserSitePackagePath = site.getusersitepackages()
 
 Version = '0.8.0'
 
+composer_mode = False
+if 'composer' in sys.argv: # install composer mode install
+    index = sys.argv.index('composer')
+    composer_mode = sys.argv.pop(index)  # Returns the element after the 'composer'
+
+    install_list = [
+    ('/usr/local/ksan/etc', ['./ksan-gw-log.xml'])
+    ]
+else:
+    install_list = [('/usr/local/ksan/sbin/', [\
+                 './ksan-gw.jar']),
+    ('/usr/local/ksan/etc', ['./ksan-gw-log.xml'])
+    ]
 
 setup(
-            name='ksan-gw-util',
-                version=Version,
-                    data_files=[('/usr/local/ksan/bin', [\
-                                          './target/ksan-gw.jar']),
-                        ('/usr/local/ksan/etc', ['././ksan-gw-log.xml'])
-                            ],
-     )
-
-
-os.system("chmod 755 /usr/local/ksan/bin/ksan*")
+    name='ksan-gw-util',
+    version=Version,
+    data_files=install_list,
+)
+if composer_mode is False:
+    os.system("chmod 755 /usr/local/ksan/sbin/ksan*")
 

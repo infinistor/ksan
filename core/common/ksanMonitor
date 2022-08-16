@@ -11,7 +11,6 @@
 """
 
 
-
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.daemon import Daemon
@@ -22,7 +21,7 @@ from service.service_mq_handle import *
 from mqmanage.mq import Mq
 from common.init import GetConf
 from common.utils import CreatePidFile
-from common.define import MonRoutingKeyList
+from const.mq import MonRoutingKeyList
 
 from optparse import OptionParser
 import threading
