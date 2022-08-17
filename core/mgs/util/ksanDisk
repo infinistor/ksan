@@ -158,7 +158,7 @@ if __name__ == '__main__':
             if args[1] not in ['Ro', 'Rw']:
                 parser.print_help()
                 sys.exit(-1)
-            DiskMode = DiskModeRw if args[1] == 'Rw' else DiskModeRd
+            DiskMode = DiskModeRw if args[1] == 'Rw' else DiskModeRo
             Res, Errmsg, Ret = ChangeDiskMode(IfsPortalIp, IfsPortalPort,IfsPortalKey, DiskMode, DiskId=options.DiskId,
                                               Name=options.DiskName, logger=logger)
             if Res == ResOk:
@@ -178,10 +178,15 @@ if __name__ == '__main__':
         else:
             print(Errmsg)
     elif args[0] == 'list':
-        Res, Errmsg, Ret, AllDisks = GetDiskInfo(options.IpAddress, options.Port, IfsPortalKey, logger=logger)
-        if Res != ResOk:
-            print(Errmsg)
-        else:
-            ShowDiskInfo(AllDisks, ServerId=options.ServerId, DiskId=options.DiskId, Detail=options.Detail)
+        while True:
+            Res, Errmsg, Ret, AllDisks = GetDiskInfo(options.IpAddress, options.Port, IfsPortalKey, logger=logger)
+            if Res != ResOk:
+                print(Errmsg)
+            else:
+                ShowDiskInfo(AllDisks, ServerId=options.ServerId, DiskId=options.DiskId, Detail=options.Detail)
+            if options.Continue is None:
+                break
+            else:
+                time.sleep(int(options.Continue))
     else:
         parser.print_help()

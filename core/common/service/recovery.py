@@ -12,6 +12,7 @@
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+import time
 from common.init import *
 from common.utils import IsDaemonRunning, IsDaemonRunningWithSystemd
 from common.shcommand import *
@@ -45,8 +46,8 @@ class KsanRecovery:
             return ret, errmsg
         Ret, Pid = IsDaemonRunningWithSystemd('KsanRecovery')
         if Ret is True:
-            print('Already Running')
-            return False, 'ksanRecovery is alread running'
+            print('already running')
+            return False, 'ksanRecovery is already running'
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, GwXmlFilePath, KsanGwBinaryName)

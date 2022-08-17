@@ -34,8 +34,8 @@ class KsanOptionParser(OptionParser):
           service  [add|remove|list|start|stop|restart]                            : service management 
           config   [add|remove|list|apply]                                         : serivce config management
           disk     [add|remove|list|start|stop|set]                                : disk management 
-          diskpool [add|remove|list|set|add2disk|remove2disk]                      : diskpool management 
-          user     [add|remove|list|set|add2storageclass|remove2storageclass]      : ksan user management 
+          diskpool [add|remove|list|add2disk|remove2disk|set]                      : diskpool management 
+          user     [add|remove|list|add2storageclass|remove2storageclass|set]      : ksan user management 
           
     [option]
           --ServerName                                                             : server name 
@@ -50,9 +50,8 @@ class KsanOptionParser(OptionParser):
           --RepType                                                                : replication type[1|2|ec] 1: 1+0, 2:1+1, ec: erasure code
           --DiskpoolType                                                           : diskpool type[standard|archive]
           --DefaultDiskpool                                                        : set user's default diskpool
-          --StorageClass                                                           : set storage class[standard_ia|onezone_ia,
-                                                                                     intelligent_tiering|glacier|reduced_redundancy|
-                                                                                     deep_archive|outposts|glacier_ir]
+          --StorageClass                                                           : user's storage class[standard_ia|onezone_ia, intelligent_tiering]
+                                                                                     (planned: glacier, reduced_redundancy, deep_archive, outposts, glacier_ir)
           --Host                                                                   : server ip or hostname 
           --DiskPath                                                               : osd disk mount path 
           
@@ -246,8 +245,8 @@ class KsanDiskUtilOptParser(OptionParser):
                 # ./ksan disk stop --DiskName disk1
                 
               5. set disk mode 
-                # ./ksan disk set --Mode ro
-                # ./ksan disk set --Mode rw
+                # ./ksan disk set --DiskName disk1 --Mode ro 
+                # ./ksan disk set --DiskName disk2 --Mode rw
 
 
                 """
@@ -269,13 +268,14 @@ class KsanDiskpoolUtilOptParser(OptionParser):
     def __init__(self):
         super(KsanDiskpoolUtilOptParser, self).__init__()
         self.Usage = """
-        ksan diskpool [add|remove|list|set|add2disk|remove2disk] [option]*
+        ksan diskpool [add|remove|list|add2disk|remove2disk|set] [option]*
               add                                   : add diskpool                 
               remove                                : remove diskpool 
               list                                  : show diskpool info 
-              set                                   : set diskpool default diskpool
               add2disk                              : add disk to diskpool
               remove2disk                           : remove disk from diskpool
+              set                                   : set diskpool default diskpool
+              get                                   : get diskpool default diskpool
 
         [options]
               --DiskpoolName                        : diskpool name 
@@ -295,13 +295,17 @@ class KsanDiskpoolUtilOptParser(OptionParser):
               3. show diskpool list    
                 # ./ksan diskpool list
                 # ./ksan diskpool list --Detail 
-             
-              4. set diskpool default diskpool 
-                # ./ksan disk set --DefaultDiskpool diskpool1
+                # ./ksan diskpool list --Simple
                 
-              5. add disk to diskpool  
-                # ./ksan disk add2disk --DiskpoolName diskpool1 --DiskName disk1  
-                # ./ksan disk remove2disk --DiskpoolName diskpool1 --DiskName disk1  
+              4. add disk to diskpool  
+                # ./ksan diskpool add2disk --DiskpoolName diskpool1 --DiskName disk1  
+                # ./ksan diskpool remove2disk --DiskpoolName diskpool1 --DiskName disk1              
+                
+              5. set/get diskpool default diskpool 
+                # ./ksan diskpool set --DefaultDiskpool --DiskpoolName diskpool1
+                # ./ksan diskpool get --DefaultDiskpool
+                
+
                 """
         self.AddOption()
     def AddOption(self):
@@ -310,8 +314,10 @@ class KsanDiskpoolUtilOptParser(OptionParser):
         self.add_option("--DiskName", "--diskname", dest="DiskName", help='disk name')
         self.add_option("--RepType", "--reptype", dest="RepType", help='replication type')
         self.add_option("--DiskpoolType", "--diskpooltype", dest="DiskpoolType", help='diskpool type')
-        self.add_option("--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", help='user\'s default diskpool')
+        self.add_option("--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", action="store_true", help='user\'s default diskpool')
         self.add_option("--Detail", "--detail", dest="Detail", action="store_true", help='display information in detail')
+        self.add_option("--Simple", "--simple", dest="Simple", action="store_true", help='display information in simple')
+        self.add_option("--Continue", "--continue", dest="Continue", type="int", help='display information continually in every n seconds')
 
     def print_help(self):
         print(self.Usage)
@@ -327,11 +333,13 @@ class KsanUserUtilOptParser(OptionParser):
               add2storagegclass                     : add storage class to user 
               remove2storagegclass                  : remove storage slass from user 
               set                                   : change user email address 
+              
         [options]     
               --UserName                            : user name 
               --DiskpoolName                        : diskpool name 
               --DefaultDiskpool                     : user's default diskpool 
-              --StorageClass                        : user's storage class 
+              --StorageClass                        : user's storage class[standard_ia|onezone_ia, intelligent_tiering]
+                                                      (planned: glacier, reduced_redundancy, deep_archive, outposts, glacier_ir)
               --Email                               : user's Email 
               --Detail                              : show info in detail 
               
@@ -348,11 +356,11 @@ class KsanUserUtilOptParser(OptionParser):
                 # ./ksan user list --Detail 
               
               4. add/remove storage class to user 
-                # ./ksan user add2storagegclass --Username user1 --DiskpoolName diskpool1 --StorageClass glacier 
-                # ./ksan user remove2storagegclass --Username user1 --DiskpoolName diskpool1 --StorageClass glacier 
+                # ./ksan user add2storageclass --UserName user1 --DiskpoolName diskpool1 --StorageClass glacier 
+                # ./ksan user remove2storageclass --UserName user1 --DiskpoolName diskpool1 --StorageClass glacier 
                 
               4. change user's email address 
-                # ./ksan user set --Username user1 --Email user1@pspace.com
+                # ./ksan user set --UserName user1 --Email user1@pspace.com
                 """
 
         self.AddOption()

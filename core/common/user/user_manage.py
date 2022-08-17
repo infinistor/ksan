@@ -16,58 +16,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from server.server_manage import *
 from disk.diskpool_manage import GetDefaultDiskPool
-
-
-def GetUserInfo(ip, port, UserId=None, logger=None):
-    """
-    get server info all or specific server info with Id
-    :param ip:
-    :param port:
-    :param ServerId
-    :param NicId
-    :param disp:
-    :param logger
-    :return:
-    """
-    ItemsHeader = True
-    ReturnType = UserObjectModule
-    if UserId is not None:
-        Url = "/api/v1/Users/%s" % UserId
-        ItemsHeader = False
-    else:
-        Url = "/api/v1/Users"
-    Params = dict()
-    Params['countPerPage'] = 100
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
-    Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
-    if Res == ResOk:
-        if Ret.Result == ResultSuccess:
-            if UserId is not None:
-                return Res, Errmsg, Ret, [Ret.Data]
-            else:
-                return Res, Errmsg, Ret, Ret.Data.Items
-        return Res, Errmsg, Ret, None
-    else:
-        return Res, Errmsg, None, None
-
-@catch_exceptions()
-def ShowUserInfo(UserList, Detail=False):
-    """
-    Display Network Interface Info
-    :param InterfaceList: NetworkInterfaceItems class list
-    :param NicId:
-    :return:
-    """
-    UserTitleLine = '-' * 100
-    title ="%s%s%s%s%s" % ('Id'.center(40), 'Name'.center(20), 'LoginId'.center(20),  'Email'.center(30), 'Roles'.center(10))
-    print(title)
-    print(UserTitleLine)
-    for user in UserList:
-        Roles = ' '.join(user.Roles)
-        _nic ="%s%s%s%s%s" % (user.Id.center(40), '{:20.20}'.format(str(user.Name).center(20)), user.LoginId.center(20),
-                             user.Email.center(30), Roles.center(10))
-        print(_nic)
-
+from const.http import ResponseHeaderModule
+from const.user import AddUserObject, S3UserObjectModule, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
 
 
 @catch_exceptions()
@@ -109,105 +59,6 @@ def RemoveUser(Ip, Port, UserId, logger=None):
     Conn = RestApi(Ip, Port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ReturnType=ReturnType)
     return Res, Errmsg, Ret
-
-
-@catch_exceptions()
-def UpdateUserInfo(Ip, Port, UserId, Email=None, Name=None, Code=None, Roles=None, Status=None, logger=None):
-
-    Res, Errmsg, Ret, User = GetUserInfo(Ip, Port, UserId, logger=logger)
-    if Res == ResOk:
-        if Ret.Result == ResultSuccess:
-            User = User[0]
-            if Email is not None:
-                User.Email = Email
-            if Name is not None:
-                User.Name = Name
-            if Code is not None:
-                User.Code = Code
-            if Roles is not None:
-                User.Roles = Roles
-            if Status is not None:
-                User.Status = Status
-            NewUser = UpdateUserObject()
-            NewUser.Set(User.Email, User.Name, User.Code, User.Status, User.Roles)
-
-            body = jsonpickle.encode(NewUser, make_refs=False)
-            Url = '/api/v1/Users/%s' % UserId
-            Params = body
-            Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
-            res, errmsg, ret = Conn.put()
-            if res == ResOk:
-                return res, errmsg, ret
-            else:
-                return res, errmsg, None
-        else:
-            return Res, Errmsg, Ret
-    else:
-        return Res, Errmsg, None
-
-
-@catch_exceptions()
-def AddUserRoles(ip, port, UserId, Roles, logger=None):
-    """
-    add network interface with name
-    :param ip:
-    :param port:
-    :param ServerId:
-    :param NicName:
-    :param Description:
-    :param logger:
-    :return:
-    """
-    # get network interface info
-    user = UpdateUserRolesObject()
-    user.Set(Roles)
-    body = jsonpickle.encode(user, make_refs=False)
-    Url = '/api/v1/Users/%s/Roles' % UserId
-    ReturnType = ResponseHeaderModule
-
-    Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
-    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
-    return Res, Errmsg, Ret
-
-
-@catch_exceptions()
-def RemoveUserRoles(ip, port, UserId, Roles, logger=None):
-    """
-    add network interface with name
-    :param ip:
-    :param port:
-    :param ServerId:
-    :param NicName:
-    :param Description:
-    :param logger:
-    :return:
-    """
-    # get network interface info
-    body = dict()
-    Url = '/api/v1/Users/%s/Roles/%s' % (UserId, Roles)
-    ReturnType = ResponseHeaderModule
-    Params = body
-    Conn = RestApi(ip, port, Url, params=Params, logger=logger)
-    Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
-    return Res, Errmsg, Ret
-
-
-@catch_exceptions()
-def ChangeUserPassword(Ip, Port, UserId, NewPassword, NewConfirmPassword, logger=None):
-
-    Password = ChangeUserPasswordObject()
-    Password.Set(NewPassword, NewConfirmPassword)
-
-    body = jsonpickle.encode(Password, make_refs=False)
-    Url = '/api/v1/Users/%s/ChangePassword' % UserId
-    Params = body
-    Conn = RestApi(Ip, Port, Url, params=Params, logger=logger)
-    res, errmsg, ret = Conn.put()
-    if res == ResOk:
-        return res, errmsg, ret
-    else:
-        return res, errmsg, None
 
 
 def GetS3UserInfo(ip, port, ApiKey, UserId=None, UserName=None, logger=None):
@@ -458,7 +309,7 @@ def ShowS3UserInfo(UserList, Detail=None):
                                         user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
             for diskpool in user.UserDiskPools:
                 _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].center(20), diskpool['StorageClass'].center(20), " "*21)
-                _userdiskpool += "%s%s" % (' ' * 101, '-' * 65)
+                _userdiskpool += "%s%s\n" % (' ' * 101, '-' * 65)
 
         print(_user)
         print(UserDataLine)
@@ -521,6 +372,7 @@ def UserUtilHandler(Conf, Action, Parser, logger):
 
     elif Action.lower() == 'add2storageclass':
         if not (options.UserName and options.StorageClass and options.DiskpoolName):
+            Parser.print_help()
             sys.exit(-1)
 
         Res, Errmsg, Ret = AddS3UserStorageClass(PortalIp, PortalPort, PortalApiKey ,options.StorageClass,
@@ -532,7 +384,7 @@ def UserUtilHandler(Conf, Action, Parser, logger):
 
     elif Action.lower() == 'remove2storageclass':
         if not (options.UserName and options.StorageClass and options.DiskpoolName):
-            print('User Name, Default DiskPoolName and Email Info are required')
+            Parser.print_help()
             sys.exit(-1)
 
         Res, Errmsg, Ret = RemoveS3UserStorageClass(PortalIp, PortalPort, PortalApiKey, options.StorageClass, UserName=options.UserName, DiskPoolName=options.DiskpoolName,

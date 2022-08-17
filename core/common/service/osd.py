@@ -12,8 +12,8 @@
 
 
 import os, sys
+import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.define import *
 from common.init import *
 from common.utils import IsDaemonRunning
 from common.shcommand import *
@@ -76,8 +76,8 @@ class KsanOsd:
 
         Ret, Pid = IsDaemonRunning(KsanOsdPidFile, CmdLine=KsanOsdBinaryName)
         if Ret is True:
-            print('Already Running')
-            return False, 'ksanOsd is alread running'
+            print('already running')
+            return False, 'ksanOsd is already running'
         else:
             StartCmd = 'cd %s; nohup java -jar -Dlogback.configurationFile=%s %s >/dev/null 2>&1 &' % \
                        (KsanBinPath, OsdXmlFilePath, KsanOsdBinaryName)

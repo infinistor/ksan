@@ -14,8 +14,12 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from disk.disk_manage import *
-from common.define import DiskPoolXmlPath, DiskUsage
+from const.common import DiskPoolXmlPath
+from const.disk import DiskDetailMqBroadcast
 from common.init import GetConf
+from const.mq import MqVirtualHost, RoutKeyDiskUsage, ExchangeName, RoutKeyDiskCheckMountFinder, \
+    RoutKeyDiskWirteDiskIdFinder, RoutKeyDiskAdded, RoutKeyDiskPoolUpdate, RoutKeyDiskStartStop, RoutKeyDiskState, \
+    RoutKeyDiskDel
 import mqmanage.mq
 import time
 import json
@@ -42,6 +46,50 @@ def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
     return ReadPerSec, WritePerSec
 
 
+def ReportDiskIo(conf, DiskStatInfo, GlobalFlag, logger):
+    """
+    Get Disk IO per seconds
+    :param conf:
+    :param DiskIoList: list [{'Path':, 'Device':, 'Id':, 'ServerId':, 'State':, 'Read':, 'Write':, 'LapTime':   }]
+    :param GlobalFlag:
+    :param logger:
+    :return:
+    """
+
+    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
+                                   QueueName='')
+    while True:
+
+        for disk in DiskStatInfo['list']:
+            try:
+                if disk['ServerId'] != conf.mgs.ServerId:
+                    continue
+                Id = disk['Id']
+                ServerId = disk['ServerId']
+                State = disk['State']
+                TotalInode = disk['TotalInode']
+                UsedInode = disk['UsedInode']
+                ReservedInode = disk['ReservedInode']
+                TotalSize = disk['TotalSize']
+                UsedSize = disk['UsedSize']
+                ReservedSize = disk['ReservedSize']
+                ReadPerSec = disk['ReadPerSec']
+                WritePerSec = disk['WritePerSec']
+
+                DiskStat = DiskDetailMqBroadcast()
+                DiskStat.Set(Id, ServerId, State, TotalInode, ReservedInode,
+                            UsedInode, TotalSize, ReservedSize, UsedSize, ReadPerSec, WritePerSec)
+                Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
+                logger.debug(Mqsend)
+                Mqsend = json.loads(Mqsend)
+                MqDiskUpdated.Sender(Mqsend)
+            except Exception as err:
+                logger.error('fail to get Disk Info %s' % str(err))
+
+        time.sleep(int(conf.monitor.DiskMonitorInterval))
+
+
+
 def UpdateDiskPartitionInfo(DiskList):
     """
     return DiskStatInfo.
@@ -63,21 +111,74 @@ def UpdateDiskPartitionInfo(DiskList):
                 TmpDiskInfo['State'] = disk.State
                 TmpDiskInfo['Read'] = 0
                 TmpDiskInfo['Write'] = 0
+                TmpDiskInfo['ReadPerSec'] = 0
+                TmpDiskInfo['WritePerSec'] = 0
                 TmpDiskInfo['LapTime'] = time.time()
                 DiskStatInfo.append(TmpDiskInfo)
 
     return DiskStatInfo
 
+def GetDiskIoFromProc(DiskStatInfo, logger):
+    #Device = ['sda1', 'sda2', 'sdb1', 'sdb2']
+    dev = DiskStatInfo['Device']
+    stat = None
+    with open(ProcDiskStatsPath, 'r') as f :
+        stat = f.read()
+    Now = time.time()
+
+    StatFinder = re.compile("%s[\s][\d]+[\s][\d]+[\s]([\d]+[\s])[\d]+[\s][\d]+[\s][\d]+[\s]([\d]+[\s])" % dev)
+    Stat = StatFinder.search(stat)
+    if Stat:
+        Readn, Writen = Stat.groups()
+        Interval = Now - DiskStatInfo['LapTime']
+        DiskStatInfo['LapTime'] = Now
+        DiskStatInfo['ReadPerSec'] = ((int(Readn) - DiskStatInfo['Read']) * 512 ) / Interval  # Byte
+        DiskStatInfo['WritePerSec'] = ((int(Writen) - DiskStatInfo['Write']) * 512 ) / Interval # Byte
+
+        DiskStatInfo['Read'] = int(Readn)
+        DiskStatInfo['Write'] = int(Writen)
+
+
+        Writen = DiskStatInfo['WritePerSec']
+        Readn = DiskStatInfo['ReadPerSec']
+        RetWriten = Writen
+        RetReadn = Readn
+        print(Writen)
+        if  Writen/ (1024 * 1024 * 1024) > 0.99:
+            Writen = Writen / (1024 * 1024)
+            WUnit = 'GB'
+        elif Writen / (1024*1024) > 0.99:
+            Writen = Writen / (1024 * 1024)
+            WUnit = 'MB'
+        else:
+            Writen = Writen/(1024)
+            WUnit = 'KB'
+
+        if  Readn/ (1024 * 1024) > 0.99:
+            Readn = Readn / (1024 * 1024)
+            RUnit = 'GB'
+        elif Readn / (1024) > 0.99:
+            Readn = Readn / (1024)
+            RUnit = 'MB'
+        else:
+            Readn = Readn
+            RUnit = 'KB'
+
+        logger.debug("Lap:%d, Dev:%s, Read/s:%d%s Write/s:%d%s" % (DiskStatInfo['LapTime'], dev, Readn, RUnit, Writen, WUnit))
+        return RetReadn, RetWriten
+    else:
+        logger.error('fail to get %s info from %s' % (dev, ProcDiskStatsPath))
+
 
 @catch_exceptions()
-def DiskUsageMonitoring(conf, GlobalFlag, logger):
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
-            QueueName='')
+def DiskUsageMonitoring(conf, DiskStatInfo, GlobalFlag, logger):
+    #MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
+    #        QueueName='')
     while True:
         Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
-                DiskStatInfo = UpdateDiskPartitionInfo(DiskList)
+                DiskStatInfo['list'] = UpdateDiskPartitionInfo(DiskList)
                 while True:
                     if GlobalFlag['DiskUpdated'] == Updated:
                         GlobalFlag['DiskUpdated'] = Checked
@@ -85,25 +186,35 @@ def DiskUsageMonitoring(conf, GlobalFlag, logger):
                         break
 
                     DiskIo = psutil.disk_io_counters(perdisk=True)
-                    for disk in DiskStatInfo:
+                    for disk in DiskStatInfo['list']:
                         if disk['ServerId'] != conf.mgs.ServerId:
                             continue
-                        Id = disk['Id']
-                        ServerId = disk['ServerId']
-                        State = disk['State']
+                        #Id = disk['Id']
+                        #ServerId = disk['ServerId']
+                        #State = disk['State']
                         Usage = Disk(disk['Path'])
                         Usage.GetUsage()
                         Usage.GetInode()
+                        disk['TotalSize'] = Usage.TotalSize
+                        disk['UsedSize'] = Usage.UsedSize
+                        disk['ReservedSize'] = Usage.ReservedSize
+                        disk['TotalInode'] = Usage.TotalInode
+                        disk['UsedInode'] = Usage.UsedInode
+                        disk['ReservedInode'] = Usage.ReservedInode
 
-                        ReadPerSec, WritePerSec = GetDiskReadWrite(disk, DiskIo)
 
-                        DiskStat = DiskDetailMqBroadcast()
-                        DiskStat.Set(Id, ServerId, State, Usage.TotalInode, Usage.ReservedInode,
-                                     Usage.UsedInode, Usage.TotalSize, Usage.ReservedSize, Usage.UsedSize, ReadPerSec, WritePerSec)
-                        Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
-                        logger.debug(Mqsend)
-                        Mqsend = json.loads(Mqsend)
-                        MqDiskUpdated.Sender(Mqsend)
+                        #ReadPerSec, WritePerSec = GetDiskReadWrite(disk, DiskIo)
+                        ReadPerSec, WritePerSec = GetDiskIoFromProc(disk, logger)
+                        disk['ReadPerSec'] = ReadPerSec
+                        disk['WritePerSec'] = WritePerSec
+
+                        #DiskStat = DiskDetailMqBroadcast()
+                        #DiskStat.Set(Id, ServerId, State, Usage.TotalInode, Usage.ReservedInode,
+                        #             Usage.UsedInode, Usage.TotalSize, Usage.ReservedSize, Usage.UsedSize, ReadPerSec, WritePerSec)
+                        #Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
+                        #logger.debug(Mqsend)
+                        #Mqsend = json.loads(Mqsend)
+                        #MqDiskUpdated.Sender(Mqsend)
 
                     time.sleep(int(conf.monitor.DiskMonitorInterval))
             else:

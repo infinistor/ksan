@@ -14,8 +14,11 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.network import GetNetwork
-from common.display import *
+from const.network import ResPonseVlanNetworkInterfaceItems, RequestNetworkInterfaceItems, \
+    RequestVlanNetworkInterfaceInfo, NetworkInterfaceLinkStateItems, RequestNetworkInterfaceCheck, RequestVlanNetworkInterfaceCheck
 from server.server_manage import *
+from const.network import NetworkInterfaceItemsModule
+from const.http import ResponseHeaderModule
 
 
 def ManageNetworkInterface():
@@ -143,6 +146,28 @@ def ShowNetworkInterfaceInfo(ServersDetail, InterfaceId=None, Detail=False):
             #for Vlan in Net.NetworkInterfaceVlans:
             #_nic ="%s%s%s%s%s%s%s%s" % (Svr.Id.center(40), Svr.Net.Name.center(40),
             #                              '{:20.20}'.format(interface.Name.center(20)),'{:30.30}'.format(str(interface.Description).center(30)), '{:20.20}'.format(interface.IpAddress.center(20)), interface.MacAddress.center(20), str(interface.LinkState).center(20), '{:40.40}'.format(interface.ServerId.center(40))) # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+
+@catch_exceptions()
+def disp_vlan_network_interfaces(data, NicId=None):
+    title ="""
+    %s%s%s%s%s%s%s
+    """ % ('Id'.center(40), 'InterfaceId'.center(40),  'Tag'.center(20), 'IpAddress'.center(20), 'SubnetMask'.center(20), 'Gateway'.center(20),  'RegDate'.center(20)) # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+    print(title)
+    if NicId is None:
+        for vlaninfo in data.Items:
+            vlan = ResPonseVlanNetworkInterfaceItems(vlaninfo)
+            _vlan ="%s%s%s%s%s%s%s" % (vlan.Id.center(40), '{:40.40}'.format(vlan.InterfaceId.center(40)),
+                                          '{:20.20}'.format(str(vlan.Tag).center(20)),'{:30.30}'.format(vlan.IpAddress.center(20)), '{:20.20}'.format(vlan.SubnetMask.center(20)), vlan.Gateway.center(20), str(vlan.RegDate).center(20)) # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+            print(_vlan)
+    else:
+
+        _vlan= "%s%s%s%s%s%s%s" % (data.Id.center(40), '{:40.40}'.format(data.InterfaceId.center(40)),
+                                    '{:20.20}'.format(str(data.Tag).center(20)),
+                                    '{:30.30}'.format(data.IpAddress.center(20)),
+                                    '{:20.20}'.format(data.SubnetMask.center(20)), data.Gateway.center(20),
+                                    str(data.RegDate).center(
+                                        20))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+        print(_vlan)
 
 
 @catch_exceptions()
