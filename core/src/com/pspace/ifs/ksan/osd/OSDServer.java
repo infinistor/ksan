@@ -94,21 +94,6 @@ public class OSDServer {
         // ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
         // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
-        serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
-        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMilliseconds(), TimeUnit.MILLISECONDS);
-
-        if (!Strings.isNullOrEmpty(cacheDisk)) {
-            serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMilliseconds(), TimeUnit.MILLISECONDS);
-        }
-
-        // if (!Strings.isNullOrEmpty(cacheDisk)) {
-        //     logger.info("cache disk : {}", cacheDisk);
-        //     DoMoveCacheToDisk worker = new DoMoveCacheToDisk();
-        //     Thread mover = new Thread(worker);
-        //     mover.start();
-        // }
-
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
         isRunning = true;
