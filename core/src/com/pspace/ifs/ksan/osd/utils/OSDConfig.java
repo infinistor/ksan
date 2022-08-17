@@ -28,14 +28,14 @@ public class OSDConfig {
 
     private int poolSize;
     private int port;
-    private int ecScheduleMinutes;
-    private int ecApplyMinutes;
+    private int ecScheduleMilliseconds;
+    private int ecApplyMilliseconds;
     private long ecFileSize;
     private String cacheDisk;
-    private int cacheScheduleMinutes;
+    private int cacheScheduleMilliseconds;
     private long cacheFileSize;
-    private int cacheLimitMinutes;
-    private int trashScheduleMinutes;
+    private int cacheLimitMilliseconds;
+    private int trashScheduleMilliseconds;
 
     private static final String VERSION = "version";
     private static final String POOL_SIZE = "osd.pool_size";
@@ -87,20 +87,20 @@ public class OSDConfig {
         this.port = port;
     }
 
-    public int getECScheduleMinutes() {
-        return ecScheduleMinutes;
+    public int getECScheduleMilliseconds() {
+        return ecScheduleMilliseconds;
     }
 
-    public void setECScheduleMinutes(int ecScheduleMinutes) {
-        this.ecScheduleMinutes = ecScheduleMinutes;
+    public void setECScheduleMilliseconds(int ecScheduleMilliseconds) {
+        this.ecScheduleMilliseconds = ecScheduleMilliseconds;
     }
 
-    public int getECApplyMinutes() {
-        return ecApplyMinutes;
+    public int getECApplyMilliseconds() {
+        return ecApplyMilliseconds;
     }
 
-    public void setECApplyMinutes(int ecApplyMinutes) {
-        this.ecApplyMinutes = ecApplyMinutes;
+    public void setECApplyMilliseconds(int ecApplyMilliseconds) {
+        this.ecApplyMilliseconds = ecApplyMilliseconds;
     }
 
     public long getECFileSize() {
@@ -119,12 +119,12 @@ public class OSDConfig {
         this.cacheDisk = cacheDisk;
     }
 
-    public int getCacheScheduleMinutes() {
-        return cacheScheduleMinutes;
+    public int getCacheScheduleMilliseconds() {
+        return cacheScheduleMilliseconds;
     }
 
-    public void setCacheScheduleMinutes(int cacheScheduleMinutes) {
-        this.cacheScheduleMinutes = cacheScheduleMinutes;
+    public void setCacheScheduleMilliseconds(int cacheScheduleMilliseconds) {
+        this.cacheScheduleMilliseconds = cacheScheduleMilliseconds;
     }
 
     public long getCacheFileSize() {
@@ -135,20 +135,20 @@ public class OSDConfig {
         this.cacheFileSize = cacheFileSize;
     }
     
-    public int getCacheLimitMinutes() {
-        return cacheLimitMinutes;
+    public int getCacheLimitMilliseconds() {
+        return cacheLimitMilliseconds;
     }
 
-    public void setCacheLimitMinutes(int cacheLimitMinutes) {
-        this.cacheLimitMinutes = cacheLimitMinutes;
+    public void setCacheLimitMilliseconds(int cacheLimitMilliseconds) {
+        this.cacheLimitMilliseconds = cacheLimitMilliseconds;
     }
 
-    public int getTrashScheduleMinutes() {
-        return trashScheduleMinutes;
+    public int getTrashScheduleMilliseconds() {
+        return trashScheduleMilliseconds;
     }
 
-    public void setTrashScheduleMinutes(int trashScheduleMinutes) {
-        this.trashScheduleMinutes = trashScheduleMinutes;
+    public void setTrashScheduleMilliseconds(int trashScheduleMilliseconds) {
+        this.trashScheduleMilliseconds = trashScheduleMilliseconds;
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
@@ -165,21 +165,21 @@ public class OSDConfig {
         }
 
         try {
-            setTrashScheduleMinutes((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
+            setTrashScheduleMilliseconds((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
         } catch (Exception e) {
-            setTrashScheduleMinutes(Integer.parseInt((String)jsonConfig.get(TRASH_SCHEDULE_MINUTES)));
+            setTrashScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(TRASH_SCHEDULE_MINUTES)));
         }
 
         try {
-            setECScheduleMinutes((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
+            setECScheduleMilliseconds((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
         } catch (Exception e) {
-            setECScheduleMinutes(Integer.parseInt((String)jsonConfig.get(EC_SCHEDULE_MINUTES)));
+            setECScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_SCHEDULE_MINUTES)));
         }
 
         try {
-            setECApplyMinutes((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
+            setECApplyMilliseconds((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
         } catch (Exception e) {
-            setECApplyMinutes(Integer.parseInt((String)jsonConfig.get(EC_APPLY_MINUTES)));
+            setECApplyMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_APPLY_MINUTES)));
         }
 
         try {
@@ -191,9 +191,9 @@ public class OSDConfig {
         setCacheDisk((String)jsonConfig.get(CACHE_DISK));
         
         try {
-            setCacheScheduleMinutes((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
+            setCacheScheduleMilliseconds((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
         } catch (Exception e) {
-            setCacheScheduleMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_SCHEDULE_MINUTES)));
+            setCacheScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_SCHEDULE_MINUTES)));
         }
         
         try {
@@ -203,21 +203,21 @@ public class OSDConfig {
         }
         
         try {
-            setCacheLimitMinutes((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
+            setCacheLimitMilliseconds((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
         } catch (Exception e) {
-            setCacheLimitMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_LIMIT_MINUTES)));
+            setCacheLimitMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_LIMIT_MINUTES)));
         }
 
         logger.debug("pool size : {}", getPoolSize());
         logger.debug("port : {}", getPort());
-        logger.debug("trash schedule minutes : {}", getTrashScheduleMinutes());
-        logger.debug("ec schedule minutes : {}", getECScheduleMinutes());
-        logger.debug("ec apply minutes : {}", getECApplyMinutes());
+        logger.debug("trash schedule minutes : {}", getTrashScheduleMilliseconds());
+        logger.debug("ec schedule minutes : {}", getECScheduleMilliseconds());
+        logger.debug("ec apply minutes : {}", getECApplyMilliseconds());
         logger.debug("ec file size : {}", getECFileSize());
         logger.debug("cache disk : {}", getCacheDisk());
-        logger.debug("cache schedule minutes : {}", getCacheScheduleMinutes());
+        logger.debug("cache schedule minutes : {}", getCacheScheduleMilliseconds());
         logger.debug("cache file size : {}", getCacheFileSize());
-        logger.debug("cache limit minutes : {}", getCacheLimitMinutes());
+        logger.debug("cache limit minutes : {}", getCacheLimitMilliseconds());
     }
 
     public void saveConfigFile() throws IOException {
@@ -226,14 +226,14 @@ public class OSDConfig {
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
             fileWriter.write(PORT + EQUAL + port + "\n");
-            fileWriter.write(EC_SCHEDULE_MINUTES + EQUAL + ecScheduleMinutes + "\n");
-            fileWriter.write(EC_APPLY_MINUTES + EQUAL + ecApplyMinutes + "\n");
+            fileWriter.write(EC_SCHEDULE_MINUTES + EQUAL + ecScheduleMilliseconds + "\n");
+            fileWriter.write(EC_APPLY_MINUTES + EQUAL + ecApplyMilliseconds + "\n");
             fileWriter.write(EC_FILE_SIZE + EQUAL + ecFileSize + "\n");
             fileWriter.write(CACHE_DISK + EQUAL + cacheDisk + "\n");
-            fileWriter.write(CACHE_SCHEDULE_MINUTES + EQUAL + cacheScheduleMinutes + "\n");
+            fileWriter.write(CACHE_SCHEDULE_MINUTES + EQUAL + cacheScheduleMilliseconds + "\n");
             fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
-            fileWriter.write(CACHE_LIMIT_MINUTES + EQUAL + cacheLimitMinutes + "\n");
-            fileWriter.write(TRASH_SCHEDULE_MINUTES + EQUAL + trashScheduleMinutes + "\n");
+            fileWriter.write(CACHE_LIMIT_MINUTES + EQUAL + cacheLimitMilliseconds + "\n");
+            fileWriter.write(TRASH_SCHEDULE_MINUTES + EQUAL + trashScheduleMilliseconds + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

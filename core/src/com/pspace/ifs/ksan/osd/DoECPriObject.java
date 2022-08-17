@@ -39,7 +39,7 @@ public class DoECPriObject implements Runnable {
     public void run() {
         logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
         fileLength = OSDConfig.getInstance().getECFileSize() * OSDConstants.MEGABYTES;
-        ecApplyMinutes = OSDConfig.getInstance().getECApplyMinutes();
+        ecApplyMinutes = OSDConfig.getInstance().getECApplyMilliseconds();
 
         List<String> diskList = new ArrayList<String>();
         logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, localIP);

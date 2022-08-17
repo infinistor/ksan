@@ -95,11 +95,11 @@ public class OSDServer {
         // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
         serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
-        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMinutes(), TimeUnit.MILLISECONDS);
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMilliseconds(), TimeUnit.MILLISECONDS);
 
         if (!Strings.isNullOrEmpty(cacheDisk)) {
             serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMinutes(), TimeUnit.MILLISECONDS);
+            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMilliseconds(), TimeUnit.MILLISECONDS);
         }
 
         // if (!Strings.isNullOrEmpty(cacheDisk)) {
@@ -928,7 +928,7 @@ public class OSDServer {
         } else {
             serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
         }
-        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMinutes(), TimeUnit.MILLISECONDS);
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMilliseconds(), TimeUnit.MILLISECONDS);
     }
 
     public static void startMoveCacheToDisk() {
@@ -939,7 +939,7 @@ public class OSDServer {
                 serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
             }
 
-            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMinutes(), TimeUnit.MILLISECONDS);
+            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMilliseconds(), TimeUnit.MILLISECONDS);
         }
     }
 }

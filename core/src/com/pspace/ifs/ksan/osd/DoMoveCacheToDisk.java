@@ -56,7 +56,7 @@ public class DoMoveCacheToDisk implements Runnable {
             } else if (files[i].isFile()) {
                 long diff = (now - files[i].lastModified());
 
-                if (diff >= OSDConfig.getInstance().getCacheLimitMinutes()) {
+                if (diff >= OSDConfig.getInstance().getCacheLimitMilliseconds()) {
                     move(files[i]);
                 }
             }
