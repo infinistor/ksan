@@ -121,14 +121,14 @@ namespace PortalSvr.Services
 				return;
 			}
 
-			// KsanOsd의 기본 설정 정보를 읽어온다.
-			string StrKsanOsd = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
-			JObject KsanOsd = JObject.Parse(StrKsanOsd);
-			if (KsanOsd == null)
-			{
-				Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
-				return;
-			}
+			// // KsanOsd의 기본 설정 정보를 읽어온다.
+			// string StrKsanOsd = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
+			// JObject KsanOsd = JObject.Parse(StrKsanOsd);
+			// if (KsanOsd == null)
+			// {
+			// 	Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
+			// 	return;
+			// }
 
 			// 호스트 주소
 			if (GetEnvValue(Resource.ENV_PORTAL_HOST, out string PortalHost))
@@ -151,7 +151,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_RABBITMQ_HOST, out string RabbitmqHost))
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_HOST] = RabbitmqHost;
 
-			if (GetEnvValue(Resource.ENV_RABBITMQ_PORT, out string RabbitmqPort))
+			if (GetEnvValue(Resource.ENV_RABBITMQ_PORT, out int RabbitmqPort))
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_PORT] = RabbitmqPort;
 
 			if (GetEnvValue(Resource.ENV_RABBITMQ_USER, out string RabbitmqUser))
@@ -161,7 +161,7 @@ namespace PortalSvr.Services
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_PASSWORD] = RabbitmqPassword;
 
 			// 로그레벨
-			if (GetEnvValue(Resource.ENV_LOG_LAVEL, out string LogLevel))
+			if (GetEnvValue(Resource.ENV_LOG_LAVEL, out string LogLevel) && !string.IsNullOrWhiteSpace(LogLevel))
 			{
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_DEFAULT] = LogLevel;
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = LogLevel;
@@ -176,7 +176,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
 				KsanGw[KEY_GW_DB_NAME] = DatabaseName;
-				KsanOsd[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
 			}
@@ -184,7 +184,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_MARIADB_HOST, out string MariaDBHost))
 				KsanApi[KEY_MARIADB][KEY_HOST] = MariaDBHost;
 
-			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out string MariaDBPort))
+			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out int MariaDBPort))
 				KsanApi[KEY_MARIADB][KEY_PORT] = MariaDBPort;
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_USER, out string MariaDBUser))
@@ -199,7 +199,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))
 				KsanApi[KEY_MONGODB][KEY_HOST] = MongoDBHost;
 
-			if (GetEnvValue(Resource.ENV_MONGODB_PORT, out string MongoDBPort))
+			if (GetEnvValue(Resource.ENV_MONGODB_PORT, out int MongoDBPort))
 				KsanApi[KEY_MONGODB][KEY_PORT] = MongoDBPort;
 
 			if (GetEnvValue(Resource.ENV_MONGODB_ROOT_USER, out string MongoDBUser))
@@ -240,7 +240,7 @@ namespace PortalSvr.Services
 			{
 				File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
 				File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGw.ToString());
-				File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOsd.ToString());
+				// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOsd.ToString());
 			}
 		}
 
@@ -250,6 +250,21 @@ namespace PortalSvr.Services
 			try
 			{
 				Value = Environment.GetEnvironmentVariable(Key);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private bool GetEnvValue(string Key, out int Value)
+		{
+			Value = -1;
+			try
+			{
+				var Temp = Environment.GetEnvironmentVariable(Key);
+				int.TryParse(Temp, out Value);
 				return true;
 			}
 			catch
