@@ -15,11 +15,12 @@ public class Constants {
     public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
-    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMonitor.conf";
+    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
-	public static final String KMON_PROPERTY_PORTAL_IP = "PortalIp";
+	public static final String KMON_PROPERTY_PORTAL_HOST = "PortalHost";
 	public static final String KMON_PROPERTY_PORTAL_PORT = "PortalPort";
 	public static final String KMON_POOPERTY_POTAL_KEY = "PortalApiKey";
+	public static final String KMON_PROPERTY_MQ_HOST = "MqHost";
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
 	public static final String KMON_PROPERTY_MQ_USER = "MqUser";
 	public static final String KMON_PROPERTY_MQ_PASSWORD = "MqPassword";

@@ -418,8 +418,12 @@ public class GWPortal {
 				GWConfig.getInstance().setVersion(version);
                 GWConfig.getInstance().saveConfigFile();
 
-                ObjectManagerConfig.getInstance().setConfig(jsonConfig);
 				ObjectManagerConfig.getInstance().setVersion(version);
+                ObjectManagerConfig.getInstance().setConfig(jsonConfig);
+				ObjectManagerConfig.getInstance().setMqQueueName(GWConstants.MQUEUE_NAME);
+				ObjectManagerConfig.getInstance().setMqExchangeName(GWConstants.MQUEUE_EXCHANGE_NAME);
+				ObjectManagerConfig.getInstance().setMqOsdExchangeName(GWConstants.MQUEUE_OSD_EXCHANGE_NAME);
+				ObjectManagerConfig.getInstance().setMqHost(monConfig.getMqHost());
 				ObjectManagerConfig.getInstance().setMqPort(Integer.parseInt(monConfig.getMqPort()));
 				ObjectManagerConfig.getInstance().setMqUser(monConfig.getMqUser()); 
 				ObjectManagerConfig.getInstance().setMqPassword(monConfig.getMqPassword());
