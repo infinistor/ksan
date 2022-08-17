@@ -97,6 +97,14 @@ public class PutObject extends S3Request {
 		String customerKey = dataPutObject.getServerSideEncryptionCustomerKey();
 		String customerKeyMD5 = dataPutObject.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = dataPutObject.getServerSideEncryption();
+		String storageClass = dataPutObject.getStorageClass();
+
+		if (Strings.isNullOrEmpty(storageClass)) {
+			storageClass = GWConstants.AWS_TIER_STANTARD;
+		}
+		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
+
+		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
@@ -333,10 +341,12 @@ public class PutObject extends S3Request {
 			logger.info(e.getMessage());
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
-				objMeta = create(bucket, object, versionId);
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
+				// objMeta = create(bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-				objMeta = create(bucket, object);
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
+				// objMeta = create(bucket, object);
 			}
 		}
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
@@ -344,7 +354,7 @@ public class PutObject extends S3Request {
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());
-		s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
+		s3Metadata.setTier(storageClass);
 		s3Metadata.setLastModified(s3Object.getLastModified());
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
