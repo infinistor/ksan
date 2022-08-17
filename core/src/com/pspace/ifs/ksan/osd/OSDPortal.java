@@ -24,6 +24,7 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
+import com.google.common.base.Strings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -90,6 +91,11 @@ public class OSDPortal {
         config.configure();
 		logger.debug("ksan monitor config ...");
 		int mqPort = Integer.parseInt(config.getMqPort());
+		if (Strings.isNullOrEmpty(config.getServerId())) {
+			logger.error("mq server id is null or empty ...");
+			throw new RuntimeException(new RuntimeException());
+		}
+
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();

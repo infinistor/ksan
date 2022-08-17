@@ -27,6 +27,7 @@ import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
 
+import com.google.common.base.Strings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -192,6 +193,12 @@ public class GWPortal {
         monConfig.configure();
 		int mqPort = Integer.parseInt(monConfig.getMqPort());
 		logger.info("port : {}, user :  {}, password : {}", mqPort, monConfig.getMqUser(), monConfig.getMqPassword());
+
+		if (Strings.isNullOrEmpty(monConfig.getServerId())) {
+			logger.error("mq server id is null or empty");
+			throw new RuntimeException(new RuntimeException());
+		}
+
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
