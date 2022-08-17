@@ -108,6 +108,13 @@ public class CopyObject extends S3Request {
 		String copySourceCustomerKey = dataCopyObject.getCopySourceServerSideEncryptionCustomerKey();
 		String copySourceCustomerKeyMD5 = dataCopyObject.getCopySourceServerSideEncryptionCustomerKeyMD5();
 		Map<String, String> userMetadata = dataCopyObject.getUserMetadata();
+		String storageClass = dataCopyObject.getStorageClass();
+
+		if (Strings.isNullOrEmpty(storageClass)) {
+			storageClass = GWConstants.AWS_TIER_STANTARD;
+		}
+		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
+		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 
 		// Check copy source
 		if (Strings.isNullOrEmpty(copySource)) {
@@ -393,7 +400,8 @@ public class CopyObject extends S3Request {
             }
         }
 
-        Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+        Metadata objMeta = createLocal(diskpoolId, bucket, object);
+		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
         versioningStatus = getBucketVersioning(bucket);
 
 		String versionId = null;

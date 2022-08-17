@@ -210,6 +210,13 @@ public class PostObject extends S3Request {
 		String customerKey = dataPostObject.getServerSideEncryptionCustomerKey();
 		String customerKeyMD5 = dataPostObject.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = dataPostObject.getServerSideEncryption();
+		String storageClass = dataPostObject.getStorageClass();
+
+		if (Strings.isNullOrEmpty(storageClass)) {
+			storageClass = GWConstants.AWS_TIER_STANTARD;
+		}
+		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
+		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
@@ -329,10 +336,10 @@ public class PostObject extends S3Request {
 			logger.info(e.getMessage());
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
-				objMeta = create(bucket, object, versionId);
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-				objMeta = create(bucket, object);
+				objMeta = createLocal(diskpoolId, bucket, object);
 			}
 		}
 
