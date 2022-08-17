@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.List;
 
 import com.pspace.ifs.ksan.libs.disk.Disk;
@@ -79,6 +80,15 @@ public class DiskManager {
 
     public String getLocalPath(String diskID) {
         return localDiskInfoMap.get(diskID);
+    }
+
+    public String getLocalPath() {
+        Set<String> keys = localDiskInfoMap.keySet();
+        if (keys.size() > 0) {
+            String key = keys.iterator().next();
+            return localDiskInfoMap.get(key);
+        }
+        return null;
     }
 
     public String getPath(String diskID) {

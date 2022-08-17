@@ -43,6 +43,10 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
 	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
 	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.gw.user.*";
+	public static final String MQUEUE_NAME_GW_SERVICE = "ksan-gw-service-";
+	public static final String MQUEUE_NAME_GW_SERVICE_ADDED_ROUTING_KEY = "*.services.added";
+	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
+	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
@@ -122,6 +126,8 @@ public final class GWConstants {
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
+	public static final String TEMP_COMPLETE_DIR = "temp/complete";
+	public static final String TEMP_COPY_DIR = "temp/copy";
 	public static final String TRASH_DIR = "trash";
 	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
@@ -431,8 +437,8 @@ public final class GWConstants {
 				+ "  `request_user` varchar(64),"
 				+ "  `request_id` varchar(64),"
 				+ "  `operation` varchar(64),"
-				+ "  `object_name` varchar(2048),"
-				+ "  `request_uri` varchar(2048),"
+				+ "  `object_name` varbinary(2048),"
+				+ "  `request_uri` varbinary(2048),"
 				+ "  `status_code` int,"
 				+ "  `error_code` varchar(256),"
 				+ "  `response_length` bigint,"
@@ -1078,7 +1084,7 @@ public final class GWConstants {
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
-	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path - match disk id : {}";
+	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path";
 
 	// UploadPartCopy
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";
@@ -1269,6 +1275,7 @@ public final class GWConstants {
 	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";
+	public static final String GWPORTAL_RECEIVED_SERVICE_CHANGE = "receive service change ...";
 	public static final String LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA = "BiningKey : {}, body : {}";
 
 	public static final String GWPORTAL_RECEIVED_USER_ADDED = "added";

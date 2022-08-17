@@ -243,14 +243,17 @@ public class UploadPartCopy extends S3Request {
 		// check encryption
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
 		s3ObjectEncryption.build();
-		
-		Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
 
+		Metadata objMeta = createLocal(bucket, object);
 		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
-		if (path == null) {
-			logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		
+		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+
+		// String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		// if (path == null) {
+		// 	logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
+		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		// }
 		
 		S3Object s3Object = null;
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
