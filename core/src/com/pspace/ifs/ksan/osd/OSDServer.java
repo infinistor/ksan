@@ -94,15 +94,13 @@ public class OSDServer {
         // ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
         // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
-        // serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
-        // serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMinutes(), TimeUnit.MILLISECONDS);
+        serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMinutes(), TimeUnit.MILLISECONDS);
 
-        // serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), OSDUtils.getInstance().getTrashScheduleMinutes(), OSDUtils.getInstance().getTrashScheduleMinutes(), TimeUnit.MINUTES);
-
-        // if (OSDUtils.getInstance().getCacheDisk() != null) {
-        //     serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-        //     serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDUtils.getInstance().getCacheScheduleMinutes(), TimeUnit.MILLISECONDS);
-        // }
+        if (!Strings.isNullOrEmpty(cacheDisk)) {
+            serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
+            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMinutes(), TimeUnit.MILLISECONDS);
+        }
 
         // if (!Strings.isNullOrEmpty(cacheDisk)) {
         //     logger.info("cache disk : {}", cacheDisk);
@@ -110,10 +108,6 @@ public class OSDServer {
         //     Thread mover = new Thread(worker);
         //     mover.start();
         // }
-
-        // ObjectMover objMover = new ObjectMover();
-        // Thread threadMover = new Thread(objMover);
-        // threadMover.start();
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
