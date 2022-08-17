@@ -176,7 +176,6 @@ public class FSCK {
             if (res.ret == 0)
                 return 0;
             
-            //System.out.println("ObjId >" + mt.getObjId() + " primary >" + res.primary + " replica >" + res.replica + " check >" + res.ret);
             if (checkOnly){
                 return res.ret > 0 ? -1 : 0;
             }
@@ -295,7 +294,7 @@ public class FSCK {
                 try {
                     /*System.out.format("[checkEachObject] bucket : %s path : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
                             mt.getBucket(), mt.getPath(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());*/
-                    if ((ret = fixObject(mt))== 0)
+                    if (fixObject(mt)== 0)
                        job_done++;
                     /*if (!mt.isReplicaExist()){
                        objm.log(">> Bucket : %s path : %s pdisk : %s rdisk : %s \n",
@@ -374,8 +373,8 @@ public class FSCK {
         System.out.println("|----------------------------------------------------------|");
         System.out.format("| Total Checked                   \t | %-15d |\n" , this.totalChecked);
         System.out.format("| Total Fixed                     \t | %-15d |\n" , this.totalFixed);
-        System.out.format("| Total Problem with replica      \t | %-15d |\n" , this.problemType1);
-        System.out.format("| Total Problem with primary      \t | %-15d |\n" , this.problemType2);
+        System.out.format("| Total Problem with primary      \t | %-15d |\n" , this.problemType1);
+        System.out.format("| Total Problem with replica      \t | %-15d |\n" , this.problemType2);
         System.out.format("| Total Problem with meta size    \t | %-15d |\n" , this.problemType3);
         System.out.format("| Total Problem with meta md5     \t | %-15d |\n" , this.problemType4);
         System.out.format("| Total Problem with all different\t | %-15d |\n" , this.problemType4);
