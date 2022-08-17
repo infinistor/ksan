@@ -18,7 +18,7 @@ import pika
 import pdb
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.define import *
+from const.common import *
 from mqmanage.RabbitMqReceiver import RabbitMqReceiver
 from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
 from mqmanage.RabbitMqRpc import RabbitMqRpc

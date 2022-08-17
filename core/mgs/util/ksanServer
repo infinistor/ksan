@@ -12,7 +12,7 @@
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.init import InitMonServicedConf, read_conf
+from common.init import read_conf
 from server.server_manage import *
 import pdb
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         ApiKey = conf['mgs']['IfsPortalKey']
     else:
         if args[0] != 'init':
-            print("ksanMon.conf is not configured. ./ksanServer init first")
+            print("ksanMonitor.conf is not configured. ./ksanServer init first")
             sys.exit(-1)
 
     logger = None
@@ -72,9 +72,7 @@ if __name__ == '__main__':
         logger = Logging(loglevel='debug')
         logger = logger.create()
 
-    if args[0] == 'init':
-        InitMonServicedConf()
-    elif args[0] == 'add':
+    if args[0] == 'add':
         Res, Errmsg, Ret = ServerInit(IfsPortalIp, IfsPortalPort, options.IpAddress, IfsMqPort, ApiKey, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)

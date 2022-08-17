@@ -18,20 +18,15 @@ import datetime
 import psutil
 import netifaces
 import dns.resolver
-from common.log import catch_exceptions
-import jsonpickle
-from optparse import OptionParser
-from common.define import *
-from common.httpapi import RestApi, disp_serverinfo, get_res
-from common.log import Logging
 from common.httpapi import *
 
 
 class GetNetwork(object):
-    def __init__(self, logger=None):
+    def __init__(self, Ip=None, logger=None):
         self.logger = logger
+        self.NicInfo = None
         self.nicinfo_list = list()
-        self.GetNicInfo()
+        self.GetNicInfo(Ip=Ip)
         self.IoCounterPerNic = psutil.net_io_counters(pernic=True)
 
     @catch_exceptions()
@@ -72,6 +67,7 @@ class GetNetwork(object):
             self.nicinfo_list.append(tmp_dic)
             if Ip is not None:
                 if Ip == tmp_dic['IpAddress']:
+                    self.NicInfo = tmp_dic
                     return tmp_dic
 
     @catch_exceptions()

@@ -88,6 +88,7 @@ public class OSDClient {
 			}
 		}
 		byPassOut.flush();
+		// byPassOut.close();
 		logger.info(GWConstants.LOG_OSDCLIENT_READ, readTotal);
 		return readTotal;
 	}
@@ -119,6 +120,7 @@ public class OSDClient {
 			}
 		}
 		byPassOut.flush();
+		// byPassOut.close();
 		logger.debug(GWConstants.LOG_OSDCLIENT_READ, readTotal);
 
 		return readTotal;
@@ -144,6 +146,7 @@ public class OSDClient {
 
 	public void putFlush() throws IOException {
 		socket.getOutputStream().flush();
+		// socket.getOutputStream().close();
 	}
 
 	public void delete(String path, String objId, String versionId) throws IOException {

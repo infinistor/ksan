@@ -11,8 +11,8 @@
 """
 
 import os, sys
+import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.define import *
 from common.init import *
 from common.utils import IsDaemonRunning
 from common.shcommand import *
@@ -48,7 +48,7 @@ class KsanMonitor:
         Ret, Pid = IsDaemonRunning(self.PidFile, CmdLine=self.BinaryName)
         if Ret is True:
             print('Already Running')
-            return False, '%s is alread running' % self.BinaryName
+            return False, '%s is already running' % self.BinaryName
         else:
             StartCmd = '%s/%s start' % \
                        (KsanBinPath, self.BinaryName)

@@ -47,10 +47,11 @@ public class GW {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getDiskPoolsDetails();
-		
+
 		while (!GWPortal.getInstance().isAppliedDiskpools() || !GWPortal.getInstance().isAppliedUsers()) {
 			try {
 				Thread.sleep(1000);
+				GWPortal.getInstance().getDiskPoolsDetails();
 			} catch (InterruptedException e) {
 				PrintStack.logging(logger, e);
 			}

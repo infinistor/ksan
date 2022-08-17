@@ -83,7 +83,7 @@ public class CreateBucket extends S3Request {
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;
-		String diskpoolId = s3Parameter.getUser().getUserDefaultDiskId();
+		String diskpoolId = s3Parameter.getUser().getUserDefaultDiskpoolId();
 		logger.info("user default diskpoolId : {}", diskpoolId);
 
 		Bucket bucket = new Bucket();

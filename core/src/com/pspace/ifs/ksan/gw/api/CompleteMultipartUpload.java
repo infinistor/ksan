@@ -131,12 +131,19 @@ public class CompleteMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);
 		}
 
+		for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<Integer, Part> entry = it.next();
+			logger.debug("part number : {}, etag : {}, size : {}", entry.getValue().getPartNumber(), entry.getValue().getPartETag(), entry.getValue().getPartSize());
+		}
+
 		for (Iterator<Map.Entry<Integer, Part>> it = xmlListPart.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<Integer, Part> entry = it.next();
 			String eTag = entry.getValue().getPartETag().replace(GWConstants.DOUBLE_QUOTE, "");
-			if(listPart.containsKey(entry.getKey())) {
-				if( eTag.compareTo(listPart.get(entry.getKey()).getPartETag()) == 0 ) {
-					if (listPart.get(entry.getKey()).getPartSize() < GWConstants.PARTS_MIN_SIZE && entry.getKey() < listPart.size()) {
+			if (listPart.containsKey(entry.getKey())) {
+				Part part = listPart.get(entry.getKey());
+				if (eTag.compareTo(part.getPartETag()) == 0 ) {
+					logger.debug("part : {}, size : {}", entry.getKey(), part.getPartSize());
+					if (part.getPartSize() < GWConstants.PARTS_MIN_SIZE && entry.getKey() < listPart.size()) {
 						logger.error(GWErrorCode.ENTITY_TOO_SMALL.getMessage());
 						throw new GWException(GWErrorCode.ENTITY_TOO_SMALL, s3Parameter);
 					}
@@ -185,9 +192,11 @@ public class CompleteMultipartUpload extends S3Request {
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 				objMeta = createLocal(bucket, object, versionId);
+				// objMeta = create(bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 				objMeta = createLocal(bucket, object);
+				// objMeta = create(bucket, object);
 			}
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);

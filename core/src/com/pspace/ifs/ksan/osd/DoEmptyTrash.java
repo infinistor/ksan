@@ -27,7 +27,7 @@ import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 
 public class DoEmptyTrash implements Runnable {
-    private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);
+    private final static Logger logger = LoggerFactory.getLogger(DoEmptyTrash.class);
 
     @Override
     public void run() {

@@ -12,6 +12,7 @@
 import json
 
 from Enums.EnumResponseResult import EnumResponseResult
+from const.common import RetKeyResult, RetKeyCode, RetKeyMessage
 
 
 class ResponseMqData:
@@ -22,6 +23,6 @@ class ResponseMqData:
         self.IsProcessed = False
 
     def load(self, data: dict):
-        self.Result = data["Result"]
-        self.Code = data["Code"]
-        self.Message = data["Message"]
+        self.Result = data[RetKeyResult]
+        self.Code = data[RetKeyCode]
+        self.Message = data[RetKeyMessage]

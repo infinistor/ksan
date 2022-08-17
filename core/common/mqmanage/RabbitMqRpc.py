@@ -34,12 +34,20 @@ class RabbitMqRpc:
 		self.m_channel = None
 		self.m_config = config
 		self.m_response = None
-		self.m_correlation_id = None
+		self.m_correlation_id = str(uuid.uuid4())
 
 		# Rabbit MQ 리스너 초기화
 		self.initializeRabbitMqListener(self.m_config)
+		self.BasicProperties = pika.BasicProperties(
+			reply_to=self.m_callback_queue,
+			correlation_id=self.m_correlation_id,
+		)
 
-		result = self.m_channel.queue_declare(queue='', exclusive=True)
+		mq_args = {}
+		mq_args["x-queue-type"] = "quorum"
+		mq_args["x-single-active-consumer"] = True
+
+		result = self.m_channel.queue_declare(queue="ksanAgent" + self.m_correlation_id,durable=True, exclusive=True, arguments=mq_args)
 		self.m_callback_queue = result.method.queue
 
 		self.m_channel.basic_consume(

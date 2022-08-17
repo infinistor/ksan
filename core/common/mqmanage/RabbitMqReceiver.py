@@ -19,10 +19,9 @@ from service.service_mq_handle import *
 import mqmanage
 from Enums.EnumResponseResult import EnumResponseResult
 from common.ResponseMqData import ResponseMqData
-from common.define import Updated, Checked
+from const.mq import RoutKeyDisk, RoutKeyDiskRpcFinder, RoutKeyDiskPool, RoutKeyService, RoutKeyServiceRpcFinder, \
+    RoutKeyNetwork, RoutKeyNetworkRpcFinder, RoutKeyServerUpdate, RoutKeyServerAdd, RoutKeyServerDel
 from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
-#from mqmanage.RabbitMqSender import RabbitMqSender
-#from mqmanage.RabbitMqRpc import RabbitMqRpc
 import network.network_mq_handle
 from server.server_mq_handle import *
 
@@ -57,8 +56,8 @@ class RabbitMqReceiver:
         # Rabbit MQ 리스너 초기화
         self.initializeRabbitMqListener(self.m_config)
 
-        result = self.m_channel.queue_declare(queue='', exclusive=True)
-        self.m_callback_queue = result.method.queue
+        #result = self.m_channel.queue_declare(queue='', exclusive=True)
+        #self.m_callback_queue = result.method.queue
         print(self.m_queue_name)
         self.m_channel.basic_consume(
             queue=self.m_queue_name,
@@ -93,8 +92,12 @@ class RabbitMqReceiver:
         self.m_channel = self.m_connection.channel()
 
         # 큐 설정
+        mq_args = {}
+        mq_args["x-queue-type"] = "quorum"
+        mq_args["x-single-active-consumer"] = True
+
         self.m_channel.queue_declare(queue=self.m_queue_name,
-                                     durable=True, exclusive=False, auto_delete=False, arguments=None)
+                                     durable=True, exclusive=False, auto_delete=False, arguments=mq_args)
         # Exchange 설정
         self.m_channel.exchange_declare(exchange=self.m_exchange_name, exchange_type="topic")
         # 모든 바인딩 키 처리

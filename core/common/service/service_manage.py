@@ -14,8 +14,14 @@ import pdb
 
 import psutil
 import sys, os
+import socket
+import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from server.server_manage import *
+from const.http import ResponseHeaderModule, ResponseItemsHeaderModule
+from const.service import AddServiceInfoObject, ServiceDetailModule, \
+    ServiceItemsDetailModule, ServiceConfigModule, UpdateServiceInfoObject, UpdateServiceUsageObject, \
+    AddServiceGroupItems, ServiceGroupItemsModule
 from common.init import get_input, GetConf
 from common.shcommand import shcall
 import logging
@@ -40,14 +46,14 @@ OsdDefaultPerformanceMode = 'NO_OPTION'
 
 OsdDefaultConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert Connection Pool size'},
                   {'key': 'osd.port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert Osd Port'},
-                  {'key': 'osd.ec_schedule_minutes', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC Schedule Minutes'},
-                  {'key': 'osd.ec_apply_minutes', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC Apply Minutes'},
+                  {'key': 'osd.ec_schedule_milliseconds', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC Schedule Milliseconds'},
+                  {'key': 'osd.ec_apply_milliseconds', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC Apply Milliseconds'},
                   {'key': 'osd.ec_file_size', 'value': OsdDefaultEcFileSize, 'type': int, 'question': 'Insert EC File Size'},
-                  {'key': 'osd.cache_disk', 'value': OsdDefaultCacheDisk, 'type': int, 'question': 'Insert Cache Disk'},
-                  {'key': 'osd.cache_schedule_minutes', 'value': OsdDefaultCacheScheduleMinute, 'type': int, 'question': 'Insert Cache Schedule Minutes'},
+                  {'key': 'osd.cache_disk', 'value': OsdDefaultCacheDisk, 'type': str, 'question': 'Insert Cache Disk'},
+                  {'key': 'osd.cache_schedule_milliseconds', 'value': OsdDefaultCacheScheduleMinute, 'type': int, 'question': 'Insert Cache Schedule Milliseconds'},
                   {'key': 'osd.cache_file_size', 'value': OsdDefaultCacheFileSize, 'type': int, 'question': 'Insert Cache File Size'},
-                  {'key': 'osd.cache_limit_minutes', 'value': OsdDefaultCacheLimitMinute, 'type': int, 'question': 'Insert Cache Limit Minutes'},
-                  {'key': 'osd.trash_schedule_minutes', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert Trash Schedule Minute'}]
+                  {'key': 'osd.cache_limit_milliseconds', 'value': OsdDefaultCacheLimitMinute, 'type': int, 'question': 'Insert Cache Limit Milliseconds'},
+                  {'key': 'osd.trash_schedule_milliseconds', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert Trash Schedule Milliseconds'}]
 
 
 S3DefaultDbRepository = TypeServiceMariaDB
@@ -112,7 +118,7 @@ S3DefaultConfigInfo = [
      'question': 'Insert Objmanager Count'},
     {'key': 'gw.performance_mode', 'value': S3DefaultGwPerformanceMode, 'type': str,
      'question': 'Insert Performance Mode'},
-    {'key': 'gw.cache_disk', 'value': S3DefaultCacheDisk, 'type': int, 'question': 'Insert Cache Disk'},
+    {'key': 'gw.cache_disk', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert Cache Disk'},
     {'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert Cache File Size'},
     {'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
      'question': 'Insert Object DB Repository'},
@@ -409,35 +415,6 @@ def ControlService(MgsIp, Port, ApiKey, Control, ServiceId=None, ServiceName=Non
 
 
 @catch_exceptions()
-def UpdateServiceConf(MgsIp, Port, ServiceId, logger=None):
-    Res, Errmsg, Ret, Data = GetServiceInfo(MgsIp, Port, ServiceId=ServiceId, logger=logger)
-    if Res != ResOk:
-        return Res, Errmsg, None
-    else:
-        if Ret.Result != ResultSuccess:
-            return Res, Errmsg, Ret
-    pdb.set_trace()
-    ServiceType = Data.ServiceType
-    Conf = GetServiceConfigFromFile(ServiceType)
-    if Conf is None:
-        return ResNotFoundCode, ResNotFoundCode, None
-    if ServiceType == TypeServiceHaproxy:
-        Url = "/api/v1/Services/%s/Config/HaProxy/String" % ServiceId
-    elif ServiceType == TypeS3:
-        Url = "/api/v1/Services/%s/Config/GW/String" % ServiceId
-    elif ServiceType == TypeServiceOSD:
-        Url = "/api/v1/Services/%s/Config/OSD/String" % ServiceId
-    else:
-        return ResInvalidCode, ResInvalidMsg, None
-    S3ProxyConf = S3ProxyConfig()
-    S3ProxyConf.Set(Conf)
-    body = jsonpickle.encode(S3ProxyConf, make_refs=False)
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
-    Res, Errmsg, Data = Conn.post()
-    return Res, Errmsg, Data
-
-
-@catch_exceptions()
 def ShowServiceInfo(Data, Detail=False):
 
         #if Detail:
@@ -447,8 +424,8 @@ def ShowServiceInfo(Data, Detail=False):
         #    ServiceTitleLine = '%s' % ('=' * 212)
         #else:
         #ServiceTitle ="|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'State'.center(10), 'Id'.center(38), 'Type'.center(10), 'GroupId'.center(38))
-        ServiceTitle ="|%s|%s|%s|%s|" % ('Name'.center(20), 'State'.center(10), 'Id'.center(38), 'Type'.center(10))
-        ServiceTitleLine = '%s' % ('=' * 83)
+        ServiceTitle ="|%s|%s|%s|%s|" % ('Name'.center(20), 'State'.center(10), 'Id'.center(38), 'Type'.center(20))
+        ServiceTitleLine = '%s' % ('=' * 93)
 
         print(ServiceTitleLine)
         print(ServiceTitle)
@@ -464,10 +441,10 @@ def ShowServiceInfo(Data, Detail=False):
             #    ServiceDataLine = '%s' % ('-' * 209)
             #else:
             _svc = "|%s|%s|%s|%s|" % \
-                   (svc.Name.center(20), svc.State.center(10), svc.Id.center(38), svc.ServiceType.center(10))
+                   (svc.Name.center(20), svc.State.center(10), svc.Id.center(38), svc.ServiceType.center(20))
             #_svc = "|%s|%s|%s|%s|%s|" % \
             #       (svc.Name.center(20), svc.State.center(10), svc.Id.center(38), svc.ServiceType.center(10), str(svc.GroupId).center(38))
-            ServiceDataLine = '%s' % ('-' * 83)
+            ServiceDataLine = '%s' % ('-' * 93)
             print(_svc)
             print(ServiceDataLine)
 
@@ -488,22 +465,22 @@ def ShowServiceInfoWithServerInfo(ServerList, Detail=False, Ip=None, Port=None):
         #    print('Fail to get Service Info %s' % Errmsg)
         #    return
 
-        ServiceTitleLine = '%s' % ('=' * 235)
+        ServiceTitleLine = '%s' % ('=' * 245)
         ServiceTitle ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(20), 'ServiceName'.center(20), 'ServiceId'.center(38),
-                                       'ServiceGruopId'.center(38), 'State'.center(10), 'Type'.center(10),
+                                       'ServiceGruopId'.center(38), 'State'.center(10), 'Type'.center(20),
                                            'CpuUsage'.center(20), 'MemoryUsed'.center(20),'Thread Cnt'.center(10), 'ServerId'.center(38))
         print(ServiceTitleLine)
         print(ServiceTitle)
         print(ServiceTitleLine)
 
-        ServiceDataLine = '%s' % ('-' * 235)
+        ServiceDataLine = '%s' % ('-' * 245)
         for Svr in ServerList:
             for Svc in Svr.Services:
 
                 _Svc ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
                       (Svr.Name.center(20), str(Svc.Name).center(20),
                        Svc.Id.center(38), str(Svc.GroupId).center(38),
-                       Svc.State.center(10), str(Svc.ServiceType).center(10), str(Svc.CpuUsage).center(20) ,
+                       Svc.State.center(10), str(Svc.ServiceType).center(20), str(Svc.CpuUsage).center(20) ,
                        str(Svc.MemoryUsed).center(20), str(int(Svc.ThreadCount)).center(10), Svr.Id.center(38))
                 print(_Svc)
                 print(ServiceDataLine)
@@ -565,28 +542,6 @@ def RemoveServiceGroup(ip, port, ServiceId, logger=None):
     Conn = RestApi(ip, port, Url, logger=logger)
     Res, Errmsg, Ret = Conn.delete()
     return Res, Errmsg, Ret
-
-@catch_exceptions()
-def UpdateServiceGroupConf(MgsIp, Port, GroupId, logger=None):
-    Res, Errmsg, Ret, Data = GetServiceInfo(MgsIp, Port, ServiceId=GroupId, logger=logger)
-    if Res != ResOk:
-        return Res, Errmsg, None
-    else:
-        if Ret.Result != ResultSuccess:
-            return Res, Errmsg, Ret
-    pdb.set_trace()
-    ServiceType = Data.ServiceType
-    Conf = GetServiceConfigFromFile(ServiceType)
-    if Conf is None:
-        return ResNotFoundCode, ResNotFoundCode, None
-    Url = "/api/v1/ServiceGroups/%s/Config" % GroupId
-    S3ProxyConf = S3ProxyConfig()
-    S3ProxyConf.Set(Conf)
-
-    body = jsonpickle.encode(S3ProxyConf, make_refs=False)
-    Conn = RestApi(MgsIp, Port, Url, params=body, logger=logger)
-    Res, Errmsg, Data = Conn.post()
-    return Res, Errmsg, Data
 
 
 @catch_exceptions()

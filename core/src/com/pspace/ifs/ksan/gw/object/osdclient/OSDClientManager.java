@@ -88,9 +88,39 @@ public class OSDClientManager {
     }
 
     public void update(int port, int osdClientCount) throws Exception {
-        pools.forEach((ip, pool) -> {
-            pool.getMaxTotal();
-        });
+        logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_CLIENT_COUNT, osdClientCount);
+        
+        for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+            for (Server server : diskpool.getServerList()) {
+                if (!GWUtils.getLocalIP().equals(server.getIp())) {
+                    if (!pools.containsKey(server.getIp())) {
+                        GenericObjectPoolConfig  config = new GenericObjectPoolConfig();
+                        config.setTestOnReturn(true);
+                        config.setMaxTotal(osdClientCount);
+
+                        logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, server.getIp());
+                        OSDClientFactory factory = new OSDClientFactory(server.getIp(), port);
+                        OSDClientPool pool = new OSDClientPool(factory, config);
+                        pool.preparePool();
+                        pools.put(server.getIp(), pool);
+                    }
+                }
+            }
+        }
+    }
+
+    public void addClient(int port, int clientCount, String ip) throws Exception {
+        if (!pools.containsKey(ip)) {
+            GenericObjectPoolConfig  config = new GenericObjectPoolConfig();
+            config.setTestOnReturn(true);
+            config.setMaxTotal(clientCount);
+
+            logger.debug(GWConstants.LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP, ip);
+            OSDClientFactory factory = new OSDClientFactory(ip, port);
+            OSDClientPool pool = new OSDClientPool(factory, config);
+            pool.preparePool();
+            pools.put(ip, pool);
+        }
     }
 
     public void shutDown() {

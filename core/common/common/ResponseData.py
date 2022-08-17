@@ -10,7 +10,7 @@
 """
 
 import json
-
+from const.common import RetKeyResult, RetKeyCode, RetKeyMessage
 
 
 from Enums.EnumResponseResult import EnumResponseResult
@@ -23,6 +23,6 @@ class ResponseData:
         self.Message = messsage
 
     def load(self, data: dict):
-        self.Result = data["Result"]
-        self.Code = data["Code"]
-        self.Message = data["Message"]
+        self.Result = data[RetKeyResult]
+        self.Code = data[RetKeyCode]
+        self.Message = data[RetKeyMessage]

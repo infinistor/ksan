@@ -152,10 +152,10 @@ namespace PortalSvr.Services
 						"DefaultNetworkId = ",
 						"",
 						"[monitor]",
-						"ServerMonitorInterval = 5",
-						"NetworkMonitorInterval = 5",
-						"DiskMonitorInterval = 5",
-						"ServiceMonitorInterval = 5",
+						"ServerMonitorInterval = 5000",
+						"NetworkMonitorInterval = 5000",
+						"DiskMonitorInterval = 5000",
+						"ServiceMonitorInterval = 5000",
 					};
 
 					await File.WriteAllLinesAsync(KsanConfig, Datas);

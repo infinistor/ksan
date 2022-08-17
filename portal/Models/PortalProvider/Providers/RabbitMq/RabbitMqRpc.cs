@@ -74,8 +74,8 @@ namespace PortalProvider.Providers.RabbitMq
 				{
 					{ "x-queue-type", "quorum" },
 				};
-				
-				m_channel.QueueDeclare(queue: m_receiverQueueName, durable:true, exclusive:false, autoDelete: false, arguments:arguments);
+
+				m_channel.QueueDeclare(queue: m_receiverQueueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 				m_properties.ReplyTo = m_receiverQueueName;
 
 				// 결과 수신 객체 생성
@@ -164,9 +164,6 @@ namespace PortalProvider.Providers.RabbitMq
 					// 응답 데이터를 가져온다.
 					Result.Data = m_responseQueue.Take(CancellationTokenSource.Token);
 					Result.Result = EnumResponseResult.Success;
-
-					// 응답 데이터를 가져온 후 rpc 삭제
-					m_channel.BasicCancel(m_receiver.ConsumerTags[0]);
 				}
 				catch (Exception /*e*/)
 				{
@@ -194,6 +191,7 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>연결 종료</summary>
 		public void Close()
 		{
+			m_channel?.QueueDelete(m_receiverQueueName);
 			m_channel?.Dispose();
 			m_connection?.Dispose();
 

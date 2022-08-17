@@ -19,14 +19,9 @@ from common.init import read_conf
 
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.utils import IsDaemonRunning
-from common.init import GetConf, InitMonServicedConf, UpdateConf, GetHostInfo
-from common.shcommand import shcall
 from service.service_manage import *
 from mqmanage.mq import *
-import time
 from optparse import OptionParser
-import threading
 
 
 def DependencyCheck():
@@ -96,7 +91,7 @@ def UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, A
         if ret is True:
             if 'ServerId' in conf['mgs']:
                 if conf['mgs']['ServerId'] != '':
-                    return False, 'Already registered'
+                    return False, 'already registered'
 
     net = common.network.GetNetwork()
     nic = net.GetNicInfo(Ip=LocalIp)
@@ -131,18 +126,18 @@ ServiceMonitorInterval = 5
     return True, ''
 
 def RegisterNode():
-    Cmd = '/usr/local/ksan/bin/ksanAgent register'
+    Cmd = '%s register' % KsanAgentPath
     out, err = shcall(Cmd)
-    if 'Done' in out or 'Already registered' in out:
+    if 'Done' in out or 'already registered' in out:
         return True, ''
     else:
         return False, err
 
 
-def StartksanEdge():
-    Cmd = '/usr/local/ksan/bin/ksanAgent stop;/usr/local/ksan/bin/ksanAgent start -i %s' % LocalIp
+def StartksanAgent():
+    Cmd = '%s stop;%s start -i %s' % (KsanAgentPath, KsanAgentPath, LocalIp)
     out, err = shcall(Cmd)
-    if 'Done' in out or 'Already running':
+    if 'Done' in out or 'already running':
         return True, ''
     else:
         return False, err
@@ -150,7 +145,7 @@ def StartksanEdge():
 def StartksanMon():
     Cmd = 'kill -9 $(ps -ef |grep ksanMonitor|grep -v grep|awk \'{print $2}\') >/dev/null 2>&1;sleep 1;/usr/local/ksan/bin/ksanMonitor start'
     out, err = shcall(Cmd)
-    if 'Done' in out or 'Already running':
+    if 'Done' in out or 'already running':
         return True, ''
     else:
         return False, err
@@ -187,6 +182,8 @@ if __name__ == '__main__':
     logger = Logging(loglevel='debug')
     logger = logger.create()
 
+    logger.debug('Option is omitted LocalIp:%s, PortalIp:%s, PortalPort:%s, MqUser:%s MqPort:%s MqPassword:%s ApiKey:%s'
+                 % (LocalIp, PortalIp, PortalPort, MqUser, MqPort, MqPassword, ApiKey))
     if not(LocalIp and PortalIp and PortalPort and MqPort and MqUser and MqPassword and ApiKey):
         logger.error('Option is omitted LocalIp:%s, PortalIp:%s, PortalPort:%s, MqUser:%s MqPort:%s MqPassword:%s ApiKey:%s'
                      % (LocalIp, PortalIp, PortalPort, MqUser, MqPort, MqPassword, ApiKey))
@@ -204,23 +201,17 @@ if __name__ == '__main__':
         logger.error('fail to update ksanMonitor.conf %s ' % str(err))
         sys.exit(-1)
 
-    if ret is True or 'Already registered' not in err:
+    if ret is True or 'already registered' not in err:
         ret, err = RegisterNode()
         if ret is False:
             print(err)
             logger.error('fail to register ksan server %s ' % str(err))
-            sys.exit(-1)
 
-    ret, err = StartksanEdge()
+    ret, err = StartksanAgent()
     if ret is False:
         print(err)
         logger.error('fail to start ksanAgent service %s ' % str(err))
         sys.exit(-1)
 
-    ret, err = StartksanMon()
-    if ret is False:
-        print(err)
-        logger.error('fail to start ksanMonitor service %s ' % str(err))
-        sys.exit(-1)
     print('Done')
     logger.info('success to register ksan node')

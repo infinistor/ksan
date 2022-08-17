@@ -15,8 +15,11 @@ import psutil
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import jsonpickle
 from common.httpapi import *
-from common.httpapi import RestApi, disp_serverinfo, get_res
-from common.define import *
+from common.httpapi import RestApi
+from const.common import *
+from const.server import ServerItemsDetailModule, ServerItemsModule, RequestServerInfo, RequestServerInitInfo, \
+    UpdateServerInfoItems, RequestServerExistCheck
+from const.http import ResPonseHeader, ResponseHeaderModule
 from common.init import get_input
 from common.shcommand import GetHostInfo
 from common.utils import IsIpValid
@@ -406,7 +409,7 @@ class MyOptionParser(OptionParser):
 """
         print(Usage)
 
-def ShowInfo(AllServers, AllDisks, ServerNetworks):
+def ShowInfo(AllServers, AllDisks, ServerNetworks, Detail=None):
     print("[ SERVER / NETWORK / DISK ]")
     ServerTitleLine = "%s" % ('=' * 197)
     print(ServerTitleLine)

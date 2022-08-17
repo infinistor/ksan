@@ -14,14 +14,13 @@
 
 import sys
 import os
-import http.client
-import ssl
 import requests
 import urllib3
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.define import *
-from common.display import disp_serverinfo
+from const.common import *
+from const.http import ResponseHeaderWithDataModule, ResponseItemsHeaderModule, ResponseHeaderModule, ResPonseHeader, \
+    ResPonseItemsHeader, GetApiResult, Parsing
 from common.log import Logging, catch_exceptions
 import json
 import jsonpickle
@@ -86,6 +85,7 @@ INSUFFICIENT_STORAGE = 507
 NOT_EXTENDED = 510
 NETWORK_AUTHENTICATION_REQUIRED = 511
 
+
 class RestApi:
 
     def __init__(self, ip, port, url, header=None, params=None, protocol='https', authkey=None, logger=None):
@@ -100,7 +100,7 @@ class RestApi:
 
         if header is None:
             header = dict()
-        header['Authorization'] = authkey
+        header[HeaderAuth] = authkey
 
         self._header = header
         if params is None:
@@ -113,8 +113,8 @@ class RestApi:
         err_msg = ''
         try:
             r = requests.get(url, params=self._params, verify=False, headers=self._header)
-            self.logging_request_info('GET', r)
-            ret = r.content.decode('utf-8')
+            self.logging_request_info(GetMethod, r)
+            ret = r.content.decode(UTF8)
             Data = json.loads(ret)
             Ret = self.GetResponse(Data,ItemsHeader=ItemsHeader, ReturnType=ReturnType)
             return ResOk, '', Ret
@@ -135,11 +135,11 @@ class RestApi:
         url = "%s://%s:%d%s" % (self._protocol, self._ip, self._port, self._url)
         urllib3.disable_warnings()
         try:
-            self._header['Content-Type'] = 'application/json'
+            self._header[HeaderContentType] = 'application/json'
             # self._params = json.dumps(self._params)
             r = requests.post(url=url, data=self._params, headers=self._header, verify=False)
-            self.logging_request_info('POST', r)
-            ret = r.content.decode('utf-8')
+            self.logging_request_info(PostMethod, r)
+            ret = r.content.decode(UTF8)
             Data = json.loads(ret)
             Ret = self.GetResponse(Data,ItemsHeader=ItemsHeader, ReturnType=ReturnType)
             return ResOk, '', Ret
@@ -161,11 +161,11 @@ class RestApi:
         url = "%s://%s:%d%s" % (self._protocol, self._ip, self._port, self._url)
         urllib3.disable_warnings()
         try:
-            self._header['Content-Type'] = 'application/json-patch+json'
+            self._header[HeaderContentType] = 'application/json-patch+json'
             #self._params = json.dumps(self._params)
             r = requests.put(url=url, data=self._params, headers=self._header, verify=False)
-            self.logging_request_info('PUT', r)
-            ret = r.content.decode('utf8')
+            self.logging_request_info(PutMethod, r)
+            ret = r.content.decode(UTF8)
             Data = json.loads(ret)
             Ret = self.GetResponse(Data,ItemsHeader=ItemsHeader, ReturnType=ReturnType)
             return ResOk, '', Ret
@@ -187,11 +187,11 @@ class RestApi:
         url = "%s://%s:%d%s" % (self._protocol, self._ip, self._port, self._url)
         urllib3.disable_warnings()
         try:
-            self._header['Content-Type'] = 'application/json-patch+json'
-            self._params = json.dumps(self._params)
+            self._header[HeaderContentType] = 'application/json-patch+json'
+            #self._params = json.dumps(self._params)
             r = requests.delete(url=url, data=self._params, headers=self._header, verify=False)
-            self.logging_request_info('DELETE', r)
-            ret = r.content.decode('utf-8')
+            self.logging_request_info(DeleteMethod, r)
+            ret = r.content.decode(UTF8)
             Data = json.loads(ret)
             Ret = self.GetResponse(Data,ItemsHeader=ItemsHeader, ReturnType=ReturnType)
             return ResOk, '', Ret
