@@ -258,9 +258,9 @@ public class ObjManagerUtil {
     public DISK getDISK(String bucketName, String diskId) throws ResourceNotFoundException{
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
-            throw new ResourceNotFoundException("[getDISK]unable to find bucket with the name " + bucketName + "!");
+            throw new ResourceNotFoundException("[getDISK] unable to find bucket with the name " + bucketName + "!");
         
-        return obmCache.getDiskWithId(bt.getDiskPoolId(), diskId);
+        return obmCache.getDiskWithId(diskId);
     }
     
     public int removeUserDiskPool(String userId, String diskPoolId){
