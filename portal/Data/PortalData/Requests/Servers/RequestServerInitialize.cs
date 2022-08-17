@@ -32,7 +32,7 @@ namespace PortalData.Requests.Servers
 
 		/// <summary>메니지먼트 아이피</summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string PortalIp { get; set; }
+		public string PortalHost { get; set; }
 
 		/// <summary>메니지먼트 포트</summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
