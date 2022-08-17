@@ -374,7 +374,11 @@ public class ObjManager {
     public boolean isBucketDelete(String bucketName) throws SQLException {
         return bucketMGT.isBucketDeleted(bucketName);
     }
-     
+    
+    public void updateBucketLogging(String bucketName, String logging) throws ResourceNotFoundException, SQLException{
+        bucketMGT.updateBucketLogging(bucketName, logging);
+    }
+    
     public ObjMultipart getMultipartInsatance(String Bucket){
         multipart.setBucket(Bucket);
         return multipart;

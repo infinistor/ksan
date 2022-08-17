@@ -217,6 +217,13 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
 
+    public void updateBucketLogging(String bucketName, String logging) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setLogging(logging);
+        dbm.updateBucketLogging(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
     public boolean isBucketDeleted(String bucketName) throws SQLException {
         return dbm.isBucketDeleted(bucketName);
     }

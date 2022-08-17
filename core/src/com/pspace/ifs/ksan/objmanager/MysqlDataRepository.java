@@ -682,6 +682,7 @@ public class MysqlDataRepository implements DataRepository{
         int replicaCount = rs.getInt(19);
         long usedSpace = rs.getLong(20);
         long fileCount = rs.getLong(21);
+        String logging = rs.getString(22);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -698,6 +699,7 @@ public class MysqlDataRepository implements DataRepository{
         //getUserDiskPool(bt); // get diskpoolId and replicaCount
         bt.setUsedSpace(usedSpace);
         bt.setFileCount(fileCount);
+        bt.setLogging(logging);
         return bt;
     }
     
@@ -1085,7 +1087,15 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateBucketUsedSpace.setString(2, getBucketId(bt.getName()));
         pstUpdateBucketUsedSpace.executeUpdate();
     }
-
+ 
+    @Override
+    public void updateBucketLogging(Bucket bt) throws SQLException {
+        pstUpdateBucketEncryption.clearParameters();
+        pstUpdateBucketEncryption.setString(1, bt.getLogging());
+        pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
+        pstUpdateBucketEncryption.executeUpdate();
+    }
+    
     @Override
     public boolean isUploadId(String uploadid) throws SQLException {
         boolean success = false;

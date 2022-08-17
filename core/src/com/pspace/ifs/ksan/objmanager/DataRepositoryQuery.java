@@ -48,18 +48,18 @@ public final class DataRepositoryQuery {
                     + " userId CHAR(36), userName VARCHAR(200), "
                     + "acl TEXT, web TEXT, cors TEXT, "
                     + "lifecycle TEXT, access TEXT, "
-                    + "tagging TEXT, replication TEXT, "
+                    + "tagging TEXT, replication TEXT, logging TEXT, "
                     + "encryption TEXT,   objectlock TEXT,  policy TEXT, "
                     + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
                     + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
                     + "replicaCount INT DEFAULT 2, "
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
-                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
+                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE utf8mb4_unicode_ci;";
     
     public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS";
+    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS WHERE id=?";
+    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS";
     public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";
             
     public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
@@ -74,11 +74,12 @@ public final class DataRepositoryQuery {
     public  static String  updateBucketPolicyQuery = "UPDATE BUCKETS SET policy=? WHERE id=?";
     public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE id=?";
     public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?";
-            
+    public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE id=?";
+    
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("
                     + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
-                    + " objKey VARCHAR(2048) COMMENT 'Object key'," 
+                    + " objKey VARBINARY(2048) COMMENT 'Object key'," 
                     + " changeTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time upload started',"
                     + " completed BOOLEAN DEFAULT false COMMENT 'job completed or in-progress',"
                     + " uploadid VARCHAR(80) NOT NULL COMMENT 'multi-part upload Id',"
@@ -88,7 +89,7 @@ public final class DataRepositoryQuery {
                     + " size bigint(20),"
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
                     + " pdiskid VARCHAR(80) NOT NULL, "
-                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
+                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE utf8mb4_unicode_ci;";
      public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
      public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";

@@ -113,6 +113,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String POLICY="policy";
     private static final String FILECOUNT="fileCount";
     private static final String USEDSPACE="usedSpace";
+    private static final String LOGGING="logging";
     
     // for multipart upload
     private static final String UPLOADID="uploadId";
@@ -430,6 +431,7 @@ public class MongoDataRepository implements DataRepository{
             doc.append(FILECOUNT, 0L);
             doc.append(USEDSPACE, 0L);
             doc.append(CREATETIME, getCurrentDateTime());
+            doc.append(LOGGING, "");
             
             buckets.insertOne(doc);
             database.createCollection(bt.getName());
@@ -489,8 +491,7 @@ public class MongoDataRepository implements DataRepository{
         String policy     = doc.getString(POLICY);
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
-        //long usedSpace = Long.valueOf(doc.get(USEDSPACE).toString());//doc.getLong(USEDSPACE);
-        //long fileCount = Long.valueOf(doc.get(FILECOUNT).toString());//doc.getLong(FILECOUNT);
+        String logging  = doc.getString(LOGGING);
         
         Date createTime;
         try {
@@ -524,8 +525,7 @@ public class MongoDataRepository implements DataRepository{
         bt.setPolicy(policy);
         bt.setFileCount(fileCount);
         bt.setUsedSpace(usedSpace);
-        //getUserDiskPool(bt);
-        //System.out.println(">>" + bt);
+        bt.setLogging(logging);
         return bt;
     }
     
@@ -994,6 +994,11 @@ public class MongoDataRepository implements DataRepository{
         updateBucket(bt.getName(), REPLICATION, bt.getReplication());
     }
 
+    @Override
+    public void updateBucketLogging(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), LOGGING, bt.getLogging());
+    }
+    
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,
             long NumJobDone, boolean checkOnly, String utilName, String startTime){
         List<Object> res = new ArrayList<>();

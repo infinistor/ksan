@@ -68,6 +68,7 @@ public interface DataRepository {
     public void updateBucketPolicy(Bucket bt) throws SQLException;
     public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException ;
     //public void updateBucketFileCount(Bucket bt) throws SQLException ;
+    public void updateBucketLogging(Bucket bt) throws SQLException;
     
     // for multipart upload
     public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException;
