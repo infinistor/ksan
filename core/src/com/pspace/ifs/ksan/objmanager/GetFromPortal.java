@@ -44,16 +44,17 @@ public class GetFromPortal {
     private String portalHost;
     private long portalPort;
     private String portalKey;
+    private String mqHost;
     private String mqUser;
     private long mqPort;
     private String mqPassword;
     private static Logger logger;
     
     // constants
-    private final String KSANMONCONFIFILE =  "/usr/local/ksan/etc/ksanMonitor.conf";
+    private final String KSANMONCONFIFILE =  "/usr/local/ksan/etc/ksanAgent.conf";
     private final String DEFAULTIP = "127.0.0.1";
     private final long DEFAULTPORTALPORT = 5443;
-    private final String PORTAIP = "PortalIp";
+    private final String PORTAIP = "PortalHost";
     private final String PORTALPORT = "PortalPort";
     private final String PORTAAPIKEY = "PortalApiKey";
     
@@ -64,7 +65,7 @@ public class GetFromPortal {
     private final String DBUSER = "objM.db_user"; 
     private final String DBPASSWORD = "objM.db_password";  
        
-    private final String MQHOST="objM.mq_host";
+    private final String MQHOST="MqHost";//"objM.mq_host";
     private final String MQUSER="MqUser";
     private final String DEFAULTMQUSER="guest";
     private final String MQPASSWORD="MqPassword";
@@ -109,6 +110,7 @@ public class GetFromPortal {
         portalHost = getStringConfig(PORTAIP, DEFAULTIP);
         portalPort = getLongConfig(PORTALPORT, DEFAULTPORTALPORT);
         portalKey = getStringConfig(PORTAAPIKEY, "");
+        mqHost = getStringConfig(MQHOST, DEFAULTIP);
         mqUser = getStringConfig(MQUSER, DEFAULTMQUSER);
         mqPassword = getStringConfig(MQPASSWORD, DEFAULTMQUSER);
         mqPort = getLongConfig(MQPORT, 0);
@@ -381,7 +383,7 @@ public class GetFromPortal {
         objc.dbName = (String)jsonConfig.get(DBNAME);
         objc.dbUsername = (String)jsonConfig.get(DBUSER);
         objc.dbPassword = (String)jsonConfig.get(DBPASSWORD);
-        objc.mqHost = (String)jsonConfig.get(MQHOST);
+        objc.mqHost = mqHost; //(String)jsonConfig.get(MQHOST);
         objc.mqUsername = mqUser;
         objc.mqPassword = mqPassword;
         objc.mqPort = mqPort;
