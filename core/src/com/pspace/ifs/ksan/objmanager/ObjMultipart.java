@@ -186,7 +186,7 @@ public class ObjMultipart{
         return this.list;
     }
 
-    public Multipart getMultipart(String uploadId) throws SQLException {
+    public Multipart getMultipart(String uploadId) throws SQLException, ResourceNotFoundException {
         return dbm.getMulipartUpload(uploadId);
     }
 

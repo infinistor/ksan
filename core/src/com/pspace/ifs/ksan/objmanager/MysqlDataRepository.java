@@ -879,7 +879,7 @@ public class MysqlDataRepository implements DataRepository{
     /***********************START*******************************************************************/
     // TO BE
     @Override
-    public Multipart getMulipartUpload(String uploadid) throws SQLException {
+    public Multipart getMulipartUpload(String uploadid) throws SQLException, ResourceNotFoundException  {
         Multipart multipart = null;
         String pdiskid;
 
@@ -893,7 +893,8 @@ public class MysqlDataRepository implements DataRepository{
             multipart.setAcl(rs.getString(5));
             multipart.setMeta(rs.getString(6));
             pdiskid = rs.getString(7);
-            //multipart.setDiskID(pdiskid);
+            DISK dsk = obmCache.getDiskWithId(pdiskid);
+            multipart.setDiskPoolId(dsk.getDiskPoolId());
         }
         
         return multipart;

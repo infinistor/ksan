@@ -75,7 +75,7 @@ public interface DataRepository {
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException;
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException;
     public void selectMultipartUpload(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException;
-    public Multipart getMulipartUpload(String uploadid) throws SQLException;
+    public Multipart getMulipartUpload(String uploadid) throws SQLException, ResourceNotFoundException ;
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException;
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException;
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException;

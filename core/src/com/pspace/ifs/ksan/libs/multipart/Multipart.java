@@ -22,6 +22,7 @@ public class Multipart {
     private String meta;
     private String etag;
     private long size;
+    private String diskPoolId;
 
     public Multipart(String bucket, String object, String uploadId) {
         this.bucket = bucket;
@@ -41,6 +42,14 @@ public class Multipart {
         return partNumber;
     }
 
+    public String getDiskPoolId(){
+        return diskPoolId;
+    }
+    
+    public void setDiskPoolId(String diskPoolId){
+        this.diskPoolId = diskPoolId;
+    }
+    
     public void setPartNumber(int partNumber) {
         this.partNumber = partNumber;
     }

@@ -774,7 +774,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     @Override
-    public Multipart getMulipartUpload(String uploadId) throws SQLException {
+    public Multipart getMulipartUpload(String uploadId) throws SQLException, ResourceNotFoundException {
         MongoCollection<Document> multip;
         Multipart mpart = null;
         
@@ -791,6 +791,8 @@ public class MongoDataRepository implements DataRepository{
             mpart.setLastModified((Date)doc.getDate(LASTMODIFIED));
             mpart.setAcl(doc.getString(ACL));
             mpart.setMeta(doc.getString(META));
+            DISK dsk = obmCache.getDiskWithId(doc.getString(PDISKID));
+            mpart.setDiskPoolId(dsk.getDiskPoolId());
         }
         
         return mpart;
