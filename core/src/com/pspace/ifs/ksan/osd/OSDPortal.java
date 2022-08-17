@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.osd;
 
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
+import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.config.MonConfig;
@@ -87,6 +88,7 @@ public class OSDPortal {
     private OSDPortal() {
         config = MonConfig.getInstance(); 
         config.configure();
+		logger.debug("ksan monitor config ...");
 		int mqPort = Integer.parseInt(config.getMqPort());
         try
 		{
@@ -122,7 +124,7 @@ public class OSDPortal {
 		} catch (Exception ex){
 			throw new RuntimeException(ex);
 		}
-
+		logger.debug("mq registered ...");
 		isAppliedDiskpools = false;
     }
 
@@ -132,6 +134,7 @@ public class OSDPortal {
 
     public void getConfig() {
         try {
+			logger.info("get config ...");
 			HttpClient client = HttpClients
                 .custom()
                 .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
@@ -162,10 +165,14 @@ public class OSDPortal {
                 OSDConfig.getInstance().setConfig(jsonConfig);
                 OSDConfig.getInstance().setVersion(version);
                 OSDConfig.getInstance().saveConfigFile();
+
+				OSDServer.startEmptyTrash();
+				OSDServer.startMoveCacheToDisk();
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
 		} catch (Exception e) {
+			OSDUtils.logging(logger, e);
 			throw new RuntimeException(e);
 		}
     }
@@ -202,6 +209,10 @@ public class OSDPortal {
 					JSONObject item = (JSONObject)jsonItems.get(i);
 					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
+					if (jsonServers != null && jsonServers.size() == 0) {
+						logger.info("diskpools -- servers is empty");
+						return;
+					}
 					for (int j = 0; j < jsonServers.size(); j++) {
 						JSONObject jsonServer = (JSONObject)jsonServers.get(j);
 						JSONArray jsonNetwork = (JSONArray)jsonServer.get(Server.NETWORK_INTERFACES);
