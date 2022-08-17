@@ -103,7 +103,7 @@ public class DeleteObjects extends S3Request {
 
 			for (Objects object : objectNames) {
 				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet);
-				// xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
+				xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
 			}
 
 			xmlStreamWriter.writeEndElement();
