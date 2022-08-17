@@ -276,8 +276,9 @@ namespace PortalProvider
 					if (RabbitMqRpc == null)
 						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
-					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
+					// 요청 전달
 					var Response = RabbitMqRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
+
 					// 에러인 경우
 					if (Response.Result == EnumResponseResult.Error)
 						Result.CopyValueFrom(Response);
