@@ -244,7 +244,7 @@ public class UploadPartCopy extends S3Request {
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
 		s3ObjectEncryption.build();
 
-		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object);
+		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
 		
 		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);

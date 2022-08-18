@@ -178,7 +178,7 @@ public class CreateMultipartUpload extends S3Request {
 		Metadata objMeta = null;
 		try {
 			// check exist object
-			objMeta = createLocal(diskpoolId, bucket, object);
+			objMeta = createLocal(diskpoolId, bucket, object, "null");
 		} catch (GWException e) {
 			logger.info(e.getMessage());
 			logger.error(GWConstants.LOG_CREATE_MULTIPART_UPLOAD_FAILED, bucket, object);
