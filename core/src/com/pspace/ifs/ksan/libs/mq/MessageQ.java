@@ -430,6 +430,9 @@ public abstract class MessageQ{
             result = response.take();
         
         channel.basicCancel(ctag);
+        if (result == null)
+            return "";
+        
         return result;
     }
 }

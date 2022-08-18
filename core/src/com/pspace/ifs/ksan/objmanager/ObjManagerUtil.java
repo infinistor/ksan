@@ -44,9 +44,6 @@ public class ObjManagerUtil {
             dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
             
             osdc = new OSDClient(config);
-            //config.loadDiskPools(obmCache);
-           
-            //dbm.loadBucketList();
             
             obmCache.setDBManager(dbm);
                 
@@ -148,29 +145,17 @@ public class ObjManagerUtil {
     /**
      * It will allocate a replica disk for recovery of failed replica object
      * @param bucketName   bucket name
-     * @param pdiskId   primary diskid
-     * @param rdiskId   replica diskid
+     * @param mt
      * @return new DISK object
      * @throws ResourceNotFoundException if there is no server or disk available
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
     public DISK allocReplicaDisk(String bucketName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
-       
         if (mt == null)
              throw new ResourceNotFoundException("null metadata are provided!");
-
-        /*if (pdiskId != null && rdiskId != null){
-            if (pdiskId.isEmpty() && rdiskId.isEmpty())
-                throw new ResourceNotFoundException("empty diskid provided!");
-        }*/
         
-        //DISK rsrcDisk = null;
-        String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-       /* DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
-        if (rdiskId != null)
-            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);*/
-        return dAlloc.allocDisk(dskPoolId, mt);
+        return dAlloc.allocDisk(mt);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
@@ -185,7 +170,7 @@ public class ObjManagerUtil {
         if (dskPoolId == null)
             return false;
         
-        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId, allowedToMoveToLocalDisk);
+        return dAlloc.isReplicationAllowedInDisk(primary, replica, DstDiskId, allowedToMoveToLocalDisk);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
@@ -255,22 +240,10 @@ public class ObjManagerUtil {
         } 
     }
     
-    public DISK getDISK(String bucketName, String diskId) throws ResourceNotFoundException{
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        if (bt == null)
-            throw new ResourceNotFoundException("[getDISK] unable to find bucket with the name " + bucketName + "!");
-        
+    public DISK getDISK(String diskId) throws ResourceNotFoundException{
         return obmCache.getDiskWithId(diskId);
     }
-    
-    public int removeUserDiskPool(String userId, String diskPoolId){
-        try {
-            return dbm.deleteUserDiskPool(userId, diskPoolId);
-        } catch (SQLException ex) {
-            return -1;
-        }
-    }
-    
+   
     public OSDClient getOSDClient(){
         return osdc;
     }
