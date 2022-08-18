@@ -144,7 +144,7 @@ public class DiskAllocation {
              primaryDisk.setOSDServerId(primary.getId());
              primaryDisk.setDiskPoolId(dskPoolId);
              md.setPrimaryDisk(primaryDisk);
-             md.setReplicaCount(replicaCount);
+             md.setReplicaCount(dskPool.getDefaultReplicaCount());
              
              if (replicaCount == 1){
                  return 0;

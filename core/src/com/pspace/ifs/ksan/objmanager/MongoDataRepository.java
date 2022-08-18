@@ -321,12 +321,13 @@ public class MongoDataRepository implements DataRepository{
         else
             rdsk = obmCache.getDiskWithId(rdiskId);
         
+        int replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(rdsk);
         mt.setLastModified(lastModified);
-        mt.setReplicaCount(bt.getReplicaCount());
+        mt.setReplicaCount(replicaCount);
         //mt.setSize(size);
         mt.setVersionId(versionid, deleteMarker, lastversion);
         return mt;
@@ -1181,7 +1182,8 @@ public class MongoDataRepository implements DataRepository{
 
     @Override
     public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys, long offset) throws SQLException {
-        String diskPoolId = "1";
+        int def_replicaCount = 0;
+        int replicaCount;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
         BasicDBObject sortBy ;
@@ -1199,14 +1201,9 @@ public class MongoDataRepository implements DataRepository{
             sortBy.append("_id", -1);
         }
         
-        
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        if (bt != null)
-            diskPoolId = bt.getDiskPoolId();
-        
         while((it.hasNext())){
             Document doc = (Document)it.next();
             String key         = doc.getString(OBJKEY);
@@ -1225,10 +1222,10 @@ public class MongoDataRepository implements DataRepository{
             mt.setVersionId(versionid, deletem, lastversion);
             mt.set(etag, tag, meta, acl, size);
             mt.setLastModified(lastModified);
-            mt.setReplicaCount(bt.getReplicaCount());
-                
+              
             try {
                 mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));
+                def_replicaCount = 1;
             } catch (ResourceNotFoundException ex) {
                 mt.setPrimaryDisk(new DISK());
             }
@@ -1238,11 +1235,21 @@ public class MongoDataRepository implements DataRepository{
                     mt.setReplicaDISK(new DISK());
                 else if(rdiskid.isEmpty())
                     mt.setReplicaDISK(new DISK());
-                else
+                else{
                     mt.setReplicaDISK(obmCache.getDiskWithId(rdiskid));
+                    def_replicaCount = 2;
+                }
             } catch (ResourceNotFoundException ex) {
                 mt.setReplicaDISK(new DISK());
             }
+            
+            try {
+                replicaCount = obmCache.getDiskPoolFromCache(mt.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount();
+            } catch (ResourceNotFoundException ex) {
+               replicaCount = def_replicaCount;
+            }
+            
+            mt.setReplicaCount(replicaCount);
             list.add(mt);
         }
         return list;

@@ -60,8 +60,7 @@ public class Objects {
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key);
         else
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key, versionId);
-       
-        mt.setReplicaCount(bt.getReplicaCount());
+        
         logger.debug("[_open] End bucketName : {} key : {}  versionId : {} ", bucketName, key, versionId == null ? "null" : versionId);
         return mt;
     }
@@ -147,7 +146,7 @@ public class Objects {
         
         cpy_mt = new Metadata(toBucketName, to);
         cpy_mt.setPrimaryDisk(mt.getPrimaryDisk());
-        cpy_mt.setReplicaCount(bt.getReplicaCount());
+        cpy_mt.setReplicaCount(mt.getReplicaCount());
         if (mt.isReplicaExist())
             cpy_mt.setReplicaDISK(mt.getReplicaDisk());
         
