@@ -225,7 +225,7 @@ public class ObjectMover {
     }
    
     private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk, DISK diskToChange)throws ResourceNotFoundException, Exception{
-        System.out.format("Source : %s/%s%s Des : %s/%s/%s \n", srcDisk.getDiskPoolId(), srcDisk.getOsdIp(), srcDisk.getPath(), desDisk.getDiskPoolId(), desDisk.getOsdIp(), desDisk.getPath());
+        //System.out.format("Source : %s/%s%s Des : %s/%s/%s \n", srcDisk.getDiskPoolId(), srcDisk.getOsdIp(), srcDisk.getPath(), desDisk.getDiskPoolId(), desDisk.getOsdIp(), desDisk.getPath());
         if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
             return -1;
         

@@ -215,6 +215,12 @@ public class MysqlDataRepository implements DataRepository{
         return pstStmt;
     }
     
+    private PreparedStatement getObjPreparedStmt2(String bucketName, String format) throws SQLException{
+        String query = String.format(format, "`" + bucketName + "`", "`" + bucketName + "`");
+        PreparedStatement pstStmt = con.prepareStatement(query);
+        return pstStmt;
+    }
+    
     private void createObjectTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
         pstStmt.execute();
@@ -407,13 +413,13 @@ public class MysqlDataRepository implements DataRepository{
         pstupdateEtag.setString(3, md.getVersionId());
     }
     
-    private Metadata getSelectObjectResult(String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
+    private Metadata getSelectObjectResult(String bucketName, String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
         DISK rdsk;
         String rdiskPath;
                
-        Bucket bt  = obmCache.getBucketFromCache(rs.getString(1));
+        Bucket bt  = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
             throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ rs.getString(1) +" not found in the db");
         
@@ -449,7 +455,7 @@ public class MysqlDataRepository implements DataRepository{
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);
+            return getSelectObjectResult(bucketName, diskPoolId, rs);
         } catch(SQLException ex){
             System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -464,7 +470,7 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = pstSelectOneWithVersionId.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);      
+            return getSelectObjectResult(bucketName, diskPoolId, rs);      
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -526,12 +532,19 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized List<String> getAllUsedDiskId() throws SQLException{
         List<String> dList = new ArrayList();
-
-        ResultSet rs = this.pstSelectUsedDisks.executeQuery();
-
-        while(rs.next()){
-            dList.add(rs.getString(1));
+        
+        String[] bList= obmCache.getBucketNameList();
+        for (String bucketName : bList){
+            pstSelectUsedDisks = getObjPreparedStmt2(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
+            
+            ResultSet rs = pstSelectUsedDisks.executeQuery();
+            
+            while(rs.next()){
+                if (!dList.contains(rs.getString(1)))
+                    dList.add(rs.getString(1));
+            }
         }
+        System.out.println("[getAllUsedDiskId] size of used Disk >" + dList.size());
         return dList;
     }
     
@@ -1122,7 +1135,7 @@ public class MysqlDataRepository implements DataRepository{
         try{
            // System.out.format("Operation : %s check : %s \n", operation, operation.equalsIgnoreCase("addJob"));
             if (operation.equalsIgnoreCase("addJob")){
-                System.out.format("Operation : %s \n", operation);
+                //System.out.format("Operation : %s \n", operation);
                 status = in.get(1).toString();
                 TotalNumObject = Long.parseLong(in.get(2).toString());
                 checkOnly = Boolean.getBoolean(in.get(4).toString());
