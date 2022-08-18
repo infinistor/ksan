@@ -136,7 +136,7 @@ public class UploadPart extends S3Request {
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
 
-		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object);
+		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 
 		// check encryption
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);

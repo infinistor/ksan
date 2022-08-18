@@ -28,6 +28,7 @@ public class MonConfig {
     private String portalPort;
     private String serverId;
     private String portalKey;
+    private String mqHost;
     private String mqPort;
     private String mqUser;
     private String mqPassword;
@@ -63,11 +64,11 @@ public class MonConfig {
     }
 
     public void configure() {
-        portalIp = properties.getProperty(Constants.KMON_PROPERTY_PORTAL_IP);
+        portalIp = properties.getProperty(Constants.KMON_PROPERTY_PORTAL_HOST);
         if (portalIp == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_PORTAL_IP);
+					Constants.KMON_PROPERTY_PORTAL_HOST);
         }
 		portalPort = properties.getProperty(Constants.KMON_PROPERTY_PORTAL_PORT);
         if (portalPort == null) {
@@ -80,6 +81,12 @@ public class MonConfig {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
 					Constants.KMON_POOPERTY_POTAL_KEY);
+        }
+        mqHost = properties.getProperty(Constants.KMON_PROPERTY_MQ_HOST);
+        if (mqHost == null) {
+            throw new IllegalArgumentException(
+					Constants.LOG_CONFIG_MUST_CONTAIN +
+					Constants.KMON_PROPERTY_MQ_HOST);
         }
         mqPort = properties.getProperty(Constants.KMON_PROPERTY_MQ_PORT);
         if (mqPort == null) {
@@ -133,5 +140,9 @@ public class MonConfig {
 
     public String getMqPassword() {
         return mqPassword;
+    }
+
+    public String getMqHost() {
+        return mqHost;
     }
 }

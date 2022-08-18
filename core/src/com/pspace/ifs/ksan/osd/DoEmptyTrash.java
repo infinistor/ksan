@@ -37,7 +37,6 @@ public class DoEmptyTrash implements Runnable {
             recursiveEmptyCache(OSDConfig.getInstance().getCacheDisk());
         }
 
-        logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, KsanUtils.getLocalIP());
         HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
         diskInfoMap.forEach((diskId, diskPath) -> {
             String trashDir = diskPath + OSDConstants.SLASH + OSDConstants.TRASH_DIR;

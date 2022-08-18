@@ -25,12 +25,14 @@ public final class GWConstants {
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
-	public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
-	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
+	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGw.conf";
 	public static final String OBJMANAGER_CONFIG_PATH = "/usr/local/ksan/etc/objmanger.conf";
 	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
 
-	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_NAME = "disk";
+    public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+    public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
+
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
 	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";

@@ -46,7 +46,7 @@ namespace PortalSvr.Services
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
 
-		private static string KsanConfig = "/usr/local/ksan/etc/ksanMonitor.conf";
+		private static string KsanConfig = "/usr/local/ksan/etc/ksanAgent.conf";
 
 		/// <summary>생성자</summary>
 		/// <param name="configProvider">설정에 대한 프로바이더 객체</param>
@@ -129,23 +129,27 @@ namespace PortalSvr.Services
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Result.Data.Version);
 				}
 
-				// ksanMonitor.conf파일을 생성한다.
+				// ksanAgent.conf파일을 생성한다.
 				if (!File.Exists(KsanConfig))
 				{
 					// 내부 서비스용 API 키를 가져온다.
 					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
+					
+					// rabbitMq 설정 정보를 가져온다.
+					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMq");
+					RabbitMqConfiguration RabbitMq = Section.Get<RabbitMqConfiguration>();
 
 					if (ApiKey == null)
 						throw new Exception("Internal Service ApiKey is null");
 					var Datas = new List<string>()
 					{
 						"[mgs]",
-						$"PortalIp = {m_configuration["AppSettings:Host"]}",
+						$"PortalHost = {m_configuration["AppSettings:Host"]}",
 						"PortalPort = 5443",
-						$"MqHost = {m_configuration["AppSettings:RabbitMq:Host"]}",
-						$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
-						$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
-						$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
+						$"MqHost = {RabbitMq.Host}",
+						$"MqPort = {RabbitMq.Port}",
+						$"MqUser = {RabbitMq.User}",
+						$"MqPassword = {RabbitMq.Password}",
 						$"PortalApiKey = {ApiKey.KeyValue}",
 						"ServerId = ",
 						"ManagementNetDev = ",
@@ -159,7 +163,7 @@ namespace PortalSvr.Services
 					};
 
 					await File.WriteAllLinesAsync(KsanConfig, Datas);
-					m_logger.LogInformation("Save ksanMonitor.conf");
+					m_logger.LogInformation("Save ksanAgent.conf");
 				}
 			}
 			catch (Exception ex)

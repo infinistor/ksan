@@ -554,7 +554,10 @@ public class S3ObjectOperation {
                     putSize *= objMeta.getReplicaCount();
                     logger.debug("bucket : {}, object : {}", objMeta.getBucket(), objMeta.getPath());
                     logger.debug("primary disk id : {}, osd ip : {}", objMeta.getPrimaryDisk().getId(), objMeta.getPrimaryDisk().getOsdIp());
-                    logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                    if (objMeta.isReplicaExist()) {
+                        logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                    }
+                    
                     if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                         if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= (GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES)) {
                             filePrimary = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
@@ -587,36 +590,38 @@ public class S3ObjectOperation {
                                               GWConfig.getInstance().getPerformanceMode());
                     }
                     
-                    if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                        if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES) {
-                            fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            isReplicaCache = true;
+                    if (objMeta.isReplicaExist()) {
+                        if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
+                            if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES) {
+                                fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                isReplicaCache = true;
+                            } else {
+                                fileReplica = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                trashReplica = new File(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                            }
+                            com.google.common.io.Files.createParentDirs(fileReplica);
+                            com.google.common.io.Files.createParentDirs(tmpFileReplica);
+                            fosReplica = new FileOutputStream(tmpFileReplica, false);
                         } else {
-                            fileReplica = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            trashReplica = new File(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                            // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                            // if (clientReplica == null) {
+                            //     OSDClientManager.getInstance().addClient((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount(), objMeta.getReplicaDisk().getOsdIp());
+                            //     clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                            // }
+                            clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                            logger.info("osd - {},{}", clientReplica.getSocket().getRemoteSocketAddress().toString(), clientReplica.getSocket().getLocalPort());
+                            clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
+                                                objMeta.getObjId(), 
+                                                versionId, 
+                                                length, 
+                                                GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, 
+                                                GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, 
+                                                GWConstants.EMPTY_STRING,
+                                                GWConfig.getInstance().getPerformanceMode());
                         }
-                        com.google.common.io.Files.createParentDirs(fileReplica);
-                        com.google.common.io.Files.createParentDirs(tmpFileReplica);
-                        fosReplica = new FileOutputStream(tmpFileReplica, false);
-                    } else {
-                        // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                        // if (clientReplica == null) {
-                        //     OSDClientManager.getInstance().addClient((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount(), objMeta.getReplicaDisk().getOsdIp());
-                        //     clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                        // }
-                        clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                        logger.info("osd - {},{}", clientReplica.getSocket().getRemoteSocketAddress().toString(), clientReplica.getSocket().getLocalPort());
-                        clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
-                                              objMeta.getObjId(), 
-                                              versionId, 
-                                              length, 
-                                              GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, 
-                                              GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, 
-                                              GWConstants.EMPTY_STRING,
-                                              GWConfig.getInstance().getPerformanceMode());
                     }
         
                     while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
@@ -627,10 +632,12 @@ public class S3ObjectOperation {
                             fosPrimary.write(buffer, 0, readLength);
                         }
     
-                        if (fileReplica == null) {
-                            clientReplica.put(buffer, 0, readLength);
-                        } else {
-                            fosReplica.write(buffer, 0, readLength);
+                        if (objMeta.isReplicaExist()) {
+                            if (fileReplica == null) {
+                                clientReplica.put(buffer, 0, readLength);
+                            } else {
+                                fosReplica.write(buffer, 0, readLength);
+                            }
                         }
     
                         md5er.update(buffer, 0, readLength);
@@ -669,26 +676,28 @@ public class S3ObjectOperation {
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
-                    if (fileReplica == null) {
-                        clientReplica.putFlush();
-                        // OSDClientManager.getInstance().returnOSDClient(clientReplica);
-                        clientReplica = null;
-                    } else {
-                        fosReplica.flush();
-                        fosReplica.close();
-                        
-                        if (fileReplica.exists()) {
-                            File tempFile = new File(fileReplica.getAbsolutePath());
-                            logger.debug("fileReplica is already exists : {}", fileReplica.getAbsolutePath());
-                            retryRenameTo(tempFile, trashReplica);
-                        }
-                        // setAttributeFileReplication(tmpFileReplica, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
-                        retryRenameTo(tmpFileReplica, fileReplica);
-                        if (isReplicaCache) {
-                            String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
-                            com.google.common.io.Files.createParentDirs(new File(path));
-                            logger.debug("path : {}, primary path : {}", path, fileReplica.getAbsolutePath());
-                            Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+                    if (objMeta.isReplicaExist()) {
+                        if (fileReplica == null) {
+                            clientReplica.putFlush();
+                            // OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                            clientReplica = null;
+                        } else {
+                            fosReplica.flush();
+                            fosReplica.close();
+                            
+                            if (fileReplica.exists()) {
+                                File tempFile = new File(fileReplica.getAbsolutePath());
+                                logger.debug("fileReplica is already exists : {}", fileReplica.getAbsolutePath());
+                                retryRenameTo(tempFile, trashReplica);
+                            }
+                            // setAttributeFileReplication(tmpFileReplica, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+                            retryRenameTo(tmpFileReplica, fileReplica);
+                            if (isReplicaCache) {
+                                String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
+                                com.google.common.io.Files.createParentDirs(new File(path));
+                                logger.debug("path : {}, primary path : {}", path, fileReplica.getAbsolutePath());
+                                Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+                            }
                         }
                     }
                 } else {
@@ -1012,7 +1021,9 @@ public class S3ObjectOperation {
                     putSize *= objMeta.getReplicaCount();
                     logger.debug("bucket : {}, object : {}", objMeta.getBucket(), objMeta.getPath());
                     logger.debug("primary disk id : {}, osd ip : {}", objMeta.getPrimaryDisk().getId(), objMeta.getPrimaryDisk().getOsdIp());
-                    logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                    if (objMeta.isReplicaExist()) {
+                        logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                    }
                     if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                         if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= (GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES)) {
                             filePrimary = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
@@ -1047,38 +1058,40 @@ public class S3ObjectOperation {
                                               GWConfig.getInstance().getPerformanceMode());
                     }
                     
-                    if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                        if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES) {
-                            fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            File file = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            com.google.common.io.Files.createParentDirs(file);
-                            com.google.common.io.Files.createParentDirs(fileReplica);
-                            com.google.common.io.Files.createParentDirs(tmpFileReplica);
-                            logger.debug("fileReplica path : {}", fileReplica.getAbsolutePath());
-                            logger.debug("tmpFileReplica path : {}", tmpFileReplica.getAbsolutePath());
-                            fosReplica = new FileOutputStream(tmpFileReplica, false);
-                            isReplicaCache = true;
+                    if (objMeta.isReplicaExist()) {
+                        if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
+                            if (!Strings.isNullOrEmpty(GWConfig.getInstance().getCacheDisk()) && length <= GWConfig.getInstance().getCacheFileSize() * GWConstants.MEGABYTES) {
+                                fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                File file = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                com.google.common.io.Files.createParentDirs(file);
+                                com.google.common.io.Files.createParentDirs(fileReplica);
+                                com.google.common.io.Files.createParentDirs(tmpFileReplica);
+                                logger.debug("fileReplica path : {}", fileReplica.getAbsolutePath());
+                                logger.debug("tmpFileReplica path : {}", tmpFileReplica.getAbsolutePath());
+                                fosReplica = new FileOutputStream(tmpFileReplica, false);
+                                isReplicaCache = true;
+                            } else {
+                                fileReplica = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                trashReplica = new File(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                com.google.common.io.Files.createParentDirs(fileReplica);
+                                com.google.common.io.Files.createParentDirs(tmpFileReplica);
+                                fosReplica = new FileOutputStream(tmpFileReplica, false);
+                            }
+                            encryptReplica = GWUtils.initCtrEncrypt(fosReplica, s3Encryption.getCustomerKey());
                         } else {
-                            fileReplica = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            trashReplica = new File(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            com.google.common.io.Files.createParentDirs(fileReplica);
-                            com.google.common.io.Files.createParentDirs(tmpFileReplica);
-                            fosReplica = new FileOutputStream(tmpFileReplica, false);
+                            clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                            clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
+                                                objMeta.getObjId(), 
+                                                versionId, 
+                                                length, 
+                                                GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, 
+                                                GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, 
+                                                s3Encryption.getCustomerKey(),
+                                                GWConfig.getInstance().getPerformanceMode());
                         }
-                        encryptReplica = GWUtils.initCtrEncrypt(fosReplica, s3Encryption.getCustomerKey());
-                    } else {
-                        clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                        clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
-                                              objMeta.getObjId(), 
-                                              versionId, 
-                                              length, 
-                                              GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, 
-                                              GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL, 
-                                              s3Encryption.getCustomerKey(),
-                                              GWConfig.getInstance().getPerformanceMode());
                     }
 
                     while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
@@ -1089,10 +1102,12 @@ public class S3ObjectOperation {
                             encryptPrimary.write(buffer, 0, readLength);
                         }
     
-                        if (fileReplica == null) {
-                            clientReplica.put(buffer, 0, readLength);
-                        } else {
-                            encryptReplica.write(buffer, 0, readLength);
+                        if (objMeta.isReplicaExist()) {
+                            if (fileReplica == null) {
+                                clientReplica.put(buffer, 0, readLength);
+                            } else {
+                                encryptReplica.write(buffer, 0, readLength);
+                            }
                         }
     
                         md5er.update(buffer, 0, readLength);
@@ -1125,23 +1140,25 @@ public class S3ObjectOperation {
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
-                    if (fileReplica == null) {
-                        clientReplica.putFlush();
-                        OSDClientManager.getInstance().returnOSDClient(clientReplica);
-                        clientReplica = null;
-                    } else {
-                        encryptReplica.flush();
-                        encryptReplica.close();
+                    if (objMeta.isReplicaExist()) {
+                        if (fileReplica == null) {
+                            clientReplica.putFlush();
+                            OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                            clientReplica = null;
+                        } else {
+                            encryptReplica.flush();
+                            encryptReplica.close();
 
-                        if (fileReplica.exists()) {
-                            File tempFile = new File(fileReplica.getAbsolutePath());
-                            retryRenameTo(tempFile, trashReplica);
-                        }
-                        // setAttributeFileReplication(tmpFileReplica, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
-                        retryRenameTo(tmpFileReplica, fileReplica);
-                        if (isReplicaCache) {
-                            String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
-                            Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+                            if (fileReplica.exists()) {
+                                File tempFile = new File(fileReplica.getAbsolutePath());
+                                retryRenameTo(tempFile, trashReplica);
+                            }
+                            // setAttributeFileReplication(tmpFileReplica, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+                            retryRenameTo(tmpFileReplica, fileReplica);
+                            if (isReplicaCache) {
+                                String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
+                                Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+                            }
                         }
                     }
                 } else {

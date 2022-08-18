@@ -339,7 +339,7 @@ public class PostObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-				objMeta = createLocal(diskpoolId, bucket, object);
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
 

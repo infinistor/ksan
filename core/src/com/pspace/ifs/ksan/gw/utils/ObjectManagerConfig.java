@@ -179,10 +179,10 @@ public class ObjectManagerConfig {
         setDbPort((long)jsonConfig.get(DB_PORT));
         setDbUserName((String)jsonConfig.get(DB_USER));
         setDbPassword((String)jsonConfig.get(DB_PASSWORD));
-        setMqHost((String)jsonConfig.get(MQ_HOST));
-        setMqQueueName((String)jsonConfig.get(MQ_QUEUE_NAME));
-        setMqExchangeName((String)jsonConfig.get(MQ_EXCHANGE_NAME));
-        setMqOsdExchangeName((String)jsonConfig.get(MQ_OSD_EXCHANGE_NAME));
+        // setMqHost((String)jsonConfig.get(MQ_HOST));
+        // setMqQueueName((String)jsonConfig.get(MQ_QUEUE_NAME));
+        // setMqExchangeName((String)jsonConfig.get(MQ_EXCHANGE_NAME));
+        // setMqOsdExchangeName((String)jsonConfig.get(MQ_OSD_EXCHANGE_NAME));
 
         logger.debug(getDbRepository());
         logger.debug(getDbHost());
@@ -190,10 +190,10 @@ public class ObjectManagerConfig {
         logger.debug("{}", getDbPort());
         logger.debug(getDbUserName());
         logger.debug(getDbPassword());
-        logger.debug(getMqHost());
-        logger.debug(getMqQueueName());
-        logger.debug(getMqExchangeName());
-        logger.debug(getMqOsdExchangeName());
+        // logger.debug(getMqHost());
+        // logger.debug(getMqQueueName());
+        // logger.debug(getMqExchangeName());
+        // logger.debug(getMqOsdExchangeName());
     }
 
     public void saveConfigFile() throws IOException {

@@ -79,15 +79,15 @@ namespace PortalSvr.Services
 		#region Ksan Obj Manager
 		/// <summary> Ksan Obj Manager Repository </summary>
 		public static readonly string KEY_OBJ_DB_REPOSITORY = "objM.db_repository";
-		/// <summary> Ksan Obj Manager Host </summary>
+		/// <summary> Ksan Obj Manager DB Host </summary>
 		public static readonly string KEY_OBJ_DB_HOST = "objM.db_host";
-		/// <summary> Ksan Obj Manager Port </summary>
+		/// <summary> Ksan Obj Manager DB Port </summary>
 		public static readonly string KEY_OBJ_DB_PORT = "objM.db_port";
-		/// <summary> Ksan Obj Manager Name </summary>
+		/// <summary> Ksan Obj Manager DB Name </summary>
 		public static readonly string KEY_OBJ_DB_NAME = "objM.db_name";
-		/// <summary> Ksan Obj Manager User </summary>
+		/// <summary> Ksan Obj Manager DB User </summary>
 		public static readonly string KEY_OBJ_DB_USER = "objM.db_user";
-		/// <summary> Ksan Obj Manager Password </summary>
+		/// <summary> Ksan Obj Manager DB Password </summary>
 		public static readonly string KEY_OBJ_DB_PASSWORD = "objM.db_password";
 		#endregion
 
