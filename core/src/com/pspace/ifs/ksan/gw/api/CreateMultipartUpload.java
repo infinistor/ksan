@@ -188,7 +188,7 @@ public class CreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, diskpoolId);
+			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
