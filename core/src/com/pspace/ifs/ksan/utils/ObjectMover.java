@@ -225,6 +225,7 @@ public class ObjectMover {
     }
    
     private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk, DISK diskToChange)throws ResourceNotFoundException, Exception{
+        //System.out.format("Source : %s/%s%s Des : %s/%s/%s \n", srcDisk.getDiskPoolId(), srcDisk.getOsdIp(), srcDisk.getPath(), desDisk.getDiskPoolId(), desDisk.getOsdIp(), desDisk.getPath());
         if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
             return -1;
         
@@ -253,7 +254,7 @@ public class ObjectMover {
         //System.out.println("[moveObject] bucket : "+ bucket +" objId " + objId + " versionId : " + versionId);
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        DISK desDisk = obmu.getDISK(desDiskId);
         checkDiskDistance(mt,  desDisk);
         //return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), desDisk, srcDisk);
         return moveObject(bucket, objId, versionId, srcDisk, desDisk, srcDisk);
@@ -262,7 +263,7 @@ public class ObjectMover {
     public int copyObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        DISK desDisk = obmu.getDISK(desDiskId);
         
         if (!(mt.getPrimaryDisk().getId().equals(srcDisk.getId())) && !(mt.getPrimaryDisk().getId().equals(desDisk.getId())))
             return -1;

@@ -60,7 +60,6 @@ public class ObjMultipart{
         this.dbm = dbm;
         list = new ArrayList<>();
         defaultMaxUpkoads = 1000;
-        //this.bucket=bucket;
     }
  
     public void setBucket(String bucket){
@@ -189,15 +188,6 @@ public class ObjMultipart{
     public Multipart getMultipart(String uploadId) throws SQLException, ResourceNotFoundException {
         return dbm.getMulipartUpload(uploadId);
     }
-
-    /*public int UploadPart(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size){
-        try {
-            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size);
-        } catch (SQLException ex) {
-            Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return -1;
-    }*/
 
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
         return dbm.getParts(uploadId);

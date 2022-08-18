@@ -184,21 +184,16 @@ public class DISKPOOL {
         } 
     }
     
-    public boolean diskExistInPool(String diskid, String path){
+    public boolean diskExistInPool(String diskid){
         SERVER srv;
         
-        if (path.isEmpty() && diskid.isEmpty()){
+        if (diskid.isEmpty()){
             return false;
         }
         
         for(String serverId : serverMap.keySet())
         {
             srv = serverMap.get(serverId);
-            if (!path.isEmpty()){
-                if (srv.diskExistWithPath(path)){
-                    return true;
-                }
-            }
             if ( !diskid.isEmpty() ){
                 if (srv.diskExistWithId(diskid))
                     return true;

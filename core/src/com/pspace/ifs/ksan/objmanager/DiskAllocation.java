@@ -144,7 +144,7 @@ public class DiskAllocation {
              primaryDisk.setOSDServerId(primary.getId());
              primaryDisk.setDiskPoolId(dskPoolId);
              md.setPrimaryDisk(primaryDisk);
-             md.setReplicaCount(replicaCount);
+             md.setReplicaCount(dskPool.getDefaultReplicaCount());
              
              if (replicaCount == 1){
                  return 0;
@@ -165,11 +165,12 @@ public class DiskAllocation {
     }
     
     // allocate only replica disk
-    public DISK allocDisk(String dskPoolId, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
+    public DISK allocDisk(Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
         DISK replicaDisk;
         DISKPOOL dskPool;
         
         //logger.debug("disk pool id : {}", dskPoolId);
+        String dskPoolId = mt.getPrimaryDisk().getDiskPoolId();
         dskPool = getDiskPool(dskPoolId);
         if (dskPool == null) {
             logger.error("[allocDisk]There is no diskpool with the Id "+ dskPoolId+"!");
@@ -178,12 +179,20 @@ public class DiskAllocation {
         
         replicaDisk = this.allocReplicaDisk(dskPool, mt);
         replicaDisk.setDiskPoolId(dskPoolId);
-        return replicaDisk;
+        /*if (mt.isReplicaExist())
+           System.out.format("[allocDisk] Bucket : %s objId : %s primary : %s/%s replica : %s%s newDisk : %s /%s\n", 
+                   mt.getBucket(), mt.getObjId(), mt.getPrimaryDisk().getDiskPoolId(), mt.getPrimaryDisk().getPath(), 
+                   mt.getReplicaDisk().getId(), mt.getReplicaDisk().getPath(), replicaDisk.getDiskPoolId(), replicaDisk.getPath());
+        else
+           System.out.format("[allocDisk] Bucket : %s objId : %s primary : %s/%s newDisk : %s /%s\n", mt.getBucket(), mt.getObjId(), mt.getPrimaryDisk().getDiskPoolId(), mt.getPrimaryDisk().getPath(), replicaDisk.getDiskPoolId(), replicaDisk.getPath());
+        */        
+return replicaDisk;
     }
     
-    public boolean isReplicationAllowedInDisk(String dskPoolId, DISK primary, DISK replica, String replicaDiskId, boolean allowdToUseLocalDisk){
+    public boolean isReplicationAllowedInDisk(DISK primary, DISK replica, String replicaDiskId, boolean allowdToUseLocalDisk){
         DISKPOOL dskPool;
         SERVER rsvr;
+        String dskPoolId;
         HashMap<String, String> osdDistanceMap; 
          
         try {
@@ -198,6 +207,7 @@ public class DiskAllocation {
                     return false;
             }
             
+            dskPoolId = primary.getDiskPoolId();
             dskPool = getDiskPool(dskPoolId);
             if (dskPool == null)
                 return false;

@@ -215,6 +215,12 @@ public class MysqlDataRepository implements DataRepository{
         return pstStmt;
     }
     
+    private PreparedStatement getObjPreparedStmt2(String bucketName, String format) throws SQLException{
+        String query = String.format(format, "`" + bucketName + "`", "`" + bucketName + "`");
+        PreparedStatement pstStmt = con.prepareStatement(query);
+        return pstStmt;
+    }
+    
     private void createObjectTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
         pstStmt.execute();
@@ -407,13 +413,13 @@ public class MysqlDataRepository implements DataRepository{
         pstupdateEtag.setString(3, md.getVersionId());
     }
     
-    private Metadata getSelectObjectResult(String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
+    private Metadata getSelectObjectResult(String bucketName, String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
         DISK rdsk;
         String rdiskPath;
                
-        Bucket bt  = obmCache.getBucketFromCache(rs.getString(1));
+        Bucket bt  = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
             throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ rs.getString(1) +" not found in the db");
         
@@ -428,6 +434,8 @@ public class MysqlDataRepository implements DataRepository{
             } catch(ResourceNotFoundException ex){
                 rdsk = new DISK();
             }
+            
+            int replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
             mt = new Metadata(rs.getString(1), rs.getString(2));
             mt.setSize(rs.getLong(3));
             mt.setEtag(rs.getString(5));
@@ -437,7 +445,7 @@ public class MysqlDataRepository implements DataRepository{
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
             mt.setVersionId(rs.getString(11), rs.getString(12), rs.getBoolean(13));
-            mt.setReplicaCount(bt.getReplicaCount());
+            mt.setReplicaCount(replicaCount);
             return mt;
         }
         throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ rs.getString(1)+" key " + rs.getString(2)+ " not found in the db");
@@ -449,7 +457,7 @@ public class MysqlDataRepository implements DataRepository{
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);
+            return getSelectObjectResult(bucketName, diskPoolId, rs);
         } catch(SQLException ex){
             System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -464,7 +472,7 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = pstSelectOneWithVersionId.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);      
+            return getSelectObjectResult(bucketName, diskPoolId, rs);      
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -526,12 +534,19 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized List<String> getAllUsedDiskId() throws SQLException{
         List<String> dList = new ArrayList();
-
-        ResultSet rs = this.pstSelectUsedDisks.executeQuery();
-
-        while(rs.next()){
-            dList.add(rs.getString(1));
+        
+        String[] bList= obmCache.getBucketNameList();
+        for (String bucketName : bList){
+            pstSelectUsedDisks = getObjPreparedStmt2(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
+            
+            ResultSet rs = pstSelectUsedDisks.executeQuery();
+            
+            while(rs.next()){
+                if (!dList.contains(rs.getString(1)))
+                    dList.add(rs.getString(1));
+            }
         }
+        System.out.println("[getAllUsedDiskId] size of used Disk >" + dList.size());
         return dList;
     }
     
@@ -1122,7 +1137,7 @@ public class MysqlDataRepository implements DataRepository{
         try{
            // System.out.format("Operation : %s check : %s \n", operation, operation.equalsIgnoreCase("addJob"));
             if (operation.equalsIgnoreCase("addJob")){
-                System.out.format("Operation : %s \n", operation);
+                //System.out.format("Operation : %s \n", operation);
                 status = in.get(1).toString();
                 TotalNumObject = Long.parseLong(in.get(2).toString());
                 checkOnly = Boolean.getBoolean(in.get(4).toString());
@@ -1219,14 +1234,8 @@ public class MysqlDataRepository implements DataRepository{
         ResultSet rs = null;
         DISK pdsk = null;
         DISK rdsk = null;
-        String diskPoolId = "1";
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        //obmCache.displayBucketList();
-        //obmCache.displayDiskPoolList();
-        if (bt != null)
-            //return list;
-            diskPoolId = bt.getDiskPoolId();
-        
+        int default_replicaCount = 0;
+       
         rs = ((PreparedStatement)pstmt).executeQuery();
         while (rs.next()) {
             String objKey = rs.getString("objKey");
@@ -1246,12 +1255,20 @@ public class MysqlDataRepository implements DataRepository{
                     rdsk = this.obmCache.getDiskWithId( rdiskid);
                 else
                     rdsk = new DISK();
+                default_replicaCount = 2;
             } catch (ResourceNotFoundException ex) {
                 if ( pdsk == null)
                     pdsk = new DISK();
                 rdsk = new DISK();
+                 default_replicaCount = 1;
             }
             
+            int replicaCount;
+            try {
+                replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
+            } catch (ResourceNotFoundException ex) {
+                replicaCount = default_replicaCount;
+            }
             Metadata mt = new Metadata(bucketName, objKey);
             mt.setMeta(meta);
             mt.set(etag, tag, meta, acl, size);
@@ -1259,7 +1276,7 @@ public class MysqlDataRepository implements DataRepository{
             mt.setVersionId(versionid, "", lastversion);
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
-            mt.setReplicaCount(bt.getReplicaCount());
+            mt.setReplicaCount(replicaCount);
             list.add(mt);
         }
         
