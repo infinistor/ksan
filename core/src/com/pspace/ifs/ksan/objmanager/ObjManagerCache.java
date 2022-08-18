@@ -119,7 +119,7 @@ public class ObjManagerCache {
         
         for(String diskPoolId : diskPoolMap.keySet()){
             dskPool = getDiskPool(diskPoolId);
-            if (dskPool.diskExistInPool(diskId, "")) {
+            if (dskPool.diskExistInPool(diskId)) {
                 return dskPool;
             } // check the next diskPool
         }
@@ -240,7 +240,7 @@ public class ObjManagerCache {
          if (dskPool == null)
              return false;
          
-         return dskPool.diskExistInPool(diskid, dskPath);
+         return dskPool.diskExistInPool(diskid);
     }
     
     public boolean isDiskSeparatedAndValid(String dskPoolId, Metadata mt){
@@ -253,7 +253,7 @@ public class ObjManagerCache {
                 return false; // diskpool not exist
             }
         
-            if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId(), "")){
+            if (!dskPool.diskExistInPool(mt.getPrimaryDisk().getId())){
                 //logger.debug("[isDiskSeparatedAndValid] key : {} primary disk not exist in diskpoolId : {} diskId : {}", mt.getPath(), dskPool.getId(), mt.getPrimaryDisk().getId());
                 return false; // primary disk not exist
             }
@@ -267,7 +267,7 @@ public class ObjManagerCache {
                 return false; // diskpool not exist
             }
             
-            if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId(), "")){
+            if (!dskPool.diskExistInPool(mt.getReplicaDisk().getId())){
                 //logger.debug("[isDiskSeparatedAndValid] key : {} replica disk not exist in diskpoolId : {} diskId : {}", mt.getPath(), dskPool.getId(), mt.getReplicaDisk().getId());
                 return false; // replica disk not exist
             }

@@ -114,7 +114,7 @@ public class Objects {
             mt = _open(bucketName, key, versionId);
             return mt; 
         } catch (ResourceNotFoundException ex) {
-            mt = _create(bucketName, key, versionId, diskPoolId, algorithm);
+            mt = _create(bucketName, key, versionId, diskPoolId, algorithm); 
             return mt; 
         }
     }
