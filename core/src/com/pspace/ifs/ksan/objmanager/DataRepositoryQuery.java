@@ -111,14 +111,22 @@ public final class DataRepositoryQuery {
      public  static String  updateUJob1Query = "UPDATE UTILJOBS SET status=? WHERE Id=?";
      public  static String  updateUJob2Query = "UPDATE UTILJOBS SET TotalNumObject=?, NumJobDone=? WHERE Id=?";
      public  static String  selectUJobQuery = "SELECT status, TotalNumObject, NumJobDone, checkOnly, utilName, startTime FROM UTILJOBS WHERE Id=?";
-
-            // for user disk pool table
-     public  static String  createUserDiskPoolQuery = "CREATE TABLE IF NOT EXISTS USERSDISKPOOL(userId VARCHAR(50) NOT NULL, "
-                    + "credential VARCHAR(80) NOT NULL COMMENT 'access key _ secret key', diskpoolId VARCHAR(50) NOT NULL, "
-                    + "replcaCount INT NOT NULL, PRIMARY KEY(userId, credential)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
-     public  static String  insertUserDiskPoolQuery = "INSERT INTO USERSDISKPOOL(userId, credential, diskpoolId, replcaCount) VALUES(?, ?, ?, ?)";
-            
-     public  static String  selectUserDiskPoolQuery = "SELECT diskpoolId, replcaCount FROM USERSDISKPOOL WHERE userId=?";
-            
-     public  static String  deleteUserDiskPoolQuery = "DELETE FROM USERSDISKPOOL WHERE userId=? AND diskpoolId=?";
+     
+     // for LifeCycle
+    public  static String createLifeCycleQuery= "CREATE TABLE IF NOT EXISTS LIFECYCLES("
+                    + " idx bigint(20),"
+                    + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+                    + " objKey VARBINARY(2048) COMMENT 'Object key'," 
+                    + " objid VARCHAR(50) NOT NULL COMMENT 'md5 of bucket/objkey',"
+                    + " versionid VARCHAR(50) NOT NULL DEFAULT 'null',"
+                    + " uploadid VARCHAR(80) NOT NULL COMMENT 'LifeCycle upload Id',"
+                    + " inDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time data in ',"
+                    + " log TEXT COMMENT 'failed log',"
+                    + " isFailed BOOLEAN NOT NULL DEFAULT true,"
+                    + " PRIMARY KEY(objid, versionid, uploadid))) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE utf8mb4_unicode_ci;";
+    public static String insertLifeCycleQuery = "INSERT INTO LIFECYCLES(idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed) VALUES(?, ?, ?, ?, ?, ?, now(), ?, ?)";
+    public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE uploadid=?";
+    public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE objid=? AND AND versionid=?";
+    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log, isFailed, FROM LIFECYCLES";
+    public static String deleteLifeCycleQuery = "DELETE FROM LIFECYCLES WHERE bucket=? AND objKey=? AND versionid=?";
 }
