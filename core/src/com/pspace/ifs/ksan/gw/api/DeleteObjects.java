@@ -140,7 +140,6 @@ public class DeleteObjects extends S3Request {
 				objMeta = open(bucket, object, versionId);
 			}
 		} catch (GWException e) {
-			PrintStack.logging(logger, e);
 			logger.debug(GWConstants.LOG_DELETE_OBJECTS_QUIET_VALUE, quiet);
 			if(!quiet) {
 				try {

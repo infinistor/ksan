@@ -356,7 +356,10 @@ public class ListObject{
                and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            }
            
-           prefixStr = prefix.replaceAll("\\%",  "\\\\/").replaceAll("\\_",  "\\\\_");
+           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+                   .replaceAll("\\_",  "\\\\_")
+                   .replaceAll("(", "\\(")
+                   .replaceAll(")", "\\)");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){    
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
