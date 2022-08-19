@@ -5,7 +5,6 @@
      <!--로그 파일 저장 위치-->
     <property name="S3GW_LOGS_PATH" value="/var/log/ksan/s3gw" />
     <property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objManager" />
-    <property name="LIBS_LOG_PATH" value="/var/log/ksan/utils" />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -39,29 +38,12 @@
             </encoder>
     </appender>
 
-    <appender name="LIBS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LIBS_LOG_PATH}/libs.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LIBS_LOGS_PATH}/libs.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-                <maxHistory>30</maxHistory>
-                <maxFileSize>100MB</maxFileSize>
-                <totalSizeCap>5GB</totalSizeCap>
-        </rollingPolicy>
-            <encoder>
-                <pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%logger{10}.%method:%line]: %msg%n</pattern>
-            </encoder>
-    </appender>
-
     <logger name="com.pspace.ifs.ksan.gw" level="DEBUG">
         <appender-ref ref="S3GW"/>
     </logger>
 
     <logger name="com.pspace.ifs.ksan.objmanager" level="ERROR">
         <appender-ref ref="OBJMANAGER"/>
-    </logger>
-
-    <logger name="com.pspace.ifs.ksan.libs" level="INFO">
-        <appender-ref ref="LIBS"/>
     </logger>
 
 </configuration>
