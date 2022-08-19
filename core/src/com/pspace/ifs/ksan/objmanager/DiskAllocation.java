@@ -132,7 +132,6 @@ public class DiskAllocation {
              try{
                 primary = allocPrimaryServer(algorithm, dskPool);
                 primaryDisk = primary.getNextDisk();
-                
              } catch(ResourceNotFoundException e){
                 primary = allocPrimaryServer(AllocAlgorithm.ROUNDROBIN, dskPool);
                 primaryDisk = primary.getNextDisk();
