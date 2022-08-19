@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar -Dlogback.configurationFile=/app/ksan-gw.xml /app/ksan-gw.jar
+java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw-log.xml /app/ksan-gw.jar
