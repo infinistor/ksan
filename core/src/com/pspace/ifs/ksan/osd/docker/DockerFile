@@ -11,7 +11,8 @@ RUN mvn -f /src/pom.xml package
 ########################################################################
 FROM openjdk:11-jre-slim
 WORKDIR /app
+RUN mkdir -p /usr/local/ksan/etc/
 COPY --from=build /src/target/ksan-osd.jar /app
-COPY ./core/src/com/pspace/ifs/ksan/osd/docker/ksan-osd.xml /app
+COPY ./core/src/com/pspace/ifs/ksan/osd/ksan-osd-log.xml /usr/local/ksan/etc/
 COPY ./core/src/com/pspace/ifs/ksan/osd/docker/ksan-osd.sh /app
 CMD ["/app/ksan-osd.sh"]
