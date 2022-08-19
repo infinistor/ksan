@@ -132,6 +132,7 @@ public class DeleteObjects extends S3Request {
 		String currentVid = null;
 		Metadata objMeta = null;
 		try {
+			logger.debug("bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 			if (Strings.isNullOrEmpty(versionId) || GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {
 				objMeta = open(bucket, object);
 				currentVid = objMeta.getVersionId();
@@ -139,6 +140,7 @@ public class DeleteObjects extends S3Request {
 				objMeta = open(bucket, object, versionId);
 			}
 		} catch (GWException e) {
+			PrintStack.logging(logger, e);
 			logger.debug(GWConstants.LOG_DELETE_OBJECTS_QUIET_VALUE, quiet);
 			if(!quiet) {
 				try {
@@ -153,12 +155,13 @@ public class DeleteObjects extends S3Request {
 					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 			}
+			return;
 		}
 
 		boolean isLastVersion = objMeta.getLastVersion();
 		String deleteMarker = objMeta.getDeleteMarker();
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_INFO, versionId, isLastVersion, deleteMarker);
-
+ 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
 		
 		try {

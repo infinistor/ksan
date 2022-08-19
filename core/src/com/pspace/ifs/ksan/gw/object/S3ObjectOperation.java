@@ -112,12 +112,15 @@ public class S3ObjectOperation {
             if (objMeta.getReplicaCount() > 1) {
                 logger.debug("bucket : {}, object : {}", objMeta.getBucket(), objMeta.getPath());
                 logger.debug("primary disk id : {}, osd ip : {}", objMeta.getPrimaryDisk().getId(), objMeta.getPrimaryDisk().getOsdIp());
-                logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                if (objMeta.isReplicaExist()) {
+                    logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
+                }
+
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     logger.debug("get local - objid : {}, primary get - path : {}", objMeta.getObjId(), objMeta.getPrimaryDisk().getPath());
                     actualSize = getObjectLocal(s3Parameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), sourceRange, key);
                     s3Parameter.addResponseSize(actualSize);
-                } else if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
+                } else if (objMeta.isReplicaExist() && GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                     logger.debug("get local - objid : {}, replica get - path : {}", objMeta.getObjId(), objMeta.getReplicaDisk().getPath());
                     actualSize = getObjectLocal(s3Parameter.getResponse().getOutputStream(), objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), sourceRange, key);
                     s3Parameter.addResponseSize(actualSize);
@@ -142,26 +145,31 @@ public class S3ObjectOperation {
                         s3Parameter.addResponseSize(actualSize);
                     } catch (Exception e) {
                         PrintStack.logging(logger, e);
-                        try {
-                            // client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                            // if (client == null) {
-                            //     OSDClientManager.getInstance().addClient((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount(), objMeta.getReplicaDisk().getOsdIp());
-                            //     client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                            // }
-                            client = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                            client.getInit(objMeta.getReplicaDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           objMeta.getVersionId(), 
-                                           fileSize, 
-                                           sourceRange, 
-                                           s3Parameter.getResponse().getOutputStream(),
-                                           key);
-                            actualSize = client.get();
-                            // OSDClientManager.getInstance().returnOSDClient(client);
-                            client = null;
-                            s3Parameter.addResponseSize(actualSize);
-                        } catch (Exception e1) {
-                            PrintStack.logging(logger, e);
+                        if (objMeta.isReplicaExist()) {
+                            try {
+                                // client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                                // if (client == null) {
+                                //     OSDClientManager.getInstance().addClient((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount(), objMeta.getReplicaDisk().getOsdIp());
+                                //     client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                                // }
+                                client = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                                client.getInit(objMeta.getReplicaDisk().getPath(), 
+                                               objMeta.getObjId(), 
+                                               objMeta.getVersionId(), 
+                                               fileSize, 
+                                               sourceRange, 
+                                               s3Parameter.getResponse().getOutputStream(),
+                                               key);
+                                actualSize = client.get();
+                                // OSDClientManager.getInstance().returnOSDClient(client);
+                                client = null;
+                                s3Parameter.addResponseSize(actualSize);
+                            } catch (Exception e1) {
+                                PrintStack.logging(logger, e);
+                                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                            }
+                        } else {
+                            // Can't find the object
                             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
                         }
                     }
@@ -829,7 +837,7 @@ public class S3ObjectOperation {
                     }
 
                     md5er.update(buffer, 0, readLength);
-
+                    
                     if (totalReads >= length) {
                         break;
                     }
@@ -1442,16 +1450,26 @@ public class S3ObjectOperation {
                     client = null;
                 } 
                 
-                if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                    deleteObjectLocal(objMeta.getReplicaDisk().getPath(), objMeta.getObjId());
+                if (objMeta.isReplicaExist()) {
+                    if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
+                        deleteObjectLocal(objMeta.getReplicaDisk().getPath(), objMeta.getObjId());
+                    } else {
+                        client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                        client.delete(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
+                        OSDClientManager.getInstance().returnOSDClient(client);
+                        client = null;
+                    }
+                }
+                
+            } else {
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    deleteObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
                 } else {
-                    client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
-                    client.delete(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
+                    client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    client.delete(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
                     OSDClientManager.getInstance().returnOSDClient(client);
                     client = null;
                 }
-            } else {
-                deleteObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
             }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
