@@ -16,7 +16,6 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,8 @@ public class ObjManagerUtil {
     private ObjManagerConfig config;
     private OSDClient osdc;
     private ObjManagerSharedResource omsr;
+    private LifeCycleManagment lfm;
+    private ObjMultipart multipart;
     private static Logger logger;
     
     public ObjManagerUtil() throws Exception{
@@ -49,6 +50,10 @@ public class ObjManagerUtil {
                 
             dAlloc = new DiskAllocation(obmCache);
             
+            lfm = new LifeCycleManagment(dbm);
+            
+             multipart = new ObjMultipart(dbm);
+             
             logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
     }
     
@@ -212,6 +217,10 @@ public class ObjManagerUtil {
     }
     
     public List<Bucket> getExistedBucketList(){
+        return getBucketList();
+    }
+    
+    public List<Bucket> getBucketList(){
         return dbm.getBucketList();
     }
     
@@ -221,23 +230,6 @@ public class ObjManagerUtil {
         } catch (SQLException ex) {
             return null;
         }
-    }
-    
-    public int addUserDiskPool(String userId, String diskPoolId, int replicaCount){
-  
-        try {
-            DISKPOOL dp = obmCache.getDiskPoolFromCache(diskPoolId);
-            if (dp == null)
-                return -2;
-            return dbm.insertUserDiskPool(userId, "", "", diskPoolId, replicaCount);
-        } catch (ResourceNotFoundException e) {
-            return -2; 
-        } catch (SQLException ex) {
-            if (ex.getErrorCode() == 1062)
-                return -17;
-            System.out.println(ex);
-            return -1;
-        } 
     }
     
     public DISK getDISK(String diskId) throws ResourceNotFoundException{
@@ -254,5 +246,14 @@ public class ObjManagerUtil {
     
     public ObjManagerConfig getObjManagerConfig(){
         return config;
+    }
+    
+    public LifeCycleManagment getLifeCycleManagmentInsatance(){
+        return lfm;
+    }
+    
+    public ObjMultipart getMultipartInsatance(String Bucket){
+        multipart.setBucket(Bucket);
+        return multipart;
     }
 }

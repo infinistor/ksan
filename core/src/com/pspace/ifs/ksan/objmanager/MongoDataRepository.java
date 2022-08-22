@@ -12,7 +12,6 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoCredential;
 import com.mongodb.client.FindIterable;
 import org.bson.Document; 
 import com.mongodb.client.MongoClients;
@@ -72,7 +71,7 @@ public class MongoDataRepository implements DataRepository{
     
     // for collection names
     private static final String BUCKETSCOLLECTION="BUCKETS";
-    private static final String USERSDISKPOOL="USERSDISKPOOL";
+    private static final String LIFECYCLES ="LIFECYCLES";
     private static final String MULTIPARTUPLOAD ="MULTIPARTUPLOAD";
     private static final String UTILJOBS = "UTILJOBS";
     
@@ -129,6 +128,12 @@ public class MongoDataRepository implements DataRepository{
     private static final String CHECKONLY = "checkOnly";
     private static final String UTILNAME = "utilName";
     private static final String STARTTIME = "startTime";
+    
+    // for lifcycle
+    private static final String INDATE = "inDate";
+    private static final String LOGMSG = "log";
+    private static final String LIFECYCLEID= "idx";
+    private static final String ISFAILED = "isFailed";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
         this.username = username;
@@ -138,7 +143,7 @@ public class MongoDataRepository implements DataRepository{
         parseDBHostNames2URL(hosts, port);
         connect();
         createBucketsHolder();
-        createUserDiskPoolHolder();
+        createLifCycleHolder();
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -190,17 +195,31 @@ public class MongoDataRepository implements DataRepository{
         }
     }
     
-    private void createUserDiskPoolHolder(){
+    private void createLifCycleHolder(){
         Document index;
-        
-        index = new Document(USERID, 1);
-        index.append(CREDENTIAL, 1);
-        MongoCollection<Document> userDiskPool = database.getCollection(USERSDISKPOOL);
-        if (userDiskPool == null){
-            database.createCollection(USERSDISKPOOL);
-            userDiskPool = database.getCollection(USERSDISKPOOL);
-            userDiskPool.createIndex(index, new IndexOptions().unique(true));
+        //objid, versionid, uploadid
+        index = new Document(OBJID, 1);
+        index.append(VERSIONID, 1);
+        index.append(UPLOADID, 1);
+        MongoCollection<Document> lifeCycle = database.getCollection(LIFECYCLES);
+        if (lifeCycle == null){
+            database.createCollection(LIFECYCLES);
+            lifeCycle = database.getCollection(LIFECYCLES);
+            lifeCycle.createIndex(index, new IndexOptions().unique(true));
         }
+    }
+    
+    private MongoCollection<Document> getLifCyclesCollection(){
+        MongoCollection<Document> lifeCycle;
+        
+        lifeCycle = this.database.getCollection(LIFECYCLES);
+        if (lifeCycle == null){
+            database.createCollection(LIFECYCLES);
+            lifeCycle = database.getCollection(LIFECYCLES);
+            lifeCycle.createIndex(Indexes.ascending(OBJID, VERSIONID, UPLOADID), new IndexOptions().unique(true));
+        }
+        
+        return lifeCycle;
     }
     
     private MongoCollection<Document> getMultiPartUploadCollection(){
@@ -215,6 +234,7 @@ public class MongoDataRepository implements DataRepository{
         
         return multip;
     }
+    
     
     private String getCurrentDateTime(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"); 
@@ -1115,66 +1135,6 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException {
-        MongoCollection<Document> userDiskPool;
-        Document doc;
-        
-        userDiskPool = this.database.getCollection(USERSDISKPOOL);
-        if (userDiskPool == null)
-            return -1;
-        
-        doc = new Document(USERID, userId);
-        doc.append(CREDENTIAL, secretKey + "_" + accessKey);
-        doc.append(DISKPOOLID, diskpoolId);
-        doc.append(REPLICACOUNT, replicaCount);
-        userDiskPool.insertOne(doc);
-        
-        // check inserted or not
-        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, userId), Filters.eq(CREDENTIAL, secretKey + "_" + accessKey)));
-        Iterator it = fit.iterator();
-        if((it.hasNext()))
-            return 0;
-        
-        return -1;
-    }
-
-    @Override
-    public Bucket getUserDiskPool(Bucket bt) throws SQLException {
-        MongoCollection<Document> userDiskPool;
-        String diskPoolId;
-        int replicaCount;
-        
-        //System.out.println("userId : " + bt.getUserId());
-        userDiskPool = this.database.getCollection(USERSDISKPOOL);
-        
-        FindIterable fit = userDiskPool.find(Filters.and(eq(USERID, bt.getUserId()), Filters.eq(CREDENTIAL, "_")));
-        
-        Iterator it = fit.iterator();
-        while((it.hasNext())){
-            Document doc = (Document)it.next();
-            diskPoolId      = doc.getString(DISKPOOLID);
-            //System.out.println("doc >>" + doc);
-            replicaCount   = doc.getInteger(REPLICACOUNT);
-            bt.setDiskPoolId(diskPoolId);
-            bt.setReplicaCount(replicaCount);
-            break;
-        }
-        return bt;
-    }
-
-    @Override
-    public int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException {
-       MongoCollection<Document> userDiskPool;
-        
-        userDiskPool = this.database.getCollection(USERSDISKPOOL);
-        if (userDiskPool == null)
-            return -1;
-        
-        userDiskPool.deleteOne(Filters.and(eq(USERID, userId), eq(CREDENTIAL, diskPoolId)));
-        return 0;
-    }
-
-    @Override
     public Object getStatement(String query) throws SQLException {
         throw new SQLException("mongod is not supported mysql like statements!");
         //return null;
@@ -1340,5 +1300,87 @@ public class MongoDataRepository implements DataRepository{
         mt.setPrimaryDisk(pdsk);
         mt.setReplicaDISK(new DISK());
         return mt;
+    }
+
+    @Override
+    public void insertLifeCycle(LifeCycle lc) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        if (lifecycle == null)
+            throw new SQLException("[insertLifeCycle] mongo db holder for lifcycle not found!");
+        
+        Document doc = new Document(OBJID, lc.getObjId());
+        doc.append(BUCKETNAME, lc.getBucketName());
+        doc.append(OBJKEY, lc.getKey());
+        doc.append(VERSIONID, lc.getVersionId());
+        doc.append(UPLOADID, lc.getUploadId());
+        doc.append(INDATE, lc.getInDate());
+        doc.append(LOGMSG, lc.getLog());
+        doc.append(LIFECYCLEID, lc.getIndex());
+        doc.append(ISFAILED, lc.isFailed());
+        lifecycle.insertOne(doc);
+    }
+
+    private List<LifeCycle> parseSelectLifeCycle(Iterator it){
+        List<LifeCycle> list = new ArrayList();
+        
+        if (!(it.hasNext()))
+            return list;
+        
+        while(it.hasNext()){
+            Document doc = (Document)it.next();
+            String bucketName = doc.getString(BUCKETNAME);
+            String objKey     = doc.getString(OBJKEY);
+            String versionId  = doc.getString(VERSIONID);
+            String uploadId   = doc.getString(UPLOADID);
+            String log        = doc.getString(LOGMSG);
+            Date inDate       = doc.getDate(INDATE);
+            long idx          = doc.getLong(LIFECYCLEID);
+            boolean isFailed  = doc.getBoolean(ISFAILED);
+            LifeCycle slf = new LifeCycle(idx, bucketName, objKey, versionId, uploadId, log);
+            slf.setInDate(inDate);
+            slf.setFailedEvent(isFailed);
+            list.add(slf);
+        }
+        return list;
+    }
+    
+    @Override
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        FindIterable fit = lifecycle.find(Filters.and(Filters.eq(OBJID, lc.getObjId()), Filters.eq(VERSIONID, lc.getVersionId())));
+     
+        Iterator it = fit.iterator();
+        return parseSelectLifeCycle(it).get(0);
+    }
+
+    @Override
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        FindIterable fit = lifecycle.find(Filters.eq(UPLOADID, uploadId));
+     
+        Iterator it = fit.iterator();
+        return parseSelectLifeCycle(it).get(0);
+    }
+
+    @Override
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        FindIterable fit = lifecycle.find();
+   
+        Iterator it = fit.iterator();
+        return parseSelectLifeCycle(it);
+    }
+
+    @Override
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException {
+        DeleteResult dres;
+        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        
+        dres = lifecycle.deleteOne(Filters.and(Filters.eq(OBJID, lc.getObjId()), Filters.eq(VERSIONID, lc.getVersionId())));
+        
+        if (dres == null)
+            return -1;
+        
+        return (int)dres.getDeletedCount();
     }
 }

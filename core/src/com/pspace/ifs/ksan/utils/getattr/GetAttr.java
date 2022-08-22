@@ -145,9 +145,9 @@ public class GetAttr {
         else
            osdMsg =""; 
         
-        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d "
+        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica   : %d"
                + "\n %s \n %s"
-               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), dskMsg, osdMsg);
+               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), mt.getReplicaCount(), dskMsg, osdMsg);
         System.out.println();
     }
     
