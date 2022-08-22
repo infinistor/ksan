@@ -40,14 +40,14 @@ public class OSDConfig {
     private static final String VERSION = "version";
     private static final String POOL_SIZE = "osd.pool_size";
     private static final String PORT = "osd.port";
-    private static final String EC_SCHEDULE_MINUTES = "osd.ec_check_interval"; //"osd.ec_schedule_milliseconds";
-    private static final String EC_APPLY_MINUTES = "osd.ec_excute_timeout"; //"osd.ec_apply_milliseconds";
-    private static final String EC_FILE_SIZE = "osd.ec_min_size"; //"osd.ec_file_size";
-    private static final String CACHE_DISK = "osd.cache_diskpath";
-    private static final String CACHE_SCHEDULE_MINUTES = "osd.cache_check_interval"; //"osd.cache_schedule_milliseconds";
+    private static final String EC_CHECK_INTERVAL = "osd.ec_check_interval"; //"osd.ec_schedule_milliseconds";
+    private static final String EC_WAIT_TIME = "osd.ec_wait_time"; //"osd.ec_apply_milliseconds";
+    private static final String EC_MIN_FILE_SIZE = "osd.ec_min_size"; //"osd.ec_file_size";
+    private static final String CACHE_DISKPATH = "osd.cache_diskpath";
+    private static final String CACHE_CHECK_INTERVAL = "osd.cache_check_interval"; //"osd.cache_schedule_milliseconds";
     // private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
-    private static final String CACHE_LIMIT_MINUTES = "osd.cache_expire"; //"osd.cache_limit_milliseconds";
-    private static final String TRASH_SCHEDULE_MINUTES = "osd.trash_check_interval"; //"osd.trash_schedule_milliseconds";
+    private static final String CACHE_EXPIRE = "osd.cache_expire"; //"osd.cache_limit_milliseconds";
+    private static final String TRASH_CHECK_INTERVAL = "osd.trash_check_interval"; //"osd.trash_schedule_milliseconds";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(OSDConfig.class);
@@ -165,35 +165,35 @@ public class OSDConfig {
         }
 
         try {
-            setTrashScheduleMilliseconds((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
+            setTrashScheduleMilliseconds((int)(long)jsonConfig.get(TRASH_CHECK_INTERVAL));
         } catch (Exception e) {
-            setTrashScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(TRASH_SCHEDULE_MINUTES)));
+            setTrashScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(TRASH_CHECK_INTERVAL)));
         }
 
         try {
-            setECScheduleMilliseconds((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
+            setECScheduleMilliseconds((int)(long)jsonConfig.get(EC_CHECK_INTERVAL));
         } catch (Exception e) {
-            setECScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_SCHEDULE_MINUTES)));
+            setECScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_CHECK_INTERVAL)));
         }
 
         try {
-            setECApplyMilliseconds((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
+            setECApplyMilliseconds((int)(long)jsonConfig.get(EC_WAIT_TIME));
         } catch (Exception e) {
-            setECApplyMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_APPLY_MINUTES)));
+            setECApplyMilliseconds(Integer.parseInt((String)jsonConfig.get(EC_WAIT_TIME)));
         }
 
         try {
-            setECFileSize((long)jsonConfig.get(EC_FILE_SIZE));
+            setECFileSize((long)jsonConfig.get(EC_MIN_FILE_SIZE));
         } catch (Exception e) {
-            setECFileSize(Long.parseLong((String)jsonConfig.get(EC_FILE_SIZE)));
+            setECFileSize(Long.parseLong((String)jsonConfig.get(EC_MIN_FILE_SIZE)));
         }
 
-        setCacheDisk((String)jsonConfig.get(CACHE_DISK));
+        setCacheDisk((String)jsonConfig.get(CACHE_DISKPATH));
         
         try {
-            setCacheScheduleMilliseconds((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
+            setCacheScheduleMilliseconds((int)(long)jsonConfig.get(CACHE_CHECK_INTERVAL));
         } catch (Exception e) {
-            setCacheScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_SCHEDULE_MINUTES)));
+            setCacheScheduleMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_CHECK_INTERVAL)));
         }
         
         try {
@@ -203,9 +203,9 @@ public class OSDConfig {
         }
         
         try {
-            setCacheLimitMilliseconds((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
+            setCacheLimitMilliseconds((int)(long)jsonConfig.get(CACHE_EXPIRE));
         } catch (Exception e) {
-            setCacheLimitMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_LIMIT_MINUTES)));
+            setCacheLimitMilliseconds(Integer.parseInt((String)jsonConfig.get(CACHE_EXPIRE)));
         }
 
         logger.debug("pool size : {}", getPoolSize());
@@ -226,14 +226,14 @@ public class OSDConfig {
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
             fileWriter.write(PORT + EQUAL + port + "\n");
-            fileWriter.write(EC_SCHEDULE_MINUTES + EQUAL + ecScheduleMilliseconds + "\n");
-            fileWriter.write(EC_APPLY_MINUTES + EQUAL + ecApplyMilliseconds + "\n");
-            fileWriter.write(EC_FILE_SIZE + EQUAL + ecFileSize + "\n");
-            fileWriter.write(CACHE_DISK + EQUAL + cacheDisk + "\n");
-            fileWriter.write(CACHE_SCHEDULE_MINUTES + EQUAL + cacheScheduleMilliseconds + "\n");
+            fileWriter.write(EC_CHECK_INTERVAL + EQUAL + ecScheduleMilliseconds + "\n");
+            fileWriter.write(EC_WAIT_TIME + EQUAL + ecApplyMilliseconds + "\n");
+            fileWriter.write(EC_MIN_FILE_SIZE + EQUAL + ecFileSize + "\n");
+            fileWriter.write(CACHE_DISKPATH + EQUAL + cacheDisk + "\n");
+            fileWriter.write(CACHE_CHECK_INTERVAL + EQUAL + cacheScheduleMilliseconds + "\n");
             fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
-            fileWriter.write(CACHE_LIMIT_MINUTES + EQUAL + cacheLimitMilliseconds + "\n");
-            fileWriter.write(TRASH_SCHEDULE_MINUTES + EQUAL + trashScheduleMilliseconds + "\n");
+            fileWriter.write(CACHE_EXPIRE + EQUAL + cacheLimitMilliseconds + "\n");
+            fileWriter.write(TRASH_CHECK_INTERVAL + EQUAL + trashScheduleMilliseconds + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);
