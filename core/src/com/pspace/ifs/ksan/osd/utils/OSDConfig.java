@@ -40,14 +40,14 @@ public class OSDConfig {
     private static final String VERSION = "version";
     private static final String POOL_SIZE = "osd.pool_size";
     private static final String PORT = "osd.port";
-    private static final String EC_SCHEDULE_MINUTES = "osd.ec_schedule_milliseconds";
-    private static final String EC_APPLY_MINUTES = "osd.ec_apply_milliseconds";
-    private static final String EC_FILE_SIZE = "osd.ec_file_size";
-    private static final String CACHE_DISK = "osd.cache_disk";
-    private static final String CACHE_SCHEDULE_MINUTES = "osd.cache_schedule_milliseconds";
-    private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
-    private static final String CACHE_LIMIT_MINUTES = "osd.cache_limit_milliseconds";
-    private static final String TRASH_SCHEDULE_MINUTES = "osd.trash_schedule_milliseconds";
+    private static final String EC_SCHEDULE_MINUTES = "osd.ec_check_interval"; //"osd.ec_schedule_milliseconds";
+    private static final String EC_APPLY_MINUTES = "osd.ec_excute_timeout"; //"osd.ec_apply_milliseconds";
+    private static final String EC_FILE_SIZE = "osd.ec_min_size"; //"osd.ec_file_size";
+    private static final String CACHE_DISK = "osd.cache_diskpath";
+    private static final String CACHE_SCHEDULE_MINUTES = "osd.cache_check_interval"; //"osd.cache_schedule_milliseconds";
+    // private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
+    private static final String CACHE_LIMIT_MINUTES = "osd.cache_expire"; //"osd.cache_limit_milliseconds";
+    private static final String TRASH_SCHEDULE_MINUTES = "osd.trash_check_interval"; //"osd.trash_schedule_milliseconds";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(OSDConfig.class);

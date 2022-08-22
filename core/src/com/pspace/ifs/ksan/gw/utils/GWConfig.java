@@ -69,7 +69,7 @@ public class GWConfig {
     private static final String MAX_FILE_SIZE = "gw.max_file_size";
     private static final String MAX_LIST_SIZE = "gw.max_list_size";
     private static final String MAX_TIMESKEW = "gw.max_timeskew";
-    private static final String REPLICATION = "gw.replication";
+    // private static final String REPLICATION = "gw.replication";
     private static final String OSD_PORT = "gw.osd_port";
     private static final String JETTY_MAX_THREADS = "gw.jetty_max_threads";
     private static final String OSD_CLIENT_COUNT = "gw.osd_client_count";
@@ -82,8 +82,8 @@ public class GWConfig {
     private static final String DB_USER = "gw.db_user";
     private static final String DB_PASSWORD = "gw.db_password";
     private static final String DB_POOL_SIZE = "gw.db_pool_size";
-    private static final String CACHE_PATH = "gw.cache_disk";
-    private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
+    private static final String CACHE_PATH = "gw.cache_diskpath";
+    // private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
     private static final String EVENT_LOG = "gw.eventlog";
 
     private static final String EQUAL = "=";
@@ -417,7 +417,7 @@ public class GWConfig {
         setDbPoolSize((long)jsonConfig.get(DB_POOL_SIZE));
 
         setCacheDisk((String)jsonConfig.get(CACHE_PATH));
-        setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
+        // setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
 
         logger.debug(getAuthorizationString());
         logger.debug(getEndpoint().toString());
@@ -471,7 +471,7 @@ public class GWConfig {
             fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
             fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
             fileWriter.write(CACHE_PATH + EQUAL + cacheDisk + "\n");
-            fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+            // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);
