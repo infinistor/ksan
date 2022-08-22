@@ -72,6 +72,7 @@ public class GWConfig {
     // private static final String REPLICATION = "gw.replication";
     private static final String OSD_PORT = "gw.osd_port";
     private static final String JETTY_MAX_THREADS = "gw.jetty_max_threads";
+    private static final String JETTY_MAX_IDLE_TIMEOUT = "gw.jetty_max_idle_timeout";
     private static final String OSD_CLIENT_COUNT = "gw.osd_client_count";
     private static final String OBJMANAGER_COUNT = "gw.objmanager_count";
     private static final String PERFORMANCE_MODE = "gw.performance_mode";
@@ -365,6 +366,7 @@ public class GWConfig {
         // setReplicaCount((long)jsonConfig.get(REPLICATION));
         setOsdPort((long)jsonConfig.get(OSD_PORT));
         setJettyMaxThreads((long)jsonConfig.get(JETTY_MAX_THREADS));
+        setJettyMaxIdleTimeout((long)jsonConfig.get(JETTY_MAX_IDLE_TIMEOUT));
         setOsdClientCount((long)jsonConfig.get(OSD_CLIENT_COUNT));
         setObjManagerCount((long)jsonConfig.get(OBJMANAGER_COUNT));
 
