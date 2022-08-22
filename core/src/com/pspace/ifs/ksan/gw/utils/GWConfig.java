@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -28,9 +29,10 @@ public class GWConfig {
 
     private String dbRepository;
 	// private long replicaCount;
-	private String cacheDisk;
-	private String performanceMode;
-	private long cacheFileSize;
+	private String cacheDiskpath;
+    private boolean isCacheDiskpath;
+    private String performanceMode;
+	// private long cacheFileSize;
 
 	private URI endpoint;
 	private URI secureEndpoint;
@@ -128,12 +130,20 @@ public class GWConfig {
     //     this.replicaCount = replicaCount;
     // }
 
-    public String getCacheDisk() {
-        return cacheDisk;
+    public String getCacheDiskpath() {
+        return cacheDiskpath;
     }
 
-    public void setCacheDisk(String cacheDisk) {
-        this.cacheDisk = cacheDisk;
+    public void setCacheDiskpath(String cacheDiskpath) {
+        this.cacheDiskpath = cacheDiskpath;
+    }
+
+    public boolean isCacheDiskpath() {
+        return isCacheDiskpath;
+    }
+
+    public void setCacheDiskpath(boolean isCacheDiskpath) {
+        this.isCacheDiskpath = isCacheDiskpath;
     }
 
     public String getPerformanceMode() {
@@ -144,13 +154,13 @@ public class GWConfig {
         this.performanceMode = performanceMode;
     }
 
-    public long getCacheFileSize() {
-        return cacheFileSize;
-    }
+    // public long getCacheFileSize() {
+    //     return cacheFileSize;
+    // }
 
-    public void setCacheFileSize(long cacheFileSize) {
-        this.cacheFileSize = cacheFileSize;
-    }
+    // public void setCacheFileSize(long cacheFileSize) {
+    //     this.cacheFileSize = cacheFileSize;
+    // }
 
     public URI getEndpoint() {
         return endpoint;
@@ -418,7 +428,14 @@ public class GWConfig {
         setDbPass((String)jsonConfig.get(DB_PASSWORD));
         setDbPoolSize((long)jsonConfig.get(DB_POOL_SIZE));
 
-        setCacheDisk((String)jsonConfig.get(CACHE_PATH));
+        setCacheDiskpath((String)jsonConfig.get(CACHE_PATH));
+        if (!Strings.isNullOrEmpty(getCacheDiskpath())) {
+            File file = new File(getCacheDiskpath());
+            setCacheDiskpath(file.exists());
+        } else {
+            setCacheDiskpath(false);
+        }
+
         // setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
 
         logger.debug(getAuthorizationString());
@@ -442,8 +459,8 @@ public class GWConfig {
         logger.debug(getDbUser());
         logger.debug(getDbPass());
         logger.debug("{}", getDbPoolSize());
-        logger.debug(getCacheDisk());
-        logger.debug("{}", getCacheFileSize());
+        logger.debug(getCacheDiskpath());
+        // logger.debug("{}", getCacheFileSize());
     }
 
     public void saveConfigFile() throws IOException {
@@ -472,7 +489,7 @@ public class GWConfig {
             fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
             fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
             fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
-            fileWriter.write(CACHE_PATH + EQUAL + cacheDisk + "\n");
+            fileWriter.write(CACHE_PATH + EQUAL + cacheDiskpath + "\n");
             // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
             fileWriter.close();
         } catch (IOException e) {
