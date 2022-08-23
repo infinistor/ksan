@@ -19,8 +19,8 @@ namespace PortalData.Enums
 	{
 		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>RabbitMq</summary>
-		RabbitMq,
+		/// <summary>RabbitMQ</summary>
+		RabbitMQ,
 		/// <summary>MariaDB</summary>
 		MariaDB,
 		/// <summary>MongoDB</summary>
@@ -33,14 +33,12 @@ namespace PortalData.Enums
 		KsanPortal,
 		/// <summary>ksanPortalBridge</summary>
 		ksanPortalBridge,
-		/// <summary>Monitor</summary>
-		KsanMonitor,
 		/// <summary>Agent</summary>
 		KsanAgent,
 		/// <summary>OSD</summary>
-		KsanOsd,
+		KsanOSD,
 		/// <summary>GW</summary>
-		KsanGw,
+		KsanGW,
 		/// <summary>Recovery</summary>
 		KsanRecovery,
 		/// <summary>Lifecycle</summary>

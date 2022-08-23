@@ -150,9 +150,9 @@ namespace PortalProvider.Providers.Servers
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
 
 				// 명령 스크립트 생성
-				var cmd = "/usr/local/ksan/bin/util/ksanNodeRegister "+
-					$"-i {Request.ServerIp} -m {Request.PortalHost} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} -r {m_configuration["AppSettings:RabbitMq:Host"]} " +
-					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
+				var cmd = "/usr/local/ksan/bin/util/ksanServerRegister "+
+					$"-i {Request.ServerIp} -m {Request.PortalHost} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} -r {m_configuration["AppSettings:RabbitMQ:Host"]} " +
+					$"-q {m_configuration["AppSettings:RabbitMQ:Port"]} -u {m_configuration["AppSettings:RabbitMQ:User"]} -w {m_configuration["AppSettings:RabbitMQ:Password"]}";
 				m_logger.LogInformation(cmd);
 
 				// SSH 접속

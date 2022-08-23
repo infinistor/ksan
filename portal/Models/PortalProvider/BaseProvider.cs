@@ -224,13 +224,13 @@ namespace PortalProvider
 				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ RPC 객체를 생성한다.
-					var RabbitMqRpc = ServiceScope.ServiceProvider.GetService<IRabbitMqRpc>();
+					var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (RabbitMqRpc == null)
+					if (RabbitMQRpc == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 디스크가 이미 마운트되어 있는지 확인 요청 전송
-					var Response = RabbitMqRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
+					var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
 
 					// 에러인 경우
 					if (Response.Result == EnumResponseResult.Error) Result.CopyValueFrom(Response);
@@ -242,7 +242,7 @@ namespace PortalProvider
 						Result.CopyValueFrom(responseData);
 					}
 
-					RabbitMqRpc.Close();
+					RabbitMQRpc.Close();
 				}
 			}
 			catch (Exception ex)
@@ -271,13 +271,13 @@ namespace PortalProvider
 				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ RPC 객체를 생성한다.
-					var RabbitMqRpc = ServiceScope.ServiceProvider.GetService<IRabbitMqRpc>();
+					var RabbitMQRpc = ServiceScope.ServiceProvider.GetService<IRabbitMQRpc>();
 					// Rabbit MQ RPC 객체 생성에 실패한 경우
-					if (RabbitMqRpc == null)
+					if (RabbitMQRpc == null)
 						return new ResponseData<U>(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 요청 전달
-					var Response = RabbitMqRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
+					var Response = RabbitMQRpc.Send(RoutingKey, Request, WaitForResponseTimeoutSec);
 
 					// 에러인 경우
 					if (Response.Result == EnumResponseResult.Error)
@@ -290,7 +290,7 @@ namespace PortalProvider
 						Result.CopyValueFrom(responseData);
 					}
 
-					RabbitMqRpc.Close();
+					RabbitMQRpc.Close();
 				}
 			}
 			catch (Exception ex)
@@ -318,14 +318,14 @@ namespace PortalProvider
 				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
 					// Rabbit MQ Sender 객체를 생성한다.
-					var RabbitMqSender = ServiceScope.ServiceProvider.GetService<IRabbitMqSender>();
+					var RabbitMQSender = ServiceScope.ServiceProvider.GetService<IRabbitMQSender>();
 					// Rabbit MQ Sender 객체 생성에 실패한 경우
-					if (RabbitMqSender == null)
+					if (RabbitMQSender == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT, Resource.EM_COMMON__FAIL_TO_CREATE_COMMUNICATION_OBJECT);
 
 					// 추가된 디스크 정보 전송
-					Result = RabbitMqSender.Send(RoutingKey, Request);
-					RabbitMqSender.Close();
+					Result = RabbitMQSender.Send(RoutingKey, Request);
+					RabbitMQSender.Close();
 				}
 			}
 			catch (Exception ex)

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using PortalData;
 using PortalData.Requests.Services;
 using PortalData.Responses.Accounts;
-using PortalProvider.Providers.RabbitMq;
+using PortalProvider.Providers.RabbitMQ;
 using PortalProviderInterface;
 using PortalResources;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,18 +27,18 @@ using IServiceProvider = PortalProviderInterface.IServiceProvider;
 
 // ReSharper disable TemplateIsNotCompileTimeConstantProblem
 
-namespace PortalSvr.RabbitMqReceivers
+namespace PortalSvr.RabbitMQReceivers
 {
 	/// <summary>Rabbit MQ로 부터 서비스 정보를 수신하는 클래스</summary>
-	public class RabbitMqServiceReceiver : RabbitMqReceiver
+	public class RabbitMQServiceReceiver : RabbitMQReceiver
 	{
 		/// <summary>생성자</summary>
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
 		/// <param name="serviceScopeFactory">서비스 팩토리</param>
-		public RabbitMqServiceReceiver(
-			IOptions<RabbitMqConfiguration> rabbitMqOptions,
-			ILogger<RabbitMqServiceReceiver> logger,
+		public RabbitMQServiceReceiver(
+			IOptions<RabbitMQConfiguration> rabbitMqOptions,
+			ILogger<RabbitMQServiceReceiver> logger,
 			IServiceScopeFactory serviceScopeFactory
 		) : base(
 			"ksan-api-portal.services",
