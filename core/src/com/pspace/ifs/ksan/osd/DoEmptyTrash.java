@@ -33,8 +33,8 @@ public class DoEmptyTrash implements Runnable {
     public void run() {
         logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
         
-        if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
-            recursiveEmptyCache(OSDConfig.getInstance().getCacheDisk());
+        if (OSDConfig.getInstance().isCacheDiskpath()) {
+            recursiveEmptyCache(OSDConfig.getInstance().getCacheDiskpath());
         }
 
         HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
@@ -42,15 +42,6 @@ public class DoEmptyTrash implements Runnable {
             String trashDir = diskPath + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
             empty(trashDir);
         });
-        
-        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-        //     if (OSDUtils.getInstance().getLocalIP().equals(server.getIp())) {
-        //         for (DISK disk : server.getDisks()) {
-        //             String trashDir = disk.getPath() + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
-        //             empty(trashDir);
-        //         }
-        //     }
-        // }
     }
 
     private void recursiveEmptyCache(String dirPath) {

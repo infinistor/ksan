@@ -53,10 +53,10 @@ public class OSDServer {
     private final static Logger logger = LoggerFactory.getLogger(OSDServer.class);
     private static String localIP;
     private static int port;
-    private static String cacheDisk;
     private static boolean isRunning;
     private static ScheduledExecutorService serviceEmptyTrash = null;
     private static ScheduledExecutorService serviceMoveCacheToDisk = null;
+    private static ScheduledExecutorService serviceEC = null;
 
     public static void main(String[] args) {
         OSDServer server = new OSDServer();
@@ -87,12 +87,6 @@ public class OSDServer {
         int poolSize = OSDConfig.getInstance().getPoolSize();
         localIP = KsanUtils.getLocalIP();
         port = OSDConfig.getInstance().getPort();
-        cacheDisk = OSDConfig.getInstance().getCacheDisk();
-
-        // diskpoolList = OSDUtils.getInstance().getDiskPoolList();
-
-        // ScheduledExecutorService serviceEC = Executors.newSingleThreadScheduledExecutor();
-        // serviceEC.scheduleAtFixedRate(new DoECPriObject(), OSDUtils.getInstance().getECScheduleMinutes(), OSDUtils.getInstance().getECScheduleMinutes(), TimeUnit.MINUTES);
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
@@ -368,7 +362,7 @@ public class OSDServer {
             File trashFile = null;
 
             if (!Strings.isNullOrEmpty(key)) {
-                if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk()) && length <= (OSDConfig.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
                     file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
                     tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
                     trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
@@ -402,7 +396,7 @@ public class OSDServer {
                     }
                 }
             } else {
-                if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk()) && length <= (OSDConfig.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
                     file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
                     tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(path, objId, versionId)));
                     trashFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTrashPath(path, objId, versionId)));
@@ -444,7 +438,7 @@ public class OSDServer {
 
             // OSDUtils.getInstance().setAttributeFileReplication(tmpFile, replication, replicaDiskID);
             retryRenameTo(tmpFile, file);
-            if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk()) && length <= (OSDConfig.getInstance().getCacheFileSize() * OSDConstants.MEGABYTES)) {
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
                 String fullPath = OSDUtils.getInstance().makeObjPath(path, objId, versionId);
                 Files.createSymbolicLink(Paths.get(fullPath), Paths.get(file.getAbsolutePath()));
             }
@@ -462,7 +456,7 @@ public class OSDServer {
             boolean isCache = false;
             File file = null;
             File trashFile = null;
-            if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
                 file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
                 if (file.exists()) {
                     isCache = true;
@@ -602,7 +596,7 @@ public class OSDServer {
     
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = null;
-            if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
                 file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPartPath(path, objId, partNo)));
             } else {
                 file = new File(OSDUtils.getInstance().makeTempPartPath(path, objId, partNo));
@@ -646,7 +640,7 @@ public class OSDServer {
 
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File tmpFile = null;
-            if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
                 tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPartPath(path, objId, partNo)));
             } else {
                 tmpFile = new File(OSDUtils.getInstance().makeTempPartPath(path, objId, partNo));
@@ -702,7 +696,7 @@ public class OSDServer {
 
             try (FileInputStream fis = new FileInputStream(srcFile)) {
                 File tmpFile = null;
-                if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
                     tmpFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPath(destPath, destObjId, destPartNo)));
                 } else {
                     tmpFile = new File(OSDUtils.getInstance().makeTempPath(destPath, destObjId, destPartNo));
@@ -913,18 +907,26 @@ public class OSDServer {
         } else {
             serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
         }
-        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashScheduleMilliseconds(), TimeUnit.MILLISECONDS);
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
     public static void startMoveCacheToDisk() {
-        if (OSDConfig.getInstance().getCacheDisk() != null) {
+        if (OSDConfig.getInstance().isCacheDiskpath()) {
             if (serviceMoveCacheToDisk != null) {
                 serviceMoveCacheToDisk.shutdownNow();
             } else {
                 serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
             }
-
-            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheScheduleMilliseconds(), TimeUnit.MILLISECONDS);
+            serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheCheckInterval(), TimeUnit.MILLISECONDS);
         }
+    }
+
+    public static void startECThread() {
+        if (serviceEC != null) {
+            serviceEC.shutdownNow();
+        } else {
+            serviceEC = Executors.newSingleThreadScheduledExecutor();
+        }
+        serviceEC.scheduleAtFixedRate(new DoECPriObject(), 1000, OSDConfig.getInstance().getECCheckInterval(), TimeUnit.MILLISECONDS);
     }
 }

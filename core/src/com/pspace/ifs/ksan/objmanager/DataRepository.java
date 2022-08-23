@@ -85,10 +85,11 @@ public interface DataRepository {
     
     // for utility 
     public List<Object> utilJobMgt(String operation, List<Object> in);
-    
-    // for user disk pool map
-    public int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException;
-    public Bucket getUserDiskPool(Bucket bt) throws SQLException;
-    public int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException;
-     
+   
+    // for Lifecycle
+    public void insertLifeCycle(LifeCycle lc) throws SQLException;
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException;
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException;
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException;
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException;
 }

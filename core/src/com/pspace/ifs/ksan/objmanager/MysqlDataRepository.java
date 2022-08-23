@@ -84,13 +84,16 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateUJob1;
     private PreparedStatement pstUpdateUJob2;
     private PreparedStatement pstSelectUJob;
-
-    // for user disk pool map
-    private PreparedStatement pstCreateUserDiskPool;
-    private PreparedStatement pstInsertUserDiskPool;
-    private PreparedStatement pstSelectUserDiskPool;
-    private PreparedStatement pstDeleteUserDiskPool;
     
+    
+    // for LifeCycle
+    private PreparedStatement pstCreateLifeCycle;
+    private PreparedStatement pstInsertLifeCycle;
+    private PreparedStatement pstSelectLifeCycle;
+    private PreparedStatement pstSelectByUploadIdLifeCycle;
+    private PreparedStatement pstSelectAllLifeCycle;
+    private PreparedStatement pstDeleteLifeCycle;
+            
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname) throws SQLException{
         this.obmCache = obmCache;
         this.passwd = passwd;
@@ -143,13 +146,13 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateUJob2 = con.prepareStatement(DataRepositoryQuery.updateUJob2Query);
             pstSelectUJob = con.prepareStatement(DataRepositoryQuery.selectUJobQuery);
 
-            // for user disk pool table
-            pstCreateUserDiskPool = con.prepareStatement(DataRepositoryQuery.createUserDiskPoolQuery);
-            pstInsertUserDiskPool = con.prepareStatement(DataRepositoryQuery.insertUserDiskPoolQuery);
-            
-            pstSelectUserDiskPool = con.prepareStatement(DataRepositoryQuery.selectUserDiskPoolQuery);
-            
-            pstDeleteUserDiskPool = con.prepareStatement(DataRepositoryQuery.deleteUserDiskPoolQuery);
+            // for LifeCycle
+            pstCreateLifeCycle = con.prepareStatement(DataRepositoryQuery.createLifeCycleQuery);
+            pstInsertLifeCycle = con.prepareStatement(DataRepositoryQuery.insertLifeCycleQuery);
+            pstSelectLifeCycle = con.prepareStatement(DataRepositoryQuery.selectLifeCycleQuery);
+            pstSelectByUploadIdLifeCycle = con.prepareStatement(DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
+            pstSelectAllLifeCycle = con.prepareStatement(DataRepositoryQuery.selectAllLifeCycleQuery);
+            pstDeleteLifeCycle = con.prepareStatement(DataRepositoryQuery.deleteLifeCycleQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -204,7 +207,7 @@ public class MysqlDataRepository implements DataRepository{
         this.pstCreateBucket.execute();
         this.pstCreateMultiPart.execute();
         pstCreateUJob.execute();
-        pstCreateUserDiskPool.execute();
+        pstCreateLifeCycle.execute();
         return 0;
     }
     
@@ -975,7 +978,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         ResultUploads resultUploads = new ResultUploads();
-        resultUploads.setList(new ArrayList<Upload>());
+        resultUploads.setList(new ArrayList<>());
 
         // need to make query with delimiter, prefix, keyMarker
         pstGetUploads.clearParameters();
@@ -1181,42 +1184,6 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public synchronized int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException{
-        pstInsertUserDiskPool.clearParameters();
-        pstInsertUserDiskPool.setString(1, userId);
-        pstInsertUserDiskPool.setString(2, secretKey + "_" + accessKey);
-        pstInsertUserDiskPool.setString(3, diskpoolId);
-        pstInsertUserDiskPool.setInt(4, replicaCount);
-        pstInsertUserDiskPool.execute();
-        return 0;
-    }
-    
-    @Override
-    public synchronized Bucket getUserDiskPool(Bucket bt) throws SQLException{
-              
-        pstSelectUserDiskPool.clearParameters();
-        pstSelectUserDiskPool.setString(1, bt.getUserId());
-   
-        ResultSet rs = pstSelectUserDiskPool.executeQuery();
-        
-        while(rs.next()){
-            bt.setDiskPoolId(rs.getString(1));
-            bt.setReplicaCount(rs.getInt(2));
-            break;
-        }
-        return bt;
-    }
-    
-    @Override
-    public synchronized int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException{
-        pstDeleteUserDiskPool.clearParameters();
-        pstDeleteUserDiskPool.setString(1, userId);
-        pstDeleteUserDiskPool.setString(2, diskPoolId);
-        pstDeleteUserDiskPool.execute();
-        return 0;
-    }
-    
-    @Override
     public PreparedStatement getStatement(String query) throws SQLException{	
         return this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
     }
@@ -1296,5 +1263,73 @@ public class MysqlDataRepository implements DataRepository{
            rowCount = rs.getLong(0); 
         }
         return rowCount;
+    }
+
+    @Override
+    public void insertLifeCycle(LifeCycle lc) throws SQLException{
+        pstInsertLifeCycle.clearParameters();
+        pstInsertLifeCycle.setLong(  1, lc.getIndex());
+        pstInsertLifeCycle.setString(2, lc.getBucketName());
+        pstInsertLifeCycle.setString(3, lc.getKey());
+        pstInsertLifeCycle.setString(4, lc.getObjId());
+        pstInsertLifeCycle.setString(5, lc.getVersionId());
+        pstInsertLifeCycle.setString(6, lc.getUploadId());
+        pstInsertLifeCycle.setString(7, lc.getLog());
+        pstInsertLifeCycle.setBoolean(8, lc.isFailed());
+        pstInsertLifeCycle.execute();
+    }
+    
+ 
+    private List<LifeCycle> parseSelectLifeCycle(ResultSet rs) throws SQLException{
+        List<LifeCycle> list = new ArrayList();
+        while (rs.next()) {
+            long idx = rs.getLong("idx");
+            String bucket = rs.getString("bucket");
+            String objKey = rs.getString("objKey");
+            String versionid = rs.getString("versionid");
+            String uploadid = rs.getString("uploadid");
+            Date inDate = rs.getDate("inDate");
+            String log = rs.getString("log");
+            boolean isfailed = rs.getBoolean("isFailed");
+            LifeCycle slf = new LifeCycle(idx, bucket, objKey, versionid, uploadid, log);
+            slf.setFailedEvent(isfailed);
+            slf.setInDate(inDate);
+            list.add(slf);
+        }
+        return list;
+    }
+    
+    @Override
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException{
+        pstSelectLifeCycle.clearParameters();
+        pstSelectLifeCycle.setString(1, lc.getObjId());
+        pstSelectLifeCycle.setString(2, lc.getVersionId());
+        ResultSet rs = pstSelectLifeCycle.executeQuery();
+        return parseSelectLifeCycle(rs).get(0);
+        
+    }
+    
+    @Override
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException{
+        pstSelectByUploadIdLifeCycle.clearParameters();
+        pstSelectByUploadIdLifeCycle.setString(1, uploadId);
+        ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
+        return parseSelectLifeCycle(rs).get(0);
+    }
+   
+    @Override
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException{
+        pstSelectLifeCycle.clearParameters();
+        ResultSet rs = pstSelectLifeCycle.executeQuery();
+        return parseSelectLifeCycle(rs);
+        
+    }
+    
+    @Override
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException{
+        pstDeleteLifeCycle.clearParameters();
+        pstDeleteLifeCycle.setString(1, lc.getObjId());
+        pstDeleteLifeCycle.setString(2, lc.getVersionId());
+        return pstDeleteLifeCycle.executeUpdate();
     }
 }

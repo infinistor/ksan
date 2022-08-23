@@ -14,10 +14,10 @@ package com.pspace.ifs.ksan.osd.utils;
 public final class OSDConstants {
     public static final String HTTPS = "https://";
     public static final String CHARSET_UTF_8 = "UTF-8";
-    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
-    public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanOsd.conf";
-    public static final String PID_PATH = "/var/run/ksanOsd.pid";
-    public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
+    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
+    public static final String CONFIG_PATH = "/var/log/ksan/osd/osd_dump.conf";
+    public static final String PID_PATH = "/var/run/ksanosd.pid";
+    public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
     public static final String POOL_SIZE = "pool_size";
     public static final String OSD_LOCAL_IP = "local_ip";
     public static final String OSD_PORT = "port";

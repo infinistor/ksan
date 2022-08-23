@@ -85,7 +85,7 @@ public class DISKPOOL {
         return defualt_replica_count;
     }
     
-    public SERVER getLocalServer() throws NoSuchElementException{
+    public SERVER getLocalServer() throws ResourceNotFoundException{
          SERVER srv;
          
          for (String serverid : serverMap.keySet()){
@@ -93,8 +93,8 @@ public class DISKPOOL {
              if (srv.isLocalServer())
                  return srv;
          }
-         logger.error("Local server is not exist in the system!");
-         throw new NoSuchElementException("Local server is not exist in the system!");
+         logger.error("[getLocalServer] Local server is not exist in the system!");
+         throw new ResourceNotFoundException("[getLocalServer]Local server is not exist in the system!");
      }
       
      public SERVER getServerById(String serverid) throws ResourceNotFoundException{

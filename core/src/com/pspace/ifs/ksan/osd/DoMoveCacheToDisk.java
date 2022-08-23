@@ -27,7 +27,7 @@ public class DoMoveCacheToDisk implements Runnable {
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
-        recursiveMove(OSDConfig.getInstance().getCacheDisk());
+        recursiveMove(OSDConfig.getInstance().getCacheDiskpath());
     }
     
     private void recursiveMove(String dirPath) {
@@ -56,7 +56,7 @@ public class DoMoveCacheToDisk implements Runnable {
             } else if (files[i].isFile()) {
                 long diff = (now - files[i].lastModified());
 
-                if (diff >= OSDConfig.getInstance().getCacheLimitMilliseconds()) {
+                if (diff >= OSDConfig.getInstance().getCacheExpire()) {
                     move(files[i]);
                 }
             }
@@ -64,7 +64,7 @@ public class DoMoveCacheToDisk implements Runnable {
     }
 
     private void move(File file) {
-        String targetPath = file.getAbsolutePath().substring(OSDConfig.getInstance().getCacheDisk().length());
+        String targetPath = file.getAbsolutePath().substring(OSDConfig.getInstance().getCacheDiskpath().length());
 
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH, targetPath);
         File target = new File(targetPath);

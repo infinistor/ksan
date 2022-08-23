@@ -70,12 +70,7 @@ public class BucketManager {
             bt.setAcl(acl);
             bt.setEncryption(encryption);
             bt.setObjectLock(objectlock);
-            
-            try {
-                bt = dbm.getUserDiskPool(bt);
-            } catch (SQLException ex1) {
-                throw new ResourceNotFoundException("[createBucket] User("+ userId +") not assocated with diskpool. Please create user to diskpool assocation first!");
-            }
+       
             bt = dbm.insertBucket(bt);
             obmCache.setBucketInCache(bt);
         }

@@ -15,7 +15,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
-	public static final String PID_PATH = "/var/run/ksanGw.pid";
+	public static final String PID_PATH = "/var/run/ksangw.pid";
 	public static final String JVM = "jvm";
     public static final String GET_PROCESS_ID = "getProcessId";
 	public static final String LOG_GW_PID = "pid : {}";
@@ -25,9 +25,9 @@ public final class GWConstants {
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
-	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGw.conf";
-	public static final String OBJMANAGER_CONFIG_PATH = "/usr/local/ksan/etc/objmanger.conf";
-	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
+	public static final String CONFIG_PATH = "/var/log/ksan/gw/gw_dump.conf";
+	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
+	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
 
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";

@@ -65,6 +65,7 @@ public class FSCK {
     class Response{
         public OSDResponseParser primary;
         public OSDResponseParser replica;
+        public String actionMessage;
         int ret;
     }
     
@@ -84,12 +85,14 @@ public class FSCK {
             if (!mt.isPrimaryExist()){
                 problemType1++;
                 res.ret = 6;// copy replica to primary
+                res.actionMessage = "copy replica to primary";
                 return res; 
             }
             
             if (!mt.isReplicaExist()){
                 problemType2++;
                 res.ret = 7; // copy primary to replica
+                res.actionMessage = "copy primary to replica";
                 return res;
             }
             objm.log("[checkObjectCorrectness] Before getAttr request from OSD objId : %s versionId : %s \n", mt.getObjId(), mt.getVersionId());
@@ -104,6 +107,7 @@ public class FSCK {
                     return res;
                 problemType3++;
                 res.ret = 3; // fix meta size
+                 res.actionMessage = "fix meta size";
                 return res;
             }
             else if (!primary.md5.equals(replica.md5)){
@@ -111,21 +115,25 @@ public class FSCK {
                     problemType2++;
                     //System.out.println("copy primary -> replica");
                     res.ret = 2; //cpy primary
+                    res.actionMessage = "copy primary to replica";
                     return res;
                 }else if(replica.md5.equals(mt.getEtag())){
                     problemType1++;
                     //System.out.println("copy replica -> primary");
                     res.ret = 1; // cpy relica
+                    res.actionMessage = "copy replica to primary ";
                     return res;
                 } else{
                     problemType5++;
                     res.ret = 5; // difficut to fix
+                    res.actionMessage = "all are different difficult to fix";
                     return res; 
                 }
             }
             else {
                 problemType4++;
                 res.ret = 4; // fix md5 of meta
+                 res.actionMessage = "fix md5 of meta(Etag) ";
                 return res;
             }
         }
@@ -160,7 +168,7 @@ public class FSCK {
                 obmu.updateObjectEtag(mt.getBucket(), mt, res.primary.md5);
                 break;
             case 5:
-               objm.log("[fixObject] bucket : %s objId : %s versionId : %s  md5{meta, primary, replica} : {%s, %s, %s} all are different\n", 
+               objm.log("[takeAction] bucket : %s objId : %s versionId : %s  md5{meta, primary, replica} : {%s, %s, %s} all are different\n", 
                         mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getEtag(), res.primary.md5, res.replica.md5);
                ret = -1;
                 break;
@@ -173,9 +181,12 @@ public class FSCK {
         
         try {
             Response res = checkObjectCorrectness(mt);
-            if (res.ret == 0)
+            if (res.ret == 0){
+                objm.log("[fixObject] bucket : %s objId : %s versionId : %s NORMAL\n", mt.getBucket(), mt.getObjId(), mt.getVersionId());
                 return 0;
+            }
             
+            objm.log("[fixObject] ERROR bucket : %s objId : %s versionId : %s %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), res.actionMessage);
             if (checkOnly){
                 return res.ret > 0 ? -1 : 0;
             }
@@ -185,15 +196,15 @@ public class FSCK {
                 totalFixed++;
         } 
         catch (ResourceNotFoundException ex) {
-            objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
+            objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
             return -1;
         }
         catch (InterruptedException | TimeoutException ex) {
-            objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to timeout  %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
+            objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to timeout  %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
             return -1;
         }
         catch (IOException  ex) {
-            objm.log("[fixObject] bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
+            objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
             return -1;
         }
         
@@ -209,18 +220,24 @@ public class FSCK {
         
         
         ret = objm.startJob();
-        if (ret != 0)
+        if (ret != 0){
+             objm.log("[checkEachObject ] bucket : %s diskid : %s unable to register job!\n", bucketName, diskid);
             return 0;
+        }
         
         do{ 
-            objm.log("[checkEachObject] Before bucketName: %s diskid : %s lastObjId : %s \n", bucketName, diskid, lastObjId);
+            //objm.log("[checkEachObject] Before bucketName: %s diskid : %s lastObjId : %s \n", bucketName, diskid, lastObjId);
             list = obmu.listObjects(bucketName, diskid, lastObjId, numObjects);
-            if (list == null)
+            if (list == null){
+                 objm.log("[checkEachObject -1] bucket : %s diskid : %s lastObjId : %s is empty \n", bucketName, diskid, lastObjId);
                 return 0;
+            }
             
-            objm.log("[checkEachObject] After bucketName: %s diskid : %s lastObjId : %s size : %d\n", bucketName, diskid, lastObjId, list.size());
-            if (list.isEmpty())
+            //objm.log("[checkEachObject] After bucketName: %s diskid : %s lastObjId : %s size : %d\n", bucketName, diskid, lastObjId, list.size());
+            if (list.isEmpty()){
+                objm.log("[checkEachObject -2] bucket : %s diskid : %s lastObjId : %s is empty \n", bucketName, diskid, lastObjId);
                 return 0;
+            }
             
             Iterator<Metadata> it = list.iterator();
             while(it.hasNext())
@@ -235,13 +252,13 @@ public class FSCK {
                 Metadata mt = it.next();
                 lastObjId = mt.getObjId();
                 try {
-                    /*System.out.format("[checkEachObject] bucket : %s path : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
-                            mt.getBucket(), mt.getPath(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());*/
+                    objm.log("[checkEachObject] bucket : %s key : %s objId : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
+                            mt.getBucket(), mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.isReplicaExist() ? mt.getReplicaDisk().getId(): "");
                     if (fixObject(mt)== 0)
                         job_done++;
                 
                 } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
-                   objm.log(" Bucket : %s path : %s pdisk : %s \n",
+                   objm.log("[checkEachObject] not found Bucket : %s path : %s pdisk : %s \n",
                             mt.getBucket(), mt.getPath(),
                             mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : "");
                 }    
@@ -266,18 +283,23 @@ public class FSCK {
         
         
         ret = objm.startJob();
-        //System.out.format("[checkEachObject] bucket : %s  diskid : %s ret : %d\n", bucketName, diskid, ret);
-        if (ret != 0)
+        if (ret != 0){
+             objm.log("[checkEachObject -1] bucket : %s unable to register job!\n", bucketName);
             return 0;
+        }
         
         do{
-            list = obmu.listObjects(bucketName,  lastObjId, numObjects);
-            if (list == null)
+            list = obmu.listObjects(bucketName, lastObjId, numObjects);
+            if (list == null){
+                objm.log("[checkEachObject -1] bucket : %s lastObjId : %s is empty \n", bucketName, lastObjId);
                 return 0;
+            }
             
             //System.out.format("[checkEachObject] bucket : %s  diskid : %s list# : %d\n", bucketName, diskid, list.size());
-            if (list.isEmpty())
+            if (list.isEmpty()){
+                objm.log("[checkEachObject -2] bucket : %s lastObjId : %s is empty \n", bucketName, lastObjId);
                 return 0;
+            }
             
             Iterator<Metadata> it = list.iterator();
             while(it.hasNext())
@@ -292,22 +314,14 @@ public class FSCK {
                 Metadata mt = it.next();
                 lastObjId = mt.getObjId();
                 try {
-                    /*System.out.format("[checkEachObject] bucket : %s path : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
-                            mt.getBucket(), mt.getPath(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getId());*/
+                    objm.log("[checkEachObject] bucket : %s key : %s objId : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
+                            mt.getBucket(), mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.isReplicaExist() ? mt.getReplicaDisk().getId() :  "");
                     if (fixObject(mt)== 0)
                        job_done++;
-                    /*if (!mt.isReplicaExist()){
-                       objm.log(">> Bucket : %s path : %s pdisk : %s rdisk : %s \n",
-                                mt.getBucket(), mt.getPath(),
-                                mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : " Empty",
-                                mt.isReplicaExist() ? mt.getReplicaDisk().getPath() : " Empty");
-                        if (!checkOnly)
-                            objm.moveObject(bucketName, mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId());
-                        job_done++;
-                    }*/
+             
                 } catch (ResourceNotFoundException | AllServiceOfflineException ex) {
-                   objm.log(" Bucket : %s path : %s pdisk : %s \n",
-                            mt.getBucket(), mt.getPath(),
+                   objm.log(" [checkEachObject] Not found Bucket : %s key : %s objId : %s pdisk : %s \n",
+                            mt.getBucket(), mt.getPath(), mt.getObjId(), 
                             mt.isPrimaryExist() ? mt.getPrimaryDisk().getPath() : "");
                 }    
             }
