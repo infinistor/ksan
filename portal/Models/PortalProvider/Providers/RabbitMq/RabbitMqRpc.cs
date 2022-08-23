@@ -24,10 +24,10 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Collections.Generic;
 
-namespace PortalProvider.Providers.RabbitMq
+namespace PortalProvider.Providers.RabbitMQ
 {
 	/// <summary>Rabbit MQ로 정보를 송/수신하는 클래스</summary>
-	public class RabbitMqRpc : IRabbitMqRpc
+	public class RabbitMQRpc : IRabbitMQRpc
 	{
 		/// <summary>Rabbit MQ 연결 객체</summary>
 		private IConnection m_connection;
@@ -36,7 +36,7 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>결과 수신 객체</summary>
 		private EventingBasicConsumer m_receiver;
 		/// <summary>Rabbit MQ 설정 객체</summary>
-		private readonly RabbitMqConfiguration m_config;
+		private readonly RabbitMQConfiguration m_config;
 		/// <summary>로거</summary>
 		protected readonly ILogger m_logger;
 		/// <summary>기본 속성 객체</summary>
@@ -49,21 +49,21 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>생성자</summary>
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
-		public RabbitMqRpc(
-			IOptions<RabbitMqConfiguration> rabbitMqOptions,
-			ILogger<RabbitMqRpc> logger
+		public RabbitMQRpc(
+			IOptions<RabbitMQConfiguration> rabbitMqOptions,
+			ILogger<RabbitMQRpc> logger
 		)
 		{
 			try
 			{
 				// 설정 복사
-				m_config = new RabbitMqConfiguration();
+				m_config = new RabbitMQConfiguration();
 				m_config.CopyValueFrom(rabbitMqOptions.Value);
 				// 로거
 				m_logger = logger;
 
 				// Rabbit MQ 초기화
-				InitializeRabbitMqListener();
+				InitializeRabbitMQListener();
 
 				// 응답 관련 설정
 				m_properties = m_channel.CreateBasicProperties();
@@ -98,7 +98,7 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>Rabbit MQ 리스너 초기화</summary>
-		private void InitializeRabbitMqListener()
+		private void InitializeRabbitMQListener()
 		{
 			try
 			{

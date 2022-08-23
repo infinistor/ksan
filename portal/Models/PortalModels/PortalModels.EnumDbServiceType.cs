@@ -16,8 +16,8 @@ namespace PortalModels
 	{
 		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>RabbitMq</summary>
-		RabbitMq,
+		/// <summary>RabbitMQ</summary>
+		RabbitMQ,
 		/// <summary>MariaDB</summary>
 		MariaDB,
 		/// <summary>MongoDB</summary>
@@ -30,14 +30,12 @@ namespace PortalModels
 		KsanPortal,
 		/// <summary>ksan Portal Bridge</summary>
 		ksanPortalBridge,
-		/// <summary>Ksan Monitor</summary>
-		KsanMonitor,
 		/// <summary>Ksan Agent</summary>
 		KsanAgent,
 		/// <summary>Ksan OSD</summary>
-		KsanOsd,
+		KsanOSD,
 		/// <summary>Ksan GW</summary>
-		KsanGw,
+		KsanGW,
 		/// <summary>Ksan Recovery</summary>
 		KsanRecovery,
 		/// <summary>Ksan Lifecycle</summary>

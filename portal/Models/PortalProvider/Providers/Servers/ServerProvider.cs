@@ -151,8 +151,8 @@ namespace PortalProvider.Providers.Servers
 
 				// 명령 스크립트 생성
 				var cmd = "/usr/local/ksan/bin/util/ksanNodeRegister "+
-					$"-i {Request.ServerIp} -m {Request.PortalHost} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} -r {m_configuration["AppSettings:RabbitMq:Host"]} " +
-					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
+					$"-i {Request.ServerIp} -m {Request.PortalHost} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} -r {m_configuration["AppSettings:RabbitMQ:Host"]} " +
+					$"-q {m_configuration["AppSettings:RabbitMQ:Port"]} -u {m_configuration["AppSettings:RabbitMQ:User"]} -w {m_configuration["AppSettings:RabbitMQ:Password"]}";
 				m_logger.LogInformation(cmd);
 
 				// SSH 접속

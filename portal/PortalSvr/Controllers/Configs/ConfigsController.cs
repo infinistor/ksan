@@ -80,7 +80,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpGet("{Version}")]
 		public async Task<ActionResult> GetConfig([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOsd, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOSD, Version));
 		}
 
 		/// <summary>설정을 저장한다.</summary>
@@ -94,14 +94,14 @@ namespace PortalSvr.Controllers.Config
 		}
 		#endregion
 
-		#region RabbitMq
-		/// <summary>RabbitMq 설정을 가져온다.</summary>
+		#region RabbitMQ
+		/// <summary>RabbitMQ 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("RabbitMq")]
-		public async Task<ActionResult> GetConfigForRabbitMq()
+		[HttpGet("RabbitMQ")]
+		public async Task<ActionResult> GetConfigForRabbitMQ()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.RabbitMq));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.RabbitMQ));
 		}
 		#endregion
 		#region MariaDB
@@ -124,121 +124,121 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.GetConfig(EnumServiceType.MongoDB));
 		}
 		#endregion
-		#region KsanOsd
-		/// <summary>KsanOsd 설정 목록을 가져온다.</summary>
+		#region KsanOSD
+		/// <summary>KsanOSD 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanOsd")]
-		public async Task<ActionResult> GetConfigListForKsanOsd()
+		[HttpGet("List/KsanOSD")]
+		public async Task<ActionResult> GetConfigListForKsanOSD()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.KsanOsd));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.KsanOSD));
 		}
 
-		/// <summary>KsanOsd 설정을 가져온다.</summary>
+		/// <summary>KsanOSD 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanOsd")]
-		public async Task<ActionResult> GetConfigForKsanOsd()
+		[HttpGet("KsanOSD")]
+		public async Task<ActionResult> GetConfigForKsanOSD()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOsd));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOSD));
 		}
-		/// <summary>특정 버전의 KsanOsd 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanOSD 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanOsd/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanOsd([FromRoute] int Version)
+		[HttpGet("KsanOSD/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanOSD([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOsd, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanOSD, Version));
 		}
 
-		/// <summary>KsanOsd 설정을 저장한다.</summary>
+		/// <summary>KsanOSD 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanOsd")]
-		public async Task<ActionResult> SetConfigForKsanOsd([FromBody] string Config)
+		[HttpPost("KsanOSD")]
+		public async Task<ActionResult> SetConfigForKsanOSD([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.KsanOsd, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.KsanOSD, Config = Config }));
 		}
 
-		/// <summary>KsanOsd 설정의 버전을 변경한다.</summary>
+		/// <summary>KsanOSD 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanOsd/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanOsd([FromRoute] int Version)
+		[HttpPut("KsanOSD/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanOSD([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.KsanOSD, Version));
 		}
 
-		/// <summary>KsanOsd 설정의 버전을 삭제한다.</summary>
+		/// <summary>KsanOSD 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanOsd/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanOsd([FromRoute] int Version)
+		[HttpDelete("KsanOSD/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanOSD([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.KsanOsd, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.KsanOSD, Version));
 		}
 		#endregion
-		#region KsanGw
-		/// <summary>KsanGw 설정 목록을 가져온다.</summary>
+		#region KsanGW
+		/// <summary>KsanGW 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanGw")]
-		public async Task<ActionResult> GetConfigListForKsanGw()
+		[HttpGet("List/KsanGW")]
+		public async Task<ActionResult> GetConfigListForKsanGW()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.KsanGw));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.KsanGW));
 		}
 
-		/// <summary>KsanGw 설정을 가져온다.</summary>
+		/// <summary>KsanGW 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanGw")]
-		public async Task<ActionResult> GetConfigForKsanGw()
+		[HttpGet("KsanGW")]
+		public async Task<ActionResult> GetConfigForKsanGW()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanGw));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanGW));
 		}
 
-		/// <summary>특정 버전의 KsanGw 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanGW 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanGw/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanGw([FromRoute] int Version)
+		[HttpGet("KsanGW/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanGw, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanGW, Version));
 		}
 
-		/// <summary>KsanGw 설정을 저장한다.</summary>
+		/// <summary>KsanGW 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanGw")]
-		public async Task<ActionResult> SetConfigForKsanGw([FromBody] string Config)
+		[HttpPost("KsanGW")]
+		public async Task<ActionResult> SetConfigForKsanGW([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.KsanGw, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.KsanGW, Config = Config }));
 		}
 
-		/// <summary>KsanGw 설정의 버전을 변경한다.</summary>
+		/// <summary>KsanGW 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanGw/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanGw([FromRoute] int Version)
+		[HttpPut("KsanGW/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.KsanGw, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.KsanGW, Version));
 		}
 
-		/// <summary>KsanGw 설정의 버전을 삭제한다.</summary>
+		/// <summary>KsanGW 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanGw/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanGw([FromRoute] int Version)
+		[HttpDelete("KsanGW/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanGW([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.KsanGw, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.KsanGW, Version));
 		}
 		#endregion
 		#region KsanRecovery
