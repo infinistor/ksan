@@ -19,6 +19,6 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 RUN mkdir -p /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanGW.jar /app
-COPY ./core/src/com/pspace/ifs/ksan/gw/ksanGW_log.conf /usr/local/ksan/etc/
+COPY ./core/src/com/pspace/ifs/ksan/gw/ksanGW_log_conf.xml /usr/local/ksan/etc/
 COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksanGW.sh /app
-CMD ["/app/ksan-gw.sh"]
+CMD ["/app/ksanGW.sh"]
