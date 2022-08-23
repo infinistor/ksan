@@ -22,7 +22,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
-import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
@@ -176,7 +176,7 @@ class ServiceUpdateCallback implements MQCallback{
 public class GWPortal {
 	private boolean isAppliedDiskpools;
 	private boolean isAppliedUsers;
-	private MonConfig monConfig;
+	private AgentConfig monConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
 
@@ -189,7 +189,7 @@ public class GWPortal {
     }
 
     private GWPortal() {
-        monConfig = MonConfig.getInstance(); 
+        monConfig = AgentConfig.getInstance(); 
         monConfig.configure();
 		int mqPort = Integer.parseInt(monConfig.getMqPort());
 		logger.info("port : {}, user :  {}, password : {}", mqPort, monConfig.getMqUser(), monConfig.getMqPassword());
@@ -407,9 +407,9 @@ public class GWPortal {
 
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get(MonConfig.DATA);
-				String version = String.valueOf(jsonData.get(MonConfig.VERSION));
-                String config = (String)jsonData.get(MonConfig.CONFIG);
+                JSONObject jsonData = (JSONObject)jsonObject.get(AgentConfig.DATA);
+				String version = String.valueOf(jsonData.get(AgentConfig.VERSION));
+                String config = (String)jsonData.get(AgentConfig.CONFIG);
                 logger.info(config);
 
                 JSONObject jsonConfig = (JSONObject)parser.parse(config);

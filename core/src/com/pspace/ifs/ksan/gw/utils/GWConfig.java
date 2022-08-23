@@ -465,6 +465,7 @@ public class GWConfig {
 
     public void saveConfigFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(GWConstants.CONFIG_PATH));
             FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, false);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");

@@ -24,7 +24,7 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
-import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.KsanUtils;
@@ -406,7 +406,7 @@ class CopyObjectCallback implements MQCallback {
 }
 
 public class EventObject {
-    private MonConfig config;
+    private AgentConfig config;
 
     private static final Logger logger = LoggerFactory.getLogger(EventObject.class);
 
@@ -419,7 +419,7 @@ public class EventObject {
     }
     
     private EventObject() {
-        config = MonConfig.getInstance(); 
+        config = AgentConfig.getInstance(); 
         config.configure();
     }
 

@@ -23,6 +23,8 @@ import com.pspace.ifs.ksan.libs.disk.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
 public class DiskManager {
     public static final String DATA = "Data";
     public static final String ITEMS = "Items";
@@ -147,6 +149,7 @@ public class DiskManager {
 
     public void saveFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(Constants.DISKPOOL_CONF_PATH));
             FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, false);
             fileWriter.write(FILE_DISKPOOL_LIST_START);
             for (DiskPool diskPool : diskPoolList) {

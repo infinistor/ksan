@@ -241,6 +241,7 @@ public class OSDConfig {
 
     public void saveConfigFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(OSDConstants.CONFIG_PATH));
             FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, false);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");

@@ -21,7 +21,7 @@ import com.pspace.ifs.ksan.libs.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MonConfig {
+public class AgentConfig {
     private Properties properties;
 
     private String portalIp;
@@ -37,17 +37,17 @@ public class MonConfig {
     public static final String VERSION = "Version";
     public static final String CONFIG = "Config";
 
-    private static final Logger logger = LoggerFactory.getLogger(MonConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(AgentConfig.class);
 
-    public static MonConfig getInstance() {
+    public static AgentConfig getInstance() {
         return LazyHolder.INSTANCE;
     }
 
     private static class LazyHolder {
-        private static final MonConfig INSTANCE = new MonConfig();
+        private static final AgentConfig INSTANCE = new AgentConfig();
     }
 
-    private MonConfig() {
+    private AgentConfig() {
         String path = System.getProperty("configure");
 		if (path == null) {
 			path = Constants.KMON_CONFIG_PATH;

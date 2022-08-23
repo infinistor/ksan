@@ -15,7 +15,7 @@ import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
-import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
@@ -24,7 +24,6 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
-import com.google.common.base.Strings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -74,7 +73,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 
 public class OSDPortal {
 	private boolean isAppliedDiskpools;
-    private MonConfig config;
+    private AgentConfig config;
 
     private static final Logger logger = LoggerFactory.getLogger(OSDPortal.class);
 
@@ -87,15 +86,10 @@ public class OSDPortal {
     }
     
     private OSDPortal() {
-        config = MonConfig.getInstance(); 
+        config = AgentConfig.getInstance(); 
         config.configure();
 		logger.debug("ksan monitor config ...");
 		int mqPort = Integer.parseInt(config.getMqPort());
-		if (Strings.isNullOrEmpty(config.getServerId())) {
-			logger.error("mq server id is null or empty ...");
-			throw new RuntimeException(new RuntimeException());
-		}
-
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
@@ -161,9 +155,9 @@ public class OSDPortal {
 
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get(MonConfig.DATA);
-				String version = String.valueOf(jsonData.get(MonConfig.VERSION));
-                String config = (String)jsonData.get(MonConfig.CONFIG);
+                JSONObject jsonData = (JSONObject)jsonObject.get(AgentConfig.DATA);
+				String version = String.valueOf(jsonData.get(AgentConfig.VERSION));
+                String config = (String)jsonData.get(AgentConfig.CONFIG);
                 
                 logger.info(config);
 

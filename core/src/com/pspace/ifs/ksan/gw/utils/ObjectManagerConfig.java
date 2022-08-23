@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -198,6 +199,7 @@ public class ObjectManagerConfig {
 
     public void saveConfigFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(GWConstants.OBJMANAGER_CONFIG_PATH));
             FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, false);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
