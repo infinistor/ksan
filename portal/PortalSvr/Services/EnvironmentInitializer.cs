@@ -21,8 +21,8 @@ namespace PortalSvr.Services
 		#region AppSettings
 		/// <summary> AppSettings </summary>
 		public static readonly string KEY_APP_SETTINGS = "AppSettings";
-		/// <summary> RabbitMq </summary>
-		public static readonly string KEY_RABBITMQ = "RabbitMq";
+		/// <summary> RabbitMQ </summary>
+		public static readonly string KEY_RABBITMQ = "RabbitMQ";
 		/// <summary> AppSettings Host </summary>
 		public static readonly string KEY_PORTAL_HOST = "Host";
 		/// <summary> SSL 인증서 파일 경로 </summary>
@@ -46,9 +46,9 @@ namespace PortalSvr.Services
 		/// <summary> allowedHosts </summary>
 		public static readonly string KEY_ALLOWED_HOSTS = "AllowedHosts";
 		/// <summary> MariaDB </summary>
-		public static readonly string KEY_MARIADB = "MariaDB";
+		public static readonly string KEY_MARIADB = Resource.ENV_DATABASE_TYPE_MARIA_DB;
 		/// <summary> MongoDB </summary>
-		public static readonly string KEY_MONGODB = "MongoDB";
+		public static readonly string KEY_MONGODB = Resource.ENV_DATABASE_TYPE_MONGO_DB;
 		/// <summary> Host </summary>
 		public static readonly string KEY_HOST = "Host";
 		/// <summary> Name </summary>
@@ -112,19 +112,19 @@ namespace PortalSvr.Services
 				return;
 			}
 
-			// KsanGw의 기본 설정 정보를 읽어온다.
-			string StrKsanGw = File.ReadAllText(KSAN_GW_SETTINGS_FILE);
-			JObject KsanGw = JObject.Parse(StrKsanGw);
-			if (KsanGw == null)
+			// KsanGW의 기본 설정 정보를 읽어온다.
+			string StrKsanGW = File.ReadAllText(KSAN_GW_SETTINGS_FILE);
+			JObject KsanGW = JObject.Parse(StrKsanGW);
+			if (KsanGW == null)
 			{
 				Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
 				return;
 			}
 
-			// // KsanOsd의 기본 설정 정보를 읽어온다.
-			// string StrKsanOsd = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
-			// JObject KsanOsd = JObject.Parse(StrKsanOsd);
-			// if (KsanOsd == null)
+			// // KsanOSD의 기본 설정 정보를 읽어온다.
+			// string StrKsanOSD = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
+			// JObject KsanOSD = JObject.Parse(StrKsanOSD);
+			// if (KsanOSD == null)
 			// {
 			// 	Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
 			// 	return;
@@ -147,7 +147,7 @@ namespace PortalSvr.Services
 				KsanApi[KEY_APP_SETTINGS][KEY_ALLOWED_HOSTS] = allowedHosts;
 			}
 
-			// RabbitMq 정보
+			// RabbitMQ 정보
 			if (GetEnvValue(Resource.ENV_RABBITMQ_HOST, out string RabbitmqHost))
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_HOST] = RabbitmqHost;
 
@@ -175,8 +175,8 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
-				KsanGw[KEY_GW_DB_NAME] = DatabaseName;
-				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_GW_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
 			}
@@ -209,38 +209,38 @@ namespace PortalSvr.Services
 				KsanApi[KEY_MONGODB][KEY_PASSWORD] = MongoDBPassword;
 
 			// Ksan obj Manager DB 설정
-			if (!string.IsNullOrWhiteSpace(DatabaseType) && DatabaseType.Equals("MongoDB"))
+			if (!string.IsNullOrWhiteSpace(DatabaseType) && DatabaseType.Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
 			{
-				KsanGw[KEY_OBJ_DB_REPOSITORY] = "MongoDB";
-				KsanGw[KEY_OBJ_DB_HOST] = MongoDBHost;
-				KsanGw[KEY_OBJ_DB_PORT] = MongoDBPort;
-				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanGw[KEY_OBJ_DB_USER] = MongoDBUser;
-				KsanGw[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
+				KsanGW[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				KsanGW[KEY_OBJ_DB_HOST] = MongoDBHost;
+				KsanGW[KEY_OBJ_DB_PORT] = MongoDBPort;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_USER] = MongoDBUser;
+				KsanGW[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 			}
 			else
 			{
-				KsanGw[KEY_OBJ_DB_REPOSITORY] = "MariaDB";
-				KsanGw[KEY_OBJ_DB_HOST] = MariaDBHost;
-				KsanGw[KEY_OBJ_DB_PORT] = MariaDBPort;
-				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanGw[KEY_OBJ_DB_USER] = MariaDBUser;
-				KsanGw[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
+				KsanGW[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				KsanGW[KEY_OBJ_DB_HOST] = MariaDBHost;
+				KsanGW[KEY_OBJ_DB_PORT] = MariaDBPort;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_USER] = MariaDBUser;
+				KsanGW[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			// KsanGW DB 설정
-			KsanGw[KEY_GW_DB_REPOSITORY] = "MariaDB";
-			KsanGw[KEY_GW_DB_HOST] = MariaDBHost;
-			KsanGw[KEY_GW_DB_PORT] = MariaDBPort;
-			KsanGw[KEY_GW_DB_NAME] = DatabaseName;
-			KsanGw[KEY_GW_DB_USER] = MariaDBUser;
-			KsanGw[KEY_GW_DB_PASSWORD] = MariaDBPassword;
+			KsanGW[KEY_GW_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+			KsanGW[KEY_GW_DB_HOST] = MariaDBHost;
+			KsanGW[KEY_GW_DB_PORT] = MariaDBPort;
+			KsanGW[KEY_GW_DB_NAME] = DatabaseName;
+			KsanGW[KEY_GW_DB_USER] = MariaDBUser;
+			KsanGW[KEY_GW_DB_PASSWORD] = MariaDBPassword;
 
 			if (!string.IsNullOrWhiteSpace(DatabaseType))
 			{
 				File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
-				File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGw.ToString());
-				// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOsd.ToString());
+				File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
+				// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
 			}
 		}
 

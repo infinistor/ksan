@@ -20,12 +20,12 @@ using PortalProvider.Logs;
 using PortalProvider.Providers.Accounts;
 using PortalProvider.Providers.DiskGuids;
 using PortalProvider.Providers.Networks;
-using PortalProvider.Providers.RabbitMq;
+using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.Servers;
 using PortalProvider.Providers.Services;
 using PortalProviderInterface;
 using PortalResources;
-using PortalSvr.RabbitMqReceivers;
+using PortalSvr.RabbitMQReceivers;
 using PortalSvr.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -59,9 +59,6 @@ namespace PortalSvr
 
 		/// <summary>서비스 프로바이더 싱글톤 객체</summary>
 		public static System.IServiceProvider ServiceProviderSignleton { get; set; }
-
-		/// <summary>Mysql 버전정보 객체</summary>
-		public MySqlServerVersion Versions = new MySqlServerVersion(new Version(10, 5, 12));
 
 		/// <summary>생성자</summary>
 		/// <param name="env">호스팅 환경 객체</param>
@@ -119,11 +116,11 @@ namespace PortalSvr
 		{
 			try
 			{
-				if (Configuration["AppSettings:DatabaseType"].Equals("MongoDB"))
+				if (Configuration["AppSettings:DatabaseType"].Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
 				{
 					// TODO : Mongo 설정 지원시 변경
 					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
 
 					// 데이터베이스 연결 설정
@@ -135,19 +132,26 @@ namespace PortalSvr
 				else
 				{
 					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
 
 					Console.WriteLine(mariaDBConfiguration.GetConnectionString());
 					// 데이터베이스 연결 설정
 					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
-					// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
 
 					// 사용자 인증 관련 데이터베이스 연결 설정
 					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
-					// Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
 				}
 
+				// // MariaDB 설정
+				// IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+				// MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+				// var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
+				// Console.WriteLine(ConnectionMariaDBString);
+				// // 데이터베이스 연결 설정
+				// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
+				// // 사용자 인증 관련 데이터베이스 연결 설정
+				// Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -171,8 +175,8 @@ namespace PortalSvr
 				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
 				Services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
 				Services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
-				Services.AddTransient<IRabbitMqSender, RabbitMqSender>();
-				Services.AddTransient<IRabbitMqRpc, RabbitMqRpc>();
+				Services.AddTransient<IRabbitMQSender, RabbitMQSender>();
+				Services.AddTransient<IRabbitMQRpc, RabbitMQRpc>();
 				Services.AddTransient<IServerProvider, ServerProvider>();
 				Services.AddTransient<INetworkInterfaceProvider, NetworkInterfaceProvider>();
 				Services.AddTransient<INetworkInterfaceVlanProvider, NetworkInterfaceVlanProvider>();
@@ -227,15 +231,15 @@ namespace PortalSvr
 				ServiceProviderSignleton = Services.BuildServiceProvider();
 
 				// Rabbit MQ 설정
-				IConfigurationSection configurationSectionRabbitMq = Configuration.GetSection("AppSettings:RabbitMq");
-				RabbitMqConfiguration rabbitMqConfiguration = configurationSectionRabbitMq.Get<RabbitMqConfiguration>();
-				Services.Configure<RabbitMqConfiguration>(configurationSectionRabbitMq);
+				IConfigurationSection configurationSectionRabbitMQ = Configuration.GetSection("AppSettings:RabbitMQ");
+				RabbitMQConfiguration rabbitMqConfiguration = configurationSectionRabbitMQ.Get<RabbitMQConfiguration>();
+				Services.Configure<RabbitMQConfiguration>(configurationSectionRabbitMQ);
 
 				// Rabbit MQ
 				if (rabbitMqConfiguration.Enabled)
 				{
-					Services.AddHostedService<RabbitMqServerReceiver>();
-					Services.AddHostedService<RabbitMqServiceReceiver>();
+					Services.AddHostedService<RabbitMQServerReceiver>();
+					Services.AddHostedService<RabbitMQServiceReceiver>();
 				}
 			}
 			catch (Exception ex)
@@ -321,9 +325,8 @@ namespace PortalSvr
 
 				// 최초 기동시 설정을 등록 한다.
 				configurationInitializer?.Initialize().Wait();
-
-				// // 최초 기동시 서버를 등록 한다.
-				// serverInitializer?.Initialize().Wait();
+				// 최초 기동시 서버 및 서비스를 등록 한다.
+				serverInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);
