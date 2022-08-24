@@ -44,17 +44,17 @@
 			<Member Name="MongoDB" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
 			<Member Name="Haproxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
 			<Member Name="ksanApiPortal" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
-			<Member Name="KsanPortal" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
+			<Member Name="ksanPortal" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
 			<Member Name="ksanportalbridge" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
-			<Member Name="KsanMonitor" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
-			<Member Name="KsanAgent" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
-			<Member Name="KsanOSD" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
-			<Member Name="KsanGW" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
-			<Member Name="KsanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
-			<Member Name="KsanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
-			<Member Name="KsanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
-			<Member Name="KsanLogExport" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
-			<Member Name="KsanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
+			<Member Name="ksanMonitor" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
+			<Member Name="ksanAgent" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
+			<Member Name="ksanOSD" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
+			<Member Name="ksanGW" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
+			<Member Name="ksanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
+			<Member Name="ksanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
+			<Member Name="ksanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
+			<Member Name="ksanLogExport" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
+			<Member Name="ksanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>

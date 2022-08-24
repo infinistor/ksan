@@ -109,25 +109,25 @@ namespace PortalSvr.Services
 				}
 
 				// KsanGW 설정이 없는 경우
-				var KsanGWConfig = await m_configProvider.GetConfig(EnumServiceType.KsanGW);
+				var KsanGWConfig = await m_configProvider.GetConfig(EnumServiceType.ksanGW);
 				if (KsanGWConfig == null || KsanGWConfig.Result == EnumResponseResult.Error)
 				{
 					// KsanGW의 기본 설정 정보를 읽어온다.
 					string StrKsanGW = File.ReadAllText("Resources/ksangw.json");
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanGW, StrKsanGW);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanGW, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanGW, StrKsanGW);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanGW, Result.Data.Version);
 				}
 
 				// KsanOSD 설정이 없는 경우
-				var KsanOSDConfig = await m_configProvider.GetConfig(EnumServiceType.KsanOSD);
+				var KsanOSDConfig = await m_configProvider.GetConfig(EnumServiceType.ksanOSD);
 				if (KsanOSDConfig == null || KsanOSDConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
 					string StrKsanOSD = File.ReadAllText("Resources/ksanosd.json");
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanOSD, StrKsanOSD);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOSD, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanOSD, StrKsanOSD);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanOSD, Result.Data.Version);
 				}
 
 				// ksanAgent.conf파일을 생성한다.

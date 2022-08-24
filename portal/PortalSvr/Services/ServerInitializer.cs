@@ -109,12 +109,13 @@ namespace PortalSvr.Services
 				if (!Guid.TryParse(ApiKey.UserId, out Guid UserGuid))
 					throw new Exception("Internal Service ApiKey UserGuid is Empty");
 
-				// 서버가 존재하지 않을 경우
-				var ServerName = "ksan";
-				var Server = await m_serverProvider.Get(ServerName);
-				if (Server == null || Server.Result == EnumResponseResult.Error)
-				{
+				// 서버 이름을 가져온다.
+				if (!GetEnvValue(Resource.ENV_SERVER_NAME, out string ServerName)) return;
 
+				// 서버가 존재하지 않을 경우
+				var Servers = await m_serverProvider.GetList();
+				if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
+				{
 					// 서버를 등록한다
 					var Request = new RequestServer()
 					{
@@ -130,8 +131,7 @@ namespace PortalSvr.Services
 					var Response = await m_serverProvider.Add(Request, UserGuid, ApiKey.UserName);
 
 					if (Response == null || Response.Result != EnumResponseResult.Success)
-						throw new Exception($"{ServerName} Add Failure");
-					Server = Response;
+						throw new Exception($"{ServerName} Add Failure. {Response.Message}");
 					m_logger.LogInformation($"{ServerName} Add Success");
 
 					// rabbitMq 설정 정보를 가져온다.
@@ -164,20 +164,19 @@ namespace PortalSvr.Services
 					m_logger.LogInformation($"Save {ConfigurationInitializer.KsanConfig}");
 
 				}
+				var Server = await m_serverProvider.Get(ServerName);
+				if (Server == null || Server.Result != EnumResponseResult.Success) throw new Exception($"{ServerName} Get Failure. {Server.Message}");
+				else m_logger.LogInformation($"{ServerName} Add Success");
+
 				var ServerId = Server.Data.Id;
 
-				//KsanAgent 실행
-				
-
-
-
 				//디스크풀이 존재하는지 확인한다.
-				var DiskPoolName = "diskpool";
+				var DiskPoolName = "diskpool1";
 				var DiskPool = await m_diskPoolProvider.Get(DiskPoolName);
 				if (DiskPool == null || DiskPool.Result == EnumResponseResult.Error)
 				{
 					// 디스크풀이 존재하지 않을 경우 생성한다.
-					var Request = new RequestDiskPool() { Name = DiskPoolName };
+					var Request = new RequestDiskPool() { Name = DiskPoolName, ReplicationType = EnumDiskPoolReplicaType.OnePlusZero };
 					var Response = await m_diskPoolProvider.Add(Request);
 
 					// 디스크풀 생성에 실패할 경우
@@ -201,7 +200,7 @@ namespace PortalSvr.Services
 						if (DiskPath.IsEmpty()) continue;
 						var Request = new RequestDisk()
 						{
-							Name = $"Disk{DiskCount++}",
+							Name = $"{ServerName}_disk{DiskCount++}",
 							DiskPoolId = DiskPoolName,
 							Path = DiskPath,
 							State = EnumDiskState.Good
@@ -235,7 +234,7 @@ namespace PortalSvr.Services
 				}
 
 				//gw 서비스가 등록되지 않은 경우 등록한다.
-				var GWName = "gw";
+				var GWName = "ksanGW1";
 				var GW = await m_serviceProvider.Get(GWName);
 				if (GW == null || GW.Result != EnumResponseResult.Success)
 				{
@@ -243,7 +242,7 @@ namespace PortalSvr.Services
 					{
 						Name = GWName,
 						ServerId = ServerName,
-						ServiceType = EnumServiceType.KsanGW,
+						ServiceType = EnumServiceType.ksanGW,
 					};
 
 					var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
@@ -253,7 +252,7 @@ namespace PortalSvr.Services
 					else m_logger.LogInformation($"{Request.Name} Add Success");
 				}
 				//osd 서비스가 등록되지 않은 경우 등록한다.
-				var OSDName = "osd";
+				var OSDName = "ksanOSD1";
 				var OSD = await m_serviceProvider.Get(OSDName);
 				if (OSD == null || OSD.Result != EnumResponseResult.Success)
 				{
@@ -261,7 +260,7 @@ namespace PortalSvr.Services
 					{
 						Name = OSDName,
 						ServerId = ServerName,
-						ServiceType = EnumServiceType.KsanOSD,
+						ServiceType = EnumServiceType.ksanOSD,
 					};
 
 					var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);

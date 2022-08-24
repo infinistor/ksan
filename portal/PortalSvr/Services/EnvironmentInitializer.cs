@@ -75,6 +75,10 @@ namespace PortalSvr.Services
 		public static readonly string KEY_GW_DB_USER = "gw.db_user";
 		/// <summary> GW DB 비밀번호 </summary>
 		public static readonly string KEY_GW_DB_PASSWORD = "gw.db_password";
+		/// <summary> GW keystore 파일 경로 </summary>
+		public static readonly string KEY_GW_KEYSTONE_FILE_PATH = "gw.keystore_path";
+		/// <summary> GW keystore 비밀번호 </summary>
+		public static readonly string KEY_GW_KEYSTONE_PASSWORD = "gw.keystore_password";
 		#endregion
 		#region Ksan Obj Manager
 		/// <summary> Ksan Obj Manager Repository </summary>
@@ -161,7 +165,7 @@ namespace PortalSvr.Services
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_PASSWORD] = RabbitmqPassword;
 
 			// 로그레벨
-			if (GetEnvValue(Resource.ENV_LOG_LAVEL, out string LogLevel) && !string.IsNullOrWhiteSpace(LogLevel))
+			if (GetEnvValue(Resource.ENV_LOG_LEVEL, out string LogLevel) && !string.IsNullOrWhiteSpace(LogLevel))
 			{
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_DEFAULT] = LogLevel;
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = LogLevel;
@@ -236,12 +240,15 @@ namespace PortalSvr.Services
 			KsanGW[KEY_GW_DB_USER] = MariaDBUser;
 			KsanGW[KEY_GW_DB_PASSWORD] = MariaDBPassword;
 
-			if (!string.IsNullOrWhiteSpace(DatabaseType))
-			{
-				File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
-				File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
-				// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
-			}
+			//KsanGW KeyStone
+			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_FILE_PATH, out string GWKeystoneFilePath))
+				KsanGW[KEY_GW_KEYSTONE_FILE_PATH] = GWKeystoneFilePath;
+			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_PASSWORD, out string GWKeystonePassword))
+				KsanGW[KEY_GW_KEYSTONE_PASSWORD] = GWKeystonePassword;
+
+			File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
+			File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
+			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
 		}
 
 		private bool GetEnvValue(string Key, out string Value)
