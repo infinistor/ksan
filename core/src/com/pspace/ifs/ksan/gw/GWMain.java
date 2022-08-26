@@ -14,10 +14,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
+import com.pspace.ifs.ksan.gw.utils.GWPortal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +104,20 @@ public class GWMain {
 			logger.info(GWConstants.HOOK_THREAD_INFO);
 			try {
 				gw.stop();
+				GWPortal.getInstance().postGWEvent(false);
+				// AgentConfig config = AgentConfig.getInstance(); 
+				// config.configure();
+				// int mqPort = Integer.parseInt(config.getMQPort());
+
+				// // serviceId
+				// String serviceId = null;
+				// BufferedReader reader = new BufferedReader(new FileReader(GWConstants.SERVICEID_PATH));
+				// serviceId = reader.readLine();
+				// reader.close();
+
+				// HeartbeatManager heartbeatManager = new HeartbeatManager(serviceId, config.getMQHost(), mqPort, config.getMQUser(), config.getMQPassword(), GWConstants.MQUEUE_EXCHANGE_NAME);
+				// heartbeatManager.stopHeartbeat();
+
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
 			}
