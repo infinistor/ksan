@@ -102,7 +102,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <summary>리전을 동기화한다.</summary>
 		/// <param name="Request">리전 정보</param>
 		/// <returns>리전 등록 결과</returns>
-		public async Task<ResponseData> Sync(List<RequestRegion> Requests)
+		public async Task<ResponseData> Sync(List<RequestRegionSync> Requests)
 		{
 			var Result = new ResponseData();
 
@@ -146,67 +146,6 @@ namespace PortalProvider.Providers.Accounts
 				}
 				return Result;
 			}
-		}
-
-		/// <summary>리전을 수정한다.</summary>
-		/// <param name="RegionName">리전 식별자</param>
-		/// <param name="Request">리전 정보</param>
-		/// <returns>리전 수정 결과</returns>
-		public async Task<ResponseData> Update(string RegionName, RequestRegion Request)
-		{
-			var Result = new ResponseData();
-			try
-			{
-				// 파라미터가 유효하지 않은 경우
-				if (!Request.IsValid())
-					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
-
-				// 리전 정보를 가져온다.
-				var Exist = await m_dbContext.Regions.FirstOrDefaultAsync(i => i.Name == RegionName);
-
-				// 가져오는데 실패할경우
-				if (Exist == null)
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
-
-				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
-				{
-					try
-					{
-						// 리전 변경
-						Exist.Address = Request.Address;
-						Exist.Port = Request.Port;
-						Exist.SSLPort = Request.SSLPort;
-						Exist.AccessKey = Request.AccessKey;
-						Exist.SecretKey = Request.SecretKey;
-
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-						await Transaction.CommitAsync();
-
-						Result.Result = EnumResponseResult.Success;
-						Result.Code = Resource.SC_COMMON__SUCCESS;
-						Result.Message = Resource.SM_COMMON__CREATED;
-					}
-					catch (Exception ex)
-					{
-						await Transaction.RollbackAsync();
-
-						NNException.Log(ex);
-
-						Result.Code = Resource.EC_COMMON__EXCEPTION;
-						Result.Message = Resource.EM_COMMON__EXCEPTION;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-
-				Result.Code = Resource.EC_COMMON__EXCEPTION;
-				Result.Message = Resource.EM_COMMON__EXCEPTION;
-			}
-			return Result;
 		}
 
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
@@ -293,7 +232,7 @@ namespace PortalProvider.Providers.Accounts
 		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <returns>리전 목록</returns>
-		public async Task<ResponseList<ResponseRegion>> Get(
+		public async Task<ResponseList<ResponseRegion>> GetList(
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null
 		)

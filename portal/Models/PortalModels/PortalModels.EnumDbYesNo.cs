@@ -11,9 +11,7 @@
 
 namespace PortalModels
 {
-	/// <summary>
-	/// 예/아니오
-	/// </summary>
+	/// <summary> 예/아니오 </summary>
 	public enum EnumDbYesNo : int
 	{
 		No,

@@ -1915,6 +1915,24 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   DEFAULT_USER_ACCESSKEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_USER_ACCESSKEY {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_USER_ACCESSKEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_USER_SECRETKEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_USER_SECRETKEY {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_USER_SECRETKEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   GW_KEYSTORE_FILE_PATH과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_GW_KEYSTORE_FILE_PATH {

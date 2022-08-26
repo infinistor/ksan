@@ -1907,4 +1907,10 @@
   <data name="ENV_SERVER_NAME" xml:space="preserve">
     <value>SERVER_NAME</value>
   </data>
+  <data name="ENV_DEFAULT_USER_ACCESSKEY" xml:space="preserve">
+    <value>DEFAULT_USER_ACCESSKEY</value>
+  </data>
+  <data name="ENV_DEFAULT_USER_SECRETKEY" xml:space="preserve">
+    <value>DEFAULT_USER_SECRETKEY</value>
+  </data>
 </root>

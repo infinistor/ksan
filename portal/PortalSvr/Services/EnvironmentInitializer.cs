@@ -251,7 +251,11 @@ namespace PortalSvr.Services
 			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
 		}
 
-		private bool GetEnvValue(string Key, out string Value)
+		/// <summary> 환경변수 값을 가져온다.</summary>
+		/// <param name="Key">환경변수 명</param>
+		/// <param name="Value"> 환경변수 값 </param>
+		/// <returns> 성공 /실패 결과 </returns>
+		public static bool GetEnvValue(string Key, out string Value)
 		{
 			Value = "";
 			try
@@ -265,7 +269,11 @@ namespace PortalSvr.Services
 			}
 		}
 
-		private bool GetEnvValue(string Key, out int Value)
+		/// <summary> 환경변수 값을 가져온다.</summary>
+		/// <param name="Key">환경변수 명</param>
+		/// <param name="Value"> 환경변수 값 </param>
+		/// <returns> 성공 /실패 결과 </returns>
+		public static bool GetEnvValue(string Key, out int Value)
 		{
 			Value = -1;
 			try

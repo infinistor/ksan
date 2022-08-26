@@ -412,10 +412,10 @@ namespace PortalProvider.Providers.Services
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-						if (LoginUserId != Guid.Empty || ModGuid != Guid.Empty)
-							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : ModGuid;
-						if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
-							Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+							if (LoginUserId != Guid.Empty || ModGuid != Guid.Empty)
+								Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : ModGuid;
+							if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
+								Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
 							Exist.ModDate = DateTime.Now;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 							await Transaction.CommitAsync();
@@ -1059,6 +1059,150 @@ namespace PortalProvider.Providers.Services
 
 				// 상태 수정
 				Result = await this.UpdateState(Id, EnumServiceState.Online);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>서비스 이벤트를 추가한다</summary>
+		/// <param name="Request">서비스 이벤트 요청 객체</param>
+		/// <returns>서버 이벤트 추가 결과 객체</returns>
+		public async Task<ResponseData> AddEvent(RequestServiceEvent Request)
+		{
+			var Result = new ResponseData();
+
+			try
+			{
+				m_logger.LogInformation($"{Request.Id}, {Request.EventType}, {Request.Message}");
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 해당 정보를 가져온다.
+				Service Exist = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Request.Id, out Guid ServiceGuid))
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Id == ServiceGuid);
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.Services.FirstOrDefaultAsync(i => i.Name == Request.Id);
+
+				// 해당 정보가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 새로운 이벤트를 저장한다.
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				{
+					try
+					{
+						var NewData = new ServiceEventLog()
+						{
+							Id = Exist.Id,
+							RegDate = DateTime.Now,
+							EventType = (EnumDbServiceEventType)Request.EventType,
+							Message = Request.Message,
+						};
+						await m_dbContext.ServiceEventLogs.AddAsync(NewData);
+
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						await Transaction.CommitAsync();
+
+						Result.Result = EnumResponseResult.Success;
+						
+						// 종료 이벤트가 발생할 경우 해당 서비스의 상태를 Offline으로 변경한다.
+						if (Request.EventType == EnumServiceEventType.Stop) await UpdateState(Request.Id, EnumServiceState.Offline);
+					}
+					catch (Exception ex)
+					{
+						await Transaction.RollbackAsync();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+
+		/// <summary>서비스 이벤트 목록을 가져온다.</summary>
+		/// <param name="Id"> 서비스 아이디 / 이름</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (기본 RegDate, ServiceEventType)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (ServiceEventType)</param>
+		/// <param name="SearchKeyword">검색어</param>
+		/// <returns>서비스 목록 객체</returns>
+		public async Task<ResponseList<ResponseServiceEvent>> GetEventList(
+			string Id, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
+		)
+		{
+			var Result = new ResponseList<ResponseServiceEvent>();
+			try
+			{
+				// 기본 정렬 정보 추가
+				ClearDefaultOrders();
+				AddDefaultOrders("RegDate", "asc");
+
+				// 정렬 필드를 초기화 한다.
+				InitOrderFields(ref OrderFields, ref OrderDirections);
+
+				// 검색 필드를  초기화한다.
+				InitSearchFields(ref SearchFields);
+
+				var ServiceEventType = EnumServiceEventType.Error;
+				if (SearchFields.Contains("ServiceEventType", StringComparer.OrdinalIgnoreCase))
+					Enum.TryParse(SearchKeyword, out ServiceEventType);
+
+
+				// 서비스 정보를 가져온다
+				Service Service = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid ServiceGuid))
+					Service = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServiceGuid);
+				// 이름으로 조회할 경우
+				else
+					Service = await m_dbContext.Services.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Id);
+
+				// 해당 서비스가 존재하지 않는 경우
+				if (Service == null)
+					return new ResponseList<ResponseServiceEvent>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.UL_COMMON__NO_SERVER);
+
+				// 목록을 가져온다.
+				Result.Data = await m_dbContext.ServiceEventLogs.AsNoTracking()
+					.Where(i =>
+						(
+							i.Id == Service.Id && (SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("ServiceEventType") && i.EventType == (EnumDbServiceEventType)ServiceEventType))
+						)
+					)
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<ServiceEventLog, ResponseServiceEvent>(Skip, CountPerPage);
+
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{

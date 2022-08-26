@@ -35,7 +35,7 @@ namespace PortalModels
 		/// <summary> 엑세스키 </summary>
 		public virtual string AccessKey { get; set; }
 
-		/// <summary> 엑세스키 </summary>
+		/// <summary> 시크릿키 </summary>
 		public virtual string SecretKey { get; set; }
 
 		#region Extensibility Method Definitions

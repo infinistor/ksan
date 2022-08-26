@@ -11,24 +11,11 @@
 
 namespace PortalModels
 {
-	/// <summary> 서비스 타입 </summary>
-	public enum EnumDbServiceType : int
+	/// <summary> 서비스 이벤트 종류 </summary>
+	public enum EnumDbServiceEventType : int
 	{
-		Unknown = -1,
-		RabbitMQ = 0,
-		MariaDB,
-		MongoDB,
-		Haproxy,
-		ksanApiPortal,
-		ksanPortal,
-		ksanPortalBridge,
-		ksanAgent,
-		ksanOSD,
-		ksanGW,
-		ksanRecovery,
-		ksanLifecycle,
-		ksanReplication,
-		ksanLogExport,
-		ksanMetering
+		Error = -1,
+		Start = 0,
+		Stop = 1
 	}
 }

@@ -11,7 +11,6 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.Configuration;
 
 namespace PortalModels
 {
@@ -24,7 +23,8 @@ namespace PortalModels
 			OnCreated();
 		}
 
-		public PortalModel(DbContextOptions<PortalModel> options) : base(options)
+		public PortalModel(DbContextOptions<PortalModel> options) :
+			base(options)
 		{
 			OnCreated();
 		}
@@ -35,51 +35,73 @@ namespace PortalModels
 				(!optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().Any(ext => !string.IsNullOrEmpty(ext.ConnectionString) || ext.Connection != null) &&
 				 !optionsBuilder.Options.Extensions.Any(ext => !(ext is RelationalOptionsExtension) && !(ext is CoreOptionsExtension))))
 			{
-				optionsBuilder.UseMySql(GetConnectionString("PortalDatabase"), MySqlServerVersion.LatestSupportedServerVersion);
 			}
 			CustomizeConfiguration(ref optionsBuilder);
 			base.OnConfiguring(optionsBuilder);
 		}
 
-		private static string GetConnectionString(string connectionStringName)
-		{
-			var configurationBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-			var configuration = configurationBuilder.Build();
-			return configuration.GetConnectionString(connectionStringName);
-		}
-
 		partial void CustomizeConfiguration(ref DbContextOptionsBuilder optionsBuilder);
 
 		public virtual DbSet<NetworkInterface> NetworkInterfaces { get; set; }
+
 		public virtual DbSet<NetworkInterfaceVlan> NetworkInterfaceVlans { get; set; }
+
 		public virtual DbSet<Service> Services { get; set; }
+
 		public virtual DbSet<ServiceNetworkInterfaceVlan> ServiceNetworkInterfaceVlans { get; set; }
+
 		public virtual DbSet<Server> Servers { get; set; }
+
 		public virtual DbSet<ServiceGroup> ServiceGroups { get; set; }
+
 		public virtual DbSet<ApiKey> ApiKeys { get; set; }
+
 		public virtual DbSet<Config> Configs { get; set; }
+
 		public virtual DbSet<SystemLog> SystemLogs { get; set; }
+
 		public virtual DbSet<AllowedConnectionIp> AllowedConnectionIps { get; set; }
+
 		public virtual DbSet<UserLoginHistory> UserLoginHistories { get; set; }
+
 		public virtual DbSet<UserClaim> UserClaims { get; set; }
+
 		public virtual DbSet<Role> Roles { get; set; }
+
 		public virtual DbSet<RoleClaim> RoleClaims { get; set; }
+
 		public virtual DbSet<ClaimName> ClaimNames { get; set; }
+
 		public virtual DbSet<UserRole> UserRoles { get; set; }
+
 		public virtual DbSet<User> Users { get; set; }
+
 		public virtual DbSet<UserActionLog> UserActionLogs { get; set; }
+
 		public virtual DbSet<Disk> Disks { get; set; }
+
 		public virtual DbSet<ServiceDisk> ServiceDisks { get; set; }
+
 		public virtual DbSet<DiskPool> DiskPools { get; set; }
+
 		public virtual DbSet<ServerUsage> ServerUsages { get; set; }
+
 		public virtual DbSet<NetworkInterfaceUsage> NetworkInterfaceUsages { get; set; }
+
 		public virtual DbSet<ServiceUsage> ServiceUsages { get; set; }
+
 		public virtual DbSet<ServiceConfig> ServiceConfigs { get; set; }
+
 		public virtual DbSet<KsanUser> KsanUsers { get; set; }
+
 		public virtual DbSet<UserDiskPool> UserDiskPools { get; set; }
+
 		public virtual DbSet<DiskUsage> DiskUsages { get; set; }
+
 		public virtual DbSet<Region> Regions { get; set; }
-		
+
+		public virtual DbSet<ServiceEventLog> ServiceEventLogs { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
@@ -171,6 +193,9 @@ namespace PortalModels
 			this.RegionMapping(modelBuilder);
 			this.CustomizeRegionMapping(modelBuilder);
 
+			this.ServiceEventLogMapping(modelBuilder);
+			this.CustomizeServiceEventLogMapping(modelBuilder);
+
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
 		}
@@ -181,7 +206,7 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<NetworkInterface>().ToTable(@"NETWORK_INTERFACES");
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever().HasMaxLength(36);
-			modelBuilder.Entity<NetworkInterface>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").HasColumnType(@"char(36)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<NetworkInterface>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever().HasMaxLength(100);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever().HasMaxLength(4000);
 			modelBuilder.Entity<NetworkInterface>().Property(x => x.Dhcp).HasColumnName(@"DHCP").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -756,6 +781,22 @@ namespace PortalModels
 
 		#endregion
 
+		#region ServiceEventLog Mapping
+
+		private void ServiceEventLogMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<ServiceEventLog>().ToTable(@"SERVICE_EVENT_LOGS");
+			modelBuilder.Entity<ServiceEventLog>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceEventLog>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceEventLog>().Property(x => x.EventType).HasColumnName(@"EVENT_TYPE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<ServiceEventLog>().Property(x => x.Message).HasColumnName(@"MESSAGE").ValueGeneratedNever();
+			modelBuilder.Entity<ServiceEventLog>().HasKey(@"Id", @"RegDate");
+		}
+
+		partial void CustomizeServiceEventLogMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
 		private void RelationshipsMapping(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.Server).WithMany(op => op.NetworkInterfaces).HasForeignKey(@"ServerId").IsRequired(true);
@@ -776,6 +817,7 @@ namespace PortalModels
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceDisks).WithOne(op => op.Service).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceUsages).WithOne(op => op.Service).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 			modelBuilder.Entity<Service>().HasOne(x => x.Server).WithMany(op => op.Services).HasForeignKey(@"ServerId").IsRequired(true);
+			modelBuilder.Entity<Service>().HasMany(x => x.ServiceEventLogs).WithOne(op => op.Service).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceNetworkInterfaceVlan>().HasOne(x => x.Service).WithMany(op => op.Vlans).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<ServiceNetworkInterfaceVlan>().HasOne(x => x.NetworkInterfaceVlan).WithMany(op => op.ServiceNetworkInterfaceVlans).HasForeignKey(@"VlanId").IsRequired(true);
@@ -846,6 +888,8 @@ namespace PortalModels
 			modelBuilder.Entity<UserDiskPool>().HasOne(x => x.DiskPool).WithMany(op => op.UserDiskPools).HasForeignKey(@"DiskPoolId").IsRequired(true);
 
 			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
+
+			modelBuilder.Entity<ServiceEventLog>().HasOne(x => x.Service).WithMany(op => op.ServiceEventLogs).HasForeignKey(@"Id").IsRequired(true);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);

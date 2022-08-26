@@ -95,7 +95,7 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				if (!GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType))
+				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType))
 					return;
 
 				if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
@@ -110,7 +110,7 @@ namespace PortalSvr.Services
 					throw new Exception("Internal Service ApiKey UserGuid is Empty");
 
 				// 서버 이름을 가져온다.
-				if (!GetEnvValue(Resource.ENV_SERVER_NAME, out string ServerName)) return;
+				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_SERVER_NAME, out string ServerName)) return;
 
 				// 서버가 존재하지 않을 경우
 				var Servers = await m_serverProvider.GetList();
@@ -166,7 +166,7 @@ namespace PortalSvr.Services
 				}
 				var Server = await m_serverProvider.Get(ServerName);
 				if (Server == null || Server.Result != EnumResponseResult.Success) throw new Exception($"{ServerName} Get Failure. {Server.Message}");
-				else m_logger.LogInformation($"{ServerName} Add Success");
+				else m_logger.LogInformation($"{ServerName} Get Success");
 
 				var ServerId = Server.Data.Id;
 
@@ -188,7 +188,7 @@ namespace PortalSvr.Services
 				if (DiskPool.Data.Disks.Count < 1)
 				{
 					//환경변수에서 디스크 목록을 가져온다.
-					if (!GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty())
+					if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty())
 						throw new Exception("Disk Path is Empty!");
 
 					var DiskPaths = StrDisks.Trim().Split(',');
@@ -222,15 +222,14 @@ namespace PortalSvr.Services
 				var User = await m_userProvider.GetUser(UserName);
 				if (User == null || User.Result != EnumResponseResult.Success)
 				{
-					var Request = new RequestKsanUser()
-					{
-						Name = UserName,
-					};
-					var Response = await m_userProvider.Add(Request);
+					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESSKEY, out string AccessKey);
+					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRETKEY, out string SecretKey);
+
+					var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
 
 					// 유저 생성에 실패할 경우
-					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
-					else m_logger.LogInformation($"{Request.Name} Add Success");
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
+					else m_logger.LogInformation($"{UserName} Add Success");
 				}
 
 				//gw 서비스가 등록되지 않은 경우 등록한다.
@@ -276,20 +275,5 @@ namespace PortalSvr.Services
 				NNException.Log(ex);
 			}
 		}
-
-		private bool GetEnvValue(string Key, out string Value)
-		{
-			Value = "";
-			try
-			{
-				Value = Environment.GetEnvironmentVariable(Key);
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
 	}
-
 }
