@@ -105,19 +105,6 @@ public class GWMain {
 			try {
 				gw.stop();
 				GWPortal.getInstance().postGWEvent(false);
-				// AgentConfig config = AgentConfig.getInstance(); 
-				// config.configure();
-				// int mqPort = Integer.parseInt(config.getMQPort());
-
-				// // serviceId
-				// String serviceId = null;
-				// BufferedReader reader = new BufferedReader(new FileReader(GWConstants.SERVICEID_PATH));
-				// serviceId = reader.readLine();
-				// reader.close();
-
-				// HeartbeatManager heartbeatManager = new HeartbeatManager(serviceId, config.getMQHost(), mqPort, config.getMQUser(), config.getMQPassword(), GWConstants.MQUEUE_EXCHANGE_NAME);
-				// heartbeatManager.stopHeartbeat();
-
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);
 			}
