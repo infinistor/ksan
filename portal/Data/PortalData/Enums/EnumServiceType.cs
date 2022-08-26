@@ -10,11 +10,12 @@
 */
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace PortalData.Enums
 {
 	/// <summary>서비스 타입</summary>
-	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
 	public enum EnumServiceType
 	{
 		/// <summary>Unknown</summary>
@@ -27,27 +28,27 @@ namespace PortalData.Enums
 		MongoDB,
 		/// <summary>HA Proxy</summary>
 		Haproxy,
-		/// <summary>ksanApiPortal</summary>
+		/// <summary>ApiPortal</summary>
 		ksanApiPortal,
-		/// <summary>KsanPortal</summary>
-		KsanPortal,
-		/// <summary>ksanPortalBridge</summary>
+		/// <summary>Portal</summary>
+		ksanPortal,
+		/// <summary>PortalBridge</summary>
 		ksanPortalBridge,
 		/// <summary>Agent</summary>
 		KsanAgent,
 		/// <summary>OSD</summary>
-		KsanOSD,
+		ksanOSD,
 		/// <summary>GW</summary>
-		KsanGW,
+		ksanGW,
 		/// <summary>Recovery</summary>
-		KsanRecovery,
+		ksanRecovery,
 		/// <summary>Lifecycle</summary>
-		KsanLifecycle,
+		sanLifecycle,
 		/// <summary>Replication</summary>
-		KsanReplication,
+		ksanReplication,
 		/// <summary>Logging</summary>
-		KsanLogExport,
+		ksanLogExport,
 		/// <summary>Metering</summary>
-		KsanMetering
+		ksanMetering
 	}
 }

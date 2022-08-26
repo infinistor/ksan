@@ -1915,6 +1915,24 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   GW_KEYSTORE_FILE_PATH과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_GW_KEYSTORE_FILE_PATH {
+            get {
+                return ResourceManager.GetString("ENV_GW_KEYSTORE_FILE_PATH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   GW_KEYSTORE_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_GW_KEYSTORE_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_GW_KEYSTORE_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   INIT_TYPE과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_INIT_TYPE {
@@ -1942,11 +1960,11 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   LOG_LAVEL과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   LOG_LEVEL과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string ENV_LOG_LAVEL {
+        public static string ENV_LOG_LEVEL {
             get {
-                return ResourceManager.GetString("ENV_LOG_LAVEL", resourceCulture);
+                return ResourceManager.GetString("ENV_LOG_LEVEL", resourceCulture);
             }
         }
         
@@ -2082,6 +2100,15 @@ namespace PortalResources {
         public static string ENV_RABBITMQ_USER {
             get {
                 return ResourceManager.GetString("ENV_RABBITMQ_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SERVER_NAME과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_SERVER_NAME {
+            get {
+                return ResourceManager.GetString("ENV_SERVER_NAME", resourceCulture);
             }
         }
         
