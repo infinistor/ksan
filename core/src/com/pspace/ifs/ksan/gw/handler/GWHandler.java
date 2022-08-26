@@ -167,14 +167,24 @@ public class GWHandler {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.publicvalidation();
 			s3Parameter.setPublicAccess(true);
+		} else if (request.getHeader(GWConstants.X_IFS_ADMIN) != null) {
+			
 		} else {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.validation();
 			s3Parameter.setPublicAccess(false);
 		}
 
-		logger.info(GWConstants.LOG_GWHANDLER_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
-		S3Request s3Request = s3RequestFactory.createS3Request(s3Parameter);
+		S3Request s3Request = null;
+		if (request.getHeader(GWConstants.X_IFS_ADMIN) != null) {
+			s3Parameter.setAdmin(true);
+			logger.info(GWConstants.LOG_GWHANDLER_ADMIN_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
+		} else {
+			s3Parameter.setAdmin(false);
+			logger.info(GWConstants.LOG_GWHANDLER_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
+			s3Request = s3RequestFactory.createS3Request(s3Parameter);
+		}
+		
 		s3Request.process();
 		s3Parameter.setStatusCode(response.getStatus());
 		AsyncHandler.s3logging(s3Parameter);

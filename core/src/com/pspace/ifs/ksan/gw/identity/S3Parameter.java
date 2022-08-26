@@ -58,6 +58,7 @@ public class S3Parameter {
     private long responseSize;
     private String signVersion;
     private String uri;
+    private boolean isAdmin;
 
     public S3Parameter() {
         request = null;
@@ -411,5 +412,13 @@ public class S3Parameter {
 
     public void setURI(String uri) {
         this.uri = uri;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 }
