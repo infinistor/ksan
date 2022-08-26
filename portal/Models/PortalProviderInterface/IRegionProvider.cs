@@ -27,13 +27,7 @@ namespace PortalProviderInterface
 		/// <summary>리전을 동기화한다.</summary>
 		/// <param name="Request">리전 정보 목록</param>
 		/// <returns>리전 등록 결과</returns>
-		Task<ResponseData> Sync(List<RequestRegion> Request);
-
-		/// <summary>리전을 수정한다.</summary>
-		/// <param name="RegionName">리전 식별자</param>
-		/// <param name="Request">리전 정보</param>
-		/// <returns>리전 수정 결과</returns>
-		Task<ResponseData> Update(string RegionName, RequestRegion Request);
+		Task<ResponseData> Sync(List<RequestRegionSync> Request);
 
 		/// <summary>리전을 삭제한다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
@@ -51,7 +45,7 @@ namespace PortalProviderInterface
 		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <returns>리전 목록</returns>
-		Task<ResponseList<ResponseRegion>> Get(
+		Task<ResponseList<ResponseRegion>> GetList(
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null
 		);
