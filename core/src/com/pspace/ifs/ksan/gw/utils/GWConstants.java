@@ -28,7 +28,7 @@ public final class GWConstants {
 	public static final String CONFIG_PATH = "/var/log/ksan/gw/gw_dump.conf";
 	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
-	public static final String SERVICEID_PATH = ".ksanGW.ServiceId";
+	public static final String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanGW.ServiceId";
 
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
