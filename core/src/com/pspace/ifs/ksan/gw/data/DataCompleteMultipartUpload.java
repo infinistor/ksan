@@ -25,6 +25,10 @@ public class DataCompleteMultipartUpload extends S3DataRequest {
 	private String requestPayer;
 	private String expectedBucketOwner;
 	private String multipartXml;
+	private String versionId;
+	private String replication;
+	private String dr;
+	private String logging;
 	
 	public DataCompleteMultipartUpload(S3Parameter s3Parameter) throws GWException {
 		super(s3Parameter);
@@ -44,6 +48,14 @@ public class DataCompleteMultipartUpload extends S3DataRequest {
 				requestPayer = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_VERSION_ID)) {
+				versionId = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_REPLICATION)) {
+				replication = GWConstants.IFS_HEADER_REPLICATION;
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_DR)) {
+				dr = GWConstants.IFS_HEADER_DR;
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_LOGGING)) {
+				logging = GWConstants.IFS_HEADER_LOGGING;
 			}
 		}
 	}
@@ -58,6 +70,22 @@ public class DataCompleteMultipartUpload extends S3DataRequest {
 
 	public String getExpectedBucketOwner() {
 		return expectedBucketOwner;
+	}
+
+	public String getVersionId() {
+		return versionId;
+	}
+
+	public String getReplication() {
+		return replication;
+	}
+
+	public String getDr() {
+		return dr;
+	}
+
+	public String getLogging() {
+		return logging;
 	}
 
 	public String getMultipartXml() throws GWException {

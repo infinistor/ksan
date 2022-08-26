@@ -56,6 +56,8 @@ public class GW {
 				PrintStack.logging(logger, e);
 			}
 		}
+
+		GWPortal.getInstance().getS3Regions();
 	}
 
     public void init() throws Exception {

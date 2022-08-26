@@ -12,12 +12,15 @@
 package com.pspace.ifs.ksan.osd.utils;
 
 public final class OSDConstants {
+    public static final String HOOK_THREAD_INFO = "Hook Thread....";
+	public static final String STOP_KSAN_OSD = "Gracefully Stop KSAN-OSD !!";
     public static final String HTTPS = "https://";
     public static final String CHARSET_UTF_8 = "UTF-8";
     public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
     public static final String CONFIG_PATH = "/var/log/ksan/osd/osd_dump.conf";
     public static final String PID_PATH = "/var/run/ksanosd.pid";
     public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
+    public static final String SERVICEID_PATH = ".ksanOSD.ServiceId";
     public static final String POOL_SIZE = "pool_size";
     public static final String OSD_LOCAL_IP = "local_ip";
     public static final String OSD_PORT = "port";
@@ -70,6 +73,7 @@ public final class OSDConstants {
     public static final String SPACE = " ";
     public static final String COLON = ":";
     public static final String MD5 = "MD5";
+    public static final String EMPTY_STRING = "";
 
     public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
 	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
@@ -92,6 +96,14 @@ public final class OSDConstants {
     public static final String MQUEUE_NAME_OSD_DELETE_OBJECT_ROUTING_KEY_SUFFIX = ".object.unlink";
     public static final String MQUEUE_NAME_OSD_GETATTR_OBJECT_ROUTING_KEY_SUFFIX = ".object.getattr";
     public static final String MQUEUE_NAME_OSD_COPY_OBJECT_ROUTING_KEY_SUFFIX = ".object.copy";
+    public static final String PORTAL_REST_API_KSAN_EVENT = "/api/v1/Services/Event";
+
+	public static final String PORTAL_REST_API_KSAN_EVENT_ID = "Id";
+	public static final String PORTAL_REST_API_KSAN_EVENT_TYPE = "EventType";
+	public static final String PORTAL_REST_API_KSAN_EVENT_MESSAGE = "Message";
+	public static final String PORTAL_REST_API_KSAN_EVENT_START = "start";
+	public static final String PORTAL_REST_API_KSAN_EVENT_STOP = "stop";
+	public static final String PORTAL_REST_API_KSAN_EVENT_SIGTERM = "SIGTERM";
 
     // MonConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";

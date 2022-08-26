@@ -28,6 +28,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import org.json.simple.JSONObject;
 
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
@@ -39,6 +42,8 @@ import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.HeartbeatManager;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledExecutorService;
@@ -59,6 +64,7 @@ public class OSDServer {
     private static ScheduledExecutorService serviceEC = null;
 
     public static void main(String[] args) {
+        Runtime.getRuntime().addShutdownHook(new HookThread());
         OSDServer server = new OSDServer();
         server.start();
     }
@@ -929,4 +935,20 @@ public class OSDServer {
         }
         serviceEC.scheduleAtFixedRate(new DoECPriObject(), 1000, OSDConfig.getInstance().getECCheckInterval(), TimeUnit.MILLISECONDS);
     }
+
+    static class HookThread extends Thread {
+		private static final Logger logger = LoggerFactory.getLogger(HookThread.class);
+		
+		@Override
+		public void run() {
+			// kill -TERM pid
+			try {
+                logger.info(OSDConstants.HOOK_THREAD_INFO);
+                OSDPortal.getInstance().postGWEvent(false);
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+			}
+            logger.info(OSDConstants.STOP_KSAN_OSD);
+		}
+	}
 }

@@ -15,20 +15,27 @@ public class Constants {
     public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
-    public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
+    public static final String AGENT_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
-	public static final String KMON_PROPERTY_PORTAL_HOST = "PortalHost";
-	public static final String KMON_PROPERTY_PORTAL_PORT = "PortalPort";
-	public static final String KMON_POOPERTY_POTAL_KEY = "PortalApiKey";
-	public static final String KMON_PROPERTY_MQ_HOST = "MqHost";
-	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
-	public static final String KMON_PROPERTY_MQ_USER = "MqUser";
-	public static final String KMON_PROPERTY_MQ_PASSWORD = "MqPassword";
-	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
+	public static final String AGENT_PROPERTY_PORTAL_HOST = "PortalHost";
+	public static final String AGENT_PROPERTY_PORTAL_PORT = "PortalPort";
+	public static final String AGENT_POOPERTY_POTAL_KEY = "PortalApiKey";
+	public static final String AGENT_PROPERTY_MQ_HOST = "MqHost";
+	public static final String AGENT_PROPERTY_MQ_PORT = "MqPort";
+	public static final String AGENT_PROPERTY_MQ_USER = "MqUser";
+	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MqPassword";
+	public static final String AGENT_PROPERTY_SERVER_ID = "ServerId";
+	public static final String AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL = "ServiceMonitorInterval";
 
     public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
 	public static final String LOG_CONFIG_MUST_CONTAIN = "Properties file must contain: ";
+
+	public static final String HEARTBEAT_ID = "Id";
+    public static final String HEARTBEAT_STATE = "State";
+	public static final String HEARTBEAT_STATE_ONLINE = "Online";
+	public static final String HEARTBEAT_STATE_OFFLINE = "Offline";
+	public static final String HEARTBEAT_BINDING_KEY = "*.services.state";
 
 	private Constants() {
 		throw new IllegalStateException("Utility class");
