@@ -123,7 +123,7 @@ public final class DataRepositoryQuery {
                     + " inDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time data in ',"
                     + " log TEXT COMMENT 'failed log',"
                     + " isFailed BOOLEAN NOT NULL DEFAULT true,"
-                    + " PRIMARY KEY(objid, versionid, uploadid))) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+                    + " PRIMARY KEY(objid, versionid, uploadid)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     public static String insertLifeCycleQuery = "INSERT INTO LIFECYCLES(idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed) VALUES(?, ?, ?, ?, ?, ?, now(), ?, ?)";
     public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE uploadid=?";
     public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE objid=? AND AND versionid=?";
