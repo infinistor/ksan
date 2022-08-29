@@ -166,7 +166,7 @@ public class OSDUtils {
     }
 
     public String makeCachePath(String path) {
-        String fullPath = OSDConfig.getInstance().getCacheDisk() + path;
+        String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
         return fullPath;
     }
 

@@ -58,8 +58,9 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <summary>디스크 등록</summary>
 		/// <param name="ServerId">서버 아이디 / 이름</param>
 		/// <param name="Request">디스크 등록 요청 객체</param>
+		/// <param name="DiskCheck">디스크 등록 확인 여부</param>
 		/// <returns>디스크 등록 결과 객체</returns>
-		public async Task<ResponseData<ResponseDiskWithServerAndNetwork>> Add(string ServerId, RequestDisk Request)
+		public async Task<ResponseData<ResponseDiskWithServerAndNetwork>> Add(string ServerId, RequestDisk Request, bool DiskCheck = true)
 		{
 			ResponseData<ResponseDiskWithServerAndNetwork> Result = new ResponseData<ResponseDiskWithServerAndNetwork>();
 			try
@@ -94,47 +95,58 @@ namespace PortalProvider.Providers.DiskGuids
 				if (await this.IsNameExist(Request.Name))
 					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_COMMON_NAME_ALREADY_EXIST);
 
-				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
-				Guid GuidDiskPoolId = Guid.Empty;
-				if (!Request.DiskPoolId.IsEmpty() && !Guid.TryParse(Request.DiskPoolId, out GuidDiskPoolId))
-					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
 
-				// 디스크 풀 아이디가 유효한 경우
-				if (GuidDiskPoolId != Guid.Empty)
+				// 디스크풀 정보가 존재할 경우
+				Guid DiskPoolGuid = Guid.Empty;
+				if (!Request.DiskPoolId.IsEmpty())
 				{
-					// 해당 디스크 풀 정보를 가져온다.
-					DiskPool diskPool = await this.m_dbContext.DiskPools.AsNoTracking()
-						.Where(i => i.Id == GuidDiskPoolId)
-						.FirstOrDefaultAsync();
 
-					// 해당 디스크 풀이 존재하지 않는 경우
-					if (diskPool == null)
-						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+					DiskPool Exist = null;
+					// Id로 조회할경우
+					if (Guid.TryParse(Request.DiskPoolId, out DiskPoolGuid))
+						Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
+					// 이름으로 조회할 경우
+					else
+						Exist = await m_dbContext.DiskPools.FirstOrDefaultAsync(i => i.Name == Request.DiskPoolId);
+
+					// 해당 정보가 존재하지 않는 경우
+					if (Exist == null)
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+
+					DiskPoolGuid = Exist.Id;
 				}
 
-				// 디스크가 이미 마운트되어 있는지 확인 요청
-				var Response = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.check_mount", new { ServerId = Server.Id, Request.Path }, 10);
+				// 디스크 체크가 활성화 되어 있을 경우만 확인
+				if (DiskCheck)
+				{
+					// 디스크가 이미 마운트되어 있는지 확인 요청
+					var Response = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.check_mount", new { ServerId = Server.Id, Request.Path }, 10);
 
-				// 실패인 경우
-				if (Response.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Response.Code, Response.Message);
+					// 실패인 경우
+					if (Response.Result != EnumResponseResult.Success)
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, Response.Code, Response.Message);
+				}
 
 				// 아이디 생성
 				var NewId = Guid.NewGuid();
 
-				// 디스크 아이디 기록 요청
-				var ResponseWriteDiskId = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.write_disk_id", new
+				// 디스크 체크가 활성화 되어 있을 경우만 확인
+				if (DiskCheck)
 				{
-					Id = NewId.ToString(),
-					ServerId = Server.Id.ToString(),
-					Request.DiskPoolId,
-					Request.Name,
-					Request.Path
-				}, 10);
+					// 디스크 아이디 기록 요청
+					var ResponseWriteDiskId = SendRpcMq($"*.servers.{Server.Id.ToString()}.disks.write_disk_id", new
+					{
+						Id = NewId.ToString(),
+						ServerId = Server.Id.ToString(),
+						Request.DiskPoolId,
+						Request.Name,
+						Request.Path
+					}, 10);
 
-				// 실패인 경우
-				if (ResponseWriteDiskId.Result != EnumResponseResult.Success)
-					return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, ResponseWriteDiskId.Code, ResponseWriteDiskId.Message);
+					// 실패인 경우
+					if (ResponseWriteDiskId.Result != EnumResponseResult.Success)
+						return new ResponseData<ResponseDiskWithServerAndNetwork>(EnumResponseResult.Error, ResponseWriteDiskId.Code, ResponseWriteDiskId.Message);
+				}
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -144,7 +156,7 @@ namespace PortalProvider.Providers.DiskGuids
 						var NewData = new Disk()
 						{
 							Id = NewId,
-							DiskPoolId = GuidDiskPoolId == Guid.Empty ? null : GuidDiskPoolId,
+							DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid,
 							Name = Request.Name,
 							ServerId = Server.Id,
 							Path = Request.Path,

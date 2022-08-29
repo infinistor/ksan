@@ -149,6 +149,70 @@ namespace PortalProvider.Providers.Accounts
 			return Result;
 		}
 
+		/// <summary>Ksan 사용자를 추가한다.</summary>
+		/// <param name="Name">Ksan 사용자 이름</param>
+		/// <param name="AccessKey">엑세스키</param>
+		/// <param name="SecretKey">시크릿키</param>
+		/// <returns>Ksan 사용자 등록 결과</returns>
+		public async Task<ResponseData<ResponseKsanUser>> Add(string Name, string AccessKey, string SecretKey)
+		{
+			var Result = new ResponseData<ResponseKsanUser>();
+
+			try
+			{
+				// 사용자명 유효하지 않을 경우
+				if (Name.IsEmpty() || !IdChecker.IsMatch(Name))
+					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
+
+				// 이름 중복 검사
+				var responseDuplicatedName = await CheckUserNameDuplicated(Name);
+
+				// 중복검사 실패시
+				if (responseDuplicatedName.Result != EnumResponseResult.Success)
+					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, responseDuplicatedName.Code, responseDuplicatedName.Message);
+
+				// 디스크풀 정보를 가져온다.
+				DiskPool Exist = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.DefaultDiskPool == true);
+
+				// 해당 정보가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+
+				// 요청이 유효한 경우 Ksan 사용자 객체를 생성한다.
+				var NewUser = new KsanUser
+				{
+					Id = Guid.NewGuid(),
+					Name = Name,
+					Email = "",
+					AccessKey = AccessKey.IsEmpty() ? CreateAccessKey() : AccessKey,
+					SecretKey = SecretKey.IsEmpty() ? CreateSecretKey() : SecretKey,
+				};
+
+				// Ksan 사용자 등록
+				await m_dbContext.KsanUsers.AddAsync(NewUser);
+
+				// 기본 스토리지 클래스 등록
+				var StorageClass = new UserDiskPool { UserId = NewUser.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
+				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
+				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+				// 유저 정보를 조회한다.
+				Result.Data = await GetUser(NewUser.Id);
+				Result.Result = EnumResponseResult.Success;
+
+				// Ksan 사용자 등록 알림
+				SendMq("*.services.gw.user.added", Result.Data);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
+		}
+
 		/// <summary>Ksan 사용자를 수정한다.</summary>
 		/// <param name="Id">Ksan 사용자 식별자</param>
 		/// <param name="Request">Ksan 사용자 정보</param>

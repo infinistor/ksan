@@ -20,37 +20,37 @@ using MTLib.Reflection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 
-namespace PortalProvider.Providers.RabbitMq
+namespace PortalProvider.Providers.RabbitMQ
 {
 	/// <summary>Rabbit MQ로 정보를 전송하는 클래스</summary>
-	public class RabbitMqSender : IRabbitMqSender
+	public class RabbitMQSender : IRabbitMQSender
 	{
 		/// <summary>Rabbit MQ 연결 객체</summary>
 		private IConnection m_connection;
 		/// <summary>Rabbit MQ 채널 객체</summary>
 		private IModel m_channel;
 		/// <summary>Rabbit MQ 설정 객체</summary>
-		private readonly RabbitMqConfiguration m_config;
+		private readonly RabbitMQConfiguration m_config;
 		/// <summary>로거</summary>
 		protected readonly ILogger m_logger;
 
 		/// <summary>생성자</summary>
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
-		public RabbitMqSender(
-			IOptions<RabbitMqConfiguration> rabbitMqOptions,
-			ILogger<RabbitMqSender> logger
+		public RabbitMQSender(
+			IOptions<RabbitMQConfiguration> rabbitMqOptions,
+			ILogger<RabbitMQSender> logger
 		)
 		{
 			try
 			{
 				// 설정 복사
-				m_config = new RabbitMqConfiguration();
+				m_config = new RabbitMQConfiguration();
 				m_config.CopyValueFrom(rabbitMqOptions.Value);
 				// 로거
 				m_logger = logger;
 				// Rabbit MQ 리스너 초기화
-				InitializeRabbitMqListener();
+				InitializeRabbitMQListener();
 			}
 			catch (Exception ex)
 			{
@@ -60,7 +60,7 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>Rabbit MQ 리스너 초기화</summary>
-		private void InitializeRabbitMqListener()
+		private void InitializeRabbitMQListener()
 		{
 			try
 			{

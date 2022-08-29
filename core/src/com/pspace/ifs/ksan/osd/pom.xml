@@ -4,7 +4,7 @@
 	<groupId>com.pspace.ifs.ksan.osd</groupId>
 	<artifactId>ksan-osd</artifactId>
 	<version>0.8.1</version>
-	<name>ksanOsd</name>
+	<name>ksanOSD</name>
 	
 	<properties>
    		<slf4j.version>1.7.25</slf4j.version>
@@ -108,7 +108,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<mainClass>com.pspace.ifs.ksan.osd.OSDServer</mainClass>
-							<packageName>ksanOsd</packageName>
+							<packageName>ksanOSD</packageName>
 						</manifest>
 					</archive>
 				</configuration>
@@ -133,7 +133,7 @@
          		<artifactId>really-executable-jar-maven-plugin</artifactId>
           		<version>1.4.1</version>
           		<configuration>
-            		<programFile>ksan-osd.jar</programFile>
+            		<programFile>ksanOSD.jar</programFile>
           		</configuration>
           		<executions>
             		<execution>

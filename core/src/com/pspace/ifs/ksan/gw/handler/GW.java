@@ -56,6 +56,8 @@ public class GW {
 				PrintStack.logging(logger, e);
 			}
 		}
+
+		GWPortal.getInstance().getS3Regions();
 	}
 
     public void init() throws Exception {
@@ -156,7 +158,9 @@ public class GW {
 			PrintStack.logging(logger, e);
 		}
 
-		GWUtils.initCache(GWConfig.getInstance().getCacheDisk());
+		if (GWConfig.getInstance().isCacheDiskpath()) {
+			GWUtils.initCache(GWConfig.getInstance().getCacheDiskpath());
+		}
 	}
 
 	public void start() throws Exception {

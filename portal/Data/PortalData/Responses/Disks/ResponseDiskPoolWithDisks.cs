@@ -15,7 +15,7 @@ namespace PortalData.Responses.Disks
 	/// <summary>디스크 목록이 포함된 디스크 풀 정보 응답 클래스</summary>
 	public class ResponseDiskPoolWithDisks : ResponseDiskPool
 	{
-		/// <summary>서비스 목록</summary>
+		/// <summary>디스크 목록</summary>
 		public List<ResponseDisk> Disks { get; set; } = new List<ResponseDisk>();
 	}
 }

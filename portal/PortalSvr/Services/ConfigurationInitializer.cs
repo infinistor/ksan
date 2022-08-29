@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using MTLib.CommonData;
 using MTLib.Core;
 using Microsoft.Extensions.Configuration;
-using PortalProvider.Providers.RabbitMq;
+using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.DB;
 using Newtonsoft.Json;
 using System.IO;
@@ -46,7 +46,8 @@ namespace PortalSvr.Services
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
 
-		private static string KsanConfig = "/usr/local/ksan/etc/ksanAgent.conf";
+		/// <summary> KsanConfig </summary>
+		public static string KsanConfig = "/usr/local/ksan/etc/ksanAgent.conf";
 
 		/// <summary>생성자</summary>
 		/// <param name="configProvider">설정에 대한 프로바이더 객체</param>
@@ -71,16 +72,16 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				// RabbitMq 설정이 없는 경우
-				var RabbitMqConfig = await m_configProvider.GetConfig(EnumServiceType.RabbitMq);
-				if (RabbitMqConfig == null || RabbitMqConfig.Result == EnumResponseResult.Error)
+				// RabbitMQ 설정이 없는 경우
+				var RabbitMQConfig = await m_configProvider.GetConfig(EnumServiceType.RabbitMQ);
+				if (RabbitMQConfig == null || RabbitMQConfig.Result == EnumResponseResult.Error)
 				{
-					// RabbitMq 설정
-					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMq");
-					RabbitMqConfiguration Configuration = Section.Get<RabbitMqConfiguration>();
+					// RabbitMQ 설정
+					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
+					RabbitMQConfiguration Configuration = Section.Get<RabbitMQConfiguration>();
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.RabbitMq, JsonConvert.SerializeObject(Configuration));
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.RabbitMq, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.RabbitMQ, JsonConvert.SerializeObject(Configuration));
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.RabbitMQ, Result.Data.Version);
 				}
 
 				// MariaDB 설정이 없는 경우
@@ -107,26 +108,26 @@ namespace PortalSvr.Services
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MongoDB, Result.Data.Version);
 				}
 
-				// KsanGw 설정이 없는 경우
-				var KsanGwConfig = await m_configProvider.GetConfig(EnumServiceType.KsanGw);
-				if (KsanGwConfig == null || KsanGwConfig.Result == EnumResponseResult.Error)
+				// KsanGW 설정이 없는 경우
+				var KsanGWConfig = await m_configProvider.GetConfig(EnumServiceType.ksanGW);
+				if (KsanGWConfig == null || KsanGWConfig.Result == EnumResponseResult.Error)
 				{
-					// KsanGw의 기본 설정 정보를 읽어온다.
-					string StrKsanGw = File.ReadAllText("Resources/ksangw.json");
+					// KsanGW의 기본 설정 정보를 읽어온다.
+					string StrKsanGW = File.ReadAllText("Resources/ksangw.json");
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanGw, StrKsanGw);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanGw, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanGW, StrKsanGW);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanGW, Result.Data.Version);
 				}
 
-				// KsanOsd 설정이 없는 경우
-				var KsanOsdConfig = await m_configProvider.GetConfig(EnumServiceType.KsanOsd);
-				if (KsanOsdConfig == null || KsanOsdConfig.Result == EnumResponseResult.Error)
+				// KsanOSD 설정이 없는 경우
+				var KsanOSDConfig = await m_configProvider.GetConfig(EnumServiceType.ksanOSD);
+				if (KsanOSDConfig == null || KsanOSDConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanOsd = File.ReadAllText("Resources/ksanosd.json");
+					string StrKsanOSD = File.ReadAllText("Resources/ksanosd.json");
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.KsanOsd, StrKsanOsd);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.KsanOsd, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanOSD, StrKsanOSD);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanOSD, Result.Data.Version);
 				}
 
 				// ksanAgent.conf파일을 생성한다.
@@ -136,8 +137,8 @@ namespace PortalSvr.Services
 					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
 					
 					// rabbitMq 설정 정보를 가져온다.
-					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMq");
-					RabbitMqConfiguration RabbitMq = Section.Get<RabbitMqConfiguration>();
+					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
+					RabbitMQConfiguration RabbitMQ = Section.Get<RabbitMQConfiguration>();
 
 					if (ApiKey == null)
 						throw new Exception("Internal Service ApiKey is null");
@@ -145,11 +146,11 @@ namespace PortalSvr.Services
 					{
 						"[mgs]",
 						$"PortalHost = {m_configuration["AppSettings:Host"]}",
-						"PortalPort = 5443",
-						$"MqHost = {RabbitMq.Host}",
-						$"MqPort = {RabbitMq.Port}",
-						$"MqUser = {RabbitMq.User}",
-						$"MqPassword = {RabbitMq.Password}",
+						"PortalPort = 6443",
+						$"MqHost = {RabbitMQ.Host}",
+						$"MqPort = {RabbitMQ.Port}",
+						$"MqUser = {RabbitMQ.User}",
+						$"MqPassword = {RabbitMQ.Password}",
 						$"PortalApiKey = {ApiKey.KeyValue}",
 						"ServerId = ",
 						"ManagementNetDev = ",
@@ -163,7 +164,7 @@ namespace PortalSvr.Services
 					};
 
 					await File.WriteAllLinesAsync(KsanConfig, Datas);
-					m_logger.LogInformation("Save ksanAgent.conf");
+					m_logger.LogInformation($"Save {KsanConfig}");
 				}
 			}
 			catch (Exception ex)

@@ -12,7 +12,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using PortalData;
-using PortalProvider.Providers.RabbitMq;
+using PortalProvider.Providers.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -26,10 +26,10 @@ using System.Collections.Generic;
 
 // ReSharper disable TemplateIsNotCompileTimeConstantProblem
 
-namespace PortalSvr.RabbitMqReceivers
+namespace PortalSvr.RabbitMQReceivers
 {
 	/// <summary>Rabbit MQ로 부터 정보를 수신하는 클래스</summary>
-	public abstract class RabbitMqReceiver : BackgroundService
+	public abstract class RabbitMQReceiver : BackgroundService
 	{
 		/// <summary>Rabbit MQ 연결 객체</summary>
 		private IConnection m_connection;
@@ -40,7 +40,7 @@ namespace PortalSvr.RabbitMqReceivers
 		/// <summary>바인딩 키 목록</summary>
 		private readonly string[] m_bindingKeys;
 		/// <summary>Rabbit MQ 설정 객체</summary>
-		private readonly RabbitMqConfiguration m_config = new RabbitMqConfiguration();
+		private readonly RabbitMQConfiguration m_config = new RabbitMQConfiguration();
 		/// <summary>로거</summary>
 		protected readonly ILogger m_logger;
 		/// <summary>서비스 팩토리</summary>
@@ -52,10 +52,10 @@ namespace PortalSvr.RabbitMqReceivers
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
 		/// <param name="serviceScopeFactory">서비스 팩토리</param>
-		public RabbitMqReceiver(
+		public RabbitMQReceiver(
 			string queueName,
 			string[] bindingKeys,
-			IOptions<RabbitMqConfiguration> rabbitMqOptions,
+			IOptions<RabbitMQConfiguration> rabbitMqOptions,
 			ILogger logger,
 			IServiceScopeFactory serviceScopeFactory
 		)
@@ -73,7 +73,7 @@ namespace PortalSvr.RabbitMqReceivers
 				// 서비스 팩토리 저장
 				m_serviceScopeFactory = serviceScopeFactory;
 				// Rabbit MQ 리스너 초기화
-				InitializeRabbitMqListener();
+				InitializeRabbitMQListener();
 			}
 			catch (Exception ex)
 			{
@@ -83,7 +83,7 @@ namespace PortalSvr.RabbitMqReceivers
 		}
 
 		/// <summary>Rabbit MQ 리스너 초기화</summary>
-		private void InitializeRabbitMqListener()
+		private void InitializeRabbitMQListener()
 		{
 			try
 			{

@@ -1819,8 +1819,8 @@
   <data name="ENV_DATABASE_TYPE" xml:space="preserve">
     <value>DATABASE_TYPE</value>
   </data>
-  <data name="ENV_LOG_LAVEL" xml:space="preserve">
-    <value>LOG_LAVEL</value>
+  <data name="ENV_LOG_LEVEL" xml:space="preserve">
+    <value>LOG_LEVEL</value>
   </data>
   <data name="ENV_MARIADB_HOST" xml:space="preserve">
     <value>MARIADB_HOST</value>
@@ -1878,5 +1878,39 @@
   <data name="EM_COMMON_THRESHOLD_INVALID" xml:space="preserve">
     <value>Threshold is invalid</value>
     <comment>임계값이 유효하지 않습니다.</comment>
+  </data>
+  <data name="ENV_INIT_TYPE" xml:space="preserve">
+    <value>INIT_TYPE</value>
+    <comment>초기화 타입</comment>
+  </data>
+  <data name="ENV_INIT_TYPE_ALL_IN_ONE" xml:space="preserve">
+    <value>ALL_IN_ONE</value>
+  </data>
+  <data name="ENV_INIT_TYPE_NORMAL" xml:space="preserve">
+    <value>NORMAL</value>
+  </data>
+  <data name="ENV_DATABASE_TYPE_MARIA_DB" xml:space="preserve">
+    <value>MariaDB</value>
+  </data>
+  <data name="ENV_DATABASE_TYPE_MONGO_DB" xml:space="preserve">
+    <value>MongoDB</value>
+  </data>
+  <data name="ENV_OSDDISK_PATHS" xml:space="preserve">
+    <value>OSDDISK_PATHS</value>
+  </data>
+  <data name="ENV_GW_KEYSTORE_FILE_PATH" xml:space="preserve">
+    <value>GW_KEYSTORE_FILE_PATH</value>
+  </data>
+  <data name="ENV_GW_KEYSTORE_PASSWORD" xml:space="preserve">
+    <value>GW_KEYSTORE_PASSWORD</value>
+  </data>
+  <data name="ENV_SERVER_NAME" xml:space="preserve">
+    <value>SERVER_NAME</value>
+  </data>
+  <data name="ENV_DEFAULT_USER_ACCESSKEY" xml:space="preserve">
+    <value>DEFAULT_USER_ACCESSKEY</value>
+  </data>
+  <data name="ENV_DEFAULT_USER_SECRETKEY" xml:space="preserve">
+    <value>DEFAULT_USER_SECRETKEY</value>
   </data>
 </root>

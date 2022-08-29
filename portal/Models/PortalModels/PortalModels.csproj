@@ -199,6 +199,11 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</None>
+		<None Update="PortalModels.info">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</None>
 		<None Update="PortalModels.PortalModelDiagram.view">
 			<AutoGen>True</AutoGen>
 		</None>
@@ -209,11 +214,6 @@
 		<None Update="PortalModels.efml">
 			<Generator>DevartEFCoreGenerator</Generator>
 			<LastGenOutput>PortalModels.info</LastGenOutput>
-		</None>
-		<None Update="PortalModels.info">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>PortalModels.efml</DependentUpon>
 		</None>
 	</ItemGroup>
 

@@ -21,6 +21,10 @@ using PortalData.Requests.Servers;
 using PortalData.Requests.Services;
 using PortalProviderInterface;
 using IServiceProvider = PortalProviderInterface.IServiceProvider;
+using PortalResources;
+using PortalData.Requests.Disks;
+using PortalData.Requests.Ksan;
+using PortalProvider.Providers.RabbitMQ;
 
 namespace PortalSvr.Services
 {
@@ -46,6 +50,15 @@ namespace PortalSvr.Services
 		/// <summary> Api Key 프로바이더</summary>
 		protected readonly IApiKeyProvider m_apiKeyProvider;
 
+		/// <summary> Disk Pool 프로바이더</summary>
+		protected readonly IDiskPoolProvider m_diskPoolProvider;
+
+		/// <summary> Disk 프로바이더</summary>
+		protected readonly IDiskProvider m_diskProvider;
+
+		/// <summary> Disk 프로바이더</summary>
+		protected readonly IKsanUserProvider m_userProvider;
+
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
 
@@ -54,17 +67,26 @@ namespace PortalSvr.Services
 		/// <param name="serverProvider">서버에 대한 프로바이더 객체</param>
 		/// <param name="serviceProvider">서비스에 대한 프로바이더 객체</param>
 		/// <param name="apiKeyProvider">API Key에 대한 프로바이더 객체</param>
+		/// <param name="diskPoolProvider">Disk Pool에 대한 프로바이더 객체</param>
+		/// <param name="diskProvider">Disk에 대한 프로바이더 객체</param>
+		/// <param name="ksanUserProvider">User에 대한 프로바이더 객체</param>
 		/// <param name="logger">로거</param>
 		public ServerInitializer(IConfiguration configuration
 			, IServerProvider serverProvider
 			, IApiKeyProvider apiKeyProvider
 			, IServiceProvider serviceProvider
+			, IDiskPoolProvider diskPoolProvider
+			, IDiskProvider diskProvider
+			, IKsanUserProvider ksanUserProvider
 			, ILogger<ServerInitializer> logger)
 		{
 			m_configuration = configuration;
 			m_serverProvider = serverProvider;
 			m_serviceProvider = serviceProvider;
 			m_apiKeyProvider = apiKeyProvider;
+			m_diskPoolProvider = diskPoolProvider;
+			m_diskProvider = diskProvider;
+			m_userProvider = ksanUserProvider;
 			m_logger = logger;
 		}
 
@@ -73,8 +95,10 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				//호스트 명을 가져온다
-				var HostName = m_configuration["AppSettings:Host"];
+				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType))
+					return;
+
+				if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
 				// 내부 서비스용 API 키를 가져온다.
 				var ApiKey = await m_apiKeyProvider.GetMainApiKey();
@@ -85,12 +109,13 @@ namespace PortalSvr.Services
 				if (!Guid.TryParse(ApiKey.UserId, out Guid UserGuid))
 					throw new Exception("Internal Service ApiKey UserGuid is Empty");
 
-				// 서버가 존재하지 않을 경우
-				var ServerName = HostName.IsEmpty() ? "ksan_mgmt" : HostName;
-				var Server = await m_serverProvider.Get(ServerName);
-				if (Server == null || Server.Result == EnumResponseResult.Error)
-				{
+				// 서버 이름을 가져온다.
+				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_SERVER_NAME, out string ServerName)) return;
 
+				// 서버가 존재하지 않을 경우
+				var Servers = await m_serverProvider.GetList();
+				if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
+				{
 					// 서버를 등록한다
 					var Request = new RequestServer()
 					{
@@ -105,65 +130,144 @@ namespace PortalSvr.Services
 
 					var Response = await m_serverProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-					if (Response.Result == EnumResponseResult.Success)
+					if (Response == null || Response.Result != EnumResponseResult.Success)
+						throw new Exception($"{ServerName} Add Failure. {Response.Message}");
+					m_logger.LogInformation($"{ServerName} Add Success");
+
+					// rabbitMq 설정 정보를 가져온다.
+					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
+					RabbitMQConfiguration RabbitMQ = Section.Get<RabbitMQConfiguration>();
+
+					// 서버등록에 성공할 경우 ksanAgent.conf파일을 생성한다.
+					var Datas = new List<string>()
 					{
-						// Server = Response;
-						// m_logger.LogInformation($"{ServerName} Add Success");
+						"[mgs]",
+						$"PortalHost = {m_configuration["AppSettings:Host"]}",
+						"PortalPort = 6443",
+						$"MqHost = {RabbitMQ.Host}",
+						$"MqPort = {RabbitMQ.Port}",
+						$"MqUser = {RabbitMQ.User}",
+						$"MqPassword = {RabbitMQ.Password}",
+						$"PortalApiKey = {ApiKey.KeyValue}",
+						$"ServerId = {Response.Data.Id}",
+						"ManagementNetDev = ",
+						"DefaultNetworkId = ",
+						"",
+						"[monitor]",
+						"ServerMonitorInterval = 5000",
+						"NetworkMonitorInterval = 5000",
+						"DiskMonitorInterval = 5000",
+						"ServiceMonitorInterval = 5000",
+					};
 
-						// // 서버등록에 성공할 경우 ksanMonitor.conf파일을 생성한다.
-						// var Datas = new List<string>()
-						// 	{
-						// 		"[mgs]",
-						// 		$"PortalIp = {m_configuration["AppSettings:RabbitMq:Host"]}",
-						// 		"PortalPort = 5443",
-						// 		$"MqPort = {m_configuration["AppSettings:RabbitMq:Port"]}",
-						// 		$"MqUser = {m_configuration["AppSettings:RabbitMq:User"]}",
-						// 		$"MqPassword = {m_configuration["AppSettings:RabbitMq:Password"]}",
-						// 		$"PortalApiKey = {ApiKey.KeyValue}",
-						// 		$"ServerId = {Response.Data.Id}",
-						// 		"ManagementNetDev = ",
-						// 		"DefaultNetworkId = ",
-						// 		"",
-						// 		"[monitor]",
-						// 		"ServerMonitorInterval = 5",
-						// 		"NetworkMonitorInterval = 5",
-						// 		"DiskMonitorInterval = 5",
-						// 		"ServiceMonitorInterval = 5",
-						// 	};
+					await File.WriteAllLinesAsync(ConfigurationInitializer.KsanConfig, Datas);
+					m_logger.LogInformation($"Save {ConfigurationInitializer.KsanConfig}");
 
-						// await File.WriteAllLinesAsync("/usr/local/ksan/etc/ksanMonitor.conf", Datas);
-						// m_logger.LogInformation("Save ksanMonitor.conf");
-					}
-					else
-						throw new Exception($"{ServerName} Add Failure");
 				}
+				var Server = await m_serverProvider.Get(ServerName);
+				if (Server == null || Server.Result != EnumResponseResult.Success) throw new Exception($"{ServerName} Get Failure. {Server.Message}");
+				else m_logger.LogInformation($"{ServerName} Get Success");
+
 				var ServerId = Server.Data.Id;
 
-				// 자기자신의 서비스가 등록되어있는지 확인한다.
-				var ServiceName = HostName+"_api";
-				var Service = await m_serviceProvider.Get(ServiceName);
+				//디스크풀이 존재하는지 확인한다.
+				var DiskPoolName = "diskpool1";
+				var DiskPool = await m_diskPoolProvider.Get(DiskPoolName);
+				if (DiskPool == null || DiskPool.Result == EnumResponseResult.Error)
+				{
+					// 디스크풀이 존재하지 않을 경우 생성한다.
+					var Request = new RequestDiskPool() { Name = DiskPoolName, ReplicationType = EnumDiskPoolReplicaType.OnePlusZero };
+					var Response = await m_diskPoolProvider.Add(Request);
 
-				//서비스가 등록되지 않았을 경우
-				if (Service == null || Service.Result == EnumResponseResult.Error)
+					// 디스크풀 생성에 실패할 경우
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure");
+					else m_logger.LogInformation($"{DiskPoolName} Add Success");
+					DiskPool = Response;
+				}
+				//disk가 존재하는지 확인한다.
+				if (DiskPool.Data.Disks.Count < 1)
+				{
+					//환경변수에서 디스크 목록을 가져온다.
+					if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty())
+						throw new Exception("Disk Path is Empty!");
+
+					var DiskPaths = StrDisks.Trim().Split(',');
+
+					//디스크가 존재하지 않을 경우 생성한다.
+					var DiskCount = 1;
+					foreach (var DiskPath in DiskPaths)
+					{
+						if (DiskPath.IsEmpty()) continue;
+						var Request = new RequestDisk()
+						{
+							Name = $"{ServerName}_disk{DiskCount++}",
+							DiskPoolId = DiskPoolName,
+							Path = DiskPath,
+							State = EnumDiskState.Good
+						};
+
+						var Response = await m_diskProvider.Add(ServerName, Request, false);
+
+						// 디스크 등록에 실패할 경우
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
+						else m_logger.LogInformation($"{Request.Name} Add Success");
+
+						// 디스크 아이디를 저장한다.
+						await File.WriteAllLinesAsync($"{Request.Path}/DiskId", new List<string> { Response.Data.Id });
+					}
+				}
+
+				//유저가 존재하지 않을 경우 생성한다.
+				var UserName = "ksanuser";
+				var User = await m_userProvider.GetUser(UserName);
+				if (User == null || User.Result != EnumResponseResult.Success)
+				{
+					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESSKEY, out string AccessKey);
+					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRETKEY, out string SecretKey);
+
+					var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
+
+					// 유저 생성에 실패할 경우
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
+					else m_logger.LogInformation($"{UserName} Add Success");
+				}
+
+				//gw 서비스가 등록되지 않은 경우 등록한다.
+				var GWName = "ksanGW1";
+				var GW = await m_serviceProvider.Get(GWName);
+				if (GW == null || GW.Result != EnumResponseResult.Success)
 				{
 					var Request = new RequestService()
 					{
-						Name = ServiceName,
-						ServerId = ServerId,
-						Description = "",
-						ServiceType = EnumServiceType.ksanApiPortal,
-						State = EnumServiceState.Online,
+						Name = GWName,
+						ServerId = ServerName,
+						ServiceType = EnumServiceType.ksanGW,
 					};
 
-					// 서비스 등록
 					var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-					if (Response.Result == EnumResponseResult.Success)
-						m_logger.LogInformation($"{ServiceName} Add Success");
-					else
-						m_logger.LogError($"{ServiceName} Add Failed");
+					// 서비스 등록에 실패할 경우
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
+					else m_logger.LogInformation($"{Request.Name} Add Success");
 				}
+				//osd 서비스가 등록되지 않은 경우 등록한다.
+				var OSDName = "ksanOSD1";
+				var OSD = await m_serviceProvider.Get(OSDName);
+				if (OSD == null || OSD.Result != EnumResponseResult.Success)
+				{
+					var Request = new RequestService()
+					{
+						Name = OSDName,
+						ServerId = ServerName,
+						ServiceType = EnumServiceType.ksanOSD,
+					};
 
+					var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+
+					// 서비스 등록에 실패할 경우
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+					else m_logger.LogInformation($"{Request.Name} Add Success");
+				}
 
 			}
 			catch (Exception ex)
@@ -172,5 +276,4 @@ namespace PortalSvr.Services
 			}
 		}
 	}
-
 }

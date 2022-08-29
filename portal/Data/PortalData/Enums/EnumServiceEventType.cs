@@ -14,41 +14,15 @@ using Newtonsoft.Json.Serialization;
 
 namespace PortalData.Enums
 {
-	/// <summary>서비스 타입</summary>
+	/// <summary>서비스 이벤트</summary>
 	[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
-	public enum EnumServiceType
+	public enum EnumServiceEventType
 	{
-		/// <summary>Unknown</summary>
-		Unknown = -1,
-		/// <summary>RabbitMQ</summary>
-		RabbitMQ,
-		/// <summary>MariaDB</summary>
-		MariaDB,
-		/// <summary>MongoDB</summary>
-		MongoDB,
-		/// <summary>HA Proxy</summary>
-		Haproxy,
-		/// <summary>ApiPortal</summary>
-		ksanApiPortal,
-		/// <summary>Portal</summary>
-		ksanPortal,
-		/// <summary>PortalBridge</summary>
-		ksanPortalBridge,
-		/// <summary>Agent</summary>
-		KsanAgent,
-		/// <summary>OSD</summary>
-		ksanOSD,
-		/// <summary>GW</summary>
-		ksanGW,
-		/// <summary>Recovery</summary>
-		ksanRecovery,
-		/// <summary>Lifecycle</summary>
-		sanLifecycle,
-		/// <summary>Replication</summary>
-		ksanReplication,
-		/// <summary>Logging</summary>
-		ksanLogExport,
-		/// <summary>Metering</summary>
-		ksanMetering
+		/// <summary>Error</summary>
+		Error = -1,
+		/// <summary>Start</summary>
+		Start = 0,
+		/// <summary>Stop</summary>
+		Stop = 1
 	}
 }

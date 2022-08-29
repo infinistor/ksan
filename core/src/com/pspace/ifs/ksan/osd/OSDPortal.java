@@ -14,8 +14,9 @@ import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
-import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
@@ -24,7 +25,6 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
-import com.google.common.base.Strings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -33,6 +33,10 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+
 import org.apache.http.ssl.SSLContextBuilder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -40,11 +44,15 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 class ConfigUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(ConfigUpdateCallback.class);
 	@Override
 	public MQResponse call(String routingKey, String body) {
-		logger.info("receive config change ...");
+		logger.info("receive agentConfig change ...");
 		logger.info("BiningKey : {}, body : {}}", routingKey, body);
 
 		OSDPortal.getInstance().getConfig();
@@ -74,7 +82,8 @@ class DiskpoolsUpdateCallback implements MQCallback{
 
 public class OSDPortal {
 	private boolean isAppliedDiskpools;
-    private MonConfig config;
+    private AgentConfig agentConfig;
+	private String serviceId;
 
     private static final Logger logger = LoggerFactory.getLogger(OSDPortal.class);
 
@@ -87,23 +96,40 @@ public class OSDPortal {
     }
     
     private OSDPortal() {
-        config = MonConfig.getInstance(); 
-        config.configure();
-		logger.debug("ksan monitor config ...");
-		int mqPort = Integer.parseInt(config.getMqPort());
-		if (Strings.isNullOrEmpty(config.getServerId())) {
-			logger.error("mq server id is null or empty ...");
-			throw new RuntimeException(new RuntimeException());
+        agentConfig = AgentConfig.getInstance(); 
+        agentConfig.configure();
+		logger.debug("ksan monitor agentConfig ...");
+		int mqPort = Integer.parseInt(agentConfig.getMQPort());
+
+		// serviceId
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH));
+			serviceId = reader.readLine();
+			logger.info("serviceId : {}", serviceId);
+			reader.close();
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			System.exit(1);
 		}
 
-        try
-		{
+		postGWEvent(true);
+
+		try {
+			HeartbeatManager heartbeatManager = new HeartbeatManager(serviceId, agentConfig.getMQHost(), mqPort, agentConfig.getMQUser(), agentConfig.getMQPassword(), OSDConstants.MQUEUE_EXCHANGE_NAME);
+			heartbeatManager.startHeartbeat(agentConfig.getServiceMonitorInterval());
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+		}
+
+        try {
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_CONFIG + config.getServerId(), 
+				agentConfig.getMQUser(),
+				agentConfig.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_CONFIG + serviceId, //agentConfig.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME, 
 				false, 
 				"fanout", 
@@ -116,11 +142,11 @@ public class OSDPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + config.getServerId(), 
+				agentConfig.getMQUser(),
+				agentConfig.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_DISKPOOL + serviceId, //agentConfig.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME, 
 				false, 
 				"fanout", 
@@ -140,18 +166,18 @@ public class OSDPortal {
 
     public void getConfig() {
         try {
-			logger.info("get config ...");
+			logger.info("get agentConfig ...");
 			HttpClient client = HttpClients
                 .custom()
                 .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 			
-			HttpGet getRequest = new HttpGet(OSDConstants.HTTPS + config.getPortalIp() + OSDConstants.COLON + config.getPortalPort() + OSDConstants.PORTAL_REST_API_CONFIG_OSD);
-			getRequest.addHeader(OSDConstants.AUTHORIZATION, config.getPortalKey());
-            logger.info("{}", config.getPortalIp());
-            logger.info("{}", config.getPortalPort());
-            logger.info("portal key : {}", config.getPortalKey());
+			HttpGet getRequest = new HttpGet(OSDConstants.HTTPS + agentConfig.getPortalIp() + OSDConstants.COLON + agentConfig.getPortalPort() + OSDConstants.PORTAL_REST_API_CONFIG_OSD);
+			getRequest.addHeader(OSDConstants.AUTHORIZATION, agentConfig.getPortalKey());
+            logger.info("{}", agentConfig.getPortalIp());
+            logger.info("{}", agentConfig.getPortalPort());
+            logger.info("portal key : {}", agentConfig.getPortalKey());
 			HttpResponse response = client.execute(getRequest);
             logger.info("Response : {}", response.getStatusLine().toString());
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -161,13 +187,13 @@ public class OSDPortal {
 
                 JSONParser parser = new JSONParser();
                 JSONObject jsonObject = (JSONObject)parser.parse(body);
-                JSONObject jsonData = (JSONObject)jsonObject.get(MonConfig.DATA);
-				String version = String.valueOf(jsonData.get(MonConfig.VERSION));
-                String config = (String)jsonData.get(MonConfig.CONFIG);
+                JSONObject jsonData = (JSONObject)jsonObject.get(AgentConfig.DATA);
+				String version = String.valueOf(jsonData.get(AgentConfig.VERSION));
+                String agentConfig = (String)jsonData.get(AgentConfig.CONFIG);
                 
-                logger.info(config);
+                logger.info(agentConfig);
 
-                JSONObject jsonConfig = (JSONObject)parser.parse(config);
+                JSONObject jsonConfig = (JSONObject)parser.parse(agentConfig);
                 OSDConfig.getInstance().setConfig(jsonConfig);
                 OSDConfig.getInstance().setVersion(version);
                 OSDConfig.getInstance().saveConfigFile();
@@ -191,8 +217,8 @@ public class OSDPortal {
                 .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 								
-			HttpGet getRequest = new HttpGet(OSDConstants.HTTPS + config.getPortalIp() + OSDConstants.COLON + config.getPortalPort() + OSDConstants.PORTAL_REST_API_DISKPOOLS_DETAILS);
-			getRequest.addHeader(OSDConstants.AUTHORIZATION, config.getPortalKey());
+			HttpGet getRequest = new HttpGet(OSDConstants.HTTPS + agentConfig.getPortalIp() + OSDConstants.COLON + agentConfig.getPortalPort() + OSDConstants.PORTAL_REST_API_DISKPOOLS_DETAILS);
+			getRequest.addHeader(OSDConstants.AUTHORIZATION, agentConfig.getPortalKey());
 
 			HttpResponse response = client.execute(getRequest);
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -248,4 +274,46 @@ public class OSDPortal {
 			throw new RuntimeException(e);
 		}
     }
+
+	public String getServiceId() {
+		return serviceId;
+	}
+
+	public void postGWEvent(boolean isStart) {
+		try {
+			HttpClient client = HttpClients
+                .custom()
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                .build();
+			
+			JSONObject eventData;
+			eventData = new JSONObject();
+			eventData.put(OSDConstants.PORTAL_REST_API_KSAN_EVENT_ID, serviceId);
+			if (isStart) {
+				eventData.put(OSDConstants.PORTAL_REST_API_KSAN_EVENT_TYPE, OSDConstants.PORTAL_REST_API_KSAN_EVENT_START);
+				eventData.put(OSDConstants.PORTAL_REST_API_KSAN_EVENT_MESSAGE, OSDConstants.EMPTY_STRING);
+			} else {
+				eventData.put(OSDConstants.PORTAL_REST_API_KSAN_EVENT_TYPE, OSDConstants.PORTAL_REST_API_KSAN_EVENT_STOP);
+				eventData.put(OSDConstants.PORTAL_REST_API_KSAN_EVENT_MESSAGE, OSDConstants.PORTAL_REST_API_KSAN_EVENT_SIGTERM);
+			}
+			
+			StringEntity entity = new StringEntity(eventData.toString(), ContentType.APPLICATION_JSON);
+								
+			HttpPost getRequest = new HttpPost(OSDConstants.HTTPS + agentConfig.getPortalIp() + OSDConstants.COLON + agentConfig.getPortalPort() + OSDConstants.PORTAL_REST_API_KSAN_EVENT);
+			getRequest.addHeader(OSDConstants.AUTHORIZATION, agentConfig.getPortalKey());
+			getRequest.setEntity(entity);
+
+			HttpResponse response = client.execute(getRequest);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				return;
+			} else {
+				logger.error("response code : {}", response.getStatusLine().getStatusCode());
+			}
+			throw new RuntimeException(new RuntimeException());
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
+		}
+	}
 }

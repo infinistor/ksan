@@ -1897,11 +1897,92 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   LOG_LAVEL과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   MariaDB과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string ENV_LOG_LAVEL {
+        public static string ENV_DATABASE_TYPE_MARIA_DB {
             get {
-                return ResourceManager.GetString("ENV_LOG_LAVEL", resourceCulture);
+                return ResourceManager.GetString("ENV_DATABASE_TYPE_MARIA_DB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   MongoDB과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DATABASE_TYPE_MONGO_DB {
+            get {
+                return ResourceManager.GetString("ENV_DATABASE_TYPE_MONGO_DB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_USER_ACCESSKEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_USER_ACCESSKEY {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_USER_ACCESSKEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   DEFAULT_USER_SECRETKEY과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DEFAULT_USER_SECRETKEY {
+            get {
+                return ResourceManager.GetString("ENV_DEFAULT_USER_SECRETKEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   GW_KEYSTORE_FILE_PATH과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_GW_KEYSTORE_FILE_PATH {
+            get {
+                return ResourceManager.GetString("ENV_GW_KEYSTORE_FILE_PATH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   GW_KEYSTORE_PASSWORD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_GW_KEYSTORE_PASSWORD {
+            get {
+                return ResourceManager.GetString("ENV_GW_KEYSTORE_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   INIT_TYPE과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_INIT_TYPE {
+            get {
+                return ResourceManager.GetString("ENV_INIT_TYPE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   ALL_IN_ONE과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_INIT_TYPE_ALL_IN_ONE {
+            get {
+                return ResourceManager.GetString("ENV_INIT_TYPE_ALL_IN_ONE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   NORMAL과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_INIT_TYPE_NORMAL {
+            get {
+                return ResourceManager.GetString("ENV_INIT_TYPE_NORMAL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   LOG_LEVEL과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_LOG_LEVEL {
+            get {
+                return ResourceManager.GetString("ENV_LOG_LEVEL", resourceCulture);
             }
         }
         
@@ -1987,6 +2068,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   OSDDISK_PATHS과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_OSDDISK_PATHS {
+            get {
+                return ResourceManager.GetString("ENV_OSDDISK_PATHS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   PORTAL_HOST과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_PORTAL_HOST {
@@ -2028,6 +2118,15 @@ namespace PortalResources {
         public static string ENV_RABBITMQ_USER {
             get {
                 return ResourceManager.GetString("ENV_RABBITMQ_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SERVER_NAME과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_SERVER_NAME {
+            get {
+                return ResourceManager.GetString("ENV_SERVER_NAME", resourceCulture);
             }
         }
         

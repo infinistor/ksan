@@ -254,10 +254,10 @@ docker cp infinistor.pfx ksan-api-portal:/app
   - SharedAuthTicketKey
     - SharedAuthTicketKeyCertificateFilePath : ssl 인증서 파일의 이름. 발급 방법은 ssl 발급기관에서 직접 발급 받으면 됩니다.
     - SharedAuthTicketKeyCertificatePassword : 발급 받은 인증서의 암호.
-  - RabbitMq
+  - RabbitMQ
     - Host : 포탈이 설치되는 서버의 Ipaddress	예시 : `192.168.10.1`
-    - Port : RabbitMq 통신 포트 번호 기본 값.
-    - User, Password : 기본값은 guest, guest. RabbitMq 설정에 따라 이 값은 변경될 수 있습니다.
+    - Port : RabbitMQ 통신 포트 번호 기본 값.
+    - User, Password : 기본값은 guest, guest. RabbitMQ 설정에 따라 이 값은 변경될 수 있습니다.
 ``` json
 {
 	"AppSettings": {
@@ -268,13 +268,13 @@ docker cp infinistor.pfx ksan-api-portal:/app
 		"SharedAuthTicketKeyCertificatePassword": "<Password>",
 		"ExpireMinutes": 1440,
 		"CreateAccountWhenNotExist": true,
-		"RabbitMq": {
+		"RabbitMQ": {
 			"Name": "PortalSvr",
 			"Host": "<Mgs Ip>",
 			"Port": 5672,
 			"VirtualHost": "/",
-			"User": "<RabbitMq User>",
-			"Password": "<RabbitMq Password>",
+			"User": "<RabbitMQ User>",
+			"Password": "<RabbitMQ Password>",
 			"Enabled": true
 		}
 	},

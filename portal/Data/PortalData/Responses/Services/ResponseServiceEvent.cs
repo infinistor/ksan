@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
@@ -8,27 +8,29 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using PortalData.Enums;
+using PortalResources;
+using MTLib.CommonData;
+using MTLib.Core;
+using System;
 
-namespace PortalModels
+namespace PortalData.Requests.Services
 {
-	/// <summary> 서비스 타입 </summary>
-	public enum EnumDbServiceType : int
+	/// <summary>서비스 정보 요청 클래스</summary>
+	public class ResponseServiceEvent : CommonRequestData
 	{
-		Unknown = -1,
-		RabbitMQ = 0,
-		MariaDB,
-		MongoDB,
-		Haproxy,
-		ksanApiPortal,
-		ksanPortal,
-		ksanPortalBridge,
-		ksanAgent,
-		ksanOSD,
-		ksanGW,
-		ksanRecovery,
-		ksanLifecycle,
-		ksanReplication,
-		ksanLogExport,
-		ksanMetering
+		/// <summary>서비스 아이디</summary>
+		public string Id { get; set; }
+
+		/// <summary> 이벤트 발생 시각 </summary>
+		public DateTime RegDate { get; set;}
+
+		/// <summary>서비스 이벤트 타입 </summary>
+		public EnumServiceEventType EventType { get; set; }
+
+		/// <summary>메시지 </summary>
+		public string Message { get; set; }
 	}
 }
