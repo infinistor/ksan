@@ -416,7 +416,7 @@ public class MysqlDataRepository implements DataRepository{
         pstupdateEtag.setString(3, md.getVersionId());
     }
     
-    private Metadata getSelectObjectResult(String bucketName, String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
+    private Metadata getSelectObjectResult(String bucketName, String objId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
         DISK rdsk;
@@ -424,7 +424,7 @@ public class MysqlDataRepository implements DataRepository{
                
         Bucket bt  = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
-            throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ rs.getString(1) +" not found in the db");
+            throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ bucketName +" not found in the db");
         
         while(rs.next()){
             pdsk = this.obmCache.getDiskWithId(rs.getString(9));
@@ -451,31 +451,31 @@ public class MysqlDataRepository implements DataRepository{
             mt.setReplicaCount(replicaCount);
             return mt;
         }
-        throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ rs.getString(1)+" key " + rs.getString(2)+ " not found in the db");
+        throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ bucketName + " key " + objId + " not found in the db");
     }
     
-    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId) throws ResourceNotFoundException {
         try{
             PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
-            return getSelectObjectResult(bucketName, diskPoolId, rs);
+            return getSelectObjectResult(bucketName, objId, rs);
         } catch(SQLException ex){
-            System.out.println(" error : " + ex.getMessage());
+            //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
             throw new ResourceNotFoundException("path not found in the db : " + ex.getMessage());
         }
     }
 
-    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         try{
             PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery);
             pstSelectOneWithVersionId.clearParameters();
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = pstSelectOneWithVersionId.executeQuery();
-            return getSelectObjectResult(bucketName, diskPoolId, rs);      
+            return getSelectObjectResult(bucketName, objId, rs);      
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -486,17 +486,17 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized Metadata selectSingleObject(String diskPoolId, String bucketName, String path) throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-       return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId()); 
+       return selectSingleObjectInternal(bucketName, mt.getObjId()); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(bucketName, diskPoolId, objid); 
+       return selectSingleObjectInternal(bucketName, objid); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid, String versionId) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(bucketName, diskPoolId, objid, versionId); 
+       return selectSingleObjectInternal(bucketName, objid, versionId); 
     }
     @Override
     public synchronized void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
@@ -893,7 +893,7 @@ public class MysqlDataRepository implements DataRepository{
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
             throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-        return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId(), versionId); 
+        return selectSingleObjectInternal(bucketName, mt.getObjId(), versionId); 
     }
 
     /***********************START*******************************************************************/
@@ -1198,10 +1198,10 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys, long offset) throws SQLException{
         List<Metadata> list = new ArrayList();
-        ResultSet rs = null;
+        ResultSet rs;
         DISK pdsk = null;
-        DISK rdsk = null;
-        int default_replicaCount = 0;
+        DISK rdsk;
+        int default_replicaCount;
        
         rs = ((PreparedStatement)pstmt).executeQuery();
         while (rs.next()) {
