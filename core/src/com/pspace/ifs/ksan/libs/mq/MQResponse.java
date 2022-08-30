@@ -21,36 +21,36 @@ import org.json.simple.parser.ParseException;
  */
 public class MQResponse {
     private String result;
-    private String code;
+    private MQResponseCode code;
     private String message;
     private int qAck;
    
-    public MQResponse(MQResponseType res, String code, String message, int qAck){
+    public MQResponse(MQResponseType res, MQResponseCode code, String message, int qAck){
         this.setResult(res);
         this.code = code;
         this.message = message;
         this.qAck = qAck;
     }
     
-    public MQResponse(MQResponseType res, int code, String message, int qAck){
+    /*public MQResponse(MQResponseType res, int code, String message, int qAck){
         this.setResult(res);
         this.code = Integer.toString(code);
         this.message = message;
         this.qAck = qAck;
-    }
+    }*/
     
     public MQResponse(String res){
         JSONParser parser = new JSONParser();
         JSONObject obj;
         
         result = "";
-        code = "";
+        code = MQResponseCode.MQ_SUCESS;
         message = "";
         qAck = -1;
         try {
             obj = (JSONObject) parser.parse(res);
             result = (String)obj.get("Result");
-            code = (String)obj.get("Code");
+            code = (MQResponseCode)obj.get("Code");
             message = (String)obj.get("Message");
             String qackStr = (String)obj.get("qAck");
             qAck = Integer.parseInt(qackStr);
@@ -76,7 +76,7 @@ public class MQResponse {
         }
     }
     
-    public String getCode(){
+    public MQResponseCode getCode(){
         return this.code;
     }
     
