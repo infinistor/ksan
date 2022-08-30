@@ -123,6 +123,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketPolicy = con.prepareStatement(DataRepositoryQuery.updateBucketPolicyQuery);
             pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
             pstUpdateBucketUsedSpace = con.prepareStatement(DataRepositoryQuery.updateBucketUsedSpaceQuery);
+            //pstIsDeleteBucket = con.prepareStatement(DataRepositoryQuery.objIsDeleteBucketQuery);
             
             // for multipart
             pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
@@ -635,6 +636,24 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
+    public boolean isBucketDeleted(String bucket) throws SQLException {
+        pstIsDeleteBucket = getObjPreparedStmt(bucket, DataRepositoryQuery.objIsDeleteBucketQuery);
+        pstIsDeleteBucket.clearParameters();
+        //pstIsDeleteBucket.setString(1, bucket);
+        ResultSet rs = pstIsDeleteBucket.executeQuery();
+        
+        if (rs == null) {
+            return true;
+        }
+
+        if (rs.next()) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    @Override
     public synchronized Bucket insertBucket(Bucket bt) 
             throws ResourceAlreadyExistException{
         try{
@@ -854,7 +873,7 @@ public class MysqlDataRepository implements DataRepository{
             callback.call(key, uploadid, "", partNo, "", "", "", isTrancated);
         }
     }
-    
+        
     @Override
     public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException{
         pstIsUploadPartNo.clearParameters();
@@ -1165,24 +1184,7 @@ public class MysqlDataRepository implements DataRepository{
         }
         return ret;
     }
-    
-    @Override
-    public boolean isBucketDeleted(String bucket) throws SQLException {
-        pstIsDeleteBucket.clearParameters();
-        pstIsDeleteBucket.setString(1, bucket);
-        ResultSet rs = pstIsDeleteBucket.executeQuery();
         
-        if (rs == null) {
-            return true;
-        }
-
-        if (rs.next()) {
-            return false;
-        }
-
-        return true;
-    }
-    
     @Override
     public PreparedStatement getStatement(String query) throws SQLException{	
         return this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
