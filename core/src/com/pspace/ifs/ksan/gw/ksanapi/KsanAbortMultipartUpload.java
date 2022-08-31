@@ -8,37 +8,39 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.api;
+package com.pspace.ifs.ksan.gw.ksanapi;
 
 import java.util.SortedMap;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.pspace.ifs.ksan.gw.api.S3Request;
 import com.pspace.ifs.ksan.gw.data.DataAbortMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.LoggerFactory;
 
-public class AbortMultipartUpload extends S3Request {
-
-	public AbortMultipartUpload(S3Parameter s3Parameter) {
+public class KsanAbortMultipartUpload extends S3Request {
+    public KsanAbortMultipartUpload(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(AbortMultipartUpload.class);
+		logger = LoggerFactory.getLogger(KsanAbortMultipartUpload.class);
 	}
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_ABORT_MULTIPART_UPLOAD_START);
+		logger.info(GWConstants.LOG_ADMIN_ABORT_MULTIPART_UPLOAD_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -50,6 +52,12 @@ public class AbortMultipartUpload extends S3Request {
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
+
+		S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
+        if (user == null) {
+            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+        }
+        s3Parameter.setUser(user);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);

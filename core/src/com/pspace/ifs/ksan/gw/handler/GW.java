@@ -46,6 +46,7 @@ public class GW {
 	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
+		GWPortal.getInstance().getS3Regions();
 		GWPortal.getInstance().getDiskPoolsDetails();
 
 		while (!GWPortal.getInstance().isAppliedDiskpools() || !GWPortal.getInstance().isAppliedUsers()) {
@@ -56,8 +57,6 @@ public class GW {
 				PrintStack.logging(logger, e);
 			}
 		}
-
-		GWPortal.getInstance().getS3Regions();
 	}
 
     public void init() throws Exception {

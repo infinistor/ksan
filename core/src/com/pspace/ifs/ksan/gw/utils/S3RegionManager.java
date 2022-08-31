@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.pspace.ifs.ksan.gw.identity.S3Region;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,20 @@ public class S3RegionManager {
         for (S3Region region : regions) {
             if (region.getAccessKey().equals(accessKey)) {
                 return region.getName();
+            }
+        }
+
+        return null;
+    }
+
+    public S3User getUserInfoByKey(String accessKey) {
+        for (S3Region region : regions) {
+            if (region.getAccessKey().equals(accessKey)) {
+                S3User user = new S3User();
+                user.setAccessKey(region.getAccessKey());
+                user.setAccessSecret(region.getAccessSecret());
+                user.setUserName(region.getName());
+                return user;
             }
         }
 

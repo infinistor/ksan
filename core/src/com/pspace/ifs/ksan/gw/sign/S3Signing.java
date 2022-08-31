@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Optional;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
@@ -44,6 +45,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.S3RegionManager;
 import com.pspace.ifs.ksan.gw.utils.GWPortal;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
@@ -141,7 +143,6 @@ public class S3Signing {
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
 
-		// S3User user = GWUtils.getDBInstance().getIdentityByID(bucketInfo.getUserId(), s3Parameter);
 		S3User user = S3UserManager.getInstance().getUserById(bucketInfo.getUserId());
 		if (user == null) {
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
@@ -172,7 +173,7 @@ public class S3Signing {
 		return s3Parameter;
 	}
 	
-	public S3Parameter validation() throws GWException {
+	public S3Parameter validation(boolean isAdmin) throws GWException {
 		boolean hasDateHeader = ishasDateHeader(s3Parameter.getRequest());
 		boolean hasXAmzDateHeader = ishasXAmzDateHeader(s3Parameter.getRequest());
 
@@ -249,24 +250,18 @@ public class S3Signing {
 		}
 
 		String preuri = uriReconstructer(uri, hostHeader, Optional.fromNullable(null));
-		// S3User user = GWUtils.getDBInstance().getIdentity(requestIdentity, s3Parameter);
-		S3User user = S3UserManager.getInstance().getUserByKey(requestIdentity);
+
+		S3User user = null;
+
+		if (isAdmin) {
+			user = S3RegionManager.getInstance().getUserInfoByKey(requestIdentity);
+		} else {
+			user = S3UserManager.getInstance().getUserByKey(requestIdentity);
+		}
+		
 		if (user == null) {
 			logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
-			// String userId = S3UserManager.getInstance().findUserIdWithAccessKey(requestIdentity);
-			// if (userId == null) {
-			// 	logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
-			// 	throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
-			// } else {
-			// 	user = GWPortal.getInstance().getS3User(userId);
-			// 	if (user == null) {
-			// 		logger.error(GWConstants.LOG_S3SIGNING_USER_NULL);
-			// 		throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
-			// 	} else {
-			// 		S3UserManager.getInstance().addUser(user);
-			// 	}
-			// }
 		}
 
 		logger.info(GWConstants.LOG_S3SIGNING_USER, user.getUserName());
@@ -428,7 +423,21 @@ public class S3Signing {
 				try {
 					expectedSignature = s3Signature.createAuthorizationSignatureV4(// v4 sign
 							s3Parameter.getRequest(), authHeader, payload, uriForSigning, credential);
-
+					
+					String xffValue = s3Parameter.getRequest().getHeader(GWConstants.X_FORWARDED_FOR);
+					if (!Strings.isNullOrEmpty(xffValue)) {
+						String[] xffs = GWUtils.xffncr(xffValue.split(GWConstants.COMMA));
+						if (xffs.length < 4) {
+							for (String xff : xffs) {
+								expectedSignature = s3Signature.createAuthorizationSignatureV4XFF(
+									s3Parameter.getRequest(), authHeader, payload, uriForSigning, credential, xff, s3Parameter);
+								
+									if (GWUtils.constantTimeEquals(expectedSignature, authHeader.signature)) {
+									break;
+								}
+							}
+						}
+					}
 				} catch (InvalidKeyException | NoSuchAlgorithmException e) {
 					PrintStack.logging(logger, e);
 					throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
@@ -444,7 +453,12 @@ public class S3Signing {
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		
-		s3Parameter.setUser(user);
+		if (s3Parameter.isAdmin()) {
+			s3Parameter.setUser(user);
+		} else {
+			s3Parameter.setUser(user);
+		}
+		
 		return s3Parameter;
 	}
 	

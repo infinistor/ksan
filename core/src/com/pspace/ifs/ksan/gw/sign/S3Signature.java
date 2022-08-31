@@ -10,6 +10,9 @@
 */
 package com.pspace.ifs.ksan.gw.sign;
 
+import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +42,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.PercentEscaper;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -387,5 +391,165 @@ final public class S3Signature {
                 signingKey, 
                 algorithm);
         return BaseEncoding.base16().lowerCase().encode(signature);
+    }
+
+    private String createCanonicalRequestXFF(HttpServletRequest request,
+            String uri, byte[] payload, String hashAlgorithm, String xffvalue)
+            throws IOException, NoSuchAlgorithmException {
+        String authorizationHeader = request.getHeader(GWConstants.AUTHORIZATION);
+        String xAmzContentSha256 = request.getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
+        if (xAmzContentSha256 == null) {
+            xAmzContentSha256 = request.getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
+        }
+        String digest;
+        if (authorizationHeader == null) {
+            digest = GWConstants.UNSIGNED_PAYLOAD;
+        } else if (GWConstants.STREAMING_AWS4_HMAC_SHA256_PAYLOAD.equals(xAmzContentSha256)) {
+            digest = GWConstants.STREAMING_AWS4_HMAC_SHA256_PAYLOAD;
+        } else if (GWConstants.UNSIGNED_PAYLOAD.equals(xAmzContentSha256)) {
+            digest = GWConstants.UNSIGNED_PAYLOAD;
+        } else {
+            if (xAmzContentSha256 == null)
+                digest = getMessageDigest(payload, hashAlgorithm);
+            else
+                digest = xAmzContentSha256;
+        }
+
+        List<String> signedHeaders;
+        if (authorizationHeader != null) {
+            signedHeaders = extractSignedHeaders(authorizationHeader);
+        } else {
+            signedHeaders = Splitter.on(GWConstants.CHAR_SEMICOLON).splitToList(request.getParameter(GWConstants.X_AMZ_SIGNEDHEADERS));
+        }
+
+        String method = request.getMethod();
+        if (GWConstants.METHOD_OPTIONS.equals(method)) {
+            String corsMethod = request.getHeader(
+                    HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
+            if (corsMethod != null) {
+                method = corsMethod;
+            }
+        }
+
+        // logger.info("method({}), uri({}), signedHeaders({}), digest({})", method,
+        // uri, signedHeaders, digest);
+        String canonicalRequest = "";
+        if (digest == null) {
+            canonicalRequest = Joiner.on(GWConstants.NEWLINE).join(
+                    method,
+                    uri,
+                    buildCanonicalQueryString(request),
+                    buildCanonicalHeadersXFF(request, signedHeaders, xffvalue) + GWConstants.NEWLINE,
+                    Joiner.on(GWConstants.CHAR_SEMICOLON).join(signedHeaders));
+        } else {
+            canonicalRequest = Joiner.on(GWConstants.NEWLINE).join(
+                    method,
+                    uri,
+                    buildCanonicalQueryString(request),
+                    buildCanonicalHeadersXFF(request, signedHeaders, xffvalue) + GWConstants.NEWLINE,
+                    Joiner.on(GWConstants.CHAR_SEMICOLON).join(signedHeaders),
+                    digest);
+        }
+
+        logger.info(canonicalRequest);
+        return getMessageDigest(
+                canonicalRequest.getBytes(StandardCharsets.UTF_8),
+                hashAlgorithm);
+    }
+
+    private String buildCanonicalHeadersXFF(HttpServletRequest request,
+            List<String> signedHeaders, String xffvalue) {
+        List<String> headers = new ArrayList<>();
+        for (String header : signedHeaders) {
+            headers.add(header.toLowerCase());
+        }
+
+        Collections.sort(headers);
+        List<String> headersWithValues = new ArrayList<>();
+        for (String header : headers) {
+            if (header.equalsIgnoreCase(GWConstants.X_FORWARDED_FOR)) {
+                StringBuilder headerWithValue = new StringBuilder();
+                headerWithValue.append(header);
+                headerWithValue.append(GWConstants.COLON);
+                headerWithValue.append(xffvalue);
+                headersWithValues.add(headerWithValue.toString());
+            } else {
+
+                List<String> values = new ArrayList<>();
+                StringBuilder headerWithValue = new StringBuilder();
+                headerWithValue.append(header);
+                headerWithValue.append(GWConstants.COLON);
+                for (String value : Collections.list(request.getHeaders(header))) {
+                    value = value.trim();
+                    if (!value.startsWith(GWConstants.DOUBLE_QUOTE)) {
+                        value = value.replaceAll(GWConstants.BACKSLASH_S_PLUS, GWConstants.SPACE);
+                    }
+
+                    // 2021-04-14 UTF-8 signing fix
+                    value = value.replaceAll(GWConstants.CHARSET_UTF_8, GWConstants.CHARSET_UTF_8_LOWER);
+
+                    values.add(value);
+                }
+                headerWithValue.append(Joiner.on(GWConstants.COMMA).join(values));
+                headersWithValues.add(headerWithValue.toString());
+            }
+        }
+
+        return Joiner.on(GWConstants.NEWLINE).join(headersWithValues);
+    }
+
+    public String createAuthorizationSignatureV4XFF(
+            HttpServletRequest request, S3AuthorizationHeader authHeader,
+            byte[] payload, String uri, String credential, String xffvalue, S3Parameter s3Parameter)
+            throws GWException {
+
+        try {
+            String canonicalRequest;
+            canonicalRequest = createCanonicalRequestXFF(request, uri, payload, authHeader.hashAlgorithm, xffvalue);
+
+            String algorithm = authHeader.hmacAlgorithm;
+            byte[] dateKey = signMessage(
+                    authHeader.date.getBytes(StandardCharsets.UTF_8),
+                    (GWConstants.AWS4 + credential).getBytes(StandardCharsets.UTF_8),
+                    algorithm);
+            byte[] dateRegionKey = signMessage(
+                    authHeader.region.getBytes(StandardCharsets.UTF_8), dateKey,
+                    algorithm);
+            byte[] dateRegionServiceKey = signMessage(
+                    authHeader.service.getBytes(StandardCharsets.UTF_8),
+                    dateRegionKey, algorithm);
+            byte[] signingKey = signMessage(
+                    GWConstants.AWS4_REQUEST.getBytes(StandardCharsets.UTF_8),
+                    dateRegionServiceKey, algorithm);
+            String date = request.getHeader(GWConstants.X_AMZ_DATE_LOWER);
+            if (date == null) {
+                date = request.getParameter(GWConstants.X_AMZ_DATE);
+            }
+
+            String signatureString = GWConstants.AWS4_HMAC_SHA256 + GWConstants.NEWLINE +
+                    date + GWConstants.NEWLINE +
+                    authHeader.date + GWConstants.SLASH + authHeader.region +
+                    GWConstants.S3_AWS4_REQUEST + GWConstants.NEWLINE +
+                    canonicalRequest;
+
+            logger.info(authHeader.hmacAlgorithm);
+            logger.info(signatureString);
+
+            byte[] signature = signMessage(
+                    signatureString.getBytes(StandardCharsets.UTF_8),
+                    signingKey, algorithm);
+
+            return BaseEncoding.base16().lowerCase().encode(signature);
+
+        } catch (NoSuchAlgorithmException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, e, s3Parameter);
+        } catch (InvalidKeyException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
+        }
     }
 }

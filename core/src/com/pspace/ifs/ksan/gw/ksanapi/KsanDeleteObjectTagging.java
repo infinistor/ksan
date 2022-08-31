@@ -8,86 +8,75 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.adminapi;
-
-import java.util.SortedMap;
-
-import jakarta.servlet.http.HttpServletResponse;
+package com.pspace.ifs.ksan.gw.ksanapi;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
-import com.pspace.ifs.ksan.gw.data.DataAbortMultipartUpload;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.gw.data.DataDeleteObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
-import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.objmanager.Metadata;
-import com.pspace.ifs.ksan.objmanager.ObjMultipart;
-import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.LoggerFactory;
 
-public class AdmAbortMultipartUpload extends S3Request {
-    public AdmAbortMultipartUpload(S3Parameter s3Parameter) {
+public class KsanDeleteObjectTagging extends S3Request {
+    public KsanDeleteObjectTagging(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(AdmAbortMultipartUpload.class);
+		logger = LoggerFactory.getLogger(KsanDeleteObjectTagging.class);
 	}
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_ADMIN_ABORT_MULTIPART_UPLOAD_START);
-		
+		logger.info(GWConstants.LOG_DELETE_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		
-		String object = s3Parameter.getObjectName();
 
+		String object = s3Parameter.getObjectName();
+		
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 
+        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
+        if (user == null) {
+            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+        }
+        s3Parameter.setUser(user);
+
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataAbortMultipartUpload dataAbortMultipartUpload = new DataAbortMultipartUpload(s3Parameter);
-		dataAbortMultipartUpload.extract();
+		DataDeleteObjectTagging dataDeleteObjectTagging = new DataDeleteObjectTagging(s3Parameter);
+		dataDeleteObjectTagging.extract();
 
-		String uploadId = dataAbortMultipartUpload.getUploadId();
+		String versionId = dataDeleteObjectTagging.getVersionId();
 		
-		s3Parameter.setUploadId(uploadId);
-
-		ObjMultipart objMultipart = null;
-		SortedMap<Integer, Part> listPart = null;
-		boolean isUploadId = true;
-		try {
-			objMultipart = getInstanceObjMultipart(bucket);
-			if (!objMultipart.isUploadId(uploadId)) {
-				isUploadId = false;
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
-			}
-			listPart = objMultipart.getParts(uploadId);
-		} catch (Exception e) {
-			if (!isUploadId) {
-				throw new GWException(GWErrorCode.NO_SUCH_UPLOAD, s3Parameter);
-			}
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		Metadata objMeta = null;
+		if (Strings.isNullOrEmpty(versionId)) {
+			objMeta = open(bucket, object);
+			versionId = objMeta.getVersionId();
+		} else {
+			objMeta = open(bucket, object, versionId);
 		}
+		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 
-		// get Paths
-		Metadata objMeta = createLocal(bucket, object);
+		checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
-		objectOperation.abortMultipart(listPart);
-		
-		objMultipart.abortMultipartUpload(uploadId);
+		objMeta.setTag("");
+		updateObjectTagging(objMeta);
 
+		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, dataDeleteObjectTagging.getVersionId());
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
 }

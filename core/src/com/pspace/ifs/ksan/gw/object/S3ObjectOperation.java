@@ -2005,7 +2005,7 @@ public class S3ObjectOperation {
             String path = null;
             for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<Integer, Part> entry = it.next();
-                logger.info("key : {}, diskId : {}", entry.getKey(), objMeta.getPrimaryDisk().getId());
+                logger.info("key : {}, diskId : {}", entry.getKey(), entry.getValue().getDiskID());
                 path = DiskManager.getInstance().getLocalPath(entry.getValue().getDiskID());
 
                 if (!Strings.isNullOrEmpty(path)) {

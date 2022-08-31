@@ -23,6 +23,7 @@ import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
@@ -65,7 +66,7 @@ class ConfigUpdateCallback implements MQCallback{
 		GWPortal.getInstance().getConfig();
 		// ObjManagerHelper.updateAllConfig();
 		
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 	}    
 }
 
@@ -84,7 +85,7 @@ class DiskUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 		}
 	}
 }
@@ -104,7 +105,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 		}
 	}    
 }
@@ -156,7 +157,7 @@ class UserUpdateCallBack implements MQCallback{
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 	}
 }
 
@@ -179,9 +180,60 @@ class ServiceUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 		}
 	}    
+}
+
+class RegionUpdateCallBack implements MQCallback{
+	private static final Logger logger = LoggerFactory.getLogger(RegionUpdateCallBack.class);
+	@Override
+	public MQResponse call(String routingKey, String body) {
+		logger.info(GWConstants.GWPORTAL_RECEIVED_USER_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+		JSONParser parser = new JSONParser();
+		JSONObject data = null;
+		JSONArray jsonUserDiskpools = null;
+		try {
+			data = (JSONObject)parser.parse(body);
+		} catch (ParseException e) {
+			PrintStack.logging(logger, e);
+		}
+		
+		// if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_ADDED)) {
+		// 	jsonUserDiskpools = (JSONArray)data.get(S3User.USER_DISK_POOLS);
+		// 	S3User user = new S3User((String)data.get(S3User.USER_ID), 
+		// 							 (String)data.get(S3User.USER_NAME), 
+		// 							 (String)data.get(S3User.USER_EMAIL), 
+		// 							 (String)data.get(S3User.ACCESS_KEY), 
+		// 							 (String)data.get(S3User.ACCESS_SECRET),
+		// 							 jsonUserDiskpools);
+		// 	S3UserManager.getInstance().addUser(user);
+		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+		// 	S3UserManager.getInstance().printUsers();
+		// } else if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_UPDATED)) {
+		// 	jsonUserDiskpools = (JSONArray)data.get(S3User.USER_DISK_POOLS);
+		// 	S3User user = S3UserManager.getInstance().getUserById((String)data.get(S3User.USER_ID));
+		// 	S3UserManager.getInstance().removeUser(user);
+		// 	user = new S3User((String)data.get(S3User.USER_ID), 
+		// 					  (String)data.get(S3User.USER_NAME), 
+		// 					  (String)data.get(S3User.USER_EMAIL), 
+		// 					  (String)data.get(S3User.ACCESS_KEY), 
+		// 					  (String)data.get(S3User.ACCESS_SECRET),
+		// 					  jsonUserDiskpools);
+		// 	S3UserManager.getInstance().addUser(user);
+		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
+		// 	S3UserManager.getInstance().printUsers();
+		// } else if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_REMOVED)) {
+		// 	S3User user = S3UserManager.getInstance().getUserById((String)data.get(S3User.USER_ID));
+		// 	S3UserManager.getInstance().removeUser(user);
+		// 	S3UserManager.getInstance().printUsers();
+		// } else {
+		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
+		// }
+
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+	}
 }
 
 public class GWPortal {

@@ -192,11 +192,9 @@ public class CompleteMultipartUpload extends S3Request {
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 				objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, versionId);
-				// objMeta = create(bucket, object, versionId);
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 				objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, versionId);
-				// objMeta = create(bucket, object);
 			}
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);

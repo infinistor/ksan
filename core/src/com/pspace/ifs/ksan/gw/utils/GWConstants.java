@@ -357,6 +357,7 @@ public final class GWConstants {
 	
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
+	public static final String CHARSET_UTF_8_LOWER = "utf-8";
 	public static final String UTC = "UTC";
 	public static final String GMT = "GMT";
 	public static final String ISO_8601_TIME_FORMAT = "yyyyMMdd'T'HHmmss'Z'";

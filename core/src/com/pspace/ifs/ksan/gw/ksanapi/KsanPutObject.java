@@ -8,7 +8,8 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.api;
+package com.pspace.ifs.ksan.gw.ksanapi;
+import com.pspace.ifs.ksan.gw.api.S3Request;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
@@ -35,6 +36,7 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet;
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
@@ -44,18 +46,16 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.slf4j.LoggerFactory;
 
-
-
-public class PutObject extends S3Request {
-
-	public PutObject(S3Parameter s3Parameter) {
+public class KsanPutObject extends S3Request {
+    public KsanPutObject(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutObject.class);
+		logger = LoggerFactory.getLogger(KsanPutObject.class);
 	}
 
 	@Override
@@ -73,6 +73,12 @@ public class PutObject extends S3Request {
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
+
+        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
+        if (user == null) {
+            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+        }
+        s3Parameter.setUser(user);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -102,6 +108,7 @@ public class PutObject extends S3Request {
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
 		}
+        
 		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
 
 		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
