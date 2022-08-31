@@ -281,7 +281,7 @@ class GetAttrObjectCallBack implements MQCallback {
 				ETag = base16().lowerCase().encode(digest);
 				message = "{\"BucketName\":\"" + bucketName + "\",\"ObjId\":\"" + objId + "\",\"VersionId\":\"" + versionId + "\",\"MD5\":\"" + ETag + "\",\"Size\":" + size + "}";
 				logger.info("send message: {}", message);
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, message, 0);
 			} catch(Exception e) {
 				logger.error(e.getMessage());
 				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
