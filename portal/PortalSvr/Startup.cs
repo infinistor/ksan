@@ -122,36 +122,27 @@ namespace PortalSvr
 					// MariaDB 설정
 					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
 					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 				}
 				else
 				{
 					// MariaDB 설정
 					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
-					Console.WriteLine(mariaDBConfiguration.GetConnectionString());
 					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 				}
-
-				// // MariaDB 설정
-				// IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
-				// MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
-				// var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
-				// Console.WriteLine(ConnectionMariaDBString);
-				// // 데이터베이스 연결 설정
-				// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-				// // 사용자 인증 관련 데이터베이스 연결 설정
-				// Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -289,7 +280,6 @@ namespace PortalSvr
 				{
 					// 개발자 Exception 페이지 사용
 					app.UseDeveloperExceptionPage();
-					//app.UseDatabaseErrorPage();
 				}
 				// 운영 환경인 경우
 				else
@@ -371,29 +361,30 @@ namespace PortalSvr
 				// 모든 설정 로드
 				systemConfigLoader.Load(dbContext);
 
-				// SMTP 설정 관련 초기화할 목록을 가져온다.
-				var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
-				// SMTP 설정 관련 초기화할 항목이 존재하는 경우
-				if (smtpConfigValues != null && smtpConfigValues.Count > 0)
-				{
-					// 항목 추가
-					foreach (var keyValue in smtpConfigValues)
-						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-					dbContext.SaveChangesWithConcurrencyResolution();
-					configChanged = true;
-				}
+				// // SMTP 설정 관련 초기화할 목록을 가져온다.
+				// var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
+				// // SMTP 설정 관련 초기화할 항목이 존재하는 경우
+				// if (smtpConfigValues != null && smtpConfigValues.Count > 0)
+				// {
+				// 	// 항목 추가
+				// 	foreach (var keyValue in smtpConfigValues)
+				// 		dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+				// 	dbContext.SaveChangesWithConcurrencyResolution();
+				// 	configChanged = true;
+				// }
 
-				// 업로드 설정 관련 초기화할 목록을 가져온다.
-				var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
-				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
-				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
-				{
-					// 항목 추가
-					foreach (var keyValue in uploadConfigValues)
-						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-					dbContext.SaveChangesWithConcurrencyResolution();
-					configChanged = true;
-				}
+				// // 업로드 설정 관련 초기화할 목록을 가져온다.
+				// var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+
+				// // 업로드 설정 관련 초기화할 항목이 존재하는 경우
+				// if (uploadConfigValues != null && uploadConfigValues.Count > 0)
+				// {
+				// 	// 항목 추가
+				// 	foreach (var keyValue in uploadConfigValues)
+				// 		dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+				// 	dbContext.SaveChangesWithConcurrencyResolution();
+				// 	configChanged = true;
+				// }
 
 				// 설정이 변경된 경우, 모든 설정 로드
 				if (configChanged)
