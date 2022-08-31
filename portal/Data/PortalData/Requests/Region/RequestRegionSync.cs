@@ -17,7 +17,7 @@ using PortalResources;
 namespace PortalData.Requests.Region
 {
 	/// <summary> 리전 정보 응답 클래스</summary>
-	public class RequestRegion : CommonRequestData
+	public class RequestRegionSync : CommonRequestData
 	{
 		/// <summary> 리전명 </summary>
 		public string Name
@@ -38,5 +38,13 @@ namespace PortalData.Requests.Region
 		/// <summary> SSL포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
 		public virtual int SSLPort { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		[Required]
+		public virtual string AccessKey { get; set; }
+
+		/// <summary> 엑세스키 </summary>
+		[Required]
+		public virtual string SecretKey { get; set; }
 	}
 }
