@@ -225,11 +225,17 @@ namespace PortalSvr.Services
 					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESSKEY, out string AccessKey);
 					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRETKEY, out string SecretKey);
 
-					var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
+					// 액세스키, 시크릿키를 설정하지 않았을 경우 기본유저 생성 하지 않음
+					if (AccessKey == null || SecretKey == null || AccessKey.IsEmpty() || SecretKey.IsEmpty())
+						m_logger.LogInformation("User Create Skip");
+					else
+					{
+						var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
 
-					// 유저 생성에 실패할 경우
-					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
-					else m_logger.LogInformation($"{UserName} Add Success");
+						// 유저 생성에 실패할 경우
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
+						else m_logger.LogInformation($"{UserName} Add Success");
+					}
 				}
 
 				//gw 서비스가 등록되지 않은 경우 등록한다.
