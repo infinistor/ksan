@@ -21,7 +21,7 @@ namespace PortalProviderInterface
 		/// <summary>DB에서 설정을 로드한다.</summary>
 		/// <param name="context">DB 컨텍스트</param>
 		/// <returns>로드 결과</returns>
-		Task<bool> Load(DbContext context);
+		bool Load(DbContext context);
 
 		/// <summary>특정 설정 값에 대한 문자열을 가져온다.</summary>
 		/// <param name="key">설정 키</param>

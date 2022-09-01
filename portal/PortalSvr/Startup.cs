@@ -361,30 +361,30 @@ namespace PortalSvr
 				// 모든 설정 로드
 				systemConfigLoader.Load(dbContext);
 
-				// // SMTP 설정 관련 초기화할 목록을 가져온다.
-				// var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
-				// // SMTP 설정 관련 초기화할 항목이 존재하는 경우
-				// if (smtpConfigValues != null && smtpConfigValues.Count > 0)
-				// {
-				// 	// 항목 추가
-				// 	foreach (var keyValue in smtpConfigValues)
-				// 		dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-				// 	dbContext.SaveChangesWithConcurrencyResolution();
-				// 	configChanged = true;
-				// }
+				// SMTP 설정 관련 초기화할 목록을 가져온다.
+				var smtpConfigValues = smtpConfigLoader.GetListForInitialization();
+				// SMTP 설정 관련 초기화할 항목이 존재하는 경우
+				if (smtpConfigValues != null && smtpConfigValues.Count > 0)
+				{
+					// 항목 추가
+					foreach (var keyValue in smtpConfigValues)
+						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+					dbContext.SaveChangesWithConcurrencyResolution();
+					configChanged = true;
+				}
 
-				// // 업로드 설정 관련 초기화할 목록을 가져온다.
-				// var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+				// 업로드 설정 관련 초기화할 목록을 가져온다.
+				var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
 
-				// // 업로드 설정 관련 초기화할 항목이 존재하는 경우
-				// if (uploadConfigValues != null && uploadConfigValues.Count > 0)
-				// {
-				// 	// 항목 추가
-				// 	foreach (var keyValue in uploadConfigValues)
-				// 		dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
-				// 	dbContext.SaveChangesWithConcurrencyResolution();
-				// 	configChanged = true;
-				// }
+				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
+				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
+				{
+					// 항목 추가
+					foreach (var keyValue in uploadConfigValues)
+						dbContext.Configs.Add(new Config() { Key = keyValue.Key, Value = keyValue.Value });
+					dbContext.SaveChangesWithConcurrencyResolution();
+					configChanged = true;
+				}
 
 				// 설정이 변경된 경우, 모든 설정 로드
 				if (configChanged)
