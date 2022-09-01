@@ -150,11 +150,11 @@ public class MongoDataRepository implements DataRepository{
         String credential;
         String authSRC;
         
-        /*if (!username.isEmpty()){
+        if (!username.isEmpty()){
             credential = String.format("%s:%s@", username, passwd);
             authSRC = String.format("/?authSource=%s", dbname);
         }
-        else*/{
+        else{
            credential = "";
            authSRC = "";
         }
