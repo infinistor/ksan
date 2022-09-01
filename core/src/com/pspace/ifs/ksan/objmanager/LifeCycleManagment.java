@@ -50,4 +50,32 @@ public class LifeCycleManagment {
     public List<LifeCycle> getLifeCycleEventList() throws SQLException{
         return dbm.selectAllLifeCycle();
     }
+    
+    public void putFailedLifeCycleEvent(LifeCycle lifecycle) throws SQLException{ 
+        dbm.insertFailedLifeCycle(lifecycle);
+    }
+    
+    public void putFailedLifeCycleEvents(List<LifeCycle> lifecycleList) throws SQLException{
+        for (LifeCycle lc : lifecycleList){
+            putFailedLifeCycleEvent(lc);
+        }
+    }
+    
+    public int removeFailedLifeCycleEvent(LifeCycle lifecycle) throws SQLException{
+        return dbm.deleteFailedLifeCycle(lifecycle);
+    }
+    
+    // get life cycle with bucketname, key and versionId
+    public LifeCycle getFailedLifeCycleEvent(LifeCycle lifecycle) throws SQLException{
+        return dbm.selectFailedLifeCycle(lifecycle);
+    }
+    
+    // get life cycle with uploadid
+    public LifeCycle getFailedLifecyCleEventByUploadId(LifeCycle lifecycle) throws SQLException{
+        return dbm.selectLifeCycle(lifecycle);
+    }
+    
+    public List<LifeCycle> getFailedLifeCycleEventList() throws SQLException{
+        return dbm.selectAllFailedLifeCycle();
+    }
 }

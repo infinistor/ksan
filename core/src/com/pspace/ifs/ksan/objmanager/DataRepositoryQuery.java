@@ -114,7 +114,9 @@ public final class DataRepositoryQuery {
      public  static String  selectUJobQuery = "SELECT status, TotalNumObject, NumJobDone, checkOnly, utilName, startTime FROM UTILJOBS WHERE Id=?";
      
      // for LifeCycle
-    public  static String createLifeCycleQuery= "CREATE TABLE IF NOT EXISTS LIFECYCLES("
+    public static String lifeCycleEventTableName = "LIFECYCLESEVENTS";
+    public static String lifeCycleFailedEventTableName="LIFECYCLESFAILEDEVENTS";
+    public  static String createLifeCycleQuery= "CREATE TABLE IF NOT EXISTS %s("
                     + " idx bigint(20),"
                     + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
                     + " objKey VARBINARY(2048) COMMENT 'Object key'," 
@@ -123,11 +125,10 @@ public final class DataRepositoryQuery {
                     + " uploadid VARCHAR(80) NOT NULL COMMENT 'LifeCycle upload Id',"
                     + " inDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time data in ',"
                     + " log TEXT COMMENT 'failed log',"
-                    + " isFailed BOOLEAN NOT NULL DEFAULT true,"
                     + " PRIMARY KEY(objid, versionid, uploadid)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
-    public static String insertLifeCycleQuery = "INSERT INTO LIFECYCLES(idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed) VALUES(?, ?, ?, ?, ?, ?, now(), ?, ?)";
-    public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE uploadid=?";
-    public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log, isFailed FROM LIFECYCLES WHERE objid=? AND AND versionid=?";
-    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log, isFailed, FROM LIFECYCLES";
-    public static String deleteLifeCycleQuery = "DELETE FROM LIFECYCLES WHERE bucket=? AND objKey=? AND versionid=?";
+    public static String insertLifeCycleQuery = "INSERT INTO %s(idx, bucket, objKey, objid, versionid, uploadid, inDate, log) VALUES(?, ?, ?, ?, ?, ?, now(), ?)";
+    public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE uploadid=?";
+    public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
+    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log, FROM %s";
+    public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE bucket=? AND objKey=? AND versionid=?";
 }

@@ -87,12 +87,12 @@ public class MysqlDataRepository implements DataRepository{
     
     
     // for LifeCycle
-    private PreparedStatement pstCreateLifeCycle;
-    private PreparedStatement pstInsertLifeCycle;
-    private PreparedStatement pstSelectLifeCycle;
-    private PreparedStatement pstSelectByUploadIdLifeCycle;
-    private PreparedStatement pstSelectAllLifeCycle;
-    private PreparedStatement pstDeleteLifeCycle;
+    //private PreparedStatement pstCreateLifeCycle;
+   // private PreparedStatement pstInsertLifeCycle;
+    //private PreparedStatement pstSelectLifeCycle;
+    //private PreparedStatement pstSelectByUploadIdLifeCycle;
+    //private PreparedStatement pstSelectAllLifeCycle;
+    //private PreparedStatement pstDeleteLifeCycle;
             
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname) throws SQLException{
         this.obmCache = obmCache;
@@ -148,12 +148,12 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectUJob = con.prepareStatement(DataRepositoryQuery.selectUJobQuery);
 
             // for LifeCycle
-            pstCreateLifeCycle = con.prepareStatement(DataRepositoryQuery.createLifeCycleQuery);
-            pstInsertLifeCycle = con.prepareStatement(DataRepositoryQuery.insertLifeCycleQuery);
-            pstSelectLifeCycle = con.prepareStatement(DataRepositoryQuery.selectLifeCycleQuery);
-            pstSelectByUploadIdLifeCycle = con.prepareStatement(DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
-            pstSelectAllLifeCycle = con.prepareStatement(DataRepositoryQuery.selectAllLifeCycleQuery);
-            pstDeleteLifeCycle = con.prepareStatement(DataRepositoryQuery.deleteLifeCycleQuery);
+            //pstCreateLifeCycle = con.prepareStatement(DataRepositoryQuery.createLifeCycleQuery);
+            //pstInsertLifeCycle = con.prepareStatement(DataRepositoryQuery.insertLifeCycleQuery);
+            //pstSelectLifeCycle = con.prepareStatement(DataRepositoryQuery.selectLifeCycleQuery);
+            //pstSelectByUploadIdLifeCycle = con.prepareStatement(DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
+            //pstSelectAllLifeCycle = con.prepareStatement(DataRepositoryQuery.selectAllLifeCycleQuery);
+            //pstDeleteLifeCycle = con.prepareStatement(DataRepositoryQuery.deleteLifeCycleQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -208,8 +208,19 @@ public class MysqlDataRepository implements DataRepository{
         this.pstCreateBucket.execute();
         this.pstCreateMultiPart.execute();
         pstCreateUJob.execute();
-        pstCreateLifeCycle.execute();
+        //pstCreateLifeCycle.execute();
+        createLifeCycleEventTables();
         return 0;
+    }
+    
+    private void createLifeCycleEventTables() throws SQLException{
+        PreparedStatement pstCreateLifeCycle;
+        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleEventTableName, DataRepositoryQuery.createLifeCycleQuery);
+        pstCreateLifeCycle.execute();
+        pstCreateLifeCycle.close();
+        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleFailedEventTableName, DataRepositoryQuery.createLifeCycleQuery);
+        pstCreateLifeCycle.execute();
+        pstCreateLifeCycle.close();
     }
     
     private PreparedStatement getObjPreparedStmt(String bucketName, String format) throws SQLException{
@@ -219,11 +230,11 @@ public class MysqlDataRepository implements DataRepository{
         return pstStmt;
     }
     
-    private PreparedStatement getObjPreparedStmt2(String bucketName, String format) throws SQLException{
+    /*private PreparedStatement getObjPreparedStmt2(String bucketName, String format) throws SQLException{
         String query = String.format(format, "`" + bucketName + "`", "`" + bucketName + "`");
         PreparedStatement pstStmt = con.prepareStatement(query);
         return pstStmt;
-    }
+    }*/
     
     private void createObjectTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
@@ -1288,8 +1299,8 @@ public class MysqlDataRepository implements DataRepository{
         return rowCount;
     }
 
-    @Override
-    public void insertLifeCycle(LifeCycle lc) throws SQLException{
+    private void insertLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstInsertLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.insertLifeCycleQuery);
         pstInsertLifeCycle.clearParameters();
         pstInsertLifeCycle.setLong(  1, lc.getIndex());
         pstInsertLifeCycle.setString(2, lc.getBucketName());
@@ -1298,12 +1309,11 @@ public class MysqlDataRepository implements DataRepository{
         pstInsertLifeCycle.setString(5, lc.getVersionId());
         pstInsertLifeCycle.setString(6, lc.getUploadId());
         pstInsertLifeCycle.setString(7, lc.getLog());
-        pstInsertLifeCycle.setBoolean(8, lc.isFailed());
         pstInsertLifeCycle.execute();
     }
     
  
-    private List<LifeCycle> parseSelectLifeCycle(ResultSet rs) throws SQLException{
+    private List<LifeCycle> parseSelectLifeCycle(ResultSet rs, boolean isFailed) throws SQLException{
         List<LifeCycle> list = new ArrayList();
         while (rs.next()) {
             long idx = rs.getLong("idx");
@@ -1313,46 +1323,100 @@ public class MysqlDataRepository implements DataRepository{
             String uploadid = rs.getString("uploadid");
             Date inDate = rs.getDate("inDate");
             String log = rs.getString("log");
-            boolean isfailed = rs.getBoolean("isFailed");
+            //boolean isfailed = rs.getBoolean("isFailed");
             LifeCycle slf = new LifeCycle(idx, bucket, objKey, versionid, uploadid, log);
-            slf.setFailedEvent(isfailed);
+            slf.setFailedEvent(isFailed);
             slf.setInDate(inDate);
             list.add(slf);
         }
         return list;
     }
     
-    @Override
-    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException{
-        pstSelectLifeCycle.clearParameters();
+    
+    private LifeCycle selectLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstSelectLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectLifeCycleQuery);
         pstSelectLifeCycle.setString(1, lc.getObjId());
         pstSelectLifeCycle.setString(2, lc.getVersionId());
         ResultSet rs = pstSelectLifeCycle.executeQuery();
-        return parseSelectLifeCycle(rs).get(0);
+        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        if (list.isEmpty())
+            return null;
         
+        return list.get(0);
+        
+    }
+    
+    private LifeCycle selectByUploadIdLifeCycle(String eventName, String uploadId) throws SQLException{
+        PreparedStatement pstSelectByUploadIdLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
+        pstSelectByUploadIdLifeCycle.setString(1, uploadId);
+        ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
+        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        if (list.isEmpty())
+            return null;
+        
+        return list.get(0);
+    }
+   
+    private List<LifeCycle> selectAllLifeCycle(String eventName) throws SQLException{
+        PreparedStatement pstSelectAllLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectAllLifeCycleQuery);
+        ResultSet rs = pstSelectAllLifeCycle.executeQuery();
+        return parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+    }
+    
+    private int deleteLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstDeleteLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.deleteLifeCycleQuery);
+        pstDeleteLifeCycle.setString(1, lc.getObjId());
+        pstDeleteLifeCycle.setString(2, lc.getVersionId());
+        return pstDeleteLifeCycle.executeUpdate();
+    }
+    
+    @Override
+    public void insertLifeCycle(LifeCycle lc) throws SQLException{
+        insertLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public void insertFailedLifeCycle(LifeCycle lc) throws SQLException{
+        insertLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
+    }
+    
+    @Override
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException{
+        return selectLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException{
+        return selectLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
     
     @Override
     public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException{
-        pstSelectByUploadIdLifeCycle.clearParameters();
-        pstSelectByUploadIdLifeCycle.setString(1, uploadId);
-        ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
-        return parseSelectLifeCycle(rs).get(0);
+        return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, uploadId);
     }
-   
+    
+    @Override
+    public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException{
+        return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, uploadId);
+    }
+    
     @Override
     public List<LifeCycle> selectAllLifeCycle() throws SQLException{
-        pstSelectLifeCycle.clearParameters();
-        ResultSet rs = pstSelectLifeCycle.executeQuery();
-        return parseSelectLifeCycle(rs);
-        
+        return selectAllLifeCycle(DataRepositoryQuery.lifeCycleEventTableName);
+    }
+    
+    @Override
+    public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException{
+        return selectAllLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName);
     }
     
     @Override
     public int deleteLifeCycle(LifeCycle lc) throws SQLException{
-        pstDeleteLifeCycle.clearParameters();
-        pstDeleteLifeCycle.setString(1, lc.getObjId());
-        pstDeleteLifeCycle.setString(2, lc.getVersionId());
-        return pstDeleteLifeCycle.executeUpdate();
+        return deleteLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException{
+        return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
 }

@@ -71,7 +71,8 @@ public class MongoDataRepository implements DataRepository{
     
     // for collection names
     private static final String BUCKETSCOLLECTION="BUCKETS";
-    private static final String LIFECYCLES ="LIFECYCLES";
+    private static final String LIFECYCLESEVENTS ="LIFECYCLESEVENTS";
+    private static final String LIFECYCLESFAILEDEVENTS ="LIFECYCLESFAILEDEVENTS";
     private static final String MULTIPARTUPLOAD ="MULTIPARTUPLOAD";
     private static final String UTILJOBS = "UTILJOBS";
     
@@ -143,7 +144,8 @@ public class MongoDataRepository implements DataRepository{
         parseDBHostNames2URL(hosts, port);
         connect();
         createBucketsHolder();
-        createLifCycleHolder();
+        createLifCycleHolder(LIFECYCLESEVENTS);
+        createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -195,27 +197,27 @@ public class MongoDataRepository implements DataRepository{
         }
     }
     
-    private void createLifCycleHolder(){
+    private void createLifCycleHolder(String collectionName){
         Document index;
         //objid, versionid, uploadid
         index = new Document(OBJID, 1);
         index.append(VERSIONID, 1);
         index.append(UPLOADID, 1);
-        MongoCollection<Document> lifeCycle = database.getCollection(LIFECYCLES);
+        MongoCollection<Document> lifeCycle = database.getCollection(collectionName);
         if (lifeCycle == null){
-            database.createCollection(LIFECYCLES);
-            lifeCycle = database.getCollection(LIFECYCLES);
+            database.createCollection(collectionName);
+            lifeCycle = database.getCollection(collectionName);
             lifeCycle.createIndex(index, new IndexOptions().unique(true));
         }
     }
     
-    private MongoCollection<Document> getLifCyclesCollection(){
+    private MongoCollection<Document> getLifCyclesCollection(String collectionName){
         MongoCollection<Document> lifeCycle;
         
-        lifeCycle = this.database.getCollection(LIFECYCLES);
+        lifeCycle = this.database.getCollection(collectionName);
         if (lifeCycle == null){
-            database.createCollection(LIFECYCLES);
-            lifeCycle = database.getCollection(LIFECYCLES);
+            database.createCollection(collectionName);
+            lifeCycle = database.getCollection(collectionName);
             lifeCycle.createIndex(Indexes.ascending(OBJID, VERSIONID, UPLOADID), new IndexOptions().unique(true));
         }
         
@@ -1302,9 +1304,8 @@ public class MongoDataRepository implements DataRepository{
         return mt;
     }
 
-    @Override
-    public void insertLifeCycle(LifeCycle lc) throws SQLException {
-        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+    private void insertLifeCycle(String collectionName, LifeCycle lc) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection(collectionName);
         if (lifecycle == null)
             throw new SQLException("[insertLifeCycle] mongo db holder for lifcycle not found!");
         
@@ -1316,11 +1317,11 @@ public class MongoDataRepository implements DataRepository{
         doc.append(INDATE, lc.getInDate());
         doc.append(LOGMSG, lc.getLog());
         doc.append(LIFECYCLEID, lc.getIndex());
-        doc.append(ISFAILED, lc.isFailed());
+        //doc.append(ISFAILED, lc.isFailed());
         lifecycle.insertOne(doc);
     }
 
-    private List<LifeCycle> parseSelectLifeCycle(Iterator it){
+    private List<LifeCycle> parseSelectLifeCycle(Iterator it, boolean isFailed){
         List<LifeCycle> list = new ArrayList();
         
         if (!(it.hasNext()))
@@ -1335,7 +1336,7 @@ public class MongoDataRepository implements DataRepository{
             String log        = doc.getString(LOGMSG);
             Date inDate       = doc.getDate(INDATE);
             long idx          = doc.getLong(LIFECYCLEID);
-            boolean isFailed  = doc.getBoolean(ISFAILED);
+            //boolean isFailed  = doc.getBoolean(ISFAILED);
             LifeCycle slf = new LifeCycle(idx, bucketName, objKey, versionId, uploadId, log);
             slf.setInDate(inDate);
             slf.setFailedEvent(isFailed);
@@ -1344,37 +1345,39 @@ public class MongoDataRepository implements DataRepository{
         return list;
     }
     
-    @Override
-    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException {
-        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+    private LifeCycle selectLifeCycle(String collectionName, LifeCycle lc) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection(collectionName);
         FindIterable fit = lifecycle.find(Filters.and(Filters.eq(OBJID, lc.getObjId()), Filters.eq(VERSIONID, lc.getVersionId())));
      
         Iterator it = fit.iterator();
-        return parseSelectLifeCycle(it).get(0);
+        if (!it.hasNext())
+            return null;
+        
+        return parseSelectLifeCycle(it, collectionName.equals(LIFECYCLESFAILEDEVENTS)).get(0);
     }
 
-    @Override
-    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException {
-        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+    private LifeCycle selectByUploadIdLifeCycle(String collectionName, String uploadId) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection(collectionName);
         FindIterable fit = lifecycle.find(Filters.eq(UPLOADID, uploadId));
      
         Iterator it = fit.iterator();
-        return parseSelectLifeCycle(it).get(0);
+        if (!it.hasNext())
+            return null;
+        
+        return parseSelectLifeCycle(it, collectionName.equals(LIFECYCLESFAILEDEVENTS)).get(0);
     }
 
-    @Override
-    public List<LifeCycle> selectAllLifeCycle() throws SQLException {
-        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+    private List<LifeCycle> selectAllLifeCycle(String collectionName) throws SQLException {
+        MongoCollection<Document> lifecycle = getLifCyclesCollection(collectionName);
         FindIterable fit = lifecycle.find();
    
         Iterator it = fit.iterator();
-        return parseSelectLifeCycle(it);
+        return parseSelectLifeCycle(it, collectionName.equals(LIFECYCLESFAILEDEVENTS));
     }
 
-    @Override
-    public int deleteLifeCycle(LifeCycle lc) throws SQLException {
+    private int deleteLifeCycle(String collectionName, LifeCycle lc) throws SQLException {
         DeleteResult dres;
-        MongoCollection<Document> lifecycle = getLifCyclesCollection();
+        MongoCollection<Document> lifecycle = getLifCyclesCollection(collectionName);
         
         dres = lifecycle.deleteOne(Filters.and(Filters.eq(OBJID, lc.getObjId()), Filters.eq(VERSIONID, lc.getVersionId())));
         
@@ -1382,5 +1385,55 @@ public class MongoDataRepository implements DataRepository{
             return -1;
         
         return (int)dres.getDeletedCount();
+    }
+    
+    @Override
+    public void insertLifeCycle(LifeCycle lc) throws SQLException {
+        insertLifeCycle(LIFECYCLESEVENTS, lc);
+    }
+    
+    @Override
+    public void insertFailedLifeCycle(LifeCycle lc) throws SQLException {
+        insertLifeCycle(LIFECYCLESFAILEDEVENTS, lc);
+    }
+    
+    @Override
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException {
+        return selectLifeCycle(LIFECYCLESEVENTS, lc);
+    }
+    
+    @Override
+    public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException {
+        return selectLifeCycle(LIFECYCLESFAILEDEVENTS, lc);
+    }
+    
+    @Override
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException {
+        return selectByUploadIdLifeCycle(LIFECYCLESEVENTS, uploadId);
+    }
+    
+    @Override
+    public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException {
+        return selectByUploadIdLifeCycle(LIFECYCLESFAILEDEVENTS, uploadId);
+    }
+    
+    @Override
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException {
+        return selectAllLifeCycle(LIFECYCLESEVENTS);
+    }
+    
+    @Override
+    public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException {
+        return selectAllLifeCycle(LIFECYCLESFAILEDEVENTS);
+    }
+    
+    @Override
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException {
+        return deleteLifeCycle(LIFECYCLESEVENTS, lc);
+    }
+    
+    @Override
+    public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException {
+        return deleteLifeCycle(LIFECYCLESFAILEDEVENTS, lc);
     }
 }
