@@ -35,7 +35,7 @@ public class FSCK {
     private boolean checkOnly;
     private OSDClient osdc;
     private List<Bucket> bukList;
-    private List<String> dskList;
+    //private List<String> dskList;
     private ObjectMover objm;
     private long totalChecked;
     private long totalFixed;
@@ -57,7 +57,7 @@ public class FSCK {
         objm = new ObjectMover(checkOnly, "FSCK");
         obmu = objm.getObjManagerUtil();
         osdc = obmu.getOSDClient();
-        dskList = obmu.getExistedDiskList();
+        //dskList = obmu.getExistedDiskList();
         bukList = obmu.getExistedBucketList();
         
     }
@@ -70,9 +70,8 @@ public class FSCK {
     }
     
     private OSDResponseParser getAttr(String bucket, String objId, String versionId, String diskId, String mpath, String serverId) throws IOException, InterruptedException, TimeoutException {
-        String attr;
-        attr = osdc.getObjectAttr(bucket, objId, versionId, diskId, mpath, serverId);
-        return new OSDResponseParser(attr);
+        
+        return osdc.getObjectAttr(bucket, objId, versionId, diskId, mpath, serverId);
     }
     
     private Response checkObjectCorrectness(Metadata mt ) throws IOException, InterruptedException, TimeoutException, ResourceNotFoundException {
@@ -102,6 +101,20 @@ public class FSCK {
             res.primary = primary;
             res.replica = replica;
             res.ret = 0;
+            if (primary.errorCode.contains("MQ_OBJECT_NOT_FOUND")){
+                problemType1++;
+                res.ret = 6;// copy replica to primary
+                res.actionMessage = "copy replica to primary";
+                return res;  
+            }
+            
+            if (replica.errorCode.contains("MQ_OBJECT_NOT_FOUND")){
+                problemType2++;
+                res.ret = 7; // copy primary to replica
+                res.actionMessage = "copy primary to replica";
+                return res;
+            }
+            
             if (primary.md5.equals(replica.md5) && primary.md5.equals(mt.getEtag())){ 
                 if (primary.size == replica.size && primary.size == mt.getSize())
                     return res;
@@ -135,6 +148,24 @@ public class FSCK {
                 res.ret = 4; // fix md5 of meta
                  res.actionMessage = "fix md5 of meta(Etag) ";
                 return res;
+            }
+        } else{
+            primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
+            //System.out.println(" objId >> " + mt.getObjId() +" primary  >> "+ primary);
+            if (!primary.errorCode.contains("MQ_SUCESS")){
+                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+                problemType1++;
+                return res;
+            }
+            
+            if (!primary.md5.equals(mt.getEtag())){
+                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+                problemType4++;
+            }
+            
+            if (primary.size != mt.getSize()){
+                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+                problemType3++;
             }
         }
         
@@ -195,16 +226,12 @@ public class FSCK {
             if (ret == 0)
                 totalFixed++;
         } 
-        catch (ResourceNotFoundException ex) {
+        catch (ResourceNotFoundException | IOException ex) {
             objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
             return -1;
         }
         catch (InterruptedException | TimeoutException ex) {
             objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to timeout  %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.getMessage());
-            return -1;
-        }
-        catch (IOException  ex) {
-            objm.log("[fixObject] failed bucket : %s objId : %s versionId : %s unable to check due to %s \n", mt.getBucket(), mt.getObjId(), mt.getVersionId(), ex.fillInStackTrace());
             return -1;
         }
         
@@ -391,7 +418,7 @@ public class FSCK {
         System.out.format("| Total Problem with replica      \t | %-15d |\n" , this.problemType2);
         System.out.format("| Total Problem with meta size    \t | %-15d |\n" , this.problemType3);
         System.out.format("| Total Problem with meta md5     \t | %-15d |\n" , this.problemType4);
-        System.out.format("| Total Problem with all different\t | %-15d |\n" , this.problemType4);
+        System.out.format("| Total Problem with all different\t | %-15d |\n" , this.problemType5);
         System.out.println("|----------------------------------------------------------|");
     }
 }
