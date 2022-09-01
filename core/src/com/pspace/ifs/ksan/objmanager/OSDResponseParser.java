@@ -28,16 +28,18 @@ public class OSDResponseParser {
     public String osdIP = "";
     public String md5;
     public long size;
+    public String errorCode;
     private JSONParser parser;
 
-    public OSDResponseParser(String body){
+    public OSDResponseParser(String body, String returnCode){
         Object value;
         parser = new JSONParser();
         try{
             diskId = "";
             md5 = "";
-            size = 0;       
-            JSONObject JO = (JSONObject) parser.parse(body);
+            size = 0;
+            errorCode = returnCode;
+            JSONObject JO = (JSONObject) parser.parse(body); 
             bucketName = (String)JO.get("bucketName");
             objId   = (String)JO.get("ObjId");
             versionId = (String)JO.get("VersionId");
@@ -65,6 +67,23 @@ public class OSDResponseParser {
             versionId = "";
             diskPath = "";
             osdIP = "";
+            errorCode = "";
+            //System.out.println("[OSDResponseParser] body >" + body);
+            //ex.printStackTrace();
         }
     }  
+    @Override
+    public String toString(){
+         JSONObject obj = new JSONObject();
+         obj.put("bucketName", bucketName);
+         obj.put("ObjId", objId);
+         obj.put("VersionId", versionId);
+         obj.put("DiskId", diskId);
+         obj.put("DiskPath", diskPath);
+         obj.put("osdIP", osdIP);
+         obj.put("MD5", md5);
+         obj.put("Size", size);
+         obj.put("errorCode", errorCode);
+         return obj.toString();
+    }
 }

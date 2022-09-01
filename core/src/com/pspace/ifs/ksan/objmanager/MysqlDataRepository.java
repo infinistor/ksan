@@ -534,20 +534,35 @@ public class MysqlDataRepository implements DataRepository{
                     lastVersion);
         }
     }
-         
+    
     @Override
     public synchronized List<String> getAllUsedDiskId() throws SQLException{
         List<String> dList = new ArrayList();
+        String lastObjId;
+        boolean thereIsMore;
         
         String[] bList= obmCache.getBucketNameList();
         for (String bucketName : bList){
-            pstSelectUsedDisks = getObjPreparedStmt2(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
+            lastObjId = "";
+            while(true){
+                pstSelectUsedDisks = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
+                pstSelectUsedDisks.setString(1, lastObjId);
+                pstSelectUsedDisks.setLong(2, 1000);
+                ResultSet rs = pstSelectUsedDisks.executeQuery();
+
+                thereIsMore = false;
+                while(rs.next()){
+                     thereIsMore = true;
+                    if (!dList.contains(rs.getString(1)))
+                        dList.add(rs.getString(1));
+
+                    if (!dList.contains(rs.getString(2)))
+                        dList.add(rs.getString(2));
+                    lastObjId = rs.getString(3);
+                }
             
-            ResultSet rs = pstSelectUsedDisks.executeQuery();
-            
-            while(rs.next()){
-                if (!dList.contains(rs.getString(1)))
-                    dList.add(rs.getString(1));
+                if (!thereIsMore)
+                    break;
             }
         }
         System.out.println("[getAllUsedDiskId] size of used Disk >" + dList.size());
@@ -753,23 +768,29 @@ public class MysqlDataRepository implements DataRepository{
         throw new ResourceNotFoundException("Bucket("+bucketName+") is not found in the db");
     }
     
+    private void _loadBucketList()throws SQLException{
+        Bucket bt;
+           
+        ResultSet rs = pstSelectAllBucket.executeQuery();
+
+        while(rs.next()){
+            bt = parseBucket(rs);
+
+            obmCache.setBucketInCache(bt);
+        }
+    }
+    
     @Override
     public synchronized void loadBucketList() {
         try {
-            Bucket bt;
-            
-            ResultSet rs = this.pstSelectAllBucket.executeQuery();
-            
-            while(rs.next()){
-                bt = parseBucket(rs);
-                //System.out.println("bucketList>>" + bt);
-                obmCache.setBucketInCache(bt);
+           _loadBucketList(); 
+        } catch (SQLException ex1) {
+            try { 
+                _loadBucketList(); // to fix connection reset by peer
+            } catch (SQLException ex) {
+                Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
             }
-        } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
         }
-        
     }
     
     @Override

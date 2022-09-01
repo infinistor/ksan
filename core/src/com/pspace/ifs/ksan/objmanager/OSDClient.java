@@ -6,6 +6,7 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -122,7 +123,7 @@ public class OSDClient {
         }
     }
     
-    public String getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws IOException, InterruptedException, TimeoutException {
+    public OSDResponseParser getObjectAttr(String bucket, String objId, String versionId, String diskId, String diskPath, String osdServerId) throws IOException, InterruptedException, TimeoutException {
         JSONObject obj;
         String bindingKey; 
         
@@ -138,10 +139,12 @@ public class OSDClient {
         String res = mqSender.sendWithResponse(obj.toString(), bindingKey, 3000);
         //String res = ""; mqSender.send(obj.toString(), bindingKey);
         if (res.isEmpty())
-            return res;
+            return new OSDResponseParser("", "\"" + MQResponseCode.MQ_UNKNOWN_ERROR + "\"");
         
         MQResponse ret = new MQResponse(res);
-        //System.out.println("[getObjectAttr] bindingKey :> " + bindingKey + " res :> " + res + " >Message :>" + ret.getMessage());
-        return ret.getMessage();
+        OSDResponseParser osdr = new OSDResponseParser(ret.getMessage(), "\"" + ret.getCode() + "\"");
+        
+       //System.out.println("[getObjectAttr] bindingKey :> " + bindingKey + " res :> " + res + " >Message :>" + ret);
+        return osdr;
     }
 }
