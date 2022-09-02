@@ -412,7 +412,7 @@ class KsanFsckUtilOptParser(OptionParser):
     def AddOption(self):
         self.add_option("--BucketName", "--bucketname", dest="BucketName", help='bucket name')
         self.add_option("--DiskName", "--DiskName", dest="DiskName", help='disk name')
-        self.add_option("--CheckOnly", "--checkonly", dest="CheckOnly", help='check only mode')
+        self.add_option("--CheckOnly", "--checkonly", dest="CheckOnly", action='store_true', help='check only mode')
         self.add_option('--Debug', "--debug", dest='debug', action='store_true', help='display debug log')
 
     def print_help(self):
@@ -518,7 +518,7 @@ class KsanCbalanceUtilOptParser(OptionParser):
 
 
 
-ValidManiArgument = ['sysinfo', 'server', 'service', 'config', 'disk', 'diskpool', 'user']
+ValidManiArgument = ['sysinfo', 'server', 'service', 'config', 'disk', 'diskpool', 'user', 'fsck', 'getattr', 'cbalance']
 
 def GetPortalConf(Force=False):
     ret, conf = GetConf(MonServicedConfPath)

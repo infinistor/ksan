@@ -27,8 +27,8 @@ def FsckUtilHandler(Conf, Action, Parser, logger):
     PortalIp = Conf.PortalHost
     PortalPort = Conf.PortalPort
     PortalApiKey = Conf.PortalApiKey
-    MqPort = Conf.MqPort
-    MqPassword = Conf.MqPassword
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
