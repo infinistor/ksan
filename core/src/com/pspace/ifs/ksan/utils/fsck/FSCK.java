@@ -156,7 +156,7 @@ public class FSCK {
             primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
             //System.out.println(" objId >> " + mt.getObjId() +" primary  >> "+ primary);
             if (!primary.errorCode.contains("MQ_SUCESS")){
-                System.out.println("ObjId >>" +  mt.getObjId()+" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode);
+                objm.log("ObjId >>" +  mt.getObjId()+" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode);
                 problemType1++;
                 return res;
             }
