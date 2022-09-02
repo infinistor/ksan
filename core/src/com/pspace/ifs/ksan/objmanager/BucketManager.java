@@ -70,12 +70,7 @@ public class BucketManager {
             bt.setAcl(acl);
             bt.setEncryption(encryption);
             bt.setObjectLock(objectlock);
-            
-            try {
-                bt = dbm.getUserDiskPool(bt);
-            } catch (SQLException ex1) {
-                throw new ResourceNotFoundException("[createBucket] User("+ userId +") not assocated with diskpool. Please create user to diskpool assocation first!");
-            }
+       
             bt = dbm.insertBucket(bt);
             obmCache.setBucketInCache(bt);
         }
@@ -217,6 +212,13 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
 
+    public void updateBucketLogging(String bucketName, String logging) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setLogging(logging);
+        dbm.updateBucketLogging(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
     public boolean isBucketDeleted(String bucketName) throws SQLException {
         return dbm.isBucketDeleted(bucketName);
     }

@@ -93,11 +93,7 @@ namespace PortalSvr.Services
 						{
 							// 환경변수로 api key 값을 입력할 경우
 							APIKey = Environment.GetEnvironmentVariable(Resource.ENV_SERVICE_API_KEY);
-						}
-						catch
-						{
-							APIKey = null;
-						}
+						}catch{}
 
 						// API 키를 발급한다.
 						var ResponseApiKey = await m_apiKeyProvider.IssueApiKey(

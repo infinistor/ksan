@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -179,10 +180,10 @@ public class ObjectManagerConfig {
         setDbPort((long)jsonConfig.get(DB_PORT));
         setDbUserName((String)jsonConfig.get(DB_USER));
         setDbPassword((String)jsonConfig.get(DB_PASSWORD));
-        setMqHost((String)jsonConfig.get(MQ_HOST));
-        setMqQueueName((String)jsonConfig.get(MQ_QUEUE_NAME));
-        setMqExchangeName((String)jsonConfig.get(MQ_EXCHANGE_NAME));
-        setMqOsdExchangeName((String)jsonConfig.get(MQ_OSD_EXCHANGE_NAME));
+        // setMqHost((String)jsonConfig.get(MQ_HOST));
+        // setMqQueueName((String)jsonConfig.get(MQ_QUEUE_NAME));
+        // setMqExchangeName((String)jsonConfig.get(MQ_EXCHANGE_NAME));
+        // setMqOsdExchangeName((String)jsonConfig.get(MQ_OSD_EXCHANGE_NAME));
 
         logger.debug(getDbRepository());
         logger.debug(getDbHost());
@@ -190,14 +191,15 @@ public class ObjectManagerConfig {
         logger.debug("{}", getDbPort());
         logger.debug(getDbUserName());
         logger.debug(getDbPassword());
-        logger.debug(getMqHost());
-        logger.debug(getMqQueueName());
-        logger.debug(getMqExchangeName());
-        logger.debug(getMqOsdExchangeName());
+        // logger.debug(getMqHost());
+        // logger.debug(getMqQueueName());
+        // logger.debug(getMqExchangeName());
+        // logger.debug(getMqOsdExchangeName());
     }
 
     public void saveConfigFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(GWConstants.OBJMANAGER_CONFIG_PATH));
             FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, false);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");

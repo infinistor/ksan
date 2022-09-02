@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <log4net>
 	<appender name="RollingLogFileAppender" type="log4net.Appender.RollingFileAppender">
-		<file type="log4net.Util.PatternString" name="default" value="/app/logs/api/logs_api.log" />
+		<file type="log4net.Util.PatternString" name="default" value="/app/logs/apipotal/logs_api.log" />
 	    <encoding value="utf-8" />
 		<appendToFile value="true" />
 		<datePattern value="-yyyyMMdd.log" />

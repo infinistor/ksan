@@ -68,6 +68,7 @@ public interface DataRepository {
     public void updateBucketPolicy(Bucket bt) throws SQLException;
     public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException ;
     //public void updateBucketFileCount(Bucket bt) throws SQLException ;
+    public void updateBucketLogging(Bucket bt) throws SQLException;
     
     // for multipart upload
     public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException;
@@ -75,7 +76,7 @@ public interface DataRepository {
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException;
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException;
     public void selectMultipartUpload(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException;
-    public Multipart getMulipartUpload(String uploadid) throws SQLException;
+    public Multipart getMulipartUpload(String uploadid) throws SQLException, ResourceNotFoundException ;
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException;
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException;
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException;
@@ -84,10 +85,16 @@ public interface DataRepository {
     
     // for utility 
     public List<Object> utilJobMgt(String operation, List<Object> in);
-    
-    // for user disk pool map
-    public int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException;
-    public Bucket getUserDiskPool(Bucket bt) throws SQLException;
-    public int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException;
-     
+   
+    // for Lifecycle
+    public void insertLifeCycle(LifeCycle lc) throws SQLException;
+    public void insertFailedLifeCycle(LifeCycle lc) throws SQLException; 
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException;
+    public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException;
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException;
+    public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException;
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException;
+    public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException;
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException;
+    public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException;
 }

@@ -15,7 +15,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 
 public final class GWConstants {
-	public static final String PID_PATH = "/var/run/ksanGw.pid";
+	public static final String PID_PATH = "/var/run/ksangw.pid";
 	public static final String JVM = "jvm";
     public static final String GET_PROCESS_ID = "getProcessId";
 	public static final String LOG_GW_PID = "pid : {}";
@@ -25,12 +25,15 @@ public final class GWConstants {
 	public static final String INTENTIONALLY_NOT_IMPLEMENTED = "intentionally not implemented";
 	public static final String HOOK_THREAD_INFO = "Hook Thread....";
 	public static final String STOP_KSAN_GW = "Gracefully Stop KSAN-GW !!";
-	public static final String KMON_CONFIG_PATH = "/usr/local/ksan/etc/ksanMon.conf";
-	public static final String CONFIG_PATH = "/usr/local/ksan/etc/ksanGW.conf";
-	public static final String OBJMANAGER_CONFIG_PATH = "/usr/local/ksan/etc/objmanger.conf";
-	public static final String DISKPOOL_CONF_PATH = "/usr/local/ksan/etc/diskpools.xml";
+	public static final String CONFIG_PATH = "/var/log/ksan/gw/gw_dump.conf";
+	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
+	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
+	public static final String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanGW.ServiceId";
 
-	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_NAME = "disk";
+    public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+    public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
+
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
 	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
@@ -43,10 +46,24 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_DISKPOOL_ROUTING_KEY = "*.servers.diskpools.*";
 	public static final String MQUEUE_NAME_GW_USER = "ksan-gw-user-";
 	public static final String MQUEUE_NAME_GW_USER_ROUTING_KEY = "*.services.gw.user.*";
+	public static final String MQUEUE_NAME_GW_SERVICE = "ksan-gw-service-";
+	public static final String MQUEUE_NAME_GW_SERVICE_ADDED_ROUTING_KEY = "*.services.added";
+	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
+	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
+	public static final String PORTAL_REST_API_KSAN_REGIONS = "/api/v1/Regions";
+	public static final String PORTAL_REST_API_KSAN_EVENT = "/api/v1/Services/Event";
+
+	public static final String PORTAL_REST_API_KSAN_EVENT_ID = "Id";
+	public static final String PORTAL_REST_API_KSAN_EVENT_TYPE = "EventType";
+	public static final String PORTAL_REST_API_KSAN_EVENT_MESSAGE = "Message";
+	public static final String PORTAL_REST_API_KSAN_EVENT_START = "start";
+	public static final String PORTAL_REST_API_KSAN_EVENT_STOP = "stop";
+	public static final String PORTAL_REST_API_KSAN_EVENT_SIGTERM = "SIGTERM";
+
 	public static final String KMON_PROPERTY_PORTAL_IP = "MgsIp";
 	public static final String KMON_PROPERTY_PORTAL_PORT = "IfsPortal";
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
@@ -122,6 +139,8 @@ public final class GWConstants {
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
+	public static final String TEMP_COMPLETE_DIR = "temp/complete";
+	public static final String TEMP_COPY_DIR = "temp/copy";
 	public static final String TRASH_DIR = "trash";
 	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
@@ -271,9 +290,74 @@ public final class GWConstants {
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
 
+	// policy actions constants
+	public static final String ACTION_ALL = "s3:*";
+
+	public static final String ACTION_ABORT_MULTIPART_UPLOAD = "s3:AbortMultipartUpload";
+	public static final String ACTION_CREATE_BUCKET = "s3:CreateBucket";
+	public static final String ACTION_DELETE_BUCKET = "s3:DeleteBucket";
+
+	public static final String ACTION_DELETE_BUCKET_POLICY = "s3:DeleteBucketPolicy";
+	public static final String ACTION_DELETE_BUCKET_WEBSITE = "s3:DeleteBucketWebsite";
+	public static final String ACTION_DELETE_OBJECT = "s3:DeleteObject";
+	public static final String ACTION_DELETE_OBJECT_VERSION = "s3:DeleteObjectVersion";
+	public static final String ACTION_DELETE_OBJECT_TAGGING = "s3:DeleteObjectTagging";
+	public static final String ACTION_DELETE_OBJECT_VERSION_TAGGING = "s3:DeleteObjectVersionTagging";
+
+	public static final String ACTION_GET_BUCKET_ACL = "s3:GetBucketAcl";
+	public static final String ACTION_GET_BUCKET_CORS = "s3:GetBucketCORS";
+	public static final String ACTION_GET_BUCKET_LOGGING = "s3:GetBucketLogging";
+	public static final String ACTION_GET_BUCKET_NOTIFICATION = "s3:GetBucketNotification";
+	public static final String ACTION_GET_BUCKET_OBJECT_LOCK_CONFIGURATION = "s3:GetBucketObjectLockConfiguration";
+	public static final String ACTION_GET_BUCKET_POLICY = "s3:GetBucketPolicy";
+	public static final String ACTION_GET_BUCKET_PUBLIC_ACCESS_BLOCK = "s3:GetBucketPublicAccessBlock";
+	public static final String ACTION_GET_BUCKET_TAGGING = "s3:GetBucketTagging";
+	public static final String ACTION_GET_BUCKET_VERSIONING = "s3:GetBucketVersioning";
+	public static final String ACTION_GET_BUCKET_WEBSITE = "s3:GetBucketWebsite";
+	public static final String ACTION_GET_ENCRYPTION_CONFIGURATION = "s3:GetEncryptionConfiguration";
+	public static final String ACTION_GET_LIFECYCLE_CONFIGURATION = "s3:GetLifecycleConfiguration";
+	public static final String ACTION_GET_REPLICATION_CONFIGURATION = "s3:GetReplicationConfiguration";
+
+	public static final String ACTION_GET_OBJECT = "s3:GetObject";
+	public static final String ACTION_GET_OBJECT_ACL = "s3:GetObjectAcl";
+	public static final String ACTION_GET_OBJECT_LEGAL_HOLD = "s3:GetObjectLegalHold";
+	public static final String ACTION_GET_OBJECT_RETENTION = "s3:GetObjectRetention";
+	public static final String ACTION_GET_OBJECT_TAGGING = "s3:GetObjectTagging";
+	public static final String ACTION_GET_OBJECT_VERSION = "s3:GetObjectVersion";
+	public static final String ACTION_GET_OBJECT_VERSION_ACL = "s3:GetObjectVersionAcl";
+	public static final String ACTION_GET_OBJECT_VERSION_TAGGING = "s3:GetObjectVersionTagging";
+
+	public static final String ACTION_LIST_BUCKET = "s3:ListBucket";
+	public static final String ACTION_LIST_BUCKET_MULTIPART_UPLOADS = "s3:ListBucketMultipartUploads";
+	public static final String ACTION_LIST_BUCKET_VERSIONS = "s3:ListBucketVersions";
+	public static final String ACTION_LIST_MULTIPART_UPLOAD_PARTS = "s3:ListMultipartUploadParts";
+	
+	public static final String ACTION_PUT_BUCKET_ACL = "s3:PutBucketAcl";
+	public static final String ACTION_PUT_BUCKET_CORS = "s3:PutBucketCORS";
+	public static final String ACTION_PUT_BUCKET_LOGGING = "s3:PutBucketLogging";
+	public static final String ACTION_PUT_BUCKET_NOTIFICATION = "s3:PutBucketNotification";
+	public static final String ACTION_PUT_BUCKET_OBJECT_LOCK_CONFIGURATION = "s3:PutBucketObjectLockConfiguration";
+	public static final String ACTION_PUT_BUCKET_POLICY = "s3:PutBucketPolicy";
+	public static final String ACTION_PUT_BUCKET_TAGGING = "s3:PutBucketTagging";
+	public static final String ACTION_PUT_BUCKET_VERSIONING = "s3:PutBucketVersioning";
+	public static final String ACTION_PUT_BUCKET_WEBSITE = "s3:PutBucketWebsite";
+	public static final String ACTION_PUT_ENCRYPTION_CONFIGURATION = "s3:PutEncryptionConfiguration";
+	public static final String ACTION_PUT_LIFECYCLE_CONFIGURATION = "s3:PutLifecycleConfiguration";
+	public static final String ACTION_PUT_REPLICATION_CONFIGURATION = "s3:PutReplicationConfiguration";
+
 	public static final String ACTION_PUT_OBJECT = "s3:PutObject";
+	public static final String ACTION_PUT_OBJECT_ACL = "s3:PutObjectAcl";
+	public static final String ACTION_PUT_OBJECT_LEGAL_HOLD = "s3:PutObjectLegalHold";
+	public static final String ACTION_PUT_OBJECT_RETENTION = "s3:PutObjectRetention";
+	public static final String ACTION_PUT_OBJECT_TAGGING = "s3:PutObjectTagging";
+	public static final String ACTION_PUT_OBJECT_VERSION_ACL = "s3:PutObjectVersionAcl";
+	public static final String ACTION_PUT_OBJECT_VERSION_TAGGING = "s3:PutObjectVersionTagging";
+
+	public static final String ACTION_BYPASS_GOVERNANCE_RETENTION = "s3:BypassGovernanceRetention";
+	
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
+	public static final String CHARSET_UTF_8_LOWER = "utf-8";
 	public static final String UTC = "UTC";
 	public static final String GMT = "GMT";
 	public static final String ISO_8601_TIME_FORMAT = "yyyyMMdd'T'HHmmss'Z'";
@@ -302,34 +386,22 @@ public final class GWConstants {
     public static final String CREDENTIAL_FIELD = "Credential=";
 
 	public static final String SIGNEDHEADERS_EQUAL = "SignedHeaders=";
+	public static final String AWS_ACCESS_KEY_ID = "AWSAccessKeyId";
+	public static final String SIGNATURE = "Signature";
+
 	public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
 	public static final String X_AMZ_ID_2 = "x-amz-id-2";
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
-	public static final String AWS_ACCESS_KEY_ID = "AWSAccessKeyId";
 	public static final String X_AMZ_DATE = "X-Amz-Date";
 	public static final String X_AMZ_DATE_LOWER = "x-amz-date";
-	public static final String SIGNATURE = "Signature";
 	public static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
 	public static final String X_AMZ_CREDENTIAL = "X-Amz-Credential";
 	public static final String X_AMZ_SIGNEDHEADERS = "X-Amz-SignedHeaders";
 	public static final String X_AMZ_EXPIRES = "X-Amz-Expires";
 	public static final String X_AMZ_CONTENT_SHA256 = "x-amz-content-sha256";
-
-	public static final String STREAMING_AWS4_HMAC_SHA256_PAYLOAD = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
-	public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
-
-	public static final String BYTES = "bytes";
-	public static final String AUTHORIZATION = "Authorization";
-	public static final String UPLOAD_ID = "uploadId";
 	public static final String X_AMZ_REQUEST_PAYER = "x-amz-request-payer";
 	public static final String X_AMZ_EXPECTED_BUCKET_OWNER = "x-amz-expected-bucket-owner";
 	public static final String X_AMZ_CONFIRM_REMOVE_SELF_BUCKET_ACCESS = "x-amz-confirm-remove-self-bucket-access";
-	public static final String CACHE_CONTROL = "Cache-Control";
-	public static final String CONTENT_DISPOSITION = "Content-Disposition";
-	public static final String CONTENT_DISPOSITION_FORM_DATA = "Content-Disposition: form-data; name=\"";
-	public static final String CONTENT_ENCODING = "Content-Encoding";
-	public static final String CONTENT_LANGUAGE = "Content-Language";
-	public static final String CONTENT_TYPE = "Content-Type";
 	public static final String X_AMZ_COPY_SOURCE = "x-amz-copy-source";
 	public static final String X_AMZ_COPY_SOURCE_IF_MATCH = "x-amz-copy-source-if-match";
 	public static final String X_AMZ_COPY_SOURCE_IF_MODIFIED_SINCE = "x-amz-copy-source-if-modified-since";
@@ -341,7 +413,6 @@ public final class GWConstants {
 	public static final String X_AMZ_GRANT_READ_ACP = "x-amz-grant-read-acp";
 	public static final String X_AMZ_GRANT_WRITE = "x-amz-grant-write";
 	public static final String X_AMZ_GRANT_WRITE_ACP = "x-amz-grant-write-acp";
-	public static final String EXPIRES = "Expires";	
 	public static final String X_AMZ_METADATA_DIRECTIVE = "x-amz-metadata-directive";
 	public static final String X_AMZ_TAGGING_DIRECTIVE = "x-amz-tagging-directive";
 	public static final String X_AMZ_SERVER_SIDE_ENCRYPTION = "x-amz-server-side-encryption";
@@ -362,12 +433,45 @@ public final class GWConstants {
 	public static final String X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE = "x-amz-object-lock-retain-until-date";
 	public static final String X_AMZ_OBJECT_LOCK_LEGAL_HOLD = "x-amz-object-lock-legal-hold";
 	public static final String X_AMZ_SOURCE_EXPECTED_BUCKET_OWNER = "x-amz-source-expected-bucket-owner";
-	public static final String USER_METADATA_PREFIX = "x-amz-meta-";
 	public static final String X_AMZ_BUCKET_OBJECT_LOCK_ENABLED = "x-amz-bucket-object-lock-enabled";
-	public static final String VERSION_ID = "versionId";
 	public static final String X_AMZ_MFA = "x-amz-mfa";
 	public static final String X_AMZ_REQUEST_S3_PAYER = "x-amz-s3Parameter.request-payer";
 	public static final String X_AMZ_BYPASS_GOVERNANCE_RETENTION = "x-amz-bypass-governance-retention";
+	public static final String X_AMZ_REQUEST_S3_GET_PAYER = "x-amz-s3Parameter.getRequest()-payer";
+	public static final String X_AMZ_BUCKET_OBJECT_LOCK_TOKEN = "x-amz-bucket-object-lock-token";
+	public static final String X_AMZ_DECODED_CONTENT_LENGTH = "x-amz-decoded-content-length";
+	public static final String X_AMZ_COPY_SOURCE_RANGE = "x-amz-copy-source-range";
+	public static final String X_AMZ_VERSION_ID = "x-amz-version-id";
+	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
+
+	public static final String USER_METADATA_PREFIX = "x-amz-meta-";
+
+	public static final String X_IFS_ADMIN = "x-ifs-admin";
+	public static final String X_IFS_VERSION_ID = "x-ifs-version-id";
+	public static final String X_IFS_REPLICATION = "x-ifs-replication";
+	public static final String X_IFS_DR = "x-ifs-dr";
+	public static final String X_IFS_LOGGING = "x-ifs-logging";
+	
+	public static final String IFS_HEADER_REPLICATION = "replication";
+	public static final String IFS_HEADER_DR = "dr";
+	public static final String IFS_HEADER_LOGGING = "logging";
+
+	public static final String STREAMING_AWS4_HMAC_SHA256_PAYLOAD = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
+	public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+
+	public static final String BYTES = "bytes";
+	public static final String AUTHORIZATION = "Authorization";
+	public static final String UPLOAD_ID = "uploadId";
+	
+	public static final String CACHE_CONTROL = "Cache-Control";
+	public static final String CONTENT_DISPOSITION = "Content-Disposition";
+	public static final String CONTENT_DISPOSITION_FORM_DATA = "Content-Disposition: form-data; name=\"";
+	public static final String CONTENT_ENCODING = "Content-Encoding";
+	public static final String CONTENT_LANGUAGE = "Content-Language";
+	public static final String CONTENT_TYPE = "Content-Type";
+	
+	public static final String EXPIRES = "Expires";	
+	public static final String VERSION_ID = "versionId";
 	public static final String PART_NUMBER = "partNumber";
 	public static final String RESPONSE_CACHE_CONTROL = "response-cache-control";
 	public static final String RESPONSE_CONTENT_DISPOSITION = "response-content-disposition";
@@ -388,7 +492,7 @@ public final class GWConstants {
 	public static final String KEY_MARKER = "key-marker";
 	public static final String MAX_UPLOADS = "max-uploads";
 	public static final String UPLOAD_ID_MARKER = "upload-id-marker";
-	public static final String X_AMZ_REQUEST_S3_GET_PAYER = "x-amz-s3Parameter.getRequest()-payer";
+	
 	public static final String CONTINUATION_TOKEN = "continuation-token";
 	public static final String FETCH_OWNER = "fetch-owner";
 	public static final String START_AFTER = "start-after";
@@ -396,17 +500,13 @@ public final class GWConstants {
 	public static final String MAX_PARTS = "max-parts";
 	public static final String PART_NUMBER_MARKER = "part-number-marker";
 	public static final String CONTENT_MD5 = "Content-MD5";
-	public static final String X_AMZ_BUCKET_OBJECT_LOCK_TOKEN = "x-amz-bucket-object-lock-token";
-	public static final String X_AMZ_DECODED_CONTENT_LENGTH = "x-amz-decoded-content-length";
 	public static final String CONTENT_LENGTH = "Content-Length";
-	public static final String X_AMZ_COPY_SOURCE_RANGE = "x-amz-copy-source-range";
-	public static final String X_AMZ_VERSION_ID = "x-amz-version-id";
+	
 	public static final String DELETE_RESULT = "DeleteResult";
 	public static final String DELETE_RESULT_DELETED = "Deleted";
 	public static final String DELETE_RESULT_KEY = "Key";
 	public static final String DELETE_RESULT_DELETE_MARKER_VERSION_ID = "DeleteMarkerVersionId";
 	public static final String REPLACE = "REPLACE";
-	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
 
 	public static final String JDBC_MYSQL = "jdbc:mysql://";
 	public static final String USE_SSL_FALSE = "?useSSL=false";
@@ -431,8 +531,8 @@ public final class GWConstants {
 				+ "  `request_user` varchar(64),"
 				+ "  `request_id` varchar(64),"
 				+ "  `operation` varchar(64),"
-				+ "  `object_name` varchar(2048),"
-				+ "  `request_uri` varchar(2048),"
+				+ "  `object_name` varbinary(2048),"
+				+ "  `request_uri` varbinary(2048),"
 				+ "  `status_code` int,"
 				+ "  `error_code` varchar(256),"
 				+ "  `response_length` bigint,"
@@ -762,6 +862,7 @@ public final class GWConstants {
 
 	// GWHandler
 	public static final String LOG_GWHANDLER_MOTHOD_CATEGORY = "method : {}, category : {}";
+	public static final String LOG_GWHANDLER_ADMIN_MOTHOD_CATEGORY = "admin method : {}, category : {}";
 	public static final String LOG_GWHANDLER_PREURI = "PREURI - {}";
 	public static final String LOG_GWHANDLER_URI = "URI - {}";
 	public static final String LOG_GWHANDLER_CLIENT_ADDRESS = "client address - {}";
@@ -784,6 +885,7 @@ public final class GWConstants {
 
 	// AbortMultipartUpload
 	public static final String LOG_ABORT_MULTIPART_UPLOAD_START = "AbortMultipartUpload ...";
+	public static final String LOG_ADMIN_ABORT_MULTIPART_UPLOAD_START = "AdmAbortMultipartUpload ...";
 
 	// CompleteMultipartUpload
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_START = "CompleteMultipartUpload ...";
@@ -1078,7 +1180,7 @@ public final class GWConstants {
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
-	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path - match disk id : {}";
+	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path";
 
 	// UploadPartCopy
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";
@@ -1269,6 +1371,7 @@ public final class GWConstants {
 	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";
+	public static final String GWPORTAL_RECEIVED_SERVICE_CHANGE = "receive service change ...";
 	public static final String LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA = "BiningKey : {}, body : {}";
 
 	public static final String GWPORTAL_RECEIVED_USER_ADDED = "added";

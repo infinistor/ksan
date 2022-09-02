@@ -33,13 +33,13 @@ public class DoECPriObject implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);
     private String localIP = KsanUtils.getLocalIP();
     private long fileLength;
-    private int ecApplyMinutes;
+    private int ecWaitTime;
 
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
-        fileLength = OSDConfig.getInstance().getECFileSize() * OSDConstants.MEGABYTES;
-        ecApplyMinutes = OSDConfig.getInstance().getECApplyMinutes();
+        fileLength = OSDConfig.getInstance().getECMinSize() * OSDConstants.MEGABYTES;
+        ecWaitTime = OSDConfig.getInstance().getECWaitTime();
 
         List<String> diskList = new ArrayList<String>();
         logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, localIP);
@@ -74,9 +74,9 @@ public class DoECPriObject implements Runnable {
                 }
 
                 if (OSDConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY.equals(OSDUtils.getInstance().getAttributeFileReplication(files[i]))) {
-                    long diff = (now - files[i].lastModified()) / OSDConstants.ONE_MINUTE_MILLISECONDS;
+                    long diff = (now - files[i].lastModified()); // / OSDConstants.ONE_MINUTE_MILLISECONDS;
 
-                    if (diff >= ecApplyMinutes) {
+                    if (diff >= ecWaitTime) {
                         if (files[i].length() >= fileLength) {
                             ecEncode(files[i], ecPath);
                         }

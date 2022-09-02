@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using MTLib.Core;
 using PortalData.Enums;
 using PortalProviderInterface;
+using IServiceProvider = PortalProviderInterface.IServiceProvider;
 
 namespace PortalSvr.Services
 {
@@ -32,6 +33,8 @@ namespace PortalSvr.Services
 	{
 		/// <summary> 서버 프로바이더</summary>
 		protected readonly IServerProvider m_serverProvider;
+		/// <summary> 서비스 프로바이더</summary>
+		protected readonly IServiceProvider m_serviceProvider;
 
 		/// <summary> 타이머</summary>
 		private Timer m_timer = null;
@@ -42,12 +45,15 @@ namespace PortalSvr.Services
 		/// <summary>생성자</summary>
 		/// <param name="configuration">설정 정보</param>
 		/// <param name="serverProvider">서버에 대한 프로바이더 객체</param>
+		/// <param name="serviceProvider">서비스에 대한 프로바이더 객체</param>
 		/// <param name="logger">로거</param>
 		public ServerWatcher(IConfiguration configuration
 			, IServerProvider serverProvider
+			, IServiceProvider serviceProvider
 			, ILogger<ServerWatcher> logger)
 		{
 			m_serverProvider = serverProvider;
+			m_serviceProvider = serviceProvider;
 			m_logger = logger;
 		}
 
@@ -56,16 +62,16 @@ namespace PortalSvr.Services
 		public Task StartAsync(System.Threading.CancellationToken cancellationToken)
 		{
 
-			m_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 			m_logger.LogInformation("Server Whtaher Start");
+			m_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 			return Task.CompletedTask;
 		}
 
 		/// <summary> 서버 감시 정지 </summary>
 		public Task StopAsync(System.Threading.CancellationToken cancellationToken)
 		{
-			m_timer.Change(Timeout.Infinite, 0);
 			m_logger.LogInformation("Server Whtaher Stop");
+			m_timer.Change(Timeout.Infinite, 0);
 			return Task.CompletedTask;
 		}
 
@@ -82,12 +88,13 @@ namespace PortalSvr.Services
 				// 서버의 갱신 임계값을 가져온다.
 				var Threshold = await m_serverProvider.GetThreshold();
 
-				//온라인 상태인 서버 목록을 가져온다.
-				var SearchStates = new List<EnumServerState>() { EnumServerState.Online };
-				var Servers = await m_serverProvider.GetList(SearchStates:SearchStates);
-
 				// 타임아웃 값을 계산한다
 				var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
+
+				//온라인 상태인 서버 목록을 가져온다.
+				var ServerStates = new List<EnumServerState>() { EnumServerState.Online };
+				var Servers = await m_serverProvider.GetList(SearchStates: ServerStates);
+
 
 				foreach (var Server in Servers.Data.Items)
 				{
@@ -95,6 +102,18 @@ namespace PortalSvr.Services
 					if (Server.ModDate < Timeout)
 						await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout);
 				}
+
+				// 온라인 상태인 서비스 목록을 가져온다.
+				var ServiceStatus = new List<EnumServiceState>() { EnumServiceState.Online };
+				var Services = await m_serviceProvider.GetList(SearchStates: ServiceStatus);
+
+				foreach (var Service in Services.Data.Items)
+				{
+					// 서비스의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
+					if (Service.ModDate < Timeout)
+						await m_serverProvider.UpdateState(Service.Id, EnumServerState.Timeout);
+				}
+
 			}
 			catch (Exception ex)
 			{

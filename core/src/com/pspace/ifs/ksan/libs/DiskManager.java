@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.List;
 
 import com.pspace.ifs.ksan.libs.disk.Disk;
@@ -21,6 +22,8 @@ import com.pspace.ifs.ksan.libs.disk.Server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class DiskManager {
     public static final String DATA = "Data";
@@ -81,6 +84,15 @@ public class DiskManager {
         return localDiskInfoMap.get(diskID);
     }
 
+    public String getLocalPath() {
+        Set<String> keys = localDiskInfoMap.keySet();
+        if (keys.size() > 0) {
+            String key = keys.iterator().next();
+            return localDiskInfoMap.get(key);
+        }
+        return null;
+    }
+
     public String getPath(String diskID) {
         for (DiskPool pool : diskPoolList) {
             for (Server server : pool.getServerList()) {
@@ -137,6 +149,7 @@ public class DiskManager {
 
     public void saveFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(Constants.DISKPOOL_CONF_PATH));
             FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, false);
             fileWriter.write(FILE_DISKPOOL_LIST_START);
             for (DiskPool diskPool : diskPoolList) {

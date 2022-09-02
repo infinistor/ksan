@@ -192,8 +192,15 @@ public abstract class MessageQ{
        return 0;
     }
     
-    private String createQurumQueue(String replyQueue) throws IOException {
-       return channel.queueDeclare(replyQueue, true, false, false, getQuorumQueueMap()).getQueue();
+    private String createQurumQueue(String replyQueue) throws IOException, TimeoutException {
+        try{
+            return channel.queueDeclarePassive(replyQueue).getQueue();
+       } catch(IOException ex){
+            if (!this.channel.isOpen())
+                   this.connect();
+            
+            return channel.queueDeclare(replyQueue, true, false, false, getQuorumQueueMap()).getQueue();
+       }
     } 
     
     public void deleteQ(){
@@ -240,9 +247,8 @@ public abstract class MessageQ{
         
         if (qname.isEmpty()){
             final String corrId = UUID.randomUUID().toString();
-            replyQueueName = createQurumQueue("replyQ." + corrId);
+            replyQueueName = createQurumQueue("replyQ");
         }
-        //String replyQueueName = channel.queueDeclare().getQueue();
         
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -263,8 +269,7 @@ public abstract class MessageQ{
             this.connect();
         
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = createQurumQueue("replyQ." + corrId);
-        //String replyQueueName = channel.queueDeclare().getQueue();
+        String replyQueueName = createQurumQueue("replyQ");
         
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -278,8 +283,8 @@ public abstract class MessageQ{
     
     public String sendToExchangeWithResponse(String mesg, String routingKey, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = createQurumQueue("replyQ." + corrId);
-        //String replyQueueName = channel.queueDeclare().getQueue();
+        String replyQueueName = createQurumQueue("replyQ");
+   
         BasicProperties props = new BasicProperties
                 .Builder()
                 .correlationId(corrId)
@@ -297,8 +302,8 @@ public abstract class MessageQ{
     
     public String sendToQueueWithResponse(String mesg, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
         final String corrId = UUID.randomUUID().toString();
-        //String replyQueueName = channel.queueDeclare().getQueue();
-        String replyQueueName = createQurumQueue("replyQ." + corrId);
+        
+        String replyQueueName = createQurumQueue("replyQ");
         BasicProperties props = new BasicProperties
                 .Builder()
                 .correlationId(corrId)
@@ -425,6 +430,9 @@ public abstract class MessageQ{
             result = response.take();
         
         channel.basicCancel(ctag);
+        if (result == null)
+            return "";
+        
         return result;
     }
 }

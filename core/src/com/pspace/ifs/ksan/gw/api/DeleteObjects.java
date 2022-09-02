@@ -103,7 +103,7 @@ public class DeleteObjects extends S3Request {
 
 			for (Objects object : objectNames) {
 				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet);
-				// xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
+				xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
 			}
 
 			xmlStreamWriter.writeEndElement();
@@ -132,6 +132,7 @@ public class DeleteObjects extends S3Request {
 		String currentVid = null;
 		Metadata objMeta = null;
 		try {
+			logger.debug("bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 			if (Strings.isNullOrEmpty(versionId) || GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {
 				objMeta = open(bucket, object);
 				currentVid = objMeta.getVersionId();
@@ -153,12 +154,13 @@ public class DeleteObjects extends S3Request {
 					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 			}
+			return;
 		}
 
 		boolean isLastVersion = objMeta.getLastVersion();
 		String deleteMarker = objMeta.getDeleteMarker();
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_INFO, versionId, isLastVersion, deleteMarker);
-
+ 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
 		
 		try {

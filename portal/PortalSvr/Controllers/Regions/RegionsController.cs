@@ -8,14 +8,10 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PortalData;
-using PortalData.Requests.Accounts;
-using PortalData.Responses.Accounts;
 using PortalProviderInterface;
-using PortalResources;
 using PortalSvr.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -23,9 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MTLib.AspNetCore;
-using MTLib.CommonData;
-using MTLib.Core;
-using PortalData.Responses.Region;
 using PortalData.Requests.Region;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
@@ -71,7 +64,7 @@ namespace PortalSvr.Controllers.Regions
 			List<string> OrderFields = null, List<string> OrderDirections = null
 		)
 		{
-			return Json(await m_dataProvider.Get(Skip, CountPerPage, OrderFields, OrderDirections));
+			return Json(await m_dataProvider.GetList(Skip, CountPerPage, OrderFields, OrderDirections));
 		}
 
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
@@ -99,20 +92,9 @@ namespace PortalSvr.Controllers.Regions
 		/// <returns>리전 생성 결과</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
 		[HttpPost("Sync")]
-		public async Task<ActionResult> Sync([FromBody] List<RequestRegion> Request)
+		public async Task<ActionResult> Sync([FromBody] List<RequestRegionSync> Request)
 		{
 			return Json(await m_dataProvider.Sync(Request));
-		}
-
-		/// <summary>리전을 변경한다.</summary>
-		/// <param name="RegionName">리전 식별자</param>
-		/// <param name="Request">리전 정보</param>
-		/// <returns>리전 변경 결과</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("{RegionName}")]
-		public async Task<ActionResult> Update([FromRoute] string RegionName, [FromBody] RequestRegion Request)
-		{
-			return Json(await m_dataProvider.Update(RegionName, Request));
 		}
 
 		/// <summary>리전을 삭제한다.</summary>

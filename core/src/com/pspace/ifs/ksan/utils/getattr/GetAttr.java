@@ -145,9 +145,9 @@ public class GetAttr {
         else
            osdMsg =""; 
         
-        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d "
+        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica   : %d"
                + "\n %s \n %s"
-               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), dskMsg, osdMsg);
+               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), mt.getReplicaCount(), dskMsg, osdMsg);
         System.out.println();
     }
     
@@ -161,11 +161,11 @@ public class GetAttr {
        
         String res;
         OSDClient osdc = new OSDClient();
-        res = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
-        primaryOSD = new OSDResponseParser(res);
+        primaryOSD = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
+        //primaryOSD = new OSDResponseParser(res);
         if (mt.isReplicaExist()){
-            res = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId(), mt.getReplicaDisk().getPath(), mt.getReplicaDisk().getOSDServerId());
-             secondOSD = new OSDResponseParser(res);
+            secondOSD = osdc.getObjectAttr(bucketName, mt.getObjId(), mt.getVersionId(), mt.getReplicaDisk().getId(), mt.getReplicaDisk().getPath(), mt.getReplicaDisk().getOSDServerId());
+            //secondOSD = new OSDResponseParser(res);
         }
     }
     

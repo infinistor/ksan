@@ -39,22 +39,21 @@
 				<Summary>서비스 타입</Summary>
 			</Documentation>
 			<Member Name="Unknown" Value="-1" p1:Guid="3e4f84cf-b9d0-47f1-949f-bf05d4d4e622" />
-			<Member Name="RabbitMq" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
+			<Member Name="RabbitMQ" Value="0" p1:Guid="be30e53f-4aee-4efa-9e5a-f18feb906dde" />
 			<Member Name="MariaDB" p1:Guid="c23d1b25-56d4-4f54-bfb0-e6eddb2d422b" />
 			<Member Name="MongoDB" p1:Guid="ba2a4661-04a0-49ed-a660-c6fb7386d0a2" />
 			<Member Name="Haproxy" p1:Guid="7af8d49b-5dd2-4e02-8bdf-0a19d4a1a0f9" />
 			<Member Name="ksanApiPortal" p1:Guid="b2019b4d-d885-46ba-89e9-53d2ad3af505" />
-			<Member Name="KsanPortal" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
-			<Member Name="ksanportalbridge" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
-			<Member Name="KsanMonitor" p1:Guid="ce9d7563-acc4-4920-8917-ac281583c1e4" />
-			<Member Name="KsanAgent" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
-			<Member Name="KsanOsd" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
-			<Member Name="KsanGw" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
-			<Member Name="KsanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
-			<Member Name="KsanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
-			<Member Name="KsanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
-			<Member Name="KsanLogExport" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
-			<Member Name="KsanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
+			<Member Name="ksanPortal" p1:Guid="54435e09-c157-4a6b-9470-2ec25bcbd9a1" />
+			<Member Name="ksanPortalBridge" p1:Guid="54b4d960-9bf5-4f32-99b6-bbfd3a1dbc7e" />
+			<Member Name="ksanAgent" p1:Guid="0a546e4d-b8b7-4822-98ef-4f38646174a5" />
+			<Member Name="ksanOSD" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
+			<Member Name="ksanGW" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
+			<Member Name="ksanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
+			<Member Name="ksanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
+			<Member Name="ksanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
+			<Member Name="ksanLogExport" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
+			<Member Name="ksanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>
@@ -122,6 +121,14 @@
 			<Member Name="OnePlusOne" p1:Guid="1d298d1d-45ae-4a42-be53-d51c554244d1" />
 			<Member Name="OnePlusTwo" p1:Guid="3442acff-12a7-4fed-8d29-47587931d509" />
 		</EnumType>
+		<EnumType Name="EnumDbServiceEventType" class="EnumDbServiceEventType" p1:Guid="006d84a3-475a-43f4-9e3e-20cd1dbc5b09">
+			<Documentation>
+				<Summary>서비스 이벤트 종류</Summary>
+			</Documentation>
+			<Member Name="Error" Value="-1" p1:Guid="263e4945-4d01-4f34-8456-f1d23d428426" />
+			<Member Name="Start" Value="0" p1:Guid="0a21e3b9-667d-48ce-b55d-1919e1cfab3d" />
+			<Member Name="Stop" Value="1" p1:Guid="8c3e145d-c186-4a81-9d6b-89addb3b44ec" />
+		</EnumType>
 	</class>
 	<class name="NetworkInterface" entity-set="NetworkInterfaces" p1:Guid="01514607-0e35-415a-9894-ccc4e0c2a488">
 		<Documentation>
@@ -137,7 +144,7 @@
 			<Documentation>
 				<Summary>서버 아이디</Summary>
 			</Documentation>
-			<column name="" sql-type="char(36)" />
+			<column name="" />
 		</property>
 		<property name="Name" type="String" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="28ef35b4-4db5-499c-94a6-11c9a07816ca">
 			<Documentation>
@@ -1584,9 +1591,37 @@
 		</property>
 		<property name="SecretKey" type="String" p1:ValidateRequired="true" p1:Guid="7ccc2d65-a746-45f6-a563-d38e2a8ccb3d">
 			<Documentation>
-				<Summary>엑세스키</Summary>
+				<Summary>시크릿키</Summary>
 			</Documentation>
 			<column name="" sql-type="char(40)" />
+		</property>
+	</class>
+	<class name="ServiceEventLog" entity-set="ServiceEventLogs" p1:Guid="783379c9-c272-447e-98bf-13d5365117be">
+		<Documentation>
+			<Summary>서비스 이벤트 로그</Summary>
+		</Documentation>
+		<composite-id>
+			<key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="89fd707b-96aa-4969-87cc-f48b4c8cbdeb">
+				<Documentation>
+					<Summary>서비스 아이디</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+			<key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="5fe7a5d1-d75d-497d-b8ab-0fe37b2cdd49">
+				<Documentation>
+					<Summary>등록 시간</Summary>
+				</Documentation>
+				<column name="" />
+			</key-property>
+		</composite-id>
+		<property name="EventType" type="PortalModels.EnumDbServiceEventType" p1:ValidateRequired="true" p1:Guid="65eed8fc-041d-41fa-80b3-7654e1832e0f">
+			<Documentation>
+				<Summary>이벤트 종류</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Message" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="0a6bc8f8-df94-43e3-bd3c-86b10c511b9a">
+			<column name="" />
 		</property>
 	</class>
 	<associations>
@@ -1993,6 +2028,14 @@
 			</end1>
 			<end2 multiplicity="Many" name="Services" class="Server" relation-class="Service" lazy="False" p1:Guid="66f0b8b5-0f35-41b4-b0fd-14fc3f4fb96f">
 				<property name="ServerId" />
+			</end2>
+		</association>
+		<association name="Service_ServiceEventLog" cardinality="OneToMany" p1:Guid="7d6f0926-9169-4349-99e0-8309a2512fd9">
+			<end1 multiplicity="One" name="Service" class="ServiceEventLog" relation-class="Service" constrained="True" lazy="False" p1:Guid="0026528f-daec-44df-a0ba-bae2a1f43512">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="Many" name="ServiceEventLogs" class="Service" relation-class="ServiceEventLog" lazy="False" p1:Guid="4dcc1299-0080-4749-9b69-5f1df8b62967">
+				<property name="Id" />
 			</end2>
 		</association>
 	</associations>

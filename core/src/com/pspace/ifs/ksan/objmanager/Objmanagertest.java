@@ -186,7 +186,7 @@ public class Objmanagertest {
             dp.addServer(s1);
             dp.displayServerList();
             System.out.println(dp);
-            System.out.println("Disk exist : " + dp.diskExistInPool("0", "/DISK3"));
+            //System.out.println("Disk exist : " + dp.diskExistInPool("0", "/DISK3"));
             System.out.println(dp.getNextServer());
             System.out.println(dp.getNextServer());
         } catch (ResourceNotFoundException ex) {

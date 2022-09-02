@@ -30,7 +30,7 @@ namespace PortalSvr.Services
 
 		/// <summary>권한 확인</summary>
 		/// <param name="context"></param>
-		public async void OnAuthorization(AuthorizationFilterContext context)
+		public void OnAuthorization(AuthorizationFilterContext context)
 		{
 			// 인증된 상태인 경우
 			if (context.HttpContext.User.Identity != null && context.HttpContext.User.Identity.IsAuthenticated)
@@ -51,7 +51,7 @@ namespace PortalSvr.Services
 						AuthorizationHeader = context.HttpContext.Request.Headers[AuthorizationHeaderName.ToLower()];
 
 					// API Key 정보를 가져온다.
-					var ResponseApiKey = await ApiKeyProvider.GetApiKey(ParseApiKeyFromHeader(AuthorizationHeader));
+					var ResponseApiKey = ApiKeyProvider.GetApiKey(ParseApiKeyFromHeader(AuthorizationHeader)).Result;
 
 					// API Key 정보를 가져오는데 성공한 경우
 					if (ResponseApiKey.Result == EnumResponseResult.Success)
@@ -67,13 +67,13 @@ namespace PortalSvr.Services
 						if (UserManager != null && SignInManager != null && ClaimsPrincipalFactory != null)
 						{
 							// API 키에 대한 사용자 정보를 가져온다.
-							var User = await UserManager.FindByIdAsync(ResponseApiKey.Data.UserId);
+							var User = UserManager.FindByIdAsync(ResponseApiKey.Data.UserId).Result;
 
 							// 해당 사용자로 로그인 처리
-							await SignInManager.SignInAsync(User, false);
+							SignInManager.SignInAsync(User, false).Wait();
 
 							// 로그인 정보를 저장한다. (이번 요청부터 로그인된 상태를 처리하기 하기 위해서)
-							context.HttpContext.User = await ClaimsPrincipalFactory.CreateAsync(User);
+							context.HttpContext.User = ClaimsPrincipalFactory.CreateAsync(User).Result;
 
 							return;
 						}

@@ -46,11 +46,13 @@ public class GW {
 	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
 		GWPortal.getInstance().getS3Users();
+		GWPortal.getInstance().getS3Regions();
 		GWPortal.getInstance().getDiskPoolsDetails();
-		
+
 		while (!GWPortal.getInstance().isAppliedDiskpools() || !GWPortal.getInstance().isAppliedUsers()) {
 			try {
 				Thread.sleep(1000);
+				GWPortal.getInstance().getDiskPoolsDetails();
 			} catch (InterruptedException e) {
 				PrintStack.logging(logger, e);
 			}
@@ -155,7 +157,9 @@ public class GW {
 			PrintStack.logging(logger, e);
 		}
 
-		GWUtils.initCache(GWConfig.getInstance().getCacheDisk());
+		if (GWConfig.getInstance().isCacheDiskpath()) {
+			GWUtils.initCache(GWConfig.getInstance().getCacheDiskpath());
+		}
 	}
 
 	public void start() throws Exception {

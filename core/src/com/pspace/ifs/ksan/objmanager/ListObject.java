@@ -191,13 +191,15 @@ public class ListObject{
 
         query1 = makeQueryWithDiskId(diskid, lastObjId);
         if (query1 != null){
-            return dbm.getObjectList(bucketName, query1, maxKeys, 0);
+            if (dbm instanceof MongoDataRepository)
+                return dbm.getObjectList(bucketName, query1, maxKeys, 0);
+            else{
+                 String sql = (String)query1;
+                PreparedStatement stmt = (PreparedStatement)dbm.getStatement(sql);
+                return dbm.getObjectList(bucketName, stmt, maxKeys, 0);
+            }
         }
-        else{
-            String sql = (String)query1;
-            PreparedStatement stmt = (PreparedStatement)dbm.getStatement(sql);
-            return dbm.getObjectList(bucketName, stmt, maxKeys, 0);
-        }
+        throw new SQLException("[ListObject] supported data storage not exist! check objmanager repostory config");
     }
     
     public long getUnformatedListCount() throws SQLException{
@@ -241,15 +243,16 @@ public class ListObject{
             String sql; 
             if (!diskid.isEmpty()){
                 sql = "SELECT * FROM `" + bucketName + "`"
-                        + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
+                        + " WHERE (pdiskid like '" + diskid 
                         + "' OR rdiskid like '" + diskid + "') AND objId > '"+ lastObjId + "' ORDER BY objId LIMIT " 
                         + maxKeys ;
             }
             else {
-                sql = "SELECT * FROM '" + bucketName + "'"
-                        + "WHERE bucket='" + bucketName + "'AND objId > '"+ lastObjId +  "' ORDER BY objKey LIMIT " 
+                sql = "SELECT * FROM `" + bucketName + "`"
+                        + " WHERE objId > '"+ lastObjId +  "' ORDER BY objId LIMIT " 
                         + maxKeys;
             }
+            System.out.println(" SqlQuery>>" + sql);
             return sql;
          }   
     }
@@ -353,7 +356,10 @@ public class ListObject{
                and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            }
            
-           prefixStr = prefix.replaceAll("\\%",  "\\\\/").replaceAll("\\_",  "\\\\_");
+           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+                   .replaceAll("\\_",  "\\\\_")
+                   .replaceAll("\\(", "\\\\(")
+                   .replaceAll("\\)", "\\\\)");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){    
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));

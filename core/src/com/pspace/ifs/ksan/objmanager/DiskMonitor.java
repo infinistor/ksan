@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.objmanager;
 
 import java.util.Iterator;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
@@ -176,13 +177,13 @@ public class DiskMonitor {
                     dskPool = obmCache.getDiskPoolFromCacheWithServerId(jo.serverid);
                 } catch (ResourceNotFoundException ex) {
                      if (!routingKey.contains("servers.diskpools."))
-                        return new MQResponse(MQResponseType.ERROR,  "-22", ex.getMessage(),  0); 
+                        return new MQResponse(MQResponseType.ERROR,  MQResponseCode.MQ_OBJECT_NOT_FOUND, ex.getMessage(),  0); 
                 }
             }
         } catch (ParseException ex) {
             System.out.println("body :>" + body);
             logger.debug("parsing error " + ex);
-            return new MQResponse(MQResponseType.ERROR, ex.getErrorType(), ex.getMessage(), 0);
+            return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, ex.getMessage(), 0);
         }
 
         if (routingKey.contains("servers.disks.")){
@@ -197,7 +198,7 @@ public class DiskMonitor {
             else if (routingKey.contains(".updated") || routingKey.contains(".size"))
                 ret =updateDiskSpace(dskPool, jo);
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }  
         else if (routingKey.contains("servers.diskpools.")){
             if (routingKey.contains(".added"))
@@ -207,7 +208,7 @@ public class DiskMonitor {
             else if (routingKey.contains(".updated"))
                 ret= updateDiskPool(dskPool, jo,  body);
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }
         else if (routingKey.contains("servers.volumes.")){
             ret = volumeMGNT(dskPool, jo, body);
@@ -221,10 +222,10 @@ public class DiskMonitor {
                 ret =updateServerStatus(dskPool, jo);
 
             else 
-                ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
+                ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }     
         else 
-            ret = new MQResponse(MQResponseType.WARNING, -22, "ObjManager not supported the request!", 0);
+            ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         
         try {
             obmCache.dumpCacheInFile(); // dump to file memory
@@ -336,7 +337,7 @@ public class DiskMonitor {
             logger.debug("Stop Disk>> {}",  jo);
             dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.STOPPED);
         }
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         obmCache.displayDiskPoolList();
         
         return res;
@@ -351,7 +352,7 @@ public class DiskMonitor {
         else if (jo.mode.equalsIgnoreCase(KEYS.RO.label)){
             dskPool.setDiskMode(jo.serverid, jo.id, DiskMode.READONLY);
         }
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         obmCache.displayDiskPoolList();
         
         return res;
@@ -366,11 +367,11 @@ public class DiskMonitor {
             dsk = dskPool.getDisk(jo.diskid);
             dsk.setSpace(jo.totalSpace, jo.usedSpace, jo.reservedSpace);
             dsk.setInode(jo.totalInode, jo.usedInode);
-            res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+            res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
             //obmCache.displayDiskPoolList();
         } catch (ResourceNotFoundException ex) {
             //Logger.getLogger(DiskMonitor.class.getName()).log(Level.SEVERE, null, ex);
-            res = new MQResponse(MQResponseType.ERROR, "disk not exist", "", 0);
+            res = new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_DISK_NOTFOUND, "disk not exist", 0);
         }
         
         return res;
@@ -405,7 +406,7 @@ public class DiskMonitor {
                 } 
            }
         }
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         obmCache.displayDiskPoolList();
  
         return res;
@@ -433,7 +434,7 @@ public class DiskMonitor {
         else if (jo.action.equalsIgnoreCase(KEYS.REMOVE.label)){
             dskPool.removeServer(jo.serverid);
         }
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         
         return res;
     }
@@ -453,10 +454,10 @@ public class DiskMonitor {
                 dskPool.getServerById(jo.serverid)
                        .setStatus(ServerStatus.TIMEOUT);
             }
-           res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+           res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         } catch( ResourceNotFoundException ex){
            System.out.println(ex);
-           res = new MQResponse(MQResponseType.ERROR, -1, ex.getMessage(), 0);
+           res = new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, ex.getMessage(), 0);
         }
         return res;
     }
@@ -476,7 +477,7 @@ public class DiskMonitor {
             this.obmCache.displayDiskPoolList();
             logger.debug("[addRemoveDiskPool] diskpool name : {} Id : {} removed", jo.diskPoolName, jo.id);
         }
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         
         return res;
     }
@@ -544,13 +545,13 @@ public class DiskMonitor {
                         svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
                         if (svr == null){
                             logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                            return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+                            return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
                         }
                         dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                         dskPool1.addServer(svr);
                     } catch (ResourceNotFoundException ex2) {
                         logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                        return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+                        return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
                     }
                 }
                 logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
@@ -558,14 +559,14 @@ public class DiskMonitor {
             }
         }
         
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         return res;
     }
     
     private MQResponse volumeMGNT(DISKPOOL dskPool, JsonOutput jo, String msg){
         MQResponse res;
         System.out.println("[volumeMNT : 345] " + msg);
-        res = new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
         return res;
     }
 }

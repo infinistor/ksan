@@ -53,6 +53,10 @@ public class DataPutObject extends S3DataRequest {
 	private String expectedBucketOwner;
 	private Map<String, String> userMetadata;
 	private boolean hasAclKeyword;
+	private String versionId;
+	private String replication;
+	private String dr;
+	private String logging;
 	
 	public DataPutObject(S3Parameter s3Parameter) throws GWException {
 		super(s3Parameter);
@@ -130,6 +134,14 @@ public class DataPutObject extends S3DataRequest {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.startsWith(GWConstants.USER_METADATA_PREFIX) ) {
 				userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_VERSION_ID)) {
+				versionId = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_REPLICATION)) {
+				replication = GWConstants.IFS_HEADER_REPLICATION;
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_DR)) {
+				dr = GWConstants.IFS_HEADER_DR;
+			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_LOGGING)) {
+				logging = GWConstants.IFS_HEADER_LOGGING;
 			}
 		}
 	}
@@ -261,5 +273,21 @@ public class DataPutObject extends S3DataRequest {
 
 	public Map<String, String> getUserMetadata() {
 		return userMetadata;
+	}
+
+	public String getVersionId() {
+		return versionId;
+	}
+
+	public String getReplication() {
+		return replication;
+	}
+
+	public String getDr() {
+		return dr;
+	}
+
+	public String getLogging() {
+		return logging;
 	}
 }

@@ -17,8 +17,8 @@ RUN mvn -f /src/pom.xml package
 ########################################################################
 FROM openjdk:11-jre-slim
 WORKDIR /app
-RUN mkdir -p /app/logs
-COPY --from=build /src/target/ksan-gw.jar /app
-COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.xml /app
-COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksan-gw.sh /app
-CMD ["/app/ksan-gw.sh"]
+RUN mkdir -p /usr/local/ksan/etc/
+COPY --from=build /src/target/ksanGW.jar /usr/local/ksan/sbin/
+COPY ./core/src/com/pspace/ifs/ksan/gw/ksanGW_log_conf.xml /usr/local/ksan/etc/
+COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksanGW.sh /app
+CMD ["/app/ksanGW.sh"]

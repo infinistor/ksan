@@ -24,10 +24,10 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Collections.Generic;
 
-namespace PortalProvider.Providers.RabbitMq
+namespace PortalProvider.Providers.RabbitMQ
 {
 	/// <summary>Rabbit MQ로 정보를 송/수신하는 클래스</summary>
-	public class RabbitMqRpc : IRabbitMqRpc
+	public class RabbitMQRpc : IRabbitMQRpc
 	{
 		/// <summary>Rabbit MQ 연결 객체</summary>
 		private IConnection m_connection;
@@ -36,7 +36,7 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>결과 수신 객체</summary>
 		private EventingBasicConsumer m_receiver;
 		/// <summary>Rabbit MQ 설정 객체</summary>
-		private readonly RabbitMqConfiguration m_config;
+		private readonly RabbitMQConfiguration m_config;
 		/// <summary>로거</summary>
 		protected readonly ILogger m_logger;
 		/// <summary>기본 속성 객체</summary>
@@ -49,21 +49,21 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>생성자</summary>
 		/// <param name="rabbitMqOptions">Rabbit MQ 설정 옵션 객체</param>
 		/// <param name="logger">로거</param>
-		public RabbitMqRpc(
-			IOptions<RabbitMqConfiguration> rabbitMqOptions,
-			ILogger<RabbitMqRpc> logger
+		public RabbitMQRpc(
+			IOptions<RabbitMQConfiguration> rabbitMqOptions,
+			ILogger<RabbitMQRpc> logger
 		)
 		{
 			try
 			{
 				// 설정 복사
-				m_config = new RabbitMqConfiguration();
+				m_config = new RabbitMQConfiguration();
 				m_config.CopyValueFrom(rabbitMqOptions.Value);
 				// 로거
 				m_logger = logger;
 
 				// Rabbit MQ 초기화
-				InitializeRabbitMqListener();
+				InitializeRabbitMQListener();
 
 				// 응답 관련 설정
 				m_properties = m_channel.CreateBasicProperties();
@@ -74,8 +74,8 @@ namespace PortalProvider.Providers.RabbitMq
 				{
 					{ "x-queue-type", "quorum" },
 				};
-				
-				m_channel.QueueDeclare(queue: m_receiverQueueName, durable:true, exclusive:false, autoDelete: false, arguments:arguments);
+
+				m_channel.QueueDeclare(queue: m_receiverQueueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 				m_properties.ReplyTo = m_receiverQueueName;
 
 				// 결과 수신 객체 생성
@@ -98,7 +98,7 @@ namespace PortalProvider.Providers.RabbitMq
 		}
 
 		/// <summary>Rabbit MQ 리스너 초기화</summary>
-		private void InitializeRabbitMqListener()
+		private void InitializeRabbitMQListener()
 		{
 			try
 			{
@@ -164,9 +164,6 @@ namespace PortalProvider.Providers.RabbitMq
 					// 응답 데이터를 가져온다.
 					Result.Data = m_responseQueue.Take(CancellationTokenSource.Token);
 					Result.Result = EnumResponseResult.Success;
-
-					// 응답 데이터를 가져온 후 rpc 삭제
-					m_channel.BasicCancel(m_receiver.ConsumerTags[0]);
 				}
 				catch (Exception /*e*/)
 				{
@@ -194,6 +191,7 @@ namespace PortalProvider.Providers.RabbitMq
 		/// <summary>연결 종료</summary>
 		public void Close()
 		{
+			m_channel?.QueueDelete(m_receiverQueueName);
 			m_channel?.Dispose();
 			m_connection?.Dispose();
 

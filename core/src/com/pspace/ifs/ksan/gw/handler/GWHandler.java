@@ -156,6 +156,7 @@ public class GWHandler {
 		s3Parameter.setHostID(request.getHeader(GWConstants.X_AMZ_ID_2));
 		s3Parameter.setRemoteAddr(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
 
+		S3Signing s3signing = new S3Signing(s3Parameter);
 		if (request.getHeader(HttpHeaders.AUTHORIZATION) == null 
 		 	&& request.getParameter(GWConstants.X_AMZ_ALGORITHM) == null 
 			&& request.getParameter(GWConstants.AWS_ACCESS_KEY_ID) == null) {
@@ -163,18 +164,28 @@ public class GWHandler {
 			if (s3Parameter.getPathCategory().equals(GWConstants.CATEGORY_ROOT)) {
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
-
-			S3Signing s3signing = new S3Signing(s3Parameter);
+			
 			s3Parameter = s3signing.publicvalidation();
 			s3Parameter.setPublicAccess(true);
+			s3Parameter.setAdmin(false);
+		} else if (request.getHeader(GWConstants.X_IFS_ADMIN) != null) {
+			s3Parameter = s3signing.validation(true);
+			s3Parameter.setAdmin(true);
 		} else {
-			S3Signing s3signing = new S3Signing(s3Parameter);
-			s3Parameter = s3signing.validation();
+			s3Parameter = s3signing.validation(false);
 			s3Parameter.setPublicAccess(false);
+			s3Parameter.setAdmin(false);
 		}
 
-		logger.info(GWConstants.LOG_GWHANDLER_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
-		S3Request s3Request = s3RequestFactory.createS3Request(s3Parameter);
+		S3Request s3Request = null;
+		if (s3Parameter.isAdmin()) {
+			logger.info(GWConstants.LOG_GWHANDLER_ADMIN_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
+		} else {
+			logger.info(GWConstants.LOG_GWHANDLER_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
+		}
+		
+		s3Request = s3RequestFactory.createS3Request(s3Parameter);
+		
 		s3Request.process();
 		s3Parameter.setStatusCode(response.getStatus());
 		AsyncHandler.s3logging(s3Parameter);

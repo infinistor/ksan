@@ -28,7 +28,10 @@ using MTLib.AspNetCore;
 using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
-using Renci.SshNet;
+using MTLib.HttpClient;
+using PortalData.Requests.Agent;
+using PortalProvider.Providers.RabbitMQ;
+using MTLib.Reflection;
 
 namespace PortalProvider.Providers.Servers
 {
@@ -149,42 +152,26 @@ namespace PortalProvider.Providers.Servers
 				if (InternalServiceApiKey == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__COMMUNICATION_ERROR_TO_API, Resource.EM_COMMON__COMMUNICATION_ERROR_TO_API);
 
-				// 명령 스크립트 생성
-				var cmd = $"/usr/local/ksan/bin/util/ksanNodeRegister -i {Request.ServerIp} -m {Request.PortalIp} -p {Request.PortalPort} -k {InternalServiceApiKey.KeyValue} " +
-					$"-q {m_configuration["AppSettings:RabbitMq:Port"]} -u {m_configuration["AppSettings:RabbitMq:User"]} -w {m_configuration["AppSettings:RabbitMq:Password"]}";
-				m_logger.LogInformation(cmd);
+				// 클라이언트 생성
+				NNHttpClient client = new NNHttpClient(NNException.Logger, 100, true, true);
 
-				// SSH 접속
-				var Client = new SshClient(Request.ServerIp, Request.UserName, Request.Password);
-				Client.Connect();
+				// RabbitMq 정보를 가져온다.
+				IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
+				RabbitMQConfiguration RabbitMQ = Section.Get<RabbitMQConfiguration>();
 
-				// 명령어 생성 및 실행
-				var Commend = Client.CreateCommand(cmd);
-
-				// 결과 받아오기
-				await Task.Run(() => Commend.Execute());
-				var error = Commend.Error;
-				var answer = Commend.Result;
-
-				if (string.IsNullOrEmpty(error))
+				var SendData = new RequestAgentInitialize()
 				{
-					if (answer.Contains("Done"))
-					{
-						Result.Message = answer;
-						Result.Result = EnumResponseResult.Success;
-					}
-					else
-					{
-						Result.Message = answer;
-						Result.Result = EnumResponseResult.Error;
-					}
-				}
-				else
-				{
-					Result.Message = error;
-					Result.Result = EnumResponseResult.Error;
-					Result.Code = Resource.EC_COMMON__EXCEPTION;
-				}
+					LocalIp = Request.ServerIp,
+					PortalHost = m_configuration["AppSettings:Host"],
+					PortalPort = 6443,
+					MQHost = RabbitMQ.Host,
+					MQPort = RabbitMQ.Port,
+					MQUser = RabbitMQ.User,
+					MQPassword = RabbitMQ.Password,
+					PortalApiKey = InternalServiceApiKey.KeyValue
+				};
+				var Response = await client.Post<ResponseData>($"http://{Request.ServerIp}:6380/api/v1/Servers", SendData);
+				Result.CopyValueFrom(Response.Data);
 			}
 			catch (Exception ex)
 			{

@@ -20,12 +20,12 @@ using PortalProvider.Logs;
 using PortalProvider.Providers.Accounts;
 using PortalProvider.Providers.DiskGuids;
 using PortalProvider.Providers.Networks;
-using PortalProvider.Providers.RabbitMq;
+using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.Servers;
 using PortalProvider.Providers.Services;
 using PortalProviderInterface;
 using PortalResources;
-using PortalSvr.RabbitMqReceivers;
+using PortalSvr.RabbitMQReceivers;
 using PortalSvr.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -45,6 +45,10 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using PortalProvider.Providers.DB;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Newtonsoft.Json;
+using System.Linq;
+using System.Net.Mime;
 
 namespace PortalSvr
 {
@@ -59,9 +63,6 @@ namespace PortalSvr
 
 		/// <summary>서비스 프로바이더 싱글톤 객체</summary>
 		public static System.IServiceProvider ServiceProviderSignleton { get; set; }
-
-		/// <summary>Mysql 버전정보 객체</summary>
-		public MySqlServerVersion Versions = new MySqlServerVersion(new Version(10, 5, 12));
 
 		/// <summary>생성자</summary>
 		/// <param name="env">호스팅 환경 객체</param>
@@ -119,35 +120,33 @@ namespace PortalSvr
 		{
 			try
 			{
-				if (Configuration["AppSettings:DatabaseType"].Equals("MongoDB"))
+				if (Configuration["AppSettings:DatabaseType"].Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
 				{
 					// TODO : Mongo 설정 지원시 변경
 					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
 					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
+					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 				}
 				else
 				{
 					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection("MariaDB");
+					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
 					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
-					Console.WriteLine(mariaDBConfiguration.GetConnectionString());
 					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(mariaDBConfiguration.GetConnectionString()));
-					// Services.AddDbContext<PortalModel>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
+					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseMySql(mariaDBConfiguration.GetConnectionString()));
-					// Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(Configuration["ConnectionStrings:PortalDatabase"], Versions));
+					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 				}
-
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -164,15 +163,14 @@ namespace PortalSvr
 				Services.AddTransient<IAccountInitializer, AccountInitializer>();
 				Services.AddTransient<IRoleInitializer, RoleInitializer>();
 				Services.AddTransient<IConfigurationInitializer, ConfigurationInitializer>();
-				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
 				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
 				Services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
 				Services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
-				Services.AddTransient<IRabbitMqSender, RabbitMqSender>();
-				Services.AddTransient<IRabbitMqRpc, RabbitMqRpc>();
+				Services.AddTransient<IRabbitMQSender, RabbitMQSender>();
+				Services.AddTransient<IRabbitMQRpc, RabbitMQRpc>();
 				Services.AddTransient<IServerProvider, ServerProvider>();
 				Services.AddTransient<INetworkInterfaceProvider, NetworkInterfaceProvider>();
 				Services.AddTransient<INetworkInterfaceVlanProvider, NetworkInterfaceVlanProvider>();
@@ -184,8 +182,12 @@ namespace PortalSvr
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
 				Services.AddTransient<IRegionProvider, RegionProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
+				Services.AddTransient<IServerInitializer, ServerInitializer>();
 
+				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();
+				// 최초 기동시 서버 및 서비스를 등록 한다.
+				Services.AddHostedService<ServerInitializer>();
 
 				Services.AddSwaggerGen(c =>
 				{
@@ -227,15 +229,15 @@ namespace PortalSvr
 				ServiceProviderSignleton = Services.BuildServiceProvider();
 
 				// Rabbit MQ 설정
-				IConfigurationSection configurationSectionRabbitMq = Configuration.GetSection("AppSettings:RabbitMq");
-				RabbitMqConfiguration rabbitMqConfiguration = configurationSectionRabbitMq.Get<RabbitMqConfiguration>();
-				Services.Configure<RabbitMqConfiguration>(configurationSectionRabbitMq);
+				IConfigurationSection configurationSectionRabbitMQ = Configuration.GetSection("AppSettings:RabbitMQ");
+				RabbitMQConfiguration rabbitMqConfiguration = configurationSectionRabbitMQ.Get<RabbitMQConfiguration>();
+				Services.Configure<RabbitMQConfiguration>(configurationSectionRabbitMQ);
 
 				// Rabbit MQ
 				if (rabbitMqConfiguration.Enabled)
 				{
-					Services.AddHostedService<RabbitMqServerReceiver>();
-					Services.AddHostedService<RabbitMqServiceReceiver>();
+					Services.AddHostedService<RabbitMQServerReceiver>();
+					Services.AddHostedService<RabbitMQServiceReceiver>();
 				}
 			}
 			catch (Exception ex)
@@ -280,12 +282,31 @@ namespace PortalSvr
 					c.DocExpansion(DocExpansion.None);
 				});
 
+				// // Docker HealthCheck
+				// app.UseHealthChecks("/healthcheck", new HealthCheckOptions
+				// {
+				// 	ResponseWriter = async (context, report) =>
+				// 	{
+				// 		var result = JsonConvert.SerializeObject(new
+				// 		{
+				// 			status = report.Status.ToString(),
+				// 			checks = report.Entries.Select(c => new
+				// 			{
+				// 				check = c.Key,
+				// 				result = c.Value.Status.ToString()
+				// 			}),
+				// 		});
+
+				// 		context.Response.ContentType = MediaTypeNames.Application.Json;
+				// 		await context.Response.WriteAsync(result);
+				// 	}
+				// });
+
 				// 개발 환경인 경우
 				if (env.IsDevelopment())
 				{
 					// 개발자 Exception 페이지 사용
 					app.UseDeveloperExceptionPage();
-					//app.UseDatabaseErrorPage();
 				}
 				// 운영 환경인 경우
 				else
@@ -321,9 +342,6 @@ namespace PortalSvr
 
 				// 최초 기동시 설정을 등록 한다.
 				configurationInitializer?.Initialize().Wait();
-
-				// // 최초 기동시 서버를 등록 한다.
-				// serverInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);
@@ -382,6 +400,7 @@ namespace PortalSvr
 
 				// 업로드 설정 관련 초기화할 목록을 가져온다.
 				var uploadConfigValues = uploadConfigLoader.GetListForInitialization();
+
 				// 업로드 설정 관련 초기화할 항목이 존재하는 경우
 				if (uploadConfigValues != null && uploadConfigValues.Count > 0)
 				{

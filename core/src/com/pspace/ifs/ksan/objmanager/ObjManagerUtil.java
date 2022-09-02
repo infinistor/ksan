@@ -16,7 +16,6 @@ import java.util.List;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.util.ArrayList;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,11 +30,13 @@ public class ObjManagerUtil {
     private ObjManagerConfig config;
     private OSDClient osdc;
     private ObjManagerSharedResource omsr;
+    private LifeCycleManagment lfm;
+    private ObjMultipart multipart;
     private static Logger logger;
     
-    public ObjManagerUtil() throws Exception{
+    public ObjManagerUtil(ObjManagerConfig config) throws Exception{
             
-            config = new ObjManagerConfig();
+            this.config = config;
             
             omsr = ObjManagerSharedResource.getInstance(config, false);
             
@@ -44,15 +45,20 @@ public class ObjManagerUtil {
             dbm = new DataRepositoryLoader(config, obmCache).getDataRepository();
             
             osdc = new OSDClient(config);
-            //config.loadDiskPools(obmCache);
-           
-            //dbm.loadBucketList();
             
             obmCache.setDBManager(dbm);
                 
             dAlloc = new DiskAllocation(obmCache);
             
+            lfm = new LifeCycleManagment(dbm);
+            
+            multipart = new ObjMultipart(dbm);
+             
             logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
+    }
+    
+    public ObjManagerUtil() throws Exception{
+            this(new ObjManagerConfig());
     }
     
     private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
@@ -148,29 +154,17 @@ public class ObjManagerUtil {
     /**
      * It will allocate a replica disk for recovery of failed replica object
      * @param bucketName   bucket name
-     * @param pdiskId   primary diskid
-     * @param rdiskId   replica diskid
+     * @param mt
      * @return new DISK object
      * @throws ResourceNotFoundException if there is no server or disk available
      * @throws AllServiceOfflineException if all server are offline 
      *                                   or if all DISK are not Good state
      */
     public DISK allocReplicaDisk(String bucketName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
-       
         if (mt == null)
              throw new ResourceNotFoundException("null metadata are provided!");
-
-        /*if (pdiskId != null && rdiskId != null){
-            if (pdiskId.isEmpty() && rdiskId.isEmpty())
-                throw new ResourceNotFoundException("empty diskid provided!");
-        }*/
         
-        //DISK rsrcDisk = null;
-        String dskPoolId = obmCache.getBucketFromCache(bucketName).getDiskPoolId();
-       /* DISK psrcDisk = obmCache.getDiskWithId(dskPoolId, pdiskId);
-        if (rdiskId != null)
-            rsrcDisk = obmCache.getDiskWithId(dskPoolId, rdiskId);*/
-        return dAlloc.allocDisk(dskPoolId, mt);
+        return dAlloc.allocDisk(mt);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
@@ -185,7 +179,7 @@ public class ObjManagerUtil {
         if (dskPoolId == null)
             return false;
         
-        return dAlloc.isReplicationAllowedInDisk(dskPoolId, primary, replica, DstDiskId, allowedToMoveToLocalDisk);
+        return dAlloc.isReplicationAllowedInDisk(primary, replica, DstDiskId, allowedToMoveToLocalDisk);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId){
@@ -227,6 +221,10 @@ public class ObjManagerUtil {
     }
     
     public List<Bucket> getExistedBucketList(){
+        return getBucketList();
+    }
+    
+    public List<Bucket> getBucketList(){
         return dbm.getBucketList();
     }
     
@@ -238,39 +236,10 @@ public class ObjManagerUtil {
         }
     }
     
-    public int addUserDiskPool(String userId, String diskPoolId, int replicaCount){
-  
-        try {
-            DISKPOOL dp = obmCache.getDiskPoolFromCache(diskPoolId);
-            if (dp == null)
-                return -2;
-            return dbm.insertUserDiskPool(userId, "", "", diskPoolId, replicaCount);
-        } catch (ResourceNotFoundException e) {
-            return -2; 
-        } catch (SQLException ex) {
-            if (ex.getErrorCode() == 1062)
-                return -17;
-            System.out.println(ex);
-            return -1;
-        } 
+    public DISK getDISK(String diskId) throws ResourceNotFoundException{
+        return obmCache.getDiskWithId(diskId);
     }
-    
-    public DISK getDISK(String bucketName, String diskId) throws ResourceNotFoundException{
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        if (bt == null)
-            throw new ResourceNotFoundException("[getDISK]unable to find bucket with the name " + bucketName + "!");
-        
-        return obmCache.getDiskWithId(bt.getDiskPoolId(), diskId);
-    }
-    
-    public int removeUserDiskPool(String userId, String diskPoolId){
-        try {
-            return dbm.deleteUserDiskPool(userId, diskPoolId);
-        } catch (SQLException ex) {
-            return -1;
-        }
-    }
-    
+   
     public OSDClient getOSDClient(){
         return osdc;
     }
@@ -281,5 +250,14 @@ public class ObjManagerUtil {
     
     public ObjManagerConfig getObjManagerConfig(){
         return config;
+    }
+    
+    public LifeCycleManagment getLifeCycleManagmentInsatance(){
+        return lfm;
+    }
+    
+    public ObjMultipart getMultipartInsatance(String Bucket){
+        multipart.setBucket(Bucket);
+        return multipart;
     }
 }

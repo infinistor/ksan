@@ -196,12 +196,15 @@ public abstract class S3Request {
 			}
 		}
 		
-		if (accessControlPolicy.owner.id.compareTo(id) == 0) {
-			return true;
+		if (accessControlPolicy.owner != null) {
+			if (accessControlPolicy.owner.id != null) {
+				if (accessControlPolicy.owner.id.compareTo(id) == 0) {
+					return true;
+				}
+			}
 		}
-		else {
-			return false;
-		}
+		
+		return false;
 	}
 
 	protected boolean isGrant(String id, String s3grant) throws GWException {		
@@ -368,25 +371,37 @@ public abstract class S3Request {
 			case GWConstants.GRANT_READ:
 				for (Grant grant : acp.aclList.grants) {
 					if (grant.permission.compareTo(GWConstants.GRANT_FULL_CONTROL) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					} else if (grant.permission.compareTo(GWConstants.GRANT_READ) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					}
@@ -396,25 +411,37 @@ public abstract class S3Request {
 			case GWConstants.GRANT_WRITE:
 				for (Grant grant : acp.aclList.grants) {
 					if (grant.permission.compareTo(GWConstants.GRANT_FULL_CONTROL) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					} else if (grant.permission.compareTo(GWConstants.GRANT_WRITE) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					}
@@ -424,25 +451,37 @@ public abstract class S3Request {
 			case GWConstants.GRANT_READ_ACP:
 				for (Grant grant : acp.aclList.grants) {
 					if (grant.permission.compareTo(GWConstants.GRANT_FULL_CONTROL) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					} else if (grant.permission.compareTo(GWConstants.GRANT_READ_ACP) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					}
@@ -452,25 +491,37 @@ public abstract class S3Request {
 			case GWConstants.GRANT_WRITE_ACP:
 				for (Grant grant : acp.aclList.grants) {
 					if (grant.permission.compareTo(GWConstants.GRANT_FULL_CONTROL) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					} else if (grant.permission.compareTo(GWConstants.GRANT_WRITE_ACP) == 0) {
-						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-								return true;
-							}
-						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+						if (grant.grantee.type == null) {
 							if (grant.grantee.id.compareTo(id) == 0) {
 								return true;
+							}
+						} else {
+							if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+								if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+										|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+									return true;
+								}
+							} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+								if (grant.grantee.id.compareTo(id) == 0) {
+									return true;
+								}
 							}
 						}
 					}
@@ -479,14 +530,20 @@ public abstract class S3Request {
 
 			case GWConstants.GRANT_FULL_CONTROL:
 				for (Grant grant : acp.aclList.grants) {
-					if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
-						if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
-								|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
-							return true;
-						}
-					} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+					if (grant.grantee.type == null) {
 						if (grant.grantee.id.compareTo(id) == 0) {
 							return true;
+						}
+					} else {
+						if (grant.grantee.type.compareTo(GWConstants.GROUP) == 0) {
+							if (grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_ALL_USERS) == 0
+									|| grant.grantee.uri.compareTo(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS) == 0) {
+								return true;
+							}
+						} else if (grant.grantee.type.compareTo(GWConstants.CANONICAL_USER) == 0) {
+							if (grant.grantee.id.compareTo(id) == 0) {
+								return true;
+							}
 						}
 					}
 				}
@@ -520,7 +577,11 @@ public abstract class S3Request {
 
 		logger.info(GWConstants.LOG_REQUEST_CHECK_ACL_ID_GRANT, id, s3grant);
 		logger.info(GWConstants.LOG_REQUEST_BUCKET_ACL, getBucketInfo().getAcl());
-		logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicy.owner.id);
+		// logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicy.owner.id);
+
+		if (accessControlPolicy.aclList == null) {
+			return false;
+		}
 
 		if (accessControlPolicy.aclList.grants == null) {
 			return false;
@@ -549,9 +610,18 @@ public abstract class S3Request {
 
 		logger.info(GWConstants.LOG_REQUEST_CHECK_ACL_ID_GRANT, id, s3grant);
 		logger.info(GWConstants.LOG_REQUEST_BUCKET_ACL, meta.getAcl());
-		logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicyObject.owner.id);
-		if (accessControlPolicyObject.owner.id.compareTo(id) == 0) {
-			return true; // owner has full-grant
+
+		if (accessControlPolicyObject.owner != null) {
+			if (accessControlPolicyObject.owner.id != null) {
+				logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicyObject.owner.id);
+				if (accessControlPolicyObject.owner.id.compareTo(id) == 0) {
+					return true; // owner has full-grant
+				}
+			}
+		}
+
+		if (accessControlPolicyObject.aclList != null) {
+			return false;
 		}
 
 		if (accessControlPolicyObject.aclList.grants == null) {
@@ -581,7 +651,11 @@ public abstract class S3Request {
 
 		logger.info(GWConstants.LOG_REQUEST_CHECK_ACL_ID_GRANT, id, s3grant);
 		logger.info(GWConstants.LOG_REQUEST_BUCKET_ACL, meta.getAcl());
-		logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicyObject.owner.id);
+		// logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicyObject.owner.id);
+
+		if (accessControlPolicyObject.aclList == null) {
+			return false;
+		}
 
 		if (accessControlPolicyObject.aclList.grants == null) {
 			return false;
@@ -760,7 +834,7 @@ public abstract class S3Request {
 		Metadata meta = null;
 		try {
 			setObjManager();
-			meta = objManager.createLocal(bucket, object);
+			meta = objManager.createLocal(bucket, object, "null");
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -781,6 +855,26 @@ public abstract class S3Request {
 		try {
 			setObjManager();
 			meta = objManager.createLocal(bucket, object, versionId);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		return meta;
+	}
+
+	protected Metadata createLocal(String diskpoolId, String bucket, String object, String versionId) throws GWException {
+		Metadata meta = null;
+		try {
+			setObjManager();
+			meta = objManager.createLocal(diskpoolId, bucket, object, versionId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -1339,9 +1433,18 @@ public abstract class S3Request {
 
 		logger.info(GWConstants.LOG_REQUEST_CHECK_ACL_ID_GRANT, id, s3grant);
 		logger.info(GWConstants.LOG_REQUEST_BUCKET_ACL, dstBucket.getAcl());
-		logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicy.owner.id);
-		if (accessControlPolicy.owner.id.compareTo(id) == 0) {
-			return true; // owner has full-grant
+
+		if (accessControlPolicy.owner != null) {
+			if (accessControlPolicy.owner.id != null) {
+				logger.info(GWConstants.LOG_REQUEST_BUCKET_OWNER_ID, accessControlPolicy.owner.id);
+				if (accessControlPolicy.owner.id.compareTo(id) == 0) {
+					return true; // owner has full-grant
+				}
+			}
+		}
+
+		if (accessControlPolicy.aclList == null) {
+			return false;
 		}
 
 		if (accessControlPolicy.aclList.grants == null) {

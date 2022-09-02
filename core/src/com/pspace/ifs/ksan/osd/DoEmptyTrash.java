@@ -27,31 +27,21 @@ import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 
 public class DoEmptyTrash implements Runnable {
-    private final static Logger logger = LoggerFactory.getLogger(DoECPriObject.class);
+    private final static Logger logger = LoggerFactory.getLogger(DoEmptyTrash.class);
 
     @Override
     public void run() {
         logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
         
-        if (!Strings.isNullOrEmpty(OSDConfig.getInstance().getCacheDisk())) {
-            recursiveEmptyCache(OSDConfig.getInstance().getCacheDisk());
+        if (OSDConfig.getInstance().isCacheDiskpath()) {
+            recursiveEmptyCache(OSDConfig.getInstance().getCacheDiskpath());
         }
 
-        logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_LOCAL_IP, KsanUtils.getLocalIP());
         HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
         diskInfoMap.forEach((diskId, diskPath) -> {
             String trashDir = diskPath + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
             empty(trashDir);
         });
-        
-        // for (SERVER server : diskpoolList.getDiskpool().getServers()) {
-        //     if (OSDUtils.getInstance().getLocalIP().equals(server.getIp())) {
-        //         for (DISK disk : server.getDisks()) {
-        //             String trashDir = disk.getPath() + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
-        //             empty(trashDir);
-        //         }
-        //     }
-        // }
     }
 
     private void recursiveEmptyCache(String dirPath) {

@@ -18,40 +18,37 @@ import java.util.Properties;
 
 import com.pspace.ifs.ksan.libs.Constants;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class MonConfig {
+public class AgentConfig {
     private Properties properties;
 
     private String portalIp;
     private String portalPort;
     private String serverId;
     private String portalKey;
+    private String mqHost;
     private String mqPort;
     private String mqUser;
     private String mqPassword;
+    private long serviceMonitorInterval;
 
     public static final String DATA = "Data";
     public static final String VERSION = "Version";
     public static final String CONFIG = "Config";
 
-    private static final Logger logger = LoggerFactory.getLogger(MonConfig.class);
-
-    public static MonConfig getInstance() {
+    public static AgentConfig getInstance() {
         return LazyHolder.INSTANCE;
     }
 
     private static class LazyHolder {
-        private static final MonConfig INSTANCE = new MonConfig();
+        private static final AgentConfig INSTANCE = new AgentConfig();
     }
 
-    private MonConfig() {
+    private AgentConfig() {
         String path = System.getProperty("configure");
 		if (path == null) {
-			path = Constants.KMON_CONFIG_PATH;
+			path = Constants.AGENT_CONFIG_PATH;
 		}
-        logger.info(path);
+
         properties = new Properties();
         try (InputStream myis = new FileInputStream(path)) {
             properties.load(myis);
@@ -63,47 +60,61 @@ public class MonConfig {
     }
 
     public void configure() {
-        portalIp = properties.getProperty(Constants.KMON_PROPERTY_PORTAL_IP);
+        portalIp = properties.getProperty(Constants.AGENT_PROPERTY_PORTAL_HOST);
         if (portalIp == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_PORTAL_IP);
+					Constants.AGENT_PROPERTY_PORTAL_HOST);
         }
-		portalPort = properties.getProperty(Constants.KMON_PROPERTY_PORTAL_PORT);
+		portalPort = properties.getProperty(Constants.AGENT_PROPERTY_PORTAL_PORT);
         if (portalPort == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_PORTAL_PORT);
+					Constants.AGENT_PROPERTY_PORTAL_PORT);
         }
-        portalKey = properties.getProperty(Constants.KMON_POOPERTY_POTAL_KEY);
+        portalKey = properties.getProperty(Constants.AGENT_POOPERTY_POTAL_KEY);
         if (portalKey == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_POOPERTY_POTAL_KEY);
+					Constants.AGENT_POOPERTY_POTAL_KEY);
         }
-        mqPort = properties.getProperty(Constants.KMON_PROPERTY_MQ_PORT);
+        mqHost = properties.getProperty(Constants.AGENT_PROPERTY_MQ_HOST);
+        if (mqHost == null) {
+            throw new IllegalArgumentException(
+					Constants.LOG_CONFIG_MUST_CONTAIN +
+					Constants.AGENT_PROPERTY_MQ_HOST);
+        }
+        mqPort = properties.getProperty(Constants.AGENT_PROPERTY_MQ_PORT);
         if (mqPort == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_MQ_PORT);
+					Constants.AGENT_PROPERTY_MQ_PORT);
         }
-        serverId = properties.getProperty(Constants.KMON_PROPERTY_SERVER_ID);
+        serverId = properties.getProperty(Constants.AGENT_PROPERTY_SERVER_ID);
         if (serverId == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_SERVER_ID);
+					Constants.AGENT_PROPERTY_SERVER_ID);
         }
-        mqUser = properties.getProperty(Constants.KMON_PROPERTY_MQ_USER);
+        mqUser = properties.getProperty(Constants.AGENT_PROPERTY_MQ_USER);
         if (mqUser == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_MQ_USER);
+					Constants.AGENT_PROPERTY_MQ_USER);
         }
-        mqPassword = properties.getProperty(Constants.KMON_PROPERTY_MQ_PASSWORD);
+        mqPassword = properties.getProperty(Constants.AGENT_PROPERTY_MQ_PASSWORD);
         if (mqPassword == null) {
             throw new IllegalArgumentException(
 					Constants.LOG_CONFIG_MUST_CONTAIN +
-					Constants.KMON_PROPERTY_MQ_PASSWORD);
+					Constants.AGENT_PROPERTY_MQ_PASSWORD);
+        }
+        String interval = properties.getProperty(Constants.AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL);
+        if (interval == null) {
+            throw new IllegalArgumentException(
+					Constants.LOG_CONFIG_MUST_CONTAIN +
+					Constants.AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL);
+        } else {
+            serviceMonitorInterval = Long.parseLong(interval);
         }
     }
 
@@ -119,7 +130,7 @@ public class MonConfig {
         return portalKey;
     }
 
-    public String getMqPort() {
+    public String getMQPort() {
         return mqPort;
     }
 
@@ -127,11 +138,19 @@ public class MonConfig {
         return serverId;
     }
 
-    public String getMqUser() {
+    public String getMQUser() {
         return mqUser;
     }
 
-    public String getMqPassword() {
+    public String getMQPassword() {
         return mqPassword;
+    }
+
+    public String getMQHost() {
+        return mqHost;
+    }
+
+    public long getServiceMonitorInterval() {
+        return serviceMonitorInterval;
     }
 }

@@ -19,6 +19,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+import java.io.File;
+
 public class OSDConfig {
     public static final String OSD_JSON_CONFIG_DATA = "Data";
     public static final String OSD_JSON_CONFIG_VERSION = "Version";
@@ -28,26 +31,28 @@ public class OSDConfig {
 
     private int poolSize;
     private int port;
-    private int ecScheduleMinutes;
-    private int ecApplyMinutes;
-    private long ecFileSize;
-    private String cacheDisk;
-    private int cacheScheduleMinutes;
-    private long cacheFileSize;
-    private int cacheLimitMinutes;
-    private int trashScheduleMinutes;
+    private int ecCheckInterval;
+    private int ecWaitTime;
+    private long ecMinSize;
+    private String cacheDiskpath;
+    private boolean isCacheDiskpath;
+    
+    private int cacheCheckInterval;
+    // private long cacheFileSize;
+    private int cacheExpire;
+    private int trashCheckInterval;
 
     private static final String VERSION = "version";
     private static final String POOL_SIZE = "osd.pool_size";
     private static final String PORT = "osd.port";
-    private static final String EC_SCHEDULE_MINUTES = "osd.ec_schedule_minutes";
-    private static final String EC_APPLY_MINUTES = "osd.ec_apply_minutes";
-    private static final String EC_FILE_SIZE = "osd.ec_file_size";
-    private static final String CACHE_DISK = "osd.cache_disk";
-    private static final String CACHE_SCHEDULE_MINUTES = "osd.cache_schedule_minutes";
-    private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
-    private static final String CACHE_LIMIT_MINUTES = "osd.cache_limit_minutes";
-    private static final String TRASH_SCHEDULE_MINUTES = "osd.trash_schedule_minutes";
+    private static final String EC_CHECK_INTERVAL = "osd.ec_check_interval"; //"osd.ec_schedule_milliseconds";
+    private static final String EC_WAIT_TIME = "osd.ec_wait_time"; //"osd.ec_apply_milliseconds";
+    private static final String EC_MIN_FILE_SIZE = "osd.ec_min_size"; //"osd.ec_file_size";
+    private static final String CACHE_DISKPATH = "osd.cache_diskpath";
+    private static final String CACHE_CHECK_INTERVAL = "osd.cache_check_interval"; //"osd.cache_schedule_milliseconds";
+    // private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
+    private static final String CACHE_EXPIRE = "osd.cache_expire"; //"osd.cache_limit_milliseconds";
+    private static final String TRASH_CHECK_INTERVAL = "osd.trash_check_interval"; //"osd.trash_schedule_milliseconds";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(OSDConfig.class);
@@ -87,68 +92,76 @@ public class OSDConfig {
         this.port = port;
     }
 
-    public int getECScheduleMinutes() {
-        return ecScheduleMinutes;
+    public int getECCheckInterval() {
+        return ecCheckInterval;
     }
 
-    public void setECScheduleMinutes(int ecScheduleMinutes) {
-        this.ecScheduleMinutes = ecScheduleMinutes;
+    public void setECCheckInterval(int ecCheckInterval) {
+        this.ecCheckInterval = ecCheckInterval;
     }
 
-    public int getECApplyMinutes() {
-        return ecApplyMinutes;
+    public int getECWaitTime() {
+        return ecWaitTime;
     }
 
-    public void setECApplyMinutes(int ecApplyMinutes) {
-        this.ecApplyMinutes = ecApplyMinutes;
+    public void setECWaitTime(int ecWaitTime) {
+        this.ecWaitTime = ecWaitTime;
     }
 
-    public long getECFileSize() {
-        return ecFileSize;
+    public long getECMinSize() {
+        return ecMinSize;
     }
 
-    public void setECFileSize(long ecFileSize) {
-        this.ecFileSize = ecFileSize;
+    public void setECMinSize(long ecMinSize) {
+        this.ecMinSize = ecMinSize;
     }
 
-    public String getCacheDisk() {
-        return cacheDisk;
+    public String getCacheDiskpath() {
+        return cacheDiskpath;
     }
 
-    public void setCacheDisk(String cacheDisk) {
-        this.cacheDisk = cacheDisk;
+    public void setCacheDiskpath(String cacheDiskpath) {
+        this.cacheDiskpath = cacheDiskpath;
     }
 
-    public int getCacheScheduleMinutes() {
-        return cacheScheduleMinutes;
+    public boolean isCacheDiskpath() {
+        return isCacheDiskpath;
     }
 
-    public void setCacheScheduleMinutes(int cacheScheduleMinutes) {
-        this.cacheScheduleMinutes = cacheScheduleMinutes;
+    public void setCacheDiskpath(boolean isCacheDiskpath) {
+        this.isCacheDiskpath = isCacheDiskpath;
     }
 
-    public long getCacheFileSize() {
-        return cacheFileSize;
+    public int getCacheCheckInterval() {
+        return cacheCheckInterval;
     }
 
-    public void setCacheFileSize(long cacheFileSize) {
-        this.cacheFileSize = cacheFileSize;
+    public void setCacheCheckInterval(int cacheCheckInterval) {
+        this.cacheCheckInterval = cacheCheckInterval;
     }
+
+    // public long getCacheFileSize() {
+    //     return cacheFileSize;
+    // }
+
+    // public void setCacheFileSize(long cacheFileSize) {
+    //     this.cacheFileSize = cacheFileSize;
+    // }
     
-    public int getCacheLimitMinutes() {
-        return cacheLimitMinutes;
+    public int getCacheExpire() {
+        return cacheExpire;
     }
 
-    public void setCacheLimitMinutes(int cacheLimitMinutes) {
-        this.cacheLimitMinutes = cacheLimitMinutes;
+    public void setCacheExpire(int cacheExpire) {
+        this.cacheExpire = cacheExpire;
     }
 
-    public int getTrashScheduleMinutes() {
-        return trashScheduleMinutes;
+    public int getTrashCheckInterval() {
+        return trashCheckInterval;
     }
 
-    public void setTrashScheduleMinutes(int trashScheduleMinutes) {
-        this.trashScheduleMinutes = trashScheduleMinutes;
+    public void setTrashCheckInterval(int trashCheckInterval) {
+        this.trashCheckInterval = trashCheckInterval;
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
@@ -165,75 +178,82 @@ public class OSDConfig {
         }
 
         try {
-            setTrashScheduleMinutes((int)(long)jsonConfig.get(TRASH_SCHEDULE_MINUTES));
+            setTrashCheckInterval((int)(long)jsonConfig.get(TRASH_CHECK_INTERVAL));
         } catch (Exception e) {
-            setTrashScheduleMinutes(Integer.parseInt((String)jsonConfig.get(TRASH_SCHEDULE_MINUTES)));
+            setTrashCheckInterval(Integer.parseInt((String)jsonConfig.get(TRASH_CHECK_INTERVAL)));
         }
 
         try {
-            setECScheduleMinutes((int)(long)jsonConfig.get(EC_SCHEDULE_MINUTES));
+            setECCheckInterval((int)(long)jsonConfig.get(EC_CHECK_INTERVAL));
         } catch (Exception e) {
-            setECScheduleMinutes(Integer.parseInt((String)jsonConfig.get(EC_SCHEDULE_MINUTES)));
+            setECCheckInterval(Integer.parseInt((String)jsonConfig.get(EC_CHECK_INTERVAL)));
         }
 
         try {
-            setECApplyMinutes((int)(long)jsonConfig.get(EC_APPLY_MINUTES));
+            setECWaitTime((int)(long)jsonConfig.get(EC_WAIT_TIME));
         } catch (Exception e) {
-            setECApplyMinutes(Integer.parseInt((String)jsonConfig.get(EC_APPLY_MINUTES)));
+            setECWaitTime(Integer.parseInt((String)jsonConfig.get(EC_WAIT_TIME)));
         }
 
         try {
-            setECFileSize((long)jsonConfig.get(EC_FILE_SIZE));
+            setECMinSize((long)jsonConfig.get(EC_MIN_FILE_SIZE));
         } catch (Exception e) {
-            setECFileSize(Long.parseLong((String)jsonConfig.get(EC_FILE_SIZE)));
+            setECMinSize(Long.parseLong((String)jsonConfig.get(EC_MIN_FILE_SIZE)));
         }
 
-        setCacheDisk((String)jsonConfig.get(CACHE_DISK));
-        
-        try {
-            setCacheScheduleMinutes((int)(long)jsonConfig.get(CACHE_SCHEDULE_MINUTES));
-        } catch (Exception e) {
-            setCacheScheduleMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_SCHEDULE_MINUTES)));
-        }
-        
-        try {
-            setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
-        } catch (Exception e) {
-            setCacheFileSize(Long.parseLong((String)jsonConfig.get(CACHE_FILE_SIZE)));
+        setCacheDiskpath((String)jsonConfig.get(CACHE_DISKPATH));
+        if (!Strings.isNullOrEmpty(getCacheDiskpath())) {
+            File file = new File(getCacheDiskpath());
+            setCacheDiskpath(file.exists());
+        } else {
+            setCacheDiskpath(false);
         }
         
         try {
-            setCacheLimitMinutes((int)(long)jsonConfig.get(CACHE_LIMIT_MINUTES));
+            setCacheCheckInterval((int)(long)jsonConfig.get(CACHE_CHECK_INTERVAL));
         } catch (Exception e) {
-            setCacheLimitMinutes(Integer.parseInt((String)jsonConfig.get(CACHE_LIMIT_MINUTES)));
+            setCacheCheckInterval(Integer.parseInt((String)jsonConfig.get(CACHE_CHECK_INTERVAL)));
+        }
+        
+        // try {
+        //     setCacheFileSize((long)jsonConfig.get(CACHE_FILE_SIZE));
+        // } catch (Exception e) {
+        //     setCacheFileSize(Long.parseLong((String)jsonConfig.get(CACHE_FILE_SIZE)));
+        // }
+        
+        try {
+            setCacheExpire((int)(long)jsonConfig.get(CACHE_EXPIRE));
+        } catch (Exception e) {
+            setCacheExpire(Integer.parseInt((String)jsonConfig.get(CACHE_EXPIRE)));
         }
 
         logger.debug("pool size : {}", getPoolSize());
         logger.debug("port : {}", getPort());
-        logger.debug("trash schedule minutes : {}", getTrashScheduleMinutes());
-        logger.debug("ec schedule minutes : {}", getECScheduleMinutes());
-        logger.debug("ec apply minutes : {}", getECApplyMinutes());
-        logger.debug("ec file size : {}", getECFileSize());
-        logger.debug("cache disk : {}", getCacheDisk());
-        logger.debug("cache schedule minutes : {}", getCacheScheduleMinutes());
-        logger.debug("cache file size : {}", getCacheFileSize());
-        logger.debug("cache limit minutes : {}", getCacheLimitMinutes());
+        logger.debug("trash schedule minutes : {}", getTrashCheckInterval());
+        logger.debug("ec schedule minutes : {}", getECCheckInterval());
+        logger.debug("ec apply minutes : {}", getECWaitTime());
+        logger.debug("ec file size : {}", getECMinSize());
+        logger.debug("cache disk : {}", getCacheDiskpath());
+        logger.debug("cache schedule minutes : {}", getCacheCheckInterval());
+        // logger.debug("cache file size : {}", getCacheFileSize());
+        logger.debug("cache limit minutes : {}", getCacheExpire());
     }
 
     public void saveConfigFile() throws IOException {
         try {
+            com.google.common.io.Files.createParentDirs(new File(OSDConstants.CONFIG_PATH));
             FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, false);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
             fileWriter.write(PORT + EQUAL + port + "\n");
-            fileWriter.write(EC_SCHEDULE_MINUTES + EQUAL + ecScheduleMinutes + "\n");
-            fileWriter.write(EC_APPLY_MINUTES + EQUAL + ecApplyMinutes + "\n");
-            fileWriter.write(EC_FILE_SIZE + EQUAL + ecFileSize + "\n");
-            fileWriter.write(CACHE_DISK + EQUAL + cacheDisk + "\n");
-            fileWriter.write(CACHE_SCHEDULE_MINUTES + EQUAL + cacheScheduleMinutes + "\n");
-            fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
-            fileWriter.write(CACHE_LIMIT_MINUTES + EQUAL + cacheLimitMinutes + "\n");
-            fileWriter.write(TRASH_SCHEDULE_MINUTES + EQUAL + trashScheduleMinutes + "\n");
+            fileWriter.write(EC_CHECK_INTERVAL + EQUAL + ecCheckInterval + "\n");
+            fileWriter.write(EC_WAIT_TIME + EQUAL + ecWaitTime + "\n");
+            fileWriter.write(EC_MIN_FILE_SIZE + EQUAL + ecMinSize + "\n");
+            fileWriter.write(CACHE_DISKPATH + EQUAL + cacheDiskpath + "\n");
+            fileWriter.write(CACHE_CHECK_INTERVAL + EQUAL + cacheCheckInterval + "\n");
+            // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+            fileWriter.write(CACHE_EXPIRE + EQUAL + cacheExpire + "\n");
+            fileWriter.write(TRASH_CHECK_INTERVAL + EQUAL + trashCheckInterval + "\n");
             fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);

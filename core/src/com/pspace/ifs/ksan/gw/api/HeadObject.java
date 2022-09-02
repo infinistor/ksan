@@ -28,7 +28,6 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.LoggerFactory;
 
-
 public class HeadObject extends S3Request {
 
 	public HeadObject(S3Parameter s3Parameter) {

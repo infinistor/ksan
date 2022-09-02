@@ -21,8 +21,8 @@ namespace PortalSvr.Services
 		#region AppSettings
 		/// <summary> AppSettings </summary>
 		public static readonly string KEY_APP_SETTINGS = "AppSettings";
-		/// <summary> RabbitMq </summary>
-		public static readonly string KEY_RABBITMQ = "RabbitMq";
+		/// <summary> RabbitMQ </summary>
+		public static readonly string KEY_RABBITMQ = "RabbitMQ";
 		/// <summary> AppSettings Host </summary>
 		public static readonly string KEY_PORTAL_HOST = "Host";
 		/// <summary> SSL 인증서 파일 경로 </summary>
@@ -46,9 +46,9 @@ namespace PortalSvr.Services
 		/// <summary> allowedHosts </summary>
 		public static readonly string KEY_ALLOWED_HOSTS = "AllowedHosts";
 		/// <summary> MariaDB </summary>
-		public static readonly string KEY_MARIADB = "MariaDB";
+		public static readonly string KEY_MARIADB = Resource.ENV_DATABASE_TYPE_MARIA_DB;
 		/// <summary> MongoDB </summary>
-		public static readonly string KEY_MONGODB = "MongoDB";
+		public static readonly string KEY_MONGODB = Resource.ENV_DATABASE_TYPE_MONGO_DB;
 		/// <summary> Host </summary>
 		public static readonly string KEY_HOST = "Host";
 		/// <summary> Name </summary>
@@ -59,8 +59,6 @@ namespace PortalSvr.Services
 		public static readonly string KEY_USER = "User";
 		/// <summary> Password </summary>
 		public static readonly string KEY_PASSWORD = "Password";
-		/// <summary> LicenseKey </summary>
-		public static readonly string KEY_DB_LICENSEKEY = "LicenseKey";
 		#endregion
 		#region KsanGW
 		/// <summary> GW Repository </summary>
@@ -75,19 +73,23 @@ namespace PortalSvr.Services
 		public static readonly string KEY_GW_DB_USER = "gw.db_user";
 		/// <summary> GW DB 비밀번호 </summary>
 		public static readonly string KEY_GW_DB_PASSWORD = "gw.db_password";
+		/// <summary> GW keystore 파일 경로 </summary>
+		public static readonly string KEY_GW_KEYSTONE_FILE_PATH = "gw.keystore_path";
+		/// <summary> GW keystore 비밀번호 </summary>
+		public static readonly string KEY_GW_KEYSTONE_PASSWORD = "gw.keystore_password";
 		#endregion
 		#region Ksan Obj Manager
 		/// <summary> Ksan Obj Manager Repository </summary>
 		public static readonly string KEY_OBJ_DB_REPOSITORY = "objM.db_repository";
-		/// <summary> Ksan Obj Manager Host </summary>
+		/// <summary> Ksan Obj Manager DB Host </summary>
 		public static readonly string KEY_OBJ_DB_HOST = "objM.db_host";
-		/// <summary> Ksan Obj Manager Port </summary>
+		/// <summary> Ksan Obj Manager DB Port </summary>
 		public static readonly string KEY_OBJ_DB_PORT = "objM.db_port";
-		/// <summary> Ksan Obj Manager Name </summary>
+		/// <summary> Ksan Obj Manager DB Name </summary>
 		public static readonly string KEY_OBJ_DB_NAME = "objM.db_name";
-		/// <summary> Ksan Obj Manager User </summary>
+		/// <summary> Ksan Obj Manager DB User </summary>
 		public static readonly string KEY_OBJ_DB_USER = "objM.db_user";
-		/// <summary> Ksan Obj Manager Password </summary>
+		/// <summary> Ksan Obj Manager DB Password </summary>
 		public static readonly string KEY_OBJ_DB_PASSWORD = "objM.db_password";
 		#endregion
 
@@ -112,23 +114,23 @@ namespace PortalSvr.Services
 				return;
 			}
 
-			// KsanGw의 기본 설정 정보를 읽어온다.
-			string StrKsanGw = File.ReadAllText(KSAN_GW_SETTINGS_FILE);
-			JObject KsanGw = JObject.Parse(StrKsanGw);
-			if (KsanGw == null)
+			// KsanGW의 기본 설정 정보를 읽어온다.
+			string StrKsanGW = File.ReadAllText(KSAN_GW_SETTINGS_FILE);
+			JObject KsanGW = JObject.Parse(StrKsanGW);
+			if (KsanGW == null)
 			{
 				Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
 				return;
 			}
 
-			// KsanOsd의 기본 설정 정보를 읽어온다.
-			string StrKsanOsd = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
-			JObject KsanOsd = JObject.Parse(StrKsanOsd);
-			if (KsanOsd == null)
-			{
-				Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
-				return;
-			}
+			// // KsanOSD의 기본 설정 정보를 읽어온다.
+			// string StrKsanOSD = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
+			// JObject KsanOSD = JObject.Parse(StrKsanOSD);
+			// if (KsanOSD == null)
+			// {
+			// 	Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
+			// 	return;
+			// }
 
 			// 호스트 주소
 			if (GetEnvValue(Resource.ENV_PORTAL_HOST, out string PortalHost))
@@ -147,11 +149,11 @@ namespace PortalSvr.Services
 				KsanApi[KEY_APP_SETTINGS][KEY_ALLOWED_HOSTS] = allowedHosts;
 			}
 
-			// RabbitMq 정보
+			// RabbitMQ 정보
 			if (GetEnvValue(Resource.ENV_RABBITMQ_HOST, out string RabbitmqHost))
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_HOST] = RabbitmqHost;
 
-			if (GetEnvValue(Resource.ENV_RABBITMQ_PORT, out string RabbitmqPort))
+			if (GetEnvValue(Resource.ENV_RABBITMQ_PORT, out int RabbitmqPort))
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_PORT] = RabbitmqPort;
 
 			if (GetEnvValue(Resource.ENV_RABBITMQ_USER, out string RabbitmqUser))
@@ -161,7 +163,7 @@ namespace PortalSvr.Services
 				KsanApi[KEY_APP_SETTINGS][KEY_RABBITMQ][KEY_PASSWORD] = RabbitmqPassword;
 
 			// 로그레벨
-			if (GetEnvValue(Resource.ENV_LOG_LAVEL, out string LogLevel))
+			if (GetEnvValue(Resource.ENV_LOG_LEVEL, out string LogLevel) && !string.IsNullOrWhiteSpace(LogLevel))
 			{
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_DEFAULT] = LogLevel;
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = LogLevel;
@@ -175,8 +177,8 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
-				KsanGw[KEY_GW_DB_NAME] = DatabaseName;
-				KsanOsd[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_GW_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
 			}
@@ -184,7 +186,7 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_MARIADB_HOST, out string MariaDBHost))
 				KsanApi[KEY_MARIADB][KEY_HOST] = MariaDBHost;
 
-			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out string MariaDBPort))
+			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out int MariaDBPort))
 				KsanApi[KEY_MARIADB][KEY_PORT] = MariaDBPort;
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_USER, out string MariaDBUser))
@@ -193,13 +195,10 @@ namespace PortalSvr.Services
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_PASSWORD, out string MariaDBPassword))
 				KsanApi[KEY_MARIADB][KEY_PASSWORD] = MariaDBPassword;
 
-			if (GetEnvValue(Resource.ENV_MARIADB_LICENSEKEY, out string MariaDBLicensekey))
-				KsanApi[KEY_MARIADB][KEY_DB_LICENSEKEY] = MariaDBLicensekey;
-
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))
 				KsanApi[KEY_MONGODB][KEY_HOST] = MongoDBHost;
 
-			if (GetEnvValue(Resource.ENV_MONGODB_PORT, out string MongoDBPort))
+			if (GetEnvValue(Resource.ENV_MONGODB_PORT, out int MongoDBPort))
 				KsanApi[KEY_MONGODB][KEY_PORT] = MongoDBPort;
 
 			if (GetEnvValue(Resource.ENV_MONGODB_ROOT_USER, out string MongoDBUser))
@@ -209,47 +208,73 @@ namespace PortalSvr.Services
 				KsanApi[KEY_MONGODB][KEY_PASSWORD] = MongoDBPassword;
 
 			// Ksan obj Manager DB 설정
-			if (!string.IsNullOrWhiteSpace(DatabaseType) && DatabaseType.Equals("MongoDB"))
+			if (!string.IsNullOrWhiteSpace(DatabaseType) && DatabaseType.Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
 			{
-				KsanGw[KEY_OBJ_DB_REPOSITORY] = "MongoDB";
-				KsanGw[KEY_OBJ_DB_HOST] = MongoDBHost;
-				KsanGw[KEY_OBJ_DB_PORT] = MongoDBPort;
-				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanGw[KEY_OBJ_DB_USER] = MongoDBUser;
-				KsanGw[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
+				KsanGW[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				KsanGW[KEY_OBJ_DB_HOST] = MongoDBHost;
+				KsanGW[KEY_OBJ_DB_PORT] = MongoDBPort;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_USER] = MongoDBUser;
+				KsanGW[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 			}
 			else
 			{
-				KsanGw[KEY_OBJ_DB_REPOSITORY] = "MariaDB";
-				KsanGw[KEY_OBJ_DB_HOST] = MariaDBHost;
-				KsanGw[KEY_OBJ_DB_PORT] = MariaDBPort;
-				KsanGw[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanGw[KEY_OBJ_DB_USER] = MariaDBUser;
-				KsanGw[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
+				KsanGW[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				KsanGW[KEY_OBJ_DB_HOST] = MariaDBHost;
+				KsanGW[KEY_OBJ_DB_PORT] = MariaDBPort;
+				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanGW[KEY_OBJ_DB_USER] = MariaDBUser;
+				KsanGW[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			// KsanGW DB 설정
-			KsanGw[KEY_GW_DB_REPOSITORY] = "MariaDB";
-			KsanGw[KEY_GW_DB_HOST] = MariaDBHost;
-			KsanGw[KEY_GW_DB_PORT] = MariaDBPort;
-			KsanGw[KEY_GW_DB_NAME] = DatabaseName;
-			KsanGw[KEY_GW_DB_USER] = MariaDBUser;
-			KsanGw[KEY_GW_DB_PASSWORD] = MariaDBPassword;
+			KsanGW[KEY_GW_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+			KsanGW[KEY_GW_DB_HOST] = MariaDBHost;
+			KsanGW[KEY_GW_DB_PORT] = MariaDBPort;
+			KsanGW[KEY_GW_DB_NAME] = DatabaseName;
+			KsanGW[KEY_GW_DB_USER] = MariaDBUser;
+			KsanGW[KEY_GW_DB_PASSWORD] = MariaDBPassword;
 
-			if (!string.IsNullOrWhiteSpace(DatabaseType))
-			{
-				File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
-				File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGw.ToString());
-				File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOsd.ToString());
-			}
+			//KsanGW KeyStone
+			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_FILE_PATH, out string GWKeystoneFilePath))
+				KsanGW[KEY_GW_KEYSTONE_FILE_PATH] = GWKeystoneFilePath;
+			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_PASSWORD, out string GWKeystonePassword))
+				KsanGW[KEY_GW_KEYSTONE_PASSWORD] = GWKeystonePassword;
+
+			File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
+			File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
+			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
 		}
 
-		private bool GetEnvValue(string Key, out string Value)
+		/// <summary> 환경변수 값을 가져온다.</summary>
+		/// <param name="Key">환경변수 명</param>
+		/// <param name="Value"> 환경변수 값 </param>
+		/// <returns> 성공 /실패 결과 </returns>
+		public static bool GetEnvValue(string Key, out string Value)
 		{
 			Value = "";
 			try
 			{
 				Value = Environment.GetEnvironmentVariable(Key);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		/// <summary> 환경변수 값을 가져온다.</summary>
+		/// <param name="Key">환경변수 명</param>
+		/// <param name="Value"> 환경변수 값 </param>
+		/// <returns> 성공 /실패 결과 </returns>
+		public static bool GetEnvValue(string Key, out int Value)
+		{
+			Value = -1;
+			try
+			{
+				var Temp = Environment.GetEnvironmentVariable(Key);
+				int.TryParse(Temp, out Value);
 				return true;
 			}
 			catch

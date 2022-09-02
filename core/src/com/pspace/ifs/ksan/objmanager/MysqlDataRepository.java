@@ -84,13 +84,16 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateUJob1;
     private PreparedStatement pstUpdateUJob2;
     private PreparedStatement pstSelectUJob;
-
-    // for user disk pool map
-    private PreparedStatement pstCreateUserDiskPool;
-    private PreparedStatement pstInsertUserDiskPool;
-    private PreparedStatement pstSelectUserDiskPool;
-    private PreparedStatement pstDeleteUserDiskPool;
     
+    
+    // for LifeCycle
+    //private PreparedStatement pstCreateLifeCycle;
+   // private PreparedStatement pstInsertLifeCycle;
+    //private PreparedStatement pstSelectLifeCycle;
+    //private PreparedStatement pstSelectByUploadIdLifeCycle;
+    //private PreparedStatement pstSelectAllLifeCycle;
+    //private PreparedStatement pstDeleteLifeCycle;
+            
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname) throws SQLException{
         this.obmCache = obmCache;
         this.passwd = passwd;
@@ -120,6 +123,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketPolicy = con.prepareStatement(DataRepositoryQuery.updateBucketPolicyQuery);
             pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
             pstUpdateBucketUsedSpace = con.prepareStatement(DataRepositoryQuery.updateBucketUsedSpaceQuery);
+            //pstIsDeleteBucket = con.prepareStatement(DataRepositoryQuery.objIsDeleteBucketQuery);
             
             // for multipart
             pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
@@ -143,13 +147,13 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateUJob2 = con.prepareStatement(DataRepositoryQuery.updateUJob2Query);
             pstSelectUJob = con.prepareStatement(DataRepositoryQuery.selectUJobQuery);
 
-            // for user disk pool table
-            pstCreateUserDiskPool = con.prepareStatement(DataRepositoryQuery.createUserDiskPoolQuery);
-            pstInsertUserDiskPool = con.prepareStatement(DataRepositoryQuery.insertUserDiskPoolQuery);
-            
-            pstSelectUserDiskPool = con.prepareStatement(DataRepositoryQuery.selectUserDiskPoolQuery);
-            
-            pstDeleteUserDiskPool = con.prepareStatement(DataRepositoryQuery.deleteUserDiskPoolQuery);
+            // for LifeCycle
+            //pstCreateLifeCycle = con.prepareStatement(DataRepositoryQuery.createLifeCycleQuery);
+            //pstInsertLifeCycle = con.prepareStatement(DataRepositoryQuery.insertLifeCycleQuery);
+            //pstSelectLifeCycle = con.prepareStatement(DataRepositoryQuery.selectLifeCycleQuery);
+            //pstSelectByUploadIdLifeCycle = con.prepareStatement(DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
+            //pstSelectAllLifeCycle = con.prepareStatement(DataRepositoryQuery.selectAllLifeCycleQuery);
+            //pstDeleteLifeCycle = con.prepareStatement(DataRepositoryQuery.deleteLifeCycleQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -204,8 +208,19 @@ public class MysqlDataRepository implements DataRepository{
         this.pstCreateBucket.execute();
         this.pstCreateMultiPart.execute();
         pstCreateUJob.execute();
-        pstCreateUserDiskPool.execute();
+        //pstCreateLifeCycle.execute();
+        createLifeCycleEventTables();
         return 0;
+    }
+    
+    private void createLifeCycleEventTables() throws SQLException{
+        PreparedStatement pstCreateLifeCycle;
+        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleEventTableName, DataRepositoryQuery.createLifeCycleQuery);
+        pstCreateLifeCycle.execute();
+        pstCreateLifeCycle.close();
+        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleFailedEventTableName, DataRepositoryQuery.createLifeCycleQuery);
+        pstCreateLifeCycle.execute();
+        pstCreateLifeCycle.close();
     }
     
     private PreparedStatement getObjPreparedStmt(String bucketName, String format) throws SQLException{
@@ -214,6 +229,12 @@ public class MysqlDataRepository implements DataRepository{
         //System.out.println("Query :>" + pstStmt);
         return pstStmt;
     }
+    
+    /*private PreparedStatement getObjPreparedStmt2(String bucketName, String format) throws SQLException{
+        String query = String.format(format, "`" + bucketName + "`", "`" + bucketName + "`");
+        PreparedStatement pstStmt = con.prepareStatement(query);
+        return pstStmt;
+    }*/
     
     private void createObjectTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
@@ -407,15 +428,15 @@ public class MysqlDataRepository implements DataRepository{
         pstupdateEtag.setString(3, md.getVersionId());
     }
     
-    private Metadata getSelectObjectResult(String diskPoolId, ResultSet rs) throws SQLException, ResourceNotFoundException{
+    private Metadata getSelectObjectResult(String bucketName, String objId, ResultSet rs) throws SQLException, ResourceNotFoundException{
         Metadata mt;
         DISK pdsk;
         DISK rdsk;
         String rdiskPath;
                
-        Bucket bt  = obmCache.getBucketFromCache(rs.getString(1));
+        Bucket bt  = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
-            throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ rs.getString(1) +" not found in the db");
+            throw new ResourceNotFoundException("[getSelectObjectResult] bucket "+ bucketName +" not found in the db");
         
         while(rs.next()){
             pdsk = this.obmCache.getDiskWithId(rs.getString(9));
@@ -428,6 +449,8 @@ public class MysqlDataRepository implements DataRepository{
             } catch(ResourceNotFoundException ex){
                 rdsk = new DISK();
             }
+            
+            int replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
             mt = new Metadata(rs.getString(1), rs.getString(2));
             mt.setSize(rs.getLong(3));
             mt.setEtag(rs.getString(5));
@@ -437,34 +460,34 @@ public class MysqlDataRepository implements DataRepository{
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
             mt.setVersionId(rs.getString(11), rs.getString(12), rs.getBoolean(13));
-            mt.setReplicaCount(bt.getReplicaCount());
+            mt.setReplicaCount(replicaCount);
             return mt;
         }
-        throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ rs.getString(1)+" key " + rs.getString(2)+ " not found in the db");
+        throw new ResourceNotFoundException("[getSelectObjectResult] bucket: "+ bucketName + " key " + objId + " not found in the db");
     }
     
-    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId) throws ResourceNotFoundException {
         try{
             PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);
+            return getSelectObjectResult(bucketName, objId, rs);
         } catch(SQLException ex){
-            System.out.println(" error : " + ex.getMessage());
+            //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
             throw new ResourceNotFoundException("path not found in the db : " + ex.getMessage());
         }
     }
 
-    private synchronized Metadata selectSingleObjectInternal(String bucketName, String diskPoolId, String objId, String versionId) throws ResourceNotFoundException {
+    private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         try{
             PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery);
             pstSelectOneWithVersionId.clearParameters();
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = pstSelectOneWithVersionId.executeQuery();
-            return getSelectObjectResult(diskPoolId, rs);      
+            return getSelectObjectResult(bucketName, objId, rs);      
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -475,17 +498,17 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized Metadata selectSingleObject(String diskPoolId, String bucketName, String path) throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-       return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId()); 
+       return selectSingleObjectInternal(bucketName, mt.getObjId()); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(bucketName, diskPoolId, objid); 
+       return selectSingleObjectInternal(bucketName, objid); 
     }
     
     @Override
     public synchronized Metadata selectSingleObjectWithObjId(String diskPoolId, String bucketName, String objid, String versionId) throws ResourceNotFoundException {
-       return selectSingleObjectInternal(bucketName, diskPoolId, objid, versionId); 
+       return selectSingleObjectInternal(bucketName, objid, versionId); 
     }
     @Override
     public synchronized void selectObjects(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException {
@@ -522,16 +545,38 @@ public class MysqlDataRepository implements DataRepository{
                     lastVersion);
         }
     }
-         
+    
     @Override
     public synchronized List<String> getAllUsedDiskId() throws SQLException{
         List<String> dList = new ArrayList();
+        String lastObjId;
+        boolean thereIsMore;
+        
+        String[] bList= obmCache.getBucketNameList();
+        for (String bucketName : bList){
+            lastObjId = "";
+            while(true){
+                pstSelectUsedDisks = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
+                pstSelectUsedDisks.setString(1, lastObjId);
+                pstSelectUsedDisks.setLong(2, 1000);
+                ResultSet rs = pstSelectUsedDisks.executeQuery();
 
-        ResultSet rs = this.pstSelectUsedDisks.executeQuery();
+                thereIsMore = false;
+                while(rs.next()){
+                     thereIsMore = true;
+                    if (!dList.contains(rs.getString(1)))
+                        dList.add(rs.getString(1));
 
-        while(rs.next()){
-            dList.add(rs.getString(1));
+                    if (!dList.contains(rs.getString(2)))
+                        dList.add(rs.getString(2));
+                    lastObjId = rs.getString(3);
+                }
+            
+                if (!thereIsMore)
+                    break;
+            }
         }
+        System.out.println("[getAllUsedDiskId] size of used Disk >" + dList.size());
         return dList;
     }
     
@@ -617,6 +662,24 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
+    public boolean isBucketDeleted(String bucket) throws SQLException {
+        pstIsDeleteBucket = getObjPreparedStmt(bucket, DataRepositoryQuery.objIsDeleteBucketQuery);
+        pstIsDeleteBucket.clearParameters();
+        //pstIsDeleteBucket.setString(1, bucket);
+        ResultSet rs = pstIsDeleteBucket.executeQuery();
+        
+        if (rs == null) {
+            return true;
+        }
+
+        if (rs.next()) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    @Override
     public synchronized Bucket insertBucket(Bucket bt) 
             throws ResourceAlreadyExistException{
         try{
@@ -682,6 +745,7 @@ public class MysqlDataRepository implements DataRepository{
         int replicaCount = rs.getInt(19);
         long usedSpace = rs.getLong(20);
         long fileCount = rs.getLong(21);
+        String logging = rs.getString(22);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -698,6 +762,7 @@ public class MysqlDataRepository implements DataRepository{
         //getUserDiskPool(bt); // get diskpoolId and replicaCount
         bt.setUsedSpace(usedSpace);
         bt.setFileCount(fileCount);
+        bt.setLogging(logging);
         return bt;
     }
     
@@ -714,23 +779,29 @@ public class MysqlDataRepository implements DataRepository{
         throw new ResourceNotFoundException("Bucket("+bucketName+") is not found in the db");
     }
     
+    private void _loadBucketList()throws SQLException{
+        Bucket bt;
+           
+        ResultSet rs = pstSelectAllBucket.executeQuery();
+
+        while(rs.next()){
+            bt = parseBucket(rs);
+
+            obmCache.setBucketInCache(bt);
+        }
+    }
+    
     @Override
     public synchronized void loadBucketList() {
         try {
-            Bucket bt;
-            
-            ResultSet rs = this.pstSelectAllBucket.executeQuery();
-            
-            while(rs.next()){
-                bt = parseBucket(rs);
-                //System.out.println("bucketList>>" + bt);
-                obmCache.setBucketInCache(bt);
+           _loadBucketList(); 
+        } catch (SQLException ex1) {
+            try { 
+                _loadBucketList(); // to fix connection reset by peer
+            } catch (SQLException ex) {
+                Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
             }
-        } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
         }
-        
     }
     
     @Override
@@ -834,7 +905,7 @@ public class MysqlDataRepository implements DataRepository{
             callback.call(key, uploadid, "", partNo, "", "", "", isTrancated);
         }
     }
-    
+        
     @Override
     public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException{
         pstIsUploadPartNo.clearParameters();
@@ -873,13 +944,13 @@ public class MysqlDataRepository implements DataRepository{
     public Metadata selectSingleObject(String diskPoolId, String bucketName, String path, String versionId)
             throws ResourceNotFoundException {
         Metadata mt = new Metadata(bucketName, path);
-        return selectSingleObjectInternal(bucketName, diskPoolId, mt.getObjId(), versionId); 
+        return selectSingleObjectInternal(bucketName, mt.getObjId(), versionId); 
     }
 
     /***********************START*******************************************************************/
     // TO BE
     @Override
-    public Multipart getMulipartUpload(String uploadid) throws SQLException {
+    public Multipart getMulipartUpload(String uploadid) throws SQLException, ResourceNotFoundException  {
         Multipart multipart = null;
         String pdiskid;
 
@@ -893,7 +964,8 @@ public class MysqlDataRepository implements DataRepository{
             multipart.setAcl(rs.getString(5));
             multipart.setMeta(rs.getString(6));
             pdiskid = rs.getString(7);
-            //multipart.setDiskID(pdiskid);
+            DISK dsk = obmCache.getDiskWithId(pdiskid);
+            multipart.setDiskPoolId(dsk.getDiskPoolId());
         }
         
         return multipart;
@@ -957,7 +1029,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         ResultUploads resultUploads = new ResultUploads();
-        resultUploads.setList(new ArrayList<Upload>());
+        resultUploads.setList(new ArrayList<>());
 
         // need to make query with delimiter, prefix, keyMarker
         pstGetUploads.clearParameters();
@@ -1084,7 +1156,15 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateBucketUsedSpace.setString(2, getBucketId(bt.getName()));
         pstUpdateBucketUsedSpace.executeUpdate();
     }
-
+ 
+    @Override
+    public void updateBucketLogging(Bucket bt) throws SQLException {
+        pstUpdateBucketEncryption.clearParameters();
+        pstUpdateBucketEncryption.setString(1, bt.getLogging());
+        pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
+        pstUpdateBucketEncryption.executeUpdate();
+    }
+    
     @Override
     public boolean isUploadId(String uploadid) throws SQLException {
         boolean success = false;
@@ -1111,7 +1191,7 @@ public class MysqlDataRepository implements DataRepository{
         try{
            // System.out.format("Operation : %s check : %s \n", operation, operation.equalsIgnoreCase("addJob"));
             if (operation.equalsIgnoreCase("addJob")){
-                System.out.format("Operation : %s \n", operation);
+                //System.out.format("Operation : %s \n", operation);
                 status = in.get(1).toString();
                 TotalNumObject = Long.parseLong(in.get(2).toString());
                 checkOnly = Boolean.getBoolean(in.get(4).toString());
@@ -1136,60 +1216,7 @@ public class MysqlDataRepository implements DataRepository{
         }
         return ret;
     }
-    
-    @Override
-    public boolean isBucketDeleted(String bucket) throws SQLException {
-        pstIsDeleteBucket.clearParameters();
-        pstIsDeleteBucket.setString(1, bucket);
-        ResultSet rs = pstIsDeleteBucket.executeQuery();
         
-        if (rs == null) {
-            return true;
-        }
-
-        if (rs.next()) {
-            return false;
-        }
-
-        return true;
-    }
-    
-    @Override
-    public synchronized int insertUserDiskPool(String userId, String accessKey, String secretKey, String diskpoolId, int replicaCount) throws SQLException{
-        pstInsertUserDiskPool.clearParameters();
-        pstInsertUserDiskPool.setString(1, userId);
-        pstInsertUserDiskPool.setString(2, secretKey + "_" + accessKey);
-        pstInsertUserDiskPool.setString(3, diskpoolId);
-        pstInsertUserDiskPool.setInt(4, replicaCount);
-        pstInsertUserDiskPool.execute();
-        return 0;
-    }
-    
-    @Override
-    public synchronized Bucket getUserDiskPool(Bucket bt) throws SQLException{
-              
-        pstSelectUserDiskPool.clearParameters();
-        pstSelectUserDiskPool.setString(1, bt.getUserId());
-   
-        ResultSet rs = pstSelectUserDiskPool.executeQuery();
-        
-        while(rs.next()){
-            bt.setDiskPoolId(rs.getString(1));
-            bt.setReplicaCount(rs.getInt(2));
-            break;
-        }
-        return bt;
-    }
-    
-    @Override
-    public synchronized int deleteUserDiskPool(String userId, String diskPoolId) throws SQLException{
-        pstDeleteUserDiskPool.clearParameters();
-        pstDeleteUserDiskPool.setString(1, userId);
-        pstDeleteUserDiskPool.setString(2, diskPoolId);
-        pstDeleteUserDiskPool.execute();
-        return 0;
-    }
-    
     @Override
     public PreparedStatement getStatement(String query) throws SQLException{	
         return this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -1205,17 +1232,11 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public List<Metadata> getObjectList(String bucketName, Object pstmt, int maxKeys, long offset) throws SQLException{
         List<Metadata> list = new ArrayList();
-        ResultSet rs = null;
+        ResultSet rs;
         DISK pdsk = null;
-        DISK rdsk = null;
-        String diskPoolId = "1";
-        Bucket bt = obmCache.getBucketFromCache(bucketName);
-        //obmCache.displayBucketList();
-        //obmCache.displayDiskPoolList();
-        if (bt != null)
-            //return list;
-            diskPoolId = bt.getDiskPoolId();
-        
+        DISK rdsk;
+        int default_replicaCount;
+       
         rs = ((PreparedStatement)pstmt).executeQuery();
         while (rs.next()) {
             String objKey = rs.getString("objKey");
@@ -1235,12 +1256,20 @@ public class MysqlDataRepository implements DataRepository{
                     rdsk = this.obmCache.getDiskWithId( rdiskid);
                 else
                     rdsk = new DISK();
+                default_replicaCount = 2;
             } catch (ResourceNotFoundException ex) {
                 if ( pdsk == null)
                     pdsk = new DISK();
                 rdsk = new DISK();
+                 default_replicaCount = 1;
             }
             
+            int replicaCount;
+            try {
+                replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
+            } catch (ResourceNotFoundException ex) {
+                replicaCount = default_replicaCount;
+            }
             Metadata mt = new Metadata(bucketName, objKey);
             mt.setMeta(meta);
             mt.set(etag, tag, meta, acl, size);
@@ -1248,7 +1277,7 @@ public class MysqlDataRepository implements DataRepository{
             mt.setVersionId(versionid, "", lastversion);
             mt.setPrimaryDisk(pdsk);
             mt.setReplicaDISK(rdsk);
-            mt.setReplicaCount(bt.getReplicaCount());
+            mt.setReplicaCount(replicaCount);
             list.add(mt);
         }
         
@@ -1268,5 +1297,126 @@ public class MysqlDataRepository implements DataRepository{
            rowCount = rs.getLong(0); 
         }
         return rowCount;
+    }
+
+    private void insertLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstInsertLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.insertLifeCycleQuery);
+        pstInsertLifeCycle.clearParameters();
+        pstInsertLifeCycle.setLong(  1, lc.getIndex());
+        pstInsertLifeCycle.setString(2, lc.getBucketName());
+        pstInsertLifeCycle.setString(3, lc.getKey());
+        pstInsertLifeCycle.setString(4, lc.getObjId());
+        pstInsertLifeCycle.setString(5, lc.getVersionId());
+        pstInsertLifeCycle.setString(6, lc.getUploadId());
+        pstInsertLifeCycle.setString(7, lc.getLog());
+        pstInsertLifeCycle.execute();
+    }
+    
+ 
+    private List<LifeCycle> parseSelectLifeCycle(ResultSet rs, boolean isFailed) throws SQLException{
+        List<LifeCycle> list = new ArrayList();
+        while (rs.next()) {
+            long idx = rs.getLong("idx");
+            String bucket = rs.getString("bucket");
+            String objKey = rs.getString("objKey");
+            String versionid = rs.getString("versionid");
+            String uploadid = rs.getString("uploadid");
+            Date inDate = rs.getDate("inDate");
+            String log = rs.getString("log");
+            //boolean isfailed = rs.getBoolean("isFailed");
+            LifeCycle slf = new LifeCycle(idx, bucket, objKey, versionid, uploadid, log);
+            slf.setFailedEvent(isFailed);
+            slf.setInDate(inDate);
+            list.add(slf);
+        }
+        return list;
+    }
+    
+    
+    private LifeCycle selectLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstSelectLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectLifeCycleQuery);
+        pstSelectLifeCycle.setString(1, lc.getObjId());
+        pstSelectLifeCycle.setString(2, lc.getVersionId());
+        ResultSet rs = pstSelectLifeCycle.executeQuery();
+        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        if (list.isEmpty())
+            return null;
+        
+        return list.get(0);
+        
+    }
+    
+    private LifeCycle selectByUploadIdLifeCycle(String eventName, String uploadId) throws SQLException{
+        PreparedStatement pstSelectByUploadIdLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
+        pstSelectByUploadIdLifeCycle.setString(1, uploadId);
+        ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
+        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        if (list.isEmpty())
+            return null;
+        
+        return list.get(0);
+    }
+   
+    private List<LifeCycle> selectAllLifeCycle(String eventName) throws SQLException{
+        PreparedStatement pstSelectAllLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectAllLifeCycleQuery);
+        ResultSet rs = pstSelectAllLifeCycle.executeQuery();
+        return parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+    }
+    
+    private int deleteLifeCycle(String eventName, LifeCycle lc) throws SQLException{
+        PreparedStatement pstDeleteLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.deleteLifeCycleQuery);
+        pstDeleteLifeCycle.setString(1, lc.getObjId());
+        pstDeleteLifeCycle.setString(2, lc.getVersionId());
+        return pstDeleteLifeCycle.executeUpdate();
+    }
+    
+    @Override
+    public void insertLifeCycle(LifeCycle lc) throws SQLException{
+        insertLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public void insertFailedLifeCycle(LifeCycle lc) throws SQLException{
+        insertLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
+    }
+    
+    @Override
+    public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException{
+        return selectLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException{
+        return selectLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
+    }
+    
+    @Override
+    public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException{
+        return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, uploadId);
+    }
+    
+    @Override
+    public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException{
+        return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, uploadId);
+    }
+    
+    @Override
+    public List<LifeCycle> selectAllLifeCycle() throws SQLException{
+        return selectAllLifeCycle(DataRepositoryQuery.lifeCycleEventTableName);
+    }
+    
+    @Override
+    public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException{
+        return selectAllLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName);
+    }
+    
+    @Override
+    public int deleteLifeCycle(LifeCycle lc) throws SQLException{
+        return deleteLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
+    }
+    
+    @Override
+    public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException{
+        return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
 }

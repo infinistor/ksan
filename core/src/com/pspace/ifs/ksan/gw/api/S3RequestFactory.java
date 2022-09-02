@@ -18,6 +18,7 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.ksanapi.*;
 
 public class S3RequestFactory {
 	private final Logger logger;
@@ -99,6 +100,21 @@ public class S3RequestFactory {
 	private final String OP_PUT_OBJECT = "REST.PUT.OBJECT";
 
 	private final String OP_OPTIONS = "REST.OPTIONS";
+	
+	private final String OP_ADMIN_DELETE_OBJECT = "ADMIN.DELETE.OBJECT";
+	private final String OP_ADMIN_DELETE_OBJECT_TAGGING = "ADMIN.DELETE.OBJECT.TAGGING";
+	private final String OP_ADMIN_DELETE_OBJECT_UPLOAD = "ADMIN.DELETE.OBJECT.UPLOAD";
+	private final String OP_ADMIN_GET_OBJECT_ACL = "ADMIN.GET.OBJECT.ACL";
+	private final String OP_ADMIN_GET_OBJECT_TAGGING = "ADMIN.GET.OBJECT.TAGGING";
+	private final String OP_ADMIN_GET_OBJECT = "ADMIN.GET.OBJECT";
+	private final String OP_ADMIN_HEAD_OBJECT = "ADMIN.HEAD.OBJECT";
+	private final String OP_ADMIN_POST_UPLOAD = "ADMIN.POST.UPLOAD";
+	private final String OP_ADMIN_POST_COMPLETE = "ADMIN.POST.COMPLETEUPLOAD";
+	private final String OP_ADMIN_PUT_OBJECT_ACL = "ADMIN.PUT.OBJECT.ACL";
+	private final String OP_ADMIN_PUT_OBJECT_TAGGING = "ADMIN.PUT.OBJECT.TAGGING";
+	private final String OP_ADMIN_PUT_OBJECT = "ADMIN.PUT.OBJECT";
+	private final String OP_ADMIN_PUT_OBJECT_PART = "ADMIN.PUT.OBJECT.PART";
+	private final String OP_ADMIN_PUT_OBJECT_PART_COPY = "ADMIN.PUT.OBJECT.PART.COPY";
 
 	public S3RequestFactory() {
 		logger = LoggerFactory.getLogger(S3RequestFactory.class);
@@ -147,16 +163,31 @@ public class S3RequestFactory {
 
 				if (GWConstants.CATEGORY_OBJECT.equals(s3Parameter.getPathCategory())) {
 					if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_UPLOAD_ID) != null) {
-						s3Parameter.setOperation(OP_DELETE_OBJECT_UPLOAD);
-						return new AbortMultipartUpload(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_DELETE_OBJECT_UPLOAD);
+							return new KsanAbortMultipartUpload(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_DELETE_OBJECT_UPLOAD);
+							return new AbortMultipartUpload(s3Parameter);
+						}
 					}
 
 					if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAGGING))) {
-						s3Parameter.setOperation(OP_DELETE_OBJECT_TAGGING);
-						return new DeleteObjectTagging(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_DELETE_OBJECT_TAGGING);
+							return new KsanDeleteObjectTagging(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_DELETE_OBJECT_TAGGING);
+							return new DeleteObjectTagging(s3Parameter);
+						}
 					} else {
-						s3Parameter.setOperation(OP_DELETE_OBJECT);
-						return new DeleteObject(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_DELETE_OBJECT);
+							return new KsanDeleteObject(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_DELETE_OBJECT);
+							return new DeleteObject(s3Parameter);
+						}
 					}
 				}
 				break;
@@ -229,8 +260,13 @@ public class S3RequestFactory {
 
 				if (GWConstants.CATEGORY_OBJECT.equals(s3Parameter.getPathCategory())) {
 					if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ACL))) {
-						s3Parameter.setOperation(OP_GET_OBJECT_ACL);
-						return new GetObjectAcl(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_GET_OBJECT_ACL);
+							return new KsanGetObjectAcl(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_GET_OBJECT_ACL);
+							return new GetObjectAcl(s3Parameter);
+						}
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_RETENTION))) {
 						s3Parameter.setOperation(OP_GET_OBJECT_RETENTION);
 						return new GetObjectRetention(s3Parameter);
@@ -238,12 +274,22 @@ public class S3RequestFactory {
 						s3Parameter.setOperation(OP_GET_OBJECT_LISTPARTS);
 						return new ListParts(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAGGING))) {
-						s3Parameter.setOperation(OP_GET_OBJECT_TAGGING);
-						return new GetObjectTagging(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_GET_OBJECT_TAGGING);
+							return new KsanGetObjectTagging(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_GET_OBJECT_TAGGING);
+							return new GetObjectTagging(s3Parameter);
+						}
 					}
 
-					s3Parameter.setOperation(OP_GET_OBJECT);
-					return new GetObject(s3Parameter);
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_GET_OBJECT);
+						return new KsanGetObject(s3Parameter);
+					} else {
+						s3Parameter.setOperation(OP_GET_OBJECT);
+						return new GetObject(s3Parameter);
+					}
 				}
 				break;
 
@@ -264,12 +310,22 @@ public class S3RequestFactory {
 					s3Parameter.setOperation(OP_POST_DELETEOBJECTS);
 					return new DeleteObjects(s3Parameter);
 				} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_UPLOADS))) {
-					s3Parameter.setOperation(OP_POST_UPLOAD);
-					return new CreateMultipartUpload(s3Parameter);
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_POST_UPLOAD);
+						return new KsanCreateMultipartUpload(s3Parameter);
+					} else {
+						s3Parameter.setOperation(OP_POST_UPLOAD);
+						return new CreateMultipartUpload(s3Parameter);
+					}
 				} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_UPLOAD_ID) != null
 						&& s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PART_NUMBER) == null) {
-					s3Parameter.setOperation(OP_POST_COMPLETE);
-					return new CompleteMultipartUpload(s3Parameter);
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_POST_COMPLETE);
+						return new KsanCompleteMultipartUpload(s3Parameter);
+					} else {
+						s3Parameter.setOperation(OP_POST_COMPLETE);
+						return new CompleteMultipartUpload(s3Parameter);
+					}
 				}
 
 				if (s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE) != null && 
@@ -330,8 +386,13 @@ public class S3RequestFactory {
 							s3Parameter.setOperation(OP_PUT_OBJECT_PART_COPY);
 							return new UploadPartCopy(s3Parameter);
 						} else {
-							s3Parameter.setOperation(OP_PUT_OBJECT_PART);
-							return new UploadPart(s3Parameter);
+							if (s3Parameter.isAdmin()) {
+								s3Parameter.setOperation(OP_ADMIN_PUT_OBJECT_PART);
+								return new KsanUploadPart(s3Parameter);
+							} else {
+								s3Parameter.setOperation(OP_PUT_OBJECT_PART);
+								return new UploadPart(s3Parameter);
+							}							
 						}
 					} else {
 						if (s3Parameter.getRequest().getHeader(GWConstants.PARAMETER_COPY_SOURCE) != null) {
@@ -342,15 +403,30 @@ public class S3RequestFactory {
 								s3Parameter.setOperation(OP_PUT_OBJECT_RETENTION);
 								return new PutObjectRetention(s3Parameter);
 							} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAGGING) != null) {
-								s3Parameter.setOperation(OP_PUT_OBJECT_TAGGING);
-								return new PutObjectTagging(s3Parameter);
+								if (s3Parameter.isAdmin()) {
+									s3Parameter.setOperation(OP_ADMIN_PUT_OBJECT_TAGGING);
+									return new KsanPutObjectTagging(s3Parameter);
+								} else {
+									s3Parameter.setOperation(OP_PUT_OBJECT_TAGGING);
+									return new PutObjectTagging(s3Parameter);
+								}
 							} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ACL) != null) {
-								s3Parameter.setOperation(OP_PUT_OBJECT_ACL);
-								return new PutObjectAcl(s3Parameter);
+								if (s3Parameter.isAdmin()) {
+									s3Parameter.setOperation(OP_ADMIN_PUT_OBJECT_ACL);
+									return new KsanPutObjectAcl(s3Parameter);
+								} else {
+									s3Parameter.setOperation(OP_PUT_OBJECT_ACL);
+									return new PutObjectAcl(s3Parameter);
+								}
 							}
 
-							s3Parameter.setOperation(OP_PUT_OBJECT);
-							return new PutObject(s3Parameter);
+							if (s3Parameter.isAdmin()) {
+								s3Parameter.setOperation(OP_ADMIN_PUT_OBJECT);
+								return new KsanPutObject(s3Parameter);
+							} else {
+								s3Parameter.setOperation(OP_PUT_OBJECT);
+								return new PutObject(s3Parameter);
+							}
 						}
 					}
 				}

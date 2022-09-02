@@ -81,7 +81,7 @@ public class AbortMultipartUpload extends S3Request {
 		}
 
 		// get Paths
-		Metadata objMeta = createLocal(bucket, object);
+		Metadata objMeta = new Metadata(bucket, object);
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
 		objectOperation.abortMultipart(listPart);

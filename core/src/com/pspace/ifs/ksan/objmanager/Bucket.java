@@ -39,6 +39,7 @@ public class Bucket {
     private String policy; // new
     private String userName; // new
     private String userId;
+    private String logging;
     private Date createTime;
     private int replicaCount;
     private long usedSpace; // new
@@ -58,6 +59,7 @@ public class Bucket {
         objectlock = "";
         policy = "";
         userName = "";
+        logging = "";
         usedSpace = 0;
         fileCount = 0;
     }
@@ -76,6 +78,7 @@ public class Bucket {
         objectlock = "";
         policy = "";
         userName = "";
+        logging = "";
         usedSpace = 0;
         fileCount = 0;
     }
@@ -97,6 +100,7 @@ public class Bucket {
         objectlock = "";
         policy = "";
         userName = "";
+        logging = "";
         usedSpace = 0;
         fileCount = 0;
     }
@@ -199,6 +203,10 @@ public class Bucket {
         this.replicaCount = replicaCount;
     }
     
+    public void setLogging(String logging){
+        this.tagging = logging;
+    }
+    
     public String getName(){
         return name;
     }
@@ -236,7 +244,6 @@ public class Bucket {
     public String getWeb() {
         return web;
     }
-
     
     public String getCors() {
         return cors;
@@ -245,9 +252,7 @@ public class Bucket {
     public int getReplicaCount(){
         return replicaCount;
     }
-    
-    
-
+   
     public String getLifecycle() {
         return lifecycle;
     }
@@ -286,6 +291,10 @@ public class Bucket {
     
     public long getFileCount(){
         return this.fileCount;
+    }
+    
+    public String getLogging(){
+        return this.logging;
     }
     
     @Override

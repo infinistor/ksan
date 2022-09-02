@@ -56,10 +56,10 @@ namespace PortalSvr
 
 							serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024;
 
-							serverOptions.Listen(IPAddress.Any, 56080);
+							serverOptions.Listen(IPAddress.Any, 6080);
 							try
 							{
-								serverOptions.Listen(IPAddress.Any, 56443, listenOptions =>
+								serverOptions.Listen(IPAddress.Any, 6443, listenOptions =>
 								{
 									listenOptions.UseHttps(new HttpsConnectionAdapterOptions
 									{

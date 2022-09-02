@@ -14,39 +14,21 @@ namespace PortalModels
 	/// <summary> 서비스 타입 </summary>
 	public enum EnumDbServiceType : int
 	{
-		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>RabbitMq</summary>
-		RabbitMq,
-		/// <summary>MariaDB</summary>
+		RabbitMQ = 0,
 		MariaDB,
-		/// <summary>MongoDB</summary>
 		MongoDB,
-		/// <summary>HA Proxy</summary>
 		Haproxy,
-		/// <summary>ksanApiPortal</summary>
 		ksanApiPortal,
-		/// <summary>Ksan Portal</summary>
-		KsanPortal,
-		/// <summary>ksan Portal Bridge</summary>
+		ksanPortal,
 		ksanPortalBridge,
-		/// <summary>Ksan Monitor</summary>
-		KsanMonitor,
-		/// <summary>Ksan Agent</summary>
-		KsanAgent,
-		/// <summary>Ksan OSD</summary>
-		KsanOsd,
-		/// <summary>Ksan GW</summary>
-		KsanGw,
-		/// <summary>Ksan Recovery</summary>
-		KsanRecovery,
-		/// <summary>Ksan Lifecycle</summary>
-		KsanLifecycle,
-		/// <summary>Ksan Replication</summary>
-		KsanReplication,
-		/// <summary>Ksan Log Export</summary>
-		KsanLogExport,
-		/// <summary>Ksan Metering</summary>
-		KsanMetering
+		ksanAgent,
+		ksanOSD,
+		ksanGW,
+		ksanRecovery,
+		ksanLifecycle,
+		ksanReplication,
+		ksanLogExport,
+		ksanMetering
 	}
 }

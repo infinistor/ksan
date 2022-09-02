@@ -104,6 +104,13 @@ public class CreateMultipartUpload extends S3Request {
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			}
 		}
+
+		String storageClass = dataCreateMultipartUpload.getStorageClass();
+		if (Strings.isNullOrEmpty(storageClass)) {
+			storageClass = GWConstants.AWS_TIER_STANTARD;
+		}
+		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
+		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 		
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
@@ -171,7 +178,7 @@ public class CreateMultipartUpload extends S3Request {
 		Metadata objMeta = null;
 		try {
 			// check exist object
-			objMeta = createLocal(bucket, object);
+			objMeta = createLocal(diskpoolId, bucket, object, "null");
 		} catch (GWException e) {
 			logger.info(e.getMessage());
 			logger.error(GWConstants.LOG_CREATE_MULTIPART_UPLOAD_FAILED, bucket, object);
@@ -181,7 +188,8 @@ public class CreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId()); 
+			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
+			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

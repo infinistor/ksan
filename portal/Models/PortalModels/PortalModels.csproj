@@ -9,11 +9,11 @@
 		<PackageReference Include="EntityFramework" Version="6.4.4" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 		<PackageReference Include="MTLib.Core" Version="5.0.1" />
-		<PackageReference Include="MySqlConnector" Version="1.3.13" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+		<PackageReference Include="MySqlConnector" Version="2.1.1" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -199,6 +199,11 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</None>
+		<None Update="PortalModels.info">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</None>
 		<None Update="PortalModels.PortalModelDiagram.view">
 			<AutoGen>True</AutoGen>
 		</None>
@@ -209,11 +214,6 @@
 		<None Update="PortalModels.efml">
 			<Generator>DevartEFCoreGenerator</Generator>
 			<LastGenOutput>PortalModels.info</LastGenOutput>
-		</None>
-		<None Update="PortalModels.info">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>PortalModels.efml</DependentUpon>
 		</None>
 	</ItemGroup>
 

@@ -225,44 +225,45 @@ public class ObjectMover {
     }
    
     private int moveObject(String bucket, String objId, String versionId, DISK srcDisk, DISK desDisk, DISK diskToChange)throws ResourceNotFoundException, Exception{
+        //System.out.format("Source : %s/%s%s Des : %s/%s/%s \n", srcDisk.getDiskPoolId(), srcDisk.getOsdIp(), srcDisk.getPath(), desDisk.getDiskPoolId(), desDisk.getOsdIp(), desDisk.getPath());
         if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
             return -1;
         
         obmu.replaceDisk(bucket, objId, versionId,  diskToChange.getId(), desDisk.getId());
         
         osdc.removeObject(objId, versionId, diskToChange);
-       log("********************************End****************************************************************\n");
+       //log("********************************End****************************************************************\n");
         return 0;
     }
     
     public int moveObject(String bucket, String objId, String versionId, String srcDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-      log("********************************start****************************************************************\n");
+      //log("********************************start****************************************************************\n");
         //log("[moveObject] bucket : %s objId : %s  versionId : %s", bucket,  objId,  versionId);
         Metadata mt = obmu.getObject(bucket, objId, versionId); 
         DISK srcDisk = getDisk(mt, srcDiskId);
         DISK replica = obmu.allocReplicaDisk(bucket, mt);
         checkDiskDistance(mt,  replica);
-        //System.out.format("[moveObject] Bucket : %s objId : %s versionId : %s sourceD : %s Des_D : %s \n", mt.getBucket(), objId, versionId, srcDiskId, replica.getId());
-        //if (!mt.getPrimaryDisk().getId().equals(srcDiskId))
-        return moveObject(bucket, objId, versionId, srcDisk, replica, srcDisk);
         
-        //return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), replica, srcDisk);
+        int ret = moveObject(bucket, objId, versionId, srcDisk, replica, srcDisk);
+        log("[moveObject] bucket : %s objId : %s versionId : %s from : %s to : %s %s\n", bucket, objId, versionId, srcDiskId, replica.getId(), ret == 0 ? "sucess" : "failed!");
+        return ret;
     }
     
     public int moveObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        //System.out.println("[moveObject] bucket : "+ bucket +" objId " + objId + " versionId : " + versionId);
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        DISK desDisk = obmu.getDISK(desDiskId);
         checkDiskDistance(mt,  desDisk);
-        //return moveObject(bucket, objId, versionId, mt.getPrimaryDisk(), desDisk, srcDisk);
-        return moveObject(bucket, objId, versionId, srcDisk, desDisk, srcDisk);
+        
+        int ret = moveObject(bucket, objId, versionId, srcDisk, desDisk, srcDisk);
+        log("[moveObject] bucket : %s objId : %s versionId : %s from : %s to : %s %s\n", bucket, objId, versionId, srcDiskId, desDisk.getId(), ret == 0 ? "sucess" : "failed!");
+        return ret;
     }
     
     public int copyObject(String bucket, String objId, String versionId, String srcDiskId, String desDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         Metadata mt = obmu.getObject(bucket, objId, versionId);
         DISK srcDisk = getDisk(mt, srcDiskId);
-        DISK desDisk = obmu.getDISK(bucket, desDiskId);
+        DISK desDisk = obmu.getDISK(desDiskId);
         
         if (!(mt.getPrimaryDisk().getId().equals(srcDisk.getId())) && !(mt.getPrimaryDisk().getId().equals(desDisk.getId())))
             return -1;
@@ -270,9 +271,11 @@ public class ObjectMover {
         if (!(mt.getReplicaDisk().getId().equals(srcDisk.getId())) && !(mt.getReplicaDisk().getId().equals(desDisk.getId())))
             return -1;
         
-        if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0)
+        if (osdc.copyObject(bucket, objId, versionId, srcDisk, desDisk) != 0){
+            log("[copyObject] failed bucket : %s objId : %s versionId : %s from : %s to : %s \n", bucket, objId, versionId, srcDiskId, desDiskId);
             return -1;
-        
+        }
+        log("[copyObject] bucket : %s objId : %s versionId : %s from : %s to : %s sucess\n", bucket, objId, versionId, srcDiskId, desDiskId);
         return 0;
     }
     

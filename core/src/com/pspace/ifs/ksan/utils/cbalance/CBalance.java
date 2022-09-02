@@ -33,17 +33,15 @@ public class CBalance {
     //private boolean checkOnly;
     //private MQSender mqSender;
     private List<Bucket> bukList;
-    private List<String> dskList;
+    //private List<String> dskList;
     private ObjectMover objm;
     private long totalChecked;
     private long totalFixed;
     private boolean isallowedToMoveTolocalDisk;
     
     public CBalance(boolean isallowedToMoveTolocalDisk) throws Exception{
-        //ObjManagerConfig config = new ObjManagerConfig();
         obmu = new ObjManagerUtil();
-        //mqSender = new MQSender(config.mqHost, config.mqOsdExchangename, "topic", ""); 
-        dskList = obmu.getExistedDiskList();
+        //dskList = obmu.getExistedDiskList();
         bukList = obmu.getExistedBucketList();
         objm = new ObjectMover(obmu, false, "CBalance");
         objm.enableDisableLocalDiskMove(isallowedToMoveTolocalDisk);
@@ -157,7 +155,7 @@ public class CBalance {
         
         bList = getBucketList(bucketName);
         total_object = countEntry(bList,  srcDiskId); 
-       objm.log("total_job :> " + total_object + "\n");
+        objm.log("total_job :> " + total_object + "\n");
         if (total_object == 0)
             return 0;
         

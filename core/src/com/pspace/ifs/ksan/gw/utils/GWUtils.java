@@ -1045,12 +1045,55 @@ public class GWUtils {
 		return cipherIn;
 	}
 
-	// public static void reportRecovery(String message) {      
-    //     try { 
-    //         MQSender mq1ton = new MQSender(MConfig.getInstance().getPortalIp(), GWConstants.UTILITY_EXCHANGE_KEY, GWConstants.MESSAGE_QUEUE_OPTION, "");
-    //         mq1ton.send(message);
-	// 	} catch (Exception e) {
-	// 		PrintStack.logging(logger, e);
-	// 	}
-	// }
+	public static String[] xffncr(String[] xffs) {
+		ArrayList<String> xffncrlist = new ArrayList<String>();
+		ArrayList<String[]> orderxfflist = new ArrayList<String[]>();
+
+		combinationOderXFFS(xffs, orderxfflist);
+
+		for (String[] xff : orderxfflist) {
+			String line = "";
+
+			for (int i = 0; i < xff.length; i++) {
+				if (xff.length > 1 && xff.length - 1 != i) {
+					line += xff[i] + ", ";
+				} else {
+					line += xff[i];
+				}
+			}
+
+			xffncrlist.add(line);
+			// System.out.println(line);
+		}
+
+		String[] str = new String[xffncrlist.size()];
+		str = (String[]) xffncrlist.toArray(str);
+
+		return str;
+	}
+
+	static void combinationOderXFFS(String[] xffs, ArrayList<String[]> orderxfflist) {
+		int n = xffs.length;
+		for (int i = 1; i <= n; i++) {
+			String[] permutation = new String[i];
+			int[] check = new int[n];
+			ordercombination(0, i, n, xffs, check, permutation, orderxfflist);
+		}
+	}
+
+	public static void ordercombination(int level, int subsetnum, int setnum, String[] xffs, int[] check,
+			String[] permutation, ArrayList<String[]> orderxfflist) {
+		if (level == subsetnum) {
+			orderxfflist.add(permutation.clone());
+		} else {
+			for (int i = 0; i < setnum; i++) {
+				if (check[i] == 0) {
+					check[i] = 1;
+					permutation[level] = xffs[i].trim();
+					ordercombination(level + 1, subsetnum, setnum, xffs, check, permutation, orderxfflist);
+					check[i] = 0;
+				}
+			}
+		}
+	}
 }

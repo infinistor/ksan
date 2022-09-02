@@ -4,7 +4,7 @@
 	<artifactId>ksan-gw</artifactId>
 	<version>0.7.1</version>
 	<packaging>jar</packaging>
-	<name>ksan-gw</name>
+	<name>ksanGW</name>
 	
 	<properties>
    		<slf4j.version>1.7.32</slf4j.version>
@@ -191,7 +191,7 @@
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
-							<finalName>ksan-gw.jar</finalName>
+							<finalName>ksanGW.jar</finalName>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -205,7 +205,7 @@
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.5.0</version>
 				<configuration>
-					<programFile>ksan-gw.jar</programFile>
+					<programFile>ksanGW.jar</programFile>
 				</configuration>
 				<executions>
 					<execution>

@@ -149,7 +149,13 @@ public class OSDUtils {
     }
 
     public String makeTempPath(String path, String objId, String versionId) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId;
+        String uuid = UUID.randomUUID().toString();
+        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + uuid + OSDConstants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public String makeTempPartPath(String path, String objId, String partNumber) {
+        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + partNumber;
         return fullPath;
     }
 
@@ -160,7 +166,7 @@ public class OSDUtils {
     }
 
     public String makeCachePath(String path) {
-        String fullPath = OSDConfig.getInstance().getCacheDisk() + path;
+        String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
         return fullPath;
     }
 

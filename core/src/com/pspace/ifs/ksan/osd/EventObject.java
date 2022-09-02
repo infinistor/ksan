@@ -23,8 +23,9 @@ import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 
-import com.pspace.ifs.ksan.libs.config.MonConfig;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.KsanUtils;
@@ -70,7 +71,7 @@ class MoveObjectCallback implements MQCallback {
             jsonObject = (JSONObject)parser.parse(body);
         } catch (ParseException ex) {
             logger.error("Error parsing JSON body");
-			return new MQResponse(MQResponseType.ERROR, "", "Error parsing JSON body", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "Error parsing JSON body", 0);
         }
         
 		objId = (String) jsonObject.get(OBJECT_ID);
@@ -148,10 +149,10 @@ class MoveObjectCallback implements MQCallback {
 			srcFile.delete();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		}
 		logger.info("success move file : {}", fullPath);
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 	}
 }
 
@@ -180,7 +181,7 @@ class DeleteObjectCallback implements MQCallback {
 			jsonObject = (JSONObject)parser.parse(body);
 		} catch (ParseException e) {
 			logger.error("Error parsing JSON body");
-			return new MQResponse(MQResponseType.ERROR, "", "Error parsing JSON body", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "Error parsing JSON body", 0);
 		}
 
 		objId = (String) jsonObject.get(OBJECT_ID);
@@ -198,14 +199,14 @@ class DeleteObjectCallback implements MQCallback {
 		if (file.exists()) {
 			if (file.delete()) {
 				logger.info("success delete object : {}", fullPath);
-				return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 			} else {
 				logger.info("failed delete object : {}", fullPath);
-				return new MQResponse(MQResponseType.ERROR, "failed", "failed delete", 0);
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 			}
 		} else {
 			logger.info("file not exists: {}", fullPath);
-			return new MQResponse(MQResponseType.ERROR, "failed", "not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		}
 	}
 }
@@ -241,7 +242,7 @@ class GetAttrObjectCallBack implements MQCallback {
 			jsonObject = (JSONObject)parser.parse(body);
 		} catch (ParseException e) {
 			logger.error("Error parsing JSON body");
-			return new MQResponse(MQResponseType.ERROR, "", "Error parsing JSON body", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "Error parsing JSON body", 0);
 		}
 
 		bucketName = (String) jsonObject.get(BUCKET_NAME);
@@ -266,7 +267,7 @@ class GetAttrObjectCallBack implements MQCallback {
 			try {
 				md5er = MessageDigest.getInstance(OSDConstants.MD5);
 			} catch (NoSuchAlgorithmException e) {
-				return new MQResponse(MQResponseType.ERROR, "failed", e.getMessage(), 0);
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 			}
 
 			size = 0L;
@@ -280,15 +281,15 @@ class GetAttrObjectCallBack implements MQCallback {
 				ETag = base16().lowerCase().encode(digest);
 				message = "{\"BucketName\":\"" + bucketName + "\",\"ObjId\":\"" + objId + "\",\"VersionId\":\"" + versionId + "\",\"MD5\":\"" + ETag + "\",\"Size\":" + size + "}";
 				logger.info("send message: {}", message);
-				return new MQResponse(MQResponseType.SUCCESS, "", message, 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, message, 0);
 			} catch(Exception e) {
 				logger.error(e.getMessage());
-				return new MQResponse(MQResponseType.ERROR, "failed", e.getMessage(), 0);
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
 			}
 			
 		} else {
 			logger.info("file not exists: {}", fullPath);
-			return new MQResponse(MQResponseType.ERROR, "failed", "not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		}
 	}
 }
@@ -322,7 +323,7 @@ class CopyObjectCallback implements MQCallback {
             jsonObject = (JSONObject)parser.parse(body);
         } catch (ParseException ex) {
             logger.error("Error parsing JSON body");
-			return new MQResponse(MQResponseType.ERROR, "", "Error parsing JSON body", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "Error parsing JSON body", 0);
         }
         
 		objId = (String) jsonObject.get(OBJECT_ID);
@@ -392,21 +393,21 @@ class CopyObjectCallback implements MQCallback {
 					// String eTag = base16().lowerCase().encode(digest);
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
-					return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
+					return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
 				}
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, "", e.getMessage(), 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		}
 
 		logger.info("success copy file : {}", fullPath);
-		return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 	}
 }
 
 public class EventObject {
-    private MonConfig config;
+    private AgentConfig config;
 
     private static final Logger logger = LoggerFactory.getLogger(EventObject.class);
 
@@ -419,21 +420,23 @@ public class EventObject {
     }
     
     private EventObject() {
-        config = MonConfig.getInstance(); 
+        config = AgentConfig.getInstance(); 
         config.configure();
     }
 
 	public void regist() {
 		// MQReceiver(String host, String qname, String exchangeName, boolean queeuDurableity, String exchangeOption, String routingKey, MQCallback callback)
-		int mqPort = Integer.parseInt(config.getMqPort());
+		int mqPort = Integer.parseInt(config.getMQPort());
+		String serviceId = OSDPortal.getInstance().getServiceId();
+
 		try
 		{
 			MQCallback moveObjectCallback = new MoveObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(),
+			MQReceiver mq1ton = new MQReceiver(config.getMQHost(),
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_MOVE_OBJECT + config.getServerId(), 
+				config.getMQUser(),
+				config.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_MOVE_OBJECT + serviceId, //config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
 				"direct", 
@@ -445,11 +448,11 @@ public class EventObject {
 
 		try {
 			MQCallback deleteObjectCallback = new DeleteObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_DELETE_OBJECT + config.getServerId(), 
+				config.getMQUser(),
+				config.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_DELETE_OBJECT + serviceId, //config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
 				"direct", 
@@ -461,11 +464,11 @@ public class EventObject {
 
 		try {
 			MQCallback getAttrObjectCallBack = new GetAttrObjectCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT + config.getServerId(), 
+				config.getMQUser(),
+				config.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_GETATTR_OBJECT + serviceId, //config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
 				"direct", 
@@ -477,11 +480,11 @@ public class EventObject {
 
 		try {
 			MQCallback copyObjectCallback = new CopyObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
 				mqPort,
-				config.getMqUser(),
-				config.getMqPassword(),
-				OSDConstants.MQUEUE_NAME_OSD_COPY_OBJECT + config.getServerId(), 
+				config.getMQUser(),
+				config.getMQPassword(),
+				OSDConstants.MQUEUE_NAME_OSD_COPY_OBJECT + serviceId, //config.getServerId(), 
 				OSDConstants.MQUEUE_EXCHANGE_NAME_FOR_OSD, 
 				false, 
 				"direct", 

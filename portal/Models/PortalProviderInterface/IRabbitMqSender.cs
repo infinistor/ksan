@@ -13,7 +13,7 @@ using PortalData;
 namespace PortalProviderInterface
 {
 	/// <summary>Rabbit MQ로 정보를 전송하는 인터페이스</summary>
-	public interface IRabbitMqSender
+	public interface IRabbitMQSender
 	{
 		/// <summary>객체를 Rabbit MQ로 전송한다.</summary>
 		/// <param name="routingKey">라우팅 키</param>

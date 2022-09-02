@@ -18,24 +18,8 @@ namespace PortalData.Requests.Servers
 	/// <summary>서버 등록/수정 요청 클래스</summary>
 	public class RequestServerInitialize : CommonRequestData
 	{
-		/// <summary>서버 접속 아이디 </summary>
-		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_USERID", ErrorMessageResourceType = typeof(Resource))]
-		public string UserName { get; set; }
-		
-		/// <summary>서버 접속 비밀번호 </summary>
-		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_PASSWORD", ErrorMessageResourceType = typeof(Resource))]
-		public string Password { get; set; }
-
 		/// <summary>서버 아이피</summary>
 		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
 		public string ServerIp { get; set; }
-
-		/// <summary>메니지먼트 아이피</summary>
-		[IpAddress(ErrorMessageResourceName = "EM_COMMON__INVALID_IP_ADDRESS", ErrorMessageResourceType = typeof(Resource))]
-		public string PortalIp { get; set; }
-
-		/// <summary>메니지먼트 포트</summary>
-		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public int PortalPort { get; set; }
 	}
 }

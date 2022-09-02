@@ -21,43 +21,61 @@ import org.json.simple.parser.ParseException;
  */
 public class MQResponse {
     private String result;
-    private String code;
+    private MQResponseCode code;
     private String message;
     private int qAck;
    
-    public MQResponse(MQResponseType res, String code, String message, int qAck){
+    public MQResponse(MQResponseType res, MQResponseCode code, String message, int qAck){
         this.setResult(res);
         this.code = code;
         this.message = message;
         this.qAck = qAck;
     }
     
-    public MQResponse(MQResponseType res, int code, String message, int qAck){
+    /*public MQResponse(MQResponseType res, int code, String message, int qAck){
         this.setResult(res);
         this.code = Integer.toString(code);
         this.message = message;
         this.qAck = qAck;
-    }
+    }*/
     
     public MQResponse(String res){
         JSONParser parser = new JSONParser();
         JSONObject obj;
         
         result = "";
-        code = "";
+        code = MQResponseCode.MQ_SUCESS;
         message = "";
         qAck = -1;
         try {
-            obj = (JSONObject) parser.parse(res);
+            String res1 = parseEnum(res);
+            obj = (JSONObject) parser.parse(res1);
             result = (String)obj.get("Result");
-            code = (String)obj.get("Code");
-            message = (String)obj.get("Message");
             String qackStr = (String)obj.get("qAck");
+            message = obj.get("Message").toString();
             qAck = Integer.parseInt(qackStr);
+            code = MQResponseCode.valueOf(obj.get("Code").toString());
         } catch (ParseException ex) {
             // do nothing
+            ex.printStackTrace();
         }
     }
+    
+    private String parseEnum(String res){
+        int begin = res.indexOf("\"Code\":");
+        int end  = res.indexOf(",", begin);
+        String enumValue = res.substring(begin + 7, end);
+        //System.out.println("enumValue >>" + enumValue);
+        if (!enumValue.startsWith("\""))
+            res = res.replace(enumValue, "\"" + enumValue +"\"");
+        /*System.out.println(">>>" + res.contains("MQ_SUCESS"));
+        if (res.contains("MQ_SUCESS")){
+            res = res.replace("MQ_SUCESS", "\"MQ_SUCESS\"");
+        }*/
+        
+        //System.out.println("res >> " + res);
+        return res;
+    } 
     
     private void setResult(MQResponseType res){
         if (null != res)
@@ -76,7 +94,7 @@ public class MQResponse {
         }
     }
     
-    public String getCode(){
+    public MQResponseCode getCode(){
         return this.code;
     }
     
@@ -112,7 +130,7 @@ public class MQResponse {
     public String toString(){
          JSONObject obj = new JSONObject();
          obj.put("Result", result);
-         obj.put("Code", code);
+         obj.put("Code", "\"" + code + "\"");
          obj.put("qAck", String.valueOf(qAck));
          obj.put("Message", message);
          return obj.toString();

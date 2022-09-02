@@ -3,9 +3,8 @@
 <configuration scan="true" scanPeriod="30 seconds">
  
      <!--로그 파일 저장 위치-->
-    <property name="S3GW_LOGS_PATH" value="/var/log/ksan/s3gw" />
-    <property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objManager" />
-    <property name="LIBS_LOG_PATH" value="/var/log/ksan/utils" />
+    <property name="S3GW_LOGS_PATH" value="/var/log/ksan/gw" />
+    <property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objmanager" />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -14,9 +13,9 @@
     </appender>
 
     <appender name="S3GW" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${S3GW_LOGS_PATH}/s3gw.log</file>
+        <file>${S3GW_LOGS_PATH}/gw.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${S3GW_LOGS_PATH}/s3gw.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${S3GW_LOGS_PATH}/gw.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
                 <maxHistory>30</maxHistory>
                 <maxFileSize>1000MB</maxFileSize>
                 <totalSizeCap>20GB</totalSizeCap>
@@ -27,24 +26,11 @@
     </appender>
 
     <appender name="OBJMANAGER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${OBJMANAGER_LOGS_PATH}/objManager.log</file>
+        <file>${OBJMANAGER_LOGS_PATH}/objmanager.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${OBJMANAGER_LOGS_PATH}/objManager.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${OBJMANAGER_LOGS_PATH}/objmanager.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
                 <maxHistory>30</maxHistory>
                 <maxFileSize>1000MB</maxFileSize>
-                <totalSizeCap>5GB</totalSizeCap>
-        </rollingPolicy>
-            <encoder>
-                <pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%logger{10}.%method:%line]: %msg%n</pattern>
-            </encoder>
-    </appender>
-
-    <appender name="LIBS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LIBS_LOG_PATH}/libs.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LIBS_LOGS_PATH}/libs.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-                <maxHistory>30</maxHistory>
-                <maxFileSize>100MB</maxFileSize>
                 <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
             <encoder>
@@ -58,10 +44,6 @@
 
     <logger name="com.pspace.ifs.ksan.objmanager" level="ERROR">
         <appender-ref ref="OBJMANAGER"/>
-    </logger>
-
-    <logger name="com.pspace.ifs.ksan.libs" level="INFO">
-        <appender-ref ref="LIBS"/>
     </logger>
 
 </configuration>

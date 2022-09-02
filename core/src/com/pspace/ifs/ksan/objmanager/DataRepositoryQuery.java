@@ -17,7 +17,7 @@ public final class DataRepositoryQuery {
             + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
             + "acl TEXT NOT NULL, "
             + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";  
+            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;;";  
     
     public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)";
     public  static String objDeleteQuery = "DELETE FROM %s WHERE objid=? AND (versionid=? OR versionid is NULL)";
@@ -33,8 +33,9 @@ public final class DataRepositoryQuery {
     public  static  String objUpdateSizeTimeQuery = "UPDATE %s SET size=?, lastModified=? WHERE objid=?";
     public  static  String objUpdateLastVersionQuery = "UPDATE %s SET lastversion=false WHERE objid=? AND lastversion=true";
     public  static String objUpdateLastVersionDeleteQuery = "UPDATE %s SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1";
-    public  static String objSelectUsedDisksQuery = "SELECT pdiskid as diskid FROM %s UNION DISTINCT SELECT rdiskid FROM %s;";
-    public  static String objIsDeleteBucketQuery = "SELECT objKey FROM %s WHERE bucket=? LIMIT 1";
+    //public  static String objSelectUsedDisksQuery = "SELECT pdiskid as diskid FROM %s UNION DISTINCT SELECT rdiskid FROM %s;";
+    public  static String objSelectUsedDisksQuery = "SELECT pdiskid, rdiskid, objKey FROM %s WHERE objId > ? ORDER BY objKey LIMIT ?;";
+    public  static String objIsDeleteBucketQuery = "SELECT objKey FROM %s LIMIT 1";
     public  static  String objUpdateObjectMetaQuery = "UPDATE %s SET meta=? WHERE objid=? AND versionid=?";
     public  static String objUpdateTaggingQuery = "UPDATE %s SET tag=?, meta=? WHERE objid=? AND versionid=?";
     public  static  String objUpdateAclQuery = "UPDATE %s SET acl=? WHERE objid=? AND versionid=?";
@@ -48,18 +49,18 @@ public final class DataRepositoryQuery {
                     + " userId CHAR(36), userName VARCHAR(200), "
                     + "acl TEXT, web TEXT, cors TEXT, "
                     + "lifecycle TEXT, access TEXT, "
-                    + "tagging TEXT, replication TEXT, "
+                    + "tagging TEXT, replication TEXT, logging TEXT, "
                     + "encryption TEXT,   objectlock TEXT,  policy TEXT, "
                     + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
                     + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
                     + "replicaCount INT DEFAULT 2, "
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
-                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
+                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
     public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount FROM BUCKETS";
+    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS WHERE id=?";
+    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS";
     public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";
             
     public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
@@ -74,11 +75,12 @@ public final class DataRepositoryQuery {
     public  static String  updateBucketPolicyQuery = "UPDATE BUCKETS SET policy=? WHERE id=?";
     public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE id=?";
     public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?";
-            
+    public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE id=?";
+    
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("
                     + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
-                    + " objKey VARCHAR(2048) COMMENT 'Object key'," 
+                    + " objKey VARBINARY(2048) COMMENT 'Object key'," 
                     + " changeTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time upload started',"
                     + " completed BOOLEAN DEFAULT false COMMENT 'job completed or in-progress',"
                     + " uploadid VARCHAR(80) NOT NULL COMMENT 'multi-part upload Id',"
@@ -88,7 +90,7 @@ public final class DataRepositoryQuery {
                     + " size bigint(20),"
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
                     + " pdiskid VARCHAR(80) NOT NULL, "
-                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
+                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
      public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
      public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";
@@ -110,14 +112,23 @@ public final class DataRepositoryQuery {
      public  static String  updateUJob1Query = "UPDATE UTILJOBS SET status=? WHERE Id=?";
      public  static String  updateUJob2Query = "UPDATE UTILJOBS SET TotalNumObject=?, NumJobDone=? WHERE Id=?";
      public  static String  selectUJobQuery = "SELECT status, TotalNumObject, NumJobDone, checkOnly, utilName, startTime FROM UTILJOBS WHERE Id=?";
-
-            // for user disk pool table
-     public  static String  createUserDiskPoolQuery = "CREATE TABLE IF NOT EXISTS USERSDISKPOOL(userId VARCHAR(50) NOT NULL, "
-                    + "credential VARCHAR(80) NOT NULL COMMENT 'access key _ secret key', diskpoolId VARCHAR(50) NOT NULL, "
-                    + "replcaCount INT NOT NULL, PRIMARY KEY(userId, credential)) ENGINE=INNODB DEFAULT CHARSET=UTF8;";
-     public  static String  insertUserDiskPoolQuery = "INSERT INTO USERSDISKPOOL(userId, credential, diskpoolId, replcaCount) VALUES(?, ?, ?, ?)";
-            
-     public  static String  selectUserDiskPoolQuery = "SELECT diskpoolId, replcaCount FROM USERSDISKPOOL WHERE userId=?";
-            
-     public  static String  deleteUserDiskPoolQuery = "DELETE FROM USERSDISKPOOL WHERE userId=? AND diskpoolId=?";
+     
+     // for LifeCycle
+    public static String lifeCycleEventTableName = "LIFECYCLESEVENTS";
+    public static String lifeCycleFailedEventTableName="LIFECYCLESFAILEDEVENTS";
+    public  static String createLifeCycleQuery= "CREATE TABLE IF NOT EXISTS %s("
+                    + " idx bigint(20),"
+                    + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+                    + " objKey VARBINARY(2048) COMMENT 'Object key'," 
+                    + " objid VARCHAR(50) NOT NULL COMMENT 'md5 of bucket/objkey',"
+                    + " versionid VARCHAR(50) NOT NULL DEFAULT 'null',"
+                    + " uploadid VARCHAR(80) NOT NULL COMMENT 'LifeCycle upload Id',"
+                    + " inDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time data in ',"
+                    + " log TEXT COMMENT 'failed log',"
+                    + " PRIMARY KEY(objid, versionid, uploadid)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+    public static String insertLifeCycleQuery = "INSERT INTO %s(idx, bucket, objKey, objid, versionid, uploadid, inDate, log) VALUES(?, ?, ?, ?, ?, ?, now(), ?)";
+    public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE uploadid=?";
+    public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
+    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log, FROM %s";
+    public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE bucket=? AND objKey=? AND versionid=?";
 }

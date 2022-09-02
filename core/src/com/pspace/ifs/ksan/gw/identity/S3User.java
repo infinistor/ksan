@@ -112,9 +112,18 @@ public class S3User {
         return userDiskPools;
     }
 
-    public String getUserDefaultDiskId() {
+    public String getUserDefaultDiskpoolId() {
         for (HashMap<String, String> map : userDiskPools) {
             if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(STANDARD)) {
+                return map.get(USER_DISK_POOLS_DISKPOOL_ID);
+            }
+        }
+        return null;
+    }
+
+    public String getUserDiskpoolId(String storageClass) {
+        for (HashMap<String, String> map : userDiskPools) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(storageClass)) {
                 return map.get(USER_DISK_POOLS_DISKPOOL_ID);
             }
         }

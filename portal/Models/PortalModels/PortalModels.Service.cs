@@ -28,6 +28,7 @@ namespace PortalModels
 			this.Vlans = new List<ServiceNetworkInterfaceVlan>();
 			this.ServiceDisks = new List<ServiceDisk>();
 			this.ServiceUsages = new List<ServiceUsage>();
+			this.ServiceEventLogs = new List<ServiceEventLog>();
 			OnCreated();
 		}
 
@@ -103,6 +104,8 @@ namespace PortalModels
 		public virtual IList<ServiceUsage> ServiceUsages { get; set; }
 
 		public virtual Server Server { get; set; }
+
+		public virtual IList<ServiceEventLog> ServiceEventLogs { get; set; }
 
 		#region Extensibility Method Definitions
 

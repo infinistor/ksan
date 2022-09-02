@@ -138,6 +138,7 @@ namespace PortalSvr.Controllers.Services
 		}
 
 		/// <summary>서비스 목록을 가져온다.</summary>
+		/// <param name="SearchStates">검색할 서비스 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, ServiceType)</param>
@@ -148,13 +149,13 @@ namespace PortalSvr.Controllers.Services
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceWithGroup>))]
 		[HttpGet]
 		public async Task<ActionResult> GetServices(
-			int Skip = 0, int CountPerPage = 100
+			List<EnumServiceState> SearchStates = null , int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				Skip, CountPerPage
+				SearchStates, Skip, CountPerPage
 				, OrderFields, OrderDirections
 				, SearchFields, SearchKeyword
 			));
@@ -219,6 +220,37 @@ namespace PortalSvr.Controllers.Services
 		public async Task<ActionResult> RestartService([FromRoute] string Id)
 		{
 			return Json(await m_dataProvider.Restart(Id));
+		}
+
+		/// <summary>서비스 이벤트를 추가한다</summary>
+		/// <param name="Request">서비스 이벤트 요청 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPost("Event")]
+		public async Task<ActionResult> AddEvent([FromBody] RequestServiceEvent Request)
+		{
+			return Json(await m_dataProvider.AddEvent(Request));
+		}
+
+		/// <summary>서비스 이벤트 목록을 가져온다.</summary>
+		/// <param name="Id"> 서비스 아이디 / 이름</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (기본 RegDate, ServiceEventType)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (ServiceEventType)</param>
+		/// <param name="SearchKeyword">검색어</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceEvent>))]
+		[HttpGet("Event/{Id}")]
+		public async Task<ActionResult> GetServiceEvents([FromRoute] string Id, int Skip = 0, int CountPerPage = 100
+			, List<string> OrderFields = null, List<string> OrderDirections = null
+			, List<string> SearchFields = null, string SearchKeyword = ""
+		)
+		{
+			return Json(await m_dataProvider.GetEventList(Id, Skip, CountPerPage
+				, OrderFields, OrderDirections, SearchFields, SearchKeyword
+			));
 		}
 	}
 }
