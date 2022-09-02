@@ -59,8 +59,6 @@ namespace PortalSvr.Services
 		public static readonly string KEY_USER = "User";
 		/// <summary> Password </summary>
 		public static readonly string KEY_PASSWORD = "Password";
-		/// <summary> LicenseKey </summary>
-		public static readonly string KEY_DB_LICENSEKEY = "LicenseKey";
 		#endregion
 		#region KsanGW
 		/// <summary> GW Repository </summary>
@@ -196,9 +194,6 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_PASSWORD, out string MariaDBPassword))
 				KsanApi[KEY_MARIADB][KEY_PASSWORD] = MariaDBPassword;
-
-			if (GetEnvValue(Resource.ENV_MARIADB_LICENSEKEY, out string MariaDBLicensekey))
-				KsanApi[KEY_MARIADB][KEY_DB_LICENSEKEY] = MariaDBLicensekey;
 
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))
 				KsanApi[KEY_MONGODB][KEY_HOST] = MongoDBHost;

@@ -45,6 +45,10 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using PortalProvider.Providers.DB;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Newtonsoft.Json;
+using System.Linq;
+using System.Net.Mime;
 
 namespace PortalSvr
 {
@@ -159,7 +163,6 @@ namespace PortalSvr
 				Services.AddTransient<IAccountInitializer, AccountInitializer>();
 				Services.AddTransient<IRoleInitializer, RoleInitializer>();
 				Services.AddTransient<IConfigurationInitializer, ConfigurationInitializer>();
-				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
@@ -179,8 +182,12 @@ namespace PortalSvr
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
 				Services.AddTransient<IRegionProvider, RegionProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
+				Services.AddTransient<IServerInitializer, ServerInitializer>();
 
+				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();
+				// 최초 기동시 서버 및 서비스를 등록 한다.
+				Services.AddHostedService<ServerInitializer>();
 
 				Services.AddSwaggerGen(c =>
 				{
@@ -275,6 +282,26 @@ namespace PortalSvr
 					c.DocExpansion(DocExpansion.None);
 				});
 
+				// // Docker HealthCheck
+				// app.UseHealthChecks("/healthcheck", new HealthCheckOptions
+				// {
+				// 	ResponseWriter = async (context, report) =>
+				// 	{
+				// 		var result = JsonConvert.SerializeObject(new
+				// 		{
+				// 			status = report.Status.ToString(),
+				// 			checks = report.Entries.Select(c => new
+				// 			{
+				// 				check = c.Key,
+				// 				result = c.Value.Status.ToString()
+				// 			}),
+				// 		});
+
+				// 		context.Response.ContentType = MediaTypeNames.Application.Json;
+				// 		await context.Response.WriteAsync(result);
+				// 	}
+				// });
+
 				// 개발 환경인 경우
 				if (env.IsDevelopment())
 				{
@@ -315,8 +342,6 @@ namespace PortalSvr
 
 				// 최초 기동시 설정을 등록 한다.
 				configurationInitializer?.Initialize().Wait();
-				// 최초 기동시 서버 및 서비스를 등록 한다.
-				serverInitializer?.Initialize().Wait();
 
 				// 환경 설정을 초기화 및 로드 한다.
 				ConfigInitializeAndLoad(dbContext, systemConfigLoader, smtpConfigLoader, uploadConfigLoader);
