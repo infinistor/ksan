@@ -17,37 +17,42 @@ from server.server_manage import *
 import mqmanage.mq
 from const.common import *
 from const.server import ServerUsageItems, ServerStateItems
-from common.init import GetConf
+from common.init import GetConf, WaitAgentConfComplete, GetAgentConfig
 from common.shcommand import UpdateEtcHosts
 from const.mq import MqVirtualHost, RoutKeyServerUsage, ExchangeName, RoutKeyServerState, \
     RoutKeyServerUpdateFinder, RoutKeyServerAddFinder, RoutKeyServerDelFinder
 import socket
 import time
 import logging
+import inspect
 
-def MonUpdateServerUsage(conf, logger):
-    ServerUsageMq = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerUsage, ExchangeName)
-    ServerStateMq = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyServerState, ExchangeName)
+def MonUpdateServerUsage(Conf, logger):
+
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
+    conf = GetAgentConfig(Conf)
+    ServerUsageMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerUsage, ExchangeName)
+    ServerStateMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerState, ExchangeName)
+    ServerMonitorInterval = int(conf.ServerMonitorInterval)/1000
     while True:
-        svr = GetServerUsage(conf.mgs.ServerId)
+        svr = GetServerUsage(conf.ServerId)
         svr.Get()
         server = ServerUsageItems()
-        server.Set(conf.mgs.ServerId, svr.LoadAverage1M, svr.LoadAverage5M, svr.LoadAverage15M, svr.MemoryUsed)
+        server.Set(conf.ServerId, svr.LoadAverage1M, svr.LoadAverage5M, svr.LoadAverage15M, svr.MemoryUsed)
         Mqsend = jsonpickle.encode(server, make_refs=False, unpicklable=False)
         print(Mqsend)
         Mqsend = json.loads(Mqsend)
         ServerUsageMq.Sender(Mqsend)
 
-        ServerState = ServerStateItems(conf.mgs.ServerId, 'Online')
+        ServerState = ServerStateItems(conf.ServerId, 'Online')
         Mqsend = jsonpickle.encode(ServerState, make_refs=False, unpicklable=False)
         print(Mqsend)
         Mqsend = json.loads(Mqsend)
         ServerStateMq.Sender(Mqsend)
 
-        time.sleep(conf.monitor.ServerMonitorInterval)
+        time.sleep(ServerMonitorInterval)
 
 
-def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
+def MqServerHandler(Conf, RoutingKey, Body, Response, ServerId, logger):
     logger.debug("MqServerHandler %s %s" % (str(RoutingKey), str(Body)))
     try:
         ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
@@ -64,7 +69,7 @@ def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
             UpdateEtcHosts(HostInfo, 'remove')
             logging.log(logging.INFO, 'host is removed. %s' % str(HostInfo))
             if ServerId == body.Id:
-                ret, errlog = RemoveQueue()
+                ret, errlog = RemoveQueue(Conf)
                 if ret is False:
                     logging.error('fail to remove queue %s' % errlog)
                 else:
@@ -91,13 +96,9 @@ def MqServerHandler(MonConf, RoutingKey, Body, Response, ServerId, logger):
     except Exception as err:
         print(err)
 
-def RemoveQueue():
-    ret, conf = GetConf(MonServicedConfPath)
-    if ret is True:
-        QueueHost = conf.mgs.PortalIp
-        QueueName = 'IfsEdge-%s' % conf.mgs.ServerId
-        mqmanage.mq.RemoveQueue(QueueHost, QueueName)
-        return True, ''
-    else:
-        return False, 'fail to read ksanMonitor.conf'
+def RemoveQueue(Conf):
+    QueueHost = Conf.MQHost
+    QueueName = 'ksan-agent-%s' % Conf.ServerId
+    mqmanage.mq.RemoveQueue(QueueHost, QueueName)
+    return True, ''
 

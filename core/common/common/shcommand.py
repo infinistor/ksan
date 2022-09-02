@@ -36,6 +36,26 @@ def GetHostInfo(hostname=None, ip=None):
     except socket.error as err:
         return False, str(err), None
 
+def isStringIp(String):
+    IpFinder = re.compile("([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3})")
+    IpType = IpFinder.search(String)
+    if IpType:
+        return True
+    else:
+        return False
+
+
+def GetIpFromHostname(String):
+    """
+    if String is ip type, return String otherwise return ip from String
+    :param hostname:
+    :return:
+    """
+    if isStringIp(String):
+        return String
+    else:
+        return GetHostInfo(hostname=String)
+
 
 def UpdateEtcHosts(ClusterMembers:list, Mode): # ClusterMembers: [('192.168.11.11', 'osd1')]
     OmittedHostNameList = list()

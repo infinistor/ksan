@@ -14,14 +14,20 @@ import os, sys
 import psutil
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import jsonpickle
+from common.log import Logging
+import socket
+import logging
 from common.httpapi import *
 from common.httpapi import RestApi
+from common.network import GetNetwork
 from const.common import *
 from const.server import ServerItemsDetailModule, ServerItemsModule, RequestServerInfo, RequestServerInitInfo, \
     UpdateServerInfoItems, RequestServerExistCheck
 from const.http import ResPonseHeader, ResponseHeaderModule
-from common.init import get_input
-from common.shcommand import GetHostInfo
+from const.common import AgentConf
+from const.rest import SetRestReturn
+from common.init import get_input, GetConf, UpdateConf
+from common.shcommand import GetHostInfo, shcall
 from common.utils import IsIpValid
 from optparse import OptionParser
 
@@ -185,12 +191,12 @@ def ServerInit(PortalIp, PortalPort, PortalApiKey, TargetServerIp, logger=None):
     :param logger:
     :return:tuple(error code, error msg, Success to get result:header, fail to get result: None)
     """
-    SshUser = get_input('Insert Ssh User', str, default='root')
-    SshPassword = get_input('Insert Ssh Password', 'pwd', default='')
+    SshUser = get_input('Insert ssh user', str, default='root')
+    SshPassword = get_input('Insert ssh password', 'pwd', default='')
     if PortalIp is None:  # if ksanMonitor.conf is not configured
-        PortalIp = get_input('Insert Portal Host', str, default='')
-        PortalPort = get_input('Insert Portal Port', int, default='')
-        PortalApiKey = get_input('Insert Portal Api Key', str, default='')
+        PortalIp = get_input('Insert portal host', str, default='')
+        PortalPort = get_input('Insert portal port', int, default='')
+        PortalApiKey = get_input('Insert portal api key', str, default='')
 
     if not IsIpValid(PortalIp):
         Ret, Hostname, Ip = GetHostInfo(hostname=PortalIp)
@@ -391,6 +397,76 @@ def server_exist_check_with_servername(ip, port, Name, Authkey, ExcludeServerId=
     Res, Errmsg, Ret = Conn.post()
     return Res, Errmsg, Ret
 
+class RestHandlerServer:
+    def __init__(self):
+        self.logger = logging.getLogger(KsanAgentBinaryName)
+
+
+    catch_exceptions()
+    def InitAgentConf(self, Conf: AgentConf):
+
+        net = GetNetwork()
+        nic = net.GetNicInfo(Ip=Conf.LocalIp)
+        if not nic:
+            return SetRestReturn(ResultError, Code=CodeFailServerInit, Message=MessageFailServerInit)
+        NetDevice = nic['Name']
+
+        ConfString = """[mgs]
+%s = %s 
+%s = %d 
+%s = %s 
+%s = %s 
+%s = %s 
+%s = %d 
+%s = %s 
+%s = %s
+%s = 
+%s = 
+
+[monitor]
+ServerMonitorInterval = 5000
+NetworkMonitorInterval = 5000
+DiskMonitorInterval = 5000
+ServiceMonitorInterval = 5000        
+""" % (KeyPortalHost, Conf.PortalHost, KeyPortalPort, Conf.PortalPort, KeyMQHost, Conf.MQHost,
+               KeyMQUser, Conf.MQUser, KeyMQPassword, Conf.MQPassword, KeyMQPort, Conf.MQPort,
+               KeyPortalApiKey, Conf.PortalApiKey, KeyManagementNetDev, NetDevice, KeyDefaultNetworkId, KeyServerId)
+
+        with open(MonServicedConfPath, 'w') as f:
+            f.write(ConfString)
+            f.flush()
+        return SetRestReturn(ResultSuccess)
+
+    catch_exceptions()
+    def AddServer(self, conf: AgentConf):
+        """
+        Register Server and update ksanConf
+        :param Conf:
+        :return:
+        """
+        self.InitAgentConf(conf)
+
+        #Res, Errmsg, Ret = AddServer(Conf.PortalHost, Conf.PortalPort, Conf.PortalApiKey, '', logger=self.logger)
+
+        #RunServerRegisterCmd = '%s -i %s -m %s -p %d -r %s -q %d -u %s -w %s -k %s ' % (KsanServerRegisterPath,
+        #                Conf.LocalIp, Conf.PortalHost, Conf.PortalPort, Conf.MQHost, Conf.MQPort, Conf.MQUser,
+        #                Conf.MQPassword, Conf.PortalApiKey)
+        #self.logger.debug(RunServerRegisterCmd)
+        Hostname = socket.gethostname()
+        Res, errmsg, Ret, ServerInfo = RegisterServer(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, '',
+                                                      Name=Hostname, logger=self.logger)
+        Errmsg = ''
+        if Res != ResOk:
+            Errmsg += 'fail to add Server' + errmsg
+            return SetRestReturn(ResultError, Code=CodeFailServerInit, Message=MessageFailServerInit + Errmsg)
+        else:
+            if Ret.Result == ResultSuccess or Ret.Code == CodeDuplicated:
+                UpdateConf(MonServicedConfPath, KeyCommonSection, 'ServerId', ServerInfo.Id, self.logger)
+            else:
+                Errmsg += 'fail to add Server' + Ret.Message
+
+            return SetRestReturn(Ret.Result, Code=Ret.Code, Message=Ret.Message)
+
 
 class MyOptionParser(OptionParser):
     def print_help(self):
@@ -567,7 +643,6 @@ def ShowSysInfo(AllServersDetail):
     print()
 
 
-
 def ServerUtilHandler(Conf, Action, Parser, logger):
     #if Action.lower() == 'init'
 
@@ -581,9 +656,13 @@ def ServerUtilHandler(Conf, Action, Parser, logger):
             print('%s is not configured' % MonServicedConfPath)
             sys.exit(-1)
     else:
-        PortalIp = Conf.mgs.PortalIp
-        PortalPort = Conf.mgs.PortalPort
-        PortalApiKey = Conf.mgs.PortalApiKey
+        try:
+            PortalIp = Conf.PortalHost
+            PortalPort = Conf.PortalPort
+            PortalApiKey = Conf.PortalApiKey
+        except Exception as err:
+            print('Fail to get %s %s' % (MonServicedConfPath, str(err)))
+            sys.exit(-1)
 
     if Action is None:
         Parser.print_help()

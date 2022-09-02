@@ -20,12 +20,12 @@ if 'composer' in sys.argv: # install composer mode install
     composer_mode = sys.argv.pop(index)  # Returns the element after the 'composer'
 
     install_list = [
-    ('/usr/local/ksan/etc', ['./ksan-osd-log.xml'])
+    ('/usr/local/ksan/etc', ['./ksanOSD_log_conf.xml'])
     ]
 else:
     install_list = [('/usr/local/ksan/sbin/', [\
-                 './ksan-osd.jar']),
-    ('/usr/local/ksan/etc', ['./ksan-osd-log.xml'])
+                 './ksanOSD.jar']),
+    ('/usr/local/ksan/etc', ['./ksanOSD_log_conf.xml'])
     ]
 
 setup(

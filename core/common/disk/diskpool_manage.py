@@ -295,7 +295,7 @@ def ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=False):
                 pool['DiskList'].append(TmpDisk)
 
 
-    if Detail == DetailInfo:
+    if Detail in [DetailInfo, MoreDetailInfo]:
         TopTitleLine = "%s" % ("=" * 173)
         DiskPoolTitleLine = "%s" % ("-" * 173)
         print(TopTitleLine)
@@ -393,11 +393,11 @@ def GetReplicationDspType(StringType):
 def DiskpoolUtilHandler(Conf, Action, Parser, logger):
 
     options, args = Parser.parse_args()
-    PortalIp = Conf.mgs.PortalIp
-    PortalPort = Conf.mgs.PortalPort
-    PortalApiKey = Conf.mgs.PortalApiKey
-    MqPort = Conf.mgs.MqPort
-    MqPassword = Conf.mgs.MqPassword
+    PortalIp = Conf.PortalHost
+    PortalPort = Conf.PortalPort
+    PortalApiKey = Conf.PortalApiKey
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
@@ -515,12 +515,12 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
             if Res != ResOk:
                 print(Errmsg)
             else:
-                if options.Detail:
+                if options.MoreDetail:
+                    Detail = MoreDetailInfo
+                elif options.Detail:
                     Detail = DetailInfo
-                elif options.Simple:
-                    Detail = SimpleInfo
                 else:
-                    Detail = None
+                    Detail = SimpleInfo
 
                 Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
                 if Res != ResOk:

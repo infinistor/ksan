@@ -175,7 +175,7 @@ def update_disk_hastate(Ip, Port, ServerId, DiskId, HaAction, logger=None):
 @catch_exceptions()
 def UpdateDiskSize(Ip, Port,  ApiKey, DiskId, TotalSize=None, UsedSize=None,
                    TotalInode=None, UsedInode=None, logger=None):
-    Res, Errmgs, Ret, Disk = GetDiskInfo(Ip, Port, ApiKey, DiskId=DiskId, logger=logger)
+    Res, Errmsg, Ret, Disk = GetDiskInfo(Ip, Port, ApiKey, DiskId=DiskId, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             Disk = Disk[0]
@@ -200,9 +200,9 @@ def UpdateDiskSize(Ip, Port,  ApiKey, DiskId, TotalSize=None, UsedSize=None,
             else:
                 return res, errmsg, None
         else:
-            return Ret, Errmgs, Ret
+            return Ret, Errmsg, Ret
     else:
-        return Ret, Errmgs, None
+        return Ret, Errmsg, None
 
 
 @catch_exceptions()
@@ -325,7 +325,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
     :return:
     """
 
-    if Detail is DetailInfo:
+    if Detail in [DetailInfo, MoreDetailInfo]:
         DiskTitleLine = '%s' % ('=' * 316)
         DiskDataLine = '%s' % ('-' * 316)
         title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15),
@@ -354,7 +354,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
         #    svr = GetDataFromBody(disk.Server, ServerItemsModule)
         #if ServerId is not None and ServerId != svr.Id:
         #    continue
-        if Detail == DetailInfo:
+        if Detail in [DetailInfo, MoreDetailInfo]:
             _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
                                        '{:15.15}'.format(disk.Path.center(15)),
                                         str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).center(9),
@@ -382,11 +382,11 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
 def DiskUtilHandler(Conf, Action, Parser, logger):
 
     options, args = Parser.parse_args()
-    PortalIp = Conf.mgs.PortalIp
-    PortalPort = Conf.mgs.PortalPort
-    PortalApiKey = Conf.mgs.PortalApiKey
-    MqPort = Conf.mgs.MqPort
-    MqPassword = Conf.mgs.MqPassword
+    PortalIp = Conf.PortalHost
+    PortalPort = Conf.PortalPort
+    PortalApiKey = Conf.PortalApiKey
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
@@ -468,12 +468,12 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
             if Res != ResOk:
                 print(Errmsg)
             else:
-                if options.Detail:
+                if options.MoreDetail:
+                    Detail = MoreDetailInfo
+                elif options.Detail:
                     Detail = DetailInfo
-                elif options.Simple:
-                    Detail = SimpleInfo
                 else:
-                    Detail = None
+                    Detail = SimpleInfo
                 ShowDiskInfo(AllDisks, Detail=Detail, Continue=options.Continue)
             if options.Continue is None:
                 break
