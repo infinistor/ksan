@@ -10,7 +10,7 @@
 */
 using MTLib.CommonData;
 
-namespace PortalData.Requests.Disks
+namespace PortalData.Responses.Disks
 {
 	/// <summary>임계값 반환 클래스</summary>
 	public class ResponseDiskThreshold : CommonRequestData
