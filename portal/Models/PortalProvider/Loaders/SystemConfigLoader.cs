@@ -55,9 +55,7 @@ namespace PortalProvider.Loaders
 				if (Context != null)
 				{
 					// 전체 설정을 가져온다.
-					var Configs = ((PortalModel)Context).Configs.AsNoTracking()
-																		.OrderByWithDirection(i => i.Key)
-																		.CreateList();
+					var Configs = ((PortalModel)Context).Configs.AsNoTracking().OrderByWithDirection(i => i.Key).CreateList();
 
 					lock (m_configs)
 					{

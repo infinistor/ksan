@@ -1201,21 +1201,22 @@ namespace PortalProvider.Providers.Accounts
 						RoleNames = new List<string>();
 
 					// 해당 사용자의 역할 권한 및 사용자 권한을 가져온다.
-					Result.Data = await m_dbContext.ClaimNames.AsNoTracking()
-													.Where(i =>
-														(
-															m_dbContext.RoleClaims
-																.Any(j => RoleNames.Contains(j.Role.Name)
-																		  && j.ClaimType == "Permission"
-																		  && j.ClaimValue == i.ClaimValue)
-															|| m_dbContext.UserClaims
-																.Any(j => j.UserId == User.Id
-																		  && j.ClaimType == "Permission"
-																		  && j.ClaimValue == i.ClaimValue)
-														)
-													)
-													.OrderByWithDirection(i => i.ClaimValue)
-													.CreateListAsync<ClaimName, ResponseClaim>();
+					Result.Data = await m_dbContext.ClaimNames
+						.AsNoTracking()
+						.Where(i =>
+							(
+								m_dbContext.RoleClaims
+									.Any(j => RoleNames.Contains(j.Role.Name)
+												&& j.ClaimType == "Permission"
+												&& j.ClaimValue == i.ClaimValue)
+								|| m_dbContext.UserClaims
+									.Any(j => j.UserId == User.Id
+												&& j.ClaimType == "Permission"
+												&& j.ClaimValue == i.ClaimValue)
+							)
+						)
+						.OrderByWithDirection(i => i.ClaimValue)
+						.CreateListAsync<ClaimName, ResponseClaim>();
 
 					// 데이터가 존재하는 경우, 가져온 권한 중 중복 제거 처리
 					if (Result.Data.Items.Count > 0)
