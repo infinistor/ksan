@@ -80,6 +80,9 @@ public class FSCK {
         Response res = new Response();
         
         res.ret = 0;
+        if (mt.getPath().endsWith("/"))
+            return res; // ignore directory
+        
         if (mt.getReplicaCount() > 1 ){ // when only one object exist
             if (!mt.isPrimaryExist()){
                 problemType1++;
@@ -153,7 +156,7 @@ public class FSCK {
             primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
             //System.out.println(" objId >> " + mt.getObjId() +" primary  >> "+ primary);
             if (!primary.errorCode.contains("MQ_SUCESS")){
-                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+                System.out.println("ObjId >>" +  mt.getObjId()+" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode);
                 problemType1++;
                 return res;
             }
@@ -339,6 +342,7 @@ public class FSCK {
                 }
                 
                 Metadata mt = it.next();
+                //System.out.format("[CheckList] objId : %s lastObjId : %s  nChecked : %d\n", mt.getObjId(), lastObjId, totalChecked);
                 lastObjId = mt.getObjId();
                 try {
                     objm.log("[checkEachObject] bucket : %s key : %s objId : %s versionId : %s pdiskid : %s rpdiskid : %s \n", 
