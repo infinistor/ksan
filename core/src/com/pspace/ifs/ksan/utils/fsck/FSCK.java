@@ -34,10 +34,12 @@ class FSCKStat{
     public long numNotFound;
     public long numSizeDiffernt;
     public long numMd5Differnt;
+    public long totalFailed;
     public FSCKStat(){
         numNotFound = 0;
         numSizeDiffernt=0;
         numMd5Differnt= 0;
+        totalFailed = 0;
     }
 }
 public class FSCK {
@@ -104,6 +106,7 @@ public class FSCK {
         if (mt.getReplicaCount() > 1 ){ // when only one object exist
             if (!mt.isPrimaryExist()){
                 primaryProblem.numNotFound++;
+                primaryProblem.totalFailed++;
                 res.ret = 6;// copy replica to primary
                 res.actionMessage = "copy replica to primary";
                 return res; 
@@ -111,6 +114,7 @@ public class FSCK {
             
             if (!mt.isReplicaExist()){
                 replicaProblem.numNotFound++;
+                replicaProblem.totalFailed++;
                 res.ret = 7; // copy primary to replica
                 res.actionMessage = "copy primary to replica";
                 return res;
@@ -124,6 +128,7 @@ public class FSCK {
             res.ret = 0;
             if (primary.errorCode.contains("MQ_OBJECT_NOT_FOUND")){
                 primaryProblem.numNotFound++;
+                primaryProblem.totalFailed++;
                 res.ret = 6;// copy replica to primary
                 res.actionMessage = "copy replica to primary";
                 return res;  
@@ -131,6 +136,7 @@ public class FSCK {
             
             if (replica.errorCode.contains("MQ_OBJECT_NOT_FOUND")){
                 replicaProblem.numNotFound++;
+                replicaProblem.totalFailed++;
                 res.ret = 7; // copy primary to replica
                 res.actionMessage = "copy primary to replica";
                 return res;
@@ -140,6 +146,7 @@ public class FSCK {
                 if (primary.size == replica.size && primary.size == mt.getSize())
                     return res;
                 metaProblem.numSizeDiffernt++;
+                metaProblem.totalFailed++;
                 res.ret = 3; // fix meta size
                  res.actionMessage = "fix meta size";
                 return res;
@@ -147,13 +154,17 @@ public class FSCK {
             else if (!primary.md5.equals(replica.md5)){
                 if (primary.md5.equals(mt.getEtag())){
                     replicaProblem.numMd5Differnt++;
-                    //System.out.println("copy primary -> replica");
+                    if (primary.size != replica.size)
+                        replicaProblem.numSizeDiffernt++;
+                    replicaProblem.totalFailed++;
                     res.ret = 2; //cpy primary
                     res.actionMessage = "copy primary to replica";
                     return res;
                 }else if(replica.md5.equals(mt.getEtag())){
                     primaryProblem.numMd5Differnt++;
-                    //System.out.println("copy replica -> primary");
+                    if (replica.size != mt.getSize())
+                        primaryProblem.numSizeDiffernt++;
+                    primaryProblem.totalFailed++;
                     res.ret = 1; // cpy relica
                     res.actionMessage = "copy replica to primary ";
                     return res;
@@ -166,6 +177,7 @@ public class FSCK {
             }
             else {
                 metaProblem.numMd5Differnt++;
+                metaProblem.totalFailed++;
                 res.ret = 4; // fix md5 of meta
                  res.actionMessage = "fix md5 of meta(Etag) ";
                 return res;
@@ -176,12 +188,16 @@ public class FSCK {
             if (!primary.errorCode.contains("MQ_SUCESS")){
                 objm.log("ObjId >>" +  mt.getObjId()+" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode);
                 primaryProblem.numNotFound++;
+                primaryProblem.totalFailed++;
+                if (!checkOnly) totalFailedToFix++;
                 return res;
             }
             
             if (!primary.md5.equals(mt.getEtag())){
                 //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
-               primaryProblem.numMd5Differnt++;
+               primaryProblem.numMd5Differnt++;   
+               primaryProblem.totalFailed++;
+               if (!checkOnly) totalFailedToFix++;
             }
             
             if (primary.size != mt.getSize()){
@@ -229,7 +245,7 @@ public class FSCK {
     }
     
     private int fixObject(Metadata mt) throws Exception{
-        int ret = -1;
+        int ret;
         
         try {
             Response res = checkObjectCorrectness(mt);
@@ -314,10 +330,7 @@ public class FSCK {
                 }    
             }
             
-            //offset = offset + numObjects;
-            //System.out.println("----------------------------------------------------------->" + job_done);
         } while(list.size() == numObjects );
-        //totalFixed = totalFixed + job_done;
         objm.updateNumberObjectsProcessed(totalChecked, totalFixed);
         objm.finishedJob();
         
@@ -410,7 +423,7 @@ public class FSCK {
         long job_done = 0;
         
         for(Bucket bucket : bukList){
-           objm.log("[checkEachDisk] bucketName : %s diskId : %s \n", bucket.getName(), diskId);
+            objm.log("[checkEachDisk] bucketName : %s diskId : %s \n", bucket.getName(), diskId);
             job_done =job_done + checkEachObject(bucket.getName(), diskId);
             objm.log("[checkEachDisk] bucketName : %s diskId : %s job_done : %d\n", bucket.getName(), diskId, job_done);
         }
@@ -442,20 +455,19 @@ public class FSCK {
         System.out.println("|----------------------------------------------------------|");
         System.out.format("| Total Failed to fix             \t | %-15d |\n" , totalFailedToFix);
         System.out.println("|----------------------------------------------------------|");
-        System.out.format("| Total Problem with primary      \t | %-15s |\n" , "");
+        System.out.format("| Total Problem with primary      \t | %-15d |\n" , primaryProblem.totalFailed);
         System.out.format("|       Not found                 \t | %-15d |\n" , primaryProblem.numNotFound);
         System.out.format("|       Size different            \t | %-15d |\n" , primaryProblem.numSizeDiffernt);
         System.out.format("|       Md5  different            \t | %-15d |\n" , primaryProblem.numMd5Differnt);
         System.out.println("|----------------------------------------------------------|");
-        System.out.format("| Total Problem with replica      \t | %-15s |\n" , "");
+        System.out.format("| Total Problem with replica      \t | %-15d |\n" , replicaProblem.totalFailed);
         System.out.format("|       Not found                 \t | %-15d |\n" , replicaProblem.numNotFound);
         System.out.format("|       Size different            \t | %-15d |\n" , replicaProblem.numSizeDiffernt);
         System.out.format("|       Md5  different            \t | %-15d |\n" , replicaProblem.numMd5Differnt);
         System.out.println("|----------------------------------------------------------|");
-        System.out.format("| Total Problem with meta         \t | %-15s |\n" , "");
+        System.out.format("| Total Problem with meta         \t | %-15d |\n" , metaProblem.totalFailed);
         System.out.format("|       Size different            \t | %-15d |\n" , metaProblem.numSizeDiffernt);
         System.out.format("|       Md5  different            \t | %-15d |\n" , metaProblem.numMd5Differnt);
-        //System.out.format("| Total Problem with meta md5     \t | %-15d |\n" , this.problemType4);
         //System.out.format("| Total Problem with all different\t | %-15d |\n" , this.problemType5);
         System.out.println("|----------------------------------------------------------|");
     }
