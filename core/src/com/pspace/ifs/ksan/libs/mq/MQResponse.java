@@ -54,7 +54,7 @@ public class MQResponse {
             String qackStr = (String)obj.get("qAck");
             message = obj.get("Message").toString();
             qAck = Integer.parseInt(qackStr);
-            code = MQResponseCode.valueOf(obj.get("Code").toString());
+            code = MQResponseCode.valueOf(obj.get("Code").toString().replaceAll("\"", ""));
         } catch (ParseException ex) {
             // do nothing
             ex.printStackTrace();
