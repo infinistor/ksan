@@ -16,7 +16,7 @@ import pdb
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from common.utils import IsDaemonRunning, CreatePidFile
-from common.init import UpdateConf
+from common.init import UpdateConf, isValidConfig, WaitAgentConfComplete, GetAgentConfig
 from network.network_mq_handle import *
 from common.daemon import Daemon
 from common.shcommand import UpdateEtcHosts, shcall
@@ -25,58 +25,88 @@ from service.service_mq_handle import ServiceMonitoring
 from server.server_mq_handle import MonUpdateServerUsage
 from disk.disk_mq_handle import DiskUsageMonitoring, ReportDiskIo
 from const.mq import EdgeRoutingKeyList
+from const.common import *
 from const.network import RequestNetworkInterfaceItems
 from mqmanage.mq import *
+from rest.server import StartRestServer
 import time
 from optparse import OptionParser
 import threading
 import logging
+import inspect
 
 # Check Network Info
 
 
+
+class AgentConf: pass
+
+class TmpConf: pass
+
+setattr(TmpConf, KeyCommonSection, object())
+setattr(TmpConf, KeyPortalHost, None)
+setattr(TmpConf, KeyPortalPort, None)
+setattr(TmpConf, KeyMQHost, None)
+setattr(TmpConf, KeyMQUser, None)
+setattr(TmpConf, KeyMQPort, None)
+setattr(TmpConf, KeyMQPassword, None)
+setattr(TmpConf, KeyServerId, None)
+setattr(TmpConf, KeyManagementNetDev, None)
+setattr(TmpConf, KeyDefaultNetworkId, None)
+setattr(AgentConf, KeyCommonSection, TmpConf)
+
+g_Conf = {KeyCommonSection: AgentConf, KeyMonitorSection: None}
+
 def AddNewRoutingKeyWithServerId(conf):
+    serverid = conf.ServerId
     """
     Add Rpc routing Key to Routing Key List
     """
-    EdgeRoutingKeyList.append("*.servers.%s.interfaces.check" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.servers.%s.interfaces.update" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.servers.%s.interfaces.check" % serverid)
+    EdgeRoutingKeyList.append("*.servers.%s.interfaces.update" % serverid)
 
-    EdgeRoutingKeyList.append("*.servers.%s.disks.write_disk_id" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.servers.%s.disks.check_mount" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.servers.%s.disks.write_disk_id" % serverid)
+    EdgeRoutingKeyList.append("*.servers.%s.disks.check_mount" % serverid)
 
-    EdgeRoutingKeyList.append("*.services.%s.config.gw.load" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.services.%s.config.gw.save" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.services.%s.config.osd.load" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.services.%s.config.osd.save" % conf.mgs.ServerId)
-    EdgeRoutingKeyList.append("*.services.%s.control" % conf.mgs.ServerId)
+    EdgeRoutingKeyList.append("*.services.%s.config.gw.load" % serverid)
+    EdgeRoutingKeyList.append("*.services.%s.config.gw.save" % serverid)
+    EdgeRoutingKeyList.append("*.services.%s.config.osd.load" % serverid)
+    EdgeRoutingKeyList.append("*.services.%s.config.osd.save" % serverid)
+    EdgeRoutingKeyList.append("*.services.%s.control" % serverid)
 
-def MqHandler(conf, GlobalFlag, logger=None):
+def MqHandler(GlobalFlag, logger):
     ServiceList = dict()
     LocalIpList = list()
     ServiceList['IdList'] = list()
     ServiceList['Details'] = dict()
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
+    conf = GetAgentConfig(Conf)
+
     LoadServiceList(conf, ServiceList, LocalIpList, logger)
 
     AddNewRoutingKeyWithServerId(conf)
 
-    mq = Mq(conf.mgs.PortalIp, conf.mgs.MqPort, '/',  conf.mgs.MqUser, conf.mgs.MqPassword,
+    mq = Mq(conf.MQHost, conf.MQPort, '/',  conf.MQUser, conf.MQPassword,
             EdgeRoutingKeyList, ExchangeName,
-            'ksan-agent-%s' % conf.mgs.ServerId, ServerId=conf.mgs.ServerId, ServiceList=ServiceList, logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
+            'ksan-agent-%s' % conf.ServerId, ServerId=conf.ServerId, ServiceList=ServiceList,
+            logger=logger, MonConf=conf, GlobalFlag=GlobalFlag)
     mq.Receiver()
 
-def CheckAgentConf(Conf):
+
+def CheckAgentMonitoringOption(Conf):
     if not hasattr(Conf, 'monitor'):
         class MonitorConf: pass
-        setattr(MonitorConf, 'ServerMonitorInterval', 10)
-        setattr(MonitorConf, 'NetworkMonitorInterval', 10)
-        setattr(MonitorConf, 'DiskMonitorInterval', 10)
-        setattr(MonitorConf, 'ServiceMonitorInterval', 10)
+        setattr(MonitorConf, 'ServerMonitorInterval', 5000)
+        setattr(MonitorConf, 'NetworkMonitorInterval', 5000)
+        setattr(MonitorConf, 'DiskMonitorInterval', 5000)
+        setattr(MonitorConf, 'ServiceMonitorInterval', 5000)
         setattr(Conf, 'monitor', MonitorConf)
+
     return Conf
 
 
 def Start(LocalIp, logger=None, Foreground=False):
+    global g_AgentConf
     """
     LocalIp is used for checking /etc/hosts right after register server.
     local server info can be fail to get right after regster.
@@ -85,6 +115,8 @@ def Start(LocalIp, logger=None, Foreground=False):
     :param Foreground:
     :param LocalIp:
     :return:
+    """
+
     """
     ret, conf = GetConf(MonServicedConfPath)
     if ret is False:
@@ -95,8 +127,24 @@ def Start(LocalIp, logger=None, Foreground=False):
             print('Local server is not registered. Excute ksanAgent register first')
             sys.exit(-1)
         else:
-            conf = CheckAgentConf(conf)
+            conf = CheckAgentMonitoringOption(conf)
 
+    # conversion portal host to ip
+    ret, hostname ,ip = GetHostInfo(conf.mgs.PortalHost)
+    if ret is False:
+        logger.error('Invalid PortalHost')
+        sys.exit(-1)
+    else:
+        setattr(conf.mgs, 'PortalHost', ip)
+
+    # conversion mqhost to ip
+    ret, hostname ,ip = GetHostInfo(conf.mgs.MQHost)
+    if ret is False:
+        logger.error('Invalid MqHost')
+        sys.exit(-1)
+    else:
+        setattr(conf.mgs, 'MqHost', ip)
+    """
 
     if Foreground is False:
         D = Daemon(KsanAgentPidFile, 'ksanAgent')
@@ -108,41 +156,49 @@ def Start(LocalIp, logger=None, Foreground=False):
 
     threads = list()
 
+    # get ksanAnge.conf
+    #th = threading.Thread(target=GetSystemConfiguration, args=(logger, ))
+    #th.start()
+    #threads.append(th)
+
+    #MqHandler(conf, GlobalFlag, logger=logger)
+    th = threading.Thread(target=MqHandler, args=(GlobalFlag, logger))
+    th.start()
+    threads.append(th)
 
     # register network thread
-    th = threading.Thread(target=RegisterManagementNetwork, args=(conf,logger, ))
+    th = threading.Thread(target=RegisterManagementNetwork, args=(logger, ))
     th.start()
     threads.append(th)
 
     # network monitoring thread
-    th = threading.Thread(target=UpdateNetworkStat, args=(conf, GlobalFlag, logger, ))
+    th = threading.Thread(target=UpdateNetworkStat, args=(g_Conf, GlobalFlag, logger, ))
     th.start()
     threads.append(th)
 
 
-    KsanServiceRegister(conf, TypeServiceAgent, logger)
     # service monitoring thread
-    th = threading.Thread(target=ServiceMonitoring, args=(conf, GlobalFlag, logger, ))
+    th = threading.Thread(target=ServiceMonitoring, args=(g_Conf, GlobalFlag, logger, ))
     th.start()
     threads.append(th)
 
     #
-    th = threading.Thread(target=EdgeCheckEtcHosts, args=(conf, logger, LocalIp,))
+    th = threading.Thread(target=EdgeCheckEtcHosts, args=(logger, LocalIp,))
     th.start()
     threads.append(th)
 
     # disk usage monitoring thread
-    th = threading.Thread(target=DiskUsageMonitoring, args=(conf, DiskIoInfo, GlobalFlag, logger, ))
+    th = threading.Thread(target=DiskUsageMonitoring, args=(g_Conf, DiskIoInfo, GlobalFlag, logger, ))
     th.start()
     threads.append(th)
 
     # disk I/O monitoring thread
-    th = threading.Thread(target=ReportDiskIo, args=(conf, DiskIoInfo, GlobalFlag, logger, ))
+    th = threading.Thread(target=ReportDiskIo, args=(g_Conf, DiskIoInfo, GlobalFlag, logger, ))
     th.start()
     threads.append(th)
 
     # server usage monitoring thread
-    th = threading.Thread(target=MonUpdateServerUsage, args=(conf, logger, ))
+    th = threading.Thread(target=MonUpdateServerUsage, args=(g_Conf, logger, ))
     th.start()
     threads.append(th)
 
@@ -153,7 +209,11 @@ def Start(LocalIp, logger=None, Foreground=False):
 
     Pid = os.getpid()
     CreatePidFile(Pid, KsanAgentPidFile)
-    MqHandler(conf, GlobalFlag, logger=logger)
+    #MqHandler(conf, GlobalFlag, logger=logger)
+
+    #Restfull server thread
+    RestFullServerPort = 6380
+    StartRestServer(RestFullServerPort, g_Conf)
     for th in threads:
         th.join()
 
@@ -163,15 +223,19 @@ def Stop():
 
 
 @catch_exceptions()
-def RegisterManagementNetwork(conf, logger):
+def RegisterManagementNetwork(logger):
+
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger, CheckNetworkDevice=True)
+    conf = GetAgentConfig(Conf)
+
     time.sleep(5)
-    NetworkDevice = conf.mgs.ManagementNetDev
+    NetworkDevice = conf.ManagementNetDev
     if not NetworkDevice:
-        LocalMgmtIp = conf.mgs.PortalIp
+        LocalMgmtIp = conf.PortalHost
         netif = GetNetwork(Ip=LocalMgmtIp, logger=logger)
 
         NetworkDevice = netif.NicInfo['Name']
-        conf.mgs.ManagementNetDev = NetworkDevice
+        conf.ManagementNetDev = NetworkDevice
     else:
         LocalMgmtIp = None
         netif = GetNetwork(Ip = LocalMgmtIp, logger=logger)
@@ -184,7 +248,7 @@ def RegisterManagementNetwork(conf, logger):
     RetryCnt = 0
     while True:
         RetryCnt += 1
-        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, conf.mgs.ServerId,
+        Res, Errmsg, Ret = AddNetworkInterface(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, conf.ServerId,
                                                netif, logger=logger)
         if Res != ResOk:
             logger.error('fail to add Network Interface %s retry:%d' %(Errmsg, RetryCnt))
@@ -194,8 +258,8 @@ def RegisterManagementNetwork(conf, logger):
                 logging.log(logging.INFO, "success to add network %s %s" % (str(Ret.Result), str(Ret.Message)))
                 NetworkInterfaceId = Ret.Data.Id
             elif Ret.Code == CodeDuplicated:
-                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey,
-                                                             conf.mgs.ServerId, InterfaceId=None, disp=False, logger=logger)
+                Res, Errmsg, Ret, Data = GetNetworkInterface(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey,
+                                                             conf.ServerId, InterfaceId=None, disp=False, logger=logger)
                 if Res != ResOk or Ret.Result != ResultSuccess:
                     logging.log(logging.INFO, "%s %s" % (str(Ret.Result), str(Ret.Message)))
                 else:
@@ -232,19 +296,24 @@ def GetValidEtcHostsInfo(Data):
     return ValidHostsInfo
 
 
-def EdgeCheckEtcHosts(conf, logger, LocalIp):
+def EdgeCheckEtcHosts(logger, LocalIp):
+    global g_Conf
     """
     check current serverlist and check /etc/hosts with the server info and update if not applied.
     :param conf:
     :return:
     """
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
+
+    conf = GetAgentConfig(Conf)
+
     LocalHostInfo = list()
-    if LocalIp is not None: # run by ksanNodeRegister
+    if LocalIp is not None: # run by ksanServerRegister
         out, err = shcall('hostname')
         LocalHostName = out[:-1]
         LocalHostInfo.append((LocalIp, LocalHostName))
 
-    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, logger=logger)
+    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, logger=logger)
     if Res == ResOk:
         print(Ret.Result, Ret.Message)
         ValidHostsInfo = GetValidEtcHostsInfo(Data)
@@ -258,9 +327,10 @@ class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
         Usage: ksanAgent {start|stop|status} [option]
-                start                                                                  : Start ksanAgent
-                stop                                                                   : Stop ksanAgent 
-                status                                                                 : Status ksanAgent
+                start                                                                  : start ksanAgent
+                stop                                                                   : stop ksanAgent 
+                restart                                                                : restart ksanAgent
+                status                                                                 : status ksanAgent
         [options]
                 -h, --help                                                             : show this help message and exit
 """
@@ -288,22 +358,22 @@ if __name__ == '__main__':
 
     logger = None
     if options.debug is True:
-        logger = Logging(loglevel='debug')
+        logger = Logging(instance=KsanAgentBinaryName, loglevel='debug')
     else:
-        logger = Logging(loglevel='error')
+        logger = Logging(instance=KsanAgentBinaryName, loglevel='error')
     logger = logger.create()
 
     ret, conf = GetConf(MonServicedConfPath)
-    if ret is False and args[0] != 'init':
-        print('Check if configuration is done')
-        sys.exit(-1)
+    #if ret is False and args[0] != 'init':
+    #    print('Check if configuration is done')
+    #    sys.exit(-1)
 
     if args[0] == 'register':
         res, hostname, ip = GetHostInfo()
         if res is not True:
             print('fail to get HostName and Ip, %s' % hostname)
             sys.exit(-1)
-        Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, options.desc,
+        Res, Errmsg, Ret, ServerInfo = RegisterServer(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, options.desc,
                                                       Name=hostname, logger=logger)
         if Res != ResOk:
             print('fail to add Server' + Errmsg)
@@ -318,7 +388,7 @@ if __name__ == '__main__':
         if options.id is None:
             parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = RemoveServer(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, ServerId=options.id, logger=logger)
+        Res, Errmsg, Ret = RemoveServer(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, ServerId=options.id, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:

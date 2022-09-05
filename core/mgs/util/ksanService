@@ -54,10 +54,10 @@ def ConfigControl(PortalIp, PortalPort, ApiKey, args, options, logger):
     if not options.ServiceType:
         print('Service type(-t) is required')
         sys.exit(-1)
-    if options.ServiceType not in [TypeServiceMongoDB, TypeServiceOSD, TypeServiceMonitor, TypeServiceS3,
+    if options.ServiceType not in [TypeServiceMongoDB, TypeServiceOSD, TypeServiceMonitor, TypeServiceGW,
                                        TypeServiceMonitor, TypeServiceAgent]:
         print('Invalid Service Type. Valid Service Type: %s' % ', '.join([TypeServiceMongoDB, TypeServiceOSD,
-                                                TypeServiceMonitor, TypeServiceS3, TypeServiceMonitor, TypeServiceAgent]))
+                                                TypeServiceMonitor, TypeServiceGW, TypeServiceMonitor, TypeServiceAgent]))
         sys.exit(-1)
     if args[1] == 'add':
         ServiceType = options.ServiceType

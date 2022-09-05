@@ -775,7 +775,8 @@ namespace PortalProvider.Providers.Services
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		public async Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			int Skip = 0, int CountPerPage = 100
+			List<EnumServiceState> SearchStates = null
+			, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
@@ -794,7 +795,7 @@ namespace PortalProvider.Providers.Services
 				InitSearchFields(ref SearchFields);
 
 				var serviceType = EnumServiceType.Unknown;
-				if (SearchFields.Contains("servicetype"))
+				if (SearchFields != null && SearchFields.Contains("servicetype"))
 					Enum.TryParse(SearchKeyword, out serviceType);
 
 				// 목록을 가져온다.
@@ -807,7 +808,7 @@ namespace PortalProvider.Providers.Services
 							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
 							|| (SearchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType)serviceType)
 							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
-						)
+						) && (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.Include(i => i.ServiceGroup)
@@ -1117,7 +1118,7 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
-						
+
 						// 종료 이벤트가 발생할 경우 해당 서비스의 상태를 Offline으로 변경한다.
 						if (Request.EventType == EnumServiceEventType.Stop) await UpdateState(Request.Id, EnumServiceState.Offline);
 					}

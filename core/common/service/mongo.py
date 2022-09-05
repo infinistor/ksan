@@ -48,8 +48,8 @@ class KsanMongoDB:
         Retry = 0
         while True:
             Retry += 1
-            Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.mgs.PortalIp, int(self.MonConf.mgs.PortalPort),
-                                                             self.MonConf.mgs.PortalApiKey, logger=self.logger)
+            Res, ErrMsg, Ret, Data = GetServiceMongoDBConfig(self.MonConf.PortalHost, int(self.MonConf.PortalPort),
+                                                             self.MonConf.PortalApiKey, logger=self.logger)
             if Res == ResOk:
                 if Ret.Result == ResultSuccess:
                     DbConf = json.loads(Data.Config)

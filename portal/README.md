@@ -283,8 +283,7 @@ docker cp infinistor.pfx ksan-api-portal:/app
 		"Name": "ksan",
 		"Port": 3306,
 		"User":"<User>",
-		"Password": "<Password>",
-		"LicenseKey":""
+		"Password": "<Password>"
 	},
 	"MongoDB": {
 		"Host": "localhost",

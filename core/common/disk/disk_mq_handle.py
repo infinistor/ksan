@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from disk.disk_manage import *
 from const.common import DiskPoolXmlPath
 from const.disk import DiskDetailMqBroadcast
-from common.init import GetConf
+from common.init import GetConf, WaitAgentConfComplete, GetAgentConfig
 from const.mq import MqVirtualHost, RoutKeyDiskUsage, ExchangeName, RoutKeyDiskCheckMountFinder, \
     RoutKeyDiskWirteDiskIdFinder, RoutKeyDiskAdded, RoutKeyDiskPoolUpdate, RoutKeyDiskStartStop, RoutKeyDiskState, \
     RoutKeyDiskDel
@@ -24,6 +24,7 @@ import mqmanage.mq
 import time
 import json
 import logging
+import inspect
 import xml.etree.ElementTree as ET
 
 def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
@@ -46,7 +47,7 @@ def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
     return ReadPerSec, WritePerSec
 
 
-def ReportDiskIo(conf, DiskStatInfo, GlobalFlag, logger):
+def ReportDiskIo(Conf, DiskStatInfo, GlobalFlag, logger):
     """
     Get Disk IO per seconds
     :param conf:
@@ -56,13 +57,21 @@ def ReportDiskIo(conf, DiskStatInfo, GlobalFlag, logger):
     :return:
     """
 
-    MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
+    conf = GetAgentConfig(Conf)
+    MqDiskUpdated = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyDiskUsage, ExchangeName,
                                    QueueName='')
-    while True:
+    DiskMonitorInterval = int(conf.DiskMonitorInterval)/1000
 
+    Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey)
+    if Res == ResOk:
+        if Ret.Result == ResultSuccess:
+            DiskStatInfo['list'] = UpdateDiskPartitionInfo(DiskList)
+
+    while True:
         for disk in DiskStatInfo['list']:
             try:
-                if disk['ServerId'] != conf.mgs.ServerId:
+                if disk['ServerId'] != conf.ServerId:
                     continue
                 Id = disk['Id']
                 ServerId = disk['ServerId']
@@ -86,7 +95,7 @@ def ReportDiskIo(conf, DiskStatInfo, GlobalFlag, logger):
             except Exception as err:
                 logger.error('fail to get Disk Info %s' % str(err))
 
-        time.sleep(int(conf.monitor.DiskMonitorInterval))
+        time.sleep(DiskMonitorInterval)
 
 
 
@@ -171,11 +180,14 @@ def GetDiskIoFromProc(DiskStatInfo, logger):
 
 
 @catch_exceptions()
-def DiskUsageMonitoring(conf, DiskStatInfo, GlobalFlag, logger):
-    #MqDiskUpdated = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyDiskUsage, ExchangeName,
-    #        QueueName='')
+def DiskUsageMonitoring(Conf, DiskStatInfo, GlobalFlag, logger):
+
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
+
+    conf = GetAgentConfig(Conf)
+    DiskMonitorInterval = int(conf.DiskMonitorInterval)/1000
     while True:
-        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey)
+        Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 DiskStatInfo['list'] = UpdateDiskPartitionInfo(DiskList)
@@ -187,7 +199,7 @@ def DiskUsageMonitoring(conf, DiskStatInfo, GlobalFlag, logger):
 
                     DiskIo = psutil.disk_io_counters(perdisk=True)
                     for disk in DiskStatInfo['list']:
-                        if disk['ServerId'] != conf.mgs.ServerId:
+                        if disk['ServerId'] != conf.ServerId:
                             continue
                         #Id = disk['Id']
                         #ServerId = disk['ServerId']
@@ -216,7 +228,7 @@ def DiskUsageMonitoring(conf, DiskStatInfo, GlobalFlag, logger):
                         #Mqsend = json.loads(Mqsend)
                         #MqDiskUpdated.Sender(Mqsend)
 
-                    time.sleep(int(conf.monitor.DiskMonitorInterval))
+                    time.sleep(DiskMonitorInterval)
             else:
                 logger.error('fail to get Disk Info %s' % Ret.Message)
         else:
@@ -300,7 +312,7 @@ def UpdateDiskPoolXml():
     # DiskPools = [{"PoolName":"pool1", "PoolId":"abc123", "Servers": [{"Id": "", "Ip":"", "Status":"Online", "Disks":
     # [{"DiskId": "", "Mode":"Rw", "Path": "", "Status": "GOOD"}]}]}]
     DiskPools = list()
-    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, logger=None)
+    Res, Errmsg, Ret, Servers = GetAllServerDetailInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, logger=None)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for Svr in Servers:

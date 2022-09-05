@@ -16,9 +16,7 @@ namespace PortalProvider.Providers.DB
 		public string CharSet { get; set; } = "utf8";
 		public bool Pooling { get; set; } = true;
 		public int MaxPoolSize { get; set; } = 100;
-		public string LicenseKey { get; set; } = "";
 
-		public string GetConnectionString() => $"Server={Host};Port={Port};Database={Name};Uid={User};Password={Password};CharSet={CharSet};Pooling={Pooling};Max Pool Size={MaxPoolSize};LicenseKey={LicenseKey}";
 		public string GetConnectionMariaDBString() => $"Server={Host};Port={Port};Database={Name};Uid={User};Password={Password};CharSet={CharSet};Pooling={Pooling};Max Pool Size={MaxPoolSize};";//TLS Version=TLS 1.0;";
 	}
 }

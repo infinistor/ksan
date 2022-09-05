@@ -17,11 +17,11 @@ from service.service_manage import SetServiceConfig, GetServiceConfig, DsPServic
 def ConfigUtilHandler(Conf, Action, Parser, logger):
 
     options, args = Parser.parse_args()
-    PortalIp = Conf.mgs.PortalIp
-    PortalPort = Conf.mgs.PortalPort
-    PortalApiKey = Conf.mgs.PortalApiKey
-    MqPort = Conf.mgs.MqPort
-    MqPassword = Conf.mgs.MqPassword
+    PortalIp = Conf.PortalHost
+    PortalPort = Conf.PortalPort
+    PortalApiKey = Conf.PortalApiKey
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
@@ -40,7 +40,9 @@ def ConfigUtilHandler(Conf, Action, Parser, logger):
         if Res != ResOk:
             print(Errmsg)
         else:
-            print(Ret.Result, Ret.Message)
+            print(Ret.Result, Ret.Message),
+            if hasattr(Ret.Data, 'Version'):
+                print('Config Version:%d' % Ret.Data.Version)
 
     elif Action.lower() == 'get':
         ServiceType = ServiceTypeConversion[options.ServiceType.lower()]

@@ -12,13 +12,13 @@ Version = '0.8.0'
 setup(
     name='ksan-common',
     version=Version,
-    data_files=[('/usr/local/ksan/bin/util', ['./ksanNodeRegister', 'ksanMongoDBManager']),
+    data_files=[('/usr/local/ksan/bin/util', ['./ksanServerRegister', 'ksanMongoDBManager']),
                 ('/usr/local/ksan/sbin/', ['./ksanAgent']),
-                ('/var/log/ksan/rabbitmq', [])
+                ('/var/log/ksan/rabbitmq', []), ('/var/log/ksan/agent', [])
 	],\
     packages=['server', 'disk','common', 'configure', 'const' \
                ,'Enums','mqmanage','network', \
-               'server','service','user'],
+               'server','service','user', 'util', 'rest'],
 )
 
 os.system("chmod 755 /usr/local/ksan/bin/ksan*")

@@ -302,6 +302,8 @@ def ShowS3UserInfo(UserList, Detail=None):
     print(UserTitleLine)
     for user in UserList:
         _userdiskpool = ''
+
+        user.Email = user.Email if user.Email is not None else ''
         if Detail is None:
             _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
         else:
@@ -323,11 +325,11 @@ def ShowS3UserInfo(UserList, Detail=None):
 def UserUtilHandler(Conf, Action, Parser, logger):
 
     options, args = Parser.parse_args()
-    PortalIp = Conf.mgs.PortalIp
-    PortalPort = Conf.mgs.PortalPort
-    PortalApiKey = Conf.mgs.PortalApiKey
-    MqPort = Conf.mgs.MqPort
-    MqPassword = Conf.mgs.MqPassword
+    PortalIp = Conf.PortalHost
+    PortalPort = Conf.PortalPort
+    PortalApiKey = Conf.PortalApiKey
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()

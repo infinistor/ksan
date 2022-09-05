@@ -24,46 +24,47 @@ from common.log import catch_exceptions
 ######### environment configuration define ########
 """
 
-Updated = 1 # disk, network, service, server changed flag
-Checked = 0
+#Updated = 1 # disk, network, service, server changed flag
+#Checked = 0
 
 ##### CONFIG FILE TYPE #####
-ConfigTypeINI = 'INI'
-ConfigTypeObject = 'Object'
+#ConfigTypeINI = 'INI'
+#ConfigTypeObject = 'Object'
 
 
 ##### PATH #####
-KsanEtcPath = '/usr/local/ksan/etc'
-KsanBinPath = '/usr/local/ksan/bin'
+#KsanEtcPath = '/usr/local/ksan/etc'
+#KsanBinPath = '/usr/local/ksan/bin'
 
-MonServicedConfPath = '/usr/local/ksan/etc/ksanMonitor.conf'
-DiskPoolXmlPath = '/usr/local/ksan/etc/diskpools.xml'
-ServicePoolXmlPath = '/usr/local/ksan/etc/servicepools.xml'
-OsdXmlFilePath = '/usr/local/ksan/etc/ksan-osd-log.xml'
-GwXmlFilePath = '/usr/local/ksan/etc/ksan-gw-log.xml'
-KsanMongDbManagerBinPath = '/usr/local/ksan/bin/ksanMongoDBManager'
+#DiskPoolXmlPath = '/usr/local/ksan/etc/diskpools.xml'
+#ServicePoolXmlPath = '/usr/local/ksan/etc/servicepools.xml'
+#OsdXmlFilePath = '/usr/local/ksan/etc/ksan-osd-log.xml'
+#GwXmlFilePath = '/usr/local/ksan/etc/ksan-gw-log.xml'
+#KsanMongDbManagerBinPath = '/usr/local/ksan/bin/ksanMongoDBManager'
 
 ##### ksanMonitor.conf #####
-DiskMonitorInterval = 10
-ProcessMonitorInterval = 10
-ServerMonitorInterval = 10
-ServiceMonitorInterval = 10
-NetworkMonitorInterval = 10
-IntervalShort = 1
-IntervalMiddle = 5
-IntervalLong = 10
+#DiskMonitorInterval = 10
+#ProcessMonitorInterval = 10
+#ServerMonitorInterval = 10
+#ServiceMonitorInterval = 10
+#NetworkMonitorInterval = 10
+#IntervalShort = 1
+#IntervalMiddle = 5
+#IntervalLong = 10
 
 
 """
 ##### HTTP #####
 """
 ### http method ###
-GetMethod = 'GET'
-PostMethod = 'POST'
-PutMethod = 'PUT'
-DeleteMethod = 'DELETE'
+
+#GetMethod = 'GET'
+#PostMethod = 'POST'
+#PutMethod = 'PUT'
+#DeleteMethod = 'DELETE'
 
 ##### return code & messages define #####
+"""
 ResOk = 0
 ResNotFoundCode = 2
 ResNotFoundMsg = 'Not found '
@@ -86,7 +87,7 @@ ResultSuccess = 'Success'
 
 CodeDuplicated = 'EC036'
 ResutlNotFound = 'EC014'
-
+"""
 ##### ENCODING #####
 UTF8 = 'utf-8'
 
@@ -94,31 +95,32 @@ UTF8 = 'utf-8'
 ##### RABBITMQ #####
 """
 ### Queue Name ###
-MonservicedServers = 'monserviced.servers'
-MonservicedServices = 'monserviced.services'
-MonservicedDisks = 'monserviced.disks'
-MonservicedNetwork = 'monserviced.networks'
+#MonservicedServers = 'monserviced.servers'
+#MonservicedServices = 'monserviced.services'
+#MonservicedDisks = 'monserviced.disks'
+#MonservicedNetwork = 'monserviced.networks'
 
 """
 ##### DISK  #####
 """
 ### disk stat ###
-DiskStatOnline = 'Online'
-DiskStatOffline = 'Offline'
-DiskModeRw = 'ReadWrite'
-DiskModeRo = 'ReadOnly'
-DiskHaActionInit = 'Initializing'
+#DiskStatOnline = 'Online'
+#DiskStatOffline = 'Offline'
+#DiskModeRw = 'ReadWrite'
+#DiskModeRo = 'ReadOnly'
+#DiskHaActionInit = 'Initializing'
 
 ### replica type ###
-DiskPoolReplica1 = 'OnePlusZero'
-DiskPoolReplica2 = 'OnePlusOne'
-DiskPoolReplica3 = 'OnePlusTwo'
+#DiskPoolReplica1 = 'OnePlusZero'
+#DiskPoolReplica2 = 'OnePlusOne'
+#DiskPoolReplica3 = 'OnePlusTwo'
 
 ### diskpool type ###
-DiskPoolClassStandard = 'STANDARD'
-DiskPoolClassArchive = 'ARCHIVE'
+#DiskPoolClassStandard = 'STANDARD'
+#DiskPoolClassArchive = 'ARCHIVE'
 
 #####  Conversion Dict to Object Class #####
+"""
 @catch_exceptions()
 class DictToObject(object):
 
@@ -130,9 +132,10 @@ class DictToObject(object):
                 if isinstance(value, str) and value.isdigit():
                     value = int(value)
                 setattr(self, key, value)
-
+"""
 """
 ##### SERVICE #####
+"""
 """
 ### service binamry name ###
 KsanOsdBinaryName = 'ksan-osd.jar'
@@ -157,6 +160,7 @@ OFFLINE = 'Offline'
 
 ### service action retry count ###
 ServiceContolRetryCount = 3
+"""
 
 ### service type ###
 TypeS3 = 'IfsS3'

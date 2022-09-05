@@ -28,19 +28,19 @@ class ServiceUnit:
         self.GetServiceUnit()
 
     def GetServiceUnit(self):
-        if self.ServiceType == TypeServiceS3:
-            self.ServiceUnit = ServiceUnitKsanS3
-        elif self.ServiceType == TypeServiceOSD:
-            self.ServiceUnit = ServiceUnitKsanOSD
+        if self.ServiceType.lower() == TypeServiceGW.lower():
+            self.ServiceUnit = SystemdKsanGWServiceName
+        elif self.ServiceType.lower() == TypeServiceOSD.lower():
+            self.ServiceUnit = SystemdKsanOSDServiceName
 
     def Start(self):
         Cmd = 'systemctl start %s' % self.ServiceUnit
-        self.logger.error(Cmd)
+        self.logger.debug(Cmd)
         ret = self.Status()
         if ret is True:
             return False, '%s is already running' % self.ServiceType
 
-        out, err = shcall(Cmd)
+        shcall(Cmd)
         RetryCnt = 0
         while True:
             RetryCnt += 1
@@ -49,14 +49,14 @@ class ServiceUnit:
                 return True, ''
             else:
                 if RetryCnt > ServiceContolRetryCount:
-                    return False, 'fail to restart %s' % self.ServiceType
+                    return False, 'fail to start %s' % self.ServiceType
                 else:
                     time.sleep(IntervalShort)
 
 
     def Stop(self):
         Cmd = 'systemctl stop %s' % self.ServiceUnit
-        self.logger.error(Cmd)
+        self.logger.debug(Cmd)
         ret = self.Status()
         if ret is False:
             return False, '%s is already stopped' % self.ServiceType
@@ -75,7 +75,7 @@ class ServiceUnit:
 
     def Restart(self):
         Cmd = 'systemctl restart %s' % self.ServiceUnit
-        self.logger.error(Cmd)
+        self.logger.debug(Cmd)
         out, err = shcall(Cmd)
 
         RetryCnt = 0
@@ -93,7 +93,7 @@ class ServiceUnit:
     def Status(self):
         Cmd = 'systemctl status %s' % self.ServiceUnit
         out, err = shcall(Cmd)
-        self.logger.error(Cmd + out)
+        self.logger.debug(Cmd + out)
         if 'running' in out:
             return True
         else:
