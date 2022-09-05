@@ -65,11 +65,11 @@ public class GetFromPortal {
     private final String DBUSER = "objM.db_user"; 
     private final String DBPASSWORD = "objM.db_password";  
        
-    private final String MQHOST="MqHost";//"objM.mq_host";
-    private final String MQUSER="MqUser";
+    private final String MQHOST="MQHost";//"objM.mq_host";
+    private final String MQUSER="MQUser";
     private final String DEFAULTMQUSER="guest";
-    private final String MQPASSWORD="MqPassword";
-    private final String MQPORT="MqPort";
+    private final String MQPASSWORD="MQPassword";
+    private final String MQPORT="MQPort";
     
     private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
