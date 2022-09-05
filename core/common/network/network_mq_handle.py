@@ -17,6 +17,7 @@ import time
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import mqmanage.mq
 from common.shcommand import UpdateEtcHosts
+from common.init import WaitAgentConfComplete, GetAgentConfig
 from const.network import RequestNetworkInterfaceStat, NetworkInterfaceLinkStateItems
 from network.network_manage import *
 from const.mq import RoutKeyNetworkUsage, ExchangeName, RoutKeyNetworkLinkState, RoutKeyNetworkAddFinder, \
@@ -24,21 +25,31 @@ from const.mq import RoutKeyNetworkUsage, ExchangeName, RoutKeyNetworkLinkState,
 from mqmanage.mq import *
 import jsonpickle
 import logging
+import inspect
 
 @catch_exceptions()
-def UpdateNetworkStat(conf, GlobalFlag, logger):
+def UpdateNetworkStat(Conf, GlobalFlag, logger):
+    """
 
+    :param Conf: g_Conf
+    :param GlobalFlag:
+    :param logger:
+    :return:
+    """
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger, CheckNetworkDevice=True, CheckNetworkId=True)
+
+    conf = GetAgentConfig(Conf)
     # Create Sender
     #mqSender = RabbitMqSender(config)
     #mqSender.send(config.exchangeName, "*", data)
     LocalDev = GetNetwork()
 
-    NetworkUsageMq = Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkUsage, ExchangeName)
-    NetworkLinkStateMq = Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), '/', conf.mgs.MqUser, conf.mgs.MqPassword, RoutKeyNetworkLinkState, ExchangeName)
+    NetworkUsageMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkUsage, ExchangeName)
+    NetworkLinkStateMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkLinkState, ExchangeName)
     #Res, Errmsg, Ret, AllNetDevs = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
-
+    NetworkMonitorInterval = int(conf.NetworkMonitorInterval)/1000
     while True:
-        Res, Errmsg, Ret, Svr = GetServerInfo(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, ServerId=conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Svr = GetServerInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey, ServerId=conf.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 while True:
@@ -69,7 +80,7 @@ def UpdateNetworkStat(conf, GlobalFlag, logger):
                         except Exception as err:
                             print(err)
 
-                    time.sleep(int(conf.monitor.NetworkMonitorInterval))
+                    time.sleep(NetworkMonitorInterval)
 
             else:
                 print('fail to get the registered network info', Ret.Message)
@@ -98,7 +109,7 @@ def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
     elif RoutKeyNetworkAddedFinder.search(RoutingKey):
             ServerId = body.ServerId
             IpAddress = body.IpAddress
-            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.mgs.PortalIp, int(MonConf.mgs.PortalPort),MonConf.mgs.PortalApiKey,  ServerId=ServerId, logger=logger)
+            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.PortalHost, int(MonConf.PortalPort),MonConf.PortalApiKey,  ServerId=ServerId, logger=logger)
             if Res == ResOk:
                 if Ret.Result == ResultSuccess:
                     HostName = Data.Name

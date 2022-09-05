@@ -10,14 +10,18 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
 
-import logging
 import sys, os, traceback
+import os, sys
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+import logging
 from functools import wraps
 import pdb
 
+LogFilePath = '/var/log/ksan/agent/agent.log'
 
 class Logging(object):
-    def __init__(self, instance=__name__, logfile='/var/log/ksan-util.log', loglevel='error'):
+    def __init__(self, instance=__name__, logfile=LogFilePath, loglevel='error'):
         try:
             self.logfile = logfile
             if loglevel == 'debug':

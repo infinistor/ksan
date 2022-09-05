@@ -38,11 +38,5 @@ namespace PortalData.Requests.Region
 		/// <summary> SSL포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
 		public virtual int SSLPort { get; set; }
-
-		/// <summary> 엑세스키 </summary>
-		public virtual string AccessKey { get; set; }
-
-		/// <summary> 엑세스키 </summary>
-		public virtual string SecretKey { get; set; }
 	}
 }

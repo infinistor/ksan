@@ -22,8 +22,9 @@ from const.http import ResponseHeaderModule, ResponseItemsHeaderModule
 from const.service import AddServiceInfoObject, ServiceDetailModule, \
     ServiceItemsDetailModule, ServiceConfigModule, UpdateServiceInfoObject, UpdateServiceUsageObject, \
     AddServiceGroupItems, ServiceGroupItemsModule
-from common.init import get_input, GetConf
+from common.init import get_input, GetConf, GetAgentConfig
 from common.shcommand import shcall
+from const.common import ServiceTypeServiceHiddenPathMap, ServiceTypeSystemdServiceMap, ServiceTypeDockerServiceContainerNameMap
 import logging
 
 ConfigMaxWidthLen = 100
@@ -44,16 +45,15 @@ OsdDefaultCacheLimitMinute = 5
 OsdDefaultTrashScheduleMinute = 5
 OsdDefaultPerformanceMode = 'NO_OPTION'
 
-OsdDefaultConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert Connection Pool size'},
-                  {'key': 'osd.port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert Osd Port'},
-                  {'key': 'osd.ec_schedule_milliseconds', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC Schedule Milliseconds'},
-                  {'key': 'osd.ec_apply_milliseconds', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC Apply Milliseconds'},
-                  {'key': 'osd.ec_file_size', 'value': OsdDefaultEcFileSize, 'type': int, 'question': 'Insert EC File Size'},
-                  {'key': 'osd.cache_disk', 'value': OsdDefaultCacheDisk, 'type': str, 'question': 'Insert Cache Disk'},
-                  {'key': 'osd.cache_schedule_milliseconds', 'value': OsdDefaultCacheScheduleMinute, 'type': int, 'question': 'Insert Cache Schedule Milliseconds'},
-                  {'key': 'osd.cache_file_size', 'value': OsdDefaultCacheFileSize, 'type': int, 'question': 'Insert Cache File Size'},
-                  {'key': 'osd.cache_limit_milliseconds', 'value': OsdDefaultCacheLimitMinute, 'type': int, 'question': 'Insert Cache Limit Milliseconds'},
-                  {'key': 'osd.trash_schedule_milliseconds', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert Trash Schedule Milliseconds'}]
+OsdDefaultConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert connection pool size'},
+                  {'key': 'osd.port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert ksanOSD port'},
+                  {'key': 'osd.ec_check_interval', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC check interval(ms)'},
+                  {'key': 'osd.ec_wait_time', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC wait time(ms)'},
+                  {'key': 'osd.ec_min_size', 'value': OsdDefaultEcFileSize, 'type': int, 'question': 'Insert EC file size'},
+                  {'key': 'osd.cache_diskpath', 'value': OsdDefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path'},
+                  {'key': 'osd.cache_check_interval', 'value': OsdDefaultCacheScheduleMinute, 'type': int, 'question': 'Insert cache check interval(ms)'},
+                  {'key': 'osd.cache_expire', 'value': OsdDefaultCacheLimitMinute, 'type': int, 'question': 'Insert cache expire(ms)'},
+                  {'key': 'osd.trash_check_interval', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert trash check interval(ms)'}]
 
 
 S3DefaultDbRepository = TypeServiceMariaDB
@@ -74,6 +74,7 @@ S3DefaultGwMaxTimeSkew = 9000
 S3DefaultGwReplication = 2
 S3DefaultGwOsdPort = 8000
 S3DefaultGwJettyMaxThreads = 1000
+S3DefaultGwJettyMaxIdleTime = 600000
 S3DefaultGwOsdClientCount = 100
 S3DefaultGwObjmanagerCount = 100
 S3DefaultGwPerformanceMode = 'NO_OPTION'
@@ -92,52 +93,54 @@ ObjManagerDefaultMqExchangeName = 'ksan.system'
 ObjManagerDefaultMqOsdExchangeName = 'OSDExchange'
 
 S3DefaultConfigInfo = [
-    {'key': 'gw.db_repository', 'value': S3DefaultDbRepository, 'type': str, 'question': 'Insert Gw DB Repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
-    {'key': 'gw.db_host', 'value': S3DefaultDbHost, 'type': str, 'question': 'Insert Gw DB Host'},
-    {'key': 'gw.db_name', 'value': S3DefaultDatabase, 'type': str, 'question': 'Insert Gw DB Name'},
-    {'key': 'gw.db_port', 'value': S3DefaultDbPort, 'type': int, 'question': 'Insert Gw DB Port'},
-    {'key': 'gw.db_user', 'value': S3DefaultDbUser, 'type': str, 'question': 'Insert Gw DB User'},
-    {'key': 'gw.db_password', 'value': S3DefaultDbPassword, 'type': str, 'question': 'Insert Gw DB Password'},
-    {'key': 'gw.db_pool_size', 'value': S3DefaultDbPoolSize, 'type': int, 'question': 'Insert Gw DB Pool Size'},
-    {'key': 'gw.authorization', 'value': S3DefaultGwAuthrization, 'type': str, 'question': 'Insert Authorization'},
-    {'key': 'gw.endpoint', 'value': S3DefaultGwEndpoint, 'type': 'url', 'question': 'Insert Endpoint Url'},
+    {'key': 'gw.db_repository', 'value': S3DefaultDbRepository, 'type': str, 'question': 'Insert ksanGW DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
+    {'key': 'gw.db_host', 'value': S3DefaultDbHost, 'type': str, 'question': 'Insert ksanGW DB host'},
+    {'key': 'gw.db_name', 'value': S3DefaultDatabase, 'type': str, 'question': 'Insert ksanGW DB name'},
+    {'key': 'gw.db_port', 'value': S3DefaultDbPort, 'type': int, 'question': 'Insert ksanGW DB port'},
+    {'key': 'gw.db_user', 'value': S3DefaultDbUser, 'type': str, 'question': 'Insert ksanGW DB user'},
+    {'key': 'gw.db_password', 'value': S3DefaultDbPassword, 'type': str, 'question': 'Insert ksanGW DB password'},
+    {'key': 'gw.db_pool_size', 'value': S3DefaultDbPoolSize, 'type': int, 'question': 'Insert ksanGW DB pool size'},
+    {'key': 'gw.authorization', 'value': S3DefaultGwAuthrization, 'type': str, 'question': 'Insert authorization'},
+    {'key': 'gw.endpoint', 'value': S3DefaultGwEndpoint, 'type': 'url', 'question': 'Insert endpoint url'},
     {'key': 'gw.secure_endpoint', 'value': S3DefaultGwSecureEndpoint, 'type': 'url',
-     'question': 'Insert Secure Endpoint Url'},
-    {'key': 'gw.keystore_path', 'value': S3DefaultGwKeyStorePath, 'type': str, 'question': 'Insert KeyStore Path'},
+     'question': 'Insert secure endpoint url'},
+    {'key': 'gw.keystore_path', 'value': S3DefaultGwKeyStorePath, 'type': str, 'question': 'Insert keystore path'},
     {'key': 'gw.keystore_password', 'value': S3DefaultGwtKeyStorePassword, 'type': str,
-     'question': 'Insert KeyStore Password'},
-    {'key': 'gw.max_file_size', 'value': S3DefaultGwMaxFileSize, 'type': int, 'question': 'Insert Max File Size'},
-    {'key': 'gw.max_list_size', 'value': S3DefaultGwMaxListSize, 'type': int, 'question': 'Insert Max List Size'},
-    {'key': 'gw.max_timeskew', 'value': S3DefaultGwMaxTimeSkew, 'type': int, 'question': 'Insert Max Time Skew'},
-    {'key': 'gw.osd_port', 'value': S3DefaultGwOsdPort, 'type': int, 'question': 'Insert Osd Port'},
+     'question': 'Insert keystore password'},
+    {'key': 'gw.max_file_size', 'value': S3DefaultGwMaxFileSize, 'type': int, 'question': 'Insert max file size'},
+    {'key': 'gw.max_list_size', 'value': S3DefaultGwMaxListSize, 'type': int, 'question': 'Insert max sist size'},
+    {'key': 'gw.max_timeskew', 'value': S3DefaultGwMaxTimeSkew, 'type': int, 'question': 'Insert max time skew'},
+    {'key': 'gw.osd_port', 'value': S3DefaultGwOsdPort, 'type': int, 'question': 'Insert ksanOSD port'},
     {'key': 'gw.jetty_max_threads', 'value': S3DefaultGwJettyMaxThreads, 'type': int,
-     'question': 'Insert Jetty Max Threads'},
+     'question': 'Insert Jetty max thread count'},
+    {'key': 'gw.jetty_max_idle_timeout', 'value': S3DefaultGwJettyMaxIdleTime, 'type': int,
+     'question': 'Insert Jetty max idle time'},
     {'key': 'gw.osd_client_count', 'value': S3DefaultGwOsdClientCount, 'type': int,
-     'question': 'Insert Osd Client Count'},
+     'question': 'Insert ksanOSD client count'},
     {'key': 'gw.objmanager_count', 'value': S3DefaultGwObjmanagerCount, 'type': int,
-     'question': 'Insert Objmanager Count'},
+     'question': 'Insert ksanOBJMANAGER count'},
     {'key': 'gw.performance_mode', 'value': S3DefaultGwPerformanceMode, 'type': str,
-     'question': 'Insert Performance Mode'},
-    {'key': 'gw.cache_disk', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert Cache Disk'},
-    {'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert Cache File Size'},
+     'question': 'Insert performance mode'},
+    {'key': 'gw.cache_diskpath', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path'},
+    {'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert cache file size'},
     {'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
-     'question': 'Insert Object DB Repository'},
-    {'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert Object DB Host', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
-    {'key': 'objM.db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert Object DB Name'},
-    {'key': 'objM.db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert Object DB Port'},
-    {'key': 'objM.db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert Object DB User'},
-    {'key': 'objM.db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert Object DB Password'},
-    {'key': 'objM.mq_host', 'value': ObjManagerDefaultMqHost, 'type': str, 'question': 'Insert MQ Host', 'Activate': False},
-    {'key': 'objM.mq_queue_name', 'value': ObjManagerDefaultMqName, 'type': str, 'question': 'Insert MQ Name', 'Activate': False},
-    {'key': 'objM.mq_exchange_name', 'value': ObjManagerDefaultMqExchangeName, 'type': str, 'question': 'Insert MQ Exchange Name', 'Activate': False},
-    {'key': 'objM.mq_osd_exchange_name', 'value': ObjManagerDefaultMqOsdExchangeName, 'type': str, 'question': 'Insert MQ Osd Exchange Name', 'Activate': False}
+     'question': 'Insert object DB repository'},
+    {'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert object DB host', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
+    {'key': 'objM.db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert object DB name'},
+    {'key': 'objM.db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert object DB port'},
+    {'key': 'objM.db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert object DB user'},
+    {'key': 'objM.db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert object DB password'}
+    #{'key': 'objM.mq_host', 'value': ObjManagerDefaultMqHost, 'type': str, 'question': 'Insert MQ host', 'Activate': False},
+    #{'key': 'objM.mq_queue_name', 'value': ObjManagerDefaultMqName, 'type': str, 'question': 'Insert MQ name', 'Activate': False},
+    #{'key': 'objM.mq_exchange_name', 'value': ObjManagerDefaultMqExchangeName, 'type': str, 'question': 'Insert MQ exchange name', 'Activate': False},
+    #{'key': 'objM.mq_osd_exchange_name', 'value': ObjManagerDefaultMqOsdExchangeName, 'type': str, 'question': 'Insert MQ ksanOSD exchange name', 'Activate': False}
     #{'key': 'objM.mq.host', 'value': ObjManagerDefaultMqHost, 'type': 'ip', 'question': 'Insert MQ Host'},
     #{'key': 'objM.mq.diskpool.queuename', 'value': ObjManagerDefaultMqDiskpoolQueueName, 'type': str,
     # 'question': 'Insert MQ Disk pool Queue Name'},
     #{'key': 'objM.mq.diskpool.exchangename', 'value': ObjManagerDefaultMqDiskpoolExchangeName, 'type': str,
     # 'question': 'Insert MQ Disk pool Exchange Name'},
     #{'key': 'objM.mq.osd.exchangename=OSDExchange', 'value': ObjManagerDefaultMqOsdExchangeName, 'type': str,
-    # 'question': 'Insert MQ Osd Exchange Name'}
+    # 'question': 'Insert MQ ksanOSD Exchange Name'}
 ]
 
 MongoDbDefaultShard1Port = 20001
@@ -148,15 +151,15 @@ MongoDbDefaultHomeDir = '/var/lib/mongo'
 MongoDbDefaultPrimaryHost = socket.gethostname()
 
 MongoDbConfigInfo = [
-    {'key': 'Shard1Port', 'value': MongoDbDefaultShard1Port, 'type': int, 'question': 'Insert MongoDB Shard1 Port'},
-    {'key': 'Shard2Port', 'value': MongoDbDefaultShard2Port, 'type': int, 'question': 'Insert MongoDB Shard2 Port'},
-    {'key': 'ConfigServerPort', 'value': MongoDbDefaultConfigServerPort, 'type': int, 'question': 'Insert MongoDB Config Server Port'},
+    {'key': 'Shard1Port', 'value': MongoDbDefaultShard1Port, 'type': int, 'question': 'Insert MongoDB shard1 port'},
+    {'key': 'Shard2Port', 'value': MongoDbDefaultShard2Port, 'type': int, 'question': 'Insert MongoDB shard2 port'},
+    {'key': 'ConfigServerPort', 'value': MongoDbDefaultConfigServerPort, 'type': int, 'question': 'Insert MongoDB config server port'},
     {'key': 'MongoDbPort', 'value': MongoDbDefaultDbPort, 'type': int,
-     'question': 'Insert MongoDB DB Port'},
+     'question': 'Insert MongoDB DB port'},
     {'key': 'HomeDir', 'value': MongoDbDefaultHomeDir, 'type': str,
-     'question': 'Insert MongoDB Home Directory'},
+     'question': 'Insert MongoDB home directory'},
     {'key': 'PrimaryHostName', 'value': MongoDbDefaultPrimaryHost, 'type': str,
-     'question': 'Insert MongoDB Primary Cluster Node Hostname'}
+     'question': 'Insert MongoDB primary cluster node hostname'}
 ]
 
 
@@ -184,11 +187,18 @@ def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, Vla
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
     return Res, Errmsg, Data
 
-def RegisterService(Conf, ServiceType, logger):
+def RegisterService(conf, ServiceType, logger):
+    """
+
+    :param Conf:
+    :param ServiceType:
+    :param logger:
+    :return:
+    """
     out, err = shcall('hostname')
     ServiceName = out[:-1] + '_%s' % ServiceType
-    Res, Errmsg, Ret = AddService(Conf.mgs.PortalIp, Conf.mgs.PortalPort, Conf.mgs.PortalApiKey,  ServiceName, ServiceType,
-                                  Conf.mgs.ServerId, logger=logger)
+    Res, Errmsg, Ret = AddService(conf.PortalHost, conf.PortalPort, conf.PortalApiKey,  ServiceName, ServiceType,
+                                  conf.ServerId, logger=logger)
     if Res == ResOk:
         if Ret.Result != ResultSuccess:
             if Ret.Result != CodeDuplicated:
@@ -198,11 +208,11 @@ def RegisterService(Conf, ServiceType, logger):
     else:
         logger.error("%s %s" % (str(Ret.Result), str(Ret.Message)))
 
-def KsanServiceRegister(Conf, ServiceType, logger):
+def KsanServiceRegister(conf, ServiceType, logger):
     Retry = 0
     while True:
         Retry += 1
-        Res, Errmsg, Ret, Data = GetServerInfo(Conf.mgs.PortalIp, Conf.mgs.PortalPort,Conf.mgs.PortalApiKey , ServerId=Conf.mgs.ServerId, logger=logger)
+        Res, Errmsg, Ret, Data = GetServerInfo(conf.PortalHost, conf.PortalPort,conf.PortalApiKey , ServerId=conf.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 NetworkInterfaces = Data.NetworkInterfaces
@@ -213,11 +223,13 @@ def KsanServiceRegister(Conf, ServiceType, logger):
                 logger.error('fail to get network interface %s' % Ret.Message)
         else:
             logger.error('fail to get network interface %s' % Errmsg)
-
-        time.sleep(10)
+        if Retry > ServiceContolRetryCount:
+            isNetworkAdded = False
+            break
+        time.sleep(IntervalMiddle)
 
     if isNetworkAdded is True:
-        RegisterService(Conf, ServiceType, logger)
+        RegisterService(conf, ServiceType, logger)
 
 @catch_exceptions()
 def DeleteService(ip, port, ApiKey, ServiceId=None, ServiceName=None, logger=None):
@@ -772,7 +784,7 @@ def GetServiceConfigList(PortalIp, PortalPort, ApiKey, ServiceType, logger=None)
 
 @catch_exceptions()
 def LoadServiceList(conf, ServiceList, LocalIpList, logger):
-    Res, Errmsg, Ret, Data = GetServerInfo(conf.mgs.PortalIp, conf.mgs.PortalPort, conf.mgs.PortalApiKey, conf.mgs.ServerId, logger=logger)
+    Res, Errmsg, Ret, Data = GetServerInfo(conf.PortalHost, conf.PortalPort, conf.PortalApiKey, conf.ServerId, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for service in Data.Services:
@@ -985,7 +997,7 @@ def GetServiceCurrentConfigInfo(PortalIp, PortalPort, PortalApiKey, ServiceType,
                     pass
         ConfigInfo = OsdDefaultConfigInfo
 
-    elif ServiceType == TypeServiceS3:
+    elif ServiceType == TypeServiceGW:
 
         if Data:
 
@@ -1077,7 +1089,64 @@ def UpdateGwBaseConfig(GwConfig, MqConfig, MariaDBConfig):
                 info['value'] = MariaDBConfig[BaseKey]
 
         except Exception as err:
-            print('fail to update Gw Mq & MariaDB Config %s' % str(err))
+            print('fail to update ksanGW Mq & MariaDB Config %s' % str(err))
+
+def isKsanServiceIdFileExists(ServiceType):
+    if ServiceType in ServiceTypeServiceHiddenPathMap:
+        isDockerService = False
+
+        if ServiceType in ServiceTypeSystemdServiceMap:
+            SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+            with open('/etc/systemd/system/'+ SystemdServiceUnitPath, 'r') as f:
+                SystemdServiceContens = f.read()
+                if 'Requires=docker.service' in SystemdServiceContens:
+                    isDockerService = True
+
+
+        ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+
+        if isDockerService is False:
+            if os.path.exists(ServiceHiddenPath):
+                return True
+            else:
+                return False
+        else:
+            CopiedServiceIdFile = '/tmp/.TmpServiceId%d' % int(time.time())
+            ServiceContainerName = ServiceTypeDockerServiceContainerNameMap[ServiceType]
+            DockerGetServiceFileCmd = 'docker cp %s:%s %s' % (ServiceContainerName, ServiceHiddenPath, CopiedServiceIdFile)
+            shcall(DockerGetServiceFileCmd)
+            if os.path.exists(CopiedServiceIdFile):
+                return True
+            else:
+                return False
+    else:
+        return True
+
+
+def SaveKsanServiceIdFile(ServiceType, ServiceId):
+    if ServiceType in ServiceTypeServiceHiddenPathMap:
+        ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+        isDockerService = False
+
+        if ServiceType in ServiceTypeSystemdServiceMap:
+            SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+            with open('/etc/systemd/system/'+ SystemdServiceUnitPath, 'r') as f:
+                SystemdServiceContens = f.read()
+                if 'Requires=docker.service' in SystemdServiceContens:
+                    isDockerService = True
+
+        with open(ServiceHiddenPath, 'w') as f:
+            f.write(ServiceId)
+            f.flush()
+
+        if isDockerService is True:
+            SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+            ServiceStopCmd = 'systemctl stop %s' % SystemdServiceUnitPath
+            shcall(ServiceStopCmd)
+            ServiceContainerName = ServiceTypeDockerServiceContainerNameMap[ServiceType]
+            DockerCopyCmd = 'docker cp %s %s:%s' % (ServiceHiddenPath, ServiceContainerName, ServiceHiddenPath)
+            shcall(DockerCopyCmd)
+            os.unlink(ServiceHiddenPath)
 
 
 class MyOptionParser(OptionParser):
@@ -1155,19 +1224,19 @@ if __name__ == '__main__':
 def ServiceUtilHandler(Conf, Action, Parser, logger):
     #if Action == 'init'
     options, args = Parser.parse_args()
-    PortalIp = Conf.mgs.PortalIp
-    PortalPort = Conf.mgs.PortalPort
-    PortalApiKey = Conf.mgs.PortalApiKey
-    MqPort = Conf.mgs.MqPort
-    MqPassword = Conf.mgs.MqPassword
+    PortalIp = Conf.PortalHost
+    PortalPort = Conf.PortalPort
+    PortalApiKey = Conf.PortalApiKey
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
         sys.exit(-1)
 
     if Action.lower() == 'add':
-        if not ((options.ServerName or options.ServerId) and options.ServiceName and options.ServiceType):
-            Parser.print_help_service.print_help()
+        if not (options.ServerName and options.ServiceName and options.ServiceType):
+            Parser.print_help()
             sys.exit(-1)
         Res, Errmsg, Ret = AddService(PortalIp, PortalPort, PortalApiKey, options.ServiceName, options.ServiceType,
                                       ServerName=options.ServerName, logger=logger)

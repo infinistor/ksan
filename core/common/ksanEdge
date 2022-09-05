@@ -117,7 +117,7 @@ def RegisterManagementNetwork(conf, logger):
     RetryCnt = 0
     while True:
         RetryCnt += 1
-        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.PortalIp, int(conf.mgs.PortalPort), conf.mgs.PortalApiKey, conf.mgs.ServerId,
+        Res, Errmsg, Ret = AddNetworkInterface(conf.mgs.PortalIp, int(conf.PortalPort), conf.PortalApiKey, conf.ServerId,
                                                netif, logger=logger)
         if Res != ResOk:
             logger.error('fail to add Network Interface %s retry:%d' %(Errmsg, RetryCnt))
@@ -172,7 +172,7 @@ def EdgeCheckEtcHosts(conf, logger, LocalIp):
     :return:
     """
     LocalHostInfo = list()
-    if LocalIp is not None: # run by ksanNodeRegister
+    if LocalIp is not None: # run by ksanServerRegister
         out, err = shcall('hostname')
         LocalHostName = out[:-1]
         LocalHostInfo.append((LocalIp, LocalHostName))

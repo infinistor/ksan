@@ -75,22 +75,24 @@ class MyOptionParser(OptionParser):
         Usage: ksanAgent [option]
         [options]
                 -i                                                                     : Local Management Ip
-                -m                                                                     : Portal Ip 
+                -m                                                                     : Portal Host  
                 -p                                                                     : Portal Port 
-                -q                                                                     : Mq Port 
+                -r                                                                     : Mq Host 
                 -u                                                                     : Mq User  
+                -q                                                                     : Mq Port 
                 -w                                                                     : Mq Password 
                 -k                                                                     : Portal Api Key
                 -h, --help                                                             : show this help message and exit
 """
         print(Usage)
 
-def UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, ApiKey):
+def UpdateKsanAgentConfig(PortalIp, PortalPort, LocalIp, MqHost, MqUser, MqPort, MqPassword, ApiKey):
+    oldconf = None
     if os.path.exists(MonServicedConfPath):
-        ret, conf = read_conf(MonServicedConfPath)
+        ret, oldconf = read_conf(MonServicedConfPath)
         if ret is True:
-            if 'ServerId' in conf['mgs']:
-                if conf['mgs']['ServerId'] != '':
+            if 'ServerId' in oldconf['mgs']:
+                if oldconf['mgs']['ServerId'] != '':
                     return False, 'already registered'
 
     net = common.network.GetNetwork()
@@ -101,8 +103,9 @@ def UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, A
     NetDevice = nic['Name']
     Conf = """
 [mgs]
-PortalIp = %s 
+PortalHost = %s 
 PortalPort = %s
+MqHost = %s 
 MqUser = %s 
 MqPassword = %s
 MqPort = %s
@@ -110,13 +113,36 @@ PortalApiKey = %s
 ServerId = 
 ManagementNetDev = %s
 DefaultNetworkId = 
-
+""" % (PortalIp, PortalPort, MqHost, MqUser, MqPassword, MqPort, ApiKey, NetDevice)
+    if oldconf is not None:
+        if 'monitor' in oldconf:
+            MonitorConf = """
 [monitor]
-ServerMonitorInterval = 5
-NetworkMonitorInterval = 5
-DiskMonitorInterval = 5
-ServiceMonitorInterval = 5
-""" % (PortalIp, PortalPort, MqUser, MqPassword, MqPort, ApiKey, NetDevice)
+ServerMonitorInterval = %s 
+NetworkMonitorInterval = %s 
+DiskMonitorInterval = %s 
+ServiceMonitorInterval = %s 
+""" % (oldconf['monitor']['ServerMonitorInterval'], oldconf['monitor']['NetworkMonitorInterval'],
+       oldconf['monitor']['DiskMonitorInterval'], oldconf['monitor']['ServiceMonitorInterval'])
+        else:
+            MonitorConf = """
+[monitor]
+ServerMonitorInterval = 5000
+NetworkMonitorInterval = 5000
+DiskMonitorInterval = 5000
+ServiceMonitorInterval = 5000
+        """
+    else:
+        MonitorConf = """
+[monitor]
+ServerMonitorInterval = 5000
+NetworkMonitorInterval = 5000
+DiskMonitorInterval = 5000
+ServiceMonitorInterval = 5000
+                """
+
+    Conf += MonitorConf
+
 
     if not os.path.exists(KsanEtcPath):
         os.makedirs(KsanEtcPath)
@@ -158,7 +184,8 @@ if __name__ == '__main__':
     #parser.add_option('-S', "--Server", action='store_true',
     #                  dest='Server', default=False, help='Server Option')
     parser.add_option('-i', "--local-ip", dest="localip", help='local ip')
-    parser.add_option('-m', "--portal-ip", dest="portalip", help='portal ip')
+    parser.add_option('-m', "--portal-host", dest="portalhost", help='portal ip')
+    parser.add_option('-r', "--rabbitmq-host", dest="mqhost", help='portal ip')
     parser.add_option('-p', "--portal-port", dest="portalport", help='portal port')
     parser.add_option('-q', "--mq-port", dest="mqport", help='mq port')
     parser.add_option('-u', "--mq-user", dest="mquser", help='mq user')
@@ -167,11 +194,12 @@ if __name__ == '__main__':
     parser.add_option('-d', "--Debug", dest="debug", action='store_true', default=False, help='Debug mode')
 
     options, args = parser.parse_args()
-    PortalIp = options.portalip
+    PortalIp = options.portalhost
     PortalPort = options.portalport
     LocalIp = options.localip
     MqPort = options.mqport
     MqUser = options.mquser
+    MqHost = options.mqhost
     MqPassword = options.mqpassword
     ApiKey = options.apikey
 
@@ -182,20 +210,21 @@ if __name__ == '__main__':
     logger = Logging(loglevel='debug')
     logger = logger.create()
 
-    logger.debug('Option is omitted LocalIp:%s, PortalIp:%s, PortalPort:%s, MqUser:%s MqPort:%s MqPassword:%s ApiKey:%s'
-                 % (LocalIp, PortalIp, PortalPort, MqUser, MqPort, MqPassword, ApiKey))
     if not(LocalIp and PortalIp and PortalPort and MqPort and MqUser and MqPassword and ApiKey):
         logger.error('Option is omitted LocalIp:%s, PortalIp:%s, PortalPort:%s, MqUser:%s MqPort:%s MqPassword:%s ApiKey:%s'
                      % (LocalIp, PortalIp, PortalPort, MqUser, MqPort, MqPassword, ApiKey))
         parser.print_help()
         sys.exit(-1)
+    else:
+        logger.debug('ksanNodeRegister options LocalIp:%s, PortalHost:%s, PortalPort:%s, MqHost:%s, MqUser:%s MqPort:%s MqPassword:%s ApiKey:%s'
+            % (LocalIp, PortalIp, PortalPort, MqHost, MqUser, MqPort, MqPassword, ApiKey))
 
     ret = DependencyCheck()
     if ret is False:
         logger.error('dependency fail')
         sys.exit(-1)
 
-    ret, err = UpdateMonConfig(PortalIp, PortalPort, LocalIp, MqUser, MqPort, MqPassword, ApiKey)
+    ret, err = UpdateKsanAgentConfig(PortalIp, PortalPort, LocalIp, MqHost, MqUser, MqPort, MqPassword, ApiKey)
     if ret is False:
         print(err)
         logger.error('fail to update ksanMonitor.conf %s ' % str(err))

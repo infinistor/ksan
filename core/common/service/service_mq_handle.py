@@ -17,9 +17,11 @@ from service.service_manage import *
 #import ksan.service.s3 as S3
 from service.osd import KsanOsd
 from common.utils import IsDaemonRunning
+from common.init import WaitAgentConfComplete
 from const.mq import RoutKeyServiceState, MqVirtualHost, ExchangeName, RoutKeyServiceControlFinder, \
     RoutKeyServiceUsage
-from const.service import UpdateServicesStateObject
+from const.service import UpdateServicesStateObject, SystemdServicePidFinder
+from const.common import ServiceTypeSystemdServiceMap
 from service.gw import KsanGW
 from service.monitor import KsanMonitor
 from service.mongo import KsanMongoDB
@@ -27,6 +29,7 @@ from service.control import ServiceUnit
 import mqmanage.mq
 import logging
 import xml.etree.ElementTree as ET
+import inspect
 
 @catch_exceptions()
 def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, GlobalFlag, logger):
@@ -61,7 +64,7 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
             Ret, ErrMsg = service.Stop()
         elif body.Control == RESTART:
             Ret, ErrMsg = service.Restart()
-        elif ServiceType == TypeServiceAgent:
+        elif ServiceType.lower() == TypeServiceAgent.lower():
             Ret = True
             ErrMsg = ''
         else:
@@ -81,7 +84,14 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
             logger.debug(ResponseReturn)
         return ResponseReturn
     elif RoutingKey.endswith((".added", ".updated", ".removed")):
+        ServiceType = body.ServiceType
         GlobalFlag['ServiceUpdated'] = Updated
+
+        if RoutingKey.endswith(".added"):
+            if isKsanServiceIdFileExists(ServiceType) is False:
+                logger.debug('ServiceId file is not found. %s' % body.Id)
+                SaveKsanServiceIdFile(ServiceType, body.Id)
+
         Response.IsProcessed = True
         logger.debug(ResponseReturn)
         return ResponseReturn
@@ -126,7 +136,7 @@ def Old_MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceL
             else:
                 Ret = False
                 ErrMsg = 'Invalid Control Code'
-        elif ServiceType == TypeServiceS3:
+        elif ServiceType == TypeServiceGW:
             Gw = KsanGW(logger)
             if body.Control == START:
                 Ret, ErrMsg = Gw.Start()
@@ -197,6 +207,7 @@ def Old_MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceL
 class Process:
     def __init__(self,ServiceType):
         self.ServiceType = ServiceType
+        self.SystemdServiceName = ServiceTypeSystemdServiceMap[ServiceType] if ServiceType in ServiceTypeSystemdServiceMap else None
         self.Pid = None
         self.CpuUsage = 0
         self.MemoryUsed = 0
@@ -207,7 +218,24 @@ class Process:
         self.GetUsage()
 
     def GetPidWithServiceType(self):
-        if self.ServiceType == TypeServiceS3:
+        if self.SystemdServiceName is not None:
+            SystemdCmd = 'systemctl status %s' % self.SystemdServiceName
+            out, err = shcall(SystemdCmd)
+            Pid = SystemdServicePidFinder.search(out)
+            if not Pid:
+                self.Pid = None
+            else:
+                self.Pid = int(Pid.groups()[0])
+        else:
+            if self.ServiceType == TypeServiceAgent:
+                Ret, Pid = IsDaemonRunning(KsanAgentPidFile, CmdLine='ksanAgent')
+                if Ret is True:
+                    self.Pid = int(Pid)
+                else:
+                    self.Pid = None
+
+    def OldGetPidWithServiceType(self):
+        if self.ServiceType == TypeServiceGW:
             Ret, Pid = IsDaemonRunning(KsanGwPidFile, CmdLine='ksan-gw')
             if Ret is True:
                 self.Pid = int(Pid)
@@ -266,17 +294,24 @@ class Process:
 
 
 @catch_exceptions()
-def ServiceMonitoring(conf, GlobalFlag, logger):
-    MqServiceUsage = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
+def ServiceMonitoring(Conf, GlobalFlag, logger):
+
+    Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger, CheckNetworkDevice=True, CheckNetworkId=True)
+
+    conf = GetAgentConfig(Conf)
+
+    KsanServiceRegister(conf, TypeServiceAgent, logger)
+
+    MqServiceUsage = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword,
                         RoutKeyServiceUsage, ExchangeName, QueueName='')
-    MqServiceState = mqmanage.mq.Mq(conf.mgs.PortalIp, int(conf.mgs.MqPort), MqVirtualHost, conf.mgs.MqUser, conf.mgs.MqPassword,
+    MqServiceState = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword,
                                     RoutKeyServiceState, ExchangeName, QueueName='')
 
-
+    ServiceMonitorInterval = int(conf.ServiceMonitorInterval)/1000
     # local service list
     LocalServices = list() # [{ 'Id': ServiceId, 'Type': 'Osd', 'ProcessObject':Object, 'IsEnable': True, 'GroupId': GroupId, 'Status': 'Online'}]
     while True:
-        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.mgs.PortalIp, conf.mgs.PortalPort, conf.mgs.PortalApiKey, conf.mgs.ServerId, logger=logger)
+        Res, Errmgs, Ret, ServerDetail = GetServerInfo(conf.PortalHost, conf.PortalPort, conf.PortalApiKey, conf.ServerId, logger=logger)
         if Res == ResOk:
             if Ret.Result == ResultSuccess:
                 LocalServices = list()
@@ -291,6 +326,10 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                         NewService['ProcessObject'] = ProcObject
                         NewService['IsEnable'] = True
                         LocalServices.append(NewService)
+
+                        if isKsanServiceIdFileExists(Service.ServiceType) is False:
+                            logger.debug('ServiceId file is not found. %s' % Service.Name)
+                            SaveKsanServiceIdFile(Service.ServiceType, Service.Id)
                         #logging.log(logging.INFO, 'Service %s is added' % Service.ServiceType)
                     except Exception as err:
                         logger.error("fail to get service info %s " % str(err))
@@ -323,15 +362,16 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                             logger.error("fail to get service info %s" % str(err))
                             continue
 
-                        State = UpdateServicesStateObject()
-                        State.Set(ServiceId, ProcObject.State)
-                        State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
-                        State = json.loads(State)
-                        logger.error(State)
-                        MqServiceState.Sender(State)
-                        ServiceStatus = ProcObject.State
-                        CreateServicePoolXmlFile(ServiceTypePool)
-                        UpdateServiceInfoDump(ServiceTypePool, ServiceId, ServiceType, GroupId, ServiceStatus)
+                        if ServiceType == TypeServiceAgent:
+                            State = UpdateServicesStateObject()
+                            State.Set(ServiceId, ProcObject.State)
+                            State = jsonpickle.encode(State, make_refs=False, unpicklable=False)
+                            State = json.loads(State)
+                            logger.debug(State)
+                            MqServiceState.Sender(State)
+                            ServiceStatus = ProcObject.State
+                            #CreateServicePoolXmlFile(ServiceTypePool)
+                            #UpdateServiceInfoDump(ServiceTypePool, ServiceId, ServiceType, GroupId, ServiceStatus)
 
 
                     root = CreateServicePoolXmlFile(ServiceTypePool)
@@ -339,7 +379,7 @@ def ServiceMonitoring(conf, GlobalFlag, logger):
                     tree = ET.ElementTree(root)
                     tree.write(ServicePoolXmlPath, encoding="utf-8", xml_declaration=True)
 
-                    time.sleep(conf.monitor.ServiceMonitorInterval)
+                    time.sleep(ServiceMonitorInterval)
         time.sleep(IntervalMiddle)
 
 

@@ -34,9 +34,9 @@ public class ObjManagerUtil {
     private ObjMultipart multipart;
     private static Logger logger;
     
-    public ObjManagerUtil() throws Exception{
+    public ObjManagerUtil(ObjManagerConfig config) throws Exception{
             
-            config = new ObjManagerConfig();
+            this.config = config;
             
             omsr = ObjManagerSharedResource.getInstance(config, false);
             
@@ -52,9 +52,13 @@ public class ObjManagerUtil {
             
             lfm = new LifeCycleManagment(dbm);
             
-             multipart = new ObjMultipart(dbm);
+            multipart = new ObjMultipart(dbm);
              
             logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
+    }
+    
+    public ObjManagerUtil() throws Exception{
+            this(new ObjManagerConfig());
     }
     
     private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {

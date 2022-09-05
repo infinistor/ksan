@@ -88,8 +88,13 @@ public interface DataRepository {
    
     // for Lifecycle
     public void insertLifeCycle(LifeCycle lc) throws SQLException;
+    public void insertFailedLifeCycle(LifeCycle lc) throws SQLException; 
     public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException;
+    public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException;
     public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException;
+    public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException;
     public List<LifeCycle> selectAllLifeCycle() throws SQLException;
+    public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException;
     public int deleteLifeCycle(LifeCycle lc) throws SQLException;
+    public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException;
 }

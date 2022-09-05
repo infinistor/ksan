@@ -249,7 +249,7 @@ public class ListObject{
             }
             else {
                 sql = "SELECT * FROM `" + bucketName + "`"
-                        + " WHERE objId > '"+ lastObjId +  "' ORDER BY objKey LIMIT " 
+                        + " WHERE objId > '"+ lastObjId +  "' ORDER BY objId LIMIT " 
                         + maxKeys;
             }
             System.out.println(" SqlQuery>>" + sql);

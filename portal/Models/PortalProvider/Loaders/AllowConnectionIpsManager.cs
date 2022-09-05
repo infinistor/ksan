@@ -46,7 +46,7 @@ namespace PortalProvider.Loaders
 		/// 허용된 아이피 목록을 로드한다.</summary>
 		/// <param name="context">DB 컨텍스트</param>
 		/// <returns>로드 성공 여부</returns>
-		public async Task<bool> LoadAllowedConnectionIps(DbContext context)
+		public bool LoadAllowedConnectionIps(DbContext context)
 		{
 			bool Result = false;
 
@@ -56,7 +56,7 @@ namespace PortalProvider.Loaders
 			{
 				if (context != null)
 				{
-					m_allowedConnectionIps = await ((PortalModel)context).AllowedConnectionIps.AsNoTracking().ToListAsync();
+					m_allowedConnectionIps = ((PortalModel)context).AllowedConnectionIps.AsNoTracking().ToList();
 
 					if (m_allowedConnectionIps.Count == 0)
 						m_isAllAllowed = true;

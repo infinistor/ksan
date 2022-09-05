@@ -9,8 +9,6 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -23,16 +21,14 @@ using PortalProviderInterface;
 using IServiceProvider = PortalProviderInterface.IServiceProvider;
 using PortalResources;
 using PortalData.Requests.Disks;
-using PortalData.Requests.Ksan;
-using PortalProvider.Providers.RabbitMQ;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace PortalSvr.Services
 {
 	/// <summary> 서버 초기화 인터페이스</summary>
-	public interface IServerInitializer
+	public interface IServerInitializer : IHostedService, IDisposable
 	{
-		/// <summary> 서버가 등록되지 않았을 경우 등록한다.</summary>
-		Task Initialize();
 	}
 
 	/// <summary> 서버 초기화 클래스</summary>
@@ -50,17 +46,23 @@ namespace PortalSvr.Services
 		/// <summary> Api Key 프로바이더</summary>
 		protected readonly IApiKeyProvider m_apiKeyProvider;
 
-		/// <summary> Disk Pool 프로바이더</summary>
+		/// <summary> 디스크풀 프로바이더</summary>
 		protected readonly IDiskPoolProvider m_diskPoolProvider;
 
-		/// <summary> Disk 프로바이더</summary>
+		/// <summary> 디스크 프로바이더</summary>
 		protected readonly IDiskProvider m_diskProvider;
 
-		/// <summary> Disk 프로바이더</summary>
+		/// <summary> 유저 프로바이더</summary>
 		protected readonly IKsanUserProvider m_userProvider;
+
+		/// <summary> 네트워크 프로바이더</summary>
+		protected readonly INetworkInterfaceProvider m_networkInterfaceProvider;
 
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
+
+		/// <summary> 타이머</summary>
+		private Timer m_timer = null;
 
 		/// <summary>생성자</summary>
 		/// <param name="configuration">설정 정보</param>
@@ -70,6 +72,7 @@ namespace PortalSvr.Services
 		/// <param name="diskPoolProvider">Disk Pool에 대한 프로바이더 객체</param>
 		/// <param name="diskProvider">Disk에 대한 프로바이더 객체</param>
 		/// <param name="ksanUserProvider">User에 대한 프로바이더 객체</param>
+		/// <param name="networkInterfaceProvider">네트워크에 대한 프로바이더 객체</param>
 		/// <param name="logger">로거</param>
 		public ServerInitializer(IConfiguration configuration
 			, IServerProvider serverProvider
@@ -78,6 +81,7 @@ namespace PortalSvr.Services
 			, IDiskPoolProvider diskPoolProvider
 			, IDiskProvider diskProvider
 			, IKsanUserProvider ksanUserProvider
+			, INetworkInterfaceProvider networkInterfaceProvider
 			, ILogger<ServerInitializer> logger)
 		{
 			m_configuration = configuration;
@@ -87,16 +91,39 @@ namespace PortalSvr.Services
 			m_diskPoolProvider = diskPoolProvider;
 			m_diskProvider = diskProvider;
 			m_userProvider = ksanUserProvider;
+			m_networkInterfaceProvider = networkInterfaceProvider;
 			m_logger = logger;
 		}
 
 		/// <summary> 서버 / 서비스가 등록되지 않았을 경우 등록한다.</summary>
-		public async Task Initialize()
+		public Task StartAsync(CancellationToken cancellationToken)
 		{
+			m_logger.LogInformation("Server Initialize Timer Create");
+			m_timer = new Timer(DoWork, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(999));
+			return Task.CompletedTask;
+		}
+
+		/// <summary> 정지 </summary>
+		public Task StopAsync(CancellationToken cancellationToken)
+		{
+			m_logger.LogInformation("Server Initialize Timer Stop");
+			return Task.CompletedTask;
+		}
+
+		/// <summary> 서버 감시 해제 </summary>
+		public void Dispose()
+		{
+			if (m_timer != null) m_timer.Dispose();
+		}
+
+		async void DoWork(object state)
+		{
+			m_timer.Change(Timeout.Infinite, 0);
+
 			try
 			{
-				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType))
-					return;
+				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType)) return;
+				m_logger.LogInformation("Server Initialize Start");
 
 				if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
@@ -109,66 +136,36 @@ namespace PortalSvr.Services
 				if (!Guid.TryParse(ApiKey.UserId, out Guid UserGuid))
 					throw new Exception("Internal Service ApiKey UserGuid is Empty");
 
-				// 서버 이름을 가져온다.
-				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_SERVER_NAME, out string ServerName)) return;
-
 				// 서버가 존재하지 않을 경우
 				var Servers = await m_serverProvider.GetList();
 				if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
 				{
 					// 서버를 등록한다
-					var Request = new RequestServer()
-					{
-						Name = ServerName,
-						Description = "",
-						CpuModel = "",
-						Clock = 0,
-						State = EnumServerState.Online,
-						Rack = "0",
-						MemoryTotal = 0,
-					};
+					var Response = await m_serverProvider.Initialize(new RequestServerInitialize() { ServerIp = m_configuration["AppSettings:Host"] });
 
-					var Response = await m_serverProvider.Add(Request, UserGuid, ApiKey.UserName);
+					// 서버 등록을 실패할 경우
+					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"Server Add Failure. {Response.Message}");
 
-					if (Response == null || Response.Result != EnumResponseResult.Success)
-						throw new Exception($"{ServerName} Add Failure. {Response.Message}");
-					m_logger.LogInformation($"{ServerName} Add Success");
+					// 서버 조회를 실패할 경우
+					Servers = await m_serverProvider.GetList();
+					if (Servers == null || Servers.Result != EnumResponseResult.Success || Servers.Data.Items.Count < 1)
+						throw new Exception($"Server Add Failure. {Response.Message}");
 
-					// rabbitMq 설정 정보를 가져온다.
-					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
-					RabbitMQConfiguration RabbitMQ = Section.Get<RabbitMQConfiguration>();
-
-					// 서버등록에 성공할 경우 ksanAgent.conf파일을 생성한다.
-					var Datas = new List<string>()
-					{
-						"[mgs]",
-						$"PortalHost = {m_configuration["AppSettings:Host"]}",
-						"PortalPort = 6443",
-						$"MqHost = {RabbitMQ.Host}",
-						$"MqPort = {RabbitMQ.Port}",
-						$"MqUser = {RabbitMQ.User}",
-						$"MqPassword = {RabbitMQ.Password}",
-						$"PortalApiKey = {ApiKey.KeyValue}",
-						$"ServerId = {Response.Data.Id}",
-						"ManagementNetDev = ",
-						"DefaultNetworkId = ",
-						"",
-						"[monitor]",
-						"ServerMonitorInterval = 5000",
-						"NetworkMonitorInterval = 5000",
-						"DiskMonitorInterval = 5000",
-						"ServiceMonitorInterval = 5000",
-					};
-
-					await File.WriteAllLinesAsync(ConfigurationInitializer.KsanConfig, Datas);
-					m_logger.LogInformation($"Save {ConfigurationInitializer.KsanConfig}");
-
+					m_logger.LogInformation($"Server Add Success");
 				}
-				var Server = await m_serverProvider.Get(ServerName);
-				if (Server == null || Server.Result != EnumResponseResult.Success) throw new Exception($"{ServerName} Get Failure. {Server.Message}");
-				else m_logger.LogInformation($"{ServerName} Get Success");
 
-				var ServerId = Server.Data.Id;
+				//서버 정보를 가져온다.
+				var Server = Servers.Data.Items[0];
+				var ServerName = Server.Name;
+				var ServerId = Server.Id;
+
+				// KsanAgent가 동작할때까지 대기
+				while (true)
+				{
+					var Networks = await m_networkInterfaceProvider.GetList(ServerId);
+					if (Networks != null && Networks.Data.Items.Count > 0) break;
+					else Thread.Sleep(1000);
+				}
 
 				//디스크풀이 존재하는지 확인한다.
 				var DiskPoolName = "diskpool1";
@@ -206,14 +203,12 @@ namespace PortalSvr.Services
 							State = EnumDiskState.Good
 						};
 
-						var Response = await m_diskProvider.Add(ServerName, Request, false);
+						// 디스크를 추가한다.
+						var Response = await m_diskProvider.Add(ServerName, Request);
 
 						// 디스크 등록에 실패할 경우
 						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
 						else m_logger.LogInformation($"{Request.Name} Add Success");
-
-						// 디스크 아이디를 저장한다.
-						await File.WriteAllLinesAsync($"{Request.Path}/DiskId", new List<string> { Response.Data.Id });
 					}
 				}
 
@@ -225,11 +220,17 @@ namespace PortalSvr.Services
 					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESSKEY, out string AccessKey);
 					EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRETKEY, out string SecretKey);
 
-					var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
+					// 액세스키, 시크릿키를 설정하지 않았을 경우 기본유저 생성 하지 않음
+					if (AccessKey == null || SecretKey == null || AccessKey.IsEmpty() || SecretKey.IsEmpty())
+						m_logger.LogInformation("User Create Skip");
+					else
+					{
+						var Response = await m_userProvider.Add(UserName, AccessKey, SecretKey);
 
-					// 유저 생성에 실패할 경우
-					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
-					else m_logger.LogInformation($"{UserName} Add Success");
+						// 유저 생성에 실패할 경우
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{UserName} Add Failure. {Response.Message}");
+						else m_logger.LogInformation($"{UserName} Add Success");
+					}
 				}
 
 				//gw 서비스가 등록되지 않은 경우 등록한다.
@@ -250,6 +251,7 @@ namespace PortalSvr.Services
 					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
 					else m_logger.LogInformation($"{Request.Name} Add Success");
 				}
+
 				//osd 서비스가 등록되지 않은 경우 등록한다.
 				var OSDName = "ksanOSD1";
 				var OSD = await m_serviceProvider.Get(OSDName);

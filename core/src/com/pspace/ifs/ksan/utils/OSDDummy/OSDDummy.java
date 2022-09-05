@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.utils.OSDDummy;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -52,7 +53,7 @@ class OsdReceiverCallback implements MQCallback{
                 //res = getAttr(body);
             }
             
-            return new MQResponse(MQResponseType.SUCCESS, "", res, 0);
+            return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, res, 0);
         }
         
         private String getAttr(String body){

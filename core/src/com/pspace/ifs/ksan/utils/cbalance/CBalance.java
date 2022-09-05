@@ -33,7 +33,7 @@ public class CBalance {
     //private boolean checkOnly;
     //private MQSender mqSender;
     private List<Bucket> bukList;
-    private List<String> dskList;
+    //private List<String> dskList;
     private ObjectMover objm;
     private long totalChecked;
     private long totalFixed;
@@ -41,7 +41,7 @@ public class CBalance {
     
     public CBalance(boolean isallowedToMoveTolocalDisk) throws Exception{
         obmu = new ObjManagerUtil();
-        dskList = obmu.getExistedDiskList();
+        //dskList = obmu.getExistedDiskList();
         bukList = obmu.getExistedBucketList();
         objm = new ObjectMover(obmu, false, "CBalance");
         objm.enableDisableLocalDiskMove(isallowedToMoveTolocalDisk);

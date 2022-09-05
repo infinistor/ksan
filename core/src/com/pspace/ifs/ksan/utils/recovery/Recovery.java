@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.utils.recovery;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
+import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -52,17 +53,17 @@ public class Recovery {
             try {
                 ret = fixObject(body);
                 if (ret ==  0) 
-                    return new MQResponse(MQResponseType.SUCCESS, "", "", 0);
+                    return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
             } catch(Exception ex){
                 logger.error(ex.getMessage());
                 System.out.println(ex);
             }
-            return new MQResponse(MQResponseType.ERROR, "", "", 0); 
+            return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "", 0); 
         }
         
        
         private int fixObject(String body) throws Exception{
-           OSDResponseParser rp = new OSDResponseParser(body);
+           OSDResponseParser rp = new OSDResponseParser(body, "MQ_SUCESS");
            String serverId;
            try{
                 // get object metadata
@@ -72,11 +73,11 @@ public class Recovery {
                     serverId = mt.getPrimaryDisk().getOSDServerId();
                 else
                     serverId = mt.getReplicaDisk().getOSDServerId();
-                String res = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, serverId);
-                if (res.isEmpty())
+                OSDResponseParser resP = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, serverId);
+                if (!resP.errorCode.equals("MQ_SUCESS"))
                     return 0; // ignore because object not exist in osd
                 
-                OSDResponseParser resP = new OSDResponseParser(res);
+                //OSDResponseParser resP = new OSDResponseParser(res);
                 if (mt.getSize() == resP.size && mt.getEtag().equals(resP.md5))
                     return 0; // the object is normal
                 
