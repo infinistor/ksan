@@ -307,7 +307,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpGet("List/KsanLifecycle")]
 		public async Task<ActionResult> GetConfigListForKsanLifecycle()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.sanLifecycle));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.KsanLifecycle));
 		}
 
 		/// <summary>KsanLifecycle 설정을 가져온다.</summary>
@@ -316,7 +316,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpGet("KsanLifecycle")]
 		public async Task<ActionResult> GetConfigForKsanLifecycle()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.sanLifecycle));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanLifecycle));
 		}
 
 		/// <summary>특정 버전의 KsanLifecycle 설정을 가져온다.</summary>
@@ -326,7 +326,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpGet("KsanLifecycle/{Version}")]
 		public async Task<ActionResult> GetConfigForKsanLifecycle([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.sanLifecycle, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.KsanLifecycle, Version));
 		}
 
 		/// <summary>KsanLifecycle 설정을 저장한다.</summary>
@@ -336,7 +336,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpPost("KsanLifecycle")]
 		public async Task<ActionResult> SetConfigForKsanLifecycle([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.sanLifecycle, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.KsanLifecycle, Config = Config }));
 		}
 
 		/// <summary>KsanLifecycle 설정의 버전을 변경한다.</summary>
@@ -346,7 +346,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpPut("KsanLifecycle/{Version}")]
 		public async Task<ActionResult> SetConfigLastVersionForKsanLifecycle([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.sanLifecycle, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.KsanLifecycle, Version));
 		}
 
 		/// <summary>KsanLifecycle 설정의 버전을 삭제한다.</summary>
@@ -356,7 +356,7 @@ namespace PortalSvr.Controllers.Config
 		[HttpDelete("KsanLifecycle/{Version}")]
 		public async Task<ActionResult> RemoveConfigForKsanLifecycle([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.sanLifecycle, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.KsanLifecycle, Version));
 		}
 		#endregion
 		#region KsanReplication

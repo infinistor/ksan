@@ -229,23 +229,15 @@ namespace PortalProvider.Providers.Accounts
 		/// <summary>리전 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
-		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <returns>리전 목록</returns>
-		public async Task<ResponseList<ResponseRegion>> GetList(
-			int Skip = 0, int CountPerPage = 100,
-			List<string> OrderFields = null, List<string> OrderDirections = null
-		)
+		public async Task<ResponseList<ResponseRegion>> GetList(int Skip = 0, int CountPerPage = 100)
 		{
 			var Result = new ResponseList<ResponseRegion>();
 			try
 			{
-				// 정렬 필드를 초기화 한다.
-				InitOrderFields(ref OrderFields, ref OrderDirections);
-
 				// 리전 목록을 가져온다.
 				Result.Data = await m_dbContext.Regions.AsNoTracking()
-					.OrderByWithDirection(OrderFields, OrderDirections)
+					.OrderByWithDirection(i => i.Name)
 					.CreateListAsync<Region, ResponseRegion>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;

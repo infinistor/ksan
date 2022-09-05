@@ -96,11 +96,11 @@ namespace PortalSvr.Services
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Result.Data.Version);
 				}
 
-				// MariaDB 설정이 없는 경우
+				// MongoDB 설정이 없는 경우
 				var MongoDBConfig = await m_configProvider.GetConfig(EnumServiceType.MongoDB);
 				if (MongoDBConfig == null || MongoDBConfig.Result == EnumResponseResult.Error)
 				{
-					// MariaDB 설정
+					// MongoDB 설정
 					IConfigurationSection Section = m_configuration.GetSection("MongoDB");
 					MongoDBConfiguration Configuration = Section.Get<MongoDBConfiguration>();
 
@@ -128,43 +128,6 @@ namespace PortalSvr.Services
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanOSD, StrKsanOSD);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanOSD, Result.Data.Version);
-				}
-
-				// ksanAgent.conf파일을 생성한다.
-				if (!File.Exists(KsanConfig))
-				{
-					// 내부 서비스용 API 키를 가져온다.
-					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
-					
-					// rabbitMq 설정 정보를 가져온다.
-					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
-					RabbitMQConfiguration RabbitMQ = Section.Get<RabbitMQConfiguration>();
-
-					if (ApiKey == null)
-						throw new Exception("Internal Service ApiKey is null");
-					var Datas = new List<string>()
-					{
-						"[mgs]",
-						$"PortalHost = {m_configuration["AppSettings:Host"]}",
-						"PortalPort = 6443",
-						$"MqHost = {RabbitMQ.Host}",
-						$"MqPort = {RabbitMQ.Port}",
-						$"MqUser = {RabbitMQ.User}",
-						$"MqPassword = {RabbitMQ.Password}",
-						$"PortalApiKey = {ApiKey.KeyValue}",
-						"ServerId = ",
-						"ManagementNetDev = ",
-						"DefaultNetworkId = ",
-						"",
-						"[monitor]",
-						"ServerMonitorInterval = 5000",
-						"NetworkMonitorInterval = 5000",
-						"DiskMonitorInterval = 5000",
-						"ServiceMonitorInterval = 5000",
-					};
-
-					await File.WriteAllLinesAsync(KsanConfig, Datas);
-					m_logger.LogInformation($"Save {KsanConfig}");
 				}
 			}
 			catch (Exception ex)
