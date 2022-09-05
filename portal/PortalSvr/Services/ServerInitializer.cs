@@ -99,7 +99,7 @@ namespace PortalSvr.Services
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
 			m_logger.LogInformation("Server Initialize Timer Create");
-			m_timer = new Timer(DoWork, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(999));
+			m_timer = new Timer(DoWork, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 			return Task.CompletedTask;
 		}
 
@@ -118,14 +118,10 @@ namespace PortalSvr.Services
 
 		async void DoWork(object state)
 		{
-			m_timer.Change(Timeout.Infinite, 0);
-
 			try
 			{
 				if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_INIT_TYPE, out string InitType)) return;
 				m_logger.LogInformation("Server Initialize Start");
-
-				if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
 				// 내부 서비스용 API 키를 가져온다.
 				var ApiKey = await m_apiKeyProvider.GetMainApiKey();
@@ -212,6 +208,9 @@ namespace PortalSvr.Services
 					}
 				}
 
+				// All in one 일 경우
+				if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
+
 				//유저가 존재하지 않을 경우 생성한다.
 				var UserName = "ksanuser";
 				var User = await m_userProvider.GetUser(UserName);
@@ -270,6 +269,7 @@ namespace PortalSvr.Services
 					if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
 					else m_logger.LogInformation($"{Request.Name} Add Success");
 				}
+				m_timer.Change(Timeout.Infinite, 0);
 
 			}
 			catch (Exception ex)
