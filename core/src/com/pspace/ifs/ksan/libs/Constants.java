@@ -20,10 +20,10 @@ public class Constants {
 	public static final String AGENT_PROPERTY_PORTAL_HOST = "PortalHost";
 	public static final String AGENT_PROPERTY_PORTAL_PORT = "PortalPort";
 	public static final String AGENT_POOPERTY_POTAL_KEY = "PortalApiKey";
-	public static final String AGENT_PROPERTY_MQ_HOST = "MqHost";
-	public static final String AGENT_PROPERTY_MQ_PORT = "MqPort";
-	public static final String AGENT_PROPERTY_MQ_USER = "MqUser";
-	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MqPassword";
+	public static final String AGENT_PROPERTY_MQ_HOST = "MQHost";
+	public static final String AGENT_PROPERTY_MQ_PORT = "MQPort";
+	public static final String AGENT_PROPERTY_MQ_USER = "MQUser";
+	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MQPassword";
 	public static final String AGENT_PROPERTY_SERVER_ID = "ServerId";
 	public static final String AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL = "ServiceMonitorInterval";
 
