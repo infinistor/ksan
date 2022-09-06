@@ -3,9 +3,12 @@ package com.pspace.backend.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.DB.DBConfig;
 
 public class LifecycleConfig {
+
+	@JsonProperty("DBType")
+	public String DBType;
+	
 	@JsonProperty("Host")
 	public String Host;
 	
@@ -24,10 +27,6 @@ public class LifecycleConfig {
 	@JsonProperty("Region")
 	public String Region;
 
-	public DBConfig GetDBConfig() {
-		return new DBConfig(Host, Port, DatabaseName, User, Password);
-	}
-	
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();

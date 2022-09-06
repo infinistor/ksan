@@ -158,7 +158,7 @@
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.4.1</version>
 				<configuration>
-					<programFile>ksanLifecycle</programFile>
+					<programFile>ksan-lifecycle</programFile>
 				</configuration>
 				<executions>
 					<execution>
