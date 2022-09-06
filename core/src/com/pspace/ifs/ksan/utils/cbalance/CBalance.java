@@ -278,7 +278,8 @@ public class CBalance {
                         else
                             not_processed++;
                     } catch ( Exception ex) {
-                        Logger.getLogger(CBalance.class.getName()).log(Level.SEVERE, null, ex);
+                        if (objm.isDebugModeOn())
+                            Logger.getLogger(CBalance.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                 }
             } while (!list.isEmpty());
