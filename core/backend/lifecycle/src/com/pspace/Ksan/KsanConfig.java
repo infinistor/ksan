@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.Portal;
+package com.pspace.Ksan;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,25 +18,33 @@ import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PortalConfig {
+public class KsanConfig {
 	private final String STR_FILENAME = "/usr/local/ksan/etc/ksanAgent.conf";
 	/////////////////////////// MGS /////////////////////////////////////
-	private final String STR_MG = "mgs";
-	private final String STR_MGS_IP = "PortalHost";
-	private final String STR_MGS_PORT = "PortalPort";
-	private final String STR_MGS_KEY = "PortalApiKey";
-		
+	private final String STR_MGS = "mgs";
+	private final String STR_PORTAL_IP = "PortalHost";
+	private final String STR_PORTAL_PORT = "PortalPort";
+	private final String STR_PORTAL_API_KEY = "PortalApiKey";
+	private final String STR_MQ_IP = "MQHost";
+	private final String STR_MQ_PORT = "MQPort";
+	private final String STR_MQ_USER = "MQUser";
+	private final String STR_MQ_PASSWORD = "MQPassword";
+
 	/*********************************************************************************************************/
-	static final Logger logger = LoggerFactory.getLogger(PortalConfig.class);
+	static final Logger logger = LoggerFactory.getLogger(KsanConfig.class);
 	public final String FileName;
 	private final Ini ini = new Ini();
 	/*********************************************************************************************************/
 
-	public String Ip;
-	public int Port;
-	public String Key;
+	public String PortalHost;
+	public int PortalPort;
+	public String MQHost;
+	public int MQPort;
+	public String MQUser;
+	public String MQPassword;
+	public String APIKey;
 
-	public PortalConfig(String FileName) {
+	public KsanConfig(String FileName) {
 		if (FileName.isEmpty())
 			this.FileName = STR_FILENAME;
 		else
@@ -49,9 +57,14 @@ public class PortalConfig {
 		try {
 			ini.load(new FileReader(file));
 
-			Ip = ReadKeyToString(STR_MG, STR_MGS_IP);
-			Port = ReadKeyToInt(STR_MG, STR_MGS_PORT);
-			Key = ReadKeyToString(STR_MG, STR_MGS_KEY);
+			PortalHost = ReadKeyToString(STR_MGS, STR_PORTAL_IP);
+			PortalPort = ReadKeyToInt(STR_MGS, STR_PORTAL_PORT);
+			APIKey = ReadKeyToString(STR_MGS, STR_PORTAL_API_KEY);
+
+			MQHost = ReadKeyToString(STR_MGS, STR_MQ_IP);
+			MQPort = ReadKeyToInt(STR_MGS, STR_MQ_PORT);
+			MQUser = ReadKeyToString(STR_MGS, STR_MQ_USER);
+			MQPassword = ReadKeyToString(STR_MGS, STR_MQ_PASSWORD);
 
 		} catch (Exception e) {
 			logger.error("", e);

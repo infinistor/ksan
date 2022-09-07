@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar -Dlogback.configurationFile=/app/ksan-lifecycle.xml /app/ksanLifecycle
+java -jar -Dlogback.configurationFile=/app/ksan-lifecycle.xml /app/ksan-lifecycle
