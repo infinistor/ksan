@@ -11,7 +11,6 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import java.io.IOException;
-import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 

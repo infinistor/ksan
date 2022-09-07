@@ -163,7 +163,7 @@ public class DISKPOOL {
                        logger.error("All OSD server are offline!");
                        throw new AllServiceOfflineException("All OSD server are offline!");
                      }
-                     else{
+                     else if ( svrCounter > 0){
                        logger.error("There is no enough OSD server for all replica!");
                        throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
                      }  
