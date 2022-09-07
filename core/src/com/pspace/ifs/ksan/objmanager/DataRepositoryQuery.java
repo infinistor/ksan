@@ -129,6 +129,6 @@ public final class DataRepositoryQuery {
     public static String insertLifeCycleQuery = "INSERT INTO %s(idx, bucket, objKey, objid, versionid, uploadid, inDate, log) VALUES(?, ?, ?, ?, ?, ?, now(), ?)";
     public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE uploadid=?";
     public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
-    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log, FROM %s";
+    public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log FROM %s";
     public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE bucket=? AND objKey=? AND versionid=?";
 }
