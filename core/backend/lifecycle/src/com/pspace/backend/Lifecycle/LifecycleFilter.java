@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +138,7 @@ public class LifecycleFilter {
 						}
 					}
 					// 오브젝트의 버저닝 수명주기가 설정 되었을 경우
-					if (Rule.versionexpiration != null && !Rule.versionexpiration.NoncurrentDays.isBlank()) {
+					if (Rule.versionexpiration != null && !StringUtils.isBlank(Rule.versionexpiration.NoncurrentDays)) {
 						// 기간을 숫자로 변환
 						var ExpiredDays = NumberUtils.toInt(Rule.versionexpiration.NoncurrentDays);
 
@@ -167,7 +168,7 @@ public class LifecycleFilter {
 
 					// Multipart의 part 수명주기가 설정 되었을 경우
 					if (Rule.abortincompletemultipartupload != null
-							&& !Rule.abortincompletemultipartupload.DaysAfterInitiation.isBlank()) {
+							&& !StringUtils.isBlank(Rule.abortincompletemultipartupload.DaysAfterInitiation)) {
 						// 기간을 숫자로 변환
 						var ExpiredDays = NumberUtils.toInt(Rule.abortincompletemultipartupload.DaysAfterInitiation);
 
@@ -188,8 +189,7 @@ public class LifecycleFilter {
 
 								// Multipart의 수명주기가 만료 되었을 경우
 								if (ExpiredCheck(Part.getLastModified(), ExpiredDays)) {
-									EventList.add(new LifeCycle(0, Multipart.getBucket(), Multipart.getKey(), "",
-											Multipart.getUploadId(), ""));
+									EventList.add(new LifeCycle(0, Multipart.getBucket(), Multipart.getKey(), "", Multipart.getUploadId(), ""));
 
 									// Filter로 1개 이상 이벤트를 처리함을 표시
 									if (!result)
@@ -200,6 +200,7 @@ public class LifecycleFilter {
 					}
 				}
 
+				// 이벤트를 DB에 저장
 				LifecycleManager.putLifeCycleEvents(EventList);
 			}
 		}
@@ -221,7 +222,7 @@ public class LifecycleFilter {
 			// And 필터가 존재할 경우
 			if (Rule.filter.and != null) {
 				// Prefix가 설정되어 있을 경우
-				if (!Rule.filter.and.prefix.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.and.prefix)) {
 					// Prefix가 일치하지 않을 경우 스킵
 					if (!Object.getPath().startsWith(Rule.filter.and.prefix))
 						return true;
@@ -243,7 +244,7 @@ public class LifecycleFilter {
 				}
 
 				// 최소 크기 필터가 설정되어 있을 경우
-				if (!Rule.filter.objectSizeGreaterThan.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
 					// 오브젝트가 최소크기보다 작을 경우 스킵
 					var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
 					if (Object.getSize() < MinFileSize)
@@ -251,7 +252,7 @@ public class LifecycleFilter {
 				}
 
 				// 최대 크기 필터가 설정되어 있을 경우
-				if (!Rule.filter.objectSizeLessThan.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
 					// 오브젝트가 최대크기보다 클 경우 스킵
 					var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
 					if (Object.getSize() > MaxFileSize)
@@ -259,7 +260,7 @@ public class LifecycleFilter {
 				}
 			}
 			// Prefix가 설정되어 있을 경우
-			else if (!Rule.filter.prefix.isBlank()) {
+			else if (!StringUtils.isBlank(Rule.filter.prefix)) {
 				if (!Object.getPath().startsWith(Rule.filter.prefix))
 					return true;
 			}
@@ -278,14 +279,14 @@ public class LifecycleFilter {
 					return true;
 			}
 			// 최소 크기 필터가 설정되어 있을 경우
-			else if (!Rule.filter.objectSizeGreaterThan.isBlank()) {
+			else if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
 				// 오브젝트가 최소크기보다 작을 경우 스킵
 				var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
 				if (Object.getSize() < MinFileSize)
 					return true;
 			}
 			// 최대 크기 필터가 설정되어 있을 경우
-			else if (!Rule.filter.objectSizeLessThan.isBlank()) {
+			else if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
 				// 오브젝트가 최대크기보다 클 경우 스킵
 				var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
 				if (Object.getSize() > MaxFileSize)
@@ -313,7 +314,7 @@ public class LifecycleFilter {
 		}
 
 		// 필터가 존재할 경우
-		if (Rule.filter != null || !Rule.filter.prefix.isBlank()) {
+		if (Rule.filter != null && !StringUtils.isBlank(Rule.filter.prefix)) {
 			// 필터가 일치하지 않을 경우 스킵
 			if (!Object.getPath().startsWith(Rule.filter.prefix))
 				return true;
@@ -323,7 +324,7 @@ public class LifecycleFilter {
 
 	private boolean LifecycleMultipartSkipCheck(Rule Rule, String KeyName) {
 		// 필터가 존재할 경우
-		if (Rule.filter != null || !Rule.filter.prefix.isBlank()) {
+		if (Rule.filter != null || !StringUtils.isBlank(Rule.filter.prefix)) {
 			// 필터가 일치하지 않을 경우 스킵
 			if (!KeyName.startsWith(Rule.filter.prefix))
 				return true;
@@ -394,7 +395,7 @@ public class LifecycleFilter {
 	}
 
 	private LifecycleConfiguration GetLifecycleConfiguration(String StrLifecycle) {
-		if (StrLifecycle.isBlank()) return null;
+		if (StringUtils.isBlank(StrLifecycle)) return null;
 		try {
 			// 수명주기 설정 언마샬링
 			return new XmlMapper().readValue(StrLifecycle, LifecycleConfiguration.class);
@@ -406,6 +407,7 @@ public class LifecycleFilter {
 
 	private Tagging getTagging(String StrTags)
 	{
+		if (StringUtils.isBlank(StrTags)) return new Tagging();
 		try {
 			// 수명주기 설정 언마샬링
 			return new XmlMapper().readValue(StrTags, Tagging.class);
