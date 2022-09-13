@@ -1,0 +1,12 @@
+[Unit]
+Description=KSAN Portal Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a ksan-portal
+ExecStop=/usr/bin/docker stop -t 2 ksan-portal
+
+[Install]
+WantedBy=multi-user.target

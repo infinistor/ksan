@@ -1,0 +1,12 @@
+[Unit]
+Description=Rabbitmq Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a rabbitmq
+ExecStop=/usr/bin/docker stop -t 2 rabbitmq
+
+[Install]
+WantedBy=multi-user.target
