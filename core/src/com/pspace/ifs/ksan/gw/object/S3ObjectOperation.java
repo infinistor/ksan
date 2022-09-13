@@ -1607,32 +1607,67 @@ public class S3ObjectOperation {
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
         int readLength = 0;
         long totalReads = 0L;
-        File tmpFile = null;
+        File file = null;
+        FileOutputStream fos = null;
+        OSDClient osdClient = null;
+        InputStream is = s3Parameter.getInputStream();
 
         if (s3Encryption.isEncryptionEnabled()) {
             CtrCryptoOutputStream encryptOS = null;
             try {
                 md5er = MessageDigest.getInstance(GWConstants.MD5);
-                if (GWConfig.getInstance().isCacheDiskpath()) {
-                    tmpFile = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
-                } else {
-                    tmpFile = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
-                }
-                logger.debug("upload part tmpFile : " + tmpFile.getAbsolutePath());
-                com.google.common.io.Files.createParentDirs(tmpFile);
-                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
-                        totalReads += readLength;
-                        encryptOS.write(buffer, 0, readLength);
-                        md5er.update(buffer, 0, readLength);
-                        if (totalReads >= length) {
-                            break;
-                        }
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        file = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                    } else {
+                        file = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
                     }
+                    logger.debug("upload part file : " + file.getAbsolutePath());
+                    com.google.common.io.Files.createParentDirs(file);
+                    fos = new FileOutputStream(file, false);
+                    encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
+                } else {
+                    osdClient = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    logger.info("osd - {},{}", osdClient.getSocket().getRemoteSocketAddress().toString(), osdClient.getSocket().getLocalPort());
+                    osdClient.partInit(objMeta.getPrimaryDisk().getPath(), 
+                                       objMeta.getObjId(), 
+                                       s3Parameter.getPartNumber(), 
+                                       length,
+                                       s3Encryption.getCustomerKey());
+                }
+                
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                    totalReads += readLength;
+                    if (file == null) {
+                        osdClient.part(buffer, 0, readLength);
+                    } else {
+                        encryptOS.write(buffer, 0, readLength);
+                    }
+
+                    md5er.update(buffer, 0, readLength);
+                    
+                    if (totalReads >= length) {
+                        break;
+                    }
+                }
+                if (encryptOS != null) {
                     encryptOS.flush();
                     encryptOS.close();
                 }
+
+                // try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                //     encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
+                //     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                //         totalReads += readLength;
+                //         encryptOS.write(buffer, 0, readLength);
+                //         md5er.update(buffer, 0, readLength);
+                //         if (totalReads >= length) {
+                //             break;
+                //         }
+                //     }
+                //     encryptOS.flush();
+                //     encryptOS.close();
+                // }
                 logger.debug("Total read : {}", totalReads);
     
                 byte[] digest = md5er.digest();
@@ -1649,24 +1684,55 @@ public class S3ObjectOperation {
         } else {
             try {
                 md5er = MessageDigest.getInstance(GWConstants.MD5);
-                if (GWConfig.getInstance().isCacheDiskpath()) {
-                    tmpFile = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
-                } else {
-                    tmpFile = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
-                }
-                logger.debug("upload part tmpFile : " + tmpFile.getAbsolutePath());
-                com.google.common.io.Files.createParentDirs(tmpFile);
-                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
-                        totalReads += readLength;
-                        fos.write(buffer, 0, readLength);
-                        md5er.update(buffer, 0, readLength);
-                        if (totalReads >= length) {
-                            break;
-                        }
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        file = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                    } else {
+                        file = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
                     }
-                    fos.flush();
+                    logger.debug("upload part tmpFile : " + file.getAbsolutePath());
+                    com.google.common.io.Files.createParentDirs(file);
+                    fos = new FileOutputStream(file, false);
+                } else {
+                    osdClient = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    logger.info("osd - {},{}", osdClient.getSocket().getRemoteSocketAddress().toString(), osdClient.getSocket().getLocalPort());
+                    osdClient.partInit(objMeta.getPrimaryDisk().getPath(), 
+                                       objMeta.getObjId(), 
+                                       s3Parameter.getPartNumber(), 
+                                       length,
+                                       GWConstants.EMPTY_STRING);
                 }
+                
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                    totalReads += readLength;
+                    if (file == null) {
+                        osdClient.part(buffer, 0, readLength);
+                    } else {
+                        fos.write(buffer, 0, readLength);
+                    }
+
+                    md5er.update(buffer, 0, readLength);
+                    
+                    if (totalReads >= length) {
+                        break;
+                    }
+                }
+                if (file != null) {
+                    fos.flush();
+                    fos.close();
+                }
+
+                // try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                //     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                //         totalReads += readLength;
+                //         fos.write(buffer, 0, readLength);
+                //         md5er.update(buffer, 0, readLength);
+                //         if (totalReads >= length) {
+                //             break;
+                //         }
+                //     }
+                //     fos.flush();
+                // }
                 logger.debug("Total read : {}", totalReads);
     
                 byte[] digest = md5er.digest();

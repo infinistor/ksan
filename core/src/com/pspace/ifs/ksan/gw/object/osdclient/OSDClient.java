@@ -172,12 +172,13 @@ public class OSDClient {
 		sendHeader(header);
 	}
 
-	public void partInit(String path, String objId, String partNo, long length) throws IOException {
+	public void partInit(String path, String objId, String partNo, long length, String key) throws IOException {
 		String header = OsdData.PART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + partNo 
-						+ OsdData.DELIMITER + String.valueOf(length);
+						+ OsdData.DELIMITER + String.valueOf(length)
+						+ OsdData.DELIMITER + key;
 		logger.debug(GWConstants.LOG_OSDCLIENT_PART_HEADER, header);
 		sendHeader(header);
 	}
