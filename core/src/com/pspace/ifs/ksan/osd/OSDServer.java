@@ -642,7 +642,10 @@ public class OSDServer {
             String objId = headers[OsdData.OBJID_INDEX];
             String partNo = headers[OsdData.PARTNO_INDEX];
             long length = Longs.tryParse(headers[OsdData.PUT_LENGTH_INDEX]);
-            logger.debug(OSDConstants.LOG_OSD_SERVER_PART_INFO, path, objId, partNo, length);
+            String key = headers[OsdData.PARTKEY_INDEX];
+            CtrCryptoOutputStream encryptOS = null;
+
+            logger.debug(OSDConstants.LOG_OSD_SERVER_PART_INFO, path, objId, partNo, length, key);
 
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File tmpFile = null;
@@ -653,19 +656,37 @@ public class OSDServer {
             }
 
             com.google.common.io.Files.createParentDirs(tmpFile);
-            try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                int readLength = 0;
-                long remainLength = length;
-                int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
-                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
-                    remainLength -= readLength;
-                    fos.write(buffer, 0, readLength);
-                    if (remainLength <= 0) {
-                        break;
+            if (!Strings.isNullOrEmpty(key)) {
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+                    encryptOS = OSDUtils.initCtrEncrypt(fos, key);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
+                        remainLength -= readLength;
+                        encryptOS.write(buffer, 0, readLength);
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
                     }
-                    readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+                    encryptOS.flush();
                 }
-                fos.flush();
+            } else {
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
+                        remainLength -= readLength;
+                        fos.write(buffer, 0, readLength);
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+                    }
+                    fos.flush();
+                }
             }
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_PART_END);

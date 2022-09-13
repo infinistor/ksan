@@ -206,7 +206,7 @@ public class S3ObjectOperation {
         } catch (Exception e) {
             PrintStack.logging(logger, e);
             if (client != null) {
-                OSDClientManager.getInstance().returnOSDClient(client);
+                // OSDClientManager.getInstance().returnOSDClient(client);
             }
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         } 
@@ -733,12 +733,13 @@ public class S3ObjectOperation {
                         }
                         
                     } else {
-                        clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                        // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                         // if (clientPrimary == null) {
                         //     OSDClientManager.getInstance().addClient((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount(), objMeta.getPrimaryDisk().getOsdIp());
                         //     clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                         // }
-                        
+                        clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+
                         logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
                         clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                               objMeta.getObjId(), 
@@ -768,7 +769,7 @@ public class S3ObjectOperation {
     
                     if (file == null) {
                         clientPrimary.putFlush();
-                        OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                        // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                         clientPrimary = null;
                     } else {
                         fosPrimary.flush();
@@ -816,7 +817,8 @@ public class S3ObjectOperation {
                     }
                     
                 } else {
-                    clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
                     clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                           objMeta.getObjId(), 
@@ -845,7 +847,7 @@ public class S3ObjectOperation {
 
                 if (file == null) {
                     clientPrimary.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                     clientPrimary = null;
                 } else {
                     fosPrimary.flush();
@@ -876,7 +878,8 @@ public class S3ObjectOperation {
             // No disk option
             else if (GWConfig.getInstance().isNoDisk()) {
                 if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-                    clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
                     clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                           objMeta.getObjId(), 
@@ -888,7 +891,8 @@ public class S3ObjectOperation {
                                           GWConfig.getInstance().getPerformanceMode());
                 }
                 if (objMeta.getReplicaDisk() != null && !GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                    clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                    clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
                     logger.info("osd - {},{}", clientReplica.getSocket().getRemoteSocketAddress().toString(), clientReplica.getSocket().getLocalPort());
                     clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
                                           objMeta.getObjId(), 
@@ -920,12 +924,12 @@ public class S3ObjectOperation {
 
                 if (clientPrimary != null) {
                     clientPrimary.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                     clientPrimary = null;
                 }
                 if (clientReplica != null) {
                     clientReplica.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                    // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                     clientReplica = null;
                 }
             } else {
@@ -976,10 +980,10 @@ public class S3ObjectOperation {
             }
             try {
                 if (clientPrimary != null) {
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                 }
                 if (clientReplica != null) {
-                    OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                    // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                 }
             } catch (Exception e) {
                 PrintStack.logging(logger, e);
@@ -1055,7 +1059,8 @@ public class S3ObjectOperation {
                         }
                         encryptPrimary = GWUtils.initCtrEncrypt(fosPrimary, s3Encryption.getCustomerKey());
                     } else {
-                        clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                        clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                         clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                               objMeta.getObjId(), 
                                               versionId, 
@@ -1090,7 +1095,8 @@ public class S3ObjectOperation {
                             }
                             encryptReplica = GWUtils.initCtrEncrypt(fosReplica, s3Encryption.getCustomerKey());
                         } else {
-                            clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                            clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                            // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
                             clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
                                                 objMeta.getObjId(), 
                                                 versionId, 
@@ -1127,7 +1133,7 @@ public class S3ObjectOperation {
     
                     if (filePrimary == null) {
                         clientPrimary.putFlush();
-                        OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                        // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                         clientPrimary = null;
                     } else {
                         encryptPrimary.flush();
@@ -1151,7 +1157,7 @@ public class S3ObjectOperation {
                     if (objMeta.isReplicaExist()) {
                         if (fileReplica == null) {
                             clientReplica.putFlush();
-                            OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                            // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                             clientReplica = null;
                         } else {
                             encryptReplica.flush();
@@ -1194,7 +1200,8 @@ public class S3ObjectOperation {
                         }
                         encryptPrimary = GWUtils.initCtrEncrypt(fosPrimary, s3Encryption.getCustomerKey());
                     } else {
-                        clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                        clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                         clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                               objMeta.getObjId(), 
                                               versionId, 
@@ -1223,7 +1230,7 @@ public class S3ObjectOperation {
     
                     if (file == null) {
                         clientPrimary.putFlush();
-                        OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                        // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                         clientPrimary = null;
                     } else {
                         encryptPrimary.flush();
@@ -1270,7 +1277,8 @@ public class S3ObjectOperation {
                     }
                     encryptPrimary = GWUtils.initCtrEncrypt(fosPrimary, s3Encryption.getCustomerKey());
                 } else {
-                    clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                           objMeta.getObjId(), 
                                           versionId, 
@@ -1298,7 +1306,7 @@ public class S3ObjectOperation {
 
                 if (file == null) {
                     clientPrimary.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                     clientPrimary = null;
                 } else {
                     encryptPrimary.flush();
@@ -1328,7 +1336,8 @@ public class S3ObjectOperation {
             // No disk option
             else if (GWConfig.getInstance().isNoDisk()) {
                 if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-                    clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     clientPrimary.putInit(objMeta.getPrimaryDisk().getPath(), 
                                           objMeta.getObjId(), 
                                           versionId, 
@@ -1339,7 +1348,8 @@ public class S3ObjectOperation {
                                           GWConfig.getInstance().getPerformanceMode());
                 }
                 if (objMeta.getReplicaDisk() != null && !GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
-                    clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                    clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
                     clientReplica.putInit(objMeta.getReplicaDisk().getPath(), 
                                           objMeta.getObjId(), 
                                           versionId, 
@@ -1369,12 +1379,12 @@ public class S3ObjectOperation {
 
                 if (clientPrimary != null) {
                     clientPrimary.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                     clientPrimary = null;
                 }
                 if (clientReplica != null) {
                     clientReplica.putFlush();
-                    OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                    // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                     clientReplica = null;
                 }
             } else {
@@ -1425,10 +1435,10 @@ public class S3ObjectOperation {
             }
             try {
                 if (clientPrimary != null) {
-                    OSDClientManager.getInstance().returnOSDClient(clientPrimary);
+                    // OSDClientManager.getInstance().returnOSDClient(clientPrimary);
                 }
                 if (clientReplica != null) {
-                    OSDClientManager.getInstance().returnOSDClient(clientReplica);
+                    // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                 }
             } catch (Exception e) {
                 PrintStack.logging(logger, e);
@@ -1444,9 +1454,10 @@ public class S3ObjectOperation {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     deleteObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
                 } else {
-                    client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     client.delete(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
-                    OSDClientManager.getInstance().returnOSDClient(client);
+                    // OSDClientManager.getInstance().returnOSDClient(client);
                     client = null;
                 } 
                 
@@ -1454,9 +1465,10 @@ public class S3ObjectOperation {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         deleteObjectLocal(objMeta.getReplicaDisk().getPath(), objMeta.getObjId());
                     } else {
-                        client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                        client = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
                         client.delete(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
-                        OSDClientManager.getInstance().returnOSDClient(client);
+                        // OSDClientManager.getInstance().returnOSDClient(client);
                         client = null;
                     }
                 }
@@ -1465,9 +1477,10 @@ public class S3ObjectOperation {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     deleteObjectLocal(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
                 } else {
-                    client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
                     client.delete(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId());
-                    OSDClientManager.getInstance().returnOSDClient(client);
+                    // OSDClientManager.getInstance().returnOSDClient(client);
                     client = null;
                 }
             }
@@ -1477,7 +1490,7 @@ public class S3ObjectOperation {
         } finally {
             if (client != null) {
                 try {
-                    OSDClientManager.getInstance().returnOSDClient(client);
+                    // OSDClientManager.getInstance().returnOSDClient(client);
                 } catch (Exception e) {
                     PrintStack.logging(logger, e);
                     throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -1594,32 +1607,67 @@ public class S3ObjectOperation {
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
         int readLength = 0;
         long totalReads = 0L;
-        File tmpFile = null;
+        File file = null;
+        FileOutputStream fos = null;
+        OSDClient osdClient = null;
+        InputStream is = s3Parameter.getInputStream();
 
         if (s3Encryption.isEncryptionEnabled()) {
             CtrCryptoOutputStream encryptOS = null;
             try {
                 md5er = MessageDigest.getInstance(GWConstants.MD5);
-                if (GWConfig.getInstance().isCacheDiskpath()) {
-                    tmpFile = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
-                } else {
-                    tmpFile = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
-                }
-                logger.debug("upload part tmpFile : " + tmpFile.getAbsolutePath());
-                com.google.common.io.Files.createParentDirs(tmpFile);
-                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
-                        totalReads += readLength;
-                        encryptOS.write(buffer, 0, readLength);
-                        md5er.update(buffer, 0, readLength);
-                        if (totalReads >= length) {
-                            break;
-                        }
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        file = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                    } else {
+                        file = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
                     }
+                    logger.debug("upload part file : " + file.getAbsolutePath());
+                    com.google.common.io.Files.createParentDirs(file);
+                    fos = new FileOutputStream(file, false);
+                    encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
+                } else {
+                    osdClient = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    logger.info("osd - {},{}", osdClient.getSocket().getRemoteSocketAddress().toString(), osdClient.getSocket().getLocalPort());
+                    osdClient.partInit(objMeta.getPrimaryDisk().getPath(), 
+                                       objMeta.getObjId(), 
+                                       s3Parameter.getPartNumber(), 
+                                       length,
+                                       s3Encryption.getCustomerKey());
+                }
+                
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                    totalReads += readLength;
+                    if (file == null) {
+                        osdClient.part(buffer, 0, readLength);
+                    } else {
+                        encryptOS.write(buffer, 0, readLength);
+                    }
+
+                    md5er.update(buffer, 0, readLength);
+                    
+                    if (totalReads >= length) {
+                        break;
+                    }
+                }
+                if (encryptOS != null) {
                     encryptOS.flush();
                     encryptOS.close();
                 }
+
+                // try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                //     encryptOS = GWUtils.initCtrEncrypt(fos, s3Encryption.getCustomerKey());
+                //     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                //         totalReads += readLength;
+                //         encryptOS.write(buffer, 0, readLength);
+                //         md5er.update(buffer, 0, readLength);
+                //         if (totalReads >= length) {
+                //             break;
+                //         }
+                //     }
+                //     encryptOS.flush();
+                //     encryptOS.close();
+                // }
                 logger.debug("Total read : {}", totalReads);
     
                 byte[] digest = md5er.digest();
@@ -1636,24 +1684,55 @@ public class S3ObjectOperation {
         } else {
             try {
                 md5er = MessageDigest.getInstance(GWConstants.MD5);
-                if (GWConfig.getInstance().isCacheDiskpath()) {
-                    tmpFile = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
-                } else {
-                    tmpFile = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
-                }
-                logger.debug("upload part tmpFile : " + tmpFile.getAbsolutePath());
-                com.google.common.io.Files.createParentDirs(tmpFile);
-                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                    while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
-                        totalReads += readLength;
-                        fos.write(buffer, 0, readLength);
-                        md5er.update(buffer, 0, readLength);
-                        if (totalReads >= length) {
-                            break;
-                        }
+                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        file = new File(makeCachePath(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                    } else {
+                        file = new File(makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
                     }
-                    fos.flush();
+                    logger.debug("upload part tmpFile : " + file.getAbsolutePath());
+                    com.google.common.io.Files.createParentDirs(file);
+                    fos = new FileOutputStream(file, false);
+                } else {
+                    osdClient = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    logger.info("osd - {},{}", osdClient.getSocket().getRemoteSocketAddress().toString(), osdClient.getSocket().getLocalPort());
+                    osdClient.partInit(objMeta.getPrimaryDisk().getPath(), 
+                                       objMeta.getObjId(), 
+                                       s3Parameter.getPartNumber(), 
+                                       length,
+                                       GWConstants.EMPTY_STRING);
                 }
+                
+                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                    totalReads += readLength;
+                    if (file == null) {
+                        osdClient.part(buffer, 0, readLength);
+                    } else {
+                        fos.write(buffer, 0, readLength);
+                    }
+
+                    md5er.update(buffer, 0, readLength);
+                    
+                    if (totalReads >= length) {
+                        break;
+                    }
+                }
+                if (file != null) {
+                    fos.flush();
+                    fos.close();
+                }
+
+                // try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                //     while ((readLength = s3Parameter.getInputStream().read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                //         totalReads += readLength;
+                //         fos.write(buffer, 0, readLength);
+                //         md5er.update(buffer, 0, readLength);
+                //         if (totalReads >= length) {
+                //             break;
+                //         }
+                //     }
+                //     fos.flush();
+                // }
                 logger.debug("Total read : {}", totalReads);
     
                 byte[] digest = md5er.digest();
@@ -1699,7 +1778,8 @@ public class S3ObjectOperation {
 
         String path = DiskManager.getInstance().getLocalPath(diskID);
         if (path == null) {
-            OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+            // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+            OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
             client.deletePart(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber());
             OSDClientManager.getInstance().returnOSDClient(client);
         } else {
@@ -1892,10 +1972,11 @@ public class S3ObjectOperation {
                     } else {
                         partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
                         String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
-                        OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+                        OSDClient client = new OSDClient(host, (int)GWConfig.getInstance().getOsdPort());
+                        // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
                         client.getPartInit(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), encryptOS, md5er);
                         totalLength += client.getPart();
-                        OSDClientManager.getInstance().returnOSDClient(client);
+                        // OSDClientManager.getInstance().returnOSDClient(client);
                     }
                 }
             } else {
@@ -1924,10 +2005,11 @@ public class S3ObjectOperation {
                     } else {
                         partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
                         String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
-                        OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+                        OSDClient client = new OSDClient(host, (int)GWConfig.getInstance().getOsdPort());
+                        // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
                         client.getPartInit(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut, md5er);
                         totalLength += client.getPart();
-                        OSDClientManager.getInstance().returnOSDClient(client);
+                        // OSDClientManager.getInstance().returnOSDClient(client);
                     }
                 }
             }
@@ -2019,9 +2101,10 @@ public class S3ObjectOperation {
                     partFile.delete();
                 } else {
                     String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
-                    OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
+                    OSDClient client = new OSDClient(host, (int)GWConfig.getInstance().getOsdPort());
+                    // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
                     client.deletePart(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber());
-                    OSDClientManager.getInstance().returnOSDClient(client);
+                    // OSDClientManager.getInstance().returnOSDClient(client);
                 }
             }
         } catch (Exception e) {
@@ -2163,7 +2246,8 @@ public class S3ObjectOperation {
                     actualSize = getObjectLocal(fos, srcObjMeta.getReplicaDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, srcKey);
                 } else {
                     try {
-                        client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
+                        client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
                         client.getInit(srcObjMeta.getPrimaryDisk().getPath(), 
                                     srcObjMeta.getObjId(), 
                                     srcObjMeta.getVersionId(), 
@@ -2172,9 +2256,10 @@ public class S3ObjectOperation {
                                     fos,
                                     srcKey);
                         actualSize = client.get();
-                        OSDClientManager.getInstance().returnOSDClient(client);
+                        // OSDClientManager.getInstance().returnOSDClient(client);
                     } catch (Exception e) {
-                        client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getReplicaDisk().getOsdIp());
+                        client = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getReplicaDisk().getOsdIp());
                         client.getInit(srcObjMeta.getReplicaDisk().getPath(), 
                                     srcObjMeta.getObjId(), 
                                     srcObjMeta.getVersionId(), 
@@ -2183,14 +2268,15 @@ public class S3ObjectOperation {
                                     fos, 
                                     srcKey);
                         actualSize = client.get();
-                        OSDClientManager.getInstance().returnOSDClient(client);
+                        // OSDClientManager.getInstance().returnOSDClient(client);
                     }
                 }
             } else {
                 if (GWUtils.getLocalIP().equals(srcObjMeta.getPrimaryDisk().getOsdIp())) {
                     actualSize = getObjectLocal(fos, srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, srcKey);
                 } else {
-                    client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
+                    client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
                     client.getInit(srcObjMeta.getPrimaryDisk().getPath(), 
                                 srcObjMeta.getObjId(), 
                                 srcObjMeta.getVersionId(), 
@@ -2199,7 +2285,7 @@ public class S3ObjectOperation {
                                 fos,
                                 srcKey);
                     actualSize = client.get();
-                    OSDClientManager.getInstance().returnOSDClient(client);
+                    // OSDClientManager.getInstance().returnOSDClient(client);
                 }
             }
         }
@@ -2252,7 +2338,8 @@ public class S3ObjectOperation {
                         actualSize = getObjectLocal(fos, srcObjMeta.getReplicaDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), GWConstants.EMPTY_STRING, key);
                     } else {
                         try {
-                            client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
+                            client = new OSDClient(srcObjMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                            // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
                             client.getInit(srcObjMeta.getPrimaryDisk().getPath(), 
                                            srcObjMeta.getObjId(), 
                                            srcObjMeta.getVersionId(), 
@@ -2261,9 +2348,10 @@ public class S3ObjectOperation {
                                            fos,
                                            key);
                             actualSize = client.get();
-                            OSDClientManager.getInstance().returnOSDClient(client);
+                            // OSDClientManager.getInstance().returnOSDClient(client);
                         } catch (Exception e) {
-                            client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getReplicaDisk().getOsdIp());
+                            client = new OSDClient(srcObjMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                            // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getReplicaDisk().getOsdIp());
                             client.getInit(srcObjMeta.getReplicaDisk().getPath(), 
                                            srcObjMeta.getObjId(), 
                                            srcObjMeta.getVersionId(), 
@@ -2272,7 +2360,7 @@ public class S3ObjectOperation {
                                            fos, 
                                            key);
                             actualSize = client.get();
-                            OSDClientManager.getInstance().returnOSDClient(client);
+                            // OSDClientManager.getInstance().returnOSDClient(client);
                         }
                     }
                 } else {
@@ -2280,7 +2368,8 @@ public class S3ObjectOperation {
                         actualSize = getObjectLocal(fos, srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), GWConstants.EMPTY_STRING, key);
                     } else {
                         try {
-                            client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
+                            client = new OSDClient(srcObjMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                            // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
                             client.getInit(srcObjMeta.getPrimaryDisk().getPath(), 
                             srcObjMeta.getObjId(), 
                             srcObjMeta.getVersionId(), 
@@ -2289,7 +2378,7 @@ public class S3ObjectOperation {
                                            fos,
                                            key);
                             actualSize = client.get();
-                            OSDClientManager.getInstance().returnOSDClient(client);
+                            // OSDClientManager.getInstance().returnOSDClient(client);
                         } catch (Exception e) {
                             PrintStack.logging(logger, e);
                             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

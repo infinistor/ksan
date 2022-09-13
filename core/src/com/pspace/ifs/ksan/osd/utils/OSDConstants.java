@@ -171,7 +171,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "get - success : path={}, objId={}, partNo={}";
 
     public static final String LOG_OSD_SERVER_PART_START = "part start ...";
-    public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}";
+    public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}, key : {}";
     public static final String LOG_OSD_SERVER_PART_END = "part end ...";
     public static final String LOG_OSD_SERVER_PART_SUCCESS_INFO = "part - success : path={}, objId={}, partNo={}, length={}";
 
