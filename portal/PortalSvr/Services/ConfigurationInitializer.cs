@@ -113,7 +113,7 @@ namespace PortalSvr.Services
 				if (KsanGWConfig == null || KsanGWConfig.Result == EnumResponseResult.Error)
 				{
 					// KsanGW의 기본 설정 정보를 읽어온다.
-					string StrKsanGW = File.ReadAllText("Resources/ksangw.json");
+					string StrKsanGW = File.ReadAllText(EnvironmentInitializer.KSAN_GW_SETTINGS_FILE);
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanGW, StrKsanGW);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanGW, Result.Data.Version);
@@ -124,10 +124,21 @@ namespace PortalSvr.Services
 				if (KsanOSDConfig == null || KsanOSDConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanOSD = File.ReadAllText("Resources/ksanosd.json");
+					string StrKsanOSD = File.ReadAllText(EnvironmentInitializer.KSAN_OSD_SETTINGS_FILE);
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanOSD, StrKsanOSD);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanOSD, Result.Data.Version);
+				}
+
+				// KsanLifecycle 설정이 없는 경우
+				var KsanLifecycleConfig = await m_configProvider.GetConfig(EnumServiceType.ksanLifecycle);
+				if (KsanLifecycleConfig == null || KsanLifecycleConfig.Result == EnumResponseResult.Error)
+				{
+					// Ksan Gw의 기본 설정 정보를 읽어온다.
+					string StrKsanLifecycle = File.ReadAllText(EnvironmentInitializer.KSAN_LIFECYCLE_SETTINGS_FILE);
+
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLifecycle, StrKsanLifecycle);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycle, Result.Data.Version);
 				}
 			}
 			catch (Exception ex)

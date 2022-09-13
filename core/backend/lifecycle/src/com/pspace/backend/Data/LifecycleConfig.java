@@ -6,25 +6,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LifecycleConfig {
 
-	@JsonProperty("DBType")
+	@JsonProperty("objM.db_repository")
 	public String DBType;
-	
-	@JsonProperty("Host")
+
+	@JsonProperty("objM.db_host")
 	public String Host;
-	
-	@JsonProperty("Port")
+
+	@JsonProperty("objM.db_port")
 	public int Port;
 
-	@JsonProperty("User")
-	public String User;
-
-	@JsonProperty("Password")
-	public String Password;
-
-	@JsonProperty("DatabaseName")
+	@JsonProperty("objM.db_name")
 	public String DatabaseName;
 
-	@JsonProperty("Region")
+	@JsonProperty("objM.db_user")
+	public String User;
+
+	@JsonProperty("objM.db_password")
+	public String Password;
+
+	@JsonProperty("ksan.region")
 	public String Region;
 
 	@Override

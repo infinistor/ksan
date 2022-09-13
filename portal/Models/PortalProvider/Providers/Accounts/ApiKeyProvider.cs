@@ -368,7 +368,7 @@ namespace PortalProvider.Providers.Accounts
 					.FirstOrDefaultAsync<ApiKey, ResponseApiKey>();
 
 				// 해당 데이터가 존재하는 경우
-				if (Exist != null) return Exist;
+				return Exist;
 			}
 			catch (Exception ex)
 			{

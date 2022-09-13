@@ -22,6 +22,7 @@ import com.pspace.backend.Data.BackendHeaders;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +59,7 @@ public class LifecycleSender {
 
 							// VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급
 							else
-								Result = DeleteObjectVersion(Event.getBucketName(), Event.getKey(),
-										Event.getVersionId());
+								Result = DeleteObjectVersion(Event.getBucketName(), Event.getKey(), Event.getVersionId());
 						}
 						// UploadId가 존재할 경우 Multipart 삭제
 						else
@@ -71,9 +71,11 @@ public class LifecycleSender {
 					}
 					// 반환값이 비어있지 않을 경우 - 에러가 발생할 경우
 					if (!Result.isBlank()) {
+						Event.setInDate(new Date());
 						Event.setLog(Result);
-						LifecycleManager.putLifeCycleEvent(Event);
+						LifecycleManager.putFailedLifeCycleEvent(Event);
 					}
+					LifecycleManager.removeLifeCycleEvent(Event);
 				}
 				// DB에서 가져온 목록이 1000개 이하일경우
 				if (EventList.size() < 1000)

@@ -100,6 +100,8 @@ namespace PortalSvr.Services
 		public const string KSAN_GW_SETTINGS_FILE = "Resources/ksangw.json";
 		/// <summary> Ksan OSD 설정 파일 경로 </summary>
 		public const string KSAN_OSD_SETTINGS_FILE = "Resources/ksanosd.json";
+		/// <summary> Ksan Lifecycle 설정 파일 경로 </summary>
+		public const string KSAN_LIFECYCLE_SETTINGS_FILE = "Resources/ksanLifecycle.json";
 		#endregion
 
 		/// <summary> 초기화 </summary>
@@ -131,6 +133,15 @@ namespace PortalSvr.Services
 			// 	Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
 			// 	return;
 			// }
+
+			// KsanLifecycle의 기본 설정 정보를 읽어온다.
+			string StrKsanLifecycle = File.ReadAllText(KSAN_LIFECYCLE_SETTINGS_FILE);
+			JObject KsanLifecycle = JObject.Parse(StrKsanLifecycle);
+			if (KsanLifecycle == null)
+			{
+				Console.WriteLine($"{PORTAL_SETTINGS_FILE} is Empty");
+				return;
+			}
 
 			// 호스트 주소
 			if (GetEnvValue(Resource.ENV_PORTAL_HOST, out string PortalHost))
@@ -216,6 +227,13 @@ namespace PortalSvr.Services
 				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanGW[KEY_OBJ_DB_USER] = MongoDBUser;
 				KsanGW[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
+				
+				KsanLifecycle[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				KsanLifecycle[KEY_OBJ_DB_HOST] = MongoDBHost;
+				KsanLifecycle[KEY_OBJ_DB_PORT] = MongoDBPort;
+				KsanLifecycle[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanLifecycle[KEY_OBJ_DB_USER] = MongoDBUser;
+				KsanLifecycle[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 			}
 			else
 			{
@@ -225,6 +243,12 @@ namespace PortalSvr.Services
 				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanGW[KEY_OBJ_DB_USER] = MariaDBUser;
 				KsanGW[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
+				KsanLifecycle[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				KsanLifecycle[KEY_OBJ_DB_HOST] = MariaDBHost;
+				KsanLifecycle[KEY_OBJ_DB_PORT] = MariaDBPort;
+				KsanLifecycle[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanLifecycle[KEY_OBJ_DB_USER] = MariaDBUser;
+				KsanLifecycle[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			// KsanGW DB 설정
@@ -244,6 +268,7 @@ namespace PortalSvr.Services
 			File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
 			File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
 			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
+			File.WriteAllText(KSAN_LIFECYCLE_SETTINGS_FILE, KsanLifecycle.ToString());
 		}
 
 		/// <summary> 환경변수 값을 가져온다.</summary>

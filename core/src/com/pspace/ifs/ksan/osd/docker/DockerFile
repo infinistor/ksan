@@ -6,6 +6,8 @@ RUN mvn -f /src/pom.xml package install
 FROM maven:3.8.6-jdk-11 as build
 WORKDIR /src
 COPY --from=libsbuild /root/.m2 /root/.m2
+COPY ./core/src/com/pspace/ifs/ksan/osd/pom.xml /src/
+RUN mvn -f /src/pom.xml verify --fail-never
 COPY ./core/src/com/pspace/ifs/ksan/osd/ /src/
 RUN mvn -f /src/pom.xml package
 ########################################################################

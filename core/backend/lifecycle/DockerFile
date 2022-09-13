@@ -12,6 +12,8 @@ RUN mvn -f /src/pom.xml package install
 FROM maven:3.8.6-jdk-11 as build
 WORKDIR /src
 COPY --from=objmanagerbuild /root/.m2 /root/.m2
+COPY ./core/backend/lifecycle/pom.xml /src/
+RUN mvn -f /src/pom.xml verify --fail-never
 COPY ./core/backend/lifecycle/ /src/
 RUN mvn -f /src/pom.xml package
 

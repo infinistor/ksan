@@ -10,17 +10,15 @@
 */
 package com.pspace.backend.Main;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.lang.management.ManagementFactory;
-
-import com.pspace.DB.DBManager;
-import com.pspace.Portal.PortalConfig;
-import com.pspace.Portal.PortalManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.pspace.Ksan.KsanConfig;
+import com.pspace.Ksan.PortalManager;
+import com.pspace.backend.Lifecycle.LifecycleFilter;
+import com.pspace.backend.Lifecycle.LifecycleSender;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
+import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -29,69 +27,70 @@ public class Main {
 		logger.info("Lifecycle Manager Start!");
 
 		// Read Configuration
-		var PortalData = new PortalConfig("/usr/local/ksan/etc/ksanMonitor.conf");
-		if (!PortalData.GetConfig()) {
+		var KsanConfig = new KsanConfig("/usr/local/ksan/etc/ksanAgent.conf");
+		if (!KsanConfig.GetConfig()) {
 			logger.error("Config Read Failed!");
 			return;
 		}
-		logger.info("{} => {}:{}", PortalData.FileName, PortalData.Ip, PortalData.Port);
+		logger.info(KsanConfig.toString());
 
 		// Read Configuration to Portal
-		var Portal = new PortalManager(PortalData.Ip, PortalData.Port, PortalData.Key);
-		var Config = Portal.GetConfig2Lifecycle();
-		if (Config == null) {
+		var Portal = new PortalManager(KsanConfig.PortalHost, KsanConfig.PortalPort, KsanConfig.APIKey);
+		var LifecycleConfig = Portal.GetConfig2Lifecycle();
+		if (LifecycleConfig == null) {
 			logger.error("Lifecycle Config Read Failed!");
 			return;
 		}
-		logger.info(Config.toString());
-		
-		var Region = Portal.GetRegion(Config.Region);
+		logger.info(LifecycleConfig.toString());
+
+		var Region = Portal.GetRegion(LifecycleConfig.Region);
 		if (Region == null) {
 			logger.error("Region Read Failed!");
 			return;
 		}
 
-		// DB Initialization
-		var DB = new DBManager(Config.GetDBConfig());
-		if (!DB.CreateTables()) {
-			logger.error("DB Tables Create Failed!");
+		// Create ObjManager
+		ObjManagerUtil ObjManager = null;
+		try {
+			ObjManagerConfig ObjConfig = new ObjManagerConfig();
+			ObjConfig.dbRepository = LifecycleConfig.DBType;
+			ObjConfig.dbHost = LifecycleConfig.Host;
+			ObjConfig.dbport = LifecycleConfig.Port;
+			ObjConfig.dbName = LifecycleConfig.DatabaseName;
+			ObjConfig.dbUsername = LifecycleConfig.User;
+			ObjConfig.dbPassword = LifecycleConfig.Password;
+			ObjConfig.mqHost = KsanConfig.MQHost;
+			ObjConfig.mqPort = KsanConfig.MQPort;
+			ObjConfig.mqUsername = KsanConfig.MQUser;
+			ObjConfig.mqPassword = KsanConfig.MQPassword;
+			ObjConfig.mqOsdExchangename = "ksan.osdExchange";
+			ObjConfig.mqExchangename = "ksan.system";
+			ObjConfig.mqQueeuname = "disk";
+
+			logger.info(ObjConfig.toString());
+
+			ObjManager = new ObjManagerUtil(ObjConfig);
+		} catch (Exception e) {
+			logger.error("", e);
 			return;
 		}
 
-		// Event Clear
-		DB.LifecycleEventsClear();
-
 		// Get Bucket
-		var BucketList = DB.GetBucketList();
-		if (BucketList.size() > 0) {
-			logger.info("Lifecycle Filter Start!");
-			var Filter = new LifecycleFilter(DB);
+		logger.info("Lifecycle Filter Start!");
+		var Filter = new LifecycleFilter(ObjManager);
 
+		try {
 			if (Filter.Filtering()) {
 				logger.info("Lifecycle Sender Start!");
-				var Sender = new LifecycleSender(DB, Region.GetURL(), Region.AccessKey, Region.SecretKey);
+				var Sender = new LifecycleSender(ObjManager, Region.GetURL(), Region.AccessKey, Region.SecretKey);
 				Sender.Start();
 			} else
 				logger.info("Lifecycle filtering Empty!");
-		}
 
-		logger.info("Lifecycle Manager End!");
-	}
-
-	public static boolean SavePid(String FilePath) {
-		try {
-			String temp = ManagementFactory.getRuntimeMXBean().getName();
-			int index = temp.indexOf("@");
-			String PID = temp.substring(0, index);
-
-			File file = new File(FilePath);
-			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-			writer.write(PID);
-			writer.close();
-			return true;
+			logger.info("Lifecycle Manager End!");
 		} catch (Exception e) {
 			logger.error("", e);
-			return false;
 		}
+		return;
 	}
 }

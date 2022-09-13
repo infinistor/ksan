@@ -1,0 +1,12 @@
+[Unit]
+Description=MariaDB Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a mariadb
+ExecStop=/usr/bin/docker stop -t 2 mariadb
+
+[Install]
+WantedBy=multi-user.target
