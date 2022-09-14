@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
@@ -131,12 +132,17 @@ public class OSDServer {
                 DataInputStream di = new DataInputStream(socket.getInputStream());
                 boolean flag = false;
 
-                while (true) {
+                while (true) {                    
                     int length = socket.getInputStream().read();
                     if (length == -1) {
                         logger.info("socket {} EOF ...", socket.getRemoteSocketAddress().toString());
                         break;
                     }
+                    byte[] lengthBuffer = new byte[length];
+                    socket.getInputStream().read(lengthBuffer, 0, length);
+                    String strLength = new String(lengthBuffer);
+
+                    length = Integer.parseInt(strLength);
 
                     logger.info("header length : {}", length);
                     // if (length > OSDConstants.HEADERSIZE) {
@@ -242,6 +248,10 @@ public class OSDServer {
     
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = new File(OSDUtils.getInstance().makeObjPath(path, objId, versionId));
+
+            if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
+                key = null;
+            }
             if (!Strings.isNullOrEmpty(key)) {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     long remainLength = 0L;
@@ -372,6 +382,9 @@ public class OSDServer {
             File tmpFile = null;
             File trashFile = null;
 
+            if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
+                key = null;
+            }
             if (!Strings.isNullOrEmpty(key)) {
                 if (OSDConfig.getInstance().isCacheDiskpath()) {
                     file = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeObjPath(path, objId, versionId)));
@@ -661,6 +674,9 @@ public class OSDServer {
             }
 
             com.google.common.io.Files.createParentDirs(tmpFile);
+            if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
+                key = null;
+            }
             if (!Strings.isNullOrEmpty(key)) {
                 try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
                     int readLength = 0;
@@ -800,7 +816,7 @@ public class OSDServer {
             String versionId = headers[OsdData.VERSIONID_INDEX];
             String key = headers[OsdData.COMPLETE_MULTIPART_KEY_INDEX];
             String partInfos = headers[OsdData.COMPLETE_MULTIPART_PARTNOS_INDEX];
-            logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO, path, objId, partInfos);
+            logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO, path, objId, versionId, key, partInfos);
             
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
@@ -814,8 +830,11 @@ public class OSDServer {
             
             String[] arrayPartInfo = partInfos.split(OSDConstants.COMMA);
 
-            SortedMap<Integer, Part> listPart = null;
+            SortedMap<Integer, Part> listPart = new TreeMap<Integer, Part>();
             for (int i = 0; i < arrayPartInfo.length; i++) {
+                if (Strings.isNullOrEmpty(arrayPartInfo[i])) {
+                    break;
+                }
                 Part part = new Part();
                 String[] info = arrayPartInfo[i].split(OSDConstants.SLASH);
                 logger.debug("part no : {}, diskId : {}, size : {}", info[0], info[1], info[2]);
@@ -842,6 +861,10 @@ public class OSDServer {
             com.google.common.io.Files.createParentDirs(file);
 
             try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
+                logger.debug("key : {}", key);
+                if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
+                    key = null;
+                }
                 if (!Strings.isNullOrEmpty(key)) {
                     encryptOS = OSDUtils.initCtrEncrypt(tmpOut, key);
                     // for each part object
@@ -850,7 +873,7 @@ public class OSDServer {
                         String partPath = DiskManager.getInstance().getLocalPath(entry.getValue().getDiskID());
                         if (!Strings.isNullOrEmpty(partPath)) {
                             // part is in local disk
-                            logger.debug("part : {}, diskID : {}, part path : {}", entry.getKey(), entry.getValue().getDiskID(), partPath);
+                            logger.debug("key : {}, part : {}, diskID : {}, part path : {}", key, entry.getKey(), entry.getValue().getDiskID(), partPath);
                             File partFile = null;
                             if (OSDConfig.getInstance().isCacheDiskpath()) {
                                 partFile = new File(OSDUtils.getInstance().makeCachePath(OSDUtils.getInstance().makeTempPartPath(partPath, objId, String.valueOf(entry.getValue().getPartNumber()))));

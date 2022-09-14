@@ -51,7 +51,7 @@ public final class OSDConstants {
 	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
     public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 
-    public static final int HEADERSIZE = 1024;
+    public static final int HEADERSIZE = 1024 * 1024;
     public static final int MAXBUFSIZE = 524288; // 512 * 1024
 	public static final int BUFSIZE = 262144; // 256 * 1024
 	public static final long PARTS_MIN_SIZE = 5242880; // 5MB
@@ -74,6 +74,7 @@ public final class OSDConstants {
     public static final String COLON = ":";
     public static final String MD5 = "MD5";
     public static final String EMPTY_STRING = "";
+    public static final String STR_NULL = "null";
 
     public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
 	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
@@ -182,7 +183,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_PART_COPY_SUCCESS_INFO = "part copy - success : srcPath={}, srcObjId={}, srcVersionId={}, destPath={}, destObjId={}, destPartNo={}, copySourceRange={}";
 
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_START ="completeMultipart start ...";
-    public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO = "path : {}, objId : {}, key : {}, partInfos : {}";
+    public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO = "path : {}, objId : {}, versionId : {}, key : {}, partInfos : {}";
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_END = "completeMultipart end ...";
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_SUCCESS_INFO = "completeMultipart - success : path={}, objId={}, partNos={}";
 

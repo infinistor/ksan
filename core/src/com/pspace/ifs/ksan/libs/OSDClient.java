@@ -235,8 +235,12 @@ public class OSDClient {
 
 	private void sendHeader(String header) throws IOException {
 		byte[] buffer = header.getBytes(Constants.CHARSET_UTF_8);
-		byte length = (byte)buffer.length;
+        String strLength = Integer.toString(buffer.length);
+        byte[] lengthBuffer = strLength.getBytes(Constants.CHARSET_UTF_8);
+
+		byte length = (byte)lengthBuffer.length;
 		socket.getOutputStream().write(length);
+        socket.getOutputStream().write(lengthBuffer, 0, length);
 		
 		socket.getOutputStream().write(buffer, 0, buffer.length);
 		socket.getOutputStream().flush();
