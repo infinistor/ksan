@@ -103,6 +103,9 @@ public class FSCK {
         if (mt.getPath().endsWith("/"))
             return res; // ignore directory
         
+        if (mt.getEtag().contains("-"))
+            return res; // ignore multipart unfinished objects
+        
         if (mt.getReplicaCount() > 1 ){ // when only one object exist
             if (!mt.isPrimaryExist()){
                 primaryProblem.numNotFound++;
@@ -186,7 +189,7 @@ public class FSCK {
             primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
             //System.out.println(" objId >> " + mt.getObjId() +" primary  >> "+ primary);
             if (!primary.errorCode.contains("MQ_SUCESS")){
-                objm.log("ObjId >>" +  mt.getObjId()+" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode);
+                objm.log("[NOTFOUND] ObjId >>" +  mt.getObjId() +" Versiond: "+ mt.getVersionId() +" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode + "\n");
                 primaryProblem.numNotFound++;
                 primaryProblem.totalFailed++;
                 if (!checkOnly) totalFailedToFix++;
@@ -194,14 +197,14 @@ public class FSCK {
             }
             
             if (!primary.md5.equals(mt.getEtag())){
-                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+               objm.log("[DifferentMD5] objId :"+ mt.getObjId() +" Versiond: "+ mt.getVersionId() +" primary MD5 :" + primary.md5 + " meta MD5 :" + mt.getEtag() + "\n");
                primaryProblem.numMd5Differnt++;   
                primaryProblem.totalFailed++;
                if (!checkOnly) totalFailedToFix++;
             }
             
             if (primary.size != mt.getSize()){
-                //System.out.println(" primary md5 >> "+ primary.md5 + " size >" + primary.size);
+                objm.log("[DifferentSize] objId : "+ mt.getObjId() +" Versiond : "+ mt.getVersionId() +" primary size :" + primary.size + " meta size :" + mt.getSize() + "\n");
                 primaryProblem.numSizeDiffernt++;
             }
         }
