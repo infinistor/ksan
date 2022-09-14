@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.object.osdclient;
+package com.pspace.ifs.ksan.libs;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 
-import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class OSDClient {
 		socket = new Socket(ipAddress, port);
         socket.setTcpNoDelay(true);
         socket.setKeepAlive(true);
-        logger.debug(GWConstants.LOG_OSDCLIENT_SOCKET_INFO, socket.toString());
+        logger.debug(Constants.LOG_OSDCLIENT_SOCKET_INFO, socket.toString());
 	}
 
 	public Socket getSocket() {
@@ -49,12 +49,12 @@ public class OSDClient {
 	}
 
 	public void close() {
-		logger.debug(GWConstants.LOG_OSDCLIENT_CLOSE_SOCKET_INFO, socket.toString());
+		logger.debug(Constants.LOG_OSDCLIENT_CLOSE_SOCKET_INFO, socket.toString());
 		if (socket != null) {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				logger.error(GWConstants.LOG_OSDCLIENT_SOCKET_ERROR, e.getMessage());
+				logger.error(Constants.LOG_OSDCLIENT_SOCKET_ERROR, e.getMessage());
 			} finally {
 				socket = null;
 			}
@@ -68,15 +68,15 @@ public class OSDClient {
 						+ OsdData.DELIMITER + versionId 
 						+ OsdData.DELIMITER + sourceRange
 						+ OsdData.DELIMITER + key;
-		logger.debug(GWConstants.LOG_OSDCLIENT_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
 		byPassOut = out;
 	}
 
 	public long get() throws IOException {
-		byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-		int readByte = GWConstants.MAXBUFSIZE;
+		byte[] buffer = new byte[Constants.MAXBUFSIZE];
+		int readByte = Constants.MAXBUFSIZE;
 		int readLength = 0;
 		long readTotal = 0L;
 		
@@ -89,7 +89,7 @@ public class OSDClient {
 		}
 		byPassOut.flush();
 		// byPassOut.close();
-		logger.info(GWConstants.LOG_OSDCLIENT_READ, readTotal);
+		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
 		return readTotal;
 	}
 
@@ -98,7 +98,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + partNo;
-		logger.debug(GWConstants.LOG_OSDCLIENT_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
 		byPassOut = out;
@@ -106,8 +106,8 @@ public class OSDClient {
 	}
 
 	public long getPart() throws IOException {
-		byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-		int readByte = GWConstants.MAXBUFSIZE;
+		byte[] buffer = new byte[Constants.MAXBUFSIZE];
+		int readByte = Constants.MAXBUFSIZE;
 		int readLength = 0;
 		long readTotal = 0L;
 		
@@ -121,7 +121,7 @@ public class OSDClient {
 		}
 		byPassOut.flush();
 		// byPassOut.close();
-		logger.debug(GWConstants.LOG_OSDCLIENT_READ, readTotal);
+		logger.debug(Constants.LOG_OSDCLIENT_READ, readTotal);
 
 		return readTotal;
 	}
@@ -136,7 +136,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + replicaDiskID
 						+ OsdData.DELIMITER + key
 						+ OsdData.DELIMITER + mode;
-		logger.debug(GWConstants.LOG_OSDCLIENT_PUT_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_PUT_HEADER, header);
 		sendHeader(header);
 	}
 
@@ -154,7 +154,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + versionId;
-		logger.debug(GWConstants.LOG_OSDCLIENT_DELETE_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_DELETE_HEADER, header);
 		sendHeader(header);
 	}
 
@@ -168,7 +168,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + destVersionId
 						+ OsdData.DELIMITER + replication
 						+ OsdData.DELIMITER + replicaDiskID;
-		logger.debug(GWConstants.LOG_OSDCLIENT_COPY_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_COPY_HEADER, header);
 		sendHeader(header);
 	}
 
@@ -179,7 +179,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + partNo 
 						+ OsdData.DELIMITER + String.valueOf(length)
 						+ OsdData.DELIMITER + key;
-		logger.debug(GWConstants.LOG_OSDCLIENT_PART_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_PART_HEADER, header);
 		sendHeader(header);
 	}
 
@@ -192,7 +192,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + partNo;
-		logger.debug(GWConstants.LOG_OSDCLIENT_DELETE_PART_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_DELETE_PART_HEADER, header);
 		sendHeader(header);
 	}
 
@@ -205,19 +205,20 @@ public class OSDClient {
 						+ OsdData.DELIMITER + destObjId 
 						+ OsdData.DELIMITER + partNo 
 						+ OsdData.DELIMITER + copySourceRange;
-		logger.debug(GWConstants.LOG_OSDCLIENT_PART_COPY_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_PART_COPY_HEADER, header);
 		sendHeader(header);
 
 		return receiveData();
 	}
 
-	public OsdData completeMultipart(String path, String objId, String versionId, String partNos) throws IOException {
+	public OsdData completeMultipart(String path, String objId, String versionId, String key, String partNos) throws IOException {
 		String header = OsdData.COMPLETE_MULTIPART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + versionId 
+						+ OsdData.DELIMITER + key
 						+ OsdData.DELIMITER + partNos;
-		logger.debug(GWConstants.LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER, header);
 		sendHeader(header);
 
 		return receiveData();
@@ -228,12 +229,12 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + partNos;
-		logger.debug(GWConstants.LOG_OSDCLIENT_ABORT_MULTIPART_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_ABORT_MULTIPART_HEADER, header);
 		sendHeader(header);
 	}
 
 	private void sendHeader(String header) throws IOException {
-		byte[] buffer = header.getBytes(GWConstants.CHARSET_UTF_8);
+		byte[] buffer = header.getBytes(Constants.CHARSET_UTF_8);
 		byte length = (byte)buffer.length;
 		socket.getOutputStream().write(length);
 		
@@ -248,7 +249,7 @@ public class OSDClient {
 		byte[] buffer = new byte[size];
 		si.read(buffer, 0, size);
 		String result = new String(buffer, 0, size);
-		String[] ArrayResult = result.split(GWConstants.COLON, -1);
+		String[] ArrayResult = result.split(Constants.COLON, -1);
 
 		OsdData data = new OsdData();
 		switch (ArrayResult[0]) {
@@ -257,7 +258,7 @@ public class OSDClient {
 			data.setFileSize(Long.parseLong(ArrayResult[2]));
 			return data;
 		default:
-			logger.error(GWConstants.LOG_OSDCLIENT_UNKNOWN_RESULT, ArrayResult[1]);
+			logger.error(Constants.LOG_OSDCLIENT_UNKNOWN_RESULT, ArrayResult[1]);
 		}
 
 		return null;
@@ -275,10 +276,11 @@ public class OSDClient {
 	}
 
 	public void activate() {
-		logger.debug(GWConstants.LOG_OSDCLIENT_ACTIVATE_SOCKET);
+		logger.debug(Constants.LOG_OSDCLIENT_ACTIVATE_SOCKET);
 	}
 
 	public void desactivate() {
-		logger.debug(GWConstants.LOG_OSDCLIENT_DESACTIVATE_SOCKET);
+		logger.debug(Constants.LOG_OSDCLIENT_DESACTIVATE_SOCKET);
 	}
 }
+

@@ -49,7 +49,8 @@ public class OsdData {
     public static final int PUT_KEY_INDEX = 7;
     public static final int PUT_MODE_INDEX = 8;
     public static final int PARTNO_INDEX = 3;
-    public static final int COMPLETE_MULTIPART_PARTNOS = 4;
+    public static final int COMPLETE_MULTIPART_KEY_INDEX = 4;
+    public static final int COMPLETE_MULTIPART_PARTNOS_INDEX = 5;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
     public static final int PART_NO_INDEX = 3;
     public static final int PARTNOS_INDEX = 3;

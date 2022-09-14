@@ -43,7 +43,6 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
-import com.pspace.ifs.ksan.gw.object.osdclient.OSDClient;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -53,6 +52,7 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
@@ -1776,12 +1776,12 @@ public class S3ObjectOperation {
             return;
         }
 
-        String path = DiskManager.getInstance().getLocalPath(diskID);
-        if (path == null) {
+        String path = objMeta.getPrimaryDisk().getPath();
+        if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
             // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
             OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-            client.deletePart(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), s3Parameter.getPartNumber());
-            OSDClientManager.getInstance().returnOSDClient(client);
+            client.deletePart(path, objMeta.getObjId(), s3Parameter.getPartNumber());
+            // OSDClientManager.getInstance().returnOSDClient(client);
         } else {
             File tmpFile = null;
             if (GWConfig.getInstance().isCacheDiskpath()) {
@@ -1927,11 +1927,25 @@ public class S3ObjectOperation {
         CtrCryptoOutputStream encryptOS = null;
         CtrCryptoInputStream encryptIS = null;
 
-        String path = DiskManager.getInstance().getLocalPath();
+        String path = objMeta.getPrimaryDisk().getPath();
 
-        if (path == null) {
-            logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+        if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+            logger.info(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH);
+            OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            String partInfos = GWConstants.EMPTY_STRING;
+            for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
+                Map.Entry<Integer, Part> entry = it.next();
+                partInfos += entry.getValue().getPartNumber() + GWConstants.SLASH 
+                            + entry.getValue().getDiskID() + GWConstants.SLASH 
+                            + entry.getValue().getPartSize() + GWConstants.COMMA;
+            }
+            OsdData data = client.completeMultipart(path, objMeta.getObjId(), versionId, s3Encryption.getCustomerKey(), partInfos);
+            s3Object.setEtag(data.getETag());
+            s3Object.setLastModified(new Date());
+            s3Object.setFileSize(data.getFileSize());
+            s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+
+            return s3Object;
         }
 
         File tmpFile = null;

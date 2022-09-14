@@ -182,7 +182,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_PART_COPY_SUCCESS_INFO = "part copy - success : srcPath={}, srcObjId={}, srcVersionId={}, destPath={}, destObjId={}, destPartNo={}, copySourceRange={}";
 
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_START ="completeMultipart start ...";
-    public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO = "path : {}, objId : {}, partNos : {}";
+    public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO = "path : {}, objId : {}, key : {}, partInfos : {}";
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_END = "completeMultipart end ...";
     public static final String LOG_OSD_SERVER_COMPLETE_MULTIPART_SUCCESS_INFO = "completeMultipart - success : path={}, objId={}, partNos={}";
 

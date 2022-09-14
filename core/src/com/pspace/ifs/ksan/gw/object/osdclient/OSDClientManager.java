@@ -25,6 +25,7 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
+import com.pspace.ifs.ksan.libs.OSDClient;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
