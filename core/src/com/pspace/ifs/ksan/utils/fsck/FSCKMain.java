@@ -14,6 +14,8 @@ package com.pspace.ifs.ksan.utils.fsck;
 import ch.qos.logback.classic.LoggerContext;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.kohsuke.args4j.Option;
@@ -45,10 +47,34 @@ public class FSCKMain {
     
     private CmdLineParser parser;
     
+    private String [] makeCaseInsensitive(String[] args){
+        String prefx;
+        List<String> refArgs = new ArrayList();
+        for(String opt : args){
+            prefx = opt.split(" ")[0].toLowerCase();
+            if (prefx.equalsIgnoreCase("--BucketName")){
+               refArgs.add(opt.replaceFirst(prefx, "--BucketName"));
+            }
+            else if (prefx.equalsIgnoreCase("--DiskName")){
+               refArgs.add(opt.replaceFirst(prefx, "--DiskName"));
+            }
+            else if (prefx.equalsIgnoreCase("--CheckOnly")){
+               refArgs.add(opt.replaceFirst(prefx, "--CheckOnly"));
+            } 
+            else if (prefx.equalsIgnoreCase("--Help")){
+               refArgs.add(opt.replaceFirst(prefx, "--Help"));
+            }
+            else
+                refArgs.add(opt);
+        }
+        return refArgs.toArray(new String[0]);
+    }
+    
     int parseArgs(String[] args){
         parser = new CmdLineParser(this);
         try{
-             parser.parseArgument(args);
+            String[] cisArgs = makeCaseInsensitive(args);
+            parser.parseArgument(cisArgs);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
            System.err.format(" %s [--CheckOnly] --BucketName <bucket Name> --DiskName <osd disk Name>\n", getProgramName());

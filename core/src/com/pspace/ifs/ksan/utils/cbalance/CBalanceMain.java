@@ -20,6 +20,8 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.CmdLineException;
 import ch.qos.logback.classic.LoggerContext;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -101,11 +103,52 @@ public class CBalanceMain {
         return 0; 
     }
     
+    private String [] makeCaseInsensitive(String[] args){
+        String prefx;
+        List<String> refArgs = new ArrayList();
+        for(String opt : args){
+            prefx = opt.split(" ")[0].toLowerCase();
+            if (prefx.equalsIgnoreCase("--BucketName")){
+               refArgs.add(opt.replaceFirst(prefx, "--BucketName"));
+            }
+            else if (prefx.equalsIgnoreCase("--Key")){
+               refArgs.add(opt.replaceFirst(prefx, "--Key"));
+            }
+            else if (prefx.equalsIgnoreCase("--ObjId")){
+               refArgs.add(opt.replaceFirst(prefx, "--ObjId"));
+            }
+            else if (prefx.equalsIgnoreCase("--VersionId")){
+               refArgs.add(opt.replaceFirst(prefx, "--VersionId"));
+            }
+            else if (prefx.equalsIgnoreCase("--EmptyDisk")){
+               refArgs.add(opt.replaceFirst(prefx, "--EmptyDisk"));
+            }
+            else if (prefx.equalsIgnoreCase("--SrcDiskName")){
+               refArgs.add(opt.replaceFirst(prefx, "--SrcDiskName"));
+            }
+            else if (prefx.equalsIgnoreCase("--DstDiskName")){
+               refArgs.add(opt.replaceFirst(prefx, "--DstDiskName"));
+            }
+            else if (prefx.equalsIgnoreCase("--Size")){
+               refArgs.add(opt.replaceFirst(prefx, "--Size"));
+            }
+            else if (prefx.equalsIgnoreCase("--OkLocalMove")){
+               refArgs.add(opt.replaceFirst(prefx, "--OkLocalMove"));
+            }
+            else if (prefx.equalsIgnoreCase("--Help")){
+               refArgs.add(opt.replaceFirst(prefx, "--Help"));
+            }
+            else
+                refArgs.add(opt);
+        }
+        return refArgs.toArray(new String[0]);
+    }
     int parseArgs(String[] args){
         
         parser = new CmdLineParser(this);
         try{
-             parser.parseArgument(args);
+            String[] cisArgs = makeCaseInsensitive(args);
+            parser.parseArgument(cisArgs);
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
            System.err.format("%s --Emptydisk --BucketName <bucket Name> --Key <object key> --VersionId <object version Id> --Size <capacity to move> --SrcDiskName <Source disk name> --DstDiskName <Destination disk Name> --OkLocalMove \n", getProgramName());
