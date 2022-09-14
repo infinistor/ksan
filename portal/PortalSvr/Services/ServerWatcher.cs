@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MTLib.Core;
@@ -31,29 +32,24 @@ namespace PortalSvr.Services
 	/// <summary> 서버 감시 클래스</summary>
 	public class ServerWatcher : IServerWatcher
 	{
-		/// <summary> 서버 프로바이더</summary>
-		protected readonly IServerProvider m_serverProvider;
-		/// <summary> 서비스 프로바이더</summary>
-		protected readonly IServiceProvider m_serviceProvider;
-
 		/// <summary> 타이머</summary>
 		private Timer m_timer = null;
+		
+		/// <summary>서비스 팩토리</summary>
+		protected readonly IServiceScopeFactory m_serviceScopeFactory;
 
 		/// <summary>로거</summary>
 		private readonly ILogger m_logger;
 
 		/// <summary>생성자</summary>
 		/// <param name="configuration">설정 정보</param>
-		/// <param name="serverProvider">서버에 대한 프로바이더 객체</param>
-		/// <param name="serviceProvider">서비스에 대한 프로바이더 객체</param>
+		/// <param name="serviceScopeFactory">서비스 팩토리</param>
 		/// <param name="logger">로거</param>
 		public ServerWatcher(IConfiguration configuration
-			, IServerProvider serverProvider
-			, IServiceProvider serviceProvider
+			, IServiceScopeFactory serviceScopeFactory
 			, ILogger<ServerWatcher> logger)
 		{
-			m_serverProvider = serverProvider;
-			m_serviceProvider = serviceProvider;
+			m_serviceScopeFactory = serviceScopeFactory;
 			m_logger = logger;
 		}
 
@@ -85,35 +81,39 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				// 서버의 갱신 임계값을 가져온다.
-				var Threshold = await m_serverProvider.GetThreshold();
-
-				// 타임아웃 값을 계산한다
-				var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
-
-				//온라인 상태인 서버 목록을 가져온다.
-				var ServerStates = new List<EnumServerState>() { EnumServerState.Online };
-				var Servers = await m_serverProvider.GetList(SearchStates: ServerStates);
-
-
-				foreach (var Server in Servers.Data.Items)
+				using (var ServiceScope = m_serviceScopeFactory.CreateScope())
 				{
-					// 서버의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
-					if (Server.ModDate < Timeout)
-						await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout);
+					var m_serverProvider = ServiceScope.ServiceProvider.GetService<IServerProvider>();
+					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
+
+					// 서버의 갱신 임계값을 가져온다.
+					var Threshold = await m_serverProvider.GetThreshold();
+
+					// 타임아웃 값을 계산한다
+					var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
+
+					//온라인 상태인 서버 목록을 가져온다.
+					var ServerStates = new List<EnumServerState>() { EnumServerState.Online };
+					var Servers = await m_serverProvider.GetList(SearchStates: ServerStates);
+
+					foreach (var Server in Servers.Data.Items)
+					{
+						// 서버의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
+						if (Server.ModDate < Timeout)
+							await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout);
+					}
+
+					// 온라인 상태인 서비스 목록을 가져온다.
+					var ServiceStatus = new List<EnumServiceState>() { EnumServiceState.Online };
+					var Services = await m_serviceProvider.GetList(SearchStates: ServiceStatus);
+
+					foreach (var Service in Services.Data.Items)
+					{
+						// 서비스의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
+						if (Service.ModDate < Timeout)
+							await m_serviceProvider.UpdateState(Service.Id, EnumServiceState.Timeout);
+					}
 				}
-
-				// 온라인 상태인 서비스 목록을 가져온다.
-				var ServiceStatus = new List<EnumServiceState>() { EnumServiceState.Online };
-				var Services = await m_serviceProvider.GetList(SearchStates: ServiceStatus);
-
-				foreach (var Service in Services.Data.Items)
-				{
-					// 서비스의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
-					if (Service.ModDate < Timeout)
-						await m_serverProvider.UpdateState(Service.Id, EnumServerState.Timeout);
-				}
-
 			}
 			catch (Exception ex)
 			{
