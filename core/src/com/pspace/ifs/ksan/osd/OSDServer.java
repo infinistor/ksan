@@ -922,6 +922,7 @@ public class OSDServer {
                                 }
                                 tmpOut.flush();
                             }
+                            partFile.delete();
                         } else {
                             partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
                             String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
