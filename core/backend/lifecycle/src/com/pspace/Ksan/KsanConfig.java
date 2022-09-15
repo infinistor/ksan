@@ -18,8 +18,11 @@ import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.Data.LifecycleConstants;
+
 public class KsanConfig {
-	private final String STR_FILENAME = "/usr/local/ksan/etc/ksanAgent.conf";
 	/////////////////////////// MGS /////////////////////////////////////
 	private final String STR_MGS = "mgs";
 	private final String STR_PORTAL_IP = "PortalHost";
@@ -29,7 +32,10 @@ public class KsanConfig {
 	private final String STR_MQ_PORT = "MQPort";
 	private final String STR_MQ_USER = "MQUser";
 	private final String STR_MQ_PASSWORD = "MQPassword";
-
+	/////////////////////////// MONITOR /////////////////////////////////////
+	private final String STR_MONITOR = "monitor";
+	private final String STR_SERVICE_MONITOR_INTERVAL = "ServiceMonitorInterval";
+	
 	/*********************************************************************************************************/
 	static final Logger logger = LoggerFactory.getLogger(KsanConfig.class);
 	public final String FileName;
@@ -44,9 +50,11 @@ public class KsanConfig {
 	public String MQPassword;
 	public String APIKey;
 
+	public int ServiceMonitorInterval;
+
 	public KsanConfig(String FileName) {
 		if (FileName.isEmpty())
-			this.FileName = STR_FILENAME;
+			this.FileName = LifecycleConstants.AGENT_CONF_PATH;
 		else
 			this.FileName = FileName;
 	}
@@ -65,7 +73,9 @@ public class KsanConfig {
 			MQPort = ReadKeyToInt(STR_MGS, STR_MQ_PORT);
 			MQUser = ReadKeyToString(STR_MGS, STR_MQ_USER);
 			MQPassword = ReadKeyToString(STR_MGS, STR_MQ_PASSWORD);
-
+			
+			ServiceMonitorInterval = ReadKeyToInt(STR_MONITOR, STR_SERVICE_MONITOR_INTERVAL);
+			
 		} catch (Exception e) {
 			logger.error("", e);
 			return false;
@@ -86,4 +96,14 @@ public class KsanConfig {
 	// {
 	// return Boolean.parseBoolean(ini.get(Section, Key));
 	// }
+	
+	@Override
+	public String toString() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
+	}
 }
