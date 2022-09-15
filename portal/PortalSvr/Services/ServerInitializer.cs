@@ -144,7 +144,7 @@ namespace PortalSvr.Services
 						var Response = await m_diskPoolProvider.Add(Request);
 
 						// 디스크풀 생성에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure");
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure. {Response.Message}");
 						else m_logger.LogInformation($"{DiskPoolName} Add Success");
 						DiskPool = Response;
 					}
