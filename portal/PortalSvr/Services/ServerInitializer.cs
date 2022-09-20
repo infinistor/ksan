@@ -144,7 +144,7 @@ namespace PortalSvr.Services
 						var Response = await m_diskPoolProvider.Add(Request);
 
 						// 디스크풀 생성에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure");
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure. {Response.Message}");
 						else m_logger.LogInformation($"{DiskPoolName} Add Success");
 						DiskPool = Response;
 					}
@@ -208,8 +208,8 @@ namespace PortalSvr.Services
 					//리전이 존재하지 않을 경우 생성한다.
 					var m_regionProvider = ServiceScope.ServiceProvider.GetService<IRegionProvider>();
 					var RegionName = m_configuration["AppSettings:RegionName"];
+
 					var Region = await m_regionProvider.Get(RegionName);
-					m_logger.LogInformation($"{RegionName}, {Region.Data.AccessKey}, {Region.Data.SecretKey}");
 					if (Region == null || Region.Result != EnumResponseResult.Success)
 					{
 						var Request = new RequestRegion()
@@ -222,7 +222,7 @@ namespace PortalSvr.Services
 						var Response = await m_regionProvider.Add(Request);
 
 						// 리전 생성에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{RegionName} Add Failure. {Response.Message}");
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{RegionName}6 Add Failure. {Response.Message}");
 						else m_logger.LogInformation($"{RegionName} Add Success");
 					}
 

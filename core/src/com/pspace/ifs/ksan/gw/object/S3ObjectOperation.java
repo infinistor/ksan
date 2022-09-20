@@ -1931,7 +1931,6 @@ public class S3ObjectOperation {
 
         if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
             logger.info(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH);
-            OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
             String partInfos = GWConstants.EMPTY_STRING;
             for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<Integer, Part> entry = it.next();
@@ -1939,6 +1938,8 @@ public class S3ObjectOperation {
                             + entry.getValue().getDiskID() + GWConstants.SLASH 
                             + entry.getValue().getPartSize() + GWConstants.COMMA;
             }
+            logger.debug("partInfos : {}", partInfos);
+            OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
             OsdData data = client.completeMultipart(path, objMeta.getObjId(), versionId, s3Encryption.getCustomerKey(), partInfos);
             s3Object.setEtag(data.getETag());
             s3Object.setLastModified(new Date());

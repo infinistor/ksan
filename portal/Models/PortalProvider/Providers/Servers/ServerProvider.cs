@@ -351,14 +351,11 @@ namespace PortalProvider.Providers.Servers
 					{
 						// 정보를 수정한다.
 						Exist.State = (EnumDbServerState)State;
-						if (LoginUserId != Guid.Empty || guidModId != Guid.Empty)
-							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : guidModId;
-						if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
-							Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : guidModId;
+						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
 						Exist.ModDate = DateTime.Now;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;

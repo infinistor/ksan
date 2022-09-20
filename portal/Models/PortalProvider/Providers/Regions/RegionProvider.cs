@@ -84,7 +84,7 @@ namespace PortalProvider.Providers.Accounts
 
 				Result.Data = new ResponseRegion();
 				Result.Data.CopyValueFrom(NewData);
-				
+
 				Result.Result = EnumResponseResult.Success;
 				Result.Code = Resource.SC_COMMON__SUCCESS;
 				Result.Message = Resource.SM_COMMON__CREATED;
@@ -213,8 +213,14 @@ namespace PortalProvider.Providers.Accounts
 				Result.Data = await m_dbContext.Regions.AsNoTracking()
 					.Where(i => i.Name == RegionName)
 					.FirstOrDefaultAsync<Region, ResponseRegion>();
-
-				Result.Result = EnumResponseResult.Success;
+				if (Result.Data == null)
+				{
+					Result.Code = Resource.EC_COMMON__NOT_FOUND;
+					Result.Message = Resource.EM_COMMON__NOT_FOUND;
+					Result.Result = EnumResponseResult.Error;
+				}
+				else
+					Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
 			{

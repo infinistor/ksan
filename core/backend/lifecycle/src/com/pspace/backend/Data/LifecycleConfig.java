@@ -27,6 +27,12 @@ public class LifecycleConfig {
 	@JsonProperty("ksan.region")
 	public String Region;
 
+	@JsonProperty("lifecycle.schedule")
+	public String Schedule;
+
+	@JsonProperty("lifecycle.check_interval")
+	public long CheckInterval;
+
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
