@@ -18,6 +18,6 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 # RUN mkdir -p /usr/local/ksan/etc/
 # COPY ./core/backend/lifecycle/resources/ksanLifecycle_log_conf.xml /usr/local/ksan/etc/
-COPY --from=build /src/target/ksanLifecycle /usr/local/ksan/sbin/
+COPY --from=build /src/target/ksanLifecycle.jar /usr/local/ksan/sbin/
 COPY ./core/backend/lifecycle/resources/start.sh /app
 CMD ["/app/start.sh"]

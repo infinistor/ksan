@@ -15,7 +15,6 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
-import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.OSDClient;
 import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
@@ -24,6 +23,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineExcep
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.utils.ObjectMover;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +41,10 @@ public class Recovery {
     private static Logger logger;
     private ObjManagerUtil obmu;
     private OSDClient osdc;
+    private String serviceId;
+    private final String SERVICENAME = "ksanRecovery";
+    private final String START = "start";
+    private final String STOP  = "stop";
     
    
     class RecoveryObjectCallback implements MQCallback{
@@ -93,19 +97,46 @@ public class Recovery {
         }
     }
     
-    public Recovery() throws Exception{
+    private void sendStopEvent(){
+        Thread shutdownhook = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    obmu.getObjManagerConfig().getPortalHandel().postStartStopEvent(STOP, serviceId, SERVICENAME);
+                } catch (IOException ex) {
+                    logger.error("[sendStopEvent] {}", ex);
+                }
+            }
+        };
+        Runtime.getRuntime().addShutdownHook(shutdownhook);
+    }
+    
+    private void sendStartEvent(){
+        try {
+            obmu.getObjManagerConfig().getPortalHandel().postStartStopEvent(START, serviceId, SERVICENAME);
+        } catch (IOException ex) {
+            logger.error("[sendStartEvent] {}", ex);
+        }
+    }
+    
+    public Recovery( String serviceId) throws Exception{
         queueN = "recoveryQueue";
         exchange = "UtilityExchange"; 
         option ="direct";
         bindingKey = "*.services.recoverd.report.fail_of_replication";
+        this.serviceId = serviceId;
         
         logger = LoggerFactory.getLogger(Recovery.class);
         ObjManagerConfig config = new ObjManagerConfig();
         obmu = new ObjManagerUtil();
+        if (serviceId.isEmpty())
+          this.serviceId =   obmu.getObjManagerConfig().getPortalHandel().getHostServerId();
+        
         om = new ObjectMover(false, "RECOVERY");
         MQCallback mq = new RecoveryObjectCallback();
         mqReceiver = new MQReceiver(config.mqHost, queueN, exchange, false, option, bindingKey, mq);
         osdc = new OSDClient(config); // *.servers.getattr.*
-    }
-          
+        sendStartEvent();
+        sendStopEvent();
+    }      
 }

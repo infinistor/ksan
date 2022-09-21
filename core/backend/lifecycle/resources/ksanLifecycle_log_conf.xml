@@ -4,20 +4,15 @@
 	<property name="LIFECYCLE_LOGS_PATH" value="/var/log/ksan/lifecycle" />
 	<property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objmanager" />
 
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread{5}][%logger{10}.%method:%line] : %msg%n</pattern>
-		</layout>
-	</appender>
 	<appender name="LIFECYCLE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LIFECYCLE_LOGS_PATH}/lifecycle.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>${LIFECYCLE_LOGS_PATH}/lifecycle.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<fileNamePattern>${LIFECYCLE_LOGS_PATH}/lifecycle.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
 			<maxHistory>7</maxHistory>
 			<maxFileSize>100MB</maxFileSize>
 		</rollingPolicy>
 		<encoder>
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread{5}][%logger{10}.%method:%line] : %msg%n</pattern>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS, ${logback.timezone:-Asia/Seoul}} [%thread{5}][%logger{10}.%method:%line] : %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -30,7 +25,7 @@
 			<totalSizeCap>5GB</totalSizeCap>
 		</rollingPolicy>
 		<encoder>
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%logger{10}.%method:%line]: %msg%n</pattern>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS, ${logback.timezone:-Asia/Seoul}} [%logger{10}.%method:%line]: %msg%n</pattern>
 		</encoder>
 	</appender>
 

@@ -406,23 +406,19 @@ namespace PortalProvider.Providers.Services
 				{
 					try
 					{
+						// 상태가 변경되었는지 확인한다.
+						var isChange = Exist.State != (EnumDbServiceState)State;
+
 						// 정보를 수정한다.
 						Exist.State = (EnumDbServiceState)State;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : ModGuid;
+						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+						Exist.ModDate = DateTime.Now;
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						await Transaction.CommitAsync();
 
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-						{
-							if (LoginUserId != Guid.Empty || ModGuid != Guid.Empty)
-								Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : ModGuid;
-							if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
-								Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
-							Exist.ModDate = DateTime.Now;
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-							await Transaction.CommitAsync();
-
-							// 서비스 변경 메시지 전송
-							SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
-						}
+						// 상태가 변경되었을 경우 메시지 전송
+						if (isChange) SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
 						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
@@ -624,13 +620,11 @@ namespace PortalProvider.Providers.Services
 					{
 						// 정보를 수정한다.
 						Exist.HaAction = (EnumDbHaAction)State;
-						if (LoginUserId != Guid.Empty || GuidModId != Guid.Empty)
-							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : GuidModId;
-						if (!LoginUserName.IsEmpty() || !ModName.IsEmpty())
-							Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
-						// 데이터가 변경된 경우 저장
-						if (m_dbContext.HasChanges())
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : GuidModId;
+						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+						Exist.ModDate = DateTime.Now;
+
+						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
