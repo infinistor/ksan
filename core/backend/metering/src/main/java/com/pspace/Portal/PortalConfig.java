@@ -19,10 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PortalConfig {
-	private final String STR_FILENAME = "/usr/local/ksan/etc/ksanMonitor.conf";
+	private final String STR_FILENAME = "/usr/local/ksan/etc/ksanAgent.conf";
 	/////////////////////////// MGS /////////////////////////////////////
 	private final String STR_MG = "mgs";
-	private final String STR_MGS_IP = "PortalIp";
+	private final String STR_MGS_IP = "PortalHost";
 	private final String STR_MGS_PORT = "PortalPort";
 	private final String STR_MGS_KEY = "PortalApiKey";
 		

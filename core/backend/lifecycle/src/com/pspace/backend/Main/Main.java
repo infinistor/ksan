@@ -10,17 +10,18 @@
 */
 package com.pspace.backend.Main;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.lang.management.ManagementFactory;
-
-import com.pspace.DB.DBManager;
-import com.pspace.Portal.PortalConfig;
-import com.pspace.Portal.PortalManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.pspace.Ksan.KsanConfig;
+import com.pspace.Ksan.PortalManager;
+import com.pspace.Utility.Util;
+import com.pspace.backend.Data.LifecycleConstants;
+import com.pspace.backend.Heartbeat.Heartbeat;
+import com.pspace.backend.Lifecycle.LifecycleFilter;
+import com.pspace.backend.Lifecycle.LifecycleSender;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
+import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -29,69 +30,106 @@ public class Main {
 		logger.info("Lifecycle Manager Start!");
 
 		// Read Configuration
-		var PortalData = new PortalConfig("/usr/local/ksan/etc/ksanMonitor.conf");
-		if (!PortalData.GetConfig()) {
+		var KsanConfig = new KsanConfig(LifecycleConstants.AGENT_CONF_PATH);
+		if (!KsanConfig.GetConfig()) {
 			logger.error("Config Read Failed!");
 			return;
 		}
-		logger.info("{} => {}:{}", PortalData.FileName, PortalData.Ip, PortalData.Port);
 
-		// Read Configuration to Portal
-		var Portal = new PortalManager(PortalData.Ip, PortalData.Port, PortalData.Key);
-		var Config = Portal.GetConfig2Lifecycle();
-		if (Config == null) {
-			logger.error("Lifecycle Config Read Failed!");
-			return;
-		}
-		logger.info(Config.toString());
-		
-		var Region = Portal.GetRegion(Config.Region);
-		if (Region == null) {
-			logger.error("Region Read Failed!");
+		// Get Service Id
+		var ServiceId = Util.ReadServiceId(LifecycleConstants.LIFECYCLE_SERVICE_ID_PATH);
+		if (ServiceId == null) {
+			logger.error("Service Id is Empty");
 			return;
 		}
 
-		// DB Initialization
-		var DB = new DBManager(Config.GetDBConfig());
-		if (!DB.CreateTables()) {
-			logger.error("DB Tables Create Failed!");
-			return;
-		}
-
-		// Event Clear
-		DB.LifecycleEventsClear();
-
-		// Get Bucket
-		var BucketList = DB.GetBucketList();
-		if (BucketList.size() > 0) {
-			logger.info("Lifecycle Filter Start!");
-			var Filter = new LifecycleFilter(DB);
-
-			if (Filter.Filtering()) {
-				logger.info("Lifecycle Sender Start!");
-				var Sender = new LifecycleSender(DB, Region.GetURL(), Region.AccessKey, Region.SecretKey);
-				Sender.Start();
-			} else
-				logger.info("Lifecycle filtering Empty!");
-		}
-
-		logger.info("Lifecycle Manager End!");
-	}
-
-	public static boolean SavePid(String FilePath) {
+		// Heartbeat
+		Thread HBThread;
+		Heartbeat HB;
 		try {
-			String temp = ManagementFactory.getRuntimeMXBean().getName();
-			int index = temp.indexOf("@");
-			String PID = temp.substring(0, index);
-
-			File file = new File(FilePath);
-			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-			writer.write(PID);
-			writer.close();
-			return true;
+			HB = new Heartbeat(ServiceId, KsanConfig.MQHost, KsanConfig.MQPort, KsanConfig.MQUser,
+					KsanConfig.MQPassword);
+			HBThread = new Thread(() -> HB.Start(KsanConfig.ServiceMonitorInterval));
+			HBThread.start();
 		} catch (Exception e) {
 			logger.error("", e);
-			return false;
+			return;
+		}
+
+		// Create PortalManager
+		var Portal = new PortalManager(KsanConfig.PortalHost, KsanConfig.PortalPort, KsanConfig.APIKey);
+		var today = Util.GetNowDay();
+		var AlreadyRun = false;
+
+		while (true) {
+			try {
+				if (today != Util.GetNowDay())
+				{
+					today = Util.GetNowDay();
+					AlreadyRun = false;
+				}
+
+				// Read Configuration to Portal
+				var LifecycleConfig = Portal.GetConfig2Lifecycle();
+				if (LifecycleConfig == null) {
+					logger.error("Lifecycle Config Read Failed!");
+					return;
+				}
+				logger.info(LifecycleConfig.toString());
+
+				// Read Region to Portal
+				var Region = Portal.GetRegion(LifecycleConfig.Region);
+				if (Region == null) {
+					logger.error("Region Read Failed!");
+					return;
+				}
+
+				// Schedule
+				var Schedule = Util.String2Time(LifecycleConfig.Schedule);
+				if (Schedule < 0) {
+					logger.error("Schedule is not a valid value. {}\n", LifecycleConfig.Schedule);
+					return;
+				}
+				Thread.sleep(LifecycleConfig.CheckInterval);
+
+				if (!Util.isRun(Schedule) || AlreadyRun) {
+					continue;
+				}
+				AlreadyRun = true;
+
+				// Create ObjManager
+				ObjManagerUtil ObjManager = null;
+				try {
+					ObjManagerConfig ObjConfig = new ObjManagerConfig();
+					ObjConfig.dbRepository = LifecycleConfig.DBType;
+					ObjConfig.dbHost = LifecycleConfig.Host;
+					ObjConfig.dbport = LifecycleConfig.Port;
+					ObjConfig.dbName = LifecycleConfig.DatabaseName;
+					ObjConfig.dbUsername = LifecycleConfig.User;
+					ObjConfig.dbPassword = LifecycleConfig.Password;
+
+					logger.info(ObjConfig.toString());
+
+					ObjManager = new ObjManagerUtil(ObjConfig);
+				} catch (Exception e) {
+					logger.error("", e);
+					return;
+				}
+
+				logger.info("Lifecycle Filter Start!");
+				var Filter = new LifecycleFilter(ObjManager);
+
+				if (Filter.Filtering()) {
+					logger.info("Lifecycle Sender Start!");
+					var Sender = new LifecycleSender(ObjManager, Region.GetURL(), Region.AccessKey, Region.SecretKey);
+					Sender.Start();
+				} else
+					logger.info("Lifecycle filtering Empty!");
+
+				logger.info("Lifecycle Manager End!");
+			} catch (Exception e) {
+				logger.error("", e);
+			}
 		}
 	}
 }

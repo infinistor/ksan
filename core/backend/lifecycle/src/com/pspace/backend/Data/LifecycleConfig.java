@@ -3,31 +3,36 @@ package com.pspace.backend.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.DB.DBConfig;
 
 public class LifecycleConfig {
-	@JsonProperty("Host")
+
+	@JsonProperty("objM.db_repository")
+	public String DBType;
+
+	@JsonProperty("objM.db_host")
 	public String Host;
-	
-	@JsonProperty("Port")
+
+	@JsonProperty("objM.db_port")
 	public int Port;
 
-	@JsonProperty("User")
-	public String User;
-
-	@JsonProperty("Password")
-	public String Password;
-
-	@JsonProperty("DatabaseName")
+	@JsonProperty("objM.db_name")
 	public String DatabaseName;
 
-	@JsonProperty("Region")
+	@JsonProperty("objM.db_user")
+	public String User;
+
+	@JsonProperty("objM.db_password")
+	public String Password;
+
+	@JsonProperty("ksan.region")
 	public String Region;
 
-	public DBConfig GetDBConfig() {
-		return new DBConfig(Host, Port, DatabaseName, User, Password);
-	}
-	
+	@JsonProperty("lifecycle.schedule")
+	public String Schedule;
+
+	@JsonProperty("lifecycle.check_interval")
+	public long CheckInterval;
+
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();

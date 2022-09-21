@@ -1,4 +1,4 @@
-package com.pspace.Portal;
+package com.pspace.Ksan;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -25,12 +25,12 @@ public class PortalManager {
 
 	private final String Address;
 	private final int Port;
-	private final String Key;
+	private final String APIKey;
 
 	public PortalManager(String Address, int Port, String Key) {
 		this.Address = Address;
 		this.Port = Port;
-		this.Key = Key;
+		this.APIKey = Key;
 	}
 
 	public LifecycleConfig GetConfig2Lifecycle() {
@@ -89,17 +89,21 @@ public class PortalManager {
 		return null;
 	}
 
+	private String GetURL() {
+		return String.format("https://%s:%s", Address, Port);
+	}
+
 	private String GetConfigURL() {
-		return String.format("https://%s:%s/api/v1/Config/Lifecycle", Address, Port);
+		return String.format("%s/api/v1/Config/KsanLifecycle", GetURL());
 	}
 
 	private String GetRegionURL(String RegionName) {
-		return String.format("https://%s:%s/api/v1/Regions/%s", Address, Port, RegionName);
+		return String.format("%s/api/v1/Regions/%s", GetURL(), RegionName);
 	}
 
 	private HttpGet GetRequest(String URL) {
 		var Request = new HttpGet(URL);
-		Request.addHeader("Authorization", Key);
+		Request.addHeader("Authorization", APIKey);
 		return Request;
 	}
 

@@ -150,16 +150,3 @@ pspace/ksan-lifecycle:latest
 ```bash
 docker start ksan-lifecycle
 ```
-
-#### Crontab 설정
-- 매일 1회 실행이 가장 이상적이며 필요에 의해 간격을 조정 할 수 있습니다.
-
-``` shell
-# 등록
-crontab -e
-# 매일 오전 1시에 동작
-0 1 * * * docker start ksan-lifecycle
-
-# 확인
-crontab -l
-```

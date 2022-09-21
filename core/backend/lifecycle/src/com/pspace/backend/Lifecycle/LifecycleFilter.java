@@ -8,62 +8,67 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Main;
+package com.pspace.backend.Lifecycle;
 
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import com.pspace.DB.DBManager;
-import com.pspace.backend.Data.LifecycleEventData;
-import com.pspace.backend.Data.MultipartData;
-import com.pspace.backend.Data.ObjectData;
-import com.pspace.s3format.LifecycleConfiguration.Rule;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.pspace.ifs.ksan.objmanager.LifeCycle;
+import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
+import com.pspace.s3format.LifecycleConfiguration;
+import com.pspace.s3format.LifecycleConfiguration.Rule;
+import com.pspace.s3format.Tagging;
+
 public class LifecycleFilter {
 	private final SimpleDateFormat StringDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private final DBManager DB;
+	private final ObjManagerUtil ObjManager;
 	private final Logger logger;
 
-	public LifecycleFilter(DBManager DB) {
-		this.DB = DB;
+	public LifecycleFilter(ObjManagerUtil DB) {
+		this.ObjManager = DB;
 		logger = LoggerFactory.getLogger(LifecycleFilter.class);
 	}
 
-	public boolean Filtering() {
+	public boolean Filtering() throws SQLException {
 		logger.info("Lifecycle Filtering Start!");
 		var result = false;
 
-		var BucketList = DB.GetBucketList();
+		var BucketList = ObjManager.getBucketList();
+		var LifecycleManager = ObjManager.getLifeCycleManagmentInsatance();
+
 		if (BucketList.size() > 0) {
 			for (var Bucket : BucketList) {
-				var BucketName = Bucket.BucketName;
+				var BucketName = Bucket.getName();
+				var EventList = new ArrayList<LifeCycle>();
+
+				// 버킷의 수명주기 설정을 가져온다.
+				var Lifecycle = GetLifecycleConfiguration(Bucket.getLifecycle());
+
 				// 버킷의 수명주기 설정을 불러오지 못할 경우 스킵
-				if (Bucket.Lifecycle == null) {
-					logger.error("[{}] is not a valid Lifecycle configuration");
-					continue;
-				}
+				if (Lifecycle == null) continue;
 
 				// 버킷의 수명주기 규칙이 비어있거나 재대로 불러오지 못할 경우 스킵
-				if (Bucket.Lifecycle.rules == null || Bucket.Lifecycle.rules.size() == 0) {
+				if (Lifecycle.rules == null || Lifecycle.rules.size() == 0) {
 					logger.error("[{}] is not a valid rules");
 					continue;
 				}
 
 				// 오브젝트 목록 가져오기
-				var ObjectList = DB.GetObjectList(Bucket.BucketName);
+				var ObjectList = ObjManager.listObjects(BucketName, "", 1000);
 				// 룰정보 가져오기
-				var Rules = Bucket.Lifecycle.rules;
-
-				// Multipart 목록을 가져온다.
-				var MultipartList = DB.GetMultipartList(BucketName);
+				var Rules = Lifecycle.rules;
 
 				for (var Rule : Rules) {
 					// 버킷의 수명주기 설정이 활성화 되어있지 않을 경우 스킵
@@ -90,8 +95,8 @@ public class LifecycleFilter {
 									// 오브젝트의 수명주기가 만료되었을 경우
 									if (ExpiredCheck(ExpiredTime)) {
 										// DB에 저장
-										DB.InsertLifecycle(
-												new LifecycleEventData(Object.BucketName, Object.ObjectName));
+										EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
+												Object.getVersionId(), "", ""));
 
 										// 목록에서 제거
 										ObjectList.remove(Index);
@@ -117,9 +122,10 @@ public class LifecycleFilter {
 									continue;
 
 								// 오브젝트의 수명주기가 만료되었을 경우
-								if (ExpiredCheck(Object.LastModified, ExpiredDays)) {
+								if (ExpiredCheck(Object.getLastModified(), ExpiredDays)) {
 									// DB에 저장
-									DB.InsertLifecycle(new LifecycleEventData(Object.BucketName, Object.ObjectName));
+									EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
+											Object.getVersionId(), "", ""));
 
 									// 목록에서 제거
 									ObjectList.remove(Index);
@@ -132,7 +138,7 @@ public class LifecycleFilter {
 						}
 					}
 					// 오브젝트의 버저닝 수명주기가 설정 되었을 경우
-					if (Rule.versionexpiration != null && !Rule.versionexpiration.NoncurrentDays.isBlank()) {
+					if (Rule.versionexpiration != null && !StringUtils.isBlank(Rule.versionexpiration.NoncurrentDays)) {
 						// 기간을 숫자로 변환
 						var ExpiredDays = NumberUtils.toInt(Rule.versionexpiration.NoncurrentDays);
 
@@ -145,10 +151,10 @@ public class LifecycleFilter {
 								continue;
 
 							// 오브젝트의 수명주기가 만료되었을 경우
-							if (ExpiredCheck(Object.LastModified, ExpiredDays)) {
+							if (ExpiredCheck(Object.getLastModified(), ExpiredDays)) {
 								// DB에 저장
-								DB.InsertLifecycle(
-										new LifecycleEventData(Object.BucketName, Object.ObjectName, Object.VersionId));
+								EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
+										Object.getVersionId(), "", ""));
 
 								// 목록에서 제거
 								ObjectList.remove(Index);
@@ -162,52 +168,63 @@ public class LifecycleFilter {
 
 					// Multipart의 part 수명주기가 설정 되었을 경우
 					if (Rule.abortincompletemultipartupload != null
-							&& !Rule.abortincompletemultipartupload.DaysAfterInitiation.isBlank()) {
+							&& !StringUtils.isBlank(Rule.abortincompletemultipartupload.DaysAfterInitiation)) {
 						// 기간을 숫자로 변환
 						var ExpiredDays = NumberUtils.toInt(Rule.abortincompletemultipartupload.DaysAfterInitiation);
 
-						for (int Index = MultipartList.size() - 1; Index >= 0; Index--) {
-							var Multipart = MultipartList.get(Index);
-							// 스킵체크
-							if (LifecycleMultipartSkipCheck(Rule, Multipart))
+						// 업로드 중인 Multipart 목록을 가져온다.
+						var Multiparts = ObjManager.getMultipartInsatance(BucketName);
+						for (var Multipart : Multiparts.listUploads("", "", "", "", 1000)) {
+
+							// 오브젝트의 이름이 필터 설정에 만족하지 못할 경우 스킵
+							if (LifecycleMultipartSkipCheck(Rule, Multipart.getKey()))
 								continue;
 
-							// Multipart의 수명주기가 만료 되었을 경우
-							if (ExpiredCheck(Multipart.LastModified, ExpiredDays)) {
-								DB.InsertLifecycle(new LifecycleEventData(Multipart.BucketName, Multipart.ObjectName,
-										"", Multipart.UploadId));
+							// 오브젝트의 Part 목록을 가져온다.
+							var Parts = Multiparts.getParts(Multipart.getUploadId());
 
-								MultipartList.remove(Index);
+							for (var Index : Parts.keySet()) {
+								// 파트를 가져온다.
+								var Part = Parts.get(Index);
 
-								// Filter로 1개 이상 이벤트를 처리함을 표시
-								if (!result)
-									result = true;
+								// Multipart의 수명주기가 만료 되었을 경우
+								if (ExpiredCheck(Part.getLastModified(), ExpiredDays)) {
+									EventList.add(new LifeCycle(0, Multipart.getBucket(), Multipart.getKey(), "", Multipart.getUploadId(), ""));
+
+									// Filter로 1개 이상 이벤트를 처리함을 표시
+									if (!result)
+										result = true;
+								}
 							}
 						}
 					}
 				}
+
+				// 이벤트를 DB에 저장
+				LifecycleManager.putLifeCycleEvents(EventList);
 			}
 		}
 		return result;
 	}
 
-	private boolean LifecycleSkipCheck(Rule Rule, ObjectData Object) {
+	private boolean LifecycleSkipCheck(Rule Rule, com.pspace.ifs.ksan.objmanager.Metadata Object) {
 		// 마지막 버전이 아닐 경우 스킵
-		if (!Object.LastVersion)
+		if (!Object.getLastVersion())
 			return true;
 
 		// DeleteMarker일 경우 스킵
-		if (isMARKER(Object.DeleteMarker))
+		if (isMARKER(Object.getDeleteMarker()))
 			return true;
 
 		// 필터가 존재할 경우
 		if (Rule.filter != null) {
+			var Tags = getTagging(Object.getTag());
 			// And 필터가 존재할 경우
 			if (Rule.filter.and != null) {
 				// Prefix가 설정되어 있을 경우
-				if (!Rule.filter.and.prefix.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.and.prefix)) {
 					// Prefix가 일치하지 않을 경우 스킵
-					if (!Object.ObjectName.startsWith(Rule.filter.and.prefix))
+					if (!Object.getPath().startsWith(Rule.filter.and.prefix))
 						return true;
 				}
 
@@ -216,7 +233,7 @@ public class LifecycleFilter {
 					// 오브젝트의 모든 태그를 비교
 					int TagCount = Rule.filter.and.tag.size();
 					for (var FilterTag : Rule.filter.and.tag) {
-						for (var ObjectTag : Object.Tags.tagset.tags) {
+						for (var ObjectTag : Tags.tagset.tags) {
 							if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
 								TagCount--;
 						}
@@ -227,24 +244,24 @@ public class LifecycleFilter {
 				}
 
 				// 최소 크기 필터가 설정되어 있을 경우
-				if (!Rule.filter.objectSizeGreaterThan.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
 					// 오브젝트가 최소크기보다 작을 경우 스킵
 					var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
-					if (Object.FileSize < MinFileSize)
+					if (Object.getSize() < MinFileSize)
 						return true;
 				}
 
 				// 최대 크기 필터가 설정되어 있을 경우
-				if (!Rule.filter.objectSizeLessThan.isBlank()) {
+				if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
 					// 오브젝트가 최대크기보다 클 경우 스킵
 					var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
-					if (Object.FileSize > MaxFileSize)
+					if (Object.getSize() > MaxFileSize)
 						return true;
 				}
 			}
 			// Prefix가 설정되어 있을 경우
-			else if (!Rule.filter.prefix.isBlank()) {
-				if (!Object.ObjectName.startsWith(Rule.filter.prefix))
+			else if (!StringUtils.isBlank(Rule.filter.prefix)) {
+				if (!Object.getPath().startsWith(Rule.filter.prefix))
 					return true;
 			}
 			// 태그 필터가 설정 되어 있을 경우
@@ -253,7 +270,7 @@ public class LifecycleFilter {
 				boolean Find = false;
 
 				// 오브젝트의 모든 태그를 비교
-				for (var ObjectTag : Object.Tags.tagset.tags)
+				for (var ObjectTag : Tags.tagset.tags)
 					if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
 						Find = true;
 
@@ -262,27 +279,27 @@ public class LifecycleFilter {
 					return true;
 			}
 			// 최소 크기 필터가 설정되어 있을 경우
-			else if (!Rule.filter.objectSizeGreaterThan.isBlank()) {
+			else if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
 				// 오브젝트가 최소크기보다 작을 경우 스킵
 				var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
-				if (Object.FileSize < MinFileSize)
+				if (Object.getSize() < MinFileSize)
 					return true;
 			}
 			// 최대 크기 필터가 설정되어 있을 경우
-			else if (!Rule.filter.objectSizeLessThan.isBlank()) {
+			else if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
 				// 오브젝트가 최대크기보다 클 경우 스킵
 				var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
-				if (Object.FileSize > MaxFileSize)
+				if (Object.getSize() > MaxFileSize)
 					return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean LifecycleVersioningSkipCheck(Rule Rule, ObjectData Object) {
-		if (Object.LastVersion) {
+	private boolean LifecycleVersioningSkipCheck(Rule Rule, com.pspace.ifs.ksan.objmanager.Metadata Object) {
+		if (Object.getLastVersion()) {
 			// 마지막 버전이 DeleteMarker 일 경우
-			if (isMARKER(Object.DeleteMarker)) {
+			if (isMARKER(Object.getDeleteMarker())) {
 				// DeleteMarker 옵션이 없을 경우 스킵
 				if (Rule.expiration == null)
 					return true;
@@ -297,19 +314,19 @@ public class LifecycleFilter {
 		}
 
 		// 필터가 존재할 경우
-		if (Rule.filter != null || !Rule.filter.prefix.isBlank()) {
+		if (Rule.filter != null && !StringUtils.isBlank(Rule.filter.prefix)) {
 			// 필터가 일치하지 않을 경우 스킵
-			if (!Object.ObjectName.startsWith(Rule.filter.prefix))
+			if (!Object.getPath().startsWith(Rule.filter.prefix))
 				return true;
 		}
 		return false;
 	}
 
-	private boolean LifecycleMultipartSkipCheck(Rule Rule, MultipartData Multipart) {
+	private boolean LifecycleMultipartSkipCheck(Rule Rule, String KeyName) {
 		// 필터가 존재할 경우
-		if (Rule.filter != null || !Rule.filter.prefix.isBlank()) {
+		if (Rule.filter != null || !StringUtils.isBlank(Rule.filter.prefix)) {
 			// 필터가 일치하지 않을 경우 스킵
-			if (!Multipart.ObjectName.startsWith(Rule.filter.prefix))
+			if (!KeyName.startsWith(Rule.filter.prefix))
 				return true;
 		}
 		return false;
@@ -374,6 +391,29 @@ public class LifecycleFilter {
 		} catch (Exception e) {
 			logger.error("", e);
 			return null;
+		}
+	}
+
+	private LifecycleConfiguration GetLifecycleConfiguration(String StrLifecycle) {
+		if (StringUtils.isBlank(StrLifecycle)) return null;
+		try {
+			// 수명주기 설정 언마샬링
+			return new XmlMapper().readValue(StrLifecycle, LifecycleConfiguration.class);
+		} catch (Exception e) {
+			logger.error("Lifecycle read failed \n", e);
+			return null;
+		}
+	}
+
+	private Tagging getTagging(String StrTags)
+	{
+		if (StringUtils.isBlank(StrTags)) return new Tagging();
+		try {
+			// 수명주기 설정 언마샬링
+			return new XmlMapper().readValue(StrTags, Tagging.class);
+		} catch (Exception e) {
+			logger.error("Tag read Failed : {}", e);
+			return new Tagging();
 		}
 	}
 }

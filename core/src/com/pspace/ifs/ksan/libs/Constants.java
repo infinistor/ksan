@@ -12,6 +12,10 @@
 package com.pspace.ifs.ksan.libs;
 
 public class Constants {
+	public static final int MAXBUFSIZE = 524288; // 512 * 1024
+	public static final String COLON = ":";
+	public static final String CHARSET_UTF_8 = "UTF-8";
+
     public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
@@ -20,10 +24,10 @@ public class Constants {
 	public static final String AGENT_PROPERTY_PORTAL_HOST = "PortalHost";
 	public static final String AGENT_PROPERTY_PORTAL_PORT = "PortalPort";
 	public static final String AGENT_POOPERTY_POTAL_KEY = "PortalApiKey";
-	public static final String AGENT_PROPERTY_MQ_HOST = "MqHost";
-	public static final String AGENT_PROPERTY_MQ_PORT = "MqPort";
-	public static final String AGENT_PROPERTY_MQ_USER = "MqUser";
-	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MqPassword";
+	public static final String AGENT_PROPERTY_MQ_HOST = "MQHost";
+	public static final String AGENT_PROPERTY_MQ_PORT = "MQPort";
+	public static final String AGENT_PROPERTY_MQ_USER = "MQUser";
+	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MQPassword";
 	public static final String AGENT_PROPERTY_SERVER_ID = "ServerId";
 	public static final String AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL = "ServiceMonitorInterval";
 
@@ -36,6 +40,24 @@ public class Constants {
 	public static final String HEARTBEAT_STATE_ONLINE = "Online";
 	public static final String HEARTBEAT_STATE_OFFLINE = "Offline";
 	public static final String HEARTBEAT_BINDING_KEY = "*.services.state";
+
+	public static final String LOG_OSDCLIENT_SOCKET_INFO = "socket : {}";
+	public static final String LOG_OSDCLIENT_CLOSE_SOCKET_INFO = "close socket : {}";
+	public static final String LOG_OSDCLIENT_SOCKET_ERROR = "socket error, {}";
+	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
+	public static final String LOG_OSDCLIENT_READ = "read {} bytes";
+	public static final String LOG_OSDCLIENT_WRITE = "write {} bytes";
+	public static final String LOG_OSDCLIENT_PUT_HEADER = "put header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_HEADER = "delete header : {}";
+	public static final String LOG_OSDCLIENT_COPY_HEADER = "copy header : {}";
+	public static final String LOG_OSDCLIENT_PART_HEADER = "part header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_PART_HEADER = "delete part header : {}";
+	public static final String LOG_OSDCLIENT_PART_COPY_HEADER = "partCopy header : {}";
+	public static final String LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER = "completeMultipart header : {}";
+	public static final String LOG_OSDCLIENT_ABORT_MULTIPART_HEADER = "abortMultipart header : {}";
+	public static final String LOG_OSDCLIENT_UNKNOWN_RESULT = "Unknown result : {}";
+	public static final String LOG_OSDCLIENT_ACTIVATE_SOCKET = "activate socket...";
+	public static final String LOG_OSDCLIENT_DESACTIVATE_SOCKET = "desactivate socket...";
 
 	private Constants() {
 		throw new IllegalStateException("Utility class");

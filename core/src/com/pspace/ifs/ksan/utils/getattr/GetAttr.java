@@ -21,6 +21,8 @@ import com.pspace.ifs.ksan.objmanager.OSDClient;
 import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
@@ -61,10 +63,42 @@ public class GetAttr {
     
     private OSDResponseParser secondOSD;
     
+    private String [] makeCaseInsensitive(String[] args){
+        String prefx;
+        List<String> refArgs = new ArrayList();
+        for(String opt : args){
+            prefx = opt.split(" ")[0].toLowerCase();
+            if (prefx.equalsIgnoreCase("--BucketName")){
+               refArgs.add(opt.replaceFirst(prefx, "--BucketName"));
+            }
+            else if (prefx.equalsIgnoreCase("--Key")){
+               refArgs.add(opt.replaceFirst(prefx, "--Key"));
+            }
+            else if (prefx.equalsIgnoreCase("--ObjId")){
+               refArgs.add(opt.replaceFirst(prefx, "--ObjId"));
+            }
+            else if (prefx.equalsIgnoreCase("--VersionId")){
+               refArgs.add(opt.replaceFirst(prefx, "--VersionId"));
+            }
+            
+            else if (prefx.equalsIgnoreCase("--Checksum")){
+               refArgs.add(opt.replaceFirst(prefx, "--Checksum"));
+            }
+            
+            else if (prefx.equalsIgnoreCase("--Help")){
+               refArgs.add(opt.replaceFirst(prefx, "--Help"));
+            }
+            else
+                refArgs.add(opt);
+        }
+        return refArgs.toArray(new String[0]);
+    }
+    
     int parseArgs(String[] args){
         parser = new CmdLineParser(this);
         try{
-             parser.parseArgument(args);
+            String []cisArgs = makeCaseInsensitive(args);
+            parser.parseArgument(cisArgs);
  
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());

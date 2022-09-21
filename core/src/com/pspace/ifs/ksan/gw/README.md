@@ -67,13 +67,13 @@
 
 ## 실행 예시(CLI)
 ```bash
-java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw-log.xml ksan-gw.jar &
+java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksanGW_log_conf.xml ksanGW.jar &
 ```
 
 ## 로그 파일
-* 설정 파일 : ksan-gw-log.xml (KSAN/etc/ksan-gw-log.xml)
-* 위치
-  * /var/log/ksan/s3gw/s3gw.log
+* 설정 파일 : ksanGW_log_conf.xml (/usr/local/ksan/etc/ksanGW_log_conf.xml)
+* 로그 파일 위치
+  * /var/log/ksan/gw/gw.log
 
 ## 구동 환경
 
@@ -100,7 +100,7 @@ cd ksan/core/src/com/pspace/ifs/ksan/objmanager
 mvn clean package
 mvn install
 ```
-* pom.xml 파일이 있는 위치(ksan/core/src/com/pspace/ifs/ksan/gw)에서 <kbd>mvn package</kbd> 명령어를 입력하시면 빌드가 되고, 빌드가 완료되면 target이라는 폴더에 ksan-gw.jar가 생성됩니다.
+* pom.xml 파일이 있는 위치(ksan/core/src/com/pspace/ifs/ksan/gw)에서 <kbd>mvn package</kbd> 명령어를 입력하시면 빌드가 되고, 빌드가 완료되면 target 폴더에 ksanGW.jar가 생성됩니다.
 ```bash
 cd ksan/core/src/com/pspace/ifs/ksan/gw
 mvn clean package
@@ -108,17 +108,17 @@ mvn clean package
 
 ## How to Use (빌드한 경우)
 
-* gw를 실행시키기 위하여 필요한 파일은 2개입니다.
+* GW를 실행시키기 위하여 필요한 파일은 2개입니다.
 ```bash
-ksan/core/src/com/pspace/ifs/ksan/gw/target/ksan-gw.jar // 소스 빌드 후, 생성된 실행 파일	
-/usr/local/ksan/etc/ksan-gw-log.xml //log파일 관련 설정
+ksan/core/src/com/pspace/ifs/ksan/gw/target/ksanGW.jar // 소스 빌드 후, 생성된 실행 파일	
+ksan/core/src/com/pspace/ifs/ksan/gw/ksanGW_log_conf.xml //log 설정 파일
 ``` 
-* ksan-gw.jar를 /usr/local/ksan/bin 에 복사합니다.
-* ksan-gw-log.xml를 /usr/local/ksan/etc 에 복사합니다.
+* ksanGW.jar를 /usr/local/ksan/sbin 에 복사합니다.
+* ksanGW_log_conf.xml를 /usr/local/ksan/etc 에 복사합니다.
 
-* ksan-gw.jar의 실행 권한을 확인합니다.
- * ksan-gw.jar의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
- <kbd>chmod +x ksan-gw.jar</kbd>
+* ksanGW.jar의 실행 권한을 확인합니다.
+ * ksanGW.jar의 실행 권한이 없는 경우 실행권한을 부여합니다. <br>
+ <kbd>chmod +x ksanGW.jar</kbd>
  
-* ksan-gw.jar를 실행합니다. (/usr/local/ksan/bin)
-<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksan-gw-log.xml ksan-gw.jar &</kbd>
+* ksanGW.jar를 실행합니다. (/usr/local/ksan/sbin)
+<kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksanGW_log_conf.xml ksanGW.jar &</kbd>

@@ -54,17 +54,12 @@ namespace PortalSvr.Controllers.Regions
 		/// <summary>리전 목록을 반환한다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
-		/// <param name="OrderFields">정렬필드목록 (Email, Name(기본값))</param>
-		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<RequestRegion>))]
 		[HttpGet]
-		public async Task<ActionResult> Get(
-			int Skip = 0, int CountPerPage = 100,
-			List<string> OrderFields = null, List<string> OrderDirections = null
-		)
+		public async Task<ActionResult> GetList(int Skip = 0, int CountPerPage = 100)
 		{
-			return Json(await m_dataProvider.GetList(Skip, CountPerPage, OrderFields, OrderDirections));
+			return Json(await m_dataProvider.GetList(Skip, CountPerPage));
 		}
 
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>

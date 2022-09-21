@@ -43,7 +43,7 @@ namespace PortalData.Enums
 		/// <summary>Recovery</summary>
 		ksanRecovery,
 		/// <summary>Lifecycle</summary>
-		sanLifecycle,
+		ksanLifecycle,
 		/// <summary>Replication</summary>
 		ksanReplication,
 		/// <summary>Logging</summary>

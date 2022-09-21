@@ -142,7 +142,7 @@ public class UploadPart extends S3Request {
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
 		s3ObjectEncryption.build();
 
-		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		String path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
 		if (path == null) {
 			logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

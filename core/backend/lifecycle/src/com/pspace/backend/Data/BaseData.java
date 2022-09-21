@@ -15,5 +15,5 @@ import java.util.List;
 public interface BaseData {
 	public void Init();
 
-	public List<Object> GetInsertDBParameters();
+	public List<Object> GetMariaParameters();
 }

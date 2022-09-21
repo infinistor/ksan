@@ -1180,7 +1180,7 @@ public final class GWConstants {
 	public static final String ARGMENT_NAME = "ArgumentName";
 	public static final String ARGMENT_VALUE = "ArgumentValue";
 	public static final String LENGTH_REQUIRED = "Length Required";
-	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path";
+	public static final String LOG_CANNOT_FIND_LOCAL_PATH = "Can not find local path, diskId : {}";
 
 	// UploadPartCopy
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";

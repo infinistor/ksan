@@ -33,10 +33,10 @@ namespace PortalData.Requests.Region
 
 		/// <summary> 포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public virtual int Port { get; set; }
+		public virtual int Port { get; set; } = 8080;
 
 		/// <summary> SSL포트 </summary>
 		[Range(0, 65535, ErrorMessageResourceName = "EM_COMMON__INVALID_PORT", ErrorMessageResourceType = typeof(Resource))]
-		public virtual int SSLPort { get; set; }
+		public virtual int SSLPort { get; set; } = 8443;
 	}
 }
