@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.utils.recovery;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import org.kohsuke.args4j.Option;
@@ -27,6 +28,10 @@ import org.slf4j.LoggerFactory;
 public class RecoveryMain {
     
     private CmdLineParser parser;
+    
+    private static String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanRecovery.ServiceId";
+    
+    private String serviceId;
     
     @Option(name="--Help",usage="To display this help menu")
     public boolean getHelp = false;
@@ -55,7 +60,12 @@ public class RecoveryMain {
         //System.err.format("Invalid argument is given \n");
         return 0;
     }
-   
+    
+    void getServiceId() throws IOException{
+        BufferedReader reader = new BufferedReader(new FileReader(SERVICEID_PATH));
+        serviceId = reader.readLine();
+    }
+    
     void howToUse(){
         if (parser == null)
             return;
@@ -96,9 +106,10 @@ public class RecoveryMain {
     
     void runInBackground(){
         try {
-            Recovery rc = new Recovery();
-        } catch (Exception ex) {
+            Recovery rc = new Recovery(serviceId);
+        } catch (Exception ex) { 
             System.out.println("Unable initate recovery process!\n");
+            ex.printStackTrace();
         }
     }
     

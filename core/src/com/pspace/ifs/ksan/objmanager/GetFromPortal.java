@@ -23,9 +23,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONArray;
@@ -44,6 +48,7 @@ public class GetFromPortal {
     private String portalHost;
     private long portalPort;
     private String portalKey;
+    private String hostServerId;
     private String mqHost;
     private String mqUser;
     private long mqPort;
@@ -57,6 +62,7 @@ public class GetFromPortal {
     private final String PORTAIP = "PortalHost";
     private final String PORTALPORT = "PortalPort";
     private final String PORTAAPIKEY = "PortalApiKey";
+    private final String SERVERID = "ServerId";
     
     private final String DBREPOSITORY = "objM.db_repository";
     private final String DBHOST = "objM.db_host";
@@ -75,6 +81,15 @@ public class GetFromPortal {
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
     private final String GETDISKLISTAPI = "/api/v1/Disks";
     private final String GETSERVERTAPI = "/api/v1/Servers/";
+    private final String SERVICEEVENTAPI = "/api/v1/Services/Event";
+
+    private final String SERVICEEVENT_ID = "Id";
+    private final String SERVICEEVENT_TYPE = "EventType";
+    private final String SERVICEEVENT_MESSAGE = "Message";
+    private final String SERVICENAME = "ServiceType";
+    private final String SERVICEEVENT_START = "start";
+    private final String SERVICEEVENT_STOP = "stop";
+    private final String SERVICEEVENT_SIGTERM = "SIGTERM";
     
     private final String DATA_TAG = "Data";
     private final String ITEM_TAG = "Items";
@@ -114,6 +129,7 @@ public class GetFromPortal {
         mqUser = getStringConfig(MQUSER, DEFAULTMQUSER);
         mqPassword = getStringConfig(MQPASSWORD, DEFAULTMQUSER);
         mqPort = getLongConfig(MQPORT, 0);
+        hostServerId = getStringConfig(SERVERID, "");
     }
     
     private String getString(JSONObject jsonObject, String key){
@@ -368,6 +384,50 @@ public class GetFromPortal {
         return null;
     }
     
+    private String post(String key, String data) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException{
+        HttpClient client = HttpClients.custom()
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                .build();
+	
+        HttpPost postRequest = new HttpPost("https://" + portalHost + ":" + portalPort + key);
+	postRequest.addHeader("Authorization", portalKey);
+        StringEntity entity = new StringEntity(data, ContentType.APPLICATION_JSON);
+        postRequest.setEntity(entity);
+        
+	HttpResponse response = client.execute(postRequest);
+	if (response.getStatusLine().getStatusCode() == 200) {
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            return handler.handleResponse(response);
+        }
+        
+        return null;
+    }
+    
+    private String put(String key, String data) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException{
+        HttpClient client = HttpClients.custom()
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                .build();
+	
+        HttpPut putRequest = new HttpPut("https://" + portalHost + ":" + portalPort + key);
+	putRequest.addHeader("Authorization", portalKey);
+        StringEntity entity = new StringEntity(data, ContentType.APPLICATION_JSON);
+        putRequest.setEntity(entity);
+        
+	HttpResponse response = client.execute(putRequest);
+	if (response.getStatusLine().getStatusCode() == 200) {
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            return handler.handleResponse(response);
+        }
+        
+        return null;
+    }
+    
+    public String getHostServerId(){
+        return hostServerId;
+    }
+    
     public int getConfigFromPortal(ObjManagerConfig objc) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, ParseException{    
         String content = get(KSANGWCONFIAPI);
         if (content == null)
@@ -443,6 +503,38 @@ public class GetFromPortal {
         } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException | ParseException ex) {
             logger.debug("[loadOSDserver] unable to load server({}) info from portal with exception > {}", serverId, ex);
             return null;
+        }
+    }
+    
+    public void postStartStopEvent(String eventType, String serviceId, String serviceName) throws IOException{
+        try {
+    
+            JSONObject event= new JSONObject();
+            event.put(SERVICEEVENT_ID, serviceId);
+            event.put(SERVICENAME, serviceName);
+            if (eventType.equalsIgnoreCase(SERVICEEVENT_START)){
+                event.put(SERVICEEVENT_TYPE, SERVICEEVENT_START);
+                event.put(SERVICEEVENT_MESSAGE, "");
+            }
+            else{
+                event.put(SERVICEEVENT_TYPE, SERVICEEVENT_STOP);
+                event.put(SERVICEEVENT_MESSAGE, SERVICEEVENT_SIGTERM);
+            }
+            this.post(SERVICEEVENTAPI, event.toString());
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            logger.error("[postStartStopEvent] operation(eventType : {}, serverId : {} service Name : {}) failed with {}", 
+                    eventType, serviceId, serviceName, ex.getMessage());
+        }
+    }
+    
+    public void updateDiskStatus(String diskId, String status)throws IOException{
+        String key = GETDISKLISTAPI + "/" + diskId + "/State/" + status;
+         try {
+            if (put(key, "") == null)
+                throw new IOException("[updateDiskStatus] failed to send or get result from portal!");
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            logger.error("[updateDiskStatus] operation(diskId : {}, status : {}) failed with {}", 
+                    diskId, status, ex.getMessage());
         }
     }
 }
