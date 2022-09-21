@@ -32,6 +32,8 @@ class ServiceUnit:
             self.ServiceUnit = SystemdKsanGWServiceName
         elif self.ServiceType.lower() == TypeServiceOSD.lower():
             self.ServiceUnit = SystemdKsanOSDServiceName
+        elif self.ServiceType.lower() == TypeServiceLifecycle.lower():
+            self.ServiceUnit = SystemdKsanLifecycleServiceName
 
     def Start(self):
         Cmd = 'systemctl start %s' % self.ServiceUnit

@@ -32,10 +32,10 @@ KeyCommonSection = 'mgs'
 KeyPortalHost = 'PortalHost'
 KeyPortalPort = 'PortalPort'
 KeyPortalApiKey = 'PortalApiKey'
-KeyMQHost = 'MqHost'
-KeyMQPort = 'MqPort'
-KeyMQUser = 'MqUser'
-KeyMQPassword = 'MqPassword'
+KeyMQHost = 'MQHost'
+KeyMQPort = 'MQPort'
+KeyMQUser = 'MQUser'
+KeyMQPassword = 'MQPassword'
 KeyServerId = 'ServerId'
 KeyManagementNetDev = 'ManagementNetDev'
 KeyDefaultNetworkId = 'DefaultNetworkId'
@@ -227,9 +227,10 @@ class DictToObject(object):
 """
 ##### SERVER #####
 """
-### server stat ###
+### server state ###
 ServerStateOnline = 'Online'
 ServerStateOffline = 'Offline'
+ServerStateTimeout = 'Timeout'
 
 
 """
@@ -252,6 +253,10 @@ KsanRecoveryPath = '%s/%s' % (KsanSbinPath, KsanRecoveryBinaryName)
 KsanServerRegisterPath = '%s/%s' % (KsanUtilDirPath, KsanServerRegister)
 
 
+### service state ###
+ServiceStateOnline = 'Online'
+ServiceStateOffline = 'Offline'
+ServiceStateUnkown = 'Unknown'
 
 ### service pid file ###
 
@@ -271,8 +276,6 @@ OFFLINE = 'Offline'
 
 
 ### service type ###
-TypeS3 = 'IfsS3'
-TypeTomcat = 'tomcat'
 TypeServiceOSD = 'ksanOSD'
 TypeServiceGW = 'ksanGW'
 TypeServiceMongoDB = 'MongoDB'
@@ -283,9 +286,11 @@ TypeServiceMonitor = 'ksanMonitor'
 TypeServiceAgent = 'ksanAgent'
 TypeServiceRabbitMq = 'RabbitMq'
 TypeServiceHaproxy = 'HaProxy'
-TypeServiceFsck = 'ksanFsck'
-TypeServiceGetAttr = 'ksanGetAttr'
-TypeServiceCbalance = 'ksanCbalance'
+TypeServiceFsck = 'ksanFsck.jar'
+TypeServiceGetAttr = 'ksanGetAttr.jar'
+TypeServiceCbalance = 'ksanCbalance.jar'
+TypeServiceLifecycle = 'ksanLifecycle'
+TypeServiceRecovery = 'ksanRecovery'
 
 SampleS3ConfFile = './objmanager.conf'
 S3ConfFile = '/opt/objmanager.conf'
@@ -300,36 +305,48 @@ ServiceRestart = 'Restart'
 KsanAgentServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanAgent.ServiceId'
 KsanOSDServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanOSD.ServiceId'
 KsanGWServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanGW.ServiceId'
+KsanLifecycleServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanLifecycle.ServiceId'
+KsanRecoveryServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanRecovery.ServiceId'
 
 ServiceTypeServiceHiddenPathMap = dict()
 ServiceTypeServiceHiddenPathMap[TypeServiceAgent] = KsanAgentServiceIdHiddenPath
 ServiceTypeServiceHiddenPathMap[TypeServiceOSD] = KsanOSDServiceIdHiddenPath
 ServiceTypeServiceHiddenPathMap[TypeServiceGW] = KsanGWServiceIdHiddenPath
+ServiceTypeServiceHiddenPathMap[TypeServiceLifecycle] = KsanLifecycleServiceIdHiddenPath
+ServiceTypeServiceHiddenPathMap[TypeServiceRecovery] = KsanRecoveryServiceIdHiddenPath
 
 ### service unit ###
 SystemdKsanGWServiceName = 'ksangw.service'
 SystemdKsanOSDServiceName = 'ksanosd.service'
 SystemdKsanAgentServiceName = 'ksanagent.service'
+SystemdKsanLifecycleServiceName = 'ksanlifecycle.service'
+SystemdKsanRecoveryServiceName = 'ksanrecovery.service'
 ServiceTypeSystemdServiceMap = dict()
 ServiceTypeSystemdServiceMap[TypeServiceGW] = SystemdKsanGWServiceName
 ServiceTypeSystemdServiceMap[TypeServiceOSD] = SystemdKsanOSDServiceName
+ServiceTypeSystemdServiceMap[TypeServiceLifecycle] = SystemdKsanLifecycleServiceName
+ServiceTypeSystemdServiceMap[TypeServiceRecovery] = SystemdKsanRecoveryServiceName
 
 ### docker container servicename map ###
 ServiceTypeDockerServiceContainerNameMap = dict()
 ServiceTypeDockerServiceContainerNameMap[TypeServiceOSD] = 'ksan-osd'
 ServiceTypeDockerServiceContainerNameMap[TypeServiceGW] = 'ksan-gw'
+ServiceTypeDockerServiceContainerNameMap[TypeServiceLifecycle] = 'ksan-lifecycle'
+ServiceTypeDockerServiceContainerNameMap[TypeServiceRecovery] = 'ksan-recovery'
 
 
 ### service type converion ###
 ServiceTypeConversion = dict()
 ServiceTypeConversion['ksanosd'] = TypeServiceOSD
 ServiceTypeConversion['ksangw'] = TypeServiceGW
-ServiceTypeConversion['mongodb'] = TypeServiceMongoDB
-ServiceTypeConversion['mariadb'] = TypeServiceMariaDB
-ServiceTypeConversion['ksanmonitor'] = TypeServiceMonitor
+#ServiceTypeConversion['mongodb'] = TypeServiceMongoDB
+#ServiceTypeConversion['mariadb'] = TypeServiceMariaDB
+#ServiceTypeConversion['ksanmonitor'] = TypeServiceMonitor
 ServiceTypeConversion['ksanagent'] = TypeServiceAgent
-ServiceTypeConversion['rabbitmq'] = TypeServiceRabbitMq
-ServiceTypeConversion['haproxy'] = TypeServiceHaproxy
+ServiceTypeConversion['ksanlifecycle'] = TypeServiceLifecycle
+ServiceTypeConversion['ksanrecovery'] = TypeServiceRecovery
+#ServiceTypeConversion['rabbitmq'] = TypeServiceRabbitMq
+#ServiceTypeConversion['haproxy'] = TypeServiceHaproxy
 
 
 class AgentConf(BaseModel):

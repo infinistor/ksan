@@ -275,51 +275,65 @@ def RemoveS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserNa
 
 
 @catch_exceptions()
-def ShowS3UserInfo(UserList, Detail=None):
+def ShowS3UserInfo(UserList, Detail=None, SysinfoDisp=False):
     """
     Display Network Interface Info
     :param InterfaceList: NetworkInterfaceItems class list
     :param NicId:
     :return:
     """
-    if Detail is None:
-        UserTitleLine = '=' * 92
-        UserDataLine = '-' * 92
-        title ="|%s|%s|%s|" % ('Name'.center(20), 'Email'.center(30), 'Id'.center(38))
+    if SysinfoDisp is True:
+        UserTitleLine = '=' * 105
+        UserDataLine = '-' * 105
+        title = "|%s|%s|%s|" % ('User'.center(25), 'AccessKey'.center(32), 'SecretKey'.center(44))
         UserDiskPoolStorageClassLine = ''
         UserDiskPoolStorageClassTitle = ''
     else:
-        UserTitleLine = '=' * 166
-        UserDataLine = '-' * 166
-        title = "|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'AccessKey'.center(30),
-                                      'SecretKey'.center(42), 'Email'.center(30), 'Id'.center(38))
+        if Detail is None:
+            UserTitleLine = '=' * 92
+            UserDataLine = '-' * 92
+            title ="|%s|%s|%s|" % ('Name'.center(20), 'Email'.center(30), 'Id'.center(38))
+            UserDiskPoolStorageClassLine = ''
+            UserDiskPoolStorageClassTitle = ''
+        else:
+            UserTitleLine = '=' * 166
+            UserDataLine = '-' * 166
+            title = "|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'AccessKey'.center(30),
+                                          'SecretKey'.center(42), 'Email'.center(30), 'Id'.center(38))
 
-        UserDiskPoolStorageClassLine = '%s%s' % (' ' * 101, '-' * 65)
-        UserDiskPoolStorageClassTitle = "%s|%s|%s|%s|" % (' ' * 101, "DiskPoolName".center(20), "StorageClass".center(20), " "*21)
+            UserDiskPoolStorageClassLine = '%s%s' % (' ' * 101, '-' * 65)
+            UserDiskPoolStorageClassTitle = "%s|%s|%s|%s|" % (' ' * 101, "DiskPoolName".center(20), "StorageClass".center(20), " "*21)
 
     print(UserTitleLine)
     print(title)
     print(UserTitleLine)
-    for user in UserList:
-        _userdiskpool = ''
+    if len(UserList) > 0:
+        for user in UserList:
+            _userdiskpool = ''
 
-        user.Email = user.Email if user.Email is not None else ''
-        if Detail is None:
-            _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
-        else:
-            _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)),
-                                        user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
-            for diskpool in user.UserDiskPools:
-                _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].center(20), diskpool['StorageClass'].center(20), " "*21)
-                _userdiskpool += "%s%s\n" % (' ' * 101, '-' * 65)
+            user.Email = user.Email if user.Email is not None else ''
+            if SysinfoDisp is True:
+                _user = "|%s|%s|%s|" % ('{:25.25}'.format(str(user.Name).center(25)), user.AccessKey.center(32), user.SecretKey.center(44))
+            else:
+                if Detail is None:
+                    _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
+                else:
+                    _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)),
+                                                user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
+                    for diskpool in user.UserDiskPools:
+                        _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].center(20), diskpool['StorageClass'].center(20), " "*21)
+                        _userdiskpool += "%s%s\n" % (' ' * 101, '-' * 65)
 
-        print(_user)
-        print(UserDataLine)
-        if len(_userdiskpool) > 0:
-            print(UserDiskPoolStorageClassTitle)
-            print(UserDiskPoolStorageClassLine)
-            print(_userdiskpool)
+            print(_user)
             print(UserDataLine)
+            if len(_userdiskpool) > 0:
+                print(UserDiskPoolStorageClassTitle)
+                print(UserDiskPoolStorageClassLine)
+                print(_userdiskpool)
+                print(UserDataLine)
+    else:
+        print('No user data'.center(105))
+        print(UserDataLine)
 
 
 def UserUtilHandler(Conf, Action, Parser, logger):

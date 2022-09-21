@@ -10,7 +10,6 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
 import os, sys
-from typing import Union
 from fastapi import FastAPI
 import uvicorn
 

@@ -12,7 +12,7 @@ Version = '0.8.0'
 setup(
     name='ksan-common',
     version=Version,
-    data_files=[('/usr/local/ksan/bin/util', ['./ksanServerRegister', 'ksanMongoDBManager']),
+    data_files=[('/usr/local/ksan/bin/util', []),
                 ('/usr/local/ksan/sbin/', ['./ksanAgent']),
                 ('/var/log/ksan/rabbitmq', []), ('/var/log/ksan/agent', [])
 	],\

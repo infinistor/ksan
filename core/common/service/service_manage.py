@@ -23,6 +23,7 @@ from const.service import AddServiceInfoObject, ServiceDetailModule, \
     ServiceItemsDetailModule, ServiceConfigModule, UpdateServiceInfoObject, UpdateServiceUsageObject, \
     AddServiceGroupItems, ServiceGroupItemsModule
 from common.init import get_input, GetConf, GetAgentConfig
+from common.utils import DisplayState
 from common.shcommand import shcall
 from const.common import ServiceTypeServiceHiddenPathMap, ServiceTypeSystemdServiceMap, ServiceTypeDockerServiceContainerNameMap
 import logging
@@ -162,6 +163,25 @@ MongoDbConfigInfo = [
      'question': 'Insert MongoDB primary cluster node hostname'}
 ]
 
+lifecycleDefaultDbRepository = TypeServiceMariaDB
+lifecycleDefaultDbHost = '127.0.0.1'
+lifecycleDefaultDbPort = 3306
+lifecycleDefaultDbName = 'ksan'
+lifecycleDefaultDbUser = 'root'
+lifecycleDefaultDbPassword = 'YOUR_DB_PASSWORD'
+lifecycleDefaultRegion = 'kr-ksan-1'
+lifecycleDefaultRuntime = '01:00'
+lifecycleDefaultCheckInterval = 5000
+
+LifecycleDefaultConfigInfo = [{'key': 'objM.db_repository', 'value': lifecycleDefaultDbRepository, 'type': str, 'question': 'Insert ksanGW DB repository'},
+                  {'key': 'objM.db_host', 'value': lifecycleDefaultDbHost, 'type': str, 'question': 'Insert ksanGW DB host'},
+                  {'key': 'objM.db_port', 'value': lifecycleDefaultDbPort, 'type': int, 'question': 'Insert ksanGW DB port'},
+                  {'key': 'objM.db_name', 'value': lifecycleDefaultDbName, 'type': str, 'question': 'Insert ksanGW DB name'},
+                  {'key': 'objM.db_user', 'value': lifecycleDefaultDbUser, 'type': str, 'question': 'Insert ksanGW DB user'},
+                  {'key': 'objM.db_password', 'value': lifecycleDefaultDbPassword, 'type': str, 'question': 'Insert ksanGW DB password'},
+                  {'key': 'ksan.region', 'value': lifecycleDefaultRegion, 'type': str, 'question': 'Insert region'},
+                  {'key': 'lifecycle.schedule', 'value': lifecycleDefaultRuntime, 'type': str, 'question': 'Insert runtime'},
+                  {'key': 'lifecycle.check_interval', 'value': lifecycleDefaultCheckInterval, 'type': int, 'question': 'Insert check interval'}]
 
 @catch_exceptions()
 def AddService(MgsIp, Port, ApiKey, ServiceName, ServiceType, ServerId=None, VlanIds=[], ServerName=None, GroupId='', Description='', logger=None):
@@ -319,24 +339,6 @@ def GetServiceMongoDBConfig(MgsIp, Port, ApiKey, logger=None):
         return Res, Errmsg, None, None
 
 
-
-def GetServiceConfigFromFile(ServiceType):
-    try:
-        if ServiceType == TypeS3:
-            with open(SampleS3ConfFile, 'r') as f:
-                Conf = f.read()
-                return Conf
-        elif ServiceType == TypeServiceHaproxy:
-            with open(SampleHaproxyConfFile, 'r') as f:
-                Conf = f.read()
-                return Conf
-        else:
-            return None
-    except Exception as err:
-        print(err)
-        return None
-
-
 @catch_exceptions()
 def UpdateServiceInfo(MgsIp, Port, ApiKey, ServiceId=None, ServiceName=None, GroupId=None, Description=None, ServiceType=None,
                       HaAction=None, State=None, logger=None):
@@ -471,30 +473,42 @@ def TmpGetServiceInfoList(Ip, Port):
 
 
 @catch_exceptions()
-def ShowServiceInfoWithServerInfo(ServerList, Detail=False, Ip=None, Port=None):
+def ShowServiceInfoWithServerInfo(ServerList, Detail=False, Ip=None, Port=None, SysinfoDisp=False):
         #Ret, Errmsg , Data = TmpGetServiceInfoList(Ip, Port)
         #if Ret != ResOk:
         #    print('Fail to get Service Info %s' % Errmsg)
         #    return
 
-        ServiceTitleLine = '%s' % ('=' * 245)
-        ServiceTitle ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(20), 'ServiceName'.center(20), 'ServiceId'.center(38),
-                                       'ServiceGruopId'.center(38), 'State'.center(10), 'Type'.center(20),
-                                           'CpuUsage'.center(20), 'MemoryUsed'.center(20),'Thread Cnt'.center(10), 'ServerId'.center(38))
+        if SysinfoDisp is True:
+            ServiceTitleLine = '%s' % ('=' * 105)
+            ServiceTitle ="|%s|%s|%s|%s|%s|" % ('Service'.center(25), 'Server'.center(15),'Status'.center(17), 'Type'.center(20), ' ' * 22)
+            ServiceDataLine = '%s' % ('-' * 105)
+        else:
+            ServiceTitleLine = '%s' % ('=' * 245)
+            ServiceTitle = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (
+                'ServerName'.center(20), 'ServiceName'.center(20), 'ServiceId'.center(38),
+                'ServiceGruopId'.center(38), 'State'.center(10), 'Type'.center(20),
+                'CpuUsage'.center(20), 'MemoryUsed'.center(20), 'Thread Cnt'.center(10), 'ServerId'.center(38))
+            ServiceDataLine = '%s' % ('-' * 245)
         print(ServiceTitleLine)
         print(ServiceTitle)
         print(ServiceTitleLine)
 
-        ServiceDataLine = '%s' % ('-' * 245)
         for Svr in ServerList:
-            for Svc in Svr.Services:
-
-                _Svc ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
-                      (Svr.Name.center(20), str(Svc.Name).center(20),
-                       Svc.Id.center(38), str(Svc.GroupId).center(38),
-                       Svc.State.center(10), str(Svc.ServiceType).center(20), str(Svc.CpuUsage).center(20) ,
-                       str(Svc.MemoryUsed).center(20), str(int(Svc.ThreadCount)).center(10), Svr.Id.center(38))
-                print(_Svc)
+            if len(Svr.Services) > 0:
+                for Svc in Svr.Services:
+                    if SysinfoDisp is True:
+                        _Svc = "|%s|%s|%s|%s|%s|" % (str(Svc.Name).center(25), Svr.Name.center(15), Svc.State.center(17), str(Svc.ServiceType).center(20), ' ' * 22)
+                    else:
+                        _Svc ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
+                                (Svr.Name.center(20), str(Svc.Name).center(20),
+                               Svc.Id.center(38), str(Svc.GroupId).center(38),
+                               DisplayState(Svc.State).center(10), str(Svc.ServiceType).center(20), str(Svc.CpuUsage).center(20) ,
+                               str(Svc.MemoryUsed).center(20), str(int(Svc.ThreadCount)).center(10), Svr.Id.center(38))
+                    print(_Svc)
+                    print(ServiceDataLine)
+            else:
+                print('No service data')
                 print(ServiceDataLine)
 
 
@@ -1040,6 +1054,18 @@ def GetServiceCurrentConfigInfo(PortalIp, PortalPort, PortalApiKey, ServiceType,
                 except Exception as err:
                     pass
         ConfigInfo = MongoDbConfigInfo
+
+    elif ServiceType == TypeServiceLifecycle:
+        if Data:
+            CurrentConf = json.loads(Data.Config)
+            for info in LifecycleDefaultConfigInfo:
+                try:
+                    ConfKey = info['key']
+                    info['value'] = CurrentConf[ConfKey]
+                except Exception as err:
+                    pass
+        ConfigInfo = LifecycleDefaultConfigInfo
+
 
     return ConfigInfo
 
