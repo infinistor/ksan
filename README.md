@@ -36,32 +36,21 @@ KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 �
 
 현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/s3-compatible-apis-YQ4FxMK0WO))를 참조해 주십시오.
 
-
-:::info
-Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
-
-:::
+ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
 
 
 ### 미션 크리티컬 서비스에 즉시 도입 가능한 고가용성을 지원
 
 KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS와 MongoDB와 같은 NoSQL DB 등으로 구성할 수 있도록 설계되었으며, 각각의 지원 대상에 따라 최적화된 방식으로 DB 서비스의 고가용성을 지원합니다.
 
+ℹ️ v1.1.0부터 MariaDB 또는 MongoDB 클러스터를 이용해 Object 메타데이터를 관리할 수 있습니다.
 
-:::info
-v1.1.0부터 MariaDB 또는 MongoDB 클러스터를 이용해 Object 메타데이터를 관리할 수 있습니다.
-
-:::
 
 그리고 KSAN 시스템의 오브젝트 데이터는 서로 다른 OSD의 OSDDISK에 복제본을 배치 및 저장하는 방식으로 단일 지점의 물리적인 장애에 대응하도록 설계되었습니다. 또한 ksanGW는 HAProxy 등의 서비스 로드밸런서를 이용해 오브젝트 스토리지 서비스의 가용성을 보장할 수 있습니다.
 
 또한 KSAN 시스템은 재해 상황에 대해서도 서비스 가용성을 보장할 수 있습니다. 2022년 3분기 이후에 공개 및 제공이 예정되어 있는 ksanDR 모듈은 지역적으로 배치되는 KSAN 시스템들 간의 오브젝트 데이터를 실시간으로 동기화하는 기능을 제공할 예정입니다.
 
-
-:::info
-재해 상황에 대한 서비스 고가용성 지원을 위한 ksanDR 기능은 2022년 4분기에 공개될 예정입니다.
-
-:::
+ℹ️ 재해 상황에 대한 서비스 고가용성 지원을 위한 ksanDR 기능은 2022년 4분기에 공개될 예정입니다.
 
 
 ### 유연하고 효율적인 저장 자원의 관리 지원
@@ -70,17 +59,14 @@ v1.1.0부터 MariaDB 또는 MongoDB 클러스터를 이용해 Object 메타데�
 
 또한 1+1 복제 방식으로 OSDDISK에 분산 저장된 오브젝트 데이터를 특정 시간이 지나면 자동으로 Erasure Coding으로 처리해 더 적은 백엔드 저장 자원으로 오브젝트 데이터를 보관할 수 있도록 설계되었습니다.
 
+ℹ️ KSAN의 Erasure Coding 기능은 2022년 4분기에 공개될 예정입니다.
 
-:::info
-KSAN의 Erasure Coding 기능은 2022년 4분기에 공개될 예정입니다.
-
-:::
 
 <br><br>
 
 ## KSAN 시작하기
 
-[Quick Start Guide 문서](docs/QUICKSTART.md)를 참고하여 KSAN을 직접 사용해 보세요.
+[Quick Start Guide 문서](http://vpn.pspace.com:3000/doc/quick-start-guide-rC1ZgcsjS3)를 참고하여 KSAN을 직접 사용해 보세요.
 
 
 <br><br><br>
