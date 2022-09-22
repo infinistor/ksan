@@ -14,7 +14,8 @@ import os, sys
 import re
 from common.shcommand import shcall
 from const.common import OneTBUnit, OneGBUnit, OneMBUnit, OneKBUnit, DiskStart, DiskStop, DiskWeak, DiskDisable, \
-    DiskModeRo, DiskModeRw, DiskModeRoShort, DiskModeRwShort
+    DiskModeRo, DiskModeRw, DiskModeRoShort, DiskModeRwShort, ServerStateOffline, ServerStateOnline, \
+    ServiceStateOffline, ServiceStateOnline, ServiceStateUnkown, ServerStateTimeout
 import signal
 
 
@@ -213,59 +214,105 @@ class clr:
     end = '\033[0m'
 
 
-def Byte2HumanValue(Byte, Title):
+def Byte2HumanValue(Byte, Title, Color=True):
 
     if Title == 'TotalSize':
         if (int(Byte) / OneTBUnit) > 0.99: # TB
             TB = int(Byte) / OneTBUnit
-            return (clr.okbl + "%8.1f" % round(TB, 1) + 'T' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%8.1f" % round(TB, 1) + 'T' + clr.end)
+            else:
+                return "%8.1f" % round(TB, 1) + 'T'
         elif (int(Byte) / OneGBUnit) > 0.99: # GB
             GB = int(Byte) / OneGBUnit
-            return (clr.okbl + "%8.1f" % round(GB, 1) + 'G' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%8.1f" % round(GB, 1) + 'G' + clr.end)
+            else:
+                return "%8.1f" % round(GB, 1) + 'G'
         elif (int(Byte) / OneMBUnit) > 0.99: # MB
             MB = int(Byte) / OneMBUnit
-            return (clr.okgr + "%8.1f" % round(MB, 1)+'M' + clr.end)
+            if Color is True:
+                return (clr.okgr + "%8.1f" % round(MB, 1)+'M' + clr.end)
+            else:
+                return "%8.1f" % round(MB, 1) + 'M'
 
         elif (int(Byte) / OneKBUnit) > 0.99:  # MB
             MB = int(Byte) / OneKBUnit
-            return (clr.warnye + "%8.1f" % round(MB, 1) + 'K' + clr.end)
+            if Color is True:
+                return (clr.warnye + "%8.1f" % round(MB, 1) + 'K' + clr.end)
+            else:
+                return "%8.1f" % round(MB, 1) + 'K'
         else:# KB
             KB = int(Byte)
-            return (clr.badre + "%8.1f" % round(KB, 1)+'B' + clr.end)
+            if Color is True:
+                return (clr.badre + "%8.1f" % round(KB, 1)+'B' + clr.end)
+            else:
+                return "%8.1f" % round(KB, 1) + 'B'
     elif Title == 'UsedSize' or Title == 'FreeSize':
         if (int(Byte) / OneTBUnit) > 0.99:  # TB
             TB = int(Byte) / OneTBUnit
-            return (clr.okbl + "%7.1f" % round(TB, 1) + 'T' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%7.1f" % round(TB, 1) + 'T' + clr.end)
+            else:
+                return "%7.1f" % round(TB, 1) + 'T'
+
         elif (int(Byte) / OneGBUnit) > 0.99:  # GB
             GB = int(Byte) / OneGBUnit
-            return (clr.okbl + "%7.1f" % round(GB, 1) + 'G' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%7.1f" % round(GB, 1) + 'G' + clr.end)
+            else:
+                return "%7.1f" % round(GB, 1) + 'G'
         elif (int(Byte) / OneMBUnit) > 0.99:  # MB
             MB = int(Byte) / OneMBUnit
-            return (clr.okgr + "%7.1f" % round(MB, 1) + 'M' + clr.end)
+            if Color is True:
+                return (clr.okgr + "%7.1f" % round(MB, 1) + 'M' + clr.end)
+            else:
+                return "%7.1f" % round(MB, 1) + 'M'
 
         elif (int(Byte) / OneKBUnit) > 0.99:  # MB
             MB = int(Byte) / OneKBUnit
-            return (clr.warnye + "%7.1f" % round(MB, 1) + 'K' + clr.end)
+            if Color is True:
+                return (clr.warnye + "%7.1f" % round(MB, 1) + 'K' + clr.end)
+            else:
+                return "%7.1f" % round(MB, 1) + 'K'
         else:  # KB
             KB = int(Byte)
-            return (clr.badre + "%7.1f" % round(KB, 1) + 'B' + clr.end)
+            if Color is True:
+                return (clr.badre + "%7.1f" % round(KB, 1) + 'B' + clr.end)
+            else:
+                return "%7.1f" % round(KB, 1) + 'B'
     elif Title == 'DiskRw':
         if (int(Byte) / OneTBUnit) > 0.99:  # TB
             TB = int(Byte) / OneTBUnit
-            return (clr.okbl + "%5.1f" % round(TB, 1) + 'T' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%5.1f" % round(TB, 1) + 'T' + clr.end)
+            else:
+                return "%5.1f" % round(TB, 1) + 'T'
         elif (int(Byte) / OneGBUnit) > 0.99:  # GB
             GB = int(Byte) / OneGBUnit
-            return (clr.okbl + "%5.1f" % round(GB, 1) + 'G' + clr.end)
+            if Color is True:
+                return (clr.okbl + "%5.1f" % round(GB, 1) + 'G' + clr.end)
+            else:
+                return "%5.1f" % round(GB, 1) + 'G'
         elif (int(Byte) / OneMBUnit) > 0.99:  # MB
             MB = int(Byte) / OneMBUnit
-            return (clr.okgr + "%5.1f" % round(MB, 1) + 'M' + clr.end)
+            if Color is True:
+                return (clr.okgr + "%5.1f" % round(MB, 1) + 'M' + clr.end)
+            else:
+                return "%5.1f" % round(MB, 1) + 'M'
 
         elif (int(Byte) / OneKBUnit) > 0.99:  # MB
             MB = int(Byte) / OneKBUnit
-            return (clr.warnye + "%5.1f" % round(MB, 1) + 'K' + clr.end)
+            if Color is True:
+                return (clr.warnye + "%5.1f" % round(MB, 1) + 'K' + clr.end)
+            else:
+                return "%5.1f" % round(MB, 1) + 'K'
         else:  # KB
             KB = int(Byte)
-            return (clr.badre + "%5.1f" % round(KB, 1) + 'B' + clr.end)
+            if Color is True:
+                return (clr.badre + "%5.1f" % round(KB, 1) + 'B' + clr.end)
+            else:
+                return "%5.1f" % round(KB, 1) + 'B'
 
 
 def DisplayDiskState(State):
@@ -277,6 +324,13 @@ def DisplayDiskState(State):
         return (clr.warnye + "%7s" % State + clr.end)
     elif State == DiskDisable:
         return (clr.badre + "%7s" % State + clr.end)
+
+def DisplayState(State):
+    if State in [ServiceStateOnline, ServerStateOnline]:
+        return (clr.okgr + "%10s" % State + clr.end)
+    elif State in [ServerStateOffline, ServerStateTimeout, ServiceStateOffline, ServiceStateUnkown]:
+        return (clr.badre + "%10s" % State + clr.end)
+
 
 
 def DisplayDiskMode(Mode):

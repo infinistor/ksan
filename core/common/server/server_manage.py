@@ -21,6 +21,7 @@ from common.httpapi import *
 from common.httpapi import RestApi
 from common.network import GetNetwork
 from const.common import *
+from common.utils import DisplayState
 from const.server import ServerItemsDetailModule, ServerItemsModule, RequestServerInfo, RequestServerInitInfo, \
     UpdateServerInfoItems, RequestServerExistCheck
 from const.http import ResPonseHeader, ResponseHeaderModule
@@ -117,15 +118,22 @@ def GetAllServerDetailInfo(Ip, Port, Apikey, logger=None):
 
 
 @catch_exceptions()
-def ShowServerInfo(Data, Id=None, Detail=False):
-        if Detail:
-            ServerTitleLine = '%s' % ('=' * 148)
-            ServerDataLine = '%s' % ('-' * 148)
-            title ="|%s|%s|%s|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'LoadAvg 1M 5M 15M'.center(15), 'MemTotal'.center(20), 'MemUsed'.center(20), 'Id'.center(38))
+def ShowServerInfo(Data, Id=None, Detail=False, SysinfoDisp=False):
+        if SysinfoDisp is True:
+            ServerTitleLine = '%s' % ('=' * 105)
+            ServerDataLine = '%s' % ('-' * 105)
+            title ="|%s|%s|%s|%s|" % ('Server(HostName)'.center(25), 'IpAddress'.center(15), 'Status'.center(17), ' ' * 43)
         else:
-            ServerTitleLine = '%s' % ('=' * 88)
-            ServerDataLine = '%s' % ('-' * 88)
-            title ="|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'Id'.center(38))
+            if Detail:
+                ServerTitleLine = '%s' % ('=' * 148)
+                ServerDataLine = '%s' % ('-' * 148)
+                title ="|%s|%s|%s|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10),
+                                                      'LoadAvg 1M 5M 15M'.center(15), 'MemTotal'.center(20), 'MemUsed'.center(20), 'Id'.center(38))
+            else:
+                ServerTitleLine = '%s' % ('=' * 88)
+                ServerDataLine = '%s' % ('-' * 88)
+                title ="|%s|%s|%s|%s|" % ('HostName'.center(20), 'IpAddress'.center(15), 'Status'.center(10), 'Id'.center(38))
+
         print(ServerTitleLine)
         print(title)
         print(ServerTitleLine)
@@ -135,15 +143,19 @@ def ShowServerInfo(Data, Id=None, Detail=False):
                     ManagementIp = svr.NetworkInterfaces[0].IpAddress
                 else:
                     ManagementIp = '-'
-                if Detail:
-                    _svr ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
-                          (svr.Name.center(20), ManagementIp.center(15),
-                           svr.State.center(10), str(svr.LoadAverage1M).center(5), str(svr.LoadAverage5M).center(5) ,
-                           str(svr.LoadAverage15M).center(5), str(int(svr.MemoryTotal)).center(20),
-                           str(int(svr.MemoryUsed)).center(20),  svr.Id.center(38))
+
+                if SysinfoDisp is True:
+                    _svr = "|%s|%s|%s|%s|" % (svr.Name.center(25), ManagementIp.center(15), str((svr.State)).center(17), ' ' * 43)
                 else:
-                    _svr = "|%s|%s|%s|%s|" % \
-                           (svr.Name.center(20), ManagementIp.center(15), svr.State.center(10), svr.Id.center(38))
+                    if Detail:
+                        _svr ="|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % \
+                              (svr.Name.center(20), ManagementIp.center(15),
+                               DisplayState(svr.State).center(10), str(svr.LoadAverage1M).center(5), str(svr.LoadAverage5M).center(5) ,
+                               str(svr.LoadAverage15M).center(5), str(int(svr.MemoryTotal)).center(20),
+                               str(int(svr.MemoryUsed)).center(20),  svr.Id.center(38))
+                    else:
+                        _svr = "|%s|%s|%s|%s|" % \
+                               (svr.Name.center(20), ManagementIp.center(15), DisplayState(svr.State).center(10), svr.Id.center(38))
 
                 print(_svr)
                 print(ServerDataLine)
@@ -191,6 +203,7 @@ def ServerInit(PortalIp, PortalPort, PortalApiKey, TargetServerIp, logger=None):
     :param logger:
     :return:tuple(error code, error msg, Success to get result:header, fail to get result: None)
     """
+    """
     SshUser = get_input('Insert ssh user', str, default='root')
     SshPassword = get_input('Insert ssh password', 'pwd', default='')
     if PortalIp is None:  # if ksanMonitor.conf is not configured
@@ -205,8 +218,9 @@ def ServerInit(PortalIp, PortalPort, PortalApiKey, TargetServerIp, logger=None):
             sys.exit(-1)
         else:
             PortalIp = Ip
-
-
+    """
+    SshUser=''
+    SshPassword = ''
     server = RequestServerInitInfo()
     server.Set(TargetServerIp, PortalIp, PortalPort, SshUser, SshPassword)
     body = jsonpickle.encode(server, make_refs=False)

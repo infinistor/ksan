@@ -222,22 +222,25 @@ def UpdateConf(Path, Section, Key, Value, logger, Force=True):
     else:
         return False
 
-def WaitAgentConfComplete(FuncName, logger, CheckNetworkDevice=False, CheckNetworkId=False):
+def WaitAgentConfComplete(FuncName, logger, CheckServerId=True, CheckNetworkDevice=False, CheckNetworkId=False):
     while True:
         ret, conf = GetConf(MonServicedConfPath)
         if ret is True:
             if conf is not None:
-                if hasattr(conf.__dict__[KeyCommonSection], 'ServerId'):
-                    if not (conf.__dict__[KeyCommonSection].__dict__[KeyServerId] is None or conf.__dict__[KeyCommonSection].__dict__[KeyServerId] == ''):
-                        if CheckNetworkDevice is False:
-                            return conf
-                        else:
-                            if not (conf.__dict__[KeyCommonSection].__dict__[KeyManagementNetDev] is None or conf.__dict__[KeyCommonSection].__dict__[KeyManagementNetDev] == ''):
-                                if CheckNetworkId is False:
-                                    return conf
-                                else:
-                                    if not (conf.__dict__[KeyCommonSection].__dict__[KeyDefaultNetworkId] is None or conf.__dict__[KeyCommonSection].__dict__[KeyDefaultNetworkId] == ''):
+                if CheckServerId is True:
+                    if hasattr(conf.__dict__[KeyCommonSection], 'ServerId'):
+                        if not (conf.__dict__[KeyCommonSection].__dict__[KeyServerId] is None or conf.__dict__[KeyCommonSection].__dict__[KeyServerId] == ''):
+                            if CheckNetworkDevice is False:
+                                return conf
+                            else:
+                                if not (conf.__dict__[KeyCommonSection].__dict__[KeyManagementNetDev] is None or conf.__dict__[KeyCommonSection].__dict__[KeyManagementNetDev] == ''):
+                                    if CheckNetworkId is False:
                                         return conf
+                                    else:
+                                        if not (conf.__dict__[KeyCommonSection].__dict__[KeyDefaultNetworkId] is None or conf.__dict__[KeyCommonSection].__dict__[KeyDefaultNetworkId] == ''):
+                                            return conf
+                else:
+                    return conf
 
         logger.debug('%s wail for %s to be configured. Check = ServerId:True, NetworkDevice:%s CheckNetworkId:%s' %
                      (FuncName, MonServicedConfPath, str(CheckNetworkDevice), str(CheckNetworkId)))

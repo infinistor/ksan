@@ -27,8 +27,8 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
     PortalIp = Conf.PortalHost
     PortalPort = Conf.PortalPort
     PortalApiKey = Conf.PortalApiKey
-    MqPort = Conf.MqPort
-    MqPassword = Conf.MqPassword
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
@@ -37,18 +37,19 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
     if Action.lower() == 'cbalance':
         isValid = True
         if not options.BucketName:
-            print('Bucket Name is required')
+            #print('Bucket Name is required')
             isValid = False
         elif not (options.Key or options.ObjectId):
-            print('Key or ObjectId is required')
+            #print('Key or ObjectId is required')
             isValid = False
         elif not (options.DstDiskName or options.VersionId or options.SrcDiskName):
-            print('Key or ObjectId is required')
+            #print('Key or ObjectId is required')
             isValid = False
         if isValid is False:
+            Parser.print_help()
             sys.exit(-1)
 
-        CbalanceCmd = '%s/%s ' % (KsanUtilDirPath, TypeServiceCbalance)
+        CbalanceCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceCbalance)
         CbalanceCmd += '--BucketName %s' % options.BucketName
 
         if options.Key:

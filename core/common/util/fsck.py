@@ -36,10 +36,10 @@ def FsckUtilHandler(Conf, Action, Parser, logger):
 
     if Action.lower() == 'fsck':
         if not (options.BucketName or options.DiskName):
-            print('Bucket Name or Disk Name are required')
+            Parser.print_help()
             sys.exit(-1)
 
-        FsckCmd = '%s/%s ' % (KsanUtilDirPath, TypeServiceFsck)
+        FsckCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceFsck)
         if options.BucketName:
             FsckCmd += '--BucketName %s' % options.BucketName
         else:
