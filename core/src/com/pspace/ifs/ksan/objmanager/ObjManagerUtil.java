@@ -61,7 +61,7 @@ public class ObjManagerUtil {
             this(new ObjManagerConfig());
     }
     
-    private Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
+    public Bucket getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
         Bucket bt = obmCache.getBucketFromCache(bucketName);
         if (bt == null)
             bt = dbm.selectBucket(bucketName);
