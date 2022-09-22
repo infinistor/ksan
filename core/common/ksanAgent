@@ -117,35 +117,6 @@ def Start(LocalIp, logger=None, Foreground=False):
     :return:
     """
 
-    """
-    ret, conf = GetConf(MonServicedConfPath)
-    if ret is False:
-        print('Init conf first')
-        sys.exit(-1)
-    else:
-        if conf.mgs.ServerId == '':
-            print('Local server is not registered. Excute ksanAgent register first')
-            sys.exit(-1)
-        else:
-            conf = CheckAgentMonitoringOption(conf)
-
-    # conversion portal host to ip
-    ret, hostname ,ip = GetHostInfo(conf.mgs.PortalHost)
-    if ret is False:
-        logger.error('Invalid PortalHost')
-        sys.exit(-1)
-    else:
-        setattr(conf.mgs, 'PortalHost', ip)
-
-    # conversion mqhost to ip
-    ret, hostname ,ip = GetHostInfo(conf.mgs.MQHost)
-    if ret is False:
-        logger.error('Invalid MqHost')
-        sys.exit(-1)
-    else:
-        setattr(conf.mgs, 'MqHost', ip)
-    """
-
     if Foreground is False:
         D = Daemon(KsanAgentPidFile, 'ksanAgent')
         D.start()

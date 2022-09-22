@@ -21,6 +21,7 @@ from user.user_manage import UserUtilHandler
 from util.fsck import FsckUtilHandler
 from util.getattr import GetAttrUtilHandler
 from util.cbalance import CbalanceUtilHandler
+from util.sysinfo import ShowSystemInfo
 from network.network_manage import *
 from common.init import *
 from common.utils import AvoidSigInt
@@ -35,7 +36,7 @@ class KsanOptionParser(OptionParser):
           sysinfo                                                                  : display total system info
           server   [add|remove|list]                                               : server management      
           service  [add|remove|list|start|stop|restart]                            : service management 
-          config   [add|remove|list|apply|get]                                     : serivce config management
+          config   [add|remove|list|set|get]                                       : serivce config management
           disk     [add|remove|list|start|stop|set]                                : disk management 
           diskpool [add|remove|list|add2disk|remove2disk|set]                      : diskpool management 
           user     [add|remove|list|add2storageclass|remove2storageclass|set]      : ksan user management 
@@ -49,9 +50,8 @@ class KsanOptionParser(OptionParser):
           --DiskName                                                               : disk name 
           --DiskpoolName                                                           : diskpool name 
           --UserName                                                               : user name
-          --ServiceType                                                            : service type [ksanApiPortal|ksanPortalBridge|KsanMonitor|
-                                                                                      KsanAgent|KsanOsd|KsanGw|KsanRecovery|
-                                                                                      KsanLifecycle|KsanReplication|KsanMetering]
+          --ServiceType                                                            : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
+                                                                                      ksanLifecycle|ksanReplication|ksanMetering]
           --ConfVerId                                                              : config version
           --RepType                                                                : replication type[1|2] 1: 1+0, 2:1+1
           --DiskpoolType                                                           : diskpool type[standard|archive]
@@ -88,6 +88,29 @@ class KsanOptionParser(OptionParser):
         self.add_option("--Email", "--email", dest="Email", help='user\' e-mail address')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
         self.add_option("--VV", "--vv", dest="MoreDetail", action="store_true", help='display information in more detail')
+
+    def print_help(self):
+        print(self.Usage)
+
+
+class KsanSysinfoUtilOptParser(OptionParser):
+    def __init__(self):
+        super(KsanSysinfoUtilOptParser, self).__init__()
+        self.Usage = """
+          ksan sysinfo [option]*  
+          [options]
+                --v                                 : show info in detail
+
+          [example]
+                # ./ksan sysinfo 
+                # ./ksan sysinfo --v
+        """
+
+        self.AddOption()
+
+    def AddOption(self):
+        self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
+        self.add_option('-d', "--Debug", "--debug", dest='debug', action='store_true')
 
     def print_help(self):
         print(self.Usage)
@@ -144,9 +167,8 @@ class KsanServiceUtilOptParser(OptionParser):
         [options]
               --ServerName                          : server name
               --ServiceName                         : service name 
-              --ServiceType                         : service type [ksanApiPortal|ksanPortalBridge|KsanMonitor|
-                                                      KsanAgent|KsanOsd|KsanGw|KsanRecovery|
-                                                      KsanLifecycle|KsanReplication|KsanMetering]
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
+                                                      ksanLifecycle|ksanReplication|ksanMetering]
               --V                                   : show info in detail
               
          [example]
@@ -181,15 +203,15 @@ class KsanConfigUtilOptParser(OptionParser):
     def __init__(self):
         super(KsanConfigUtilOptParser, self).__init__()
         self.Usage = """
-        ksan config [add|remove|list|apply] [option]*            
+        ksan config [add|remove|list|set|get] [option]*            
               add                                   : register config   
               remove                                : remove config 
-              list                                  : show config info 
-              apply                                 : apply config 
+              list                                  : show all config info 
+              set                                   : apply config 
+              get                                   : show the current applied config 
         [options]
-              --ServiceType                         : service type [ksanApiPortal|ksanPortalBridge|KsanMonitor|
-                                                      KsanAgent|KsanOsd|KsanGw|KsanRecovery|
-                                                      KsanLifecycle|KsanReplication|KsanMetering]
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
+                                                      ksanLifecycle|ksanReplication|ksanMetering]
               --ConfVerId                           : config version id
        [example]
               1. add config 
@@ -199,8 +221,10 @@ class KsanConfigUtilOptParser(OptionParser):
               3. show config list    
                 # ./ksan config list --ServiceType ksanosd   
                 # ./ksan config list --ServiceType ksangw  
-              4. apply config 
-                # ./ksan config apply --ConfVerId 5 --ServiceType ksangw 
+              4. set config 
+                # ./ksan config set --ConfVerId 5 --ServiceType ksangw 
+              5. get config 
+                # ./ksan config get --ServiceType ksanosd 
               """
         self.AddOption()
     def AddOption(self):
@@ -448,6 +472,7 @@ class KsanGetAttrUtilOptParser(OptionParser):
         self.add_option("--Key", "--key", dest="Key", help='object key')
         self.add_option("--ObjectId", "--objectid", dest="ObjectId", help='object id')
         self.add_option("--VersionId", "--versionid", dest="VersionId", help='version id')
+        self.add_option('--Debug', "--debug", dest='debug', action='store_true', help='display debug log')
 
     def print_help(self):
         print(self.Usage)
@@ -479,39 +504,36 @@ class KsanCbalanceUtilOptParser(OptionParser):
 
         [example]
               1. move a single object and the object can be idetified either key or object Id
-                ksanCbalance  --BucketName bucket1 --Key file1.txt --SrcDiskName osd1_disk1 
-                ksanCbalance  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 
-                ksanCbalance  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 --SrcDiskName osd1_disk1 
-                ksanCbalance  --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 
-                ksanCbalance  --BucketName bucket1 --Key file1.txt --DstDiskName osd2_disk2
-                ksanCbalance  --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2
+                ksan cbalance --BucketName bucket1 --Key file1.txt --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --Key file1.txt --DstDiskName osd2_disk2
+                ksan cbalance --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2
 
               2. move a spefic amount of object from one disk to others
-                ksanCbalance  --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB 
-                ksanCbalance  --SrcDiskName osd1_disk1 --Size 2GB 
+                ksan cbalance --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB 
+                ksan cbalance --SrcDiskName osd1_disk1 --Size 2GB 
 
               3. empty a disk
-                ksanCbalance --EmptyDisk --SrcDiskName osd1_disk1 
+                ksan cbalance --EmptyDisk --SrcDiskName osd1_disk1 
                 """
 
         self.AddOption()
 
     def AddOption(self):
-        self.add_option("--BucketName", "--BucketName", dest="BucketName", help='specifythenameofthebucket')
-        self.add_option("--Checksum", "--Checksum", dest="Checksum", help='displaythechecksumandsizeoftheobjectfromksanOSD')
-        self.add_option("--Key", "--Key", dest="Key", help='specifytheobjectkey')
-        self.add_option("--ObjectId", "--ObjectId", dest="ObjectId", help='specifytheobjectIdifyouwishtodisplaywithIdratherthananobjectkey')
-        self.add_option("--VersionId", "--VersionId", dest="VersionId", help='specifytheobjectversionIdifyouwishparticularversionofanobject')
-        self.add_option("--BucketName", "--BucketName", dest="BucketName", help='specifythenameofthebucketyouwishtobalance')
-        self.add_option("--DstDiskName", "--DstDiskName", dest="DstDiskName", help='specifythedestinationdiskName')
-        self.add_option("--EmptyDisk", "--EmptyDisk", dest="EmptyDisk", help='settoenableemptydiskoperation')
-        self.add_option("--Key", "--Key", dest="Key", help='specifytheobjectkey')
-        self.add_option("--ObjId", "--ObjId", dest="ObjId", help='specifytheobjectIdinsteadofobjectkey')
-        self.add_option("--OkLocalMove", "--OkLocalMove", dest="OkLocalMove", help='allowtomovetolocalanotherdisk(default:false)')
-        self.add_option("--Size", "--Size", dest="Size", help='specifythecapacitytomoveinKB/KiB,MB/MiB,GB/GiB,TB/TiB,andPB/PiBunits')
-        self.add_option("--SrcDiskName", "--SrcDiskName", dest="SrcDiskName", help='specifythesourcediskName')
-        self.add_option("--VersionId", "--VersionId", dest="VersionId", help='specifytheobjectversionIdifyouwishparticularversionofanobject')
-        self.add_option("--Debug", "--Debug", dest="Debug", help='displaydebuglogtotheterminal')
+        self.add_option("--BucketName", "--BucketName", dest="BucketName", help='specify the name of thebucket')
+        self.add_option("--Checksum", "--Checksum", dest="Checksum", help='display the checksum and size of the object from ksanOSD')
+        self.add_option("--Key", "--key", dest="Key", help='specify the object key')
+        self.add_option("--ObjectId", "--ObjectId", dest="ObjectId", help='specify the object Id if you wish to display with Id rather than an object key')
+        self.add_option("--VersionId", "--VersionId", dest="VersionId", help='specify the object version Id if you wish particular version of an object')
+        self.add_option("--DstDiskName", "--DstDiskName", dest="DstDiskName", help='specify the destination diskName')
+        self.add_option("--EmptyDisk", "--EmptyDisk", dest="EmptyDisk", help='set to enable empty disk operation')
+        self.add_option("--ObjId", "--ObjId", dest="ObjId", help='specify the object Id instead of object key')
+        self.add_option("--OkLocalMove", "--OkLocalMove", dest="OkLocalMove", help='allow to move to local an other disk(default:false)')
+        self.add_option("--Size", "--Size", dest="Size", help='specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units')
+        self.add_option("--SrcDiskName", "--SrcDiskName", dest="SrcDiskName", help='specify the source diskName')
+        self.add_option("--Debug", "--Debug", dest="debug", help='display debug log to the terminal')
 
     def print_help(self):
         print(self.Usage)
@@ -527,7 +549,7 @@ def GetPortalConf(Force=False):
         sys.exit(-1)
     return conf
 
-def SysInfo():
+def SysInfo(Parser):
     Conf = WaitAgentConfComplete(KsanUtilName, logger)
     conf = GetAgentConfig(Conf)
 
@@ -535,6 +557,10 @@ def SysInfo():
     PortalPort = int(conf.PortalPort)
     PortalApiKey = conf.PortalApiKey
 
+    options, args = Parser.parse_args()
+    ShowSystemInfo(PortalIp, PortalPort, PortalApiKey, logger, Detail=options.Detail)
+
+    """
     AllServersDetail = list()
     Res, Errmsg, Ret, AllServers = GetServerInfo(PortalIp, PortalPort, PortalApiKey)
     if Res != ResOk:
@@ -549,7 +575,7 @@ def SysInfo():
             AllServersDetail.append(ServerDetail)
 
     ShowSysInfo(AllServersDetail)
-
+    """
 
 if __name__ == '__main__':
     AvoidSigInt()
@@ -557,7 +583,9 @@ if __name__ == '__main__':
     if len(args) == 1:
         Parser = KsanOptionParser()
     else:
-        if args[1].lower() == 'server':
+        if args[1].lower() == 'sysinfo':
+            Parser = KsanSysinfoUtilOptParser()
+        elif args[1].lower() == 'server':
             Parser = KsanServerUtilOptParser()
         elif args[1].lower() == 'service':
             Parser = KsanServiceUtilOptParser()
@@ -604,7 +632,9 @@ if __name__ == '__main__':
             isGetConfForce = True
         #Conf = GetPortalConf(Force=isGetConfForce)
 
-        Conf = WaitAgentConfComplete(KsanUtilName, logger)
+            Conf = WaitAgentConfComplete(KsanUtilName, logger, CheckServerId=False)
+        else:
+            Conf = WaitAgentConfComplete(KsanUtilName, logger)
         conf = GetAgentConfig(Conf)
 
         # conversion portal host to ip
@@ -616,7 +646,7 @@ if __name__ == '__main__':
             setattr(Conf, 'PortalHost', ip)
 
         if main_argument.lower() == 'sysinfo':
-            SysInfo()
+            SysInfo(Parser)
         elif main_argument.lower() == 'server':
             ServerUtilHandler(conf, Action, Parser, logger)
         elif main_argument.lower() == 'service':
@@ -630,10 +660,13 @@ if __name__ == '__main__':
         elif main_argument.lower() == 'user':
             UserUtilHandler(conf, Action, Parser, logger)
         elif main_argument.lower() == 'fsck':
+            Action = 'fsck'
             FsckUtilHandler(conf, Action, Parser, logger)
         elif main_argument.lower() == 'getattr':
+            Action = 'getattr'
             GetAttrUtilHandler(conf, Action, Parser, logger)
         elif main_argument.lower() == 'cbalance':
+            Action = 'cbalance'
             CbalanceUtilHandler(conf, Action, Parser, logger)
 
 

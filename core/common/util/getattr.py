@@ -27,8 +27,8 @@ def GetAttrUtilHandler(Conf, Action, Parser, logger):
     PortalIp = Conf.PortalHost
     PortalPort = Conf.PortalPort
     PortalApiKey = Conf.PortalApiKey
-    MqPort = Conf.MqPort
-    MqPassword = Conf.MqPassword
+    MqPort = Conf.MQPort
+    MqPassword = Conf.MQPassword
 
     if Action is None:
         Parser.print_help()
@@ -36,10 +36,10 @@ def GetAttrUtilHandler(Conf, Action, Parser, logger):
 
     if Action.lower() == 'getattr':
         if not (options.BucketName or options.Key):
-            print('Bucket Name and Key or ObjectId are required')
+            Parser.print_help()
             sys.exit(-1)
 
-        GetAttrCmd = '%s/%s ' % (KsanUtilDirPath, TypeServiceGetAttr)
+        GetAttrCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceGetAttr)
         GetAttrCmd += '--BucketName %s' % options.BucketName
 
         if options.Key:

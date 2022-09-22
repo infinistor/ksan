@@ -56,7 +56,7 @@ def ConfigUtilHandler(Conf, Action, Parser, logger):
             else:
                 print(Ret.Message)
 
-    elif Action.lower() == 'apply':
+    elif Action.lower() == 'set':
         if not options.ConfigVersionId:
             Parser.print_help()
             print('config version is required.')
