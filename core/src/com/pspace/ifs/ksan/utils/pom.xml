@@ -177,26 +177,6 @@
                                         </execution>
 
                                         <execution>
-						<id>ksanOSDDummy</id>
-						<configuration>
-							<archive>
-								<manifest>
-                                                                        <addClasspath>true</addClasspath>
-									<mainClass>com.pspace.ifs.ksan.utils.OSDDummy.OSDDummy</mainClass>
-								</manifest>
-							</archive>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
-							<finalName>ksanOSDDummy</finalName>
-                                                        <appendAssemblyId>false</appendAssemblyId>
-						</configuration>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-                                        <execution>
 						<id>ksanTestRecovery</id>
 						<configuration>
 							<archive>
