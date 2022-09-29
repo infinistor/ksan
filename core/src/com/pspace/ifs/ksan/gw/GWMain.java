@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.TimeZone;
+import java.util.Locale;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
@@ -50,6 +52,10 @@ public class GWMain {
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
 		writePID();
+
+		// setting timezone, locale 
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		Locale.setDefault(Locale.KOREA);
 
 		gw = new GW();
 
