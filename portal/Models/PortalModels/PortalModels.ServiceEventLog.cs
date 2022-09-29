@@ -13,20 +13,21 @@ using System;
 namespace PortalModels
 {
 	/// <summary> 서비스 이벤트 로그 </summary>
-	public partial class ServiceEventLog {
+	public partial class ServiceEventLog
+	{
 
 		public ServiceEventLog()
 		{
 			OnCreated();
 		}
 
-    	/// <summary> 서비스 아이디 </summary>
+		/// <summary> 서비스 아이디 </summary>
 		public virtual Guid Id { get; set; }
 
-    	/// <summary> 등록 시간 </summary>
+		/// <summary> 등록 시간 </summary>
 		public virtual DateTime RegDate { get; set; }
 
-    	/// <summary> 이벤트 종류 </summary>
+		/// <summary> 이벤트 종류 </summary>
 		public virtual EnumDbServiceEventType EventType { get; set; }
 
 		public virtual string Message { get; set; }

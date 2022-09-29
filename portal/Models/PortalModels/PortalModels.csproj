@@ -73,6 +73,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.EnumDbServiceEventType.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.EnumDbServiceGroupMode.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
@@ -149,6 +153,10 @@
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
 		<Compile Update="PortalModels.ServiceDisk.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
+		<Compile Update="PortalModels.ServiceEventLog.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>

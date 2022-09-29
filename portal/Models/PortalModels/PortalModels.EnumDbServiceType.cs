@@ -28,7 +28,7 @@ namespace PortalModels
 		ksanRecovery,
 		ksanLifecycle,
 		ksanReplication,
-		ksanLogExport,
+		ksanLogManager,
 		ksanMetering
 	}
 }
