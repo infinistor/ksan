@@ -140,6 +140,17 @@ namespace PortalSvr.Services
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLifecycle, StrKsanLifecycle);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycle, Result.Data.Version);
 				}
+
+				// KsanLogManager 설정이 없는 경우
+				var KsanLogManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanLogManager);
+				if (KsanLogManagerConfig == null || KsanLogManagerConfig.Result == EnumResponseResult.Error)
+				{
+					// Ksan Gw의 기본 설정 정보를 읽어온다.
+					string StrKsanLogManager = File.ReadAllText(EnvironmentInitializer.KSAN_LOGMANAGER_SETTINGS_FILE);
+
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLogManager, StrKsanLogManager);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLogManager, Result.Data.Version);
+				}
 			}
 			catch (Exception ex)
 			{
