@@ -61,6 +61,8 @@ public class PostObject extends S3Request {
 		initBucketInfo(bucket);
 
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
@@ -332,6 +334,7 @@ public class PostObject extends S3Request {
 			} else {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 			}
+			s3Parameter.setVersionId(versionId);
 		} catch (GWException e) {
 			logger.info(e.getMessage());
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {

@@ -1022,6 +1022,11 @@ public final class GWConstants {
 	public static final String LOG_GET_BUCKET_WEBSITE_START = "GetBucketWebsite ...";
 	public static final String LOG_GET_BUCKET_WEBSITE = "web : {}";
 
+	// GetBucketLogging
+	public static final String LOG_GET_BUCKET_LOGGING_START = "GetBucketLogging ...";
+	public static final String LOG_GET_BUCKET_LOGGING = "logging : {}";
+	public static final String LOG_GET_BUCKET_LOGGING_EMPTY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<BucketLoggingStatus xmlns=\"http://doc.s3.amazonaws.com/2006-03-01\"/>";
+
 	// GetObjcet
 	public static final String LOG_GET_OBJECT_START = "GetObjcet ...";
 	public static final String LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH = "encryption-customer-key does not match";
@@ -1150,6 +1155,9 @@ public final class GWConstants {
 
 	// PutBucketWebsite
 	public static final String LOG_PUT_BUCKET_WEBSITE_START = "PutBucketWebsite ...";
+
+	// PutBucketLogging
+	public static final String LOG_PUT_BUCKET_LOGGING_START = "PutBucketLogging ...";
 
 	// PutObject
 	public static final String LOG_PUT_OBJECT_START = "PutObject ...";

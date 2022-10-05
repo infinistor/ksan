@@ -47,9 +47,12 @@ public class ListObjects extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {

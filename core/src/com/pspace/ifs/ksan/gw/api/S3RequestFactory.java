@@ -145,6 +145,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ENCRYPTION))) {
 						s3Parameter.setOperation(OP_DELETE_ENCRYPTION);
 						return new DeleteBucketEncryption(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LOGGING))) {
+						s3Parameter.setOperation(OP_DELETE_LOGGING);
+						return new DeleteBucketLogging(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_OBJECT_LOCK))) {
 						s3Parameter.setOperation(OP_DELETE_OBJECTLOCK);
 						return new DeleteBucketObjectLock(s3Parameter);
@@ -223,6 +226,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ENCRYPTION))) {
 						s3Parameter.setOperation(OP_GET_ENCRYPTION);
 						return new GetBucketEncryption(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LOGGING))) {
+						s3Parameter.setOperation(OP_GET_LOGGING);
+						return new GetBucketLogging(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ACL))) {
 						s3Parameter.setOperation(OP_GET_BUCKET_ACL);
 						return new GetBucketAcl(s3Parameter);
@@ -358,6 +364,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ENCRYPTION))) {
 						s3Parameter.setOperation(OP_PUT_ENCRYPTION);
 						return new PutBucketEncryption(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LOGGING))) {
+						s3Parameter.setOperation(OP_PUT_LOGGING);
+						return new PutBucketLogging(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ACL))) {
 						s3Parameter.setOperation(OP_PUT_BUCKET_ACL);
 						return new PutBucketAcl(s3Parameter);

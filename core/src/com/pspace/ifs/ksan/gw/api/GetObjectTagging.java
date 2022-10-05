@@ -41,9 +41,12 @@ public class GetObjectTagging extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -56,6 +59,7 @@ public class GetObjectTagging extends S3Request {
 		String object = s3Parameter.getObjectName();
 
 		String versionId = dataGetObjectTagging.getVersionId();
+		s3Parameter.setVersionId(versionId);
 		
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {

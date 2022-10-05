@@ -197,7 +197,7 @@ public class GWLogging {
 
         logger.debug("log - {}", object.toString());
         try {
-            mqSender.send(object.toString());
+            mqSender.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
