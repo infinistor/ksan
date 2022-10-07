@@ -60,7 +60,7 @@ public class KsanPutObject extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_PUT_OBJECT_START);
+		logger.info(GWConstants.LOG_KSAN_PUT_OBJECT_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -69,22 +69,18 @@ public class KsanPutObject extends S3Request {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
-
-        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
-        if (user == null) {
-            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-        }
-        s3Parameter.setUser(user);
 		
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
+		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
+		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		// }
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		// checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
@@ -104,17 +100,27 @@ public class KsanPutObject extends S3Request {
 		String customerKeyMD5 = dataPutObject.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = dataPutObject.getServerSideEncryption();
 		String storageClass = dataPutObject.getStorageClass();
+		String replication = dataPutObject.getReplication();
+		String repVersionId = dataPutObject.getVersionId();
+
+		String versioningStatus = getBucketVersioning(bucket);
+		if (!Strings.isNullOrEmpty(replication)) {
+			if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+			}
+		}
 
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
 		}
-        
 		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
 
 		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 
-		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
-		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
+		s3Metadata.setOwnerId(getBucketInfo().getUserId());
+		s3Metadata.setOwnerName(getBucketInfo().getUserName());
+		// s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
+		// s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataPutObject.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
@@ -191,14 +197,15 @@ public class KsanPutObject extends S3Request {
 		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
+		// String aclXml = getBucketInfo().getAcl();
 		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
 										null, 
 										dataPutObject.hasAclKeyword(), 
 										null, 
 										dataPutObject.getAcl(),
 										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
+										getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
+										getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
 										dataPutObject.getGrantRead(),
 										dataPutObject.getGrantWrite(), 
 										dataPutObject.getGrantFullControl(), 
@@ -333,28 +340,16 @@ public class KsanPutObject extends S3Request {
 			s3Metadata.setLegalHold(dataPutObject.getObjectLockLegalHold());
 		}
 
-		String versioningStatus = getBucketVersioning(bucket);
-		String versionId = null;
 		Metadata objMeta = null;
 		try {
 			// check exist object
-			objMeta = open(bucket, object);
-			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-				versionId = String.valueOf(System.nanoTime());
-			} else {
-				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-			}
+			objMeta = open(bucket, object, repVersionId);
 		} catch (GWException e) {
 			logger.info(e.getMessage());
-			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-				versionId = String.valueOf(System.nanoTime());
-				objMeta = createLocal(diskpoolId, bucket, object, versionId);
-			} else {
-				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-				objMeta = createLocal(diskpoolId, bucket, object, versionId);
-			}
+			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
+		s3Parameter.setVersionId(repVersionId);
+		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
 		S3Object s3Object = objectOperation.putObject();
 
 		s3Metadata.setETag(s3Object.getEtag());
@@ -382,9 +377,9 @@ public class KsanPutObject extends S3Request {
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
 			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
-        	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+        	objMeta.setVersionId(repVersionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
-			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);
+			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, repVersionId);
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

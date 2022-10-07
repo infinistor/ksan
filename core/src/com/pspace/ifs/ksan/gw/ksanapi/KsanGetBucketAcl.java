@@ -11,68 +11,68 @@
 package com.pspace.ifs.ksan.gw.ksanapi;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
+import java.io.IOException;
+
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataDeleteObjectTagging;
+import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.utils.S3UserManager;
-import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.LoggerFactory;
 
-public class KsanDeleteObjectTagging extends S3Request {
-    public KsanDeleteObjectTagging(S3Parameter s3Parameter) {
+public class KsanGetBucketAcl extends S3Request {
+    public KsanGetBucketAcl(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(KsanDeleteObjectTagging.class);
+		logger = LoggerFactory.getLogger(KsanGetBucketAcl.class);
 	}
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_DELETE_OBJECT_TAGGING_START);
+		logger.info(GWConstants.LOG_GET_BUCKET_ACL_START);
+		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-
-		String object = s3Parameter.getObjectName();
-		
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setBucket(bucket);
 		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		// }
-
-		DataDeleteObjectTagging dataDeleteObjectTagging = new DataDeleteObjectTagging(s3Parameter);
-		dataDeleteObjectTagging.extract();
-
-		String versionId = dataDeleteObjectTagging.getVersionId();
 		
-		Metadata objMeta = null;
-		if (Strings.isNullOrEmpty(versionId)) {
-			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
-		} else {
-			objMeta = open(bucket, object, versionId);
+		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
+		dataGetObjectAcl.extract();
+
+		String aclInfo = getBucketInfo().getAcl();
+		logger.debug(GWConstants.LOG_ACL, aclInfo);
+		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
+			aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;
 		}
-		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 
-		// checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
-		objMeta.setTag("");
-		updateObjectTagging(objMeta);
-
-		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, dataDeleteObjectTagging.getVersionId());
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
+        try {
+			if (!Strings.isNullOrEmpty(aclInfo)) {
+				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
+				s3Parameter.getResponse().getOutputStream().write(aclInfo.getBytes());
+			}
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+		
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 }

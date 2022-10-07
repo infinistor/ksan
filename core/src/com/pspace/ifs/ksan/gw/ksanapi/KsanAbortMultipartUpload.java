@@ -48,20 +48,16 @@ public class KsanAbortMultipartUpload extends S3Request {
 		String object = s3Parameter.getObjectName();
 
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 
-		S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
-        if (user == null) {
-            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-        }
-        s3Parameter.setUser(user);
-
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
+		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
+		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		// }
 
 		DataAbortMultipartUpload dataAbortMultipartUpload = new DataAbortMultipartUpload(s3Parameter);
 		dataAbortMultipartUpload.extract();
