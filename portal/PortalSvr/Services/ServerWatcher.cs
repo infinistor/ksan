@@ -85,6 +85,9 @@ namespace PortalSvr.Services
 				{
 					var m_serverProvider = ServiceScope.ServiceProvider.GetService<IServerProvider>();
 					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
+					var m_apiKeyProvider = ServiceScope.ServiceProvider.GetService<IApiKeyProvider>();
+
+					var ApiKey = await m_apiKeyProvider.GetMainApiKey();
 
 					// 서버의 갱신 임계값을 가져온다.
 					var Threshold = await m_serverProvider.GetThreshold();
@@ -100,7 +103,7 @@ namespace PortalSvr.Services
 					{
 						// 서버의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
 						if (Server.ModDate < Timeout)
-							await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout);
+							await m_serverProvider.UpdateState(Server.Id, EnumServerState.Timeout, ApiKey.UserId.ToString(), ApiKey.UserName);
 					}
 
 					// 온라인 상태인 서비스 목록을 가져온다.
@@ -111,7 +114,7 @@ namespace PortalSvr.Services
 					{
 						// 서비스의 갱신일자가 임계값을 넘었을 경우 Timeout 상태로 변경한다.
 						if (Service.ModDate < Timeout)
-							await m_serviceProvider.UpdateState(Service.Id, EnumServiceState.Timeout);
+							await m_serviceProvider.UpdateState(Service.Id, EnumServiceState.Timeout, ApiKey.UserId.ToString(), ApiKey.UserName);
 					}
 				}
 			}

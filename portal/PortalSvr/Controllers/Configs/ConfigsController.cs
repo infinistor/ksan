@@ -418,63 +418,63 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanReplication, Version));
 		}
 		#endregion
-		#region KsanLogExport
-		/// <summary>KsanLogExport 설정 목록을 가져온다.</summary>
+		#region KsanLogManager
+		/// <summary>KsanLogManager 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanLogExport")]
-		public async Task<ActionResult> GetConfigListForKsanLogExport()
+		[HttpGet("List/KsanLogManager")]
+		public async Task<ActionResult> GetConfigListForKsanLogManager()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanLogExport));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanLogManager));
 		}
 
-		/// <summary>KsanLogExport 설정을 가져온다.</summary>
+		/// <summary>KsanLogManager 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanLogExport")]
-		public async Task<ActionResult> GetConfigForKsanLogExport()
+		[HttpGet("KsanLogManager")]
+		public async Task<ActionResult> GetConfigForKsanLogManager()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLogExport));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLogManager));
 		}
 
-		/// <summary>특정 버전의 KsanLogExport 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanLogManager 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanLogExport/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanLogExport([FromRoute] int Version)
+		[HttpGet("KsanLogManager/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanLogManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLogExport, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLogManager, Version));
 		}
 
-		/// <summary>KsanLogExport 설정을 저장한다.</summary>
+		/// <summary>KsanLogManager 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanLogExport")]
-		public async Task<ActionResult> SetConfigForKsanLogExport([FromBody] string Config)
+		[HttpPost("KsanLogManager")]
+		public async Task<ActionResult> SetConfigForKsanLogManager([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanLogExport, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanLogManager, Config = Config }));
 		}
 
-		/// <summary>KsanLogExport 설정의 버전을 변경한다.</summary>
+		/// <summary>KsanLogManager 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanLogExport/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanLogExport([FromRoute] int Version)
+		[HttpPut("KsanLogManager/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanLogManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanLogExport, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanLogManager, Version));
 		}
 
-		/// <summary>KsanLogExport 설정의 버전을 삭제한다.</summary>
+		/// <summary>KsanLogManager 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanLogExport/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanLogExport([FromRoute] int Version)
+		[HttpDelete("KsanLogManager/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanLogManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLogExport, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLogManager, Version));
 		}
 		#endregion
 		#region KsanMetering

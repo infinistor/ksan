@@ -46,8 +46,8 @@ namespace PortalData.Enums
 		ksanLifecycle,
 		/// <summary>Replication</summary>
 		ksanReplication,
-		/// <summary>Logging</summary>
-		ksanLogExport,
+		/// <summary>LogManager</summary>
+		ksanLogManager,
 		/// <summary>Metering</summary>
 		ksanMetering
 	}
