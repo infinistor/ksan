@@ -10,27 +10,32 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.io.IOException;
+
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketLifeCycle;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.pspace.ifs.ksan.gw.data.DataPutBucketLogging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class PutBucketLifecycleConfiguration extends S3Request {
-    public PutBucketLifecycleConfiguration(S3Parameter s3Parameter) {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutBucketLifecycleConfiguration.class);
-	}
+public class PutBucketLogging extends S3Request {
 
-	@Override
+    public PutBucketLogging(S3Parameter s3Parameter) {
+        super(s3Parameter);
+        logger = LoggerFactory.getLogger(PutBucketLogging.class);
+	}
+    
+    @Override
 	public void process() throws GWException {
-        logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_START);
+        logger.info(GWConstants.LOG_PUT_BUCKET_LOGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
@@ -47,15 +52,13 @@ public class PutBucketLifecycleConfiguration extends S3Request {
 		}
 		
 		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		
+		DataPutBucketLogging dataPutBucketLogging = new DataPutBucketLogging(s3Parameter);
+		dataPutBucketLogging.extract();
 
-		DataPutBucketLifeCycle dataPutBucketLifeCycle = new DataPutBucketLifeCycle(s3Parameter);
-		dataPutBucketLifeCycle.extract();
-
-		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();
-		logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_XML, lifecycleXml);
-		updateBucketLifecycle(bucket, lifecycleXml);
+		String loggingInfo = dataPutBucketLogging.getLoggingXml();
+		updateBucketLogging(bucket, loggingInfo);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
-
 }

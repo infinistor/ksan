@@ -1237,6 +1237,23 @@ public abstract class S3Request {
 		}
 	}
 
+	protected void updateBucketLogging(String bucket, String logging) throws GWException {
+		try {
+			setObjManager();
+            objManager.updateBucketLogging(bucket, logging);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        } finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+	}
+
 	protected Bucket getBucket(String bucket) throws GWException {
 		Bucket bucketInfo = null;
 		try {

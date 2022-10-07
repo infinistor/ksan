@@ -16,6 +16,7 @@ import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,12 @@ public class PutPublicAccessBlock extends S3Request {
 		logger.info(GWConstants.LOG_PUT_BUCKET_PUBLIC_ACCESS_BLOCK_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
+		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
+		s3Bucket.setCors(getBucketInfo().getCors());
+		s3Bucket.setAccess(getBucketInfo().getAccess());
+		s3Parameter.setBucket(s3Bucket);
 
 		DataPutPublicAccessBlock dataPutPublicAccessBlock = new DataPutPublicAccessBlock(s3Parameter);
 		dataPutPublicAccessBlock.extract();

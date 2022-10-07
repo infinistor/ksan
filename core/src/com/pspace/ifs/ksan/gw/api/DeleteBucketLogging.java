@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketLifeCycle;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -22,19 +21,21 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class PutBucketLifecycleConfiguration extends S3Request {
-    public PutBucketLifecycleConfiguration(S3Parameter s3Parameter) {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutBucketLifecycleConfiguration.class);
-	}
+public class DeleteBucketLogging extends S3Request {
 
-	@Override
-	public void process() throws GWException {
-        logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_START);
+    public DeleteBucketLogging(S3Parameter s3Parameter) {
+        super(s3Parameter);
+        logger = LoggerFactory.getLogger(DeleteBucketLogging.class);
+    }
+    
+    @Override
+    public void process() throws GWException {
+        logger.info(GWConstants.LOG_DELETE_BUCKET_OBJECT_LOCK_START);
+		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
+        s3Bucket.setBucket(bucket);
 		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
@@ -46,16 +47,8 @@ public class PutBucketLifecycleConfiguration extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		updateBucketLogging(bucket, "");
 
-		DataPutBucketLifeCycle dataPutBucketLifeCycle = new DataPutBucketLifeCycle(s3Parameter);
-		dataPutBucketLifeCycle.extract();
-
-		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();
-		logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_XML, lifecycleXml);
-		updateBucketLifecycle(bucket, lifecycleXml);
-
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-	}
-
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
 }

@@ -69,9 +69,12 @@ public class CompleteMultipartUpload extends S3Request {
 		String object = s3Parameter.getObjectName();
 
 		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket);
+		s3Bucket.setUserName(getBucketInfo().getUserName());
 		s3Bucket.setCors(getBucketInfo().getCors());
 		s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -91,10 +94,10 @@ public class CompleteMultipartUpload extends S3Request {
 			completeMultipartUpload = xmlMapper.readValue(multipartXml, CompleteMultipartUploadRequest.class);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		if(completeMultipartUpload.parts == null || completeMultipartUpload.parts.size() == 0) {
@@ -196,6 +199,7 @@ public class CompleteMultipartUpload extends S3Request {
 				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 				objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, versionId);
 			}
+			s3Parameter.setVersionId(versionId);
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
