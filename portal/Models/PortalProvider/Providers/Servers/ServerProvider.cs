@@ -341,9 +341,9 @@ namespace PortalProvider.Providers.Servers
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 파라미터로 넘어온 수정자 아이디 파싱
-				Guid guidModId = Guid.Empty;
+				Guid ModGuid = LoginUserId;
 				if (!ModId.IsEmpty())
-					Guid.TryParse(ModId, out guidModId);
+					Guid.TryParse(ModId, out ModGuid);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -351,7 +351,7 @@ namespace PortalProvider.Providers.Servers
 					{
 						// 정보를 수정한다.
 						Exist.State = (EnumDbServerState)State;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : guidModId;
+						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
 						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
 						Exist.ModDate = DateTime.Now;
 

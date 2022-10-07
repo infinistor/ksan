@@ -28,12 +28,13 @@ public class AsyncHandler {
         CompletableFuture<Integer> future = new CompletableFuture<>();
         new Thread( () -> {
             if (GWConfig.getInstance().isEventLog()) {
-                GWDB gwDB = GWUtils.getDBInstance();
-                try {
-                    gwDB.putS3logging(s3Parameter);
-                } catch (GWException e) {
-                    PrintStack.logging(logger, e);
-                }
+                // GWDB gwDB = GWUtils.getDBInstance();
+                // try {
+                //     gwDB.putS3logging(s3Parameter);
+                // } catch (GWException e) {
+                //     PrintStack.logging(logger, e);
+                // }
+                GWLogging.getInstance().sendLog(s3Parameter);
             }
         }).start();
 

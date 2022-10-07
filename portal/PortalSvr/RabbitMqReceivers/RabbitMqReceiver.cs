@@ -32,7 +32,7 @@ namespace PortalSvr.RabbitMQReceivers
 	public abstract class RabbitMQReceiver : BackgroundService
 	{
 		/// <summary>Rabbit MQ 연결 객체</summary>
-		private IConnection m_connection;
+		private IConnection m_connection = null;
 		/// <summary>Rabbit MQ 채널 객체</summary>
 		private IModel m_channel;
 		/// <summary>큐 이름</summary>
@@ -98,7 +98,18 @@ namespace PortalSvr.RabbitMQReceivers
 				};
 
 				// 연결 객체 생성
-				m_connection = Factory.CreateConnection();
+				while (m_connection == null)
+				{
+					try
+					{
+						m_connection = Factory.CreateConnection();
+					}
+					catch (Exception e)
+					{
+						NNException.Log(e);
+					}
+					Thread.Sleep(1000);
+				}
 				// 연결 해제 이벤트 설정
 				m_connection.ConnectionShutdown += (_, _) =>
 				{
@@ -110,9 +121,10 @@ namespace PortalSvr.RabbitMQReceivers
 				var arguments = new Dictionary<string, object>
 				{
 					{ "x-queue-type", "quorum" },
+					{"x-single-active-consumer", true}
 				};
 				m_channel.QueueDeclare(queue: m_queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
-				// Exchange 설절
+				// Exchange 설정
 				m_channel.ExchangeDeclare(exchange: m_config.ExchangeName, type: "topic");
 				// 모든 바인딩 키 처리
 				if (m_bindingKeys != null)
@@ -151,7 +163,7 @@ namespace PortalSvr.RabbitMQReceivers
 							// 처리된 건인 경우
 							if (ResponseHandleMessage.IsProcessed)
 							{
-								m_logger.LogDebug($"[Process] MQ Message Received on [{{0}}] : {{1}}, Data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
+								m_logger.LogDebug($"[Process] MQ Message Received on [{m_queueName}] : {ea.RoutingKey}, Data = {ea.Body.ToArray().GetString()}");
 
 								// 응답 연관 아이디가 존재하는 경우
 								var Properties = ea.BasicProperties;
@@ -177,7 +189,7 @@ namespace PortalSvr.RabbitMQReceivers
 							// 처리되지 않은 건인 경우
 							else
 							{
-								m_logger.LogDebug($"[Reject] MQ Message Received on [{{0}}] : {{1}}, Data = {{2}}", m_queueName, ea.RoutingKey, ea.Body.ToArray().GetString());
+								m_logger.LogDebug($"[Reject] MQ Message Received on [{m_queueName}] : {ea.RoutingKey}, Data = {ea.Body.ToArray().GetString()}");
 
 								// 처리 거부
 								m_channel.BasicReject(ea.DeliveryTag, false);

@@ -33,6 +33,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
     public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
+	public static final String MQUEUE_LOG_EXCHANGE_NAME = "ksan.log";
 
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
@@ -50,6 +51,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_ADDED_ROUTING_KEY = "*.services.added";
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
+	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
@@ -842,7 +844,8 @@ public final class GWConstants {
 	public static final int RANGE_LENGTH_INDEX = 1;
 
 	public static final String UTILITY_EXCHANGE_KEY = "UtilityExchange";
-	public static final String MESSAGE_QUEUE_OPTION = "fanout";
+	public static final String MESSAGE_QUEUE_OPTION_FANOUT = "fanout";
+	public static final String MESSAGE_QUEUE_OPTION_DIRECT = "direct";
 
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
@@ -1019,6 +1022,11 @@ public final class GWConstants {
 	public static final String LOG_GET_BUCKET_WEBSITE_START = "GetBucketWebsite ...";
 	public static final String LOG_GET_BUCKET_WEBSITE = "web : {}";
 
+	// GetBucketLogging
+	public static final String LOG_GET_BUCKET_LOGGING_START = "GetBucketLogging ...";
+	public static final String LOG_GET_BUCKET_LOGGING = "logging : {}";
+	public static final String LOG_GET_BUCKET_LOGGING_EMPTY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<BucketLoggingStatus xmlns=\"http://doc.s3.amazonaws.com/2006-03-01\"/>";
+
 	// GetObjcet
 	public static final String LOG_GET_OBJECT_START = "GetObjcet ...";
 	public static final String LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH = "encryption-customer-key does not match";
@@ -1147,6 +1155,9 @@ public final class GWConstants {
 
 	// PutBucketWebsite
 	public static final String LOG_PUT_BUCKET_WEBSITE_START = "PutBucketWebsite ...";
+
+	// PutBucketLogging
+	public static final String LOG_PUT_BUCKET_LOGGING_START = "PutBucketLogging ...";
 
 	// PutObject
 	public static final String LOG_PUT_OBJECT_START = "PutObject ...";
@@ -1379,4 +1390,30 @@ public final class GWConstants {
 	public static final String GWPORTAL_RECEIVED_USER_REMOVED = "removed";
 	public static final String LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY = "wrong routingKey : {}";
 	public static final String LOG_GWPORTAL_RECEIVED_USER_DATA = "Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}";
+
+	// log
+	public static final String GW_LOG_USER_NAME = "UserName";
+	public static final String GW_LOG_BUCKET_NAME = "BucketName";
+	public static final String GW_LOG_DATE = "Date";
+	public static final String GW_LOG_REMOTE_HOST = "RemoteHost";
+	public static final String GW_LOG_REQUEST_USER = "RequestUser";
+	public static final String GW_LOG_REQUEST_ID = "RequestId";
+	public static final String GW_LOG_OPERATION = "Operation";
+	public static final String GW_LOG_OBJECT_NAME = "ObjectName";
+	public static final String GW_LOG_REQUEST_URI = "RequestURI";
+	public static final String GW_LOG_STATUS_CODE = "StatusCode";
+	public static final String GW_LOG_ERROR_CODE = "ErrorCode";
+	public static final String GW_LOG_RESPONSE_LENGTH = "ResponseLength";
+	public static final String GW_LOG_OBJECT_LENGTH = "ObjectLength";
+	public static final String GW_LOG_TOTAL_TIME = "TotalTime";
+	public static final String GW_LOG_REQUEST_LENGTH = "RequestLength";
+	public static final String GW_LOG_REFERER = "Referer";
+	public static final String GW_LOG_USER_AGENT = "UserAgent";
+	public static final String GW_LOG_VERSION_ID = "VersionId";
+	public static final String GW_LOG_HOST_ID = "HostId";
+	public static final String GW_LOG_SIGN = "Sign";
+	public static final String GW_LOG_SSL_GROUP = "SSLGroup";
+	public static final String GW_LOG_SIGN_TYPE = "SignType";
+	public static final String GW_LOG_END_POINT = "EndPoint";
+	public static final String GW_LOG_TLS_VERSION = "TLSVersion";
 }
