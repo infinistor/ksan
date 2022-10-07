@@ -398,7 +398,7 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 파라미터로 넘어온 수정자 아이디 파싱
-				var ModGuid = Guid.Empty;
+				var ModGuid = LoginUserId;
 				if (!ModId.IsEmpty())
 					Guid.TryParse(ModId, out ModGuid);
 
@@ -411,7 +411,7 @@ namespace PortalProvider.Providers.Services
 
 						// 정보를 수정한다.
 						Exist.State = (EnumDbServiceState)State;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : ModGuid;
+						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
 						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
 						Exist.ModDate = DateTime.Now;
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -610,9 +610,9 @@ namespace PortalProvider.Providers.Services
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
 
 				// 파라미터로 넘어온 수정자 아이디 파싱
-				Guid GuidModId = Guid.Empty;
+				Guid ModGuid = LoginUserId;
 				if (!ModId.IsEmpty())
-					Guid.TryParse(ModId, out GuidModId);
+					Guid.TryParse(ModId, out ModGuid);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -620,7 +620,7 @@ namespace PortalProvider.Providers.Services
 					{
 						// 정보를 수정한다.
 						Exist.HaAction = (EnumDbHaAction)State;
-						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : GuidModId;
+						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
 						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
 						Exist.ModDate = DateTime.Now;
 
