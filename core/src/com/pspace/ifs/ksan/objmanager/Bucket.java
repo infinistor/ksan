@@ -204,7 +204,7 @@ public class Bucket {
     }
     
     public void setLogging(String logging){
-        this.tagging = logging;
+        this.logging = logging;
     }
     
     public String getName(){
