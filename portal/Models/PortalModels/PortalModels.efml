@@ -52,7 +52,7 @@
 			<Member Name="ksanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
 			<Member Name="ksanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
 			<Member Name="ksanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
-			<Member Name="ksanLogExport" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
+			<Member Name="ksanLogManager" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
 			<Member Name="ksanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
