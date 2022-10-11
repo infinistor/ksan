@@ -157,6 +157,7 @@ public final class GWConstants {
 	public static final String STRING_TRUE = "TRUE";
 	public static final String STRING_FALSE = "FALSE";
 	public static final String ALLOW = "Allow";
+	public static final String DENY = "Deny";
 	public static final String STRING_ERROR = "Error";
 	public static final String CODE = "Code";
 	public static final String MESSAGE = "Message";
@@ -357,6 +358,30 @@ public final class GWConstants {
 
 	public static final String ACTION_BYPASS_GOVERNANCE_RETENTION = "s3:BypassGovernanceRetention";
 	
+	// policy condition keys constatns
+	public static final String KEY_AUTH_TYPE = "s3:authType";
+	public static final String KEY_DELIMITER = "s3:delimiter";
+	public static final String KEY_MAXKYES = "s3:max-keys";
+	public static final String KEY_PREFIX = "s3:prefix";
+	public static final String KEY_X_AMZ_CONTENT_SHA256 = "s3:x-amz-content-sha256";
+	public static final String KEY_EXISTING_OBJECT_TAG = "s3:ExistingObjectTag";
+
+	public static final String KEY_X_AMZ_ACL = "s3:x-amz-acl";
+	public static final String KEY_X_AMZ_COPY_SOURCE = "s3:x-amz-copy-source";
+	public static final String KEY_X_AMZ_GRANT_FULL_CONTROL = "s3:x-amz-grant-full-control";
+	public static final String KEY_XAMZ_GRANT_READ = "s3:x-amz-grant-read";
+	public static final String KEY_X_AMZ_GRANT_READ_ACP = "s3:x-amz-grant-read-acp";
+	public static final String KEY_X_AMZ_GRANT_WRITE = "s3:x-amz-grant-write";
+	public static final String KEY_X_AMZ_GRANT_WRITE_ACP = "s3:x-amz-grant-write-acp";
+	public static final String KEY_X_AMZ_METADATA_DIRECTIVE = "s3:x-amz-metadata-directive";
+	public static final String KEY_X_AMZ_SERVER_SIDE_ENCRYPTION = "s3:x-amz-server-side-encryption";
+	public static final String KEY_X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID = "s3:x-amz-server-side-encryption-aws-kms-key-id";
+	public static final String KEY_X_AMZ_STORAGE_CLASS = "s3:x-amz-storage-class";
+	public static final String KEY_X_AMZ_WEBSITE_REDIRECT_LOCATION = "s3:x-amz-website-redirect-location";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_MODE = "s3:x-amz-object-lock-mode";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE = "s3:x-amz-object-lock-retain-until-date";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_REMAINING_RETENTION_DAYS = "s3:x-amz-object-lock-remaining-retention-days";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD = "s3:x-amz-object-lock-legal_hold";
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
 	public static final String CHARSET_UTF_8_LOWER = "utf-8";
@@ -746,6 +771,7 @@ public final class GWConstants {
 	public static final String LEFT_BRACE = "{";
 	public static final String RIGHT_BRACE = "}";
 	public static final String ACCESS_OW = "\"ow\":";
+	public static final String ACCESS_OW_EMPTY = "\"ow\":{}";
 	public static final String ACCESS_ACS = ",\"acs\":";
 	public static final String ACCESS_ID = "\"id\":";
 	public static final String ACCESS_COMMA_ID = ",\"id\":";
@@ -1200,6 +1226,9 @@ public final class GWConstants {
 
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
+
+	// KsanPutObject 
+	public static final String LOG_KSAN_PUT_OBJECT_START = "KsanPutObject ...";
 
 	// GWUtils
 	public static final String LOG_UTILS_INIT_CACHE = "init disk for cache and dir ...";
