@@ -38,24 +38,14 @@ public class KsanGetObjectAcl extends S3Request {
 
     @Override
     public void process() throws GWException {
-        logger.info(GWConstants.LOG_GET_OBJECT_ACL_START);
+        logger.info(GWConstants.LOG_ADMIN_GET_OBJECT_ACL_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-        s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
-		
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
 
         DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
         dataGetObjectAcl.extract();
@@ -68,9 +58,6 @@ public class KsanGetObjectAcl extends S3Request {
             objMeta = open(bucket, object, versionId);
         }
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-        // objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-        
-        // checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
         String aclInfo = objMeta.getAcl();
 

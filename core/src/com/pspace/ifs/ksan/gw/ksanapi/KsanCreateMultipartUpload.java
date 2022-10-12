@@ -52,26 +52,14 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_CREATE_MULTIPART_UPLOAD_START);
+		logger.info(GWConstants.LOG_ADMIN_CREATE_MULTIPART_UPLOAD_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
 		String object = s3Parameter.getObjectName();
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
-
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
-
-		// checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
@@ -121,8 +109,6 @@ public class KsanCreateMultipartUpload extends S3Request {
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setOwnerId(getBucketInfo().getUserId());
 		s3Metadata.setOwnerName(getBucketInfo().getUserName());
-		// s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
-		// s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setServersideEncryption(serverSideEncryption);
 		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		s3Metadata.setCustomerKey(customerKey);
@@ -197,7 +183,6 @@ public class KsanCreateMultipartUpload extends S3Request {
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
 			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
-			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

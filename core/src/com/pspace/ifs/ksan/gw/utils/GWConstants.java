@@ -918,6 +918,7 @@ public final class GWConstants {
 
 	// CompleteMultipartUpload
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_START = "CompleteMultipartUpload ...";
+	public static final String LOG_ADMIN_COMPLETE_MULTIPART_UPLOAD_START = "AdmCompleteMultipartUpload ...";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_PART_NO_EXIST = ": upload part doesn't exist";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_XML_PARTS_SIZE = "xml parts size : {}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_PARTS_SIZE = "parts size : {}";
@@ -949,6 +950,7 @@ public final class GWConstants {
 
 	// CreateMultipartUpload
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_START = "CreateMultipartUpload ...";
+	public static final String LOG_ADMIN_CREATE_MULTIPART_UPLOAD_START = "AdmCreateMultipartUpload ...";
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_FAILED = "object insert failed(CreateMultipartUpload). bucket={}, object={}";
 
 	// DeleteBucket
@@ -980,6 +982,7 @@ public final class GWConstants {
 
 	// DeleteObject
 	public static final String LOG_DELETE_OBJECT_START = "DeleteObject ...";
+	public static final String LOG_ADMIN_DELETE_OBJECT_START = "AdmDeleteObject ...";
 	public static final String LOG_DELETE_OBJECT = "delete : {}/{}";
 	public static final String LOG_DELETE_OBJECT_INFO = "versionId : {}, isLastVersion : {}, deleteMarker : {}";
 	public static final String LOG_DELETE_OBJECT_BUCKET_VERSIONING = "bucket versioning : {}";
@@ -998,12 +1001,14 @@ public final class GWConstants {
 
 	// DeleteObjectTagging
 	public static final String LOG_DELETE_OBJECT_TAGGING_START = "DeleteObjectTagging ...";
+	public static final String LOG_ADMIN_DELETE_OBJECT_TAGGING_START = "AdmDeleteObjectTagging ...";
 
 	// DeleteBucketPublicAccessBlock
 	public static final String LOG_DELETE_BUCKET_PUBLIC_ACCESS_BLOCK_START = "DeleteBucketPublicAccessBlock ...";
 
 	// GetBucketAcl
 	public static final String LOG_GET_BUCKET_ACL_START = "GetBucketAcl ...";
+	public static final String LOG_ADMIN_GET_BUCKET_ACL_START = "AdmGetBucketAcl ...";
 
 	// GetBucketCors
 	public static final String LOG_GET_BUCKET_CORS_START = "GetBucketCors ...";
@@ -1055,6 +1060,7 @@ public final class GWConstants {
 
 	// GetObjcet
 	public static final String LOG_GET_OBJECT_START = "GetObjcet ...";
+	public static final String LOG_ADMIN_GET_OBJECT_START = "AdmGetObjcet ...";
 	public static final String LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH = "encryption-customer-key does not match";
 	public static final String LOG_GET_OBJECT_IF_MATCH_ETAG = "source etag : {}, IfMatch : {}";
 	public static final String LOG_GET_OBJECT_IF_NONE_MATCH_ETAG = "source etag : {}, IfNoneMatch : {}";
@@ -1066,12 +1072,14 @@ public final class GWConstants {
 
 	// GetObjectAcl
 	public static final String LOG_GET_OBJECT_ACL_START = "GetObjectAcl ...";
+	public static final String LOG_ADMIN_GET_OBJECT_ACL_START = "AdmGetObjectAcl ...";
 	
 	// GetObjectRetention
 	public static final String LOG_GET_OBJECT_RETENTION_START = "GetObjectRetention ...";
 
 	// GetObjectTagging
 	public static final String LOG_GET_OBJECT_TAGGING_START = "GetObjectTagging ...";
+	public static final String LOG_ADMIN_GET_OBJECT_TAGGING_START = "AdmGetObjectTagging ...";
 
 	// GetPublicAccessBlock
 	public static final String LOG_GET_PUBLIC_ACCESS_BLOCK_START = "GetPublicAccessBlock ...";
@@ -1081,6 +1089,7 @@ public final class GWConstants {
 
 	// HeadObject
 	public static final String LOG_HEAD_OBJECT_START = "HeadObject ...";
+	public static final String LOG_ADMIN_HEAD_OBJECT_START = "AdmHeadObject ...";
 
 	// ListBuckets
 	public static final String LOG_LIST_BUCKETS_START = "ListBuckets ...";
@@ -1187,6 +1196,7 @@ public final class GWConstants {
 
 	// PutObject
 	public static final String LOG_PUT_OBJECT_START = "PutObject ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_START = "AdmPutObject ...";
 	public static final String LOG_PUT_OBJECT_HASHCODE_ILLEGAL = "HashCode Illegal";
 	public static final String LOG_PUT_OBJECT_TAGGING_KEY_LENGTH = "key length : {}";
 	public static final String LOG_PUT_OBJECT_TAGGING_VALUE_LENGTH = "key value length : {}";
@@ -1200,18 +1210,21 @@ public final class GWConstants {
 	
 	// PutObjectAcl
 	public static final String LOG_PUT_OBJECT_ACL_START = "PutObjectAcl ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_ACL_START = "AdmPutObjectAcl ...";
 
 	// PutObjectRetention
 	public static final String LOG_PUT_OBJECT_RETENTION_START = "PutObjectRetention ...";
 
 	// PutObjectTagging
 	public static final String LOG_PUT_OBJECT_TAGGING_START = "PutObjectTagging ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_TAGGING_START = "AdmPutObjectTagging ...";
 
 	// PutBucketPublicAccessBlock
 	public static final String LOG_PUT_BUCKET_PUBLIC_ACCESS_BLOCK_START = "PutBucketPublicAccessBlock ...";
 
 	// UploadPart
 	public static final String LOG_UPLOAD_PART_START = "UploadPart ...";
+	public static final String LOG_ADMIN_UPLOAD_PART_START = "AdmUploadPart ...";
 	public static final String LOG_UPLOAD_PART_WRONG_PART_NUMBER = " : Part number must be an integer between 1 and 10000, inclusive";
 	public static final int MAX_PARTS_SIZE = 10000;
 	public static final String ARGMENT_NAME = "ArgumentName";
@@ -1226,9 +1239,6 @@ public final class GWConstants {
 
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
-
-	// KsanPutObject 
-	public static final String LOG_KSAN_PUT_OBJECT_START = "KsanPutObject ...";
 
 	// GWUtils
 	public static final String LOG_UTILS_INIT_CACHE = "init disk for cache and dir ...";

@@ -39,21 +39,12 @@ public class KsanHeadObject extends S3Request {
 
 	@Override
 	public void process() throws GWException {		
-		logger.info(GWConstants.LOG_HEAD_OBJECT_START);
+		logger.info(GWConstants.LOG_ADMIN_HEAD_OBJECT_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
-		
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
 		
 		DataHeadObject dataHeadObject = new DataHeadObject(s3Parameter);
 		dataHeadObject.extract();
@@ -74,9 +65,6 @@ public class KsanHeadObject extends S3Request {
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
-
-		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-		// checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// meta info
 		ObjectMapper objectMapper = new ObjectMapper();
