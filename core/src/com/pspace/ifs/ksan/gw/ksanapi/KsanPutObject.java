@@ -189,7 +189,7 @@ public class KsanPutObject extends S3Request {
 		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
+		String aclXml = GWUtils.makeAdmAclXml(accessControlPolicy, 
 										null, 
 										dataPutObject.hasAclKeyword(), 
 										null, 
