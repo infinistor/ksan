@@ -45,17 +45,15 @@ public class KsanHeadObject extends S3Request {
 		String object = s3Parameter.getObjectName();
 
 		GWUtils.checkCors(s3Parameter);
-		
+	
 		DataHeadObject dataHeadObject = new DataHeadObject(s3Parameter);
 		dataHeadObject.extract();
 		
 		String versionId = dataHeadObject.getVersionId();
 		
 		String expectedBucketOwner = dataHeadObject.getExpectedBucketOwner();
-		if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
-			if (!isBucketOwner(expectedBucketOwner)) {
-				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-			}
+		if (!Strings.isNullOrEmpty(expectedBucketOwner) && !isBucketOwner(expectedBucketOwner)) {
+			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
 		Metadata objMeta = null;
@@ -92,6 +90,6 @@ public class KsanHeadObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);		
 	}
 }

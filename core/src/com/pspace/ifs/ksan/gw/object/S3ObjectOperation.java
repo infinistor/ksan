@@ -1207,8 +1207,8 @@ public class S3ObjectOperation {
                                               versionId, 
                                               length, 
                                               GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, 
-                                              objMeta.getReplicaDisk().getId(), 
-                                              s3Encryption.getCustomerKey(), 
+                                              GWConstants.EMPTY_STRING,//objMeta.getReplicaDisk().getId(), 
+                                              GWConstants.EMPTY_STRING,
                                               GWConfig.getInstance().getPerformanceMode());
                     }
                     
@@ -2338,7 +2338,8 @@ public class S3ObjectOperation {
         try {            
             logger.info(GWConstants.LOG_S3OBJECT_OPERATION_LOCAL_IP, GWUtils.getLocalIP());
             logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_PRIMARY_IP, objMeta.getPrimaryDisk().getOsdIp());
-            if (objMeta.getReplicaDisk() != null) {
+
+            if (srcObjMeta.getReplicaCount() > 1 && objMeta.getReplicaDisk() != null) {
                 logger.info(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_REPLICA_IP, objMeta.getReplicaDisk().getOsdIp());
             }
 

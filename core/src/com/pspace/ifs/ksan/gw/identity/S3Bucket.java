@@ -27,6 +27,10 @@ public class S3Bucket {
 	private String tagging;
 	private String encryption;
 	private String replication;
+	private String logging;
+	private String notification;
+	private String policy;
+	private String objectLock;
 	private Date timestamp;
 	
 	public S3Bucket() {
@@ -42,6 +46,10 @@ public class S3Bucket {
 		tagging = "";
 		encryption = "";
 		replication = "";
+		logging = "";
+		notification = "";
+		policy = "";
+		objectLock = "";
 		timestamp = null;
 	}
 
@@ -123,4 +131,37 @@ public class S3Bucket {
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
+
+	public String getLogging() {
+		return logging;
+	}
+
+	public void setLogging(String logging) {
+		this.logging = logging;
+	}
+
+	public String getNotification() {
+		return notification;
+	}
+
+	public void setNotification(String notification) {
+		this.notification = notification;
+	}
+
+	public String getPolicy() {
+		return policy;
+	}
+
+	public void setPolicy(String policy) {
+		this.policy = policy;
+	}
+
+	public String getObjectLock() {
+		return objectLock;
+	}
+
+	public void setObjectLock(String objectLock) {
+		this.objectLock = objectLock;
+	}
+	
 }

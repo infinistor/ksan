@@ -391,6 +391,7 @@ public final class GWConstants {
 	public static final String ISO_8601_TIME_SIMPLE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String ISO_8601_TIME_FORMAT_MILI = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	public static final String LIFECYCLE_CONTAIN_TIME = "T00:00:00";
+	public static final String LOG_8601_DATE = "8601date : {}";
 
 	public static final String HMAC_SHA1 = "HmacSHA1";
 	public static final String AWS4_HMAC_SHA256 = "AWS4-HMAC-SHA256";
@@ -1214,6 +1215,7 @@ public final class GWConstants {
 
 	// PutObjectRetention
 	public static final String LOG_PUT_OBJECT_RETENTION_START = "PutObjectRetention ...";
+	public static final String LOG_CUR_NEW_DATE = "cur : {}, new : {}";
 
 	// PutObjectTagging
 	public static final String LOG_PUT_OBJECT_TAGGING_START = "PutObjectTagging ...";

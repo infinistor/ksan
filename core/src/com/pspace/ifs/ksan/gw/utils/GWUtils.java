@@ -201,6 +201,31 @@ public class GWUtils {
 		}
 	}
 
+	public static long parseTime8601(String date) {
+		SimpleDateFormat formatter = null;
+		if (date == null) {
+			return 0;
+		}
+
+		if (date.length() >= 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT_MILI);
+		} else if (date.contains(":") && date.length() < 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_SIMPLE_FORMAT);
+		} else if (!date.contains(":") && date.length() < 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
+		}
+
+		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
+		logger.debug(GWConstants.LOG_8601_DATE, date);
+		try {
+			return formatter.parse(date).getTime() / 1000;
+		} catch (ParseException pe) {
+			PrintStack.logging(logger, pe);
+		}
+
+		return 0;
+	}
+
 	public static void isTimeSkewed(long date, int maxTimeSkew, S3Parameter s3Parameter) throws GWException  {
 		if (date < 0) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -1094,6 +1119,23 @@ public class GWUtils {
 					check[i] = 0;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Parse ISO 8601 timestamp into seconds since 1970.
+	 * 
+	 * @throws GWException
+	 */
+	public static long parseRetentionTimeExpire(String date, S3Parameter s3Parameter) throws GWException {
+		SimpleDateFormat formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT_MILI);
+		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
+		logger.debug(GWConstants.LOG_8601_DATE, date);
+		try {
+			return formatter.parse(date).getTime() / 1000;
+		} catch (ParseException pe) {
+			PrintStack.logging(logger, pe);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 	}
 }

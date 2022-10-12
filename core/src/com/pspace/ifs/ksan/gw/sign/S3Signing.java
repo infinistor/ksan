@@ -391,13 +391,14 @@ public class S3Signing {
 		} else {
 			String contentSha256 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
 			byte[] payload = null;
-			int skip=0;
+			int skip = 0;
 
 			if (s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM) != null) {
 				payload = new byte[0];
 			} else if (GWConstants.STREAMING_AWS4_HMAC_SHA256_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
 				s3Parameter.setInputStream(new ChunkedInputStream(s3Parameter.getInputStream()));
+				logger.info("chunked input stream ...");
 			} else if (GWConstants.UNSIGNED_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
 			} else {
@@ -453,11 +454,7 @@ public class S3Signing {
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		
-		if (s3Parameter.isAdmin()) {
-			s3Parameter.setUser(user);
-		} else {
-			s3Parameter.setUser(user);
-		}
+		s3Parameter.setUser(user);
 		
 		return s3Parameter;
 	}

@@ -16,32 +16,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
-/** Represent an Amazon ServerSideEncryption for a bucket. */
-//CHECKSTYLE:OFF
-public final class ServerSideEncryption {
-	@JacksonXmlElementWrapper(useWrapping=false)
-	@JacksonXmlProperty(localName = GWConstants.XML_RULE)
+/** Represent an Amazon Retention. */
+// CHECKSTYLE:OFF
+public class Retention {
+    @JacksonXmlProperty(localName = GWConstants.XML_MODE)
 	public
-	Collection<Rule> rules;
-	
-	public static final class Rule {
-		@JacksonXmlProperty(localName = GWConstants.APPLY_SERVER_SIDE_ENCRYPTION_BY_DEFAULT)
-		public
-		ApplyServerSideEncryptionByDefault apply;
-		
-		public static final class ApplyServerSideEncryptionByDefault {
-			@JacksonXmlProperty(localName = GWConstants.SSE_ALGORITHM)
-			public
-			String SSEAlgorithm;
-			
-			@JacksonXmlProperty(localName = GWConstants.KMS_MASTERKEY_ID)
-			public
-			String KMSMasterKeyID;
-		}
+	String mode;
 
-		@JacksonXmlProperty(localName = GWConstants.BUCKET_KEY_ENABLED)
-		public
-		String BucketKeyEnabled;
-	}
+	@JacksonXmlProperty(localName = GWConstants.RETAIN_UNTIL_DATE)
+	public
+	String date;
 }
-//CHECKSTYLE:ON
+// CHECKSTYLE:ON

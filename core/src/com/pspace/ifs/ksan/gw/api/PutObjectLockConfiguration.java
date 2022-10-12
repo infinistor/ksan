@@ -40,12 +40,6 @@ public class PutObjectLockConfiguration extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_OBJECT_LOCK_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 

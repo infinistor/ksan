@@ -61,11 +61,11 @@ public class PostObject extends S3Request {
 		initBucketInfo(bucket);
 
 		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Parameter.setBucket(s3Bucket);
 
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();

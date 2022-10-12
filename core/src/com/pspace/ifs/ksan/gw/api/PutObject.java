@@ -68,13 +68,6 @@ public class PutObject extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -342,6 +335,8 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
+			// reset error code
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
@@ -350,6 +345,7 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+		s3Parameter.setVersionId(versionId);
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.putObject();
 

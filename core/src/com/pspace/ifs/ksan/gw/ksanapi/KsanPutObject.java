@@ -69,6 +69,12 @@ public class KsanPutObject extends S3Request {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
+
+		S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
+        if (user == null) {
+            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+        }
+        s3Parameter.setUser(user);
 		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
@@ -331,6 +337,8 @@ public class KsanPutObject extends S3Request {
 			objMeta = open(bucket, object, repVersionId);
 		} catch (GWException e) {
 			logger.info(e.getMessage());
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
+            s3Parameter.setStatusCode(0);
 			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
 		s3Parameter.setVersionId(repVersionId);

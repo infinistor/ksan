@@ -60,12 +60,12 @@ public class UploadPartCopy extends S3Request {
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
 		
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// S3Bucket s3Bucket = new S3Bucket();
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 		
@@ -155,7 +155,7 @@ public class UploadPartCopy extends S3Request {
 		
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
-		srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
+		// srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// get metadata

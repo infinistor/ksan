@@ -58,6 +58,8 @@ public enum GWErrorCode {
     INVALID_REQUEST(HttpServletResponse.SC_BAD_REQUEST, "Bad Request"),
     INVALID_TAG(HttpServletResponse.SC_BAD_REQUEST,
             "The requested tagging key or value exceeds length"),
+    INVALID_TARGET_BUCKET_FOR_LOGGING(HttpServletResponse.SC_BAD_REQUEST,
+            "InvalidTargetBucketForLogging"),            
     INVALID_EXCEED_TAG(HttpServletResponse.SC_BAD_REQUEST,
             "The requested tagging count has not exceed 10"),
     INVALID_CORS_ORIGIN(HttpServletResponse.SC_BAD_REQUEST,

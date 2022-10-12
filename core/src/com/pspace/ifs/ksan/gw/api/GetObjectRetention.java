@@ -48,12 +48,12 @@ public class GetObjectRetention extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// S3Bucket s3Bucket = new S3Bucket();
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 		
@@ -74,7 +74,7 @@ public class GetObjectRetention extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-        objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
+        // objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
         checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 

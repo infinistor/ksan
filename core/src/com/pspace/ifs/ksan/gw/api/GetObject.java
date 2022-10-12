@@ -54,13 +54,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -87,7 +80,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 		s3Parameter.setVersionId(versionId);
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
+		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		S3Metadata s3Metadata = null;
