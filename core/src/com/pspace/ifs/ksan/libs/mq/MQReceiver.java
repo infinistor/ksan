@@ -20,15 +20,15 @@ public class MQReceiver extends MessageQ{
         super(host, qname, qdurablity, callback);
     }
     
-    public MQReceiver(String host, String qname, String exchangeName, boolean queeuDurableity, String exchangeOption, String routingKey, MQCallback callback) 
+    public MQReceiver(String host, String qname, String exchangeName, boolean singleActiveConsumer, String exchangeOption, String routingKey, MQCallback callback) 
             throws Exception{
-        super(host, qname, exchangeName, queeuDurableity, exchangeOption, routingKey, callback);
+        super(host, qname, exchangeName, singleActiveConsumer, exchangeOption, routingKey, callback);
 
     }
     
-    public MQReceiver(String host, int port, String username, String password, String qname, String exchangeName, boolean queeuDurableity, String exchangeOption, String routingKey, MQCallback callback) 
+    public MQReceiver(String host, int port, String username, String password, String qname, String exchangeName, boolean singleActiveConsumer, String exchangeOption, String routingKey, MQCallback callback) 
             throws Exception{
-        super(host, port, username, password, qname, exchangeName, queeuDurableity, exchangeOption, routingKey, callback);
+        super(host, port, username, password, qname, exchangeName, singleActiveConsumer, exchangeOption, routingKey, callback);
 
     }
 }

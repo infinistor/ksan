@@ -47,12 +47,12 @@ public abstract class MessageQ{
     private Logger logger;
     
      // for 1-1 sender  with default username and password
-    public MessageQ(String host, String qname, boolean qdurablity) throws Exception{
-        this(host, 0, "guest", "guest", qname, qdurablity);
+    public MessageQ(String host, String qname, boolean singleActiveConsumer) throws Exception{
+        this(host, 0, "guest", "guest", qname, singleActiveConsumer);
     }
     
     // for 1-1 sender
-    public MessageQ(String host,  int port, String username, String password, String qname, boolean qdurablity) throws Exception{
+    public MessageQ(String host,  int port, String username, String password, String qname, boolean singleActiveConsumer) throws Exception{
         logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
         this.host = host;
@@ -63,15 +63,15 @@ public abstract class MessageQ{
         this.password = password;
         this.port = 0;
         this.connect();
-        this.createQ(qdurablity);
+        this.createQ(singleActiveConsumer);
     }
     
     // for 1-1 receiver with default username and password
-    public MessageQ(String host, String qname, boolean qdurablity, MQCallback callback) throws Exception{
-        this(host, 0, "guest", "guest", qname, qdurablity, callback);
+    public MessageQ(String host, String qname, boolean singleActiveConsumer, MQCallback callback) throws Exception{
+        this(host, 0, "guest", "guest", qname, singleActiveConsumer, callback);
     } 
     // for 1-1 receiver
-    public MessageQ(String host, int port, String username, String password, String qname, boolean qdurablity, MQCallback callback) 
+    public MessageQ(String host, int port, String username, String password, String qname, boolean singleActiveConsumer, MQCallback callback) 
             throws Exception{
         logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
@@ -83,7 +83,7 @@ public abstract class MessageQ{
         this.password = password;
         this.port = port;
         this.connect();
-        this.createQ(qdurablity);
+        this.createQ(singleActiveConsumer);
         this.callback = callback;
         if (this.callback != null)
             this.readFromQueue();
@@ -115,13 +115,13 @@ public abstract class MessageQ{
     }
      
     // for 1-n receiver with default username and password
-    public MessageQ(String host, String qname, String exchangeName, boolean qdurablity, 
+    public MessageQ(String host, String qname, String exchangeName, boolean singleActiveConsumer, 
             String exchangeOption, String routingKey, MQCallback callback) throws Exception{
-        this(host, 0, "guest", "guest", qname, exchangeName, qdurablity, exchangeOption, routingKey, callback);
+        this(host, 0, "guest", "guest", qname, exchangeName, singleActiveConsumer, exchangeOption, routingKey, callback);
     }
     
     // for 1-n receiver
-    public MessageQ(String host, int port, String username, String password, String qname, String exchangeName, boolean qdurablity, 
+    public MessageQ(String host, int port, String username, String password, String qname, String exchangeName, boolean singleActiveConsumer, 
             String exchangeOption, String routingKey, MQCallback callback) throws Exception{
         logger = LoggerFactory.getLogger(MessageQ.class);
         this.message = "";
@@ -134,7 +134,7 @@ public abstract class MessageQ{
         this.password = password;
         this.port = port;
         this.connect();
-        this.createQ(qdurablity);
+        this.createQ(singleActiveConsumer);
         this.callback = callback;
        
         if (this.callback != null)
@@ -170,14 +170,15 @@ public abstract class MessageQ{
         return 0;
     }
     
-    private Map<String, Object> getQuorumQueueMap(){
+    private Map<String, Object> getQuorumQueueMap(boolean singleActiveConsumer){
         Map<String, Object> map = new HashMap<>();
         map.put("x-queue-type", "quorum");
-        map.put("x-single-active-consumer", true);
+        if (singleActiveConsumer)
+            map.put("x-single-active-consumer", true);
         return map;
     }
     
-    private int createQ(boolean durable) throws Exception{
+    private int createQ(boolean singleActiveConsumer) throws Exception{
        if (!this.qname.isEmpty()){
            try{
               this.channel.queueDeclarePassive(this.qname);
@@ -185,21 +186,21 @@ public abstract class MessageQ{
                if (!this.channel.isOpen())
                    this.connect();
                 
-                this.channel.queueDeclare(this.qname, true, false, false, getQuorumQueueMap()); 
+                this.channel.queueDeclare(this.qname, true, false, false, getQuorumQueueMap(singleActiveConsumer)); 
                 //this.channel.queueDeclare(this.qname, durable, false, false, null);
            } 
        }
        return 0;
     }
     
-    private String createQurumQueue(String replyQueue) throws IOException, TimeoutException {
+    private String createQurumQueue(String replyQueue, boolean singleActiveConsumer) throws IOException, TimeoutException {
         try{
             return channel.queueDeclarePassive(replyQueue).getQueue();
        } catch(IOException ex){
             if (!this.channel.isOpen())
                    this.connect();
             
-            return channel.queueDeclare(replyQueue, true, false, false, getQuorumQueueMap()).getQueue();
+            return channel.queueDeclare(replyQueue, true, false, false, getQuorumQueueMap(singleActiveConsumer)).getQueue();
        }
     } 
     
@@ -247,7 +248,7 @@ public abstract class MessageQ{
         
         if (qname.isEmpty()){
             final String corrId = UUID.randomUUID().toString();
-            replyQueueName = createQurumQueue("replyQ");
+            replyQueueName = createQurumQueue("replyQ", false);
         }
         
         BasicProperties props = new BasicProperties
@@ -269,7 +270,7 @@ public abstract class MessageQ{
             this.connect();
         
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = createQurumQueue("replyQ");
+        String replyQueueName = createQurumQueue("replyQ", false);
         
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -283,7 +284,7 @@ public abstract class MessageQ{
     
     public String sendToExchangeWithResponse(String mesg, String routingKey, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
         final String corrId = UUID.randomUUID().toString();
-        String replyQueueName = createQurumQueue("replyQ");
+        String replyQueueName = createQurumQueue("replyQ", false);
    
         BasicProperties props = new BasicProperties
                 .Builder()
@@ -303,7 +304,7 @@ public abstract class MessageQ{
     public String sendToQueueWithResponse(String mesg, int timeoutInMilliSec) throws IOException, InterruptedException, TimeoutException{
         final String corrId = UUID.randomUUID().toString();
         
-        String replyQueueName = createQurumQueue("replyQ");
+        String replyQueueName = createQurumQueue("replyQ", false);
         BasicProperties props = new BasicProperties
                 .Builder()
                 .correlationId(corrId)
