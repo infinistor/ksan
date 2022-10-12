@@ -44,24 +44,11 @@ public class KsanPutObjectTagging extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-        logger.info(GWConstants.LOG_PUT_OBJECT_TAGGING_START);
+        logger.info(GWConstants.LOG_ADMIN_PUT_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
-		GWUtils.checkCors(s3Parameter);
-		
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
-		
-		// checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-
 		String object = s3Parameter.getObjectName();
+		GWUtils.checkCors(s3Parameter);
 
 		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
 		dataPutObjectTagging.extract();

@@ -35,22 +35,12 @@ public class KsanGetBucketAcl extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_GET_BUCKET_ACL_START);
+		logger.info(GWConstants.LOG_ADMIN_GET_BUCKET_ACL_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
-
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
 		
 		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
 		dataGetObjectAcl.extract();
@@ -60,8 +50,6 @@ public class KsanGetBucketAcl extends S3Request {
 		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
 			aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;
 		}
-
-		// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
         try {
 			if (!Strings.isNullOrEmpty(aclInfo)) {

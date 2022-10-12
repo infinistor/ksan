@@ -101,6 +101,7 @@ public class S3RequestFactory {
 
 	private final String OP_OPTIONS = "REST.OPTIONS";
 	
+	private final String OP_ADMIN_GET_BUCKET_ACL = "ADMIN.GET.BUCKET.ACL";
 	private final String OP_ADMIN_DELETE_OBJECT = "ADMIN.DELETE.OBJECT";
 	private final String OP_ADMIN_DELETE_OBJECT_TAGGING = "ADMIN.DELETE.OBJECT.TAGGING";
 	private final String OP_ADMIN_DELETE_OBJECT_UPLOAD = "ADMIN.DELETE.OBJECT.UPLOAD";
@@ -230,8 +231,13 @@ public class S3RequestFactory {
 						s3Parameter.setOperation(OP_GET_LOGGING);
 						return new GetBucketLogging(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ACL))) {
-						s3Parameter.setOperation(OP_GET_BUCKET_ACL);
-						return new GetBucketAcl(s3Parameter);
+						if (s3Parameter.isAdmin()) {
+							s3Parameter.setOperation(OP_ADMIN_GET_BUCKET_ACL);
+							return new KsanGetBucketAcl(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_GET_BUCKET_ACL);
+							return new GetBucketAcl(s3Parameter);
+						}
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LOCATION))) {
 						s3Parameter.setOperation(OP_GET_LOCATION);
 						return new GetBucketLocation(s3Parameter);
@@ -306,8 +312,13 @@ public class S3RequestFactory {
 				}
 
 				if (GWConstants.CATEGORY_OBJECT.equals(s3Parameter.getPathCategory())) {
-					s3Parameter.setOperation(OP_HEAD_OBJECT);
-					return new HeadObject(s3Parameter);
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_HEAD_OBJECT);
+						return new KsanHeadObject(s3Parameter);
+					} else {
+						s3Parameter.setOperation(OP_HEAD_OBJECT);
+						return new HeadObject(s3Parameter);
+					}
 				}
 				break;
 

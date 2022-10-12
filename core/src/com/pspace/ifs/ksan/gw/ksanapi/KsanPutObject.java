@@ -60,7 +60,7 @@ public class KsanPutObject extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_KSAN_PUT_OBJECT_START);
+		logger.info(GWConstants.LOG_ADMIN_PUT_OBJECT_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -68,19 +68,7 @@ public class KsanPutObject extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
-		
-		// if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-		// 	throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// }
-
-		// checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
@@ -119,8 +107,6 @@ public class KsanPutObject extends S3Request {
 
 		s3Metadata.setOwnerId(getBucketInfo().getUserId());
 		s3Metadata.setOwnerName(getBucketInfo().getUserName());
-		// s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
-		// s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadataMap(dataPutObject.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
@@ -197,7 +183,6 @@ public class KsanPutObject extends S3Request {
 		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		// String aclXml = getBucketInfo().getAcl();
 		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
 										null, 
 										dataPutObject.hasAclKeyword(), 
