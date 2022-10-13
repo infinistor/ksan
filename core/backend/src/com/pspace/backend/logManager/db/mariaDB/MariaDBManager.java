@@ -18,6 +18,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.zaxxer.hikari.HikariConfig;
@@ -25,6 +26,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import db.DBConfig;
 import db.IDBManager;
+import db.table.Lifecycle.LifecycleLogQuery;
 import db.table.Logging.LoggingQuery;
 import db.table.replication.ReplicationLogQuery;
 
@@ -82,11 +84,15 @@ public class MariaDBManager implements IDBManager {
 		return Insert(LoggingQuery.getInsert(), LoggingQuery.getInsertParameters(data));
 	}
 
-	////////////////////// Replication //////////////////////
 	public boolean InsertReplicationLog(ReplicationLogData data) {
 		return Insert(ReplicationLogQuery.getInsertQuery(), ReplicationLogQuery.getInsertDBParameters(data));
 	}
 
+	public boolean InsertLifecycleLog(LifecycleLogData data) {
+		return Insert(LifecycleLogQuery.getInsertQuery(), LifecycleLogQuery.getInsertDBParameters(data));
+	}
+
+	/***************************** Expiration *****************************/
 	public boolean Expiration() {
 		if (!Delete(ReplicationLogQuery.getExpiration(config.Expires)))
 			return false;

@@ -20,16 +20,22 @@ public class Constants {
 	public static final String MQ_KSAN_LOG_EXCHANGE = "ksan.log";
 	public static final String MQ_HEARTBEAT_BINDING_KEY = "*.services.state";
 
+	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-logManager-lifecycle-event-add";
+
 	public static final String MQ_QUEUE_REPLICATION_S3_LOG = "ksan-replication-s3-log";
 	public static final String MQ_QUEUE_REPLICATION_EVENT_ADD = "ksan-replication-event-add";
 
 	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-logManager-s3-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-logManager-lifecycle-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-logManager-replication-event-log";
+	
 
-
-	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
-	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
 	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
+	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
+	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
+
+	public static final String MQ_BINDING_LIFECYCLE_LOG = "*.services.lifecycle.log.add";
+	public static final String MQ_BINDING_LIFECYCLE_EVENT = "*.services.lifecycle.event.add";
 	
 	public static final String MQ_EXCHANGE_OPTION_DIRECT = "direct";
 	public static final String MQ_EXCHANGE_OPTION_FANOUT = "fanout";

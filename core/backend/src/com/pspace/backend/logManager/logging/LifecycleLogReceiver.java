@@ -19,36 +19,31 @@ import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 
 import db.DBManager;
 
-public class ReplicationLogReceiver implements MQCallback {
-	private final Logger logger = LoggerFactory.getLogger(ReplicationLogReceiver.class);
+public class LifecycleLogReceiver implements MQCallback {
+	private final Logger logger = LoggerFactory.getLogger(LifecycleLogReceiver.class);
 	private final ObjectMapper Mapper = new ObjectMapper();
 
 	@Override
 	public MQResponse call(String routingKey, String body) {
 
 		try {
-			logger.debug("{} -> {}", routingKey, body);
-			
-			if (!routingKey.equals(Constants.MQ_BINDING_REPLICATION_LOG))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 
-			// 문자열을 ReplicationLogData 클래스로 변환
-			var event = Mapper.readValue(body, new TypeReference<ReplicationLogData>() {
+			// 문자열을 S3LogData 클래스로 변환
+			var event = Mapper.readValue(body, new TypeReference<LifecycleLogData>() {
 			});
 			// 변환 실패시
 			if (event == null) 
-				throw new Exception("Invalid ReplicationLogData : " + body);
+				throw new Exception("Invalid LifecycleLogData : " + body);
 
 			// Get DB
 			var db = DBManager.getInstance();
 
 			//DB에 저장
-			db.InsertReplicationLog(event);
+			db.InsertLifecycleLog(event);
 
 		} catch (Exception e) {
 			logger.error("", e);

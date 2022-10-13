@@ -25,11 +25,13 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 
 import db.DBConfig;
 import db.IDBManager;
+import db.table.Lifecycle.LifecycleLogQuery;
 import db.table.Logging.LoggingQuery;
 import db.table.replication.ReplicationLogQuery;
 
@@ -69,11 +71,15 @@ public class MongoDBManager implements IDBManager {
 		return Insert(LoggingQuery.DB_TABLE_NAME, LoggingQuery.getInsertDocument(data));
 	}
 
-	////////////////////// Replication //////////////////////
 	public boolean InsertReplicationLog(ReplicationLogData data) {
 		return Insert(ReplicationLogQuery.DB_TABLE_NAME, ReplicationLogQuery.getInsertDocument(data));
 	}
 
+	public boolean InsertLifecycleLog(LifecycleLogData data) {
+		return Insert(LifecycleLogQuery.DB_TABLE_NAME, LifecycleLogQuery.getInsertDocument(data));
+	}
+
+	/***************************** Expiration *****************************/
 	public boolean Expiration() {
 		return true;
 	}
