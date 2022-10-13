@@ -284,6 +284,44 @@ namespace PortalSvr.Services
 						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
 						else m_logger.LogInformation($"{Request.Name} Add Success");
 					}
+
+					//LogManager 서비스가 등록되지 않은 경우 등록한다.
+					var LogManagerName = "logmanager1";
+					var LogManager = await m_serviceProvider.Get(LogManagerName);
+					if (LogManager == null || LogManager.Result != EnumResponseResult.Success)
+					{
+						var Request = new RequestService()
+						{
+							Name = LogManagerName,
+							ServerId = ServerName,
+							ServiceType = EnumServiceType.ksanLogManager,
+						};
+
+						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+
+						// 서비스 등록에 실패할 경우
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+						else m_logger.LogInformation($"{Request.Name} Add Success");
+					}
+
+					//Replication 서비스가 등록되지 않은 경우 등록한다.
+					var ReplicationName = "replication1";
+					var Replication = await m_serviceProvider.Get(ReplicationName);
+					if (Replication == null || Replication.Result != EnumResponseResult.Success)
+					{
+						var Request = new RequestService()
+						{
+							Name = ReplicationName,
+							ServerId = ServerName,
+							ServiceType = EnumServiceType.ksanReplication,
+						};
+
+						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+
+						// 서비스 등록에 실패할 경우
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+						else m_logger.LogInformation($"{Request.Name} Add Success");
+					}
 				}
 				m_timer.Change(Timeout.Infinite, 0);
 
