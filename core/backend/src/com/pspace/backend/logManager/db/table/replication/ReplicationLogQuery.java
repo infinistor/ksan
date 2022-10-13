@@ -24,16 +24,16 @@ import db.table.QueryConstants;
 public class ReplicationLogQuery {
 	static final Logger logger = LoggerFactory.getLogger(ReplicationLogQuery.class);
 
-	public static final String DB_ID = "id";
-	public static final String DB_TABLE_NAME = "replication_Log";
-	public static final String DB_IN_DATE = "indate";
-	public static final String DB_OPERATION = "operation";
-	public static final String DB_OBJECTNAME = "objectname";
-	public static final String DB_VERSIONID = "versionid";
-	public static final String DB_SOURCEBUCKETNAME = "sourcebucketname";
-	public static final String DB_TARGETBUCKETNAME = "targetbucketname";
-	public static final String DB_TARGETREGION = "targetregion";
-	public static final String DB_MESSAGE = "message";
+	public static final String DB_TABLE_NAME = "REPLICATION_LOG";
+	public static final String DB_ID = "ID";
+	public static final String DB_IN_DATE = "INDATE";
+	public static final String DB_OPERATION = "OPERATION";
+	public static final String DB_OBJECTNAME = "OBJECT_NAME";
+	public static final String DB_VERSIONID = "VERSION_ID";
+	public static final String DB_SOURCEBUCKETNAME = "SOURCE_BUCKET_NAME";
+	public static final String DB_TARGETBUCKETNAME = "TARGET_BUCKET_NAME";
+	public static final String DB_TARGETREGION = "TARGET_REGION";
+	public static final String DB_MESSAGE = "MESSAGE";
 
 	public static String getCreateTable() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +

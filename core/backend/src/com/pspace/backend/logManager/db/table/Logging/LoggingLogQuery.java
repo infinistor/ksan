@@ -12,14 +12,14 @@ package db.table.Logging;
 
 public class LoggingLogQuery {
 
-	public final String TABLE_NAME = "logging_log";
-	public final String ID = "id";
-	public final String SOURCE_BUCKET = "source_bucket";
-	public final String TARGET_BUCKET = "target_bucket";
-	public final String TARGET_KEY = "target_key";
-	public final String DATE_TIME = "date_time";
-	public final String LAST_LOG_ID = "last_log_id";
-	public final String MESSAGE = "message";
+	public final String TABLE_NAME = "LOGGING_LOG";
+	public final String ID = "ID";
+	public final String SOURCE_BUCKET = "SOURCE_BUCKET";
+	public final String TARGET_BUCKET = "TARGET_BUCKET";
+	public final String TARGET_KEY = "TARGET_KEY";
+	public final String DATE_TIME = "DATE_TIME";
+	public final String LAST_LOG_ID = "LAST_LOG_ID";
+	public final String MESSAGE = "MESSAGE";
 
 	public String getCreateTableQuery() {
 		return "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ( " +
