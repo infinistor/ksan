@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 
@@ -51,5 +52,9 @@ public class DBManager {
 
 	public boolean InsertReplicationLog(ReplicationLogData data){
 		return dbManager.InsertReplicationLog(data);
+	}
+
+	public boolean InsertLifecycleLog(LifecycleLogData data){
+		return dbManager.InsertLifecycleLog(data);
 	}
 }
