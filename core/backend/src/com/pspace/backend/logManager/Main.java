@@ -9,12 +9,15 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 
+import java.util.TimeZone;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.Heartbeat.Heartbeat;
+import com.pspace.backend.libs.Ksan.Data.AgentConfig;
 
 import config.ConfigManager;
 import db.DBManager;
@@ -24,6 +27,7 @@ public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) {
+		TimeZone.setDefault(TimeZone.getTimeZone("KST"));
 		logger.info("logManager Start!");
 
 		// KSAN 설정을 읽어온다.
@@ -33,6 +37,24 @@ public class Main {
 			return;
 		}
 		logger.info("ksanAgent Read end");
+		
+		// Get Service Id
+		var ServiceId = Utility.ReadServiceId(Constants.LOGMANAGER_SERVICE_ID_PATH);
+		if (ServiceId == null) {
+			logger.error("Service Id is Empty");
+			return;
+		}
+		// Heartbeat
+		Thread HBThread;
+		Heartbeat HB;
+		try {
+			HB = new Heartbeat(ServiceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser, ksanConfig.MQPassword);
+			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
+			HBThread.start();
+		} catch (Exception e) {
+			logger.error("", e);
+			return;
+		}
 
 		// // 포탈 초기화
 		// var portal = PortalManager.getInstance();
@@ -71,7 +93,7 @@ public class Main {
 		logger.info("DB initialized");
 
 		var Logger = new MainLogger();
-		if (!Logger.Start()) {
+		if (!Logger.Start(config.getDBPoolSize())) {
 			logger.error("MainLogger is not started!");
 			return;
 		}
