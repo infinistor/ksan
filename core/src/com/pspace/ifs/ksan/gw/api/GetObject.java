@@ -191,7 +191,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 				HttpHeaders.CONTENT_TYPE, GWConstants.RESPONSE_CONTENT_TYPE,
 				metadata.getContentType());
 		
-		// TODO: handles only a single range due to jclouds limitations
 		Collection<String> contentRanges = contentsHeaders;
 		if (contentsHeaders != null && !contentRanges.isEmpty()) {
 			for (String contents : contentsHeaders) {

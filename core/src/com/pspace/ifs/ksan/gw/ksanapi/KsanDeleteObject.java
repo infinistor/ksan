@@ -16,6 +16,7 @@ import java.util.Date;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataDeleteObject;
@@ -159,6 +160,7 @@ public class KsanDeleteObject extends S3Request {
 			
 			ObjectMapper jsonMapper = new ObjectMapper();
 			String jsonmeta = "";
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
 			objMeta.set("", "", jsonmeta, "", 0L);

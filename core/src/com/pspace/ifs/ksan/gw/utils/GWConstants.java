@@ -240,6 +240,8 @@ public final class GWConstants {
 	public static final String VERSIONING_DISABLE_TAIL = "null";
 	public static final String GOVERNANCE = "GOVERNANCE";
 	public static final String COMPLIANCE = "COMPLIANCE";
+	public static final String ON = "ON";
+	public static final String OFF = "OFF";
 
 	public static final String S3_ARN = "arn:aws:s3";
 	public static final String HTTP = "http://";
@@ -659,6 +661,7 @@ public final class GWConstants {
 	public static final String KMS_MASTERKEY_ID = "KMSMasterKeyID";
 	public static final String BUCKET_KEY_ENABLED = "BucketKeyEnabled";
 	public static final String OBJECT_LOCK_ENABLED = "ObjectLockEnabled";
+	public static final String LEGAL_HOLD = "LegalHold";
 	public static final String DEFAULT_RETENTION = "DefaultRetention";
 	public static final String ACCESS_CONTROL_LIST = "AccessControlList";
 	public static final String DELETE_MARKER_REPLICATION = "DeleteMarkerReplication";
@@ -1078,6 +1081,9 @@ public final class GWConstants {
 	// GetObjectRetention
 	public static final String LOG_GET_OBJECT_RETENTION_START = "GetObjectRetention ...";
 
+	// GetObjectLockConfiguration
+	public static final String LOG_GET_OBJECT_LOCK_CONFIGURATION_START = "GetObjectLockConfiguration ...";
+
 	// GetObjectTagging
 	public static final String LOG_GET_OBJECT_TAGGING_START = "GetObjectTagging ...";
 	public static final String LOG_ADMIN_GET_OBJECT_TAGGING_START = "AdmGetObjectTagging ...";
@@ -1212,6 +1218,10 @@ public final class GWConstants {
 	// PutObjectAcl
 	public static final String LOG_PUT_OBJECT_ACL_START = "PutObjectAcl ...";
 	public static final String LOG_ADMIN_PUT_OBJECT_ACL_START = "AdmPutObjectAcl ...";
+
+	// PutObjectLegalHold
+	// PutObjectRetention
+	public static final String LOG_PUT_OBJECT_LEGALHOLD_START = "PutObjectLegalHold ...";
 
 	// PutObjectRetention
 	public static final String LOG_PUT_OBJECT_RETENTION_START = "PutObjectRetention ...";

@@ -34,6 +34,7 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
@@ -638,7 +639,7 @@ public abstract class S3Request {
 			}
 		}
 
-		if (accessControlPolicyObject.aclList != null) {
+		if (accessControlPolicyObject.aclList == null) {
 			return false;
 		}
 
@@ -1810,5 +1811,41 @@ public abstract class S3Request {
 		if (first.length() > 0 && first.charAt(0) == GWConstants.CHAR_ASTERISK)
 			return likematch(first.substring(1), second) || likematch(first, second.substring(1));
 		return false;
+	}
+
+	public void retentionCheck(String meta, String bypassGovernanceRetention, S3Parameter s3Parameter) throws GWException {
+		S3Metadata retentionMetadata = null;
+		if (!Strings.isNullOrEmpty(meta)) {
+			try {
+				retentionMetadata = new ObjectMapper().readValue(meta, S3Metadata.class);
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.GOVERNANCE)) {
+					if (Strings.isNullOrEmpty(bypassGovernanceRetention)
+						|| (!Strings.isNullOrEmpty(bypassGovernanceRetention) && !bypassGovernanceRetention.equalsIgnoreCase(GWConstants.STRING_TRUE))) {
+						// check retention date
+						long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
+						long now = System.currentTimeMillis() / 1000;
+						if (untilDate > now) {
+							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+						}
+					}
+				}
+
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.COMPLIANCE)) {
+					// check retention date
+					long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
+					long now = System.currentTimeMillis() / 1000;
+					if (untilDate > now) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
+				}
+
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLegalHold()) && retentionMetadata.getLegalHold().equalsIgnoreCase(GWConstants.ON)) {
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			} 
+		}
 	}
 }

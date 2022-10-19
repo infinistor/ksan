@@ -20,6 +20,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataCreateMultipartUpload;
@@ -173,6 +174,7 @@ public class CreateMultipartUpload extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String metaJson = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			metaJson = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

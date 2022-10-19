@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.DataPutObjectRetention;
+import com.pspace.ifs.ksan.gw.data.DataPutObjectLegalHold;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.format.Retention;
+import com.pspace.ifs.ksan.gw.format.LegalHold;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -35,15 +35,16 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 
 import org.slf4j.LoggerFactory;
 
-public class PutObjectRetention extends S3Request {
-    public PutObjectRetention(S3Parameter s3Parameter) {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutObjectRetention.class);
-	}
+public class PutObjectLegalHold extends S3Request {
 
-	@Override
+    public PutObjectLegalHold(S3Parameter s3Parameter) {
+        super(s3Parameter);
+		logger = LoggerFactory.getLogger(PutObjectLegalHold.class);
+    }
+    
+    @Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_PUT_OBJECT_RETENTION_START);
+        logger.info(GWConstants.LOG_PUT_OBJECT_LEGALHOLD_START);
 		String bucket = s3Parameter.getBucketName();
 		String object = s3Parameter.getObjectName();
 		initBucketInfo(bucket);
@@ -53,14 +54,15 @@ public class PutObjectRetention extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataPutObjectRetention dataPutObjectRetention = new DataPutObjectRetention(s3Parameter);
-		dataPutObjectRetention.extract();
-		String versionId = dataPutObjectRetention.getVersionId();
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-		
-		Metadata objMeta = null;
+        checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+
+        DataPutObjectLegalHold dataPutObjectLegalHold = new DataPutObjectLegalHold(s3Parameter);
+        dataPutObjectLegalHold.extract();
+
+        String versionId = dataPutObjectLegalHold.getVersionId();
+        
+        Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
 			versionId = objMeta.getVersionId();
@@ -80,66 +82,41 @@ public class PutObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		try {
-			String objectLock = getBucketInfo().getObjectLock();
+        try {
+            String objectLock = getBucketInfo().getObjectLock();
 			if (Strings.isNullOrEmpty(objectLock)) {
 				logger.info("bucket objectlock is null or empty.");
 				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
 			}
-			ObjectLockConfiguration oc = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
-			if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
-				logger.info("bucket objectlock is not equals Enabled.");
-				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
-			}
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+            ObjectLockConfiguration oc = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
+            if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
+                throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+            }
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        }
 
-		String mode;
-		String retainUntilDate;
-		try {
-			Retention rt = new XmlMapper().readValue(dataPutObjectRetention.getRetentionXml(), Retention.class);
-			mode = rt.mode;
-			retainUntilDate = rt.date;
+        String status;
+        LegalHold lh;
+        try {
+            lh = new XmlMapper().readValue(dataPutObjectLegalHold.getLegalHoldXml(), LegalHold.class);
+        } catch (JsonProcessingException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        }
 
-			if (!Strings.isNullOrEmpty(mode)) {
-				if (!rt.mode.equals(GWConstants.GOVERNANCE) && !rt.mode.equals(GWConstants.COMPLIANCE)) {
-					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
-				}
-			} else {
-				throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
-			}
-			
-			if (!Strings.isNullOrEmpty(s3Metadata.getLockMode())) {
-				if (s3Metadata.getLockMode().equals(GWConstants.COMPLIANCE) && mode.equals(GWConstants.GOVERNANCE)) {
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-			}
+        status = lh.status;
+        if (!Strings.isNullOrEmpty(status)) {
+            if (!status.equals(GWConstants.ON) && !status.equals(GWConstants.OFF)) {
+                throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+            }
+        } else {
+            throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+        }
 
-			if (!Strings.isNullOrEmpty(s3Metadata.getLockExpires())) {
-				long curDate = GWUtils.parseRetentionTimeExpire(s3Metadata.getLockExpires(), s3Parameter);
-				long newDate = GWUtils.parseRetentionTimeExpire(retainUntilDate, s3Parameter);
-				logger.info(GWConstants.LOG_CUR_NEW_DATE, curDate, newDate);
-				if (!Strings.isNullOrEmpty(dataPutObjectRetention.getBypassGovernanceRetention())) {
-					if (!dataPutObjectRetention.getBypassGovernanceRetention().equalsIgnoreCase(GWConstants.XML_TRUE) && curDate > newDate) {
-						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-					}
-				} else {
-					if (curDate > newDate) {
-						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-					}
-				}
-			}
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		s3Metadata.setLockMode(mode);
-		s3Metadata.setLockExpires(retainUntilDate);
-
-		try {
+        s3Metadata.setLegalHold(status);
+        try {
 			// objectMapper.setSerializationInclusion(Include.NON_NULL);
 			meta = objectMapper.writeValueAsString(s3Metadata);
 			logger.debug("meta : {}", meta);
@@ -148,9 +125,9 @@ public class PutObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		objMeta.setMeta(meta);
-		updateObjectMeta(objMeta);
+        objMeta.setMeta(meta);
+        updateObjectMeta(objMeta);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-	}
+    }
 }

@@ -15,6 +15,7 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -112,10 +113,11 @@ public class PutObjectTagging extends S3Request {
 		}
 
 		s3Metadata.setTaggingCount(taggingCount);
-		ObjectMapper jsonMapper = new ObjectMapper();
+		// ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonMeta = "";
 		try {
-			jsonMeta = jsonMapper.writeValueAsString(s3Metadata);
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

@@ -53,6 +53,7 @@ import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
+import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicyJson;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration;
 import com.pspace.ifs.ksan.gw.format.Policy;
@@ -259,8 +260,7 @@ public class GWUtils {
 	}
 
 	public static boolean constantTimeEquals(String x, String y) {
-		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8),
-				y.getBytes(StandardCharsets.UTF_8));
+		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8), y.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	// Encode blob name if client requests it.  This allows for characters
@@ -930,19 +930,25 @@ public class GWUtils {
 			}
 		}
 
+		String getAclHeader = null;
 		if (!Strings.isNullOrEmpty(getGrantRead)) {
+			getAclHeader = getGrantRead;
 			readAclHeader(getGrantRead, GWConstants.GRANT_READ, accessControlPolicy);
 		}
 		if (!Strings.isNullOrEmpty(getGrantWrite)) {
+			getAclHeader = getGrantWrite;
 			readAclHeader(getGrantWrite, GWConstants.GRANT_WRITE, accessControlPolicy);
 		}
 		if (!Strings.isNullOrEmpty(getGrantReadAcp)) {
+			getAclHeader = getGrantReadAcp;
 			readAclHeader(getGrantReadAcp, GWConstants.GRANT_READ_ACP, accessControlPolicy);
 		}
 		if (!Strings.isNullOrEmpty(getGrantWriteAcp)) {
+			getAclHeader = getGrantWriteAcp;
 			readAclHeader(getGrantWriteAcp, GWConstants.GRANT_WRITE_ACP, accessControlPolicy);
 		}
 		if (!Strings.isNullOrEmpty(getGrantFullControl)) {
+			getAclHeader = getGrantFullControl;
 			readAclHeader(getGrantFullControl, GWConstants.GRANT_FULL_CONTROL, accessControlPolicy);
 		}
 
@@ -960,24 +966,28 @@ public class GWUtils {
 		try {
 			XmlMapper xmlMapper = new XmlMapper();
 			AccessControlPolicy checkAcl = xmlMapper.readValue(aclXml, AccessControlPolicy.class);
+			if (checkAcl.owner == null) {
+				checkAcl.owner = new Owner();
+				checkAcl.owner.id = s3Parameter.getUser().getUserId();
+				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
+			} else if (Strings.isNullOrEmpty(checkAcl.owner.id)) {
+				checkAcl.owner.id = s3Parameter.getUser().getUserId();
+				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
+			}
 			aclXml = checkAcl.toString();
+			logger.info("acl : {}", aclXml);
 			if (checkAcl.aclList.grants != null) {
 				for (Grant user : checkAcl.aclList.grants) {
 					if (!Strings.isNullOrEmpty(user.grantee.displayName)
-							// && GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName, s3Parameter) == null) {
+							&& (getAclXml != null || getAclHeader != null)
 							&& S3UserManager.getInstance().getUserByName(user.grantee.displayName) == null) {
 						logger.info(user.grantee.displayName);
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 
-					// KSAN은 userId가 숫자로만 될 필요가 없음
-					// if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
-					// 	logger.info(user.grantee.id);
-					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					// }
-
-					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
-					if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
+					if (!Strings.isNullOrEmpty(user.grantee.id) 
+							&& (getAclXml != null || getAclHeader != null)
+							&& S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
 						logger.info(user.grantee.id);
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
@@ -1285,7 +1295,7 @@ public class GWUtils {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
 
 		byte[] key = new byte[32];
-		logger.info(customerKey);
+		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
 			if (i < customerKey.getBytes().length)
 				key[i] = customerKey.getBytes()[i];

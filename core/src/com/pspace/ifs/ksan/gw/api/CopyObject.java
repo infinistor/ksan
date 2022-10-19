@@ -62,14 +62,6 @@ public class CopyObject extends S3Request {
 		initBucketInfo(bucket);
 
 		String object = s3Parameter.getObjectName();
-		
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
@@ -222,7 +214,7 @@ public class CopyObject extends S3Request {
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug(GWConstants.LOG_COPY_OBJECT_ENCRYPTION, bucketEncryption);
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
+		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
 		encryption.build();
 		if (encryption.isEncryptionEnabled()) {
 			s3Metadata.setServersideEncryption(GWConstants.AES256);

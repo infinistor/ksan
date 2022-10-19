@@ -15,6 +15,7 @@ import java.util.Date;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataDeleteObject;
@@ -114,6 +115,8 @@ public class DeleteObject extends S3Request {
 		} else {
 			if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) { // Bucket Versioning Enabled
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_ENABLED);
+				retentionCheck(objMeta.getMeta(), dataDeleteObject.getBypassGovernanceRetention(), s3Parameter);
+				
 				if (Strings.isNullOrEmpty(versionId)) {	// request versionId is null
 					if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
 						remove(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL);
@@ -172,6 +175,7 @@ public class DeleteObject extends S3Request {
 			
 			ObjectMapper jsonMapper = new ObjectMapper();
 			String jsonmeta = "";
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
 			objMeta.set("", "", jsonmeta, "", 0L);

@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -205,7 +206,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 
 			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, s3ObjectEncryption);
 			
-			ObjectMapper jsonMapper = new ObjectMapper();
+			// ObjectMapper jsonMapper = new ObjectMapper();
 			
 			SortedMap<Integer, Part> constListPart = listPart;
 
@@ -276,7 +277,8 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			
 			String jsonmeta = "";
 			try {
-				jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
+				objectMapper.setSerializationInclusion(Include.NON_NULL);
+				jsonmeta = objectMapper.writeValueAsString(s3Metadata);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

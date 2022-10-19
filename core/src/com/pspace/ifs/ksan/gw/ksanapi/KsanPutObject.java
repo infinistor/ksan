@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -361,6 +362,7 @@ public class KsanPutObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
