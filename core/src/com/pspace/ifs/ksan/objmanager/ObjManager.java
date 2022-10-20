@@ -363,7 +363,7 @@ public class ObjManager {
     }
 
     public void updateBucketPolicy(String bucketName, String policy) throws SQLException, ResourceNotFoundException {
-        bucketMGT.updateBucketObjectLock(bucketName, policy);
+        bucketMGT.updateBucketPolicy(bucketName, policy);
     }
 
     public void updateBucketUsed(String bucketName, long size) throws SQLException, ResourceNotFoundException {
