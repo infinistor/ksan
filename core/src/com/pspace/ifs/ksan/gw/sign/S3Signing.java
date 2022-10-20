@@ -202,7 +202,8 @@ public class S3Signing {
 		
 		S3AuthorizationHeader authHeader = null;
 		String headerAuthorization = s3Parameter.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
-		
+		boolean presignedUrl = false;
+
 		if (headerAuthorization == null) {
 			String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
 
@@ -215,6 +216,7 @@ public class S3Signing {
 				}
 				headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
 				headernull = true;
+				presignedUrl = true;
 			} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
 				String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
 				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
@@ -228,11 +230,14 @@ public class S3Signing {
 						GWConstants.SIGN_REQEUEST_SIGNED_HEADERS + signedHeaders +
 						GWConstants.SIGN_SIGNATURE + signature;
 				headernull = true;
+				presignedUrl = true;
 			} else {
 				logger.error(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE, algorithm);
 				throw new IllegalArgumentException(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM + algorithm);
 			}
 		}
+
+		logger.debug("headerAuthorization : {}", headerAuthorization);
 		
 		try {
 			authHeader = new S3AuthorizationHeader(headerAuthorization);
@@ -244,7 +249,7 @@ public class S3Signing {
 		
 		String requestIdentity = authHeader.identity;
 		
-		if(requestIdentity == null) {
+		if (requestIdentity == null) {
 			logger.error(GWConstants.LOG_S3SIGNING_ACCESS_NULL);
 			throw new GWException(GWErrorCode.INVALID_ACCESS_KEY_ID, s3Parameter);
 		}
@@ -269,38 +274,38 @@ public class S3Signing {
 			headerAuthorization = null;
 		}
 		
-		boolean presignedUrl = false;
 		
-		if (headerAuthorization == null) {
-			String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
+		
+		// if (headerAuthorization == null) {
+		// 	String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
 
-			if (algorithm == null) { //v2 query
-				String identity = s3Parameter.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
-				String signature = s3Parameter.getRequest().getParameter(GWConstants.SIGNATURE);
-				if (identity == null || signature == null) {
-					logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
-				presignedUrl = true;
-			} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
-				String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
-				String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
-				String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
-				if (credential == null || signedHeaders == null || signature == null) {
-					logger.error(GWConstants.LOG_S3SIGNING_V4_CREDENTIAL_NULL, uri);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
-						GWConstants.SIGN_CREDENTIAL + credential +
-						GWConstants.SIGN_REQEUEST_SIGNED_HEADERS + signedHeaders +
-						GWConstants.SIGN_SIGNATURE + signature;
-				presignedUrl = true;
-			} else {
-				logger.error(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE, algorithm);
-				throw new IllegalArgumentException(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM + algorithm);
-			}
-		}
+		// 	if (algorithm == null) { //v2 query
+		// 		String identity = s3Parameter.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
+		// 		String signature = s3Parameter.getRequest().getParameter(GWConstants.SIGNATURE);
+		// 		if (identity == null || signature == null) {
+		// 			logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
+		// 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		// 		}
+		// 		headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
+		// 		presignedUrl = true;
+		// 	} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
+		// 		String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
+		// 		String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
+		// 		String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
+		// 		if (credential == null || signedHeaders == null || signature == null) {
+		// 			logger.error(GWConstants.LOG_S3SIGNING_V4_CREDENTIAL_NULL, uri);
+		// 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+		// 		}
+		// 		headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
+		// 				GWConstants.SIGN_CREDENTIAL + credential +
+		// 				GWConstants.SIGN_REQEUEST_SIGNED_HEADERS + signedHeaders +
+		// 				GWConstants.SIGN_SIGNATURE + signature;
+		// 		presignedUrl = true;
+		// 	} else {
+		// 		logger.error(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE, algorithm);
+		// 		throw new IllegalArgumentException(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM + algorithm);
+		// 	}
+		// }
 
 		long dateSkew = 0; //date for timeskew check
 
@@ -391,13 +396,14 @@ public class S3Signing {
 		} else {
 			String contentSha256 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
 			byte[] payload = null;
-			int skip=0;
+			int skip = 0;
 
 			if (s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM) != null) {
 				payload = new byte[0];
 			} else if (GWConstants.STREAMING_AWS4_HMAC_SHA256_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
 				s3Parameter.setInputStream(new ChunkedInputStream(s3Parameter.getInputStream()));
+				logger.info("chunked input stream ...");
 			} else if (GWConstants.UNSIGNED_PAYLOAD.equals(contentSha256)) {
 				payload = new byte[0];
 			} else {
@@ -453,11 +459,7 @@ public class S3Signing {
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		
-		if (s3Parameter.isAdmin()) {
-			s3Parameter.setUser(user);
-		} else {
-			s3Parameter.setUser(user);
-		}
+		s3Parameter.setUser(user);
 		
 		return s3Parameter;
 	}

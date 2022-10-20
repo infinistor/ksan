@@ -10,12 +10,14 @@
 */
 package logging;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.backend.libs.Ksan.Data.AgentConfig;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 import config.ConfigManager;
@@ -25,8 +27,9 @@ public class MainLogger {
 	final ConfigManager Config;
 	protected final AgentConfig agent;
 
-	MQReceiver s3LogReceiver;
-	MQReceiver replicationLogReceiver;
+	List<MQReceiver> s3LogReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> replicationLogReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> LifecycleLogReceivers = new ArrayList<MQReceiver>();
 
 	// Thread SendThread;
 	// SendLogger Sender;
@@ -36,47 +39,52 @@ public class MainLogger {
 		Config = ConfigManager.getInstance();
 	}
 
-	public boolean Start() {
+	public boolean Start(int ThreadCount) {
 		try {
 			// Sender = new SendLogger(DB, Config, Region);
 			// SendThread = new Thread(() -> Sender.Run());
 			// SendThread.start();
-			
-			MQCallback s3LogCallback = new S3LogReceiver();
-			s3LogReceiver = new MQReceiver(
-				agent.MQHost,
-				agent.MQPort,
-				agent.MQUser,
-				agent.MQPassword,
-				Constants.MQ_QUEUE_LOG,
-				Constants.MQ_KSAN_LOG_EXCHANGE,
-				false,
-				"",
-				Constants.MQ_BINDING_GW_LOG,
-				s3LogCallback);
-			
-			MQCallback replicationLogCallback = new ReplicationLogReceiver();
-			s3LogReceiver = new MQReceiver(
-				agent.MQHost,
-				agent.MQPort,
-				agent.MQUser,
-				agent.MQPassword,
-				Constants.MQ_QUEUE_LOG,
-				Constants.MQ_KSAN_LOG_EXCHANGE,
-				false,
-				"",
-				Constants.MQ_BINDING_REPLICATION_LOG,
-				replicationLogCallback);
+			for (int index = 0; index < ThreadCount; index++) {
+				s3LogReceivers.add(new MQReceiver(
+						agent.MQHost,
+						agent.MQPort,
+						agent.MQUser,
+						agent.MQPassword,
+						Constants.MQ_QUEUE_LOG_MANAGER_S3_LOG,
+						Constants.MQ_KSAN_LOG_EXCHANGE,
+						false,
+						"",
+						Constants.MQ_BINDING_GW_LOG,
+						new S3LogReceiver()));
+				replicationLogReceivers.add(new MQReceiver(
+						agent.MQHost,
+						agent.MQPort,
+						agent.MQUser,
+						agent.MQPassword,
+						Constants.MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG,
+						Constants.MQ_KSAN_LOG_EXCHANGE,
+						false,
+						"",
+						Constants.MQ_BINDING_REPLICATION_LOG,
+						new ReplicationLogReceiver()));
+				LifecycleLogReceivers.add(new MQReceiver(
+						agent.MQHost,
+						agent.MQPort,
+						agent.MQUser,
+						agent.MQPassword,
+						Constants.MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG,
+						Constants.MQ_KSAN_LOG_EXCHANGE,
+						false,
+						"",
+						Constants.MQ_BINDING_LIFECYCLE_LOG,
+						new LifecycleLogReceiver()));
+			}
 
 			return true;
 		} catch (Exception e) {
 			logger.error("", e);
 			return false;
 		}
-	}
-
-	public void Stop() {
-		// Sender.Stop();
 	}
 
 	public void Quit() {

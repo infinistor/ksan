@@ -53,6 +53,7 @@ import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
+import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicyJson;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration;
 import com.pspace.ifs.ksan.gw.format.Policy;
@@ -201,6 +202,31 @@ public class GWUtils {
 		}
 	}
 
+	public static long parseTime8601(String date) {
+		SimpleDateFormat formatter = null;
+		if (date == null) {
+			return 0;
+		}
+
+		if (date.length() >= 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT_MILI);
+		} else if (date.contains(":") && date.length() < 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_SIMPLE_FORMAT);
+		} else if (!date.contains(":") && date.length() < 23) {
+			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
+		}
+
+		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
+		logger.debug(GWConstants.LOG_8601_DATE, date);
+		try {
+			return formatter.parse(date).getTime() / 1000;
+		} catch (ParseException pe) {
+			PrintStack.logging(logger, pe);
+		}
+
+		return 0;
+	}
+
 	public static void isTimeSkewed(long date, int maxTimeSkew, S3Parameter s3Parameter) throws GWException  {
 		if (date < 0) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -234,8 +260,7 @@ public class GWUtils {
 	}
 
 	public static boolean constantTimeEquals(String x, String y) {
-		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8),
-				y.getBytes(StandardCharsets.UTF_8));
+		return MessageDigest.isEqual(x.getBytes(StandardCharsets.UTF_8), y.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	// Encode blob name if client requests it.  This allows for characters
@@ -905,6 +930,246 @@ public class GWUtils {
 			}
 		}
 
+		String getAclHeader = null;
+		if (!Strings.isNullOrEmpty(getGrantRead)) {
+			getAclHeader = getGrantRead;
+			readAclHeader(getGrantRead, GWConstants.GRANT_READ, accessControlPolicy);
+		}
+		if (!Strings.isNullOrEmpty(getGrantWrite)) {
+			getAclHeader = getGrantWrite;
+			readAclHeader(getGrantWrite, GWConstants.GRANT_WRITE, accessControlPolicy);
+		}
+		if (!Strings.isNullOrEmpty(getGrantReadAcp)) {
+			getAclHeader = getGrantReadAcp;
+			readAclHeader(getGrantReadAcp, GWConstants.GRANT_READ_ACP, accessControlPolicy);
+		}
+		if (!Strings.isNullOrEmpty(getGrantWriteAcp)) {
+			getAclHeader = getGrantWriteAcp;
+			readAclHeader(getGrantWriteAcp, GWConstants.GRANT_WRITE_ACP, accessControlPolicy);
+		}
+		if (!Strings.isNullOrEmpty(getGrantFullControl)) {
+			getAclHeader = getGrantFullControl;
+			readAclHeader(getGrantFullControl, GWConstants.GRANT_FULL_CONTROL, accessControlPolicy);
+		}
+
+		if (Strings.isNullOrEmpty(aclXml)) {
+			XmlMapper xmlMapper = new XmlMapper();
+			try {
+				aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		// check user
+		try {
+			XmlMapper xmlMapper = new XmlMapper();
+			AccessControlPolicy checkAcl = xmlMapper.readValue(aclXml, AccessControlPolicy.class);
+			if (checkAcl.owner == null) {
+				checkAcl.owner = new Owner();
+				checkAcl.owner.id = s3Parameter.getUser().getUserId();
+				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
+			} else if (Strings.isNullOrEmpty(checkAcl.owner.id)) {
+				checkAcl.owner.id = s3Parameter.getUser().getUserId();
+				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
+			}
+			aclXml = checkAcl.toString();
+			logger.info("acl : {}", aclXml);
+			if (checkAcl.aclList.grants != null) {
+				for (Grant user : checkAcl.aclList.grants) {
+					if (!Strings.isNullOrEmpty(user.grantee.displayName)
+							&& (getAclXml != null || getAclHeader != null)
+							&& S3UserManager.getInstance().getUserByName(user.grantee.displayName) == null) {
+						logger.info(user.grantee.displayName);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					}
+
+					if (!Strings.isNullOrEmpty(user.grantee.id) 
+							&& (getAclXml != null || getAclHeader != null)
+							&& S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
+						logger.info(user.grantee.id);
+						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					}
+				}
+			}
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+
+		return aclXml;
+	}
+
+	public static String makeAdmAclXml(AccessControlPolicy accessControlPolicy, 
+								    AccessControlPolicy preAccessControlPolicy,
+									boolean hasKeyWord,
+									String getAclXml,
+									String cannedAcl,
+									Bucket bucketInfo,
+									String userId, 
+									String userName,
+									String getGrantRead, 
+									String getGrantWrite, 
+									String getGrantFullControl, 
+									String getGrantReadAcp, 
+									String getGrantWriteAcp, 
+									S3Parameter s3Parameter) throws GWException {
+		
+		PublicAccessBlockConfiguration pabc = null;
+		if (bucketInfo != null && !Strings.isNullOrEmpty(bucketInfo.getAccess())) {
+			try {
+				pabc = new XmlMapper().readValue(bucketInfo.getAccess(), PublicAccessBlockConfiguration.class);
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+		logger.info(GWConstants.LOG_UTILS_CANNED_ACL, cannedAcl);
+		logger.info(GWConstants.LOG_UTILS_ACL_XML, getAclXml);
+
+		if (preAccessControlPolicy != null && preAccessControlPolicy.owner != null) {
+			accessControlPolicy.owner.id = preAccessControlPolicy.owner.id;
+			accessControlPolicy.owner.displayName = preAccessControlPolicy.owner.displayName;
+		} else {
+			accessControlPolicy.owner.id = userId;
+			accessControlPolicy.owner.displayName = userName;
+		}
+
+		String aclXml = null;
+		if (!hasKeyWord) {
+			aclXml = getAclXml;
+		}
+		if (Strings.isNullOrEmpty(cannedAcl)) {
+			if (Strings.isNullOrEmpty(aclXml)) {
+				if (Strings.isNullOrEmpty(getGrantRead)
+						&& Strings.isNullOrEmpty(getGrantWrite)
+						&& Strings.isNullOrEmpty(getGrantReadAcp)
+						&& Strings.isNullOrEmpty(getGrantWriteAcp)
+						&& Strings.isNullOrEmpty(getGrantFullControl)) {
+					Grant priUser = new Grant();
+					priUser.grantee = new Grantee();
+					priUser.grantee.type = GWConstants.CANONICAL_USER;
+					priUser.grantee.id = accessControlPolicy.owner.id;
+					priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+					priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+					accessControlPolicy.aclList.grants.add(priUser);
+				}
+			}
+		} else {
+			if (GWConstants.CANNED_ACLS_PRIVATE.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+
+				Grant pubReadUser = new Grant();
+				pubReadUser.grantee = new Grantee();
+				pubReadUser.grantee.type = GWConstants.GROUP;
+				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubReadUser.permission = GWConstants.GRANT_READ;
+				accessControlPolicy.aclList.grants.add(pubReadUser);
+			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ_WRITE.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+
+				Grant pubReadUser = new Grant();
+				pubReadUser.grantee = new Grantee();
+				pubReadUser.grantee.type = GWConstants.GROUP;
+				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubReadUser.permission = GWConstants.GRANT_READ;
+				accessControlPolicy.aclList.grants.add(pubReadUser);
+
+				Grant pubWriteUser = new Grant();
+				pubWriteUser.grantee = new Grantee();
+				pubWriteUser.grantee.type = GWConstants.GROUP;
+				pubWriteUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubWriteUser.permission = GWConstants.GRANT_WRITE;
+				accessControlPolicy.aclList.grants.add(pubWriteUser);
+			} else if (GWConstants.CANNED_ACLS_AUTHENTICATED_READ.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+
+				Grant authReadUser = new Grant();
+				authReadUser.grantee = new Grantee();
+				authReadUser.grantee.type = GWConstants.GROUP;
+				authReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS;
+				authReadUser.permission = GWConstants.GRANT_READ;
+				accessControlPolicy.aclList.grants.add(authReadUser);
+			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_READ.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+
+				Grant bucketOwnerReadUser = new Grant();
+				bucketOwnerReadUser.grantee = new Grantee();
+				bucketOwnerReadUser.grantee.type = GWConstants.CANONICAL_USER;
+				bucketOwnerReadUser.grantee.id = bucketInfo.getUserId();
+				bucketOwnerReadUser.grantee.displayName = bucketInfo.getUserName();
+				bucketOwnerReadUser.permission = GWConstants.GRANT_READ;
+				accessControlPolicy.aclList.grants.add(bucketOwnerReadUser);
+			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_FULL_CONTROL.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = accessControlPolicy.owner.id;
+				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(priUser);
+
+				Grant bucketOwnerFullUser = new Grant();
+				bucketOwnerFullUser.grantee = new Grantee();
+				bucketOwnerFullUser.grantee.type = GWConstants.CANONICAL_USER;
+				bucketOwnerFullUser.grantee.id = bucketInfo.getUserId();
+				bucketOwnerFullUser.grantee.displayName = bucketInfo.getUserName();
+				bucketOwnerFullUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				accessControlPolicy.aclList.grants.add(bucketOwnerFullUser);
+			} else if (GWConstants.CANNED_ACLS.contains(cannedAcl)) {
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_ACCESS_CANNED_ACL, cannedAcl);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+			} else {
+				logger.error(HttpServletResponse.SC_BAD_REQUEST + GWConstants.LOG_ACCESS_PROCESS_FAILED);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+			}
+		}
+
 		if (!Strings.isNullOrEmpty(getGrantRead)) {
 			readAclHeader(getGrantRead, GWConstants.GRANT_READ, accessControlPolicy);
 		}
@@ -952,10 +1217,10 @@ public class GWUtils {
 					// }
 
 					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
-					if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
-						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
+					// if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
+					// 	logger.info(user.grantee.id);
+					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+					// }
 				}
 			}
 		} catch (JsonProcessingException e) {
@@ -1030,7 +1295,7 @@ public class GWUtils {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
 
 		byte[] key = new byte[32];
-		logger.info(customerKey);
+		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
 			if (i < customerKey.getBytes().length)
 				key[i] = customerKey.getBytes()[i];
@@ -1094,6 +1359,23 @@ public class GWUtils {
 					check[i] = 0;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Parse ISO 8601 timestamp into seconds since 1970.
+	 * 
+	 * @throws GWException
+	 */
+	public static long parseRetentionTimeExpire(String date, S3Parameter s3Parameter) throws GWException {
+		SimpleDateFormat formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT_MILI);
+		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
+		logger.debug(GWConstants.LOG_8601_DATE, date);
+		try {
+			return formatter.parse(date).getTime() / 1000;
+		} catch (ParseException pe) {
+			PrintStack.logging(logger, pe);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 	}
 }

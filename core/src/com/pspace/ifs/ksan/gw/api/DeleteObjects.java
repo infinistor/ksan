@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -57,12 +58,13 @@ public class DeleteObjects extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// S3Bucket s3Bucket = new S3Bucket();
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
+		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
@@ -188,6 +190,7 @@ public class DeleteObjects extends S3Request {
 
 							ObjectMapper jsonMapper = new ObjectMapper();
 							String jsonmeta = "";
+							// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 							jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 							int result;
 							objMeta.set("", "", jsonmeta, "", 0L);
@@ -241,6 +244,7 @@ public class DeleteObjects extends S3Request {
 
 								ObjectMapper jsonMapper = new ObjectMapper();
 								String jsonmeta = "";
+								// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 								jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 
 								int result;

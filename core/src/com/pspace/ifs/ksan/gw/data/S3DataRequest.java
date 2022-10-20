@@ -24,9 +24,32 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 
 public abstract class S3DataRequest {
-	String contentLength;
+	protected String contentLength;
+
 	protected Logger logger;
 	protected S3Parameter s3Parameter;
+
+	protected String keyDelimiter;
+	protected String keyMaxKeys;
+	protected String keyPrefix;
+
+	// policy key putobject
+	protected String keyXAmzAcl;
+	protected String keyXAmzCopySource;
+	protected String keyXAmzGrantFullControl;
+	protected String keyXAmzGrantRead;
+	protected String keyXAmzGrantReadAcp;
+	protected String keyXAmzGrantWrite;
+	protected String keyXAmzGrantWriteAcp;
+	protected String keyXAmzMetadataDirective;
+	protected String keyXAmzServerSideEncryption;
+	protected String keyXAmzServerSideEncryptionAwsKmsKeyId;
+	protected String keyXAmzStorageClass;
+	protected String keyXAmzWebsiteRedirectLocation;
+	protected String keyXAmzObjectLockMode;
+	protected String keyXAmzObjectLockRetainUntilDate;
+	protected String keyXAmzObjectLockRemainingRetentionDays;
+	protected String keyXAmzObjectLockLegalHold;
 
 	public S3DataRequest(S3Parameter s3Parameter) throws GWException {
 		this.s3Parameter = s3Parameter;
@@ -105,4 +128,87 @@ public abstract class S3DataRequest {
 	}
 
 	public abstract void extract() throws GWException;
+
+	public String getPolicyDelimter() {
+		return keyDelimiter;
+	}
+
+	public String getPolicyMaxkeys() {
+		return keyMaxKeys;
+	}
+
+	public String getPolicyPrefix() {
+		return keyPrefix;
+	}
+
+	public String getXAmzAcl() {
+		return keyXAmzAcl;
+	}
+
+	public String getXAmzCopySource() {
+		return keyXAmzCopySource;
+	}
+
+	public String getXAmzGrantFullControl() {
+		return keyXAmzGrantFullControl;
+	}
+
+	public String getXAmzGrantRead() {
+		return keyXAmzGrantRead;
+	}
+
+	public String getXAmzGrantReadAcp() {
+		return keyXAmzGrantReadAcp;
+	}
+
+	public String getXAmzGrantWrite() {
+		return keyXAmzGrantWrite;
+	}
+
+	public String getXAmzGrantWriteAcp() {
+		return keyXAmzGrantWriteAcp;
+	}
+
+	public String getXAmzMetadataDirective() {
+		return keyXAmzMetadataDirective;
+	}
+
+	public String getXAmzServerSideEncryption() {
+		return keyXAmzServerSideEncryption;
+	}
+	
+	public String getXAmzServerSideEncryptionAwsKmsKeyId() {
+		return keyXAmzServerSideEncryptionAwsKmsKeyId;
+	}
+
+	public String getXAmzStorageClass() {
+		return keyXAmzStorageClass;
+	}
+
+	public String getXAmzWebsiteRedirectLocation() {
+		return keyXAmzWebsiteRedirectLocation;
+	}
+
+	public String getXAmzObjectLockMode() {
+		return keyXAmzObjectLockMode;
+	}
+
+	public String getXAmzObjectLockRetainUntilDate() {
+		return keyXAmzObjectLockRetainUntilDate;
+	}
+
+	public String getXAmzObjectLockRemainingRetentionDays() {
+		return keyXAmzObjectLockRemainingRetentionDays;
+	}
+
+	public String getXAmzObjectLockLegalHold() {
+		return keyXAmzObjectLockLegalHold;
+	}
+	
+	// policy key delete
+	protected String keyVersionId;
+
+	public String getVersionId() {
+		return keyVersionId;
+	}
 }

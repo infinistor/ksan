@@ -23,36 +23,36 @@ import org.slf4j.LoggerFactory;
 public class LoggingQuery {
 	static final Logger logger = LoggerFactory.getLogger(LoggingQuery.class);
 
-	public static final String DB_TABLE_NAME = "s3logging";
-	public static final String DB_LOG_ID = "log_id";
-	public static final String DB_USER_NAME = "user_name";
-	public static final String DB_BUCKET_NAME = "bucket_name";
-	public static final String DB_DATE_TIME = "date_time";
-	public static final String DB_REMOTE_HOST = "remote_host";
-	public static final String DB_REQUEST_USER = "request_user";
-	public static final String DB_REQUEST_ID = "request_id";
-	public static final String DB_OPERATION = "operation";
-	public static final String DB_OBJECT_NAME = "object_name";
-	public static final String DB_REQUEST_URI = "request_uri";
-	public static final String DB_STATUS_CODE = "status_code";
-	public static final String DB_ERROR_CODE = "error_code";
-	public static final String DB_RESPONSE_LENGTH = "response_length";
-	public static final String DB_OBJECT_LENGTH = "object_length";
-	public static final String DB_TOTAL_TIME = "total_time";
-	public static final String DB_REQUEST_LENGTH = "request_length";
-	public static final String DB_REFERER = "referer";
-	public static final String DB_USER_AGENT = "user_agent";
-	public static final String DB_VERSION_ID = "version_id";
-	public static final String DB_HOST_ID = "host_id";
-	public static final String DB_SIGN = "sign";
-	public static final String DB_SSL_GROUP = "ssl_group";
-	public static final String DB_SIGN_TYPE = "sign_type";
-	public static final String DB_ENDPOINT = "endpoint";
-	public static final String DB_TLS_VERSION = "tls_version";
+	public static final String DB_TABLE_NAME = "S3LOGGING";
+	public static final String DB_ID = "ID";
+	public static final String DB_USER_NAME = "USER_NAME";
+	public static final String DB_BUCKET_NAME = "BUCKET_NAME";
+	public static final String DB_DATE_TIME = "DATE_TIME";
+	public static final String DB_REMOTE_HOST = "REMOTE_HOST";
+	public static final String DB_REQUEST_USER = "REQUEST_USER";
+	public static final String DB_REQUEST_ID = "REQUEST_ID";
+	public static final String DB_OPERATION = "OPERATION";
+	public static final String DB_OBJECT_NAME = "OBJECT_NAME";
+	public static final String DB_REQUEST_URI = "REQUEST_URI";
+	public static final String DB_STATUS_CODE = "STATUS_CODE";
+	public static final String DB_ERROR_CODE = "ERROR_CODE";
+	public static final String DB_RESPONSE_LENGTH = "RESPONSE_LENGTH";
+	public static final String DB_OBJECT_LENGTH = "OBJECT_LENGTH";
+	public static final String DB_TOTAL_TIME = "TOTAL_TIME";
+	public static final String DB_REQUEST_LENGTH = "REQUEST_LENGTH";
+	public static final String DB_REFERER = "REFERER";
+	public static final String DB_USER_AGENT = "USER_AGENT";
+	public static final String DB_VERSION_ID = "VERSION_ID";
+	public static final String DB_HOST_ID = "HOST_ID";
+	public static final String DB_SIGN = "SIGN";
+	public static final String DB_SSL_GROUP = "SSL_GROUP";
+	public static final String DB_SIGN_TYPE = "SIGN_TYPE";
+	public static final String DB_ENDPOINT = "ENDPOINT";
+	public static final String DB_TLS_VERSION = "TLS_VERSION";
 
 	public static String getCreateTable() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
-				DB_LOG_ID + " bigint auto_increment primary key, " +
+				DB_ID + " bigint auto_increment primary key, " +
 				DB_USER_NAME + " varchar(64) DEFAULT NULL, " +
 				DB_BUCKET_NAME + " varchar(64) DEFAULT NULL, " +
 				DB_DATE_TIME + " varchar(64) NOT NULL, " +
@@ -97,7 +97,7 @@ public class LoggingQuery {
 
 	public static String getDelete(String BucketName, long Index) {
 		return String.format("DELETE FROM %s WHERE %s = '%s' and %s <= %d;", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName,
-				DB_LOG_ID, Index);
+				DB_ID, Index);
 	}
 
 	public static String getClear(String BucketName) {
@@ -143,7 +143,6 @@ public class LoggingQuery {
 		return MyList;
 	}
 
-	
 	public static List<Object> getInsertParameters(S3LogData data) {
 		var param = new ArrayList<Object>();
 		param.add(data.UserName);
@@ -173,7 +172,7 @@ public class LoggingQuery {
 
 		return param;
 	}
-	
+
 	public static Document getInsertDocument(S3LogData data) {
 		var param = new Document();
 		param.put(DB_USER_NAME, data.UserName);

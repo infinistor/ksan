@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -69,6 +70,12 @@ public class KsanPutObject extends S3Request {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
+
+		S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
+        if (user == null) {
+            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+        }
+        s3Parameter.setUser(user);
 		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
@@ -183,7 +190,7 @@ public class KsanPutObject extends S3Request {
 		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
+		String aclXml = GWUtils.makeAdmAclXml(accessControlPolicy, 
 										null, 
 										dataPutObject.hasAclKeyword(), 
 										null, 
@@ -331,6 +338,8 @@ public class KsanPutObject extends S3Request {
 			objMeta = open(bucket, object, repVersionId);
 		} catch (GWException e) {
 			logger.info(e.getMessage());
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
+            s3Parameter.setStatusCode(0);
 			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
 		s3Parameter.setVersionId(repVersionId);
@@ -353,6 +362,7 @@ public class KsanPutObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

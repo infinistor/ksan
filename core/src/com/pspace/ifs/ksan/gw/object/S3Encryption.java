@@ -29,6 +29,15 @@ public abstract class S3Encryption {
         this.algorithm = s3Metadata.getServersideEncryption();
     }
 
+    public S3Encryption(String serverSideEncryption, String customerAlgorithm, String customerKey, String customerKeyMD5, S3Parameter s3Parameter) {
+        this.s3Parameter = s3Parameter;
+        this.customerAlgorithm = customerAlgorithm;
+        this.customerKey = customerKey;
+        this.customerKeyMD5 = customerKeyMD5;
+        this.algorithm = serverSideEncryption;
+    }
+
+
     protected String makeMD5(String str) {
 		String md5 = GWConstants.EMPTY_STRING; 
 		

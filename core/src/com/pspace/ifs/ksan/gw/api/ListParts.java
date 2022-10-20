@@ -57,12 +57,12 @@ public class ListParts extends S3Request {
             throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
         }
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// S3Bucket s3Bucket = new S3Bucket();
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 

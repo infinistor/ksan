@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Base64.Decoder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -61,11 +62,11 @@ public class PostObject extends S3Request {
 		initBucketInfo(bucket);
 
 		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+		// s3Bucket.setBucket(bucket);
+		// s3Bucket.setUserName(getBucketInfo().getUserName());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		// s3Parameter.setBucket(s3Bucket);
 
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();
@@ -365,6 +366,7 @@ public class PostObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

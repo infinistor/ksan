@@ -240,6 +240,8 @@ public final class GWConstants {
 	public static final String VERSIONING_DISABLE_TAIL = "null";
 	public static final String GOVERNANCE = "GOVERNANCE";
 	public static final String COMPLIANCE = "COMPLIANCE";
+	public static final String ON = "ON";
+	public static final String OFF = "OFF";
 
 	public static final String S3_ARN = "arn:aws:s3";
 	public static final String HTTP = "http://";
@@ -391,6 +393,7 @@ public final class GWConstants {
 	public static final String ISO_8601_TIME_SIMPLE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String ISO_8601_TIME_FORMAT_MILI = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	public static final String LIFECYCLE_CONTAIN_TIME = "T00:00:00";
+	public static final String LOG_8601_DATE = "8601date : {}";
 
 	public static final String HMAC_SHA1 = "HmacSHA1";
 	public static final String AWS4_HMAC_SHA256 = "AWS4-HMAC-SHA256";
@@ -658,6 +661,7 @@ public final class GWConstants {
 	public static final String KMS_MASTERKEY_ID = "KMSMasterKeyID";
 	public static final String BUCKET_KEY_ENABLED = "BucketKeyEnabled";
 	public static final String OBJECT_LOCK_ENABLED = "ObjectLockEnabled";
+	public static final String LEGAL_HOLD = "LegalHold";
 	public static final String DEFAULT_RETENTION = "DefaultRetention";
 	public static final String ACCESS_CONTROL_LIST = "AccessControlList";
 	public static final String DELETE_MARKER_REPLICATION = "DeleteMarkerReplication";
@@ -1077,6 +1081,9 @@ public final class GWConstants {
 	// GetObjectRetention
 	public static final String LOG_GET_OBJECT_RETENTION_START = "GetObjectRetention ...";
 
+	// GetObjectLockConfiguration
+	public static final String LOG_GET_OBJECT_LOCK_CONFIGURATION_START = "GetObjectLockConfiguration ...";
+
 	// GetObjectTagging
 	public static final String LOG_GET_OBJECT_TAGGING_START = "GetObjectTagging ...";
 	public static final String LOG_ADMIN_GET_OBJECT_TAGGING_START = "AdmGetObjectTagging ...";
@@ -1212,8 +1219,13 @@ public final class GWConstants {
 	public static final String LOG_PUT_OBJECT_ACL_START = "PutObjectAcl ...";
 	public static final String LOG_ADMIN_PUT_OBJECT_ACL_START = "AdmPutObjectAcl ...";
 
+	// PutObjectLegalHold
+	// PutObjectRetention
+	public static final String LOG_PUT_OBJECT_LEGALHOLD_START = "PutObjectLegalHold ...";
+
 	// PutObjectRetention
 	public static final String LOG_PUT_OBJECT_RETENTION_START = "PutObjectRetention ...";
+	public static final String LOG_CUR_NEW_DATE = "cur : {}, new : {}";
 
 	// PutObjectTagging
 	public static final String LOG_PUT_OBJECT_TAGGING_START = "PutObjectTagging ...";

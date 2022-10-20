@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -67,13 +68,6 @@ public class PutObject extends S3Request {
 		
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
-
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 		
@@ -342,6 +336,8 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
+			// reset error code
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
@@ -350,6 +346,7 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+		s3Parameter.setVersionId(versionId);
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.putObject();
 
@@ -369,6 +366,7 @@ public class PutObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

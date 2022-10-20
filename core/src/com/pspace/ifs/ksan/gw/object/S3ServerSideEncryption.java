@@ -39,6 +39,11 @@ public class S3ServerSideEncryption extends S3Encryption {
         this.encryptionXml = encryptionXml;
     }
 
+    public S3ServerSideEncryption(String encryptionXml, String serverSideEncryption, String customerAlgorithm, String customerKey, String customerKeyMD5, S3Parameter s3Parameter) {
+        super(serverSideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+        this.encryptionXml = encryptionXml;
+    }
+
     public void srcbuild() throws GWException {
         if (!Strings.isNullOrEmpty(customerAlgorithm) && customerAlgorithm.equalsIgnoreCase(GWConstants.AES256) == true) {
             if (!Strings.isNullOrEmpty(customerKey) && !Strings.isNullOrEmpty(customerKeyMD5)) {

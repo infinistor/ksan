@@ -15,6 +15,7 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -44,12 +45,6 @@ public class PutObjectTagging extends S3Request {
         logger.info(GWConstants.LOG_PUT_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setBucket(bucket);
-		s3Bucket.setUserName(getBucketInfo().getUserName());
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 		
@@ -118,10 +113,11 @@ public class PutObjectTagging extends S3Request {
 		}
 
 		s3Metadata.setTaggingCount(taggingCount);
-		ObjectMapper jsonMapper = new ObjectMapper();
+		// ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonMeta = "";
 		try {
-			jsonMeta = jsonMapper.writeValueAsString(s3Metadata);
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

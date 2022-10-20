@@ -19,7 +19,7 @@ import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
-
+import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 
 import db.DBManager;
@@ -32,18 +32,22 @@ public class S3LogReceiver implements MQCallback {
 	public MQResponse call(String routingKey, String body) {
 
 		try {
+			logger.debug("{} -> {}", routingKey, body);
+
+			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 
 			// 문자열을 S3LogData 클래스로 변환
 			var event = Mapper.readValue(body, new TypeReference<S3LogData>() {
 			});
 			// 변환 실패시
-			if (event == null) 
+			if (event == null)
 				throw new Exception("Invalid S3LogData : " + body);
 
 			// Get DB
 			var db = DBManager.getInstance();
 
-			//DB에 저장
+			// DB에 저장
 			db.InsertLogging(event);
 
 		} catch (Exception e) {

@@ -71,14 +71,13 @@ public class DataPutBucketLogging extends S3DataRequest {
 		LoggingConfiguration lc;
 		try {
 			lc = xmlMapper.readValue(LoggingXml, LoggingConfiguration.class);
-			if( lc.loggingEnabled != null ) {
-				if ( lc.loggingEnabled.targetBucket != null) {
+			if (lc.loggingEnabled != null) {
+				if (lc.loggingEnabled.targetBucket != null) {
 					ObjManager objManager = null;
+					boolean isTargetBucket = true;
 					try {
 						objManager = ObjManagerHelper.getInstance().getObjManager();
-						if (!objManager.isBucketExist(lc.loggingEnabled.targetBucket)) {
-							throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
-						}
+						isTargetBucket = objManager.isBucketExist(lc.loggingEnabled.targetBucket);
 					} catch (Exception e) {
 						PrintStack.logging(logger, e);
 						throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -90,10 +89,13 @@ public class DataPutBucketLogging extends S3DataRequest {
 							throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 						}
 					}
+					if (!isTargetBucket) {
+						throw new GWException(GWErrorCode.INVALID_TARGET_BUCKET_FOR_LOGGING, s3Parameter);
+					}
 				}
 				
-				if( lc.loggingEnabled.targetGrants != null) {
-					for(LoggingConfiguration.LoggingEnabled.TargetGrants.Grant grant : lc.loggingEnabled.targetGrants.grants) {
+				if (lc.loggingEnabled.targetGrants != null) {
+					for (LoggingConfiguration.LoggingEnabled.TargetGrants.Grant grant : lc.loggingEnabled.targetGrants.grants) {
 						if (grant.grantee != null && grant.grantee.id != null) {
 							if (S3UserManager.getInstance().getUserById(grant.grantee.id) == null) {
 								throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);

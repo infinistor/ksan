@@ -29,6 +29,7 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +98,7 @@ public class CreateBucket extends S3Request {
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setBucket(bucket.getName());
 		s3Bucket.setUserName(bucket.getUserName());
+		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
 		// s3Bucket.setCors(getBucketInfo().getCors());
 		// s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);

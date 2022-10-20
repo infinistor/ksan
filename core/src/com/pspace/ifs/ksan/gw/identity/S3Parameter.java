@@ -59,6 +59,7 @@ public class S3Parameter {
     private String signVersion;
     private String uri;
     private boolean isAdmin;
+    private String taggingInfo;
 
     public S3Parameter() {
         request = null;
@@ -80,10 +81,13 @@ public class S3Parameter {
         fileSize = 0L;
         uploadId = "";
         isWebsite = false;
+        isPublicAccess = false;
         statusCode = 0;
         requestSize = 0L;
         responseSize = 0L;
         uri = "";
+        isAdmin = false;
+        taggingInfo = "";
     }
 
     public HttpServletRequest getRequest() {
@@ -420,5 +424,13 @@ public class S3Parameter {
 
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+
+    public String getTaggingInfo() {
+        return taggingInfo;
+    }
+
+    public void setTaggingInfo(String taggingInfo) {
+        this.taggingInfo = taggingInfo;
     }
 }
