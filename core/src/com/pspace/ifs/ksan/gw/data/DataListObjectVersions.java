@@ -71,6 +71,10 @@ public class DataListObjectVersions extends S3DataRequest {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyDelimiter = getDelimiter();
+		keyMaxKeys = getMaxKeys();
+		keyPrefix = getPrefix();
 	}
 
 	public String getDelimiter() {

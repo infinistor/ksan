@@ -44,11 +44,13 @@ public class PutBucketLogging extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-		
+
 		DataPutBucketLogging dataPutBucketLogging = new DataPutBucketLogging(s3Parameter);
 		dataPutBucketLogging.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_LOGGING, s3Parameter, dataPutBucketLogging)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		String loggingInfo = dataPutBucketLogging.getLoggingXml();
 		updateBucketLogging(bucket, loggingInfo);

@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import java.io.IOException;
 
 import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.gw.data.DataGetBucketTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -35,12 +36,6 @@ public class GetBucketTagging extends S3Request {
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
         
@@ -48,7 +43,12 @@ public class GetBucketTagging extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		DataGetBucketTagging dataGetBucketTagging = new DataGetBucketTagging(s3Parameter);
+		dataGetBucketTagging.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_TAGGING, s3Parameter, dataGetBucketTagging)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		}
 
 		String tag = getBucketInfo().getTagging();
 		logger.debug(GWConstants.LOG_TAGGING, tag);

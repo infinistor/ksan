@@ -19,38 +19,21 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 import org.slf4j.LoggerFactory;
 
-public class DataGetObjectLockConofiguration extends S3DataRequest {
-    private String versionId;
-	private String requestPayer;
-	private String expectedBucketOwner;
+public class DataGetBucketVersioning extends S3DataRequest {
+    private String expectedBucketOwner;
 
-    public DataGetObjectLockConofiguration(S3Parameter s3Parameter) throws GWException {
+    public DataGetBucketVersioning(S3Parameter s3Parameter) throws GWException {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(DataGetObjectLockConofiguration.class);
+        logger = LoggerFactory.getLogger(DataGetBucketVersioning.class);
     }
-    
+
     @Override
-	public void extract() throws GWException {
-		versionId = s3Parameter.getRequest().getParameter(GWConstants.VERSION_ID);
-		if (Strings.isNullOrEmpty(versionId)) {
-			logger.info(GWConstants.LOG_DATA_VERSION_ID_NULL);
-		}
-		
+	public void extract() throws GWException {		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
-			if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_REQUEST_S3_PAYER)) {
-				requestPayer = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
+			if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
-	}
-
-	public String getVersionId() {
-		return versionId;
-	}
-
-	public String getRequestPayer() {
-		return requestPayer;
 	}
 
 	public String getExpectedBucketOwner() {

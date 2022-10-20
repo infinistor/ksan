@@ -43,13 +43,6 @@ public class GetObjectAcl extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		// S3Bucket s3Bucket = new S3Bucket();
-        // s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -68,9 +61,17 @@ public class GetObjectAcl extends S3Request {
             objMeta = open(bucket, object, versionId);
         }
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-        // objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
+        s3Parameter.setTaggingInfo(objMeta.getTag());
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+        if (Strings.isNullOrEmpty(versionId)) {
+            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_ACL, s3Parameter, dataGetObjectAcl)) {
+                checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            }
+        } else {
+            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_ACL, s3Parameter, dataGetObjectAcl)) {
+                checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            }
+        }
 
         String aclInfo = objMeta.getAcl();
 

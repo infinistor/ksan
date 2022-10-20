@@ -22,49 +22,49 @@ public class PolicyConditionFactory {
 
 	public static PolicyCondition createPolicyCondition(String category, JsonNode jsonNode) throws GWException {
 		switch (category) {
-			// case PolicyCondition.STRING_EQUALS:
-			// 	return new StringEqual(jsonNode);
-			// case PolicyCondition.STRING_LIKE:
-			// 	return new StringLike(jsonNode);
-			// case PolicyCondition.STRING_NOT_LIKE:
-			// 	return new StringNotLike(jsonNode);
-			// case PolicyCondition.STRING_EQUALS_IGNORE_CASE:
-			// 	return new StringEqualsIgnoreCase(jsonNode);				
-			// case PolicyCondition.STRING_NOT_EQUALS:
-			// 	return new StringNotEquals(jsonNode);
-			// case PolicyCondition.STRING_NOT_EQUALS_IGNORE_CASE:
-			// 	return new StringNotEqualsIgnoreCase(jsonNode);
+			case PolicyCondition.STRING_EQUALS:
+				return new StringEqual(jsonNode);
+			case PolicyCondition.STRING_LIKE:
+				return new StringLike(jsonNode);
+			case PolicyCondition.STRING_NOT_LIKE:
+				return new StringNotLike(jsonNode);
+			case PolicyCondition.STRING_EQUALS_IGNORE_CASE:
+				return new StringEqualsIgnoreCase(jsonNode);				
+			case PolicyCondition.STRING_NOT_EQUALS:
+				return new StringNotEquals(jsonNode);
+			case PolicyCondition.STRING_NOT_EQUALS_IGNORE_CASE:
+				return new StringNotEqualsIgnoreCase(jsonNode);
 
-			// case PolicyCondition.NUMERIC_EQUALS:
-			// 	return new NumericEquals(jsonNode);
-			// case PolicyCondition.NUMERIC_NOT_EQUALS:
-			// 	return new NumericNotEquals(jsonNode);
-			// case PolicyCondition.NUMERIC_LESS_THAN:
-			// 	return new NumericLessThan(jsonNode);
-			// case PolicyCondition.NUMERIC_LESS_THAH_EQUALS:
-			// 	return new NumericLessThanEquals(jsonNode);
-			// case PolicyCondition.NUMERIC_GREATER_THAN:
-			// 	return new NumericGreaterThan(jsonNode);
-			// case PolicyCondition.NUMERIC_GREATER_THAN_EQUALS:
-			// 	return new NumericGreaterThanEquals(jsonNode);
+			case PolicyCondition.NUMERIC_EQUALS:
+				return new NumericEquals(jsonNode);
+			case PolicyCondition.NUMERIC_NOT_EQUALS:
+				return new NumericNotEquals(jsonNode);
+            case PolicyCondition.NUMERIC_LESS_THAN:
+				return new NumericLessThan(jsonNode);
+			case PolicyCondition.NUMERIC_LESS_THAN_EQUALS:
+				return new NumericLessThanEquals(jsonNode);
+			case PolicyCondition.NUMERIC_GREATER_THAN:
+				return new NumericGreaterThan(jsonNode);
+			case PolicyCondition.NUMERIC_GREATER_THAN_EQUALS:
+				return new NumericGreaterThanEquals(jsonNode);
 
 			case PolicyCondition.DATE_EQUALS:
 				return new DateEquals(jsonNode);
-			// case PolicyCondition.DATE_NOT_EQUALS:
-			// 	return new DateNotEquals(jsonNode);
-			// case PolicyCondition.DATE_LESS_THAN:
-			// 	return new DateLessThan(jsonNode);
-			// case PolicyCondition.DATE_LESS_THAH_EQUALS:
-			// 	return new DateLessThanEquals(jsonNode);
-			// case PolicyCondition.DATE_GREATER_THAH:
-			// 	return new DateGreaterThan(jsonNode);
-			// case PolicyCondition.DATE_GREATER_THAN_EQUALS:
-			// 	return new DateGreaterThanEquals(jsonNode);
+			case PolicyCondition.DATE_NOT_EQUALS:
+				return new DateNotEquals(jsonNode);
+			case PolicyCondition.DATE_LESS_THAN:
+				return new DateLessThan(jsonNode);
+			case PolicyCondition.DATE_LESS_THAN_EQUALS:
+				return new DateLessThanEquals(jsonNode);
+			case PolicyCondition.DATE_GREATER_THAN:
+				return new DateGreaterThan(jsonNode);
+			case PolicyCondition.DATE_GREATER_THAN_EQUALS:
+				return new DateGreaterThanEquals(jsonNode);
 
-			// case PolicyCondition.IP_ADDRESS:
-			// 	return new IpAddress(jsonNode);
-			// case PolicyCondition.NOT_IP_ADDRESS:
-			// 	return new IpAddress(jsonNode);
+			case PolicyCondition.IP_ADDRESS:
+				return new IpAddress(jsonNode);
+			case PolicyCondition.NOT_IP_ADDRESS:
+				return new IpAddress(jsonNode);
 			default:
 				logger.error(PolicyCondition.LOG_UNKNOWN_CONDITION_TYPE);
 				break;

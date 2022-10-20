@@ -19,16 +19,16 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 import org.slf4j.LoggerFactory;
 
-public class DataGetBucketLifeCycle extends S3DataRequest {
-	private String expectedBucketOwner;
-	
-	public DataGetBucketLifeCycle(S3Parameter s3Parameter) throws GWException {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(DataGetBucketLifeCycle.class);
-	}
+public class DataGetBucketPolicy extends S3DataRequest {
+    private String expectedBucketOwner;
 
-	@Override
-	public void extract() throws GWException {
+    public DataGetBucketPolicy(S3Parameter s3Parameter) throws GWException {
+        super(s3Parameter);
+        logger = LoggerFactory.getLogger(DataGetBucketPolicy.class);
+    }
+
+    @Override
+	public void extract() throws GWException {		
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
 			if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));

@@ -49,9 +49,6 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.slf4j.LoggerFactory;
-
-
-
 public class PutObject extends S3Request {
 
 	public PutObject(S3Parameter s3Parameter) {
@@ -75,10 +72,12 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 
 		S3Metadata s3Metadata = new S3Metadata();
 

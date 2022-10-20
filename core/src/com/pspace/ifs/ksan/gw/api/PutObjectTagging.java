@@ -51,14 +51,31 @@ public class PutObjectTagging extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		String object = s3Parameter.getObjectName();
 
 		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
 		dataPutObjectTagging.extract();
+		String versionId = dataPutObjectTagging.getVersionId();
 
+		Metadata objMeta = null;
+		if (Strings.isNullOrEmpty(versionId)) {
+			objMeta = open(bucket, object);
+		} else {
+			objMeta = open(bucket, object, versionId);
+		}
+
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter, dataPutObjectTagging)) {
+				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter, dataPutObjectTagging)) {
+				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		}
+		
 		String taggingCount = GWConstants.TAGGING_INIT;
 		String taggingXml = dataPutObjectTagging.getTaggingXml();
 		try {
@@ -92,14 +109,6 @@ public class PutObjectTagging extends S3Request {
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		String versionId = dataPutObjectTagging.getVersionId();
-		Metadata objMeta = null;
-		if (Strings.isNullOrEmpty(versionId)) {
-			objMeta = open(bucket, object);
-		} else {
-			objMeta = open(bucket, object, versionId);
 		}
 		
 		S3Metadata s3Metadata = null;

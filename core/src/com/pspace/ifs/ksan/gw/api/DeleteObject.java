@@ -50,21 +50,11 @@ public class DeleteObject extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_DELETE_OBJECT, bucket, object);
 
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataDeleteObject dataDeleteObject = new DataDeleteObject(s3Parameter);
 		dataDeleteObject.extract();
@@ -76,11 +66,21 @@ public class DeleteObject extends S3Request {
 		
 		String versionId = dataDeleteObject.getVersionId();
 		s3Parameter.setVersionId(versionId);
+
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT, s3Parameter, dataDeleteObject)) {
+				checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION, s3Parameter, dataDeleteObject)) {
+				checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		}
+
 		boolean isLastVersion = true;
 		String deleteMarker = null;
 
         String versioningStatus = null;
-
 		versioningStatus = getBucketVersioning(bucket);
 
 		Metadata objMeta = null;

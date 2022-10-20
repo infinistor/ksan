@@ -57,23 +57,20 @@ public class ListParts extends S3Request {
             throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
         }
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
-		
+
 		DataListParts dataListParts = new DataListParts(s3Parameter);
 		dataListParts.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter, dataListParts)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
+
 		String maxParts = dataListParts.getMaxParts();
 		String partNumberMarker = dataListParts.getPartNumberMarker();
 		String uploadId = dataListParts.getUploadId();

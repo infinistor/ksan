@@ -45,14 +45,6 @@ public class AbortMultipartUpload extends S3Request {
 		
 		String object = s3Parameter.getObjectName();
 
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -61,6 +53,8 @@ public class AbortMultipartUpload extends S3Request {
 
 		DataAbortMultipartUpload dataAbortMultipartUpload = new DataAbortMultipartUpload(s3Parameter);
 		dataAbortMultipartUpload.extract();
+
+		checkPolicyBucket(GWConstants.ACTION_ABORT_MULTIPART_UPLOAD, s3Parameter, dataAbortMultipartUpload);
 
 		String uploadId = dataAbortMultipartUpload.getUploadId();
 		

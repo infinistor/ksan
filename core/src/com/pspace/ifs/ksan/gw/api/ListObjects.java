@@ -46,13 +46,6 @@ public class ListObjects extends S3Request {
 
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
@@ -60,10 +53,13 @@ public class ListObjects extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
-
 		DataListBuckets dataListBuckets = new DataListBuckets(s3Parameter);
 		dataListBuckets.extract();
+
+		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBuckets)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {

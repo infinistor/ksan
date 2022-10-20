@@ -73,6 +73,14 @@ public class DataPutObjectAcl extends S3DataRequest {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
+		keyVersionId = getVersionId();
 	}
 
 	public boolean hasAclKeyword() {

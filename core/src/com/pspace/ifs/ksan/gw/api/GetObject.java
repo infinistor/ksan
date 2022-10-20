@@ -73,15 +73,25 @@ public class GetObject extends S3Request implements S3AddResponse {
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
-		s3Parameter.setVersionId(versionId);
-
+		
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT, s3Parameter, dataGetObject)) {
+				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION, s3Parameter, dataGetObject)) {
+				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		}
+
+		versionId = objMeta.getVersionId();
+		s3Parameter.setVersionId(versionId);
 
 		S3Metadata s3Metadata = null;
 		

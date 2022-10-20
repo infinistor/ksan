@@ -57,24 +57,18 @@ public class CreateMultipartUpload extends S3Request {
 
 		String object = s3Parameter.getObjectName();
 
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
-
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCreateMultipartUpload)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 
 		accessControlPolicy = new AccessControlPolicy();
 		accessControlPolicy.aclList = new AccessControlList();

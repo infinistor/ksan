@@ -54,18 +54,25 @@ public class PutObjectAcl extends S3Request {
 		dataPutObjectAcl.extract();
 		
 		String versionId = dataPutObjectAcl.getVersionId();
-
+		s3Parameter.setVersionId(versionId);
+		
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
-
-		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_ACL, s3Parameter, dataPutObjectAcl)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_ACL, s3Parameter, dataPutObjectAcl)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			}
+		}
+        
 		accessControlPolicy = new AccessControlPolicy();
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();

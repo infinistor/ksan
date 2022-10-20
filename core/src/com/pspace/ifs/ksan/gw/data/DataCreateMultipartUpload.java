@@ -126,6 +126,20 @@ public class DataCreateMultipartUpload extends S3DataRequest {
 				userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
+		keyXAmzServerSideEncryption = getServerSideEncryption();
+		keyXAmzServerSideEncryptionAwsKmsKeyId = getServerSideEncryptionAwsKmsKeyId();
+		keyXAmzStorageClass = getStorageClass();
+		keyXAmzWebsiteRedirectLocation = getWebsiteRedirectLocation();
+		keyXAmzObjectLockMode = getObjectLockMode();
+		keyXAmzObjectLockRetainUntilDate = getObjectLockRetainUntilDate();
+		keyXAmzObjectLockLegalHold = getObjectLockLegalHold();
 	}
 
 	public boolean hasAclKeyword() {

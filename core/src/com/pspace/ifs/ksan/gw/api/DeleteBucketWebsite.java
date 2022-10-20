@@ -18,6 +18,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.data.DataDeleteBucketWebsite;
 
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +34,6 @@ public class DeleteBucketWebsite extends S3Request {
 				
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
@@ -47,6 +41,11 @@ public class DeleteBucketWebsite extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
+		DataDeleteBucketWebsite dataDeleteBucketWebsite = new DataDeleteBucketWebsite(s3Parameter);
+		dataDeleteBucketWebsite.extract();
+
+		checkPolicyBucket(GWConstants.ACTION_DELETE_BUCKET_WEBSITE, s3Parameter, dataDeleteBucketWebsite);
+
 		updateBucketWeb(bucket, "");
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);

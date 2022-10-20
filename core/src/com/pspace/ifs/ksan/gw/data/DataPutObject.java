@@ -144,6 +144,20 @@ public class DataPutObject extends S3DataRequest {
 				logging = GWConstants.IFS_HEADER_LOGGING;
 			}
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
+		keyXAmzServerSideEncryption = getServerSideEncryption();
+		keyXAmzServerSideEncryptionAwsKmsKeyId = getServerSideEncryptionAwsKmsKeyId();
+		keyXAmzStorageClass = getStorageClass();
+		keyXAmzWebsiteRedirectLocation = getWebsiteRedirectLocation();
+		keyXAmzObjectLockMode = getObjectLockMode();
+		keyXAmzObjectLockRetainUntilDate = getObjectLockRetainUntilDate();
+		keyXAmzObjectLockLegalHold = getObjectLockLegalHold();
 	}
 
 	public boolean hasAclKeyword() {

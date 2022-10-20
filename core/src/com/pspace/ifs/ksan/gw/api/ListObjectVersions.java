@@ -46,12 +46,6 @@ public class ListObjectVersions extends S3Request {
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
@@ -59,10 +53,13 @@ public class ListObjectVersions extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
-		
 		DataListObjectVersions dataListObjectVersions = new DataListObjectVersions(s3Parameter);
 		dataListObjectVersions.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_VERSIONS, s3Parameter, dataListObjectVersions)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
+
 		String delimiter = dataListObjectVersions.getDelimiter();
 		String encodingType = dataListObjectVersions.getEncodingType();
 		String keyMarker = dataListObjectVersions.getKeyMarker();

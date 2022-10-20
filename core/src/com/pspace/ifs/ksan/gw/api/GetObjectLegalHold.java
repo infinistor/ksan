@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.objmanager.Metadata;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectLockConofiguration;
+import com.pspace.ifs.ksan.gw.data.DataGetObjectLegalHold;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
@@ -34,11 +34,11 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetObjectLockConfiguration extends S3Request {
+public class GetObjectLegalHold extends S3Request {
 
-    public GetObjectLockConfiguration(S3Parameter s3Parameter) {
+    public GetObjectLegalHold(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(GetObjectLockConfiguration.class);
+        logger = LoggerFactory.getLogger(GetObjectLegalHold.class);
     }
 
     @Override
@@ -53,13 +53,11 @@ public class GetObjectLockConfiguration extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
-		DataGetObjectLockConofiguration dataGetObjectLockConofiguration = new DataGetObjectLockConofiguration(s3Parameter);
-		dataGetObjectLockConofiguration.extract();
+		DataGetObjectLegalHold dataGetObjectLegalHold = new DataGetObjectLegalHold(s3Parameter);
+		dataGetObjectLegalHold.extract();
 
-		String versionId = dataGetObjectLockConofiguration.getVersionId();
+		String versionId = dataGetObjectLegalHold.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
@@ -70,6 +68,10 @@ public class GetObjectLockConfiguration extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_LEGAL_HOLD, s3Parameter, dataGetObjectLegalHold)) {
+			checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		String objectLock = getBucketInfo().getObjectLock();
 		logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);

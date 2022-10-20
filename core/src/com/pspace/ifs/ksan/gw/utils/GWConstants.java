@@ -1147,7 +1147,7 @@ public final class GWConstants {
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
-	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutObjectLockConfiguration ...";
+	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutBucketObjectLock ...";
 	public static final String LOG_PUT_BUCKET_OBJECT_LOCK = "ObjectLock : {}";
 
 	// PutBucketPolicy
@@ -1467,4 +1467,9 @@ public final class GWConstants {
 	public static final String GW_LOG_SIGN_TYPE = "SignType";
 	public static final String GW_LOG_END_POINT = "EndPoint";
 	public static final String GW_LOG_TLS_VERSION = "TLSVersion";
+
+	public static final String LOG_KEY = "key : {}";
+	public static final String LOG_VALUE = "value : {}";
+	public static final String LOG_T_KEY = "t.key : {}";
+	public static final String LOG_T_VALUE = "t.value : {}";
 }

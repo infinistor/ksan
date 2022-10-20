@@ -69,8 +69,11 @@ public class GetObjectRetention extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
+		s3Parameter.setTaggingInfo(objMeta.getTag());
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_RETENTION, s3Parameter, dataGetObjectRetention)) {
+			checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		try {
 			String objectLock = getBucketInfo().getObjectLock();

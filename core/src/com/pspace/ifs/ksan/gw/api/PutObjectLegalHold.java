@@ -55,10 +55,12 @@ public class PutObjectLegalHold extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-
         DataPutObjectLegalHold dataPutObjectLegalHold = new DataPutObjectLegalHold(s3Parameter);
         dataPutObjectLegalHold.extract();
+
+        if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_LEGAL_HOLD, s3Parameter, dataPutObjectLegalHold)) {
+            checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+        }
 
         String versionId = dataPutObjectLegalHold.getVersionId();
         

@@ -39,25 +39,25 @@ public class DateEquals extends PolicyCondition {
     @Override
     public void process() throws GWException {
         this.value = new ArrayList<String>();
-        if(jsonNode.isObject()) {
+        if (jsonNode.isObject()) {
             Iterator<String> fieldNames = jsonNode.fieldNames();
-            if(fieldNames.hasNext()) {
+            if (fieldNames.hasNext()) {
                 // read key
                 String fieldName = fieldNames.next();
                 this.key = fieldName;
-                logger.info("key : " + this.key);
+                logger.info(GWConstants.LOG_KEY, this.key);
 
                 // read value
                 JsonNode fieldValue = jsonNode.get(fieldName);
-                if( fieldValue != null && fieldValue.isArray() ) {
+                if (fieldValue != null && fieldValue.isArray() ) {
                     ArrayNode arrayNode = (ArrayNode) fieldValue;
                     for (int i=0; i<arrayNode.size(); i++) {
                         JsonNode arrayElement = arrayNode.get(i);
-                        logger.info("value : " + arrayElement.textValue());
+                        logger.info(GWConstants.LOG_VALUE, arrayElement.textValue());
                         value.add(arrayElement.textValue());
                     }
                 } else if (fieldValue != null && fieldValue.isTextual()) {
-                    logger.info("value : " + fieldValue.textValue());
+                    logger.info(GWConstants.LOG_VALUE, fieldValue.textValue());
                     value.add(fieldValue.textValue());
                 }
             }
@@ -68,14 +68,14 @@ public class DateEquals extends PolicyCondition {
     public boolean compare(String comp) throws GWException {
         boolean ret = false;
 
-        if(Strings.isNullOrEmpty(comp)) {
+        if (Strings.isNullOrEmpty(comp)) {
             return ret;
         }
 
-        for(String s : value) {
+        for (String s : value) {
             long matching = GWUtils.parseTime8601(s);
             long compdate = GWUtils.parseTime8601(comp);
-            if(matching == compdate) {
+            if (matching == compdate) {
                 ret = true;
                 break;
             }
@@ -87,25 +87,25 @@ public class DateEquals extends PolicyCondition {
     @Override
     public boolean compareTagging(S3Parameter s3Parameter) throws GWException {
         boolean conditioncheck = false;
-        String tagkey = key.replace(GWConstants.KEY_EXISTING_OBJECT_TAG + GWConstants.SLASH, "");
+        String tagkey = key.replace(GWConstants.KEY_EXISTING_OBJECT_TAG + GWConstants.SLASH, GWConstants.EMPTY_STRING);
 
         String tagvalue = null;
-        for(String v : value) {
+        for (String v : value) {
             logger.info(v);
             tagvalue = v;
             break;
         }
         
-        if( !Strings.isNullOrEmpty(s3Parameter.getTaggingInfo()) ) {
+        if (!Strings.isNullOrEmpty(s3Parameter.getTaggingInfo()) ) {
             try {
                 Tagging tagging = new XmlMapper().readValue(s3Parameter.getTaggingInfo(), Tagging.class);
 
                 if (tagging != null) {
                     if (tagging.tagset != null && tagging.tagset.tags != null) {
                         for (Tag t : tagging.tagset.tags) {
-                            logger.info(t.key + " : " + tagkey);
-                            logger.info(t.value + " : " + tagvalue);
-                            if(t.key.equals(tagkey) && t.value.equals(tagvalue)) {
+                            logger.info(GWConstants.LOG_T_KEY, tagkey);
+                            logger.info(GWConstants.LOG_T_VALUE, tagvalue);
+                            if (t.key.equals(tagkey) && t.value.equals(tagvalue)) {
                                 conditioncheck = true;
                                 break;
                             }
