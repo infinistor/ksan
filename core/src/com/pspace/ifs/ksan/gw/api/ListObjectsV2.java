@@ -46,23 +46,19 @@ public class ListObjectsV2 extends S3Request {
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		DataListObjectV2 dataListObjectV2 = new DataListObjectV2(s3Parameter);
 		dataListObjectV2.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListObjectV2)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		// read header
 		S3ObjectList s3ObjectList = new S3ObjectList();

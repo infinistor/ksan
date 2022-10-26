@@ -12,8 +12,11 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import com.google.common.base.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
@@ -24,8 +27,8 @@ import com.pspace.ifs.ksan.gw.format.Retention;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
+import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -55,7 +58,9 @@ public class PutObjectRetention extends S3Request {
 		dataPutObjectRetention.extract();
 		String versionId = dataPutObjectRetention.getVersionId();
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_RETENTION, s3Parameter, dataPutObjectRetention)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 		
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -65,9 +70,27 @@ public class PutObjectRetention extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 
+		// meta info
+		S3Metadata s3Metadata = null;
+		String meta = "";
+		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
+			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
+			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+
+		try {
+			String objectLock = getBucketInfo().getObjectLock();
+			if (Strings.isNullOrEmpty(objectLock)) {
+				logger.info("bucket objectlock is null or empty.");
+				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+			}
+			ObjectLockConfiguration oc = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
 			if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
+				logger.info("bucket objectlock is not equals Enabled.");
 				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
 			}
 		} catch (IOException e) {
@@ -88,17 +111,6 @@ public class PutObjectRetention extends S3Request {
 				}
 			} else {
 				throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
-			}
-
-			// meta info
-			S3Metadata s3Metadata = null;
-			ObjectMapper objectMapper = new ObjectMapper();
-			try {
-				logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-				s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 			
 			if (!Strings.isNullOrEmpty(s3Metadata.getLockMode())) {
@@ -126,7 +138,21 @@ public class PutObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		s3Metadata.setLockMode(mode);
+		s3Metadata.setLockExpires(retainUntilDate);
+
+		try {
+			// objectMapper.setSerializationInclusion(Include.NON_NULL);
+			meta = objectMapper.writeValueAsString(s3Metadata);
+			logger.debug("meta : {}", meta);
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+
+		objMeta.setMeta(meta);
+		updateObjectMeta(objMeta);
 		
-		throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 }

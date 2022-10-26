@@ -47,27 +47,23 @@ public class PutBucketReplication extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_START);
         String bucket = s3Parameter.getBucketName();
         initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-        
+
         if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(getBucketVersioning(bucket))) {
             throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
         }
         
 		DataPutBucketReplication dataPutBucketReplication = new DataPutBucketReplication(s3Parameter);
 		dataPutBucketReplication.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_REPLICATION_CONFIGURATION, s3Parameter, dataPutBucketReplication)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		String replicationXml = dataPutBucketReplication.getReplicationXml();
         checkBucketReplication(replicationXml);

@@ -249,7 +249,7 @@ public class S3RequestFactory {
 						return new GetBucketVersioning(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_OBJECT_LOCK))) {
 						s3Parameter.setOperation(OP_GET_OBJECTLOCK);
-						return new GetObjectLockConfiguration(s3Parameter);
+						return new GetBucketObjectLock(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_GET_REPLICATION);
 						return new GetBucketReplication(s3Parameter);
@@ -282,6 +282,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_RETENTION))) {
 						s3Parameter.setOperation(OP_GET_OBJECT_RETENTION);
 						return new GetObjectRetention(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LEGAL_HOLD))) {
+						s3Parameter.setOperation(OP_GET_OBJECT_LEGAL_HOLD);
+						return new GetObjectLegalHold(s3Parameter);
 					} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_UPLOAD_ID) != null) {
 						s3Parameter.setOperation(OP_GET_OBJECT_LISTPARTS);
 						return new ListParts(s3Parameter);
@@ -386,7 +389,7 @@ public class S3RequestFactory {
 						return new PutBucketVersioning(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_OBJECT_LOCK))) {
 						s3Parameter.setOperation(OP_PUT_OBJECTLOCK);
-						return new PutObjectLockConfiguration(s3Parameter);
+						return new PutBucketObjectLock(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_PUT_REPLICATION);
 						return new PutBucketReplication(s3Parameter);
@@ -438,6 +441,9 @@ public class S3RequestFactory {
 									s3Parameter.setOperation(OP_PUT_OBJECT_ACL);
 									return new PutObjectAcl(s3Parameter);
 								}
+							} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LEGAL_HOLD) != null) {
+								s3Parameter.setOperation(OP_PUT_OBJECT_LEGAL_HOLD);
+								return new PutObjectLegalHold(s3Parameter);
 							}
 
 							if (s3Parameter.isAdmin()) {

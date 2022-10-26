@@ -34,6 +34,7 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
+import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
@@ -160,6 +161,7 @@ public abstract class S3Request {
 		s3Bucket.setCors(dstBucket.getCors());
 		s3Bucket.setAccess(dstBucket.getAccess());
 		s3Bucket.setPolicy(dstBucket.getPolicy());
+		logger.info("bucket policy : {}", dstBucket.getPolicy());
 		s3Parameter.setBucket(s3Bucket);
 	}
 
@@ -638,7 +640,7 @@ public abstract class S3Request {
 			}
 		}
 
-		if (accessControlPolicyObject.aclList != null) {
+		if (accessControlPolicyObject.aclList == null) {
 			return false;
 		}
 
@@ -1662,7 +1664,7 @@ public abstract class S3Request {
 				return effectcheck;
 			}
 
-			if (likematch(path[1], s3Parameter.getObjectName())) {
+			if (GWUtils.likematch(path[1], s3Parameter.getObjectName())) {
 				effectcheck = true;
 				return effectcheck;
 			}
@@ -1785,30 +1787,280 @@ public abstract class S3Request {
 		return conditioncheck;
 	}
 
-	public boolean likematch(String first, String second) {
-		// If we reach at the end of both strings,
-		// we are done
-		if (first.length() == 0 && second.length() == 0)
-			return true;
+	public void retentionCheck(String meta, String bypassGovernanceRetention, S3Parameter s3Parameter) throws GWException {
+		S3Metadata retentionMetadata = null;
+		if (!Strings.isNullOrEmpty(meta)) {
+			try {
+				retentionMetadata = new ObjectMapper().readValue(meta, S3Metadata.class);
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.GOVERNANCE)) {
+					if (Strings.isNullOrEmpty(bypassGovernanceRetention)
+						|| (!Strings.isNullOrEmpty(bypassGovernanceRetention) && !bypassGovernanceRetention.equalsIgnoreCase(GWConstants.STRING_TRUE))) {
+						// check retention date
+						long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
+						long now = System.currentTimeMillis() / 1000;
+						if (untilDate > now) {
+							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+						}
+					}
+				}
 
-		// Make sure that the characters after '*'
-		// are present in second string.
-		// This function assumes that the first
-		// string will not contain two consecutive '*'
-		if (first.length() > 1 && first.charAt(0) == GWConstants.CHAR_ASTERISK && second.length() == 0)
-			return false;
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.COMPLIANCE)) {
+					// check retention date
+					long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
+					long now = System.currentTimeMillis() / 1000;
+					if (untilDate > now) {
+						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+					}
+				}
 
-		// If the first string contains '?',
-		// or current characters of both strings match
-		if ((first.length() > 1 && first.charAt(0) == GWConstants.CHAR_QUESTION)
-				|| (first.length() != 0 && second.length() != 0 && first.charAt(0) == second.charAt(0)))
-			return likematch(first.substring(1), second.substring(1));
+				if (!Strings.isNullOrEmpty(retentionMetadata.getLegalHold()) && retentionMetadata.getLegalHold().equalsIgnoreCase(GWConstants.ON)) {
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			} 
+		}
+	}
 
-		// If there is *, then there are two possibilities
-		// a) We consider current character of second string
-		// b) We ignore current character of second string.
-		if (first.length() > 0 && first.charAt(0) == GWConstants.CHAR_ASTERISK)
-			return likematch(first.substring(1), second) || likematch(first, second.substring(1));
-		return false;
+	public boolean checkPolicyBucket(String givenAction, S3Parameter s3Parameter, S3DataRequest dataRequest) throws GWException {
+		logger.info("checkPolicyBucket...");
+		boolean effect = false;
+		String policyJson = s3Parameter.getBucket().getPolicy();
+		if (Strings.isNullOrEmpty(policyJson)) {
+			return effect;
+		}
+		logger.info("bucket policy : {}", policyJson);
+		Policy policy = null;
+		ObjectMapper jsonMapper = new ObjectMapper();
+		try {
+			policy = jsonMapper.readValue(policyJson, Policy.class);
+			if (policy == null) {
+				return effect;
+			}
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+		logger.info("1...");
+		// check policy 
+		for (Statement statement : policy.statements) {
+			// check action
+			for (String action : statement.actions) {
+				boolean isEffect = false;
+				logger.info("given action : {}, action : {}", givenAction, action);
+				if (givenAction.equals(action) || GWConstants.ACTION_ALL.equals(action)) {
+					// check principal (id)
+					for (String aws : statement.principal.aws) {
+						if (checkPolicyId(aws, s3Parameter)) {
+							break;
+						}
+					}
+					logger.info("2...");
+					// check Resource (object path, bucket path)
+					for (String resource : statement.resources) {
+						if (checkPolicyResource(resource, s3Parameter)) {
+							break;
+						}
+					}
+					logger.info("3...");
+					if (checkCondition(s3Parameter, statement, dataRequest)) {
+						isEffect = true;
+					}
+					logger.info("4...");
+					if (statement.effect.equals(GWConstants.ALLOW)) {
+						logger.info("allow... {}", isEffect);
+						if (isEffect) {
+							effect = true;
+						} else {
+							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+						}
+					} else if (statement.effect.equals(GWConstants.DENY)) {
+						if (isEffect) {
+							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+						}
+					}
+				}
+			}
+		}
+
+		return effect;
+	}
+
+	public boolean checkPolicyId(String aws, S3Parameter s3Parameter) {
+		boolean effectcheck = false;
+		if (aws.equals(GWConstants.ASTERISK)) {
+			effectcheck = true;
+			return effectcheck;
+		}
+
+		String[] arn = aws.split(GWConstants.COLON, -1);
+		if (!Strings.isNullOrEmpty(arn[4])) {
+			if (s3Parameter.getUser().getUserId().equals(arn[4])) {
+				effectcheck = true;
+				return effectcheck;
+			}
+		}
+
+		return effectcheck;
+	}
+
+	public boolean checkPolicyResource(String resource, S3Parameter s3Parameter) {
+		boolean effectcheck = false;
+
+		String[] res = resource.split(GWConstants.COLON, -1);
+		if (Strings.isNullOrEmpty(res[5])) {
+			return effectcheck;
+		}
+
+		// all resource check
+		if (res[5].equals(GWConstants.ASTERISK)) {
+			effectcheck = true;
+			return effectcheck;
+		}
+
+		// bucket resource check
+		String[] path = res[5].split(GWConstants.SLASH, 2);
+		if (path.length == 1) {
+			if (path[0].equals(s3Parameter.getBucketName())) {
+				effectcheck = true;
+				return effectcheck;
+			}
+			return effectcheck;
+		}
+
+		// object resource check
+		if (path.length == 2) {
+			if (!path[0].equals(s3Parameter.getBucketName())) {
+				return effectcheck;
+			}
+
+			if (path[1].equals(GWConstants.ASTERISK)) {
+				effectcheck = true;
+				return effectcheck;
+			}
+
+			if (GWUtils.likematch(path[1], s3Parameter.getObjectName())) {
+				effectcheck = true;
+				return effectcheck;
+			}
+		}
+
+		return effectcheck;
+	}
+
+	public boolean checkCondition(S3Parameter s3Parameter, Statement s, S3DataRequest dataRequest) throws GWException {
+		// condition check
+		boolean conditioncheck = true;
+		if (s.condition == null)
+			return conditioncheck;
+
+		for (Map.Entry<String, JsonNode> entry : s.condition.getUserExtensions().entries()) {
+			PolicyCondition pc = PolicyConditionFactory.createPolicyCondition(entry.getKey(), entry.getValue());
+			if (pc == null) {
+				continue;
+			}
+
+			pc.process();
+
+			String comp = null;
+			logger.info("PolicyCondition key : {}", pc.getKey());
+			switch (pc.getKey()) {
+				case GWConstants.KEY_AUTH_TYPE:
+					break;
+				case GWConstants.KEY_DELIMITER:
+					comp = dataRequest.getPolicyDelimter();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_MAXKYES:
+					comp = dataRequest.getPolicyMaxkeys();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_PREFIX:
+					comp = dataRequest.getPolicyPrefix();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_CONTENT_SHA256:
+					comp = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_ACL:
+					comp = dataRequest.getXAmzAcl();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_COPY_SOURCE:
+					comp = dataRequest.getXAmzCopySource();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_GRANT_FULL_CONTROL:
+					comp = dataRequest.getXAmzGrantFullControl();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_XAMZ_GRANT_READ:
+					comp = dataRequest.getXAmzGrantRead();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_GRANT_READ_ACP:
+					comp = dataRequest.getXAmzGrantReadAcp();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_GRANT_WRITE:
+					comp = dataRequest.getXAmzGrantWrite();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_GRANT_WRITE_ACP:
+					comp = dataRequest.getXAmzGrantWriteAcp();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_METADATA_DIRECTIVE:
+					comp = dataRequest.getXAmzMetadataDirective();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION:
+					comp = dataRequest.getXAmzServerSideEncryption();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID:
+					comp = dataRequest.getXAmzServerSideEncryptionAwsKmsKeyId();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_STORAGE_CLASS:
+					comp = dataRequest.getXAmzStorageClass();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_WEBSITE_REDIRECT_LOCATION:
+					comp = dataRequest.getXAmzWebsiteRedirectLocation();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_MODE:
+					comp = dataRequest.getXAmzObjectLockMode();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE:
+					comp = dataRequest.getXAmzObjectLockRetainUntilDate();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_REMAINING_RETENTION_DAYS:
+					comp = dataRequest.getXAmzObjectLockRemainingRetentionDays();
+					conditioncheck = pc.compare(comp);
+					break;
+				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD:
+					comp = dataRequest.getXAmzObjectLockLegalHold();
+					conditioncheck = pc.compare(comp);
+					break;
+				default:
+					break;
+			}
+
+			if (pc.getKey().startsWith(GWConstants.KEY_EXISTING_OBJECT_TAG)) {
+				conditioncheck = pc.compareTagging(s3Parameter);
+			}
+
+			if (conditioncheck == false) {
+				break;
+			}
+		}
+
+		return conditioncheck;
 	}
 }

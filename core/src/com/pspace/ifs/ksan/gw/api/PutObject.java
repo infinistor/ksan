@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -48,9 +49,6 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.slf4j.LoggerFactory;
-
-
-
 public class PutObject extends S3Request {
 
 	public PutObject(S3Parameter s3Parameter) {
@@ -74,10 +72,12 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 
 		S3Metadata s3Metadata = new S3Metadata();
 
@@ -365,6 +365,7 @@ public class PutObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

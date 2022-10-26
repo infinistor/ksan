@@ -15,26 +15,26 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataPutBucketObjectLock;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
+import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
-public class PutObjectLockConfiguration extends S3Request {
+public class PutBucketObjectLock extends S3Request {
 
-    public PutObjectLockConfiguration(S3Parameter s3Parameter) {
+    public PutBucketObjectLock(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(PutObjectLockConfiguration.class);
+        logger = LoggerFactory.getLogger(PutBucketObjectLock.class);
     }
-
+    
     @Override
     public void process() throws GWException {
         logger.info(GWConstants.LOG_PUT_BUCKET_OBJECT_LOCK_START);
@@ -46,11 +46,13 @@ public class PutObjectLockConfiguration extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-		
+
 		DataPutBucketObjectLock dataPutBucketObjectLock = new DataPutBucketObjectLock(s3Parameter);
 		dataPutBucketObjectLock.extract();
+
+        if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataPutBucketObjectLock)) {
+            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+        }
 
 		String ObjectLockXml = dataPutBucketObjectLock.getObjectLockXml();
 
@@ -112,5 +114,4 @@ public class PutObjectLockConfiguration extends S3Request {
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
     }
-    
 }

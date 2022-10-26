@@ -14,8 +14,9 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.pspace.ifs.ksan.gw.data.DataGetBucketObjectLock;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
@@ -27,13 +28,13 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetObjectLockConfiguration extends S3Request {
+public class GetBucketObjectLock extends S3Request {
 
-    public GetObjectLockConfiguration(S3Parameter s3Parameter) {
+    public GetBucketObjectLock(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(GetObjectLockConfiguration.class);
+        logger = LoggerFactory.getLogger(GetBucketObjectLock.class);
     }
-
+    
     @Override
     public void process() throws GWException {
         logger.info(GWConstants.LOG_GET_BUCKET_OBJECT_LOCK_START);
@@ -42,35 +43,37 @@ public class GetObjectLockConfiguration extends S3Request {
 		initBucketInfo(bucket);
 
 		GWUtils.checkCors(s3Parameter);
-
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
+        
+        if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
-		String objectLock = getBucketInfo().getObjectLock();
-		logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);
-        if (Strings.isNullOrEmpty(objectLock)) {
-            throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR, s3Parameter);
+        DataGetBucketObjectLock dataGetBucketObjectLock = new DataGetBucketObjectLock(s3Parameter);
+        dataGetBucketObjectLock.extract();
+
+        if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataGetBucketObjectLock)) {
+            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
         }
+        
+        String objectLock = getBucketInfo().getObjectLock();
+        logger.debug(GWConstants.LOG_OBJECT_LOCK, objectLock);
 
-		try {
-            ObjectLockConfiguration configuration = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
-            if (!GWConstants.STATUS_ENABLED.equals(configuration.objectLockEnabled)) {
+        if (Strings.isNullOrEmpty(objectLock)) {
+			throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR, s3Parameter);
+		}
+
+        try {
+            ObjectLockConfiguration oc = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
+            if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
                 throw new GWException(GWErrorCode.OBJECT_LOCK_CONFIGURATION_NOT_FOUND_ERROR, s3Parameter);
             }
-
-			if (!Strings.isNullOrEmpty(objectLock)) {
-				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(objectLock.getBytes());
-			}
+            s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
+            s3Parameter.getResponse().getOutputStream().write(objectLock.getBytes());
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-		
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+
+        s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
     }
-    
 }

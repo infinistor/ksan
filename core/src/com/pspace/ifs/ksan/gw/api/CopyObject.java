@@ -62,22 +62,12 @@ public class CopyObject extends S3Request {
 		initBucketInfo(bucket);
 
 		String object = s3Parameter.getObjectName();
-		
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		try {
 			object = URLDecoder.decode(object, GWConstants.CHARSET_UTF_8);
@@ -102,15 +92,9 @@ public class CopyObject extends S3Request {
 		String copySourceIfNoneMatch = dataCopyObject.getCopySourceIfNoneMatch();
 		String copySourceIfModifiedSince = dataCopyObject.getCopySourceIfModifiedSince();
 		String copySourceIfUnmodifiedSince = dataCopyObject.getCopySourceIfUnmodifiedSince();
-		// String expires = dataCopyObject.getExpires();
 		String customerAlgorithm = dataCopyObject.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCopyObject.getServerSideEncryptionCustomerKey();
 		String customerKeyMD5 = dataCopyObject.getServerSideEncryptionCustomerKeyMD5();
-		// String context = dataCopyObject.getServerSideEncryptionContext();
-		// String bucketKeyEnabled = dataCopyObject.getServerSideEncryptionBucketKeyEnabled();
-		// String copySourceCustomerAlgorithm = dataCopyObject.getCopySourceServerSideEncryptionCustomerAlgorithm();
-		// String copySourceCustomerKey = dataCopyObject.getCopySourceServerSideEncryptionCustomerKey();
-		// String copySourceCustomerKeyMD5 = dataCopyObject.getCopySourceServerSideEncryptionCustomerKeyMD5();
 		Map<String, String> userMetadata = dataCopyObject.getUserMetadata();
 		String storageClass = dataCopyObject.getStorageClass();
 
@@ -183,7 +167,11 @@ public class CopyObject extends S3Request {
 		s3Parameter.setSrcPath(srcObjectName);
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 		
-		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCopyObject)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
+		
 
 		// get metadata
 		// S3Metadata srcMetadata = null;
@@ -222,7 +210,7 @@ public class CopyObject extends S3Request {
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug(GWConstants.LOG_COPY_OBJECT_ENCRYPTION, bucketEncryption);
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
+		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
 		encryption.build();
 		if (encryption.isEncryptionEnabled()) {
 			s3Metadata.setServersideEncryption(GWConstants.AES256);

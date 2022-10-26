@@ -43,23 +43,19 @@ public class PutBucketAcl extends S3Request {
 		logger.info(GWConstants.LOG_PUT_BUCKET_ACL_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		// S3Bucket s3Bucket = new S3Bucket();
-		// s3Bucket.setBucket(bucket);
-		// s3Bucket.setUserName(getBucketInfo().getUserName());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
-		// s3Parameter.setBucket(s3Bucket);
 
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
 
 		DataPutBucketAcl dataPutBucketAcl = new DataPutBucketAcl(s3Parameter);
 		dataPutBucketAcl.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_ACL, s3Parameter, dataPutBucketAcl)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		AccessControlPolicy preAccessControlPolicy = null;
 		

@@ -48,6 +48,8 @@ public class DataPutObjectTagging extends S3DataRequest {
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyVersionId = getVersionId();
 	}
 
 	public String getVersionId() {

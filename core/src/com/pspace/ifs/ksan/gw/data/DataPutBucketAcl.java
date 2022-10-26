@@ -65,6 +65,13 @@ public class DataPutBucketAcl extends S3DataRequest {
 				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
 	}
 	
 	public boolean hasAclKeyword() {

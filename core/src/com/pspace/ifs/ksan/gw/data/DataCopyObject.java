@@ -158,6 +158,22 @@ public class DataCopyObject extends S3DataRequest {
 				userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyXAmzCopySource = getCopySource();
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
+		keyXAmzMetadataDirective = getMetadataDirective();
+		keyXAmzServerSideEncryption = getServerSideEncryption();
+		keyXAmzServerSideEncryptionAwsKmsKeyId = getServerSideEncryptionAwsKmsKeyId();
+		keyXAmzStorageClass = getStorageClass();
+		keyXAmzWebsiteRedirectLocation = getWebsiteRedirectLocation();
+		keyXAmzObjectLockMode = getObjectLockMode();
+		keyXAmzObjectLockRetainUntilDate = getObjectLockRetainUntilDate();
+		keyXAmzObjectLockLegalHold = getObjectLockLegalHold();
 	}
 
 	public boolean hasAclKeyword() {

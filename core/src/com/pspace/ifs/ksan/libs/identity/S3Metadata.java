@@ -91,6 +91,9 @@ public class S3Metadata {
 		versionId = "";
 		uploadId = "";
 		partNumber = 0;
+		lockMode = "";
+		lockExpires = "";
+		legalHold = "";
 	}
 
 	public Map<String, String> getUserMetadataMap() {
