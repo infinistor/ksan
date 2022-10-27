@@ -1121,6 +1121,7 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_KEY_COUNT = "key count : {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_MARKER = "deleteMarker : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
 	public static final String LOG_LIST_PARTS_START = "ListParts ...";
