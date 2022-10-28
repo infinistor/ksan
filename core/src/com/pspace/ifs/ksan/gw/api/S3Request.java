@@ -770,7 +770,12 @@ public abstract class S3Request {
 		try {
 			setObjManager();
 			meta = objManager.open(bucket, object);
-			meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			
+			if (!Strings.isNullOrEmpty(meta.getAcl())) {
+				meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			} else {
+				logger.debug("acl is null or empty.");
+			}
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
@@ -793,7 +798,12 @@ public abstract class S3Request {
 		try {
 			setObjManager();
 			meta = objManager.open(bucket, objcet, versionId);
-			meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+
+			if (!Strings.isNullOrEmpty(meta.getAcl())) {
+				meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			} else {
+				logger.debug("acl is null or empty.");
+			}
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {

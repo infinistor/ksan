@@ -194,7 +194,8 @@ public class PutObject extends S3Request {
 										dataPutObject.getGrantFullControl(), 
 										dataPutObject.getGrantReadAcp(), 
 										dataPutObject.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
@@ -350,6 +351,9 @@ public class PutObject extends S3Request {
 		}
 
 		if (isExist && !effectPolicy) {
+			if (Strings.isNullOrEmpty(objMeta.getAcl())) {
+				objMeta.setAcl(GWUtils.makeOriginalXml(aclXml, s3Parameter));
+			}
 			checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		}
 

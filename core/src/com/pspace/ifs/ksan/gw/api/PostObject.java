@@ -269,7 +269,8 @@ public class PostObject extends S3Request {
 										dataPostObject.getGrantFullControl(), 
 										dataPostObject.getGrantReadAcp(), 
 										dataPostObject.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);

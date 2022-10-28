@@ -50,23 +50,35 @@ public class DataPutObjectAcl extends S3DataRequest {
 			if (headerName.equalsIgnoreCase(GWConstants.CONTENT_MD5)) {
 				contentMd5 = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
-				hasAclKeyword = true;
 				acl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(acl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
 				grantFullControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantFullControl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
 				grantRead = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantRead)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
 				grantReadAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantReadAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
 				grantWrite = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWrite)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
 				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_REQUEST_PAYER)) {
 				requestPayer = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {

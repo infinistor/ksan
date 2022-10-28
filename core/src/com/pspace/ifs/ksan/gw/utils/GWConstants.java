@@ -1264,6 +1264,7 @@ public final class GWConstants {
 	public static final String LOG_UTILS_TIME_SKEWED = "time skewed : {}, now : {}";
 	public static final String LOG_UTILS_UNDEFINED_DB = "undefined db repository.";
 	public static final String LOG_UTILS_KEY = "key : {}";
+	public static final String LOG_UTILS_HAS_KEYWORD_ACL = "has keyword : {}";
 	public static final String LOG_UTILS_SOURCE_ACL = "source acl : {}";
 	public static final String LOG_UTILS_CANNED_ACL = "cannedAcl : {}";
 	public static final String LOG_UTILS_ACL_XML = "aclXml : {}";

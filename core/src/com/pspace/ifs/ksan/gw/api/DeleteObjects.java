@@ -249,7 +249,7 @@ public class DeleteObjects extends S3Request {
 								s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 								s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
-								versionId = String.valueOf(System.nanoTime());
+								versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 								s3Metadata.setVersionId(versionId);
 
 								ObjectMapper jsonMapper = new ObjectMapper();
