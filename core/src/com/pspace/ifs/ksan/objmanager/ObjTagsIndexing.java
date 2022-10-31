@@ -32,6 +32,10 @@ public class ObjTagsIndexing {
         bucketMGT.updateBucketTagsIndexing(bucketName, false);
     }
     
+    public boolean isIndexingEnabled(String bucketName) throws ResourceNotFoundException, SQLException{
+        return bucketMGT.getBucket(bucketName).isObjectTagIndexEnabled();
+    }
+    
     public List<Metadata> getObjectWithTags(String bucketName, String tagList, int maxObjects){
         return objectMGT.listObjectWithTags(bucketName, tagList, maxObjects);
     }
