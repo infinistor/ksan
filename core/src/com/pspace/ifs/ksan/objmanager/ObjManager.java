@@ -39,6 +39,8 @@ public class ObjManager {
     private ObjMultipart multipart;
     private BucketManager bucketMGT;
     private Objects objectMGT;
+    private ObjTagsIndexing objectIndexing;
+    
     private static Logger logger;
    
     private void init(ObjManagerConfig config) throws Exception {
@@ -63,6 +65,8 @@ public class ObjManager {
         bucketMGT = new BucketManager(dbm, obmCache);
         
         objectMGT = new Objects(dbm, dAlloc, obmCache, bucketMGT);
+        
+        objectIndexing = new ObjTagsIndexing(bucketMGT, objectMGT);
     }
     
     public ObjManager() throws Exception {
@@ -385,6 +389,10 @@ public class ObjManager {
     
     public void updateDiskpools(String routingKey, String body){
         this.obmsr.getDiskMonitor().update(routingKey, body);
+    }
+    
+    public ObjTagsIndexing getObjectTagsIndexing(){
+        return this.objectIndexing;
     }
     
     // for pool

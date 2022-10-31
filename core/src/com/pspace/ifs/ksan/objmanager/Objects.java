@@ -19,6 +19,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,5 +249,9 @@ public class Objects {
     public ObjectListParameter listObjectVersions(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix(), true);
         return list.getList();
+    }
+    
+    public List<Metadata> listObjectWithTags(String bucketName, String tagQuery, int maxObjects){
+        return dbm.listObjectWithTags(bucketName, tagQuery, maxObjects);
     }
 }

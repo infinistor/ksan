@@ -835,6 +835,10 @@ public class MysqlDataRepository implements DataRepository{
         }
         return -1;
     }
+    @Override
+    public synchronized void updateBucketObjTagIndexing(Bucket bt) throws SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     @Override
     public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
@@ -1418,5 +1422,10 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException{
         return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
+    }
+
+    @Override
+    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
