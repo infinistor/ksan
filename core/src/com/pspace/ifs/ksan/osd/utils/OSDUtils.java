@@ -260,9 +260,21 @@ public class OSDUtils {
     }
 
     public static void sendHeader(Socket socket, String header) throws IOException {
+        // byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
+		// byte length = (byte)buffer.length;
+		// socket.getOutputStream().write(length);
+		
+		// socket.getOutputStream().write(buffer, 0, buffer.length);
+		// socket.getOutputStream().flush();
+		// logger.info("send header size : {}", buffer.length);
+
         byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
-		byte length = (byte)buffer.length;
+        String strLength = Integer.toString(buffer.length);
+        byte[] lengthBuffer = strLength.getBytes(OSDConstants.CHARSET_UTF_8);
+
+		byte length = (byte)lengthBuffer.length;
 		socket.getOutputStream().write(length);
+        socket.getOutputStream().write(lengthBuffer, 0, length);
 		
 		socket.getOutputStream().write(buffer, 0, buffer.length);
 		socket.getOutputStream().flush();
