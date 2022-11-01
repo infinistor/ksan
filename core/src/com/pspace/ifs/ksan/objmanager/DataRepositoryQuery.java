@@ -131,4 +131,16 @@ public final class DataRepositoryQuery {
     public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
     public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log FROM %s";
     public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE objKey=? AND versionid=?";
+
+    // for tags indexing
+    public  static String createTagIndexingQuery= "CREATE TABLE IF NOT EXISTS %s_ObjTagIndex("
+            + " objid VARCHAR(50) NOT NULL, "
+            + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
+            + " TagKey VARCHAR(256) NOT NULL," 
+            + " TagValue VARCHAR(256) NOT NULL,"
+            + " PRIMARY KEY(objid, versionid, TagKey, TagValue)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+    public static String insertTagIndexingQuery = "INSERT INTO %s_ObjTagIndex(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
+    public static String deleteTagIndexingQuery1 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=?";
+    public static String deleteTagIndexingQuery2 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=? AND TagKey=?";
+    public static String selectTagIndexingQuery = "SELECT objid, versionid, TagKey, TagValue FROM %s_ObjTagIndex WHERE %s";
 }

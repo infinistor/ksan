@@ -100,6 +100,6 @@ public interface DataRepository {
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException;
     
     // for object tags indexing
-     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys);
+     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException;
      
 }

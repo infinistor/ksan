@@ -2,6 +2,7 @@ package com.pspace.ifs.ksan.objmanager;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 /*
@@ -36,7 +37,7 @@ public class ObjTagsIndexing {
         return bucketMGT.getBucket(bucketName).isObjectTagIndexEnabled();
     }
     
-    public List<Metadata> getObjectWithTags(String bucketName, String tagList, int maxObjects){
+    public List<Metadata> getObjectWithTags(String bucketName, String tagList, int maxObjects) throws SQLException{
         return objectMGT.listObjectWithTags(bucketName, tagList, maxObjects);
     }
 }

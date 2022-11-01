@@ -1238,6 +1238,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
+        updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
         insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), mt.getTag());
     }
 
@@ -1527,7 +1528,7 @@ public class MongoDataRepository implements DataRepository{
     }
   
     @Override 
-    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxObjects){
+    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxObjects) throws SQLException{
         MongoCollection<Document> objectsTags;
         objectsTags = getObjTagIndexCollection(bucketName);
         BasicDBObject mongoQuery =(BasicDBObject)query;

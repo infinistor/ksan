@@ -24,11 +24,13 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bson.Document;
 /**
  *
  * @author legesse
@@ -1424,8 +1426,101 @@ public class MysqlDataRepository implements DataRepository{
         return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
 
+    private String getObjectTagIndexTableName(String bucketName){
+        return bucketName + "_ObjTagIndex";
+    }
+    
+    private void createObjectTagIndexingTable(String bucketName) throws SQLException{
+        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.createTagIndexingQuery);
+        pstStmt.execute();
+    }
+    private int insertObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
+        String tkey; 
+        String tvalue;
+        Bucket bt;
+        int ret = 0;
+        
+        if (tags == null)
+            return 0;
+        
+        if (tags.isEmpty())
+            return 0;
+        
+        try {
+            bt = selectBucket(bucketName);
+            if (!bt.isObjectTagIndexEnabled())
+                return 0;
+        } catch (ResourceNotFoundException ex) {
+            return 0;
+        }
+        
+        PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
+        
+        pstInsertStmt.clearParameters();
+        pstInsertStmt.setString(1, objId);
+        pstInsertStmt.setString(2, versionId);
+        Document tagDoc = Document.parse(tags);
+        Iterator it = tagDoc.keySet().iterator();
+        while(it.hasNext()){
+            tkey = (String)it.next();
+            tvalue = tagDoc.getString(tkey);
+            pstInsertStmt.setString(3, tkey);
+            pstInsertStmt.setString(4, tvalue);
+            if (pstInsertStmt.execute())
+                ret++;
+        }
+        return ret;
+    }
+    
+    private int removeObjTag(String bucketName, String objId, String versionId) throws SQLException{
+        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.deleteTagIndexingQuery1);
+        pstdeleteStmt.clearParameters();
+        pstdeleteStmt.setString(1, objId);
+        pstdeleteStmt.setString(2, versionId);
+        return pstdeleteStmt.executeUpdate();
+    }
+    
+    private int removeObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
+        String key;
+        if (tags == null)
+            return  0;
+        
+        if (tags.isEmpty())
+            return 0;
+        
+        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.deleteTagIndexingQuery2);
+        pstdeleteStmt.clearParameters();
+        pstdeleteStmt.setString(1, objId);
+        pstdeleteStmt.setString(2, versionId);
+        Document doc = Document.parse(tags);
+        Iterator it = doc.keySet().iterator();
+        if (it.hasNext()){
+            while(it.hasNext()){
+                key = (String)it.next();
+                pstdeleteStmt.setString(3, key);
+            }
+        }
+        return pstdeleteStmt.executeUpdate();
+    }
+    
+    private List<Metadata> parseSelectListObjectwithTags(String bucketName, ResultSet rs) throws SQLException{
+        List<Metadata> list = new ArrayList();
+        while(rs.next()){
+            String objid = rs.getString("objid");
+            String versionId = rs.getString("versionid");
+            try {
+                list.add(this.selectSingleObjectInternal(bucketName, objid, versionId));
+            } catch (ResourceNotFoundException ex) {
+                // skipe
+            }
+        }
+        return list;
+    }
+    
     @Override
-    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException{
+        PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.selectTagIndexingQuery + (String)query);  
+        ResultSet rs = pstselectStmt.executeQuery();
+        return parseSelectListObjectwithTags(bucketName, rs);
     }
 }
