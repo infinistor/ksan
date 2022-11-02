@@ -225,7 +225,7 @@ public class Objects {
             return null;
         if (dbm instanceof MongoDataRepository){
             for (String key : pair.keySet()){
-               and.add(new BasicDBObject("TagKey", key));
+               and.add(new BasicDBObject("TagKey", new BasicDBObject("$eq", key)));
                String value = pair.get(key);
                if (value.isEmpty())
                    and.add(new BasicDBObject("TagValue", value));
@@ -335,6 +335,8 @@ public class Objects {
     }
     
     public List<Metadata> listObjectWithTags(String bucketName, String tagsList, int maxObjects) throws SQLException{
-        return dbm.listObjectWithTags(bucketName, getListWithTagQuery(tagsList), maxObjects);
+        Object query = getListWithTagQuery(tagsList);
+        logger.debug("[listObjectWithTags] query> {}",  query.toString());
+        return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
 }
