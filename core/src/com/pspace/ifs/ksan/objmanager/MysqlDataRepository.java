@@ -240,6 +240,23 @@ public class MysqlDataRepository implements DataRepository{
         return pstStmt;
     }*/
     
+    private String convertXML2Json(String xmlstr){
+        String tags[] = xmlstr.split("<Tagging>");
+        if (tags.length > 0){
+            String tag = tags[1].replaceAll("<Tagging>", "").replaceAll("</Tagging>", "");
+            tag = tag.replaceAll("<TagSet>", "{");
+            tag = tag.replaceAll("</TagSet>", "}");
+            tag = tag.replaceAll("<Tag>", "");
+            tag = tag.replaceAll("</Tag>", ",");
+            tag = tag.replaceAll("<Key>", "\"");
+            tag = tag.replaceAll("</Key>", "\": ");
+            tag = tag.replaceAll("<Value>", " \"");
+            tag = tag.replaceAll("</Value>", "\" ");
+            return tag;
+        }   
+        return null;
+    }
+    
     private void createObjectTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
         pstStmt.execute();
@@ -585,7 +602,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateObjectTagging(Metadata mt, String tagsJson) throws SQLException {
+    public void updateObjectTagging(Metadata mt) throws SQLException {
         PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery);
         pstUpdateTagging.clearParameters();
         pstUpdateTagging.setString(1, mt.getTag());
@@ -593,7 +610,7 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateTagging.setString(3, mt.getObjId());
         pstUpdateTagging.setString(4, mt.getVersionId());
         pstUpdateTagging.executeUpdate();
-        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), tagsJson);
+        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getTag());
     }
     
     @Override
@@ -1447,11 +1464,12 @@ public class MysqlDataRepository implements DataRepository{
         Bucket bt;
         int ret = 0;
         
-        if (tags == null)
-            return 0;
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null)
+            return 0; // ignore
         
-        if (tags.isEmpty())
-            return 0;
+        if (tagsJson.isEmpty())
+            return 0; // ignore
         
         try {
             bt = selectBucket(bucketName);
@@ -1461,13 +1479,13 @@ public class MysqlDataRepository implements DataRepository{
             return 0;
         }
         
-        removeObjTag(bucketName, objId, versionId, tags);
+        //removeObjTag(bucketName, objId, versionId, tags);
         PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
         
         pstInsertStmt.clearParameters();
         pstInsertStmt.setString(1, objId);
         pstInsertStmt.setString(2, versionId);
-        Document tagDoc = Document.parse(tags);
+        Document tagDoc = Document.parse(tagsJson);
         Iterator it = tagDoc.keySet().iterator();
         while(it.hasNext()){
             tkey = (String)it.next();
@@ -1490,17 +1508,18 @@ public class MysqlDataRepository implements DataRepository{
     
     private int removeObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
         String key;
-        if (tags == null)
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null)
             return  0;
         
-        if (tags.isEmpty())
+        if (tagsJson.isEmpty())
             return 0;
         
         PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.deleteTagIndexingQuery2);
         pstdeleteStmt.clearParameters();
         pstdeleteStmt.setString(1, objId);
         pstdeleteStmt.setString(2, versionId);
-        Document doc = Document.parse(tags);
+        Document doc = Document.parse(tagsJson);
         Iterator it = doc.keySet().iterator();
         if (it.hasNext()){
             while(it.hasNext()){

@@ -289,6 +289,23 @@ public class MongoDataRepository implements DataRepository{
         return date;
     }
     
+    private String convertXML2Json(String xmlstr){
+        String tags[] = xmlstr.split("<Tagging>");
+        if (tags.length > 0){
+            String tag = tags[1].replaceAll("<Tagging>", "").replaceAll("</Tagging>", "");
+            tag = tag.replaceAll("<TagSet>", "{");
+            tag = tag.replaceAll("</TagSet>", "}");
+            tag = tag.replaceAll("<Tag>", "");
+            tag = tag.replaceAll("</Tag>", ",");
+            tag = tag.replaceAll("<Key>", "\"");
+            tag = tag.replaceAll("</Key>", "\": ");
+            tag = tag.replaceAll("<Value>", " \"");
+            tag = tag.replaceAll("</Value>", "\" ");
+            return tag;
+        }   
+        return null;
+    }
+    
     @Override
     public int insertObject(Metadata md) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
@@ -1236,10 +1253,10 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateObjectTagging(Metadata mt, String tagsJson) throws SQLException {
+    public void updateObjectTagging(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
-        insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), tagsJson);
+        insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), mt.getTag());
     }
 
     @Override
@@ -1468,10 +1485,18 @@ public class MongoDataRepository implements DataRepository{
         if (objTags == null)
             throw new SQLException("[insertObjTag] mongo db holder for object Tags indexing not found!");
         
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null)
+            return 0; // ignore
+        
+        if (tagsJson.isEmpty())
+            return 0; // ignore
+        
         Document doc = new Document(OBJID, objId);        
         doc.append(VERSIONID, versionId);
         
-        Document tagDoc = Document.parse(tags);
+        
+        Document tagDoc = Document.parse(tagsJson);
         String key, value;
         Iterator it = tagDoc.keySet().iterator();
         while(it.hasNext()){
@@ -1498,19 +1523,20 @@ public class MongoDataRepository implements DataRepository{
         if (objTags == null)
             throw new SQLException("[removeObjTag] mongo db holder for object Tags indexing not found!");
         
-        if (tags == null){
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null){
             objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
             ret++;
             return ret;
         }
         
-        if (tags.isEmpty()){
+        if (tagsJson.isEmpty()){
             objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
             ret++;
             return ret;
         }
-        
-        Document doc = Document.parse(tags);
+             
+        Document doc = Document.parse(tagsJson);
         String key;
         Iterator it = doc.keySet().iterator();
         if (it.hasNext()){

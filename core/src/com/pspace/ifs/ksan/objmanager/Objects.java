@@ -251,25 +251,7 @@ public class Objects {
             return sql;
         }
     }
-    
-    private String convertXML2Json(String xmlstr){
-        String tags[] = xmlstr.split("<Tagging>");
-        if (tags.length > 0){
-            String tag = tags[1].replaceAll("<Tagging>", "").replaceAll("</Tagging>", "");
-            tag = tag.replaceAll("<TagSet>", "{");
-            tag = tag.replaceAll("</TagSet>", "}");
-            tag = tag.replaceAll("<Tag>", "");
-            tag = tag.replaceAll("</Tag>", ",");
-            tag = tag.replaceAll("<Key>", "\"");
-            tag = tag.replaceAll("</Key>", "\": ");
-            tag = tag.replaceAll("<Value>", " \"");
-            tag = tag.replaceAll("</Value>", "\" ");
-            logger.debug("[convertXML2Json] xml : {} => json : {}", xmlstr, tag);
-            return tag;
-        }   
-        return null;
-    }
-    
+      
     /******************************************************************/
     
     public Metadata open(String bucketName, String key, String versionId) throws ResourceNotFoundException{
@@ -301,8 +283,7 @@ public class Objects {
     }
     
     public void updateObjectTagging(Metadata mt) throws SQLException {
-        String tags = mt.getTag();
-        dbm.updateObjectTagging(mt, convertXML2Json(tags));
+        dbm.updateObjectTagging(mt);
     }
 
     public void updateObjectAcl(Metadata mt) throws SQLException {
