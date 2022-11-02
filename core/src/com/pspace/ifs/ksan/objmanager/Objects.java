@@ -227,8 +227,8 @@ public class Objects {
             for (String key : pair.keySet()){
                and.add(new BasicDBObject("TagKey", new BasicDBObject("$eq", key)));
                String value = pair.get(key);
-               if (value.isEmpty())
-                   and.add(new BasicDBObject("TagValue", value));
+               if (!value.isEmpty())
+                   and.add(new BasicDBObject("TagValue", new BasicDBObject("$eq", value)));
             }
 
             if (pair.size() == 1)
