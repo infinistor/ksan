@@ -242,7 +242,7 @@ public class MysqlDataRepository implements DataRepository{
     
     private String convertXML2Json(String xmlstr){
         String tags[] = xmlstr.split("<Tagging>");
-        if (tags.length > 0){
+        if (tags.length > 1){
             String tag = tags[1].replaceAll("<Tagging>", "").replaceAll("</Tagging>", "");
             tag = tag.replaceAll("<TagSet>", "{");
             tag = tag.replaceAll("</TagSet>", "}");
