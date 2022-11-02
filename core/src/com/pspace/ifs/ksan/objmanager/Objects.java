@@ -231,7 +231,7 @@ public class Objects {
                    and.add(new BasicDBObject("TagValue", new BasicDBObject("$eq", value)));
             }
 
-            if (pair.size() == 1)
+            if (and.size() == 1)
                 return and.get(0);
             else
                 return new BasicDBObject("$and", and.toArray());
@@ -336,7 +336,7 @@ public class Objects {
     
     public List<Metadata> listObjectWithTags(String bucketName, String tagsList, int maxObjects) throws SQLException{
         Object query = getListWithTagQuery(tagsList);
-        logger.debug("[listObjectWithTags] query> {}",  query.toString());
+        logger.debug("[listObjectWithTags] tagsList> {} query> {}", tagsList, query.toString());
         return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
 }
