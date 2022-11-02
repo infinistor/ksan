@@ -66,6 +66,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketPolicy;
     private PreparedStatement pstUpdateBucketFilecount;
     private PreparedStatement pstUpdateBucketUsedSpace;
+    private PreparedStatement pstUpdateObjTagIndexBucket;
     
 // for multipart upload
     private PreparedStatement pstCreateMultiPart;
@@ -126,6 +127,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
             pstUpdateBucketUsedSpace = con.prepareStatement(DataRepositoryQuery.updateBucketUsedSpaceQuery);
             //pstIsDeleteBucket = con.prepareStatement(DataRepositoryQuery.objIsDeleteBucketQuery);
+            pstUpdateObjTagIndexBucket = con.prepareStatement(DataRepositoryQuery.updateBucketObjTagIndexingQuery);
             
             // for multipart
             pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
@@ -591,6 +593,7 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateTagging.setString(3, mt.getObjId());
         pstUpdateTagging.setString(4, mt.getVersionId());
         pstUpdateTagging.executeUpdate();
+        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getTag());
     }
     
     @Override
@@ -636,6 +639,7 @@ public class MysqlDataRepository implements DataRepository{
                 if (!versionId.isEmpty())
                     updateVersionDelete(bucketName, objId);
             }
+            removeObjTag(bucketName, objId, versionId);
         } catch(SQLException ex){
             this.ex_message(ex);
             return -ex.getErrorCode();
@@ -696,8 +700,9 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setString(7, bt.getEncryption());
             this.pstInsertBucket.setString(8, bt.getObjectLock());
             this.pstInsertBucket.setInt(9, bt.getReplicaCount());
+            this.pstInsertBucket.setBoolean(10, bt.isObjectTagIndexEnabled());
             this.pstInsertBucket.executeUpdate();
-            //getUserDiskPool(bt); // get diskpoolId and replicaCount
+            createObjectTagIndexingTable(bt.getName());
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", bt.getName()), ex);
@@ -748,6 +753,7 @@ public class MysqlDataRepository implements DataRepository{
         long usedSpace = rs.getLong(20);
         long fileCount = rs.getLong(21);
         String logging = rs.getString(22);
+        boolean isObjTagIndexing = rs.getBoolean(23);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -765,6 +771,7 @@ public class MysqlDataRepository implements DataRepository{
         bt.setUsedSpace(usedSpace);
         bt.setFileCount(fileCount);
         bt.setLogging(logging);
+        bt.setObjectTagIndexEnabled(isObjTagIndexing);
         return bt;
     }
     
@@ -839,7 +846,10 @@ public class MysqlDataRepository implements DataRepository{
     }
     @Override
     public synchronized void updateBucketObjTagIndexing(Bucket bt) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        pstUpdateObjTagIndexBucket.clearParameters();
+        pstUpdateObjTagIndexBucket.setBoolean(1, bt.isObjectTagIndexEnabled());
+        pstUpdateObjTagIndexBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdateObjTagIndexBucket.executeUpdate();
     }
     
     @Override
@@ -1425,15 +1435,12 @@ public class MysqlDataRepository implements DataRepository{
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException{
         return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
-
-    private String getObjectTagIndexTableName(String bucketName){
-        return bucketName + "_ObjTagIndex";
-    }
     
     private void createObjectTagIndexingTable(String bucketName) throws SQLException{
         PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.createTagIndexingQuery);
         pstStmt.execute();
     }
+    
     private int insertObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
         String tkey; 
         String tvalue;
@@ -1454,6 +1461,7 @@ public class MysqlDataRepository implements DataRepository{
             return 0;
         }
         
+        removeObjTag(bucketName, objId, versionId, tags);
         PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
         
         pstInsertStmt.clearParameters();
