@@ -1236,10 +1236,10 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateObjectTagging(Metadata mt) throws SQLException {
+    public void updateObjectTagging(Metadata mt, String tagsJson) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
-        insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), mt.getTag());
+        insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), tagsJson);
     }
 
     @Override

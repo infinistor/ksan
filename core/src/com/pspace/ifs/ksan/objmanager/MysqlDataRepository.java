@@ -585,7 +585,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateObjectTagging(Metadata mt) throws SQLException {
+    public void updateObjectTagging(Metadata mt, String tagsJson) throws SQLException {
         PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery);
         pstUpdateTagging.clearParameters();
         pstUpdateTagging.setString(1, mt.getTag());
@@ -593,7 +593,7 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateTagging.setString(3, mt.getObjId());
         pstUpdateTagging.setString(4, mt.getVersionId());
         pstUpdateTagging.executeUpdate();
-        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getTag());
+        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), tagsJson);
     }
     
     @Override

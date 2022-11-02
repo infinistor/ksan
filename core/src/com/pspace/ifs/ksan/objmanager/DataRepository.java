@@ -44,7 +44,7 @@ public interface DataRepository {
     public long getObjectListCount(String bucketName, Object pstmt) throws SQLException;
     //public void updateObjectMeta(String bucket, String objkey, String versionid, String meta) throws SQLException;
     public void updateObjectMeta(Metadata mt) throws SQLException;
-    public void updateObjectTagging(Metadata mt) throws SQLException;
+    public void updateObjectTagging(Metadata mt, String tagsJson) throws SQLException;
     public void updateObjectAcl(Metadata mt) throws SQLException;
     public void updateObjectEtag(Metadata mt, String etag) throws SQLException;
     
