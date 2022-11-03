@@ -139,7 +139,11 @@ public class Bucket {
     }
     
     public void setVersioning(String versioning, String mfaDelete){
-        this.versioning = versioning;
+        if (versioning.equalsIgnoreCase("Enabled"))
+            this.versioning = "Enabled";
+        else
+            this.versioning = "Disabled";
+        
         this.mfaDelete = mfaDelete;
     }
 

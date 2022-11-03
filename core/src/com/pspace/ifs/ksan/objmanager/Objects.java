@@ -176,6 +176,9 @@ public class Objects {
                logger.debug("[OVERWRITE OBJECT] {}", mt2);
                dbm.deleteObject(bucketName, key, mt.getVersionId()); 
             }
+            else if (mt.getVersionId().equalsIgnoreCase("null")){
+               dbm.deleteObject(bucketName, key, mt.getVersionId());  
+            }
         } catch(ResourceNotFoundException ex){
             
         }
