@@ -331,11 +331,8 @@ public class MongoDataRepository implements DataRepository{
             objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
         objects.insertOne(doc);
         updateBucketObjectCount(md.getBucket(), 1);
-        try {
-            insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());
-        } catch (SQLException ex) {
-            //Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    
+        insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
         return 0;
     }
 
@@ -775,11 +772,8 @@ public class MongoDataRepository implements DataRepository{
                 updateVersionDelete(bucketName, objId);
             
             updateBucketObjectCount(bucketName, -1);
-            try {
-                removeObjTag(bucketName, objId, versionId, "");
-            } catch (SQLException ex) {
-         
-            }
+           
+            removeObjTag(bucketName, objId, versionId, "");
         }
         return nchange;
     }
@@ -1464,7 +1458,7 @@ public class MongoDataRepository implements DataRepository{
         return deleteLifeCycle(LIFECYCLESFAILEDEVENTS, lc);
     }
     
-    private int insertObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
+    private int insertObjTag(String bucketName, String objId, String versionId, String tags) {
         Bucket bt;
         MongoCollection<Document> objTags = getObjTagIndexCollection(bucketName);
         
@@ -1478,12 +1472,14 @@ public class MongoDataRepository implements DataRepository{
             bt = selectBucket(bucketName);
             if (!bt.isObjectTagIndexEnabled())
                 return 0;
-        } catch (ResourceNotFoundException ex) {
+        } catch (ResourceNotFoundException | SQLException ex) {
+            return 0;
+        } 
+        
+        if (objTags == null){
+            //throw new SQLException("[insertObjTag] mongo db holder for object Tags indexing not found!");
             return 0;
         }
-        
-        if (objTags == null)
-            throw new SQLException("[insertObjTag] mongo db holder for object Tags indexing not found!");
         
         String tagsJson = convertXML2Json(tags);
         if (tagsJson == null)
@@ -1516,12 +1512,14 @@ public class MongoDataRepository implements DataRepository{
         return 0;
     }
     
-    private int removeObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
+    private int removeObjTag(String bucketName, String objId, String versionId, String tags){
         MongoCollection<Document> objTags = getObjTagIndexCollection(bucketName);
         int ret = 0;
         
-        if (objTags == null)
-            throw new SQLException("[removeObjTag] mongo db holder for object Tags indexing not found!");
+        if (objTags == null){
+            return 0;
+            //throw new SQLException("[removeObjTag] mongo db holder for object Tags indexing not found!");
+        }
         
         String tagsJson = convertXML2Json(tags);
         if (tagsJson == null){

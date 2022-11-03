@@ -1458,44 +1458,50 @@ public class MysqlDataRepository implements DataRepository{
         pstStmt.execute();
     }
     
-    private int insertObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
-        String tkey; 
-        String tvalue;
-        Bucket bt;
-        int ret = 0;
-        
-        String tagsJson = convertXML2Json(tags);
-        if (tagsJson == null)
-            return 0; // ignore
-        
-        if (tagsJson.isEmpty())
-            return 0; // ignore
+    private int insertObjTag(String bucketName, String objId, String versionId, String tags) {
         
         try {
-            bt = selectBucket(bucketName);
-            if (!bt.isObjectTagIndexEnabled())
+            String tkey;
+            String tvalue;
+            Bucket bt;
+            int ret = 0;
+            
+            String tagsJson = convertXML2Json(tags);
+            if (tagsJson == null)
+                return 0; // ignore
+            
+            if (tagsJson.isEmpty())
+                return 0; // ignore
+            
+            try {
+                bt = selectBucket(bucketName);
+                if (!bt.isObjectTagIndexEnabled())
+                    return 0;
+            } catch (ResourceNotFoundException | SQLException  ex) {
                 return 0;
-        } catch (ResourceNotFoundException ex) {
+            }
+            
+            //removeObjTag(bucketName, objId, versionId, tags);
+            PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
+            
+            pstInsertStmt.clearParameters();
+            pstInsertStmt.setString(1, objId);
+            pstInsertStmt.setString(2, versionId);
+            Document tagDoc = Document.parse(tagsJson);
+            Iterator it = tagDoc.keySet().iterator();
+            while(it.hasNext()){
+                tkey = (String)it.next();
+                tvalue = tagDoc.getString(tkey);
+                pstInsertStmt.setString(3, tkey);
+                pstInsertStmt.setString(4, tvalue);
+                if (pstInsertStmt.execute())
+                    ret++;
+            }
+            return ret;
+        } catch (SQLException  ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
             return 0;
         }
-        
-        //removeObjTag(bucketName, objId, versionId, tags);
-        PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
-        
-        pstInsertStmt.clearParameters();
-        pstInsertStmt.setString(1, objId);
-        pstInsertStmt.setString(2, versionId);
-        Document tagDoc = Document.parse(tagsJson);
-        Iterator it = tagDoc.keySet().iterator();
-        while(it.hasNext()){
-            tkey = (String)it.next();
-            tvalue = tagDoc.getString(tkey);
-            pstInsertStmt.setString(3, tkey);
-            pstInsertStmt.setString(4, tvalue);
-            if (pstInsertStmt.execute())
-                ret++;
-        }
-        return ret;
     }
     
     private int removeObjTag(String bucketName, String objId, String versionId) throws SQLException{
