@@ -233,15 +233,15 @@ public class GetObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
 		}
 
-		if (metadata.getLockMode() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLockMode())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, metadata.getLockMode());
 		}
 
-		if (metadata.getLockExpires() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLockExpires())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, metadata.getLockExpires());
 		}
 
-		if (metadata.getLegalHold() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLegalHold())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
 		}
 
