@@ -136,6 +136,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.S3Logging.cs">
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.Server.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
