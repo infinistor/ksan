@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import java.util.ArrayList;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import com.google.common.base.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -74,8 +74,6 @@ public class PutBucketAcl extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
 										preAccessControlPolicy, 
@@ -90,7 +88,8 @@ public class PutBucketAcl extends S3Request {
 										dataPutBucketAcl.getGrantFullControl(), 
 										dataPutBucketAcl.getGrantReadAcp(), 
 										dataPutBucketAcl.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										true);
 
 		logger.debug(GWConstants.LOG_ACL, xml);
 

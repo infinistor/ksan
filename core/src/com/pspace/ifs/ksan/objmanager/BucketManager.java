@@ -222,4 +222,11 @@ public class BucketManager {
     public boolean isBucketDeleted(String bucketName) throws SQLException {
         return dbm.isBucketDeleted(bucketName);
     }
+    
+    public void updateBucketTagsIndexing(String bucketName, boolean isEnabled) throws SQLException, ResourceNotFoundException {
+        Bucket bt = getBucket(bucketName);
+        bt.setObjectTagIndexEnabled(isEnabled);
+        dbm.updateBucketObjTagIndexing(bt);
+        obmCache.updateBucketInCache(bt);
+    }
 }

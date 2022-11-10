@@ -90,7 +90,8 @@ public class CreateMultipartUpload extends S3Request {
 										dataCreateMultipartUpload.getGrantFullControl(), 
 										dataCreateMultipartUpload.getGrantReadAcp(), 
 										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();

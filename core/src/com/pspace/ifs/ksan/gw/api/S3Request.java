@@ -770,7 +770,12 @@ public abstract class S3Request {
 		try {
 			setObjManager();
 			meta = objManager.open(bucket, object);
-			meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			
+			if (!Strings.isNullOrEmpty(meta.getAcl())) {
+				meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			} else {
+				logger.debug("acl is null or empty.");
+			}
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
@@ -793,7 +798,12 @@ public abstract class S3Request {
 		try {
 			setObjManager();
 			meta = objManager.open(bucket, objcet, versionId);
-			meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+
+			if (!Strings.isNullOrEmpty(meta.getAcl())) {
+				meta.setAcl(GWUtils.makeOriginalXml(meta.getAcl(), s3Parameter));
+			} else {
+				logger.debug("acl is null or empty.");
+			}
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
@@ -1173,6 +1183,47 @@ public abstract class S3Request {
 		}
 	}
 
+	protected boolean isBucketTagIndex(String bucket) throws GWException {
+		boolean enable = false;
+		try {
+			setObjManager();
+			enable = objManager.getObjectTagsIndexing().isIndexingEnabled(bucket);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        } finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		return enable;
+	}
+
+	protected void updateBucketTagIndex(String bucket, boolean enable) throws GWException {
+		try {
+			setObjManager();
+			if (enable) {
+				objManager.getObjectTagsIndexing().enableIndexing(bucket);
+			} else {
+				objManager.getObjectTagsIndexing().disableIndexing(bucket);
+			}
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        } finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+	}
+
 	protected void updateBucketWeb(String bucket, String web) throws GWException {
 		try {
 			setObjManager();
@@ -1335,6 +1386,26 @@ public abstract class S3Request {
 		}
 		
 		return bucketList;
+	}
+
+	protected List<Metadata> listBucketTags(String bucket, String tags, int max) throws GWException {
+		List<Metadata> tagList = null;
+		try {
+			setObjManager();
+			tagList = objManager.getObjectTagsIndexing().getObjectWithTags(bucket, tags, max);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+		
+		return tagList;
 	}
 
 	protected ObjectListParameter listObject(String bucket, S3ObjectList s3ObjectList) throws GWException {

@@ -69,6 +69,7 @@ public interface DataRepository {
     public void updateBucketUsedSpace(Bucket bt, long size) throws SQLException ;
     //public void updateBucketFileCount(Bucket bt) throws SQLException ;
     public void updateBucketLogging(Bucket bt) throws SQLException;
+    public void updateBucketObjTagIndexing(Bucket bt) throws SQLException;
     
     // for multipart upload
     public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException;
@@ -97,4 +98,8 @@ public interface DataRepository {
     public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException;
     public int deleteLifeCycle(LifeCycle lc) throws SQLException;
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException;
+    
+    // for object tags indexing
+     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException;
+     
 }

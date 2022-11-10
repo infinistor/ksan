@@ -265,6 +265,7 @@ public final class GWConstants {
 	public static final String PARAMETER_LIFECYCLE = "lifecycle";
 	public static final String PARAMETER_PUBLIC_ACCESS_BLOCK = "publicAccessBlock";
 	public static final String PARAMETER_TAGGING = "tagging";
+	public static final String PARAMETER_TAG_INDEX = "tag-index";
 	public static final String PARAMETER_ENCRYPTION = "encryption";
 	public static final String PARAMETER_OBJECT_LOCK = "object-lock";
 	public static final String PARAMETER_REPLICATION = "replication";
@@ -278,6 +279,7 @@ public final class GWConstants {
 	public static final String PARAMETER_VERSIONING = "versioning";
 	public static final String PARAMETER_LIST_TYPE = "list-type";
 	public static final String PARAMETER_VERSIONS = "versions";
+	public static final String PARAMETER_LIST_TAG_SEARCH = "list-tag-search";
 	public static final String PARAMETER_RETENTION = "retention";
 	public static final String PARAMETER_LEGAL_HOLD = "legal-hold";
 	public static final String PARAMETER_DELETE = "delete";
@@ -522,6 +524,7 @@ public final class GWConstants {
 	public static final String KEY_MARKER = "key-marker";
 	public static final String MAX_UPLOADS = "max-uploads";
 	public static final String UPLOAD_ID_MARKER = "upload-id-marker";
+	public static final String TAG = "tag";
 	
 	public static final String CONTINUATION_TOKEN = "continuation-token";
 	public static final String FETCH_OWNER = "fetch-owner";
@@ -639,6 +642,9 @@ public final class GWConstants {
 	public static final String VERSION_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></VersioningConfiguration>";
 	public static final String VERSION_CONFIGURATION_XMLNS_SUSPENDED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Suspended</Status></VersioningConfiguration>";
 
+	public static final String TAG_INDEX_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Disabled</Status></TagIndexingConfiguration>";
+	public static final String TAG_INDEX_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></TagIndexingConfiguration>";
+
 	public static final String TAGGING = "Tagging";
 	public static final String TAG_SET = "TagSet";
 	public static final String TAG_SET_ASSIGN = "tagset=";
@@ -646,6 +652,7 @@ public final class GWConstants {
 	public static final String XML_TYPE = "type";
 
 	public static final String LIST_BUCKET_RESULT = "ListBucketResult";
+	public static final String LIST_BUCKET_TAG_SEARCH = "ListBucketTagSearchResult";
 	public static final String LIST_VERSIONS_RESULT = "ListVersionsResult";
 	public static final String LIST_ALL_MY_BUCKETS_RESULT = "ListAllMyBucketsResult";
 	public static final String RETENTION = "Retention";
@@ -981,6 +988,9 @@ public final class GWConstants {
 	// DeleteBucketTagging
 	public static final String LOG_DELETE_BUCKET_TAGGING_START = "DeleteBucketTagging ...";
 
+	// DeleteBucketTagIndex
+	public static final String LOG_DELETE_BUCKET_TAG_INDEX_START = "DeleteBucketTagIndex ...";
+
 	// DeleteBucketWebsite
 	public static final String LOG_DELETE_BUCKET_WEBSITE_START = "DeleteBucketWebsite ...";
 
@@ -1047,11 +1057,17 @@ public final class GWConstants {
 	// GetBucketTagging
 	public static final String LOG_GET_BUCKET_TAGGING_START = "GetBucketTagging ...";
 
+	// GetBucketTagIndex
+	public static final String LOG_GET_BUCKET_TAG_INDEX_START = "GetBucketTagIndex ...";
+
 	// GetBucketVersioning
 	public static final String LOG_GET_BUCKET_VERSIONING_START = "GetBucketVersioning ...";
 	public static final String LOG_GET_BUCKET_VERSIONING = "bucket({}) versioning : {}";
 	public static final String LOG_GET_BUCKET_VERSIONING_WRONG = "not defined versioning status: {}";
 	public static final String LOG_GET_BUCKET_VERSIONING_XML = "xml : {}";
+
+	// GetBucketTagIndexing
+	public static final String LOG_GET_BUCKET_TAG_INDEX_XML = "xml : {}";
 
 	// GetBucketWebsite
 	public static final String LOG_GET_BUCKET_WEBSITE_START = "GetBucketWebsite ...";
@@ -1103,6 +1119,8 @@ public final class GWConstants {
 	public static final String LOG_LIST_BUCKETS_SIZE = "bucket list size : {}";
 	public static final String LOG_LIST_BUCKETS_INFO = "{}, {}";
 
+	// ListBucketTag
+
 	// ListMultipartUploads
 	public static final String LOG_LIST_MULTIPART_UPLOADS_START = "ListMultipartUploads ...";
 	public static final String LOG_LIST_MULTIPART_UPLOADS_KEY = "Key : {}";
@@ -1113,6 +1131,8 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_START = "ListObject ...";
 	public static final String LOG_LIST_OBJECT_PREFIX_ENCODING = "prefix, encoding type : {}, {}";
 
+	// ListBucketTagSearch
+	public static final String LOG_LIST_BUCKET_TAG_SEARCH_START = "ListBucketTagSearch ...";
 	// ListObjectV2
 	public static final String LOG_LIST_OBJECT_V2_START = "ListObjectV2 ...";
 
@@ -1121,6 +1141,7 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_KEY_COUNT = "key count : {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_MARKER = "deleteMarker : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
 	public static final String LOG_LIST_PARTS_START = "ListParts ...";
@@ -1191,6 +1212,10 @@ public final class GWConstants {
 	// PutBucketTagging
 	public static final String LOG_PUT_BUCKET_TAGGING_START = "PutBucketTagging ...";
 	public static final String LOG_PUT_BUCKET_TAGGING = "tagging xml : {}";
+
+	// PutBucketTagIndex
+	public static final String LOG_PUT_BUCKET_TAG_INDEX_START = "PutBucketTagIndex ...";
+	public static final String LOG_PUT_BUCKET_TAG_INDEX = "tagIndex xml : {}";
 
 	// PutBucketVersioning
 	public static final String LOG_PUT_BUCKET_VERSIONING_START = "PutBucketVersioning ...";
@@ -1263,6 +1288,7 @@ public final class GWConstants {
 	public static final String LOG_UTILS_TIME_SKEWED = "time skewed : {}, now : {}";
 	public static final String LOG_UTILS_UNDEFINED_DB = "undefined db repository.";
 	public static final String LOG_UTILS_KEY = "key : {}";
+	public static final String LOG_UTILS_HAS_KEYWORD_ACL = "has keyword : {}";
 	public static final String LOG_UTILS_SOURCE_ACL = "source acl : {}";
 	public static final String LOG_UTILS_CANNED_ACL = "cannedAcl : {}";
 	public static final String LOG_UTILS_ACL_XML = "aclXml : {}";
@@ -1294,6 +1320,7 @@ public final class GWConstants {
 	public static final String LOG_DATA_PART_NUMBER_MARKER_NULL = "partNumberMarker is null or empty";
 	public static final String LOG_DATA_LIFECYCLE_R1_STATUS = "rl.status : {}";
 	public static final String LOG_DATA_LIFECYCLE_LCC_RULE_SIZE = "lcc.rules.size : {}, id.size : {}";
+	public static final String LOG_DATA_TAG_NULL = "tag is null or empty";
 
 	// ObjManagerHelper
 	public static final String LOG_OBJMANAGER_COUNT = "objManager count : {}";

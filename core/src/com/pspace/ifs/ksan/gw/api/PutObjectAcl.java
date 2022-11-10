@@ -55,7 +55,7 @@ public class PutObjectAcl extends S3Request {
 		
 		String versionId = dataPutObjectAcl.getVersionId();
 		s3Parameter.setVersionId(versionId);
-		
+
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
@@ -92,7 +92,8 @@ public class PutObjectAcl extends S3Request {
 										dataPutObjectAcl.getGrantFullControl(), 
 										dataPutObjectAcl.getGrantReadAcp(), 
 										dataPutObjectAcl.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										true);
 		logger.debug(GWConstants.LOG_ACL, xml);
 		
 		objMeta.setAcl(xml);

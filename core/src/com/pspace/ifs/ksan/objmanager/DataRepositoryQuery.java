@@ -53,14 +53,14 @@ public final class DataRepositoryQuery {
                     + "encryption TEXT,   objectlock TEXT,  policy TEXT, "
                     + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
                     + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-                    + "replicaCount INT DEFAULT 2, "
+                    + "replicaCount INT DEFAULT 2, objTagIndexing BOOLEAN default false, "
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
-    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging FROM BUCKETS";
+    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS WHERE id=?";
+    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS";
     public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";
             
     public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
@@ -76,6 +76,7 @@ public final class DataRepositoryQuery {
     public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE id=?";
     public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?";
     public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE id=?";
+    public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCK SET objTagIndexing=? WHERE id=?";
     
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("
@@ -131,4 +132,16 @@ public final class DataRepositoryQuery {
     public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
     public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log FROM %s";
     public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE objKey=? AND versionid=?";
+
+    // for tags indexing
+    public  static String createTagIndexingQuery= "CREATE TABLE IF NOT EXISTS %s_ObjTagIndex("
+            + " objid VARCHAR(50) NOT NULL, "
+            + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
+            + " TagKey VARCHAR(256) NOT NULL," 
+            + " TagValue VARCHAR(256) NOT NULL,"
+            + " PRIMARY KEY(objid, versionid, TagKey, TagValue)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+    public static String insertTagIndexingQuery = "INSERT INTO %s_ObjTagIndex(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
+    public static String deleteTagIndexingQuery1 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=?";
+    public static String deleteTagIndexingQuery2 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=? AND TagKey=?";
+    public static String selectTagIndexingQuery = "SELECT objid, versionid, TagKey, TagValue FROM %s_ObjTagIndex WHERE %s";
 }

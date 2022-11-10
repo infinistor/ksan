@@ -80,7 +80,8 @@ public class KsanPutObjectAcl extends S3Request {
 										dataPutObjectAcl.getGrantFullControl(), 
 										dataPutObjectAcl.getGrantReadAcp(), 
 										dataPutObjectAcl.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter, 
+										true);
 		logger.debug(GWConstants.LOG_ACL, xml);
 		
 		objMeta.setAcl(xml);

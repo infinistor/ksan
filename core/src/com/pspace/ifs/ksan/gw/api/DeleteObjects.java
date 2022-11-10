@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.util.Date;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.security.InvalidParameterException;
@@ -183,9 +185,13 @@ public class DeleteObjects extends S3Request {
 						try {
 							S3Metadata s3Metadata = new S3Metadata();
 							s3Metadata.setName(object);
+							s3Metadata.setLastModified(new Date());
+							s3Metadata.setContentLength(0L);
+							s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 							s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 							s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 							s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+							versionId = String.valueOf(System.nanoTime());
 							s3Metadata.setVersionId(versionId);
 
 							ObjectMapper jsonMapper = new ObjectMapper();
@@ -237,9 +243,13 @@ public class DeleteObjects extends S3Request {
 							try {
 								S3Metadata s3Metadata = new S3Metadata();
 								s3Metadata.setName(object);
+								s3Metadata.setLastModified(new Date());
+								s3Metadata.setContentLength(0L);
+								s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 								s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 								s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+								versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 								s3Metadata.setVersionId(versionId);
 
 								ObjectMapper jsonMapper = new ObjectMapper();

@@ -75,7 +75,8 @@ public class PutObject extends S3Request {
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject)) {
+		boolean effectPolicy = checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject);
+		if (!effectPolicy) {
 			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		}
 
@@ -193,7 +194,8 @@ public class PutObject extends S3Request {
 										dataPutObject.getGrantFullControl(), 
 										dataPutObject.getGrantReadAcp(), 
 										dataPutObject.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
@@ -325,9 +327,11 @@ public class PutObject extends S3Request {
 		String versioningStatus = getBucketVersioning(bucket);
 		String versionId = null;
 		Metadata objMeta = null;
+		boolean isExist = false;
 		try {
 			// check exist object
 			objMeta = open(bucket, object);
+			isExist = true;
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 			} else {
@@ -345,6 +349,14 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+
+		if (isExist && !effectPolicy) {
+			if (Strings.isNullOrEmpty(objMeta.getAcl())) {
+				objMeta.setAcl(GWUtils.makeOriginalXml(aclXml, s3Parameter));
+			}
+			checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
+
 		s3Parameter.setVersionId(versionId);
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.putObject();

@@ -279,7 +279,8 @@ public class CopyObject extends S3Request {
 										  dataCopyObject.getGrantFullControl(), 
 										  dataCopyObject.getGrantReadAcp(), 
 										  dataCopyObject.getGrantWriteAcp(),
-										  s3Parameter);
+										  s3Parameter,
+										  false);
         
 		// check replace or copy
         boolean bReplaceMetadata = false;

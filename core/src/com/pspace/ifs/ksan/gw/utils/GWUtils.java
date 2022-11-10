@@ -774,7 +774,8 @@ public class GWUtils {
 									String getGrantFullControl, 
 									String getGrantReadAcp, 
 									String getGrantWriteAcp, 
-									S3Parameter s3Parameter) throws GWException {
+									S3Parameter s3Parameter,
+									boolean isAcl) throws GWException {
 		
 		PublicAccessBlockConfiguration pabc = null;
 		if (bucketInfo != null && !Strings.isNullOrEmpty(bucketInfo.getAccess())) {
@@ -785,8 +786,11 @@ public class GWUtils {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
+
+		logger.info(GWConstants.LOG_UTILS_HAS_KEYWORD_ACL, hasKeyWord);
 		logger.info(GWConstants.LOG_UTILS_CANNED_ACL, cannedAcl);
 		logger.info(GWConstants.LOG_UTILS_ACL_XML, getAclXml);
+		logger.info("isAcl : {}", isAcl);
 
 		if (preAccessControlPolicy != null && preAccessControlPolicy.owner != null) {
 			accessControlPolicy.owner.id = preAccessControlPolicy.owner.id;
@@ -960,6 +964,8 @@ public class GWUtils {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
+		} else {
+			logger.info("aclXml : {}", aclXml);
 		}
 
 		// check user
@@ -967,16 +973,27 @@ public class GWUtils {
 			XmlMapper xmlMapper = new XmlMapper();
 			AccessControlPolicy checkAcl = xmlMapper.readValue(aclXml, AccessControlPolicy.class);
 			if (checkAcl.owner == null) {
+				if (isAcl) {
+					throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
+				}
 				checkAcl.owner = new Owner();
 				checkAcl.owner.id = s3Parameter.getUser().getUserId();
 				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
 			} else if (Strings.isNullOrEmpty(checkAcl.owner.id)) {
+				if (isAcl) {
+					throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
+				}
 				checkAcl.owner.id = s3Parameter.getUser().getUserId();
 				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
 			}
 			aclXml = checkAcl.toString();
 			logger.info("acl : {}", aclXml);
 			if (checkAcl.aclList.grants != null) {
+				if (checkAcl.aclList.grants.size() == 0) {
+					if (isAcl) {
+						throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
+					}
+				}
 				for (Grant user : checkAcl.aclList.grants) {
 					if (!Strings.isNullOrEmpty(user.grantee.displayName)
 							&& (getAclXml != null || getAclHeader != null)

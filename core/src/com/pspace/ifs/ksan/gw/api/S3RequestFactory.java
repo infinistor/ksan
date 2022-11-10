@@ -38,6 +38,7 @@ public class S3RequestFactory {
 	private final String OP_DELETE_OBJECTLOCK = "REST.DELETE.OBJECTLOCK";
 	private final String OP_DELETE_NOTIFICATION = "REST.DELETE.NOTIFICATION";
 	private final String OP_DELETE_REPLICATION = "REST.DELETE.REPLICATION";
+	private final String OP_DELETE_BUCKET_TAG_INDEX = "REST.DELETE.BUCKET.TAG_INDEX";
 
 	private final String OP_GET_LISTBUCKET = "REST.GET.LISTBUCKET";
 	private final String OP_GET_WEBSITE = "REST.GET.WEBSITE";
@@ -51,6 +52,7 @@ public class S3RequestFactory {
 	private final String OP_GET_NOTIFICATION = "REST.GET.NOTIFICATION";
 	private final String OP_GET_BUCKET_POLICY_STATUS = "REST.GET.BUCKET.POLICY.STATUS";
 	private final String OP_GET_REPLICATION = "REST.GET.REPLICATION";
+	private final String OP_GET_BUCKET_TAG_INDEX = "REST.GET.BUCKET.TAG_INDEX";
 
 	private final String OP_GET_ENCRYPTION = "REST.GET.ENCRYPTION";
 	private final String OP_GET_BUCKET_ACL = "REST.GET.BUCKET.ACL";
@@ -60,6 +62,7 @@ public class S3RequestFactory {
 	private final String OP_GET_LISTOBJECTSV2 = "REST.GET.LISTOBJECTV2";
 	private final String OP_GET_LISTOBJECTS = "REST.GET.LISTOBJECT";
 	private final String OP_GET_LISTVERSIONS = "REST.GET.LISTVERSIONS";
+	private final String OP_GET_LIST_TAG_SEARCH = "REST.GET.LISTTAGSEARCH";
 	private final String OP_GET_OBJECT_ACL = "REST.GET.OBJECT.ACL";
 	private final String OP_GET_OBJECT_RETENTION = "REST.GET.OBJECT.RETENTION";
 	private final String OP_GET_OBJECT_LEGAL_HOLD = "REST.GET.OBJECT.LEGAL.HOLD";
@@ -89,6 +92,7 @@ public class S3RequestFactory {
 	private final String OP_PUT_OBJECTLOCK = "REST.PUT.OBJECTLOCK";
 	private final String OP_PUT_NOTIFICATION = "REST.PUT.NOTIFICATION";
 	private final String OP_PUT_REPLICATION = "REST.PUT.REPLICATION";
+	private final String OP_PUT_BUCKET_TAG_INDEX = "REST.PUT.BUCKET.TAG_INDEX";
 	
 	private final String OP_PUT_OBJECT_PART_COPY = "REST.PUT.OBJECT.PART.COPY";
 	private final String OP_PUT_OBJECT_PART = "REST.PUT.OBJECT.PART";
@@ -155,6 +159,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_DELETE_REPLICATION);
 						return new DeleteBucketReplication(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAG_INDEX))) {
+						s3Parameter.setOperation(OP_DELETE_BUCKET_TAG_INDEX);
+						return new DeleteBucketTagIndex(s3Parameter);
 					}
 
 					if (s3Parameter.isPublicAccess()) {
@@ -256,6 +263,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_POLICY_STATUS))) {
 						s3Parameter.setOperation(OP_GET_BUCKET_POLICY_STATUS);
 						return new GetBucketPolicyStatus(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAG_INDEX))) {
+						s3Parameter.setOperation(OP_GET_BUCKET_TAG_INDEX);
+						return new GetBucketTagIndex(s3Parameter);
 					}
 
 					if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIST_TYPE) != null) {
@@ -264,6 +274,9 @@ public class S3RequestFactory {
 					} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_VERSIONS) != null) {
 						s3Parameter.setOperation(OP_GET_LISTVERSIONS);
 						return new ListObjectVersions(s3Parameter);
+					} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIST_TAG_SEARCH) != null) {
+						s3Parameter.setOperation(OP_GET_LIST_TAG_SEARCH);
+						return new ListBucketTagSearch(s3Parameter);
 					} else {
 						s3Parameter.setOperation(OP_GET_LISTOBJECTS);
 						return new ListObjects(s3Parameter);
@@ -393,6 +406,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_REPLICATION))) {
 						s3Parameter.setOperation(OP_PUT_REPLICATION);
 						return new PutBucketReplication(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_TAG_INDEX))) {
+						s3Parameter.setOperation(OP_PUT_BUCKET_TAG_INDEX);
+						return new PutBucketTagIndex(s3Parameter);
 					}
 
 					if (s3Parameter.isPublicAccess()) {

@@ -84,22 +84,34 @@ public class DataPutObject extends S3DataRequest {
 				expires = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
 				acl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(acl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
 				grantFullControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantFullControl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
 				grantRead = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantRead)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
 				grantReadAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantReadAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
 				grantWrite = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWrite)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
 				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_DECODED_CONTENT_LENGTH)) {
 				decodedContentLength = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION)) {

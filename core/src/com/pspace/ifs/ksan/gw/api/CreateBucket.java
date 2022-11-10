@@ -81,7 +81,8 @@ public class CreateBucket extends S3Request {
 										dataCreateBucket.getGrantFullControl(), 
 										dataCreateBucket.getGrantReadAcp(), 
 										dataCreateBucket.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;

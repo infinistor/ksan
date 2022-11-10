@@ -172,7 +172,11 @@ public class ListObjectVersions extends S3Request {
 						writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 						xmlStreamWriter.writeEndElement();
 
-						logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
+						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARK) == 0) {
+							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MARKER, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
+						} else {
+							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
+						}
 					}
 				}
 			}
