@@ -35,7 +35,7 @@ public class ReplicationLogQuery {
 	public static final String DB_TARGETREGION = "TARGET_REGION";
 	public static final String DB_MESSAGE = "MESSAGE";
 
-	public static String getCreateTable() {
+	public static String getCreate() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
 				DB_ID + " BIGINT AUTO_INCREMENT PRIMARY KEY, " +
 				DB_IN_DATE + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
@@ -49,7 +49,7 @@ public class ReplicationLogQuery {
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
-	public static String getInsertQuery() {
+	public static String getInsert() {
 	return String.format("INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?, ?, ?)",
 	DB_TABLE_NAME, DB_OPERATION, DB_OBJECTNAME, DB_VERSIONID, DB_SOURCEBUCKETNAME, DB_TARGETBUCKETNAME, DB_TARGETREGION, DB_MESSAGE);
 	}

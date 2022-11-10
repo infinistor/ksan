@@ -45,7 +45,7 @@ public class LifecycleLogQuery {
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
-	public static String getInsertQuery() {
+	public static String getInsert() {
 		return String.format("INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?)",
 				DB_TABLE_NAME, DB_BUCKETNAME, DB_OBJECTNAME, DB_VERSIONID, DB_UPLOADID, DB_MESSAGE);
 	}
