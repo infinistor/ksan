@@ -28,6 +28,8 @@ import db.DBConfig;
 import db.IDBManager;
 import db.table.Lifecycle.LifecycleLogQuery;
 import db.table.Logging.LoggingQuery;
+import db.table.Metering.ApiMeteringQuery;
+import db.table.Metering.IoMeteringQuery;
 import db.table.replication.ReplicationLogQuery;
 
 public class MariaDBManager implements IDBManager {
@@ -58,7 +60,7 @@ public class MariaDBManager implements IDBManager {
 		hikariConfig.setMinimumIdle(config.PoolSize);
 		ds = new HikariDataSource(hikariConfig);
 
-		CreateTables();
+		createTables();
 	}
 
 	/***************************** Select **********************************/
@@ -71,25 +73,48 @@ public class MariaDBManager implements IDBManager {
 
 	/***************************** Insert *****************************/
 
-	private boolean CreateTables() {
+	private boolean createTables() {
 		// DB Create Table
-		if (!Execute(ReplicationLogQuery.getCreateTable()))
-			return false;
-		if (!Execute(LoggingQuery.getCreateTable()))
-			return false;
-		return true;
+		return Execute(ReplicationLogQuery.getCreate()) &&
+				Execute(ApiMeteringQuery.createMeter()) &&
+				Execute(ApiMeteringQuery.createAsset()) &&
+				Execute(IoMeteringQuery.createMeter()) &&
+				Execute(IoMeteringQuery.createAsset());
 	}
 
-	public boolean InsertLogging(S3LogData data) {
-		return Insert(LoggingQuery.getInsert(), LoggingQuery.getInsertParameters(data));
+	@Override
+	public boolean insertLogging(S3LogData data) {
+		return insert(LoggingQuery.getInsert(), LoggingQuery.getInsertParameters(data));
 	}
 
-	public boolean InsertReplicationLog(ReplicationLogData data) {
-		return Insert(ReplicationLogQuery.getInsertQuery(), ReplicationLogQuery.getInsertDBParameters(data));
+	@Override
+	public boolean insertReplicationLog(ReplicationLogData data) {
+		return insert(ReplicationLogQuery.getInsert(), ReplicationLogQuery.getInsertDBParameters(data));
 	}
 
-	public boolean InsertLifecycleLog(LifecycleLogData data) {
-		return Insert(LifecycleLogQuery.getInsertQuery(), LifecycleLogQuery.getInsertDBParameters(data));
+	@Override
+	public boolean insertLifecycleLog(LifecycleLogData data) {
+		return insert(LifecycleLogQuery.getInsert(), LifecycleLogQuery.getInsertDBParameters(data));
+	}
+
+	@Override
+	public boolean insertApiMeter(int minutes) {
+		return Execute(ApiMeteringQuery.insertMeter(minutes));
+	}
+	
+	@Override
+	public boolean insertIoMeter(int minutes) {
+		return Execute(IoMeteringQuery.getInsertMeter(minutes));
+	}
+
+	@Override
+	public boolean insertApiAsset() {
+		return Execute(ApiMeteringQuery.insertAsset());
+	}
+	
+	@Override
+	public boolean insertIoAsset() {
+		return Execute(IoMeteringQuery.getInsertAsset());
 	}
 
 	/***************************** Expiration *****************************/
@@ -115,7 +140,7 @@ public class MariaDBManager implements IDBManager {
 		return false;
 	}
 
-	private boolean Insert(String Query, List<Object> Params) {
+	private boolean insert(String Query, List<Object> Params) {
 		try (
 				var conn = ds.getConnection();
 				var stmt = new LogPreparedStatement(conn, Query);) {
