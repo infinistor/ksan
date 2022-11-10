@@ -46,15 +46,31 @@ public class DBManager {
 		dbManager.connect();
 	}
 
-	public boolean InsertLogging(S3LogData data) {
-		return dbManager.InsertLogging(data);
+	public boolean insertLogging(S3LogData data) {
+		return dbManager.insertLogging(data);
 	}
 
-	public boolean InsertReplicationLog(ReplicationLogData data){
-		return dbManager.InsertReplicationLog(data);
+	public boolean insertReplicationLog(ReplicationLogData data) {
+		return dbManager.insertReplicationLog(data);
 	}
 
-	public boolean InsertLifecycleLog(LifecycleLogData data){
-		return dbManager.InsertLifecycleLog(data);
+	public boolean insertLifecycleLog(LifecycleLogData data) {
+		return dbManager.insertLifecycleLog(data);
+	}
+
+	public boolean insertApiMeter(int minutes) {
+		return dbManager.insertApiMeter(minutes);
+	}
+
+	public boolean insertIoMeter(int minutes) {
+		return dbManager.insertIoMeter(minutes);
+	}
+
+	public boolean insertApiAsset() {
+		return dbManager.insertApiAsset();
+	}
+
+	public boolean insertIoAsset() {
+		return dbManager.insertIoAsset();
 	}
 }

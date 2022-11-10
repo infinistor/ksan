@@ -8,27 +8,49 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db;
+package metering;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
-import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
-import com.pspace.backend.libs.Data.S3.S3LogData;
+import db.DBManager;
 
-public interface IDBManager {
-	static final Logger logger = LoggerFactory.getLogger(DBManager.class);
+public class MainMetering {
+	private final Logger logger = LoggerFactory.getLogger(MainMetering.class);
+	private final MeteringConfig Config;
+	private final DBManager DB;
 
-	void connect() throws Exception;
+	private Thread SendThread;
+	private SendMetering Sender;
 
-	boolean insertLogging(S3LogData Event);
-	boolean insertReplicationLog(ReplicationLogData data);
-	boolean insertLifecycleLog(LifecycleLogData data);
+	public MainMetering(DBManager DB, MeteringConfig Config) {
+		this.DB = DB;
+		this.Config = Config;
+	}
 
-	boolean insertApiMeter(int minutes);
-	boolean insertIoMeter(int minutes);
+	public boolean Start() {
+		try {
+			Sender = new SendMetering(DB, Config);
+			SendThread = new Thread(() -> Sender.Run());
+			SendThread.start();
+			return true;
+		} catch (Exception e) {
+			logger.error("", e);
+			return false;
+		}
+	}
 
-	boolean insertApiAsset();
-	boolean insertIoAsset();
+	public void Stop() {
+		Sender.Stop();
+	}
+
+	public void Quit() {
+		Sender.Quit();
+		try {
+			SendThread.join();
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+	}
+
 }
