@@ -35,6 +35,10 @@ public class S3UserManager {
         userSet = new HashSet<S3User>();
     }
 
+    public Set<S3User> getUserSet() {
+        return userSet;
+    }
+
     public void addUser(S3User user) {
         userSet.add(user);
     }

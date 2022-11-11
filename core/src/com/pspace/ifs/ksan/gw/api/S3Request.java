@@ -1502,6 +1502,23 @@ public abstract class S3Request {
 		}
 	}
 
+	protected void updateObjectRestore(Metadata meta) throws GWException {
+		try {
+			setObjManager();
+			objManager.updateObjectTagging(meta);
+		} catch(Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+	}
+
 	protected ObjMultipart getInstanceObjMultipart(String bucket) throws GWException {
 		ObjMultipart objMultipart = null;
 		try {

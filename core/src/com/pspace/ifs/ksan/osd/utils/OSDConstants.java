@@ -45,11 +45,11 @@ public final class OSDConstants {
     public static final String PERFORMANCE_MODE = "performance_mode";
     public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 
-    public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
-    public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
-	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
-	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
-    public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
+    // public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+    // public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	// public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	// public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+    // public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 
     public static final int HEADERSIZE = 1024 * 1024;
     public static final int MAXBUFSIZE = 524288; // 512 * 1024
@@ -200,9 +200,6 @@ public final class OSDConstants {
     public static final String LOG_DO_EC_PRI_OBJECT_FILE = "file : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_APPLY_MINUTES = "ec apply minutes : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_ENCODE_EC = "ENCODE EC : {}";
-    public static final String DO_EC_PRI_OBJECT_ZFEC = "zfec -d ";
-    public static final String DO_EC_PRI_OBJECT_ZFEC_PREFIX_OPTION = " -p ";
-    public static final String DO_EC_PRI_OBJECT_ZFEC_TOTAL_NUMBER_OPTION = " -m 4 ";
     public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE = "ENCODE exit code : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND = "command : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID = "replica disk id : {}";

@@ -59,6 +59,16 @@ public class Constants {
 	public static final String LOG_OSDCLIENT_ACTIVATE_SOCKET = "activate socket...";
 	public static final String LOG_OSDCLIENT_DESACTIVATE_SOCKET = "desactivate socket...";
 
+	public static final String FILE_ATTRIBUTE_REPLICATION = "replica";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "diskid";
+	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "pri";
+	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "rep";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
+
+	public static final String ZFEC = "zfec -d ";
+    public static final String ZFEC_PREFIX_OPTION = " -p ";
+    public static final String ZFEC_TOTAL_NUMBER_OPTION = " -m 4 ";
+
 	private Constants() {
 		throw new IllegalStateException("Utility class");
 	}

@@ -223,51 +223,43 @@ public class OSDUtils {
     //     }
     // }
 
-    public String getAttributeFileReplication(File file) {
-        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
-        ByteBuffer buf = null;
-        try {
-            buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICATION));
-            view.read(OSDConstants.FILE_ATTRIBUTE_REPLICATION, buf);
-            buf.flip();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalArgumentException iae) {
-            logger.error(iae.getMessage());
-        } catch (SecurityException e) {
-            logger.error(e.getMessage());
-        }
+    // public String getAttributeFileReplication(File file) {
+    //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+    //     ByteBuffer buf = null;
+    //     try {
+    //         buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICATION));
+    //         view.read(OSDConstants.FILE_ATTRIBUTE_REPLICATION, buf);
+    //         buf.flip();
+    //     } catch (IOException e) {
+    //         logger.error(e.getMessage());
+    //     } catch (IllegalArgumentException iae) {
+    //         logger.error(iae.getMessage());
+    //     } catch (SecurityException e) {
+    //         logger.error(e.getMessage());
+    //     }
 
-        return Charset.defaultCharset().decode(buf).toString();
-    }
+    //     return Charset.defaultCharset().decode(buf).toString();
+    // }
 
-    public String getAttributeFileReplicaDiskID(File file) {
-        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
-        ByteBuffer buf = null;
-        try {
-            buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID));
-            view.read(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
-            buf.flip();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalArgumentException iae) {
-            logger.error(iae.getMessage());
-        } catch (SecurityException e) {
-            logger.error(e.getMessage());
-        }
+    // public String getAttributeFileReplicaDiskID(File file) {
+    //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+    //     ByteBuffer buf = null;
+    //     try {
+    //         buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID));
+    //         view.read(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
+    //         buf.flip();
+    //     } catch (IOException e) {
+    //         logger.error(e.getMessage());
+    //     } catch (IllegalArgumentException iae) {
+    //         logger.error(iae.getMessage());
+    //     } catch (SecurityException e) {
+    //         logger.error(e.getMessage());
+    //     }
 
-        return Charset.defaultCharset().decode(buf).toString();
-    }
+    //     return Charset.defaultCharset().decode(buf).toString();
+    // }
 
     public static void sendHeader(Socket socket, String header) throws IOException {
-        // byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
-		// byte length = (byte)buffer.length;
-		// socket.getOutputStream().write(length);
-		
-		// socket.getOutputStream().write(buffer, 0, buffer.length);
-		// socket.getOutputStream().flush();
-		// logger.info("send header size : {}", buffer.length);
-
         byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
         String strLength = Integer.toString(buffer.length);
         byte[] lengthBuffer = strLength.getBytes(OSDConstants.CHARSET_UTF_8);

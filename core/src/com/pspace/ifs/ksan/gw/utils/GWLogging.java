@@ -16,6 +16,7 @@ import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
+import com.pspace.ifs.ksan.gw.mq.MessageQueueSender;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,8 @@ import com.google.common.base.Strings;
 
 public class GWLogging {
     private static final Logger logger = LoggerFactory.getLogger(GWLogging.class);
-    private static MQSender mqSender;
+    private MessageQueueSender MQS;
+    // private static MQSender mqSender;
 
     public static GWLogging getInstance() {
         return LazyHolder.INSTANCE;
@@ -37,9 +39,16 @@ public class GWLogging {
 
     private GWLogging() {
         try {
-            mqSender = new MQSender(AgentConfig.getInstance().getMQHost(), 
-                Integer.parseInt(AgentConfig.getInstance().getMQPort()), 
-                AgentConfig.getInstance().getMQUser(), 
+            // mqSender = new MQSender(AgentConfig.getInstance().getMQHost(), 
+            //     Integer.parseInt(AgentConfig.getInstance().getMQPort()), 
+            //     AgentConfig.getInstance().getMQUser(), 
+            //     AgentConfig.getInstance().getMQPassword(),
+            //     GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
+            //     GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
+            //     GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+            MQS = new MessageQueueSender(AgentConfig.getInstance().getMQHost(),
+                Integer.parseInt(AgentConfig.getInstance().getMQPort()),
+                AgentConfig.getInstance().getMQUser(),
                 AgentConfig.getInstance().getMQPassword(),
                 GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
                 GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
@@ -197,7 +206,8 @@ public class GWLogging {
 
         logger.debug("log - {}", object.toString());
         try {
-            mqSender.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+            MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+            // mqSender.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }

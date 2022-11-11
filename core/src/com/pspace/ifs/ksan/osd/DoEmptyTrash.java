@@ -31,7 +31,7 @@ public class DoEmptyTrash implements Runnable {
 
     @Override
     public void run() {
-        logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
+        // logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
         
         if (OSDConfig.getInstance().isCacheDiskpath()) {
             recursiveEmptyCache(OSDConfig.getInstance().getCacheDiskpath());

@@ -20,8 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
-import com.pspace.ifs.ksan.osd.utils.OSDConstants;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.data.OsdData;
@@ -37,7 +38,7 @@ public class DoECPriObject implements Runnable {
 
     @Override
     public void run() {
-        logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
+        // logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_START);
         fileLength = OSDConfig.getInstance().getECMinSize() * OSDConstants.MEGABYTES;
         ecWaitTime = OSDConfig.getInstance().getECWaitTime();
 
@@ -73,7 +74,7 @@ public class DoECPriObject implements Runnable {
                     continue;
                 }
 
-                if (OSDConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY.equals(OSDUtils.getInstance().getAttributeFileReplication(files[i]))) {
+                if (Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY.equals(KsanUtils.getAttributeFileReplication(files[i]))) {
                     long diff = (now - files[i].lastModified()); // / OSDConstants.ONE_MINUTE_MILLISECONDS;
 
                     if (diff >= ecWaitTime) {
@@ -94,11 +95,11 @@ public class DoECPriObject implements Runnable {
             com.google.common.io.Files.createParentDirs(ecFile);
             ecFile.mkdir();
 
-            String command = OSDConstants.DO_EC_PRI_OBJECT_ZFEC
+            String command = Constants.ZFEC
                             + path
-                            + OSDConstants.DO_EC_PRI_OBJECT_ZFEC_PREFIX_OPTION
+                            + Constants.ZFEC_PREFIX_OPTION
                             + OSDConstants.POINT + file.getName() 
-                            + OSDConstants.DO_EC_PRI_OBJECT_ZFEC_TOTAL_NUMBER_OPTION + file.getAbsolutePath();
+                            + Constants.ZFEC_TOTAL_NUMBER_OPTION + file.getAbsolutePath();
             logger.debug(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND, command);
             Process p = Runtime.getRuntime().exec(command);
             int exitCode = p.waitFor();
@@ -106,8 +107,8 @@ public class DoECPriObject implements Runnable {
             logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE, exitCode);
             createECTemp(file.getName(), ecPath);
             
-            String replicaDiskID = OSDUtils.getInstance().getAttributeFileReplicaDiskID(file);
-            if (!OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL.equals(replicaDiskID)) {
+            String replicaDiskID = KsanUtils.getAttributeFileReplicaDiskID(file);
+            if (!Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL.equals(replicaDiskID)) {
                 // delete replica disk
                 logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID, replicaDiskID);
                 String ip = DiskManager.getInstance().getOSDIP(replicaDiskID);
