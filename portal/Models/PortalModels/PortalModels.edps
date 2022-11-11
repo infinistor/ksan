@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<EntityDeveloper Version="6.12.1419.0">
+<EntityDeveloper Version="7.0.0.0">
 	<ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="False" TargetFramework="Net50" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
 		<Connection SaveConnection="False" Provider="MySqlConnector" />
 		<Generation>
@@ -35,6 +35,7 @@
 				<File Name="PortalModels.DiskUsage.cs" />
 				<File Name="PortalModels.Region.cs" />
 				<File Name="PortalModels.ServiceEventLog.cs" />
+				<File Name="PortalModels.S3Logging.cs" />
 				<File Name="PortalModels.EnumDbNetworkLinkState.cs" />
 				<File Name="PortalModels.EnumDbYesNo.cs" />
 				<File Name="PortalModels.EnumDbOnOff.cs" />
@@ -68,14 +69,14 @@
 		</Diagrams>
 		<Templates>
 			<Template Name="EFCoreTemplate" Enabled="True" File="..\..\..\..\..\template\EFCoreTemplate.tmpl">
-				<ed:Property Name="ValidationFramework" Type="EntityDeveloper.TemplateEngine.ValidationFramework, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="ValidationFramework" Type="EntityDeveloper.TemplateEngine.ValidationFramework, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<ValidationFramework>None</ValidationFramework>
 				</ed:Property>
-				<ed:Property Name="ValidationErrorMessages" Type="EntityDeveloper.TemplateEngine.ValidationErrorMessages, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="ValidationErrorMessages" Type="EntityDeveloper.TemplateEngine.ValidationErrorMessages, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<ValidationErrorMessages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
 				</ed:Property>
-				<ed:Property Name="ContextOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="ContextOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 						<Project />
@@ -83,7 +84,7 @@
 						<DestinationFolder />
 					</OutputInfo>
 				</ed:Property>
-				<ed:Property Name="EntitiesOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="EntitiesOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 						<Project />
@@ -91,7 +92,7 @@
 						<DestinationFolder />
 					</OutputInfo>
 				</ed:Property>
-				<ed:Property Name="EnumOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="EnumOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 						<Project />
@@ -137,22 +138,22 @@
 					<string d6p1:nil="true"
 						xmlns:d6p1="http://www.w3.org/2001/XMLSchema-instance" />
 				</ed:Property>
-				<ed:Property Name="PrimitiveDefaultValueGeneration" Type="EntityDeveloper.DefaultValueBehavior, EntityDeveloper.Orm.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="PrimitiveDefaultValueGeneration" Type="EntityDeveloper.DefaultValueBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<DefaultValueBehavior>Literal</DefaultValueBehavior>
 				</ed:Property>
-				<ed:Property Name="CollectionPropertyType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionPropertyType, EntityDeveloper.Orm.EntityFrameworkCore, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="CollectionPropertyType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionPropertyType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<EFCoreCollectionPropertyType>Default</EFCoreCollectionPropertyType>
 				</ed:Property>
-				<ed:Property Name="CollectionInitializationType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionInitializationType, EntityDeveloper.Orm.EntityFrameworkCore, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="CollectionInitializationType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionInitializationType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<EFCoreCollectionInitializationType>Default</EFCoreCollectionInitializationType>
 				</ed:Property>
-				<ed:Property Name="NullableReferenceTypes" Type="EntityDeveloper.ReferenceTypeNullability, EntityDeveloper.Orm.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="NullableReferenceTypes" Type="EntityDeveloper.ReferenceTypeNullability, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<ReferenceTypeNullability>Default</ReferenceTypeNullability>
 				</ed:Property>
 				<ed:Property Name="SelfContainedEntityConfiguration" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
 					<boolean>false</boolean>
 				</ed:Property>
-				<ed:Property Name="EntitiesConfigurationOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="EntitiesConfigurationOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 						<Project />
@@ -160,7 +161,7 @@
 						<DestinationFolder />
 					</OutputInfo>
 				</ed:Property>
-				<ed:Property Name="SerializationLibrary" Type="EntityDeveloper.SerializationLibrary, EntityDeveloper.Orm.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="SerializationLibrary" Type="EntityDeveloper.SerializationLibrary, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<SerializationLibrary>None</SerializationLibrary>
 				</ed:Property>
 				<ed:Property Name="SerializeOriginalColumnNames" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -169,7 +170,7 @@
 				<ed:Property Name="SerializeNullValues" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
 					<boolean>true</boolean>
 				</ed:Property>
-				<ed:Property Name="SerializeNavigationProperties" Type="EntityDeveloper.NavigationPropertySerializationBehavior, EntityDeveloper.Orm.Common, Version=6.12.1419.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+				<ed:Property Name="SerializeNavigationProperties" Type="EntityDeveloper.NavigationPropertySerializationBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
 					<NavigationPropertySerializationBehavior>All</NavigationPropertySerializationBehavior>
 				</ed:Property>
 				<ed:Property Name="GenerateSerializableAttributes" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

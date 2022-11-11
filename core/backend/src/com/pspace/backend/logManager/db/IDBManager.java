@@ -22,7 +22,13 @@ public interface IDBManager {
 
 	void connect() throws Exception;
 
-	boolean InsertLogging(S3LogData Event);
-	boolean InsertReplicationLog(ReplicationLogData data);
-	boolean InsertLifecycleLog(LifecycleLogData data);
+	boolean insertLogging(S3LogData Event);
+	boolean insertReplicationLog(ReplicationLogData data);
+	boolean insertLifecycleLog(LifecycleLogData data);
+
+	boolean insertApiMeter(int minutes);
+	boolean insertIoMeter(int minutes);
+
+	boolean insertApiAsset();
+	boolean insertIoAsset();
 }

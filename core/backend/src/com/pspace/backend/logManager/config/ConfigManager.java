@@ -17,6 +17,7 @@ import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 import db.DBConfig;
+import metering.MeteringConfig;
 
 public class ConfigManager {
 
@@ -57,30 +58,6 @@ public class ConfigManager {
 		return config.Region;
 	}
 
-	public String getDBType() {
-		return config.DBType;
-	}
-
-	public String getDBHost() {
-		return config.DBHost;
-	}
-
-	public int getDBPort() {
-		return config.DBPort;
-	}
-
-	public String getDBName() {
-		return config.DBName;
-	}
-
-	public String getDBUser() {
-		return config.DBUser;
-	}
-
-	public String getDBPassword() {
-		return config.DBPassword;
-	}
-
 	public int getDBPoolSize() {
 		return config.DBPoolSize;
 	}
@@ -105,6 +82,11 @@ public class ConfigManager {
 		dbconfig.Expires = config.DBExpires;
 
 		return dbconfig;
+	}
+
+	public MeteringConfig getMeteringConfig()
+	{
+		return new MeteringConfig(config.MeterMinute, config.AssertHour);
 	}
 
 	@Override
