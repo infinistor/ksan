@@ -27,8 +27,9 @@ public class RestoreObjects {
         this.dbm = dbm;
     }
     
-    public int insertRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException{
-        return dbm.insertRestoreObjectRequest(bucketName, key, objId, versionId, request);
+    public int insertRequest(String bucketName, String key, String versionId, String request) throws SQLException{
+        Metadata mt = new Metadata(bucketName, key);
+        return dbm.insertRestoreObjectRequest(bucketName, key, mt.getObjId(), versionId, request);
     }
     
     public String getRequest(String bucketName, String key, String versionId) throws SQLException{
@@ -36,8 +37,8 @@ public class RestoreObjects {
         return dbm.getRestoreObjectRequest(bucketName, mt.getObjId(), versionId);
     }
     
-    public void removeRequest(String bucketName, String key, String versionI) throws SQLException{
+    public void removeRequest(String bucketName, String key, String versionId) throws SQLException{
         Metadata mt = new Metadata(bucketName, key);
-        dbm.deleteRestoreObjectRequest(bucketName, mt.getObjId(), versionI);
+        dbm.deleteRestoreObjectRequest(bucketName, mt.getObjId(), versionId);
     }
 }
