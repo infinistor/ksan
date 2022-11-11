@@ -45,6 +45,12 @@ public class LogManagerConfig {
 	
 	@JsonProperty("logM.check_interval")
 	public int CheckInterval;
+
+	@JsonProperty("logM.meter_minute")
+	public int MeterMinute;
+	
+	@JsonProperty("logM.assert_hour")
+	public int AssertHour;
 	
 	@Override
 	public String toString() {

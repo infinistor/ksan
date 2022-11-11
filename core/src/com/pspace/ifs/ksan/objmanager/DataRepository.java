@@ -102,4 +102,8 @@ public interface DataRepository {
     // for object tags indexing
      public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException;
      
+     // for restore object
+     public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException;
+     public String getRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
+     public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
 }

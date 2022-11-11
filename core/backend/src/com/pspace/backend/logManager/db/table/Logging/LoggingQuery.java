@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
 public class LoggingQuery {
 	static final Logger logger = LoggerFactory.getLogger(LoggingQuery.class);
 
-	public static final String DB_TABLE_NAME = "S3LOGGING";
+	public static final String DB_TABLE_NAME = "S3LOGGINGS";
 	public static final String DB_ID = "ID";
 	public static final String DB_USER_NAME = "USER_NAME";
 	public static final String DB_BUCKET_NAME = "BUCKET_NAME";
-	public static final String DB_DATE_TIME = "DATE_TIME";
+	public static final String DB_IN_DATE = "IN_DATE";
 	public static final String DB_REMOTE_HOST = "REMOTE_HOST";
 	public static final String DB_REQUEST_USER = "REQUEST_USER";
 	public static final String DB_REQUEST_ID = "REQUEST_ID";
@@ -55,7 +55,7 @@ public class LoggingQuery {
 				DB_ID + " bigint auto_increment primary key, " +
 				DB_USER_NAME + " varchar(64) DEFAULT NULL, " +
 				DB_BUCKET_NAME + " varchar(64) DEFAULT NULL, " +
-				DB_DATE_TIME + " varchar(64) NOT NULL, " +
+				DB_IN_DATE + " varchar(64) NOT NULL, " +
 				DB_REMOTE_HOST + " varchar(256) DEFAULT NULL, " +
 				DB_REQUEST_USER + " varchar(64) DEFAULT NULL, " +
 				DB_REQUEST_ID + " varchar(64) DEFAULT NULL, " +
@@ -85,7 +85,7 @@ public class LoggingQuery {
 				"INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 				DB_TABLE_NAME,
-				DB_USER_NAME, DB_BUCKET_NAME, DB_DATE_TIME, DB_REMOTE_HOST, DB_REQUEST_USER, DB_REQUEST_ID,
+				DB_USER_NAME, DB_BUCKET_NAME, DB_IN_DATE, DB_REMOTE_HOST, DB_REQUEST_USER, DB_REQUEST_ID,
 				DB_OPERATION, DB_OBJECT_NAME, DB_REQUEST_URI, DB_STATUS_CODE, DB_ERROR_CODE, DB_RESPONSE_LENGTH,
 				DB_OBJECT_LENGTH, DB_TOTAL_TIME, DB_REQUEST_LENGTH, DB_REFERER, DB_USER_AGENT, DB_VERSION_ID,
 				DB_HOST_ID, DB_SIGN, DB_SSL_GROUP, DB_SIGN_TYPE, DB_ENDPOINT, DB_TLS_VERSION);
@@ -113,7 +113,7 @@ public class LoggingQuery {
 				MyList.add(new S3LogData(
 						(String) result.get(DB_USER_NAME),
 						(String) result.get(DB_BUCKET_NAME),
-						(String) result.get(DB_DATE_TIME),
+						(String) result.get(DB_IN_DATE),
 						(String) result.get(DB_REMOTE_HOST),
 						(String) result.get(DB_REQUEST_USER),
 						(String) result.get(DB_REQUEST_ID),
@@ -177,7 +177,7 @@ public class LoggingQuery {
 		var param = new Document();
 		param.put(DB_USER_NAME, data.UserName);
 		param.put(DB_BUCKET_NAME, data.BucketName);
-		param.put(DB_DATE_TIME, data.Date);
+		param.put(DB_IN_DATE, data.Date);
 		param.put(DB_REMOTE_HOST, data.RemoteHost);
 		param.put(DB_REQUEST_USER, data.RequestUser);
 		param.put(DB_REQUEST_ID, data.RequestId);

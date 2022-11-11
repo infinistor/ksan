@@ -141,6 +141,10 @@ public class MongoDataRepository implements DataRepository{
     private static final String OBJTAGINDEX_TABLE = "ObjTagIndex";
     private static final String TAG_KEY = "TagKey";
     private static final String TAG_VALUE = "TagValue";
+    
+    // for restore objects
+    private static final String OBJRESTORE_TABLE = "RESTOREOBJECTS";
+    private static final String OBJRESTORE_REQUEST = "request";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
         this.username = username;
@@ -152,6 +156,7 @@ public class MongoDataRepository implements DataRepository{
         createBucketsHolder();
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
+        createRestoreObjHolder();
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -272,6 +277,31 @@ public class MongoDataRepository implements DataRepository{
         return multip;
     }
     
+    private void createRestoreObjHolder(){
+        Document index;
+    
+        index = new Document(OBJID, 1);
+        index.append(VERSIONID, 1);
+        //index.append(BUCKETNAME, 1);
+        MongoCollection<Document> restoreObj = database.getCollection(OBJRESTORE_TABLE);
+        if (restoreObj == null){
+            database.createCollection(OBJRESTORE_TABLE);
+            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+            restoreObj.createIndex(index, new IndexOptions().unique(true));
+        }
+    }
+    
+    private MongoCollection<Document> getRestoreObjCollection(){
+        MongoCollection<Document> restoreObj;
+            
+        restoreObj = this.database.getCollection(OBJRESTORE_TABLE);
+        if (restoreObj == null){
+            database.createCollection(OBJRESTORE_TABLE);
+            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+            restoreObj.createIndex(Indexes.ascending(OBJID, VERSIONID), new IndexOptions().unique(true));
+        }       
+        return restoreObj;
+    }
     
     private String getCurrentDateTime(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"); 
@@ -1573,5 +1603,53 @@ public class MongoDataRepository implements DataRepository{
             }  
         }
         return list;
+    }
+    
+    @Override
+    public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException{
+        MongoCollection<Document> objRestore = getRestoreObjCollection();
+        
+        if (request == null)
+            return -1;
+        
+        if (request.isEmpty())
+            return -1;
+         
+        if (objRestore == null){
+            //throw new SQLException("[insertRestoreObjectRequest] mongo db holder for restore objects  not found!");
+            return -1;
+        }
+        
+        Document doc = new Document(BUCKETNAME, bucketName);        
+        doc.append(OBJID, objId);
+        doc.append(OBJKEY, key);
+        doc.append(VERSIONID, versionId);
+        doc.append(OBJRESTORE_REQUEST, request);
+        objRestore.insertOne(doc);
+    
+        return 0;
+    }
+    
+    @Override
+    public String getRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException{
+        MongoCollection<Document> objRestore;
+        String request=null;
+        
+        objRestore = getRestoreObjCollection();
+        FindIterable<Document> oit = objRestore.find(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+        Iterator it = oit.iterator();
+        if((it.hasNext())){
+            Document doc = (Document)it.next();
+            request      = doc.getString(OBJRESTORE_REQUEST);
+        }
+        return request; 
+    }
+    
+    @Override
+    public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException{
+        MongoCollection<Document> objRestore;
+               
+        objRestore = getRestoreObjCollection();
+        objRestore.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
     }
 }

@@ -1624,6 +1624,158 @@
 			<column name="" />
 		</property>
 	</class>
+	<class name="S3Logging" entity-set="S3Loggings" table="S3LOGGING" p1:Guid="52fc09c5-6d3e-4fa6-974e-7a3ab3851447">
+		<Documentation>
+			<Summary>ksanGW 로그</Summary>
+		</Documentation>
+		<id name="Id" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ce6a58ad-2095-47f5-ac06-5f5c55d7ebb1">
+			<Documentation>
+				<Summary>아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="UserName" type="String" p1:ValidateRequired="true" p1:Guid="a1f90e45-64c0-4ee5-ab94-f831b9e4ae9e">
+			<Documentation>
+				<Summary>유저명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="BucketName" type="String" p1:ValidateRequired="true" p1:Guid="c4720e26-9370-4cf5-b8dd-c6d00f083246">
+			<Documentation>
+				<Summary>버킷명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="InDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="7f065b6b-dff0-4be4-ab05-343620674201">
+			<Documentation>
+				<Summary>발생시각</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RemoteHost" type="String" p1:ValidateRequired="true" p1:Guid="8a7cfae9-ab2a-4297-bdc8-ba2c1ee15840">
+			<Documentation>
+				<Summary>원격 호스트</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="RequestUser" type="String" p1:ValidateRequired="true" p1:Guid="d795b0b3-ab7f-41ea-be07-e95a09b28343">
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="RequestId" type="String" p1:ValidateRequired="true" p1:Guid="1eb00eb9-62d4-49ca-adb2-ac170043eb51">
+			<Documentation>
+				<Summary>요청 아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="Operation" type="String" p1:ValidateRequired="true" p1:Guid="b8a2868e-02e8-4468-b669-de6ec9ff8614">
+			<Documentation>
+				<Summary>API 명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="ObjectName" type="String" p1:ValidateRequired="true" p1:Guid="57b672f8-a1d9-4799-b9ce-4480138b117a">
+			<Documentation>
+				<Summary>오브젝트명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(2048)" />
+		</property>
+		<property name="RequestUri" type="String" p1:ValidateRequired="true" p1:Guid="e1c8e1da-b824-49f6-a26e-b0ebc6415f60">
+			<Documentation>
+				<Summary>요청URI</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(2048)" />
+		</property>
+		<property name="StatusCode" type="Int32" p1:ValidateRequired="true" p1:Guid="a64efb5e-bd92-48c4-b5ef-e49422f8ddc7">
+			<Documentation>
+				<Summary>상태코드</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ErrorCode" type="String" p1:ValidateRequired="true" p1:Guid="69ecd0c9-9c78-4a0c-85df-a38e57478f32">
+			<Documentation>
+				<Summary>에러코드</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="ResponseLength" type="Int64" p1:ValidateRequired="true" p1:Guid="f2347512-3b7c-4664-8a87-1ffcea5d8c0a">
+			<Documentation>
+				<Summary>응답 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ObjectLength" type="Int64" p1:ValidateRequired="true" p1:Guid="459c10c4-d761-4ffb-ae22-3a69bde90d94">
+			<Documentation>
+				<Summary>오브젝트 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="TotalTime" type="Int64" p1:ValidateRequired="true" p1:Guid="0ad8a140-96f7-4fe8-a394-5d8f1f9db894">
+			<Documentation>
+				<Summary>총 소요시간</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RequestLength" type="Int64" p1:ValidateRequired="true" p1:Guid="452a458c-6dcf-4106-8e89-786075b756e9">
+			<Documentation>
+				<Summary>요청 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Rererer" type="String" p1:ValidateRequired="true" p1:Guid="5aadfa75-ba8d-45dd-83d3-fbb0b8972786">
+			<Documentation>
+				<Summary>참조</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="UserAgent" type="String" p1:ValidateRequired="true" p1:Guid="390c6866-2510-4c6c-9248-0c0bcb3fefce">
+			<Documentation>
+				<Summary>대리인</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="VersionId" type="String" p1:ValidateRequired="true" p1:Guid="931ab459-7383-4ca7-8493-04ae3a61e510">
+			<Documentation>
+				<Summary>버전아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="HostId" type="String" p1:ValidateRequired="true" p1:Guid="7e83dc14-0bc7-40f9-b54b-9af281ec2e15">
+			<Documentation>
+				<Summary>호스트아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="Sign" type="String" p1:ValidateRequired="true" p1:Guid="bc365d04-f299-47bd-afa4-a4e6ba83fb9e">
+			<Documentation>
+				<Summary>사인</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+		<property name="SslGroup" type="String" p1:ValidateRequired="true" p1:Guid="af16885c-98e1-46f3-b82f-90a149140c7b">
+			<Documentation>
+				<Summary>SSL 그륩</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="SignType" type="String" p1:ValidateRequired="true" p1:Guid="8b278a50-d284-44b9-8070-631c777bdcfa">
+			<Documentation>
+				<Summary>사인 종류</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+		<property name="Endpoint" type="String" p1:ValidateRequired="true" p1:Guid="0e2a6c34-bd01-4940-a0fd-4ee9afbc3da0">
+			<Documentation>
+				<Summary>엔드포인트</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="TlsVersion" type="String" p1:ValidateRequired="true" p1:Guid="9634a617-3aff-4a49-a681-1b38c96bed04">
+			<Documentation>
+				<Summary>TLS 버전</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+	</class>
 	<associations>
 		<association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
 			<end1 multiplicity="One" name="Service" class="ServiceNetworkInterfaceVlan" relation-class="Service" constrained="True" lazy="False" p1:Guid="bb0c2d17-10ca-44ed-9c5c-fa47ed882f4e">

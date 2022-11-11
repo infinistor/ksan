@@ -48,7 +48,7 @@ public class S3LogReceiver implements MQCallback {
 			var db = DBManager.getInstance();
 
 			// DB에 저장
-			db.InsertLogging(event);
+			db.insertLogging(event);
 
 		} catch (Exception e) {
 			logger.error("", e);

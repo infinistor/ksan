@@ -67,15 +67,15 @@ public class MongoDBManager implements IDBManager {
 
 	/***************************** Insert *****************************/
 
-	public boolean InsertLogging(S3LogData data) {
+	public boolean insertLogging(S3LogData data) {
 		return Insert(LoggingQuery.DB_TABLE_NAME, LoggingQuery.getInsertDocument(data));
 	}
 
-	public boolean InsertReplicationLog(ReplicationLogData data) {
+	public boolean insertReplicationLog(ReplicationLogData data) {
 		return Insert(ReplicationLogQuery.DB_TABLE_NAME, ReplicationLogQuery.getInsertDocument(data));
 	}
 
-	public boolean InsertLifecycleLog(LifecycleLogData data) {
+	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return Insert(LifecycleLogQuery.DB_TABLE_NAME, LifecycleLogQuery.getInsertDocument(data));
 	}
 

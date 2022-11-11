@@ -40,6 +40,7 @@ public class ObjManager {
     private BucketManager bucketMGT;
     private Objects objectMGT;
     private ObjTagsIndexing objectIndexing;
+    private RestoreObjects restoreObj;
     
     private static Logger logger;
    
@@ -67,6 +68,8 @@ public class ObjManager {
         objectMGT = new Objects(dbm, dAlloc, obmCache, bucketMGT);
         
         objectIndexing = new ObjTagsIndexing(bucketMGT, objectMGT);
+        
+        restoreObj = new RestoreObjects(dbm);
     }
     
     public ObjManager() throws Exception {
@@ -393,6 +396,10 @@ public class ObjManager {
     
     public ObjTagsIndexing getObjectTagsIndexing(){
         return this.objectIndexing;
+    }
+    
+    public RestoreObjects getRestoreObjects(){
+        return this.restoreObj;
     }
     
     // for pool

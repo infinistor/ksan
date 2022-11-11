@@ -48,7 +48,7 @@ public class ReplicationLogReceiver implements MQCallback {
 			var db = DBManager.getInstance();
 
 			//DB에 저장
-			db.InsertReplicationLog(event);
+			db.insertReplicationLog(event);
 
 		} catch (Exception e) {
 			logger.error("", e);
