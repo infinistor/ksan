@@ -77,7 +77,8 @@ final public class S3Signature {
             GWConstants.PARAMETER_CORS,
             GWConstants.PARAMETER_TAGGING,
             GWConstants.PARAMETER_REPLICATION,
-            GWConstants.PARAMETER_DELETE
+            GWConstants.PARAMETER_DELETE,
+            GWConstants.PARAMETER_TAG_INDEX
     );
 
     S3Signature() { 
@@ -340,7 +341,7 @@ final public class S3Signature {
         }
 
         logger.info(canonicalRequest);
-       
+
         return getMessageDigest(
                 canonicalRequest.getBytes(StandardCharsets.UTF_8),
                 hashAlgorithm);

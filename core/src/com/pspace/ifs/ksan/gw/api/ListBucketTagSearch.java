@@ -65,10 +65,17 @@ public class ListBucketTagSearch extends S3Request {
 		}
 
 		String encodingType = dataListBucketTagSearch.getEncodingType();
+		String maxKeys = dataListBucketTagSearch.getMaxkeys();
+		int max = 1000;
+
+		if (!Strings.isNullOrEmpty(maxKeys)) {
+			max = Integer.parseInt(maxKeys);
+		}
+
 		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
-		List<Metadata> tagList = listBucketTags(bucket, dataListBucketTagSearch.getTag(), 1000);
+		List<Metadata> tagList = listBucketTags(bucket, dataListBucketTagSearch.getTag(), max);
 
 		logger.info("tag : {}", dataListBucketTagSearch.getTag());
 		logger.info("tagList count : {}", tagList.size());

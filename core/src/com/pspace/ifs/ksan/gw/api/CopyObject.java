@@ -413,15 +413,29 @@ public class CopyObject extends S3Request {
         versioningStatus = getBucketVersioning(bucket);
 
 		String versionId = null;
-		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
-			versionId = String.valueOf(System.nanoTime());
-		} else {
-			versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+		Metadata objMeta = null;
+		try {
+			// check exist object
+			objMeta = open(bucket, object);
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+			}
+		} catch (GWException e) {
+			logger.info(e.getMessage());
+			// reset error code
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
+			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
+				versionId = String.valueOf(System.nanoTime());
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
+			} else {
+				versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+				objMeta = createLocal(diskpoolId, bucket, object, versionId);
+			}
 		}
-		s3Parameter.setVersionId(versionId);
 
-		Metadata objMeta = createLocal(diskpoolId, bucket, object, versionId);
-		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
+		s3Parameter.setVersionId(versionId);
 
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.copyObject(srcMeta, srcEncryption);

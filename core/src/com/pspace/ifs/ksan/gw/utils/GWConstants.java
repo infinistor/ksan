@@ -475,6 +475,7 @@ public final class GWConstants {
 	public static final String X_AMZ_COPY_SOURCE_RANGE = "x-amz-copy-source-range";
 	public static final String X_AMZ_VERSION_ID = "x-amz-version-id";
 	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
+	public static final String X_AMZ_SDK_CHECKSUM_ALGORITHM = "x-amz-sdk-checksum-algorithm";
 
 	public static final String USER_METADATA_PREFIX = "x-amz-meta-";
 
@@ -1274,6 +1275,9 @@ public final class GWConstants {
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE = "copySource : {}";
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE_RANGE = "copy source range : {}, file size : {}";
 
+	// RestoreObject
+	public static final String LOG_RESTORE_OBJECT_START = "RestoreObject ...";
+
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
 
@@ -1351,11 +1355,11 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
-	public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
-	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
-	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
-	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
-	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
+	// public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+	// public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	// public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	// public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+	// public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 	public static final String LOG_S3OBJECT_OPERATION_FILE_SIZE = "get obeject file size : {}";
 	public static final String LOG_S3OBJECT_OPERATION_RANGE = "offset : {}, length : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJECT_PRIMARY_INFO = "obj primary : {}";

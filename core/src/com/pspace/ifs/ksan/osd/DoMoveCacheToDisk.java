@@ -26,7 +26,7 @@ public class DoMoveCacheToDisk implements Runnable {
 
     @Override
     public void run() {
-        logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
+        // logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
         recursiveMove(OSDConfig.getInstance().getCacheDiskpath());
     }
     

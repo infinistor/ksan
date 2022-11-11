@@ -54,6 +54,7 @@ import com.pspace.ifs.ksan.libs.OSDClient;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledExecutorService;
 
+import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.slf4j.Logger;
@@ -586,7 +587,7 @@ public class OSDServer {
                                         + OsdData.DELIMITER + replicaDiskID;
                         logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_RELAY_OSD, destIP, header);
                         sendHeader(destSocket, header);
-                        MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
+                        MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5, new OpenSSL4JProvider());
     
                         int readLength = 0;
                         while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
@@ -732,7 +733,7 @@ public class OSDServer {
                 return;
             }
 
-            MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
+            MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5, new OpenSSL4JProvider());
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File srcFile = new File(OSDUtils.getInstance().makeObjPath(srcPath, srcObjId, srcVersionId));
             long remainLength = 0L;
@@ -819,13 +820,13 @@ public class OSDServer {
             logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_INFO, path, objId, versionId, key, partInfos);
             
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-            MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5);
+            MessageDigest md5er = MessageDigest.getInstance(OSDConstants.MD5, new OpenSSL4JProvider());
             long totalLength = 0L;
             long existFileSize = 0L;
             long putSize = 0L;
             long calSize = 0L;
             CtrCryptoOutputStream encryptOS = null;
-            CtrCryptoInputStream encryptIS = null;
+            // CtrCryptoInputStream encryptIS = null;
             String eTag;
             
             String[] arrayPartInfo = partInfos.split(OSDConstants.COMMA);
@@ -882,9 +883,9 @@ public class OSDServer {
                             }
     
                             try (FileInputStream fis = new FileInputStream(partFile)) {
-                                encryptIS = OSDUtils.initCtrDecrypt(fis, key);
+                                // encryptIS = OSDUtils.initCtrDecrypt(fis, key);
                                 int readLength = 0;
-                                while ((readLength = encryptIS.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
+                                while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
                                     totalLength += readLength;
                                     encryptOS.write(buffer, 0, readLength);
                                     md5er.update(buffer, 0, readLength);

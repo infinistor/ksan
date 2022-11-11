@@ -41,6 +41,7 @@ public class S3User {
     private String userEmail;
 	private String accessKey;
 	private String accessSecret;
+    private String azureKey;
     private List<HashMap<String, String>> userDiskPools;
 
     public S3User() {
@@ -49,6 +50,7 @@ public class S3User {
         userEmail = "";
         accessKey = "";
         accessSecret = "";
+        azureKey = "";
         userDiskPools = new ArrayList<HashMap<String, String>>();
     }
 
@@ -58,6 +60,7 @@ public class S3User {
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes()));
         userDiskPools = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < diskpools.size(); i++) {
             JSONObject item = (JSONObject)diskpools.get(i);
@@ -98,6 +101,7 @@ public class S3User {
 
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes()));
     }
 
     public String getAccessSecret() {
@@ -106,6 +110,10 @@ public class S3User {
 
     public void setAccessSecret(String accessSecret) {
         this.accessSecret = accessSecret;
+    }
+
+    public String getAzureKey() {
+        return Strings.nullToEmpty(azureKey);
     }
 
     public List<HashMap<String, String>> getUserDiskpools() {

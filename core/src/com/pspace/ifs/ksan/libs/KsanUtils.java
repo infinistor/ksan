@@ -15,6 +15,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 
 import com.google.common.base.Strings;
 
@@ -73,5 +80,51 @@ public class KsanUtils {
             }
             logger.error(LOG_OSD_SERVER_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
         }
+    }
+
+    public static void setAttributeFileReplication(File file, String replica, String diskID) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        try {
+            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(replica));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(diskID));
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+        }
+    }
+
+    public static String getAttributeFileReplication(File file) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        ByteBuffer buf = null;
+        try {
+            buf = ByteBuffer.allocateDirect(view.size(Constants.FILE_ATTRIBUTE_REPLICATION));
+            view.read(Constants.FILE_ATTRIBUTE_REPLICATION, buf);
+            buf.flip();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            logger.error(iae.getMessage());
+        } catch (SecurityException e) {
+            logger.error(e.getMessage());
+        }
+
+        return Charset.defaultCharset().decode(buf).toString();
+    }
+
+    public static String getAttributeFileReplicaDiskID(File file) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        ByteBuffer buf = null;
+        try {
+            buf = ByteBuffer.allocateDirect(view.size(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID));
+            view.read(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
+            buf.flip();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            logger.error(iae.getMessage());
+        } catch (SecurityException e) {
+            logger.error(e.getMessage());
+        }
+
+        return Charset.defaultCharset().decode(buf).toString();
     }
 }
