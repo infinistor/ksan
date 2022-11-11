@@ -144,4 +144,16 @@ public final class DataRepositoryQuery {
     public static String deleteTagIndexingQuery1 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=?";
     public static String deleteTagIndexingQuery2 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=? AND TagKey=?";
     public static String selectTagIndexingQuery = "SELECT objid, versionid, TagKey, TagValue FROM %s_ObjTagIndex WHERE %s";
+    
+    // for restore objects
+    public  static String createRestoreObjectsQuery= "CREATE TABLE IF NOT EXISTS RESTOREOBJECTS("
+            + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+            + " objKey VARBINARY(2048) COMMENT 'Object key',"
+            + " objid VARCHAR(50) NOT NULL, "
+            + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
+            + " request TEXT,"
+            + " PRIMARY KEY(objid, versionid)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+    public static String insertRestoreObjectsQuery = "INSERT INTO RESTOREOBJECTS(bucket, objKey, objid, versionid, request) VALUES(?, ?, ?, ?, ?)";
+    public static String selectRestoreObjectsQuery = "SELECT request FROM RESTOREOBJECTS WHERE objid=? AND versionid=?";
+    public static String deleteRestoreObjectsQuery = "DELETE FROM RESTOREOBJECTS WHERE objid=? AND versionid=?";
 }

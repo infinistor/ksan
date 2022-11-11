@@ -89,13 +89,11 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstSelectUJob;
     
     
-    // for LifeCycle
-    //private PreparedStatement pstCreateLifeCycle;
-   // private PreparedStatement pstInsertLifeCycle;
-    //private PreparedStatement pstSelectLifeCycle;
-    //private PreparedStatement pstSelectByUploadIdLifeCycle;
-    //private PreparedStatement pstSelectAllLifeCycle;
-    //private PreparedStatement pstDeleteLifeCycle;
+    // for restore object
+    private PreparedStatement pstCreateRestoreObjects;
+    private PreparedStatement pstInsertRestoreObjects;
+    private PreparedStatement pstSelectRestoreObjects;
+    private PreparedStatement pstDeleteRestoreObjects;
             
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname) throws SQLException{
         this.obmCache = obmCache;
@@ -152,12 +150,10 @@ public class MysqlDataRepository implements DataRepository{
             pstSelectUJob = con.prepareStatement(DataRepositoryQuery.selectUJobQuery);
 
             // for LifeCycle
-            //pstCreateLifeCycle = con.prepareStatement(DataRepositoryQuery.createLifeCycleQuery);
-            //pstInsertLifeCycle = con.prepareStatement(DataRepositoryQuery.insertLifeCycleQuery);
-            //pstSelectLifeCycle = con.prepareStatement(DataRepositoryQuery.selectLifeCycleQuery);
-            //pstSelectByUploadIdLifeCycle = con.prepareStatement(DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
-            //pstSelectAllLifeCycle = con.prepareStatement(DataRepositoryQuery.selectAllLifeCycleQuery);
-            //pstDeleteLifeCycle = con.prepareStatement(DataRepositoryQuery.deleteLifeCycleQuery);
+            pstCreateRestoreObjects = con.prepareStatement(DataRepositoryQuery.createRestoreObjectsQuery);
+            pstInsertRestoreObjects = con.prepareStatement(DataRepositoryQuery.insertRestoreObjectsQuery);
+            pstSelectRestoreObjects = con.prepareStatement(DataRepositoryQuery.selectRestoreObjectsQuery);
+            pstDeleteRestoreObjects = con.prepareStatement(DataRepositoryQuery.deleteRestoreObjectsQuery);
             
         } catch(SQLException ex){
             this.ex_message(ex);
@@ -214,6 +210,7 @@ public class MysqlDataRepository implements DataRepository{
         pstCreateUJob.execute();
         //pstCreateLifeCycle.execute();
         createLifeCycleEventTables();
+        createRestoreObjectTable();
         return 0;
     }
     
@@ -1555,5 +1552,61 @@ public class MysqlDataRepository implements DataRepository{
         PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.selectTagIndexingQuery + (String)query);  
         ResultSet rs = pstselectStmt.executeQuery();
         return parseSelectListObjectwithTags(bucketName, rs);
+    }
+
+    private void createRestoreObjectTable() throws SQLException{
+        pstCreateRestoreObjects.execute();
+    }
+    
+    private int insertRestoreObject(String bucketName, String objKey, String objId, String versionId, String request) throws SQLException {
+        
+        if (request == null)
+            return -1; // ignore
+
+        if (request.isEmpty())
+            return -1; // ignore
+
+        pstInsertRestoreObjects.clearParameters();
+        pstInsertRestoreObjects.setString(1, bucketName); 
+        pstInsertRestoreObjects.setString(2, objKey);
+        pstInsertRestoreObjects.setString(3, objId);
+        pstInsertRestoreObjects.setString(4, versionId);
+        pstInsertRestoreObjects.setString(5, request);
+        pstInsertRestoreObjects.execute();
+        return 0;    
+    }
+    
+    private int removeRestoreObject(String bucketName, String objId, String versionId) throws SQLException{
+        pstDeleteRestoreObjects.clearParameters();
+        pstDeleteRestoreObjects.setString(1, objId);
+        pstDeleteRestoreObjects.setString(2, versionId);
+        return pstDeleteRestoreObjects.executeUpdate();
+    }
+    
+    private String selectRestoreObject(String bucketName, String objId, String versionId) throws SQLException{
+        String request = null;
+        pstSelectRestoreObjects.setString(1, objId);
+        pstSelectRestoreObjects.setString(2, versionId);
+        ResultSet rs = pstSelectRestoreObjects.executeQuery();
+        if (rs.next()){
+            request = rs.getString("request");
+        }
+   
+        return request;
+    }
+    
+    @Override
+    public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException {
+        return insertRestoreObject(bucketName, key, objId, versionId, request);
+    }
+
+    @Override
+    public String getRestoreObjectRequest(String bucketName, String objId, String versionId)  throws SQLException{
+         return selectRestoreObject(bucketName, objId, versionId);
+    }
+
+    @Override
+    public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId)  throws SQLException{
+         removeRestoreObject(bucketName, objId, versionId);
     }
 }

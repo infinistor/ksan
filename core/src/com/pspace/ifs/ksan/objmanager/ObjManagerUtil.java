@@ -32,6 +32,7 @@ public class ObjManagerUtil {
     private ObjManagerSharedResource omsr;
     private LifeCycleManagment lfm;
     private ObjMultipart multipart;
+    private RestoreObjects restoreObj;
     private static Logger logger;
     
     public ObjManagerUtil(ObjManagerConfig config) throws Exception{
@@ -53,7 +54,9 @@ public class ObjManagerUtil {
             lfm = new LifeCycleManagment(dbm);
             
             multipart = new ObjMultipart(dbm);
-             
+              
+            restoreObj = new RestoreObjects(dbm);
+            
             logger =  LoggerFactory.getLogger(ObjManagerUtil.class);
     }
     
@@ -259,5 +262,9 @@ public class ObjManagerUtil {
     public ObjMultipart getMultipartInsatance(String Bucket){
         multipart.setBucket(Bucket);
         return multipart;
+    }
+    
+    public RestoreObjects getRestoreObjects(){
+        return this.restoreObj;
     }
 }
