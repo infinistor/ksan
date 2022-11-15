@@ -27,6 +27,9 @@ namespace PortalData.Enums
 		OnePlusOne,
 		/// <summary> 1+2 </summary>
 		[Display(Name = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", Description = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", GroupName = "UL_DISKPOOL_REPLICA_TYPE", ShortName = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", Prompt = "UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_TWO", ResourceType = typeof(Resource))]
-		OnePlusTwo
+		OnePlusTwo,
+		/// <summary> Erasure Code </summary>
+		[Display(Name = "UL_DISKPOOL_REPLICA_TYPE_EC", Description = "UL_DISKPOOL_REPLICA_TYPE_EC", GroupName = "UL_DISKPOOL_REPLICA_TYPE", ShortName = "UL_DISKPOOL_REPLICA_TYPE_EC", Prompt = "UL_DISKPOOL_REPLICA_TYPE_EC", ResourceType = typeof(Resource))]
+		ErasureCode
 	}
 }

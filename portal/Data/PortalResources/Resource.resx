@@ -1913,4 +1913,8 @@
   <data name="ENV_DEFAULT_USER_SECRETKEY" xml:space="preserve">
     <value>DEFAULT_USER_SECRETKEY</value>
   </data>
+  <data name="UL_DISKPOOL_REPLICA_TYPE_EC" xml:space="preserve">
+    <value>EC</value>
+    <comment>ErasureCode</comment>
+  </data>
 </root>

@@ -8,28 +8,15 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using PortalData.Enums;
 namespace PortalData.Responses.Disks
 {
-	/// <summary>디스크 정보 응답 클래스</summary>
-	public class ResponseDiskPool : ResponseDataWithModifiedBy
+	/// <summary>디스크풀 DC 설정 정보</summary>
+	public class ResponseDiskPoolEC
 	{
-		/// <summary>디스크 Pool 아이디</summary>
-		public virtual string Id { get; set; }
+		/// <summary>원본 파일 등분 갯수</summary>
+		public int M { get; set; }
 
-		/// <summary>디스크 Pool 명</summary>
-		public virtual string Name { get; set; }
-
-		/// <summary>디스크 Pool 설명</summary>
-		public virtual string Description { get; set; }
-
-		/// <summary> 디스크풀 타입 </summary>
-		public EnumDiskPoolType DiskPoolType { get; set; }
-
-		/// <summary> 복제 타입 </summary>
-		public EnumDiskPoolReplicaType ReplicationType { get; set; }
-
-		/// <summary> EC 설정 정보 </summary>
-		public ResponseDiskPoolEC EC { get; set; } = new ResponseDiskPoolEC();
+		/// <summary>인코딩 갯수</summary>
+		public int K { get; set; }
 	}
 }

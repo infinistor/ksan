@@ -41,6 +41,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.DiskpoolEC.cs">
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.DiskUsage.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
