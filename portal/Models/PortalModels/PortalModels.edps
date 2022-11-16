@@ -36,6 +36,7 @@
 				<File Name="PortalModels.Region.cs" />
 				<File Name="PortalModels.ServiceEventLog.cs" />
 				<File Name="PortalModels.S3Logging.cs" />
+				<File Name="PortalModels.DiskPoolEC.cs" />
 				<File Name="PortalModels.EnumDbNetworkLinkState.cs" />
 				<File Name="PortalModels.EnumDbYesNo.cs" />
 				<File Name="PortalModels.EnumDbOnOff.cs" />

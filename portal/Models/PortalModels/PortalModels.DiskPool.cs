@@ -72,6 +72,8 @@ namespace PortalModels
 
 		public virtual IList<UserDiskPool> UserDiskPools { get; set; }
 
+		public virtual DiskPoolEC EC { get; set; }
+
 		#region Extensibility Method Definitions
 
 		partial void OnCreated();
