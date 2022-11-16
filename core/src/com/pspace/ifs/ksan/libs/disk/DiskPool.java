@@ -22,13 +22,19 @@ public class DiskPool {
     public static final String REPLICATION_TYPE_ONE_PLUS_ZERO = "OnePlusZero";
     public static final String REPLICATION_TYPE_ONE_PLUS_ONE = "OnePlusOne";
     public static final String REPLICATION_TYPE_ONE_PLUS_TWO = "OnePlusTwo";
+    public static final String REPLICATION_TYPE_ERASURE_CODE = "ErasureCode";
     public static final String SERVERS = "Servers";
+    public static final String EC = "EC";
+    public static final String EC_M = "M";
+    public static final String EC_K = "K";
 
     private String id;
     private String name;
     private String classTypeId; // "STANDARD", "ARCHIVE"
-    private String replicationType; // "OnePlusZero", "OnePlusOne", "OnePlusTwo"
+    private String replicationType; // "OnePlusZero", "OnePlusOne", "OnePlusTwo", "ErasureCode"
     private int replicaCount;
+    private int ecM;
+    private int ecK;
     private List<Server> serverList;
 
     public DiskPool() {
@@ -36,6 +42,8 @@ public class DiskPool {
         name = "";
         classTypeId = "";
         replicationType = "";
+        ecM = 0;
+        ecK = 0;
         serverList = new ArrayList<Server>();
     }
 
@@ -44,6 +52,18 @@ public class DiskPool {
         this.name = name;
         this.classTypeId = classTypeId;
         this.replicationType = replicationType;
+        ecM = 0;
+        ecK = 0;
+        serverList = new ArrayList<Server>();
+    }
+
+    public DiskPool(String id, String name, String classTypeId, String replicationType, int ecM, int ecK) {
+        this.id = id;
+        this.name = name;
+        this.classTypeId = classTypeId;
+        this.replicationType = replicationType;
+        this.ecM = ecM;
+        this.ecK = ecK;
         serverList = new ArrayList<Server>();
     }
 
@@ -84,6 +104,8 @@ public class DiskPool {
                 replicaCount = 1;
             } else if (this.replicationType.equalsIgnoreCase(REPLICATION_TYPE_ONE_PLUS_TWO)) {
                 replicaCount = 3;
+            } else if (this.replicationType.equalsIgnoreCase(REPLICATION_TYPE_ERASURE_CODE)) {
+                replicaCount = 2;
             } else {
                 replicaCount = 0;
             }
@@ -104,5 +126,13 @@ public class DiskPool {
 
     public int getReplicaCount() {
         return replicaCount;
+    }
+
+    public int getErasureCodeM() {
+        return ecM;
+    }
+
+    public int getErasureCodeK() {
+        return ecK;
     }
 }

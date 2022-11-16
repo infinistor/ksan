@@ -79,6 +79,8 @@ public class KsanUtils {
                 }
             }
             logger.error(LOG_OSD_SERVER_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
+        } else {
+            logger.info("{}, File does not exist. ", srcFile.getAbsolutePath());
         }
     }
 
