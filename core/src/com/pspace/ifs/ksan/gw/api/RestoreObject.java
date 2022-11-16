@@ -35,6 +35,7 @@ public class RestoreObject extends S3Request {
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_RESTORE_OBJECT_START);
 		String bucket = s3Parameter.getBucketName();
+        String object = s3Parameter.getObjectName();
 		initBucketInfo(bucket);
 
 		GWUtils.checkCors(s3Parameter);
@@ -43,12 +44,14 @@ public class RestoreObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		String object = s3Parameter.getObjectName();
-
         DataRestoreObject dataRestoreObject = new DataRestoreObject(s3Parameter);
         dataRestoreObject.extract();
         String versionId = dataRestoreObject.getVersionId();
         String restoreXml = dataRestoreObject.getRetoreXml();
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
+        }
+        logger.info("RestoreRequest : {}", restoreXml);
 
         Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -67,6 +70,8 @@ public class RestoreObject extends S3Request {
 				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 			}
 		}
+
+        insertRestoreObject(bucket, object, versionId, restoreXml);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_ACCEPTED);
 	}

@@ -77,6 +77,7 @@ public class S3RequestFactory {
 	private final String OP_POST_UPLOAD = "REST.POST.UPLOAD";
 	private final String OP_POST_COMPLETE = "REST.POST.COMPLETEUPLOAD";
 	private final String OP_POST_OBJECT = "REST.POST.OBJECT";
+	private final String OP_POST_RESTOREOBJECT = "REST.POST.RESTOREOBJECT";
 
 	private final String OP_PUT_WEBSITE = "REST.PUT.WEBSITE";
 	private final String OP_PUT_POLICY = "REST.PUT.POLICY";
@@ -359,6 +360,9 @@ public class S3RequestFactory {
 						s3Parameter.setOperation(OP_POST_COMPLETE);
 						return new CompleteMultipartUpload(s3Parameter);
 					}
+				} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_RESTORE) != null) {
+					s3Parameter.setOperation(OP_POST_RESTOREOBJECT);
+					return new RestoreObject(s3Parameter);
 				}
 
 				if (s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE) != null && 

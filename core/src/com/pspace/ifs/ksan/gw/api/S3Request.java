@@ -1368,6 +1368,26 @@ public abstract class S3Request {
 		}
 	}
 
+	protected void insertRestoreObject(String bucket, String object, String versionId, String restoreXml) throws GWException {
+		try {
+			setObjManager();
+			objManager.getRestoreObjects().insertRequest(bucket, object, versionId, restoreXml);
+		} catch (ResourceNotFoundException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		} finally {
+			try {
+				releaseObjManager();
+			} catch (Exception e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+	}
+
 	protected List<S3BucketSimpleInfo> listBucketSimpleInfo(String userName, String userId) throws GWException {
 		List<S3BucketSimpleInfo> bucketList = null;
 		try {
