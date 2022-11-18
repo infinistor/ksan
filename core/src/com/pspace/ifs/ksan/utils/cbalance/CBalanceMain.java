@@ -159,7 +159,7 @@ public class CBalanceMain {
             return 0;
         
         
-        if (!bucketName.isEmpty() && (!key.isEmpty() || !objId.isEmpty()) && !SrcDiskName.isEmpty())
+        if ((!bucketName.isEmpty() && (!key.isEmpty()) || (!objId.isEmpty()) && !SrcDiskName.isEmpty()))
             return 0;
 
         if (emptyDisk && !SrcDiskName.isEmpty())
