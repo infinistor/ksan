@@ -553,10 +553,24 @@ public class GWPortal {
 
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), 
-													 (String)item.get(DiskPool.NAME), 
-													 (String)item.get(DiskPool.DISK_POOL_TYPE), 
-													 (String)item.get(DiskPool.REPLICATION_TYPE));
+					JSONObject jsonEC = (JSONObject)item.get(DiskPool.EC);
+					
+					DiskPool diskPool = null;
+					if (jsonEC != null) {
+						logger.info("jsonEC : {}", jsonEC.toString());
+						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
+														 (String)item.get(DiskPool.NAME), 
+														 (String)item.get(DiskPool.DISK_POOL_TYPE), 
+														 (String)item.get(DiskPool.REPLICATION_TYPE),
+														 (int)(long)jsonEC.get(DiskPool.EC_M),
+														 (int)(long)jsonEC.get(DiskPool.EC_K));
+					} else {
+						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
+														 (String)item.get(DiskPool.NAME), 
+														 (String)item.get(DiskPool.DISK_POOL_TYPE), 
+														 (String)item.get(DiskPool.REPLICATION_TYPE));
+					}
+					
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					if (jsonServers != null && jsonServers.size() == 0) {
 						logger.info("diskpools -- servers is empty");
@@ -653,41 +667,6 @@ public class GWPortal {
 			throw new RuntimeException(e);
 		}
 	}
-
-	// public S3User getS3User(String id) {
-	// 	try {
-	// 		HttpClient client = HttpClients
-    //             .custom()
-    //             .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
-    //             .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-    //             .build();
-								
-	// 		HttpGet getRequest = new HttpGet(GWConstants.HTTPS + agentConfig.getPortalIp() + GWConstants.COLON + agentConfig.getPortalPort() + GWConstants.PORTAL_REST_API_KSAN_USERS + GWConstants.SLASH + id);
-	// 		getRequest.addHeader(GWConstants.AUTHORIZATION, agentConfig.getPortalKey());
-
-	// 		HttpResponse response = client.execute(getRequest);
-	// 		if (response.getStatusLine().getStatusCode() == 200) {
-	// 			ResponseHandler<String> handler = new BasicResponseHandler();
-	// 			String body = handler.handleResponse(response);
-	// 			JSONParser parser = new JSONParser();
-    //             JSONObject jsonObject = (JSONObject)parser.parse(body);
-    //             JSONObject jsonData = (JSONObject)jsonObject.get(S3User.DATA);
-	// 			JSONArray jsonUserDiskpools = (JSONArray)jsonData.get(S3User.USER_DISK_POOLS);
-	// 			S3User user = new S3User((String)jsonData.get(S3User.USER_ID), 
-	// 									 (String)jsonData.get(S3User.USER_NAME), 
-	// 									 (String)jsonData.get(S3User.USER_EMAIL), 
-	// 									 (String)jsonData.get(S3User.ACCESS_KEY), 
-	// 									 (String)jsonData.get(S3User.ACCESS_SECRET),
-	// 									 jsonUserDiskpools);
-	// 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_DATA, user.getUserId(), user.getUserName(), user.getUserEmail(), user.getAccessKey(), user.getAccessSecret());
-	// 			return user;
-	// 		}
-	// 		throw new RuntimeException(new RuntimeException());
-	// 	} catch (Exception e) {
-	// 		PrintStack.logging(logger, e);
-	// 		throw new RuntimeException(e);
-	// 	}
-	// }
 
 	public void getS3Regions() {
 		try {

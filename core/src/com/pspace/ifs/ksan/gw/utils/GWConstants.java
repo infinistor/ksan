@@ -288,6 +288,7 @@ public final class GWConstants {
 	public static final String PARAMETER_COPY_SOURCE = "x-amz-copy-source";
 	public static final String PARAMETER_TORRENT = "torrent";
 	public static final String PARAMETER_VERSION_ID = "versionId";
+	public static final String PARAMETER_RESTORE = "restore";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";

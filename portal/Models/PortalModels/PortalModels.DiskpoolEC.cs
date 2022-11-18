@@ -18,12 +18,30 @@ using System.Linq.Expressions;
 
 namespace PortalModels
 {
-	/// <summary> 디스크풀 복제 설정 </summary>
-	public enum EnumDbDiskPoolReplicaType : int
+	/// <summary> 디스크풀 EC 설정 </summary>
+	public partial class DiskPoolEC
 	{
-		OnePlusZero = 1,
-		OnePlusOne,
-		OnePlusTwo,
-		ErasureCode
+
+		public DiskPoolEC()
+		{
+			OnCreated();
+		}
+
+		public virtual Guid DiskPoolId { get; set; }
+
+		/// <summary> 원본 파일 등분 갯수 </summary>
+		public virtual int M { get; set; }
+
+		/// <summary> 인코딩 갯수 </summary>
+		public virtual int K { get; set; }
+
+		public virtual DiskPool DiskPool { get; set; }
+
+		#region Extensibility Method Definitions
+
+		partial void OnCreated();
+
+		#endregion
 	}
+
 }

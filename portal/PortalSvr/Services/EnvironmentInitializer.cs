@@ -61,18 +61,6 @@ namespace PortalSvr.Services
 		public static readonly string KEY_PASSWORD = "Password";
 		#endregion
 		#region KsanGW
-		/// <summary> GW Repository </summary>
-		public static readonly string KEY_GW_DB_REPOSITORY = "gw.db_repository";
-		/// <summary> GW DB 호스트 </summary>
-		public static readonly string KEY_GW_DB_HOST = "gw.db_host";
-		/// <summary> GW DB 포트 </summary>
-		public static readonly string KEY_GW_DB_PORT = "gw.dbPort";
-		/// <summary> GW DB 명 </summary>
-		public static readonly string KEY_GW_DB_NAME = "gw.db_name";
-		/// <summary> GW DB 아이디 </summary>
-		public static readonly string KEY_GW_DB_USER = "gw.db_user";
-		/// <summary> GW DB 비밀번호 </summary>
-		public static readonly string KEY_GW_DB_PASSWORD = "gw.db_password";
 		/// <summary> GW keystore 파일 경로 </summary>
 		public static readonly string KEY_GW_KEYSTONE_FILE_PATH = "gw.keystore_path";
 		/// <summary> GW keystore 비밀번호 </summary>
@@ -228,7 +216,6 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
-				KsanGW[KEY_GW_DB_NAME] = DatabaseName;
 				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
@@ -319,14 +306,6 @@ namespace PortalSvr.Services
 				KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
 				KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
 			}
-
-			// KsanGW DB 설정
-			KsanGW[KEY_GW_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-			KsanGW[KEY_GW_DB_HOST] = MariaDBHost;
-			KsanGW[KEY_GW_DB_PORT] = MariaDBPort;
-			KsanGW[KEY_GW_DB_NAME] = DatabaseName;
-			KsanGW[KEY_GW_DB_USER] = MariaDBUser;
-			KsanGW[KEY_GW_DB_PASSWORD] = MariaDBPassword;
 
 			//KsanGW KeyStone
 			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_FILE_PATH, out string GWKeystoneFilePath))

@@ -3922,6 +3922,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   EC과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKPOOL_REPLICA_TYPE_EC {
+            get {
+                return ResourceManager.GetString("UL_DISKPOOL_REPLICA_TYPE_EC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   1+1과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string UL_DISKPOOL_REPLICA_TYPE_ONE_PULS_ONE {

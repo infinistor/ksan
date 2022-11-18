@@ -113,6 +113,8 @@ namespace PortalModels
 
 		public virtual DbSet<S3Logging> S3Loggings { get; set; }
 
+		public virtual DbSet<DiskPoolEC> DiskPoolECs { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
@@ -209,6 +211,9 @@ namespace PortalModels
 
 			this.S3LoggingMapping(modelBuilder);
 			this.CustomizeS3LoggingMapping(modelBuilder);
+
+			this.DiskPoolECMapping(modelBuilder);
+			this.CustomizeDiskPoolECMapping(modelBuilder);
 
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
@@ -848,6 +853,21 @@ namespace PortalModels
 
 		#endregion
 
+		#region DiskPoolEC Mapping
+
+		private void DiskPoolECMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<DiskPoolEC>().ToTable(@"DISK_POOL_ECS");
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.M).HasColumnName(@"M").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.K).HasColumnName(@"K").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().HasKey(@"DiskPoolId");
+		}
+
+		partial void CustomizeDiskPoolECMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
 		private void RelationshipsMapping(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.Server).WithMany(op => op.NetworkInterfaces).HasForeignKey(@"ServerId").IsRequired(true);
@@ -926,6 +946,7 @@ namespace PortalModels
 
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
+			modelBuilder.Entity<DiskPool>().HasOne(x => x.EC).WithOne(op => op.DiskPool).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(false);
 
 			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
@@ -941,6 +962,8 @@ namespace PortalModels
 			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceEventLog>().HasOne(x => x.Service).WithMany(op => op.ServiceEventLogs).HasForeignKey(@"Id").IsRequired(true);
+
+			modelBuilder.Entity<DiskPoolEC>().HasOne(x => x.DiskPool).WithOne(op => op.EC).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(true);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);

@@ -57,6 +57,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
+import com.pspace.ifs.ksan.libs.KsanUtils;
 
 import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
@@ -674,6 +675,7 @@ public class S3ObjectOperation {
                             retryRenameTo(tempFile, trashPrimary);
                         }
 
+                        KsanUtils.setAttributeFileReplication(tmpFilePrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
                         // if (objMeta.getReplicaDisk() != null && !Strings.isNullOrEmpty(objMeta.getReplicaDisk().getId())) {
                         //     setAttributeFileReplication(tmpFilePrimary, GWConstants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, objMeta.getReplicaDisk().getId());
                         // } else {
