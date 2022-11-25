@@ -1,0 +1,12 @@
+[Unit]
+Description=KSAN Replication Manager Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a ksan-replication-manager
+ExecStop=/usr/bin/docker stop -t 2 ksan-replication-manager
+
+[Install]
+WantedBy=multi-user.target

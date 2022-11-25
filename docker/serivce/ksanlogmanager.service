@@ -5,8 +5,8 @@ After=docker.service
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/docker start -a ksan-logmanager
-ExecStop=/usr/bin/docker stop -t 2 ksan-logmanager
+ExecStart=/usr/bin/docker start -a ksan-log-manager
+ExecStop=/usr/bin/docker stop -t 2 ksan-log-manager
 
 [Install]
 WantedBy=multi-user.target
