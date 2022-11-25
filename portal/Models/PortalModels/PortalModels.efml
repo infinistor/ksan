@@ -50,10 +50,9 @@
 			<Member Name="ksanOSD" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
 			<Member Name="ksanGW" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
 			<Member Name="ksanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
-			<Member Name="ksanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
-			<Member Name="ksanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
+			<Member Name="ksanLifecycleManager" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
+			<Member Name="ksanReplicationManager" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
 			<Member Name="ksanLogManager" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
-			<Member Name="ksanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>
@@ -1192,25 +1191,6 @@
 			<column name="" />
 		</property>
 	</class>
-	<class name="ServiceDisk" entity-set="ServiceDisks" p1:Guid="877659ce-b722-4da3-8feb-01dd6028c715">
-		<Documentation>
-			<Summary>서비스 사용 디스크 정보</Summary>
-		</Documentation>
-		<composite-id>
-			<key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="72a45164-2db7-4a0a-80de-5730034ab0e1">
-				<Documentation>
-					<Summary>서비스 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-			<key-property name="DiskId" type="Guid" p1:ValidateRequired="true" p1:Guid="16897381-f09a-4d44-9232-2f33d919a58e">
-				<Documentation>
-					<Summary>디스크 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-		</composite-id>
-	</class>
 	<class name="DiskPool" entity-set="DiskPools" p1:Guid="ea6bfc23-fbe0-4269-a7fc-b996a1572ffb">
 		<Documentation>
 			<Summary>디스크 Pool 정보</Summary>
@@ -2091,7 +2071,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="Server_Disk" cardinality="OneToMany" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
+		<association name="Server_Disk" cardinality="OneToMany" on-delete="Restrict" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
 			<end1 multiplicity="One" name="Server" class="Disk" relation-class="Server" constrained="True" lazy="False" p1:Guid="a92818b6-8f39-4f11-99eb-452a48615d7e">
 				<Documentation>
 					<Summary>서버 정보</Summary>
@@ -2103,34 +2083,6 @@
 					<Summary>디스크 목록</Summary>
 				</Documentation>
 				<property name="ServerId" />
-			</end2>
-		</association>
-		<association name="Service_ServiceDisk" cardinality="OneToMany" p1:Guid="a4478423-7385-4fc1-b845-9cdb8f97ad93">
-			<end1 multiplicity="One" name="Service" class="ServiceDisk" relation-class="Service" constrained="True" lazy="False" p1:Guid="1607eab9-d9af-4464-b61d-1c26f0cd3e78">
-				<Documentation>
-					<Summary>서비스 정보</Summary>
-				</Documentation>
-				<property name="Id" />
-			</end1>
-			<end2 multiplicity="Many" name="ServiceDisks" class="Service" relation-class="ServiceDisk" lazy="False" p1:Guid="f459e10a-8674-4147-b301-735c7dfaa3a0">
-				<Documentation>
-					<Summary>서비스 디스크 정보 목록</Summary>
-				</Documentation>
-				<property name="ServiceId" />
-			</end2>
-		</association>
-		<association name="Disk_ServiceDisk" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
-			<end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
-				<Documentation>
-					<Summary>디스크 정보</Summary>
-				</Documentation>
-				<property name="Id" />
-			</end1>
-			<end2 multiplicity="Many" name="ServiceDisks" class="Disk" relation-class="ServiceDisk" lazy="False" p1:Guid="07dbefd3-48b5-4681-b806-53c9aa417fc9">
-				<Documentation>
-					<Summary>서비스 디스크 목록</Summary>
-				</Documentation>
-				<property name="DiskId" />
 			</end2>
 		</association>
 		<association name="DiskPool_Disk" cardinality="OneToMany" p1:Guid="9432ec0d-4ae7-4ca7-9334-660f926e5447">
@@ -2195,7 +2147,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="Server_Service" cardinality="OneToMany" p1:Guid="516dd396-dfe2-49e1-97fb-d4241370e2f4">
+		<association name="Server_Service" cardinality="OneToMany" on-delete="Restrict" p1:Guid="516dd396-dfe2-49e1-97fb-d4241370e2f4">
 			<end1 multiplicity="One" name="Server" class="Service" relation-class="Server" constrained="True" lazy="False" p1:Guid="7a1104d6-325d-4cd9-893b-e4a1fbe500e0">
 				<property name="Id" />
 			</end1>

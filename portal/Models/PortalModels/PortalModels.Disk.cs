@@ -33,7 +33,6 @@ namespace PortalModels
 			this.UsedSize = 0m;
 			this.Read = 0m;
 			this.Write = 0m;
-			this.ServiceDisks = new List<ServiceDisk>();
 			this.DiskUsages = new List<DiskUsage>();
 			OnCreated();
 		}
@@ -83,9 +82,6 @@ namespace PortalModels
 
 		/// <summary> 서버 정보 </summary>
 		public virtual Server Server { get; set; }
-
-		/// <summary> 서비스 디스크 목록 </summary>
-		public virtual IList<ServiceDisk> ServiceDisks { get; set; }
 
 		/// <summary> 디스크 풀 정보 </summary>
 		public virtual DiskPool DiskPool { get; set; }

@@ -31,7 +31,6 @@ namespace PortalModels
 			this.MemoryUsed = 0m;
 			this.ThreadCount = 0;
 			this.Vlans = new List<ServiceNetworkInterfaceVlan>();
-			this.ServiceDisks = new List<ServiceDisk>();
 			this.ServiceUsages = new List<ServiceUsage>();
 			this.ServiceEventLogs = new List<ServiceEventLog>();
 			OnCreated();
@@ -102,9 +101,6 @@ namespace PortalModels
 
 		/// <summary> 수정 사용자 정보 </summary>
 		public virtual User ModUser { get; set; }
-
-		/// <summary> 서비스 디스크 정보 목록 </summary>
-		public virtual IList<ServiceDisk> ServiceDisks { get; set; }
 
 		public virtual IList<ServiceUsage> ServiceUsages { get; set; }
 

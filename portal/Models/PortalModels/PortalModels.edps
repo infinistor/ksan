@@ -24,7 +24,6 @@
 				<File Name="PortalModels.User.cs" />
 				<File Name="PortalModels.UserActionLog.cs" />
 				<File Name="PortalModels.Disk.cs" />
-				<File Name="PortalModels.ServiceDisk.cs" />
 				<File Name="PortalModels.DiskPool.cs" />
 				<File Name="PortalModels.ServerUsage.cs" />
 				<File Name="PortalModels.NetworkInterfaceUsage.cs" />
