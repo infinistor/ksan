@@ -64,12 +64,12 @@ systemctl start docker
 
 ### Build
 
-- 실행후 ksanLifecycle.tar 이미지 파일이 생성됩니다.
+- 실행후 ksanLifecycleManager.tar 이미지 파일이 생성됩니다.
 
 ```shell
 #!/bin/bash
-docker build --rm -t pspace/ksan-lifecycle:latest -f DockerFile .
-docker save -o ksanLifecycle.tar pspace/ksan-lifecycle
+docker build --rm -t pspace/ksan-lifecycle-manager:latest -f DockerFile .
+docker save -o ksanLifecycleManager.tar pspace/ksan-lifecycle-manager
 ```
 
 ## How to Use
@@ -102,8 +102,8 @@ docker save -o ksanLifecycle.tar pspace/ksan-lifecycle
 
 #### 로그 설정
 
--   파일명 : `ksan-lifecycle.xml`
--   경로 : `/app/ksan-lifecycle.xml`
+-   파일명 : `ksan-lifecycle-manager_log_conf.xml`
+-   경로 : `/app/ksan-lifecycle-manager_log_conf.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -133,7 +133,7 @@ docker save -o ksanLifecycle.tar pspace/ksan-lifecycle
 #### 프로그램 설치
 ``` shell
 # 빌드 했을 경우 이미지 로드
-docker load -i /root/docker/ksanLifecycle.tar
+docker load -i /root/docker/ksanLifecycleManager.tar
 
 # 컨테니어 생성
 docker create -i -t \
@@ -141,12 +141,12 @@ docker create -i -t \
 -v /etc/localtime:/etc/localtime:ro \
 -v /var/log/ksan:/app/logs \
 -v /usr/local/ksan/etc:/usr/local/ksan \
---name ksan-lifecycle \
-pspace/ksan-lifecycle:latest
+--name ksan-lifecycle-manager \
+pspace/ksan-lifecycle-manager:latest
 ```
 
 #### 실행예시(CLI)
 
 ```bash
-docker start ksan-lifecycle
+docker start ksan-lifecycle-manager
 ```

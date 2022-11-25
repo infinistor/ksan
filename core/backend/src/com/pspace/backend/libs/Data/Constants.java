@@ -12,22 +12,22 @@ package com.pspace.backend.libs.Data;
 
 public class Constants {
 	public static final String AGENT_CONF_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
-	public static final String LIFECYCLE_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLifecycle.ServiceId";
+	public static final String LIFECYCLE_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLifecycleManager.ServiceId";
 	public static final String LOGMANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLogManager.ServiceId";
-	public static final String REPLICATION_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanReplication.ServiceId";
+	public static final String REPLICATION_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanReplicationManager.ServiceId";
 
 	public static final String MQ_KSAN_SYSTEM_EXCHANGE = "ksan.system";
 	public static final String MQ_KSAN_LOG_EXCHANGE = "ksan.log";
 	public static final String MQ_HEARTBEAT_BINDING_KEY = "*.services.state";
 
-	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-logManager-lifecycle-event-add";
+	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-log-manager-lifecycle-event-add";
 
 	public static final String MQ_QUEUE_REPLICATION_S3_LOG = "ksan-replication-s3-log";
 	public static final String MQ_QUEUE_REPLICATION_EVENT_ADD = "ksan-replication-event-add";
 
-	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-logManager-s3-log";
-	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-logManager-lifecycle-event-log";
-	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-logManager-replication-event-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-log-manager-s3-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-log-manager-lifecycle-event-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-log-manager-replication-event-log";
 	
 
 	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";

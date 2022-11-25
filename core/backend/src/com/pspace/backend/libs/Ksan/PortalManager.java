@@ -188,11 +188,11 @@ public class PortalManager {
 	}
 
 	private String getLifecycleConfigURL() {
-		return String.format("%s/api/v1/Config/KsanLifecycle", getURL());
+		return String.format("%s/api/v1/Config/KsanLifecycleManager", getURL());
 	}
 
 	private String getReplicationConfigURL() {
-		return String.format("%s/api/v1/Config/KsanReplication", getURL());
+		return String.format("%s/api/v1/Config/KsanReplicationManager", getURL());
 	}
 
 	private String getLogManagerConfigURL() {

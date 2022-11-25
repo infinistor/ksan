@@ -7,9 +7,9 @@
 		</layout>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${BACKEND_LOG_PATH}/logManager.log</file>
+		<file>${BACKEND_LOG_PATH}/log-manager.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>${BACKEND_LOG_PATH}/logManager.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
+			<fileNamePattern>${BACKEND_LOG_PATH}/log-manager.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
 			<maxHistory>7</maxHistory>
 			<maxFileSize>100MB</maxFileSize>
 		</rollingPolicy>

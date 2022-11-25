@@ -2,10 +2,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.pspace.backend.replication</groupId>
-	<artifactId>ksan-replication</artifactId>
+	<artifactId>ksan-replication-manager</artifactId>
 	<version>1.1.1</version>
 	<packaging>jar</packaging>
-	<name>ksanReplication</name>
+	<name>ksanReplicationManager</name>
 
 	<properties>
 		<slf4j.version>1.7.30</slf4j.version>
@@ -101,7 +101,7 @@
 				<version>3.3.0</version>
 				<executions>
 					<execution>
-						<id>ksanReplication</id>
+						<id>ksanReplicationManager</id>
 						<configuration>
 							<archive>
 								<manifest>
@@ -111,7 +111,7 @@
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
-							<finalName>ksanReplication.jar</finalName>
+							<finalName>ksanReplicationManager.jar</finalName>
 						</configuration>
 						<phase>package</phase>
 						<goals>
@@ -125,7 +125,7 @@
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.5.0</version>
 				<configuration>
-					<programFile>ksanReplication.jar</programFile>
+					<programFile>ksanReplicationManager.jar</programFile>
 				</configuration>
 				<executions>
 					<execution>
