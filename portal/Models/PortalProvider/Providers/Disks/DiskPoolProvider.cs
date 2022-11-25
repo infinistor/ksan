@@ -109,8 +109,8 @@ namespace PortalProvider.Providers.DiskGuids
 							var NewEC = new DiskPoolEC()
 							{
 								DiskPoolId = newData.Id,
-								M = 8,
-								K = 6
+								K = 6,
+								M = 2
 							};
 							newData.EC = NewEC;
 
