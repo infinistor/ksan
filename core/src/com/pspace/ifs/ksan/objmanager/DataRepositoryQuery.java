@@ -139,7 +139,7 @@ public final class DataRepositoryQuery {
             + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
             + " TagKey VARCHAR(191) NOT NULL," 
             + " TagValue VARCHAR(256) NOT NULL,"
-            + " PRIMARY KEY(objid, versionid, TagKey, TagValue)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+            + " PRIMARY KEY(objid, versionid, TagKey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     public static String insertTagIndexingQuery = "INSERT INTO %s_ObjTagIndex(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
     public static String deleteTagIndexingQuery1 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=?";
     public static String deleteTagIndexingQuery2 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=? AND TagKey=?";
