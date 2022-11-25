@@ -137,7 +137,7 @@ public final class DataRepositoryQuery {
     public  static String createTagIndexingQuery= "CREATE TABLE IF NOT EXISTS %s_ObjTagIndex("
             + " objid VARCHAR(50) NOT NULL, "
             + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
-            + " TagKey VARCHAR(256) NOT NULL," 
+            + " TagKey VARCHAR(191) NOT NULL," 
             + " TagValue VARCHAR(256) NOT NULL,"
             + " PRIMARY KEY(objid, versionid, TagKey, TagValue)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     public static String insertTagIndexingQuery = "INSERT INTO %s_ObjTagIndex(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
