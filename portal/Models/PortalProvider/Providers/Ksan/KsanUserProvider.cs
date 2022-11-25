@@ -385,6 +385,7 @@ namespace PortalProvider.Providers.Accounts
 							var DiskPool = DiskPools.Where(i => i.Id == DiksPoolGuid).FirstOrDefault();
 							if (DiskPool != null)
 								Storage.DiskPoolName = DiskPool.Name;
+								Storage.StorageClass = Storage.StorageClass.ToUpper();
 						}
 					}
 				}
