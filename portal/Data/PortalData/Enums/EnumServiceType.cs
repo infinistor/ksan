@@ -10,12 +10,11 @@
 */
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace PortalData.Enums
 {
 	/// <summary>서비스 타입</summary>
-	[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
+	[JsonConverter(typeof(StringEnumConverter))]
 	public enum EnumServiceType
 	{
 		/// <summary>Unknown</summary>
@@ -42,13 +41,11 @@ namespace PortalData.Enums
 		ksanGW,
 		/// <summary>Recovery</summary>
 		ksanRecovery,
-		/// <summary>Lifecycle</summary>
-		ksanLifecycle,
-		/// <summary>Replication</summary>
-		ksanReplication,
-		/// <summary>LogManager</summary>
-		ksanLogManager,
-		/// <summary>Metering</summary>
-		ksanMetering
+		/// <summary>Lifecycle Manager</summary>
+		ksanLifecycleManager,
+		/// <summary>Replication Manager</summary>
+		ksanReplicationManager,
+		/// <summary>Log Manager</summary>
+		ksanLogManager
 	}
 }
