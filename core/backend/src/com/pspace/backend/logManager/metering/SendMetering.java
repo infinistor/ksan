@@ -43,8 +43,8 @@ public class SendMetering {
 			if (AssetTime >= config.getAssetDelay()) {
 				AssetTime -= config.getAssetDelay();
 
-				DB.insertApiAsset(config.asset);
-				DB.insertIoAsset(config.asset);
+				DB.insertApiAsset();
+				DB.insertIoAsset();
 			}
 		}
 	}

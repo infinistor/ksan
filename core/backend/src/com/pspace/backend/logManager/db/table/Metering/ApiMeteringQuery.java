@@ -3,7 +3,6 @@ package db.table.Metering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import db.table.BaseLogQuery;
 import db.table.Logging.LoggingQuery;
 
 public class ApiMeteringQuery {
@@ -44,7 +43,7 @@ public class ApiMeteringQuery {
 				+ "select now(), user_name, bucket_name, operation, count(*) as count "
 				+ "from (select * from " + LoggingQuery.DB_TABLE_NAME
 				+ " where DATE_SUB(NOW(), INTERVAL "+ times +" MINUTE) < date_time) as s3logging, "
-				+ S3BucketQuery.DB_TABLE_NAME
+				// + S3BucketQuery.DB_TABLE_NAME
 				+ " where s3logging.bucket_name = bucketlist.bucket group by user_name, bucket_name, operation;";
 	}
 

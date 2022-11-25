@@ -118,6 +118,30 @@ public class MongoDBManager implements IDBManager {
 		return null;
 	}
 
+	@Override
+	public boolean insertApiMeter(int minutes) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean insertIoMeter(int minutes) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean insertApiAsset() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean insertIoAsset() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	// private boolean Delete(String Query) {
 	// try {
 	// stmt.execute();

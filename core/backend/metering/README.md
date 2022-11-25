@@ -87,7 +87,7 @@ docker save -o ksanMetering.tar infinistor/ksan-metering
 #### 프로그램 설치
 ``` shell
 # 빌드 했을 경우 이미지 로드
-docker load -i /root/docker/ksanLifecycle.tar
+docker load -i /root/docker/ksanLifecycleManager.tar
 
 # 컨테니어 생성
 docker create -i -t \

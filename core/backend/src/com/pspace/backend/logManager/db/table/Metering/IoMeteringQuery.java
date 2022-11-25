@@ -41,7 +41,7 @@ public class IoMeteringQuery {
 				+ "select now(), user_name, bucketlist.volume, bucket_name, sum(request_length), sum(response_length) "
 				+ "from (select * from " + LoggingQuery.DB_TABLE_NAME
 				+ " where DATE_SUB(NOW(), INTERVAL " + times + " MINUTE) < date_time) as s3logging, "
-				+ S3BucketQuery.DB_TABLE_NAME
+				// + S3BucketQuery.DB_TABLE_NAME
 				+ " where s3logging.bucket_name = bucketlist.bucket group by user_name, bucket_name;";
 	}
 
