@@ -716,10 +716,14 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setInt(9, bt.getReplicaCount());
             this.pstInsertBucket.setBoolean(10, bt.isObjectTagIndexEnabled());
             this.pstInsertBucket.executeUpdate();
-            createObjectTagIndexingTable(bt.getName());
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
             throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", bt.getName()), ex);
+        }
+        try {
+            createObjectTagIndexingTable(bt.getName());
+        } catch (SQLException ex) {
+            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
         return bt;
     }
