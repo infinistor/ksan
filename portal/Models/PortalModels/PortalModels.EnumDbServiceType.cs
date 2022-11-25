@@ -33,9 +33,8 @@ namespace PortalModels
 		ksanOSD,
 		ksanGW,
 		ksanRecovery,
-		ksanLifecycle,
-		ksanReplication,
-		ksanLogManager,
-		ksanMetering
+		ksanLifecycleManager,
+		ksanReplicationManager,
+		ksanLogManager
 	}
 }

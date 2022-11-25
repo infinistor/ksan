@@ -133,12 +133,30 @@ namespace PortalSvr.Services
 						else Thread.Sleep(1000);
 					}
 
+					// 자기자신의 서비스를 등록한다.
+					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
+					var KsanPortalApi = await m_serviceProvider.GetList(ServiceType: EnumServiceType.ksanApiPortal);
+
+					// 서비스가 존재하지 않을 경우
+					if (KsanPortalApi.Data.Items.Count == 0)
+					{
+						var KsanPortalApiName = "main-portal-api";
+
+						var Response = await m_serviceProvider.Add(new RequestService()
+						{
+							Name = KsanPortalApiName,
+							ServiceType = EnumServiceType.ksanApiPortal
+						});
+						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{KsanPortalApiName} Add Failure. {Response.Message}");
+					}
+
 					//디스크풀이 존재하는지 확인한다.
 					var m_diskPoolProvider = ServiceScope.ServiceProvider.GetService<IDiskPoolProvider>();
-					var DiskPoolName = "diskpool1";
-					var DiskPool = await m_diskPoolProvider.Get(DiskPoolName);
-					if (DiskPool == null || DiskPool.Result == EnumResponseResult.Error)
+					var DiskPools = await m_diskPoolProvider.GetList();
+					if (DiskPools.Data.Items.Count == 0)
 					{
+						var DiskPoolName = "diskpool1";
+
 						// 디스크풀이 존재하지 않을 경우 생성한다.
 						var Request = new RequestDiskPool() { Name = DiskPoolName, ReplicationType = EnumDiskPoolReplicaType.OnePlusZero };
 						var Response = await m_diskPoolProvider.Add(Request);
@@ -146,37 +164,38 @@ namespace PortalSvr.Services
 						// 디스크풀 생성에 실패할 경우
 						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{DiskPoolName} Add Failure. {Response.Message}");
 						else m_logger.LogInformation($"{DiskPoolName} Add Success");
-						DiskPool = Response;
-					}
-					//disk가 존재하는지 확인한다.
-					if (DiskPool.Data.Disks.Count < 1)
-					{
-						//환경변수에서 디스크 목록을 가져온다.
-						if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty()) m_logger.LogInformation("Disk Path is Empty!");
-						else
+						var DiskPool = Response;
+
+						//disk가 존재하는지 확인한다.
+						if (DiskPool.Data.Disks.Count == 0)
 						{
-							var DiskPaths = StrDisks.Trim().Split(',');
-
-							//디스크가 존재하지 않을 경우 생성한다.
-							var m_diskProvider = ServiceScope.ServiceProvider.GetService<IDiskProvider>();
-							var DiskCount = 1;
-							foreach (var DiskPath in DiskPaths)
+							//환경변수에서 디스크 목록을 가져온다.
+							if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty()) m_logger.LogInformation("Disk Path is Empty!");
+							else
 							{
-								if (DiskPath.IsEmpty()) continue;
-								var Request = new RequestDisk()
+								var DiskPaths = StrDisks.Trim().Split(',');
+
+								//디스크가 존재하지 않을 경우 생성한다.
+								var m_diskProvider = ServiceScope.ServiceProvider.GetService<IDiskProvider>();
+								var DiskCount = 1;
+								foreach (var DiskPath in DiskPaths)
 								{
-									Name = $"{ServerName}_disk{DiskCount++}",
-									DiskPoolId = DiskPoolName,
-									Path = DiskPath,
-									State = EnumDiskState.Good
-								};
+									if (DiskPath.IsEmpty()) continue;
+									var DiskRequest = new RequestDisk()
+									{
+										Name = $"{ServerName}_disk{DiskCount++}",
+										DiskPoolId = DiskPoolName,
+										Path = DiskPath,
+										State = EnumDiskState.Good
+									};
 
-								// 디스크를 추가한다.
-								var Response = await m_diskProvider.Add(ServerName, Request);
+									// 디스크를 추가한다.
+									var DiskResponse = await m_diskProvider.Add(ServerName, DiskRequest);
 
-								// 디스크 등록에 실패할 경우
-								if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
-								else m_logger.LogInformation($"{Request.Name} Add Success");
+									// 디스크 등록에 실패할 경우
+									if (DiskResponse == null || DiskResponse.Result != EnumResponseResult.Success) throw new Exception($"{DiskRequest.Name} Add Failure. {DiskResponse.Message}");
+									else m_logger.LogInformation($"{DiskRequest.Name} Add Success");
+								}
 							}
 						}
 					}
@@ -228,7 +247,6 @@ namespace PortalSvr.Services
 					if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
 					//gw 서비스가 등록되지 않은 경우 등록한다.
-					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
 					var GWName = "gw1";
 					var GW = await m_serviceProvider.Get(GWName);
 					if (GW == null || GW.Result != EnumResponseResult.Success)
@@ -267,7 +285,7 @@ namespace PortalSvr.Services
 					}
 
 					//Lifecycle 서비스가 등록되지 않은 경우 등록한다.
-					var LifecycleName = "lifecycle1";
+					var LifecycleName = "ksan-lifecycle-manager";
 					var Lifecycle = await m_serviceProvider.Get(LifecycleName);
 					if (Lifecycle == null || Lifecycle.Result != EnumResponseResult.Success)
 					{
@@ -275,7 +293,7 @@ namespace PortalSvr.Services
 						{
 							Name = LifecycleName,
 							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanLifecycle,
+							ServiceType = EnumServiceType.ksanLifecycleManager,
 						};
 
 						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
@@ -286,7 +304,7 @@ namespace PortalSvr.Services
 					}
 
 					//LogManager 서비스가 등록되지 않은 경우 등록한다.
-					var LogManagerName = "logmanager1";
+					var LogManagerName = "ksan-log-manager";
 					var LogManager = await m_serviceProvider.Get(LogManagerName);
 					if (LogManager == null || LogManager.Result != EnumResponseResult.Success)
 					{
@@ -305,7 +323,7 @@ namespace PortalSvr.Services
 					}
 
 					//Replication 서비스가 등록되지 않은 경우 등록한다.
-					var ReplicationName = "replication1";
+					var ReplicationName = "ksan-replication-manager";
 					var Replication = await m_serviceProvider.Get(ReplicationName);
 					if (Replication == null || Replication.Result != EnumResponseResult.Success)
 					{
@@ -313,7 +331,7 @@ namespace PortalSvr.Services
 						{
 							Name = ReplicationName,
 							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanReplication,
+							ServiceType = EnumServiceType.ksanReplicationManager,
 						};
 
 						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
@@ -324,7 +342,7 @@ namespace PortalSvr.Services
 					}
 				}
 				m_timer.Change(Timeout.Infinite, 0);
-
+				if (m_timer != null) m_timer.Dispose();
 			}
 			catch (Exception ex)
 			{

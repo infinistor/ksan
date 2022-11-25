@@ -130,15 +130,15 @@ namespace PortalSvr.Services
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanOSD, Result.Data.Version);
 				}
 
-				// KsanLifecycle 설정이 없는 경우
-				var KsanLifecycleConfig = await m_configProvider.GetConfig(EnumServiceType.ksanLifecycle);
-				if (KsanLifecycleConfig == null || KsanLifecycleConfig.Result == EnumResponseResult.Error)
+				// KsanLifecycleManager 설정이 없는 경우
+				var KsanLifecycleManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanLifecycleManager);
+				if (KsanLifecycleManagerConfig == null || KsanLifecycleManagerConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanLifecycle = File.ReadAllText(EnvironmentInitializer.KSAN_LIFECYCLE_SETTINGS_FILE);
+					string StrKsanLifecycleManager = File.ReadAllText(EnvironmentInitializer.KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE);
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLifecycle, StrKsanLifecycle);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycle, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLifecycleManager, StrKsanLifecycleManager);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycleManager, Result.Data.Version);
 				}
 
 				// KsanLogManager 설정이 없는 경우
@@ -146,21 +146,21 @@ namespace PortalSvr.Services
 				if (KsanLogManagerConfig == null || KsanLogManagerConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanLogManager = File.ReadAllText(EnvironmentInitializer.KSAN_LOGMANAGER_SETTINGS_FILE);
+					string StrKsanLogManager = File.ReadAllText(EnvironmentInitializer.KSAN_LOG_MANAGER_SETTINGS_FILE);
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLogManager, StrKsanLogManager);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLogManager, Result.Data.Version);
 				}
 
-				// KsanReplication 설정이 없는 경우
-				var KsanReplicationConfig = await m_configProvider.GetConfig(EnumServiceType.ksanReplication);
-				if (KsanReplicationConfig == null || KsanReplicationConfig.Result == EnumResponseResult.Error)
+				// KsanReplicationManager 설정이 없는 경우
+				var KsanReplicationManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanReplicationManager);
+				if (KsanReplicationManagerConfig == null || KsanReplicationManagerConfig.Result == EnumResponseResult.Error)
 				{
 					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanReplication = File.ReadAllText(EnvironmentInitializer.KSAN_REPLICATION_SETTINGS_FILE);
+					string StrKsanReplicationManager = File.ReadAllText(EnvironmentInitializer.KSAN_REPLICATION_MANAGER_SETTINGS_FILE);
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanReplication, StrKsanReplication);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanReplication, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanReplicationManager, StrKsanReplicationManager);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanReplicationManager, Result.Data.Version);
 				}
 			}
 			catch (Exception ex)
