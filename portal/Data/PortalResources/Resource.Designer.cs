@@ -1375,11 +1375,11 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   There is a service that uses that disk. Remove the disk from the service and delete it.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   There is a server that uses that disk. Remove the disk from the server and delete it.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE {
+        public static string EM_DISKS_REMOVE_AFTER_REMOVING_SERVER {
             get {
-                return ResourceManager.GetString("EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE", resourceCulture);
+                return ResourceManager.GetString("EM_DISKS_REMOVE_AFTER_REMOVING_SERVER", resourceCulture);
             }
         }
         
