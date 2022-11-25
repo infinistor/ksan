@@ -55,7 +55,7 @@ namespace PortalSvr
 							IConfiguration configuration = hostContext.Configuration;
 
 							serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 1024;
-
+							
 							serverOptions.Listen(IPAddress.Any, 6080);
 							try
 							{
