@@ -550,6 +550,10 @@ namespace PortalProvider.Providers.Servers
 				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_DISK);
 
+				// 해당 서버에 연결된 서비스가 존재하는 경우
+				if (await m_dbContext.Services.AnyAsync(i => i.ServerId == Exist.Id))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_SERVER);
+
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -682,27 +686,77 @@ namespace PortalProvider.Providers.Servers
 						)
 						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
-					.Select(i => new
-					{
-						i.Id,
-						i.Name,
-						i.Description,
-						i.CpuModel,
-						i.Clock,
-						i.State,
-						i.Rack,
-						i.LoadAverage1M,
-						i.LoadAverage5M,
-						i.LoadAverage15M,
-						i.MemoryTotal,
-						i.MemoryUsed,
-						MemoryFree = i.MemoryTotal - i.MemoryUsed < 0 ? 0 : i.MemoryTotal - i.MemoryUsed,
-						i.ModDate,
-						i.ModId,
-						i.ModName
-					})
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<dynamic, ResponseServer>(Skip, CountPerPage);
+
+				Result.Result = EnumResponseResult.Success;
+
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>서버 목록을 가져온다.</summary>
+		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
+		/// <returns>서버 목록 객체</returns>
+		public async Task<ResponseList<ResponseServerDetail>> GetListDetails(
+			List<EnumServerState> SearchStates = null,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
+		)
+		{
+			var Result = new ResponseList<ResponseServerDetail>();
+			try
+			{
+				// 기본 정렬 정보 추가
+				ClearDefaultOrders();
+				AddDefaultOrders("Name", "asc");
+
+				// 정렬 필드를 초기화 한다.
+				InitOrderFields(ref OrderFields, ref OrderDirections);
+
+				// 검색 필드를  초기화한다.
+				InitSearchFields(ref SearchFields);
+
+				short Clock = -1;
+				if (SearchFields != null && SearchFields.Contains("clock"))
+				{
+					if (!short.TryParse(SearchKeyword, out Clock))
+						Clock = -1;
+				}
+
+				// 목록을 가져온다.
+				Result.Data = await m_dbContext.Servers.AsNoTracking()
+					.Where(i =>
+						(
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("cpumodel") && i.CpuModel.Contains(SearchKeyword))
+							|| (SearchFields.Contains("clock") && i.Clock == Clock)
+						)
+						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
+					)
+					.Include(i => i.Disks)
+					.Include(i => i.Services)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<dynamic, ResponseServerDetail>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
 
