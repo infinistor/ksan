@@ -57,7 +57,7 @@ public final class DataRepositoryQuery {
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
-    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
     public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS WHERE id=?";
     public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS";
