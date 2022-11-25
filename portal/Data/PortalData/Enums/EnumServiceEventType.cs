@@ -10,12 +10,11 @@
 */
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace PortalData.Enums
 {
 	/// <summary>서비스 이벤트</summary>
-	[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
+	[JsonConverter(typeof(StringEnumConverter))]
 	public enum EnumServiceEventType
 	{
 		/// <summary>Error</summary>
