@@ -19,6 +19,9 @@ namespace PortalData.Requests.Disks
 	/// <summary>디스크 등록/수정 요청 클래스</summary>
 	public class RequestDisk : CommonRequestData
 	{
+		/// <summary>서버 아이디</summary>
+		public string ServerId { get; set; }
+
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
 
