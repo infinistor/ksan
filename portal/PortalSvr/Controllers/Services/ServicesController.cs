@@ -155,7 +155,7 @@ namespace PortalSvr.Controllers.Services
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				SearchStates, Skip, CountPerPage
+				SearchStates, EnumServiceType.Unknown, Skip, CountPerPage
 				, OrderFields, OrderDirections
 				, SearchFields, SearchKeyword
 			));

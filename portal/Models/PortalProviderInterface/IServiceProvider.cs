@@ -90,10 +90,10 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			List<EnumServiceState> SearchStates = null,
-			int Skip = 0, int CountPerPage = 100
-			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			List<EnumServiceState> SearchStates = null, EnumServiceType ServiceType = EnumServiceType.Unknown,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		);
 
 		/// <summary>서비스 정보를 가져온다.</summary>

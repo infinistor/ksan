@@ -769,10 +769,10 @@ namespace PortalProvider.Providers.Services
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		public async Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			List<EnumServiceState> SearchStates = null
-			, int Skip = 0, int CountPerPage = 100
-			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			List<EnumServiceState> SearchStates = null, EnumServiceType ServiceType = EnumServiceType.Unknown,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			var Result = new ResponseList<ResponseServiceWithGroup>();
@@ -788,24 +788,24 @@ namespace PortalProvider.Providers.Services
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref SearchFields);
 
-				var serviceType = EnumServiceType.Unknown;
 				if (SearchFields != null && SearchFields.Contains("servicetype"))
-					Enum.TryParse(SearchKeyword, out serviceType);
+					Enum.TryParse(SearchKeyword, out ServiceType);
 
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Services.AsNoTracking()
 					.Where(i =>
 						(
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (ServiceType != EnumServiceType.Unknown && i.ServiceType == (EnumDbServiceType)ServiceType)
 							|| (SearchFields.Contains("groupname") && i.ServiceGroup != null && i.ServiceGroup.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType)serviceType)
 							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
 						) && (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.Include(i => i.ServiceGroup)
+					.Include(i => i.Server)
 					.CreateListAsync<Service, ResponseServiceWithGroup>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
@@ -1170,7 +1170,6 @@ namespace PortalProvider.Providers.Services
 				var ServiceEventType = EnumServiceEventType.Error;
 				if (SearchFields.Contains("ServiceEventType", StringComparer.OrdinalIgnoreCase))
 					Enum.TryParse(SearchKeyword, out ServiceEventType);
-
 
 				// 서비스 정보를 가져온다
 				Service Service = null;
