@@ -718,7 +718,9 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.executeUpdate();
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
-            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", bt.getName()), ex);
+            String str = String.format("name : %s, id : %s, diskPoolId : %s, userName : %s  userId : %s, acl : %s, encryption : %s, objectlock : %s, replicaCount : %s, objTagIndexing : %s"
+                    , bt.getName(), bt.getId(), bt.getDiskPoolId(), bt.getUserName(), bt.getUserId(),  bt.getAcl(), bt.getEncryption(), bt.getObjectLock(), bt.getReplicaCount(), bt.isObjectTagIndexEnabled());
+            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!\n", str, ex));
         }
         try {
             createObjectTagIndexingTable(bt.getName());
