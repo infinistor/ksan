@@ -21,11 +21,14 @@ namespace PortalData.Responses.Disks
 		/// <summary>서버 아이디</summary>
 		public string ServerId { get; set; }
 
-		/// <summary>디스크 풀 이름</summary>
-		public string DiskPoolName { get; set; }
+		/// <summary>서버 이름</summary>
+		public string ServerName { get; set; }
 
 		/// <summary>디스크 풀 아이디</summary>
 		public string DiskPoolId { get; set; }
+
+		/// <summary>디스크 풀 이름</summary>
+		public string DiskPoolName { get; set; }
 
 		/// <summary>디스크 이름</summary>
 		public string Name { get; set; }

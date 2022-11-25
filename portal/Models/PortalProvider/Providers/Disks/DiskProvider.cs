@@ -203,7 +203,6 @@ namespace PortalProvider.Providers.DiskGuids
 		}
 
 		/// <summary>디스크 수정</summary>
-		/// <param name="ServerId">서버 아이디</param>
 		/// <param name="Id">디스크 아이디 / 이름</param>
 		/// <param name="Request">디스크 수정 요청 객체</param>
 		/// <returns>디스크 수정 결과 객체</returns>
@@ -221,17 +220,35 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
 
+				// 서버 아이디가 존재하고 유효한 Guid가 아닌 경우
+				Guid ServerGuid = Guid.Empty;
+				if (!Request.ServerId.IsEmpty() && !Guid.TryParse(Request.ServerId, out ServerGuid))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
+
+				// 서버 아이디가 유효한 경우
+				if (ServerGuid != Guid.Empty)
+				{
+					// 해당 서버 정보를 가져온다.
+					var Server = await this.m_dbContext.Servers.AsNoTracking()
+						.Where(i => i.Id == ServerGuid)
+						.FirstOrDefaultAsync();
+
+					// 해당 서버가 존재하지 않는 경우
+					if (Server == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.UL_COMMON__NO_SERVER);
+				}
+
 				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
-				Guid GuidDiskPoolId = Guid.Empty;
-				if (!Request.DiskPoolId.IsEmpty() && !Guid.TryParse(Request.DiskPoolId, out GuidDiskPoolId))
+				Guid DiskPoolGuid = Guid.Empty;
+				if (!Request.DiskPoolId.IsEmpty() && !Guid.TryParse(Request.DiskPoolId, out DiskPoolGuid))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
 
 				// 디스크 풀 아이디가 유효한 경우
-				if (GuidDiskPoolId != Guid.Empty)
+				if (DiskPoolGuid != Guid.Empty)
 				{
 					// 해당 디스크 풀 정보를 가져온다.
 					var DiskPool = await this.m_dbContext.DiskPools.AsNoTracking()
-						.Where(i => i.Id == GuidDiskPoolId)
+						.Where(i => i.Id == DiskPoolGuid)
 						.FirstOrDefaultAsync();
 
 					// 해당 디스크 풀이 존재하지 않는 경우
@@ -273,7 +290,8 @@ namespace PortalProvider.Providers.DiskGuids
 					try
 					{
 						// 정보를 수정한다.
-						Exist.DiskPoolId = GuidDiskPoolId == Guid.Empty ? null : GuidDiskPoolId;
+						Exist.DiskPoolId = DiskPoolGuid == Guid.Empty ? null : DiskPoolGuid;
+						if (ServerGuid != Guid.Empty) Exist.ServerId = ServerGuid;
 						Exist.Name = Request.Name;
 						Exist.Path = Request.Path;
 						Exist.State = (EnumDbDiskState)Request.State;
@@ -587,10 +605,6 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist.DiskPool != null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL);
 
-				// 연결된 서비스가 존재하는 경우
-				if (await m_dbContext.ServiceDisks.AnyAsync(i => i.DiskId == DiskGuid))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE);
-
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -679,6 +693,20 @@ namespace PortalProvider.Providers.DiskGuids
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
+				//DiskPool 목록을 가져온다.
+				var DiskPools = await m_dbContext.DiskPools.AsNoTracking().ToListAsync();
+
+				// 서버 목록을 가져온다.
+				var Servers = await m_dbContext.Servers.AsNoTracking().ToListAsync();
+
+				//서버와 디스크풀 이름을 추가한다.
+				foreach (var Disk in Result.Data.Items)
+				{
+					if (Disk.DiskPoolId != null && Guid.TryParse(Disk.DiskPoolId, out Guid DiskPoolGuid))
+						Disk.DiskPoolName = DiskPools.First(i => i.Id == DiskPoolGuid).Name;
+					Disk.ServerName = Servers.First(i => i.Id == ServerGuid).Name;
+				}
+
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -737,6 +765,21 @@ namespace PortalProvider.Providers.DiskGuids
 					.Include(i => i.Server)
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<Disk, ResponseDiskWithServer>(Skip, CountPerPage);
+
+				//DiskPool 목록을 가져온다.
+				var DiskPools = await m_dbContext.DiskPools.AsNoTracking().ToListAsync();
+
+				// 서버 목록을 가져온다.
+				var Servers = await m_dbContext.Servers.AsNoTracking().ToListAsync();
+
+				//서버와 디스크풀 이름을 추가한다.
+				foreach (var Disk in Result.Data.Items)
+				{
+					if (Disk.DiskPoolId != null && Guid.TryParse(Disk.DiskPoolId, out Guid DiskPoolGuid))
+						Disk.DiskPoolName = DiskPools.First(i => i.Id == DiskPoolGuid).Name;
+					if (Disk.ServerId != null && Guid.TryParse(Disk.ServerId, out Guid ServerGuid))
+						Disk.ServerName = Servers.First(i => i.Id == ServerGuid).Name;
+				}
 
 				Result.Result = EnumResponseResult.Success;
 			}
