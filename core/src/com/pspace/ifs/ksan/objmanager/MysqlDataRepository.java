@@ -1451,7 +1451,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private void createObjectTagIndexingTable(String bucketName) throws SQLException{
-        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.createTagIndexingQuery);
+        PreparedStatement pstStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.createTagIndexingQuery);
         pstStmt.execute();
     }
     
@@ -1479,7 +1479,7 @@ public class MysqlDataRepository implements DataRepository{
             }
             
             //removeObjTag(bucketName, objId, versionId, tags);
-            PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.insertTagIndexingQuery);
+            PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.insertTagIndexingQuery);
             
             pstInsertStmt.clearParameters();
             pstInsertStmt.setString(1, objId);
@@ -1502,7 +1502,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int removeObjTag(String bucketName, String objId, String versionId) throws SQLException{
-        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.deleteTagIndexingQuery1);
+        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery1);
         pstdeleteStmt.clearParameters();
         pstdeleteStmt.setString(1, objId);
         pstdeleteStmt.setString(2, versionId);
@@ -1518,7 +1518,7 @@ public class MysqlDataRepository implements DataRepository{
         if (tagsJson.isEmpty())
             return 0;
         
-        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.deleteTagIndexingQuery2);
+        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery2);
         pstdeleteStmt.clearParameters();
         pstdeleteStmt.setString(1, objId);
         pstdeleteStmt.setString(2, versionId);
@@ -1549,7 +1549,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException{
-        PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.selectTagIndexingQuery + (String)query);  
+        PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName+ DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.selectTagIndexingQuery + (String)query);  
         ResultSet rs = pstselectStmt.executeQuery();
         return parseSelectListObjectwithTags(bucketName, rs);
     }

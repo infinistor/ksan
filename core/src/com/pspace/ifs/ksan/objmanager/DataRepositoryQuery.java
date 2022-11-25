@@ -134,16 +134,18 @@ public final class DataRepositoryQuery {
     public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE objKey=? AND versionid=?";
 
     // for tags indexing
-    public  static String createTagIndexingQuery= "CREATE TABLE IF NOT EXISTS %s_ObjTagIndex("
+    public static String tagIndexingTablePrefexi = "_ObjTagIndex";
+    
+    public  static String createTagIndexingQuery= "CREATE TABLE IF NOT EXISTS %s("
             + " objid VARCHAR(50) NOT NULL, "
             + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
             + " TagKey VARCHAR(191) NOT NULL," 
             + " TagValue VARCHAR(256) NOT NULL,"
             + " PRIMARY KEY(objid, versionid, TagKey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
-    public static String insertTagIndexingQuery = "INSERT INTO %s_ObjTagIndex(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
-    public static String deleteTagIndexingQuery1 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=?";
-    public static String deleteTagIndexingQuery2 = "DELETE FROM %s_ObjTagIndex WHERE objid=? AND versionid=? AND TagKey=?";
-    public static String selectTagIndexingQuery = "SELECT objid, versionid, TagKey, TagValue FROM %s_ObjTagIndex WHERE %s";
+    public static String insertTagIndexingQuery = "INSERT INTO %s(objid, versionid, TagKey, TagValue) VALUES(?, ?, ?, ?)";
+    public static String deleteTagIndexingQuery1 = "DELETE FROM %s WHERE objid=? AND versionid=?";
+    public static String deleteTagIndexingQuery2 = "DELETE FROM %s WHERE objid=? AND versionid=? AND TagKey=?";
+    public static String selectTagIndexingQuery = "SELECT objid, versionid, TagKey, TagValue FROM %s WHERE %s";
     
     // for restore objects
     public  static String createRestoreObjectsQuery= "CREATE TABLE IF NOT EXISTS RESTOREOBJECTS("
