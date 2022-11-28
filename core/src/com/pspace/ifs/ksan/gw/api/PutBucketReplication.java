@@ -30,6 +30,7 @@ import com.pspace.ifs.ksan.gw.format.ReplicationConfiguration.Rule.Filter.And.Ta
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -102,7 +103,7 @@ public class PutBucketReplication extends S3Request {
 				} else {
 					byte[] array = new byte[7]; // length is bounded by 7
 					new Random().nextBytes(array);
-					String generatedString = new String(array, Charset.forName(GWConstants.CHARSET_UTF_8));
+					String generatedString = new String(array, Charset.forName(Constants.CHARSET_UTF_8));
 					id.put(generatedString, generatedString);
 				}
 				

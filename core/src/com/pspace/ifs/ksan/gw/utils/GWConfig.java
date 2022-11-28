@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class GWConfig {
     private String version;
 
-    private String dbRepository;
+    // private String dbRepository;
 	// private long replicaCount;
 	private String cacheDiskpath;
     private boolean isCacheDiskpath;
@@ -47,20 +47,21 @@ public class GWConfig {
 	private long osdPort = GWConstants.DEFAULT_OSD_PORT;
 	private long osdClientCount = GWConstants.DEFAULT_OSD_CLIENT_SIZE;
 	private long objManagerCount = GWConstants.DEFAULT_OBJMANAGER_SIZE;
-	private String dbHost;
-	private String database;
-	private long dbPort;
-	private String dbUser;
-	private String dbPass;
-	private long dbPoolSize;
+	// private String dbHost;
+	// private String database;
+	// private long dbPort;
+	// private String dbUser;
+	// private String dbPass;
+	// private long dbPoolSize;
 	
 	private boolean isNoOption;
 	private boolean isNoIO;
 	private boolean isNoDisk;
 	private boolean isNoReplica;
+    private boolean isNoOperation;
 
-    private String eventLog;
-    private boolean isEventLog;
+    private String logging;
+    private boolean isLogging;
 
     private static final String VERSION = "version";
     private static final String AUTHORIZATION = "gw.authorization";
@@ -78,16 +79,16 @@ public class GWConfig {
     private static final String OSD_CLIENT_COUNT = "gw.osd_client_count";
     private static final String OBJMANAGER_COUNT = "gw.objmanager_count";
     private static final String PERFORMANCE_MODE = "gw.performance_mode";
-    private static final String DB_REPOSITORY = "gw.db_repository";
-    private static final String DB_HOST = "gw.db_host";
-    private static final String DB_NAME = "gw.db_name";
-    private static final String DB_PORT = "gw.db_port";
-    private static final String DB_USER = "gw.db_user";
-    private static final String DB_PASSWORD = "gw.db_password";
-    private static final String DB_POOL_SIZE = "gw.db_pool_size";
+    // private static final String DB_REPOSITORY = "gw.db_repository";
+    // private static final String DB_HOST = "gw.db_host";
+    // private static final String DB_NAME = "gw.db_name";
+    // private static final String DB_PORT = "gw.db_port";
+    // private static final String DB_USER = "gw.db_user";
+    // private static final String DB_PASSWORD = "gw.db_password";
+    // private static final String DB_POOL_SIZE = "gw.db_pool_size";
     private static final String CACHE_PATH = "gw.cache_diskpath";
     // private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
-    private static final String EVENT_LOG = "gw.eventlog";
+    private static final String EVENT_LOG = "gw.logging";
 
     private static final String EQUAL = "=";
     private static final String ON = "on";
@@ -114,13 +115,13 @@ public class GWConfig {
         this.version = version;
     }
 
-    public String getDbRepository() {
-        return dbRepository;
-    }
+    // public String getDbRepository() {
+    //     return dbRepository;
+    // }
 
-    public void setDbRepository(String dbRepository) {
-        this.dbRepository = dbRepository;
-    }
+    // public void setDbRepository(String dbRepository) {
+    //     this.dbRepository = dbRepository;
+    // }
 
     // public long getReplicaCount() {
     //     return replicaCount;
@@ -266,53 +267,53 @@ public class GWConfig {
         this.objManagerCount = objManagerCount;
     }
 
-    public String getDbHost() {
-        return dbHost;
-    }
+    // public String getDbHost() {
+    //     return dbHost;
+    // }
 
-    public void setDbHost(String dbHost) {
-        this.dbHost = dbHost;
-    }
+    // public void setDbHost(String dbHost) {
+    //     this.dbHost = dbHost;
+    // }
 
-    public String getDatabase() {
-        return database;
-    }
+    // public String getDatabase() {
+    //     return database;
+    // }
 
-    public void setDatabase(String database) {
-        this.database = database;
-    }
+    // public void setDatabase(String database) {
+    //     this.database = database;
+    // }
 
-    public long getDbPort() {
-        return dbPort;
-    }
+    // public long getDbPort() {
+    //     return dbPort;
+    // }
 
-    public void setDbPort(long dbPort) {
-        this.dbPort = dbPort;
-    }
+    // public void setDbPort(long dbPort) {
+    //     this.dbPort = dbPort;
+    // }
 
-    public String getDbUser() {
-        return dbUser;
-    }
+    // public String getDbUser() {
+    //     return dbUser;
+    // }
 
-    public void setDbUser(String dbUser) {
-        this.dbUser = dbUser;
-    }
+    // public void setDbUser(String dbUser) {
+    //     this.dbUser = dbUser;
+    // }
 
-    public String getDbPass() {
-        return dbPass;
-    }
+    // public String getDbPass() {
+    //     return dbPass;
+    // }
 
-    public void setDbPass(String dbPass) {
-        this.dbPass = dbPass;
-    }
+    // public void setDbPass(String dbPass) {
+    //     this.dbPass = dbPass;
+    // }
 
-    public long getDbPoolSize() {
-        return dbPoolSize;
-    }
+    // public long getDbPoolSize() {
+    //     return dbPoolSize;
+    // }
 
-    public void setDbPoolSize(long dbPoolSize) {
-        this.dbPoolSize = dbPoolSize;
-    }
+    // public void setDbPoolSize(long dbPoolSize) {
+    //     this.dbPoolSize = dbPoolSize;
+    // }
 
     public boolean isNoOption() {
         return isNoOption;
@@ -346,8 +347,16 @@ public class GWConfig {
         this.isNoReplica = isNoReplica;
     }
 
-    public boolean isEventLog() {
-        return isEventLog;
+    public boolean isNoOperation() {
+        return isNoOperation;
+    }
+
+    public void setNoOperation(boolean isNoOperation) {
+        this.isNoOperation = isNoOperation;
+    }
+
+    public boolean isLogging() {
+        return isLogging;
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
@@ -387,6 +396,7 @@ public class GWConfig {
             setNoIO(false);
             setNoDisk(false);
             setNoReplica(false);
+            setNoOperation(false);
 		} else {
 			if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_OPTION)) {
 				setPerformanceMode(GWConstants.PERFORMANCE_MODE_NO_OPTION);
@@ -394,39 +404,49 @@ public class GWConfig {
                 setNoIO(false);
                 setNoDisk(false);
                 setNoReplica(false);
+                setNoOperation(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
 				setNoOption(false);
                 setNoIO(true);
                 setNoDisk(false);
                 setNoReplica(false);
+                setNoOperation(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
 				setNoOption(false);
                 setNoIO(false);
                 setNoDisk(true);
                 setNoReplica(false);
+                setNoOperation(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
 				setNoOption(false);
                 setNoIO(false);
                 setNoDisk(false);
                 setNoReplica(true);
-			}
+                setNoOperation(false);
+			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_OPERATION)) {
+                setNoOption(false);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(false);
+                setNoOperation(true);
+            }
 		}
 
-        eventLog = (String)jsonConfig.get(EVENT_LOG);
-        if (!Strings.isNullOrEmpty(eventLog) && eventLog.equalsIgnoreCase(OFF)) {
-            isEventLog = false;
+        logging = (String)jsonConfig.get(EVENT_LOG);
+        if (!Strings.isNullOrEmpty(logging) && logging.equalsIgnoreCase(OFF)) {
+            isLogging = false;
         } else {
-            eventLog = ON;
-            isEventLog = true;
+            logging = ON;
+            isLogging = true;
         }
 
-        setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
-        setDbHost((String)jsonConfig.get(DB_HOST));
-        setDatabase((String)jsonConfig.get(DB_NAME));
-        setDbPort((long)jsonConfig.get(DB_PORT));
-        setDbUser((String)jsonConfig.get(DB_USER));
-        setDbPass((String)jsonConfig.get(DB_PASSWORD));
-        setDbPoolSize((long)jsonConfig.get(DB_POOL_SIZE));
+        // setDbRepository((String)jsonConfig.get(DB_REPOSITORY));
+        // setDbHost((String)jsonConfig.get(DB_HOST));
+        // setDatabase((String)jsonConfig.get(DB_NAME));
+        // setDbPort((long)jsonConfig.get(DB_PORT));
+        // setDbUser((String)jsonConfig.get(DB_USER));
+        // setDbPass((String)jsonConfig.get(DB_PASSWORD));
+        // setDbPoolSize((long)jsonConfig.get(DB_POOL_SIZE));
 
         setCacheDiskpath((String)jsonConfig.get(CACHE_PATH));
         if (!Strings.isNullOrEmpty(getCacheDiskpath())) {
@@ -452,13 +472,13 @@ public class GWConfig {
         logger.debug("{}", getOsdClientCount());
         logger.debug("{}", getObjManagerCount());
         logger.debug(getPerformanceMode());
-        logger.debug(getDbRepository());
-        logger.debug(getDbHost());
-        logger.debug(getDatabase());
-        logger.debug("{}", getDbPort());
-        logger.debug(getDbUser());
-        logger.debug(getDbPass());
-        logger.debug("{}", getDbPoolSize());
+        // logger.debug(getDbRepository());
+        // logger.debug(getDbHost());
+        // logger.debug(getDatabase());
+        // logger.debug("{}", getDbPort());
+        // logger.debug(getDbUser());
+        // logger.debug(getDbPass());
+        // logger.debug("{}", getDbPoolSize());
         logger.debug(getCacheDiskpath());
         // logger.debug("{}", getCacheFileSize());
     }
@@ -476,20 +496,20 @@ public class GWConfig {
             fileWriter.write(MAX_FILE_SIZE + EQUAL + maxFileSize + "\n");
             fileWriter.write(MAX_LIST_SIZE + EQUAL + maxListSize + "\n");
             fileWriter.write(MAX_TIMESKEW + EQUAL + maxTimeSkew + "\n");
-            fileWriter.write(EVENT_LOG + EQUAL + eventLog + "\n");
+            fileWriter.write(EVENT_LOG + EQUAL + logging + "\n");
             // fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
             fileWriter.write(OSD_PORT + EQUAL + osdPort + "\n");
             fileWriter.write(JETTY_MAX_THREADS + EQUAL + jettyMaxThreads + "\n");
             fileWriter.write(OSD_CLIENT_COUNT + EQUAL + osdClientCount + "\n");
             fileWriter.write(OBJMANAGER_COUNT + EQUAL + objManagerCount + "\n");
             fileWriter.write(PERFORMANCE_MODE + EQUAL + performanceMode + "\n");
-            fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
-            fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
-            fileWriter.write(DB_NAME + EQUAL + database + "\n");
-            fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
-            fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
-            fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
-            fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
+            // fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
+            // fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
+            // fileWriter.write(DB_NAME + EQUAL + database + "\n");
+            // fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
+            // fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
+            // fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
+            // fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
             fileWriter.write(CACHE_PATH + EQUAL + cacheDiskpath + "\n");
             // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
             fileWriter.close();

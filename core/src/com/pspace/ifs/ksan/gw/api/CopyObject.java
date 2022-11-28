@@ -42,6 +42,7 @@ import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -70,7 +71,7 @@ public class CopyObject extends S3Request {
 		}
 
 		try {
-			object = URLDecoder.decode(object, GWConstants.CHARSET_UTF_8);
+			object = URLDecoder.decode(object, Constants.CHARSET_UTF_8);
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -111,7 +112,7 @@ public class CopyObject extends S3Request {
 		}
 
 		try {
-			copySource = URLDecoder.decode(copySource, GWConstants.CHARSET_UTF_8);
+			copySource = URLDecoder.decode(copySource, Constants.CHARSET_UTF_8);
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -378,7 +379,7 @@ public class CopyObject extends S3Request {
 					srcMeta.setMeta(jsonmeta);
 					updateObjectMeta(srcMeta);
 	
-					s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+					s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 					XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 					try (Writer writer = s3Parameter.getResponse().getWriter()) {
 						s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
@@ -469,7 +470,7 @@ public class CopyObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-        s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+        s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);

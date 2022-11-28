@@ -1067,8 +1067,13 @@ public abstract class S3Request {
 			setObjManager();
 			result = objManager.close(bucket, object, data);
 		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			// duplicate key error
+			try {
+				result = objManager.close(bucket, object, data);
+			} catch (Exception e1) {
+				PrintStack.logging(logger, e1);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
 		} finally {
 			try {
 				releaseObjManager();

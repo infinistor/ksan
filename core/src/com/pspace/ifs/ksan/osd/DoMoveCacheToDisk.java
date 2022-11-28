@@ -17,6 +17,7 @@ import java.util.Calendar;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class DoMoveCacheToDisk implements Runnable {
 
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
-                if (files[i].getName().equals(OSDConstants.OBJ_DIR)) {
+                if (files[i].getName().equals(Constants.OBJ_DIR)) {
                     check(files[i].getAbsolutePath());
                 } else {
                     recursiveMove(files[i].getAbsolutePath());

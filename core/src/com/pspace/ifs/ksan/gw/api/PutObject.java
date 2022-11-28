@@ -324,10 +324,12 @@ public class PutObject extends S3Request {
 			s3Metadata.setLegalHold(dataPutObject.getObjectLockLegalHold());
 		}
 
+		// long dbStart = System.currentTimeMillis();
 		String versioningStatus = getBucketVersioning(bucket);
 		String versionId = null;
 		Metadata objMeta = null;
 		boolean isExist = false;
+		
 		try {
 			// check exist object
 			objMeta = open(bucket, object);
@@ -349,6 +351,8 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+		// long dbEnd = System.currentTimeMillis();
+		// logger.error("put, db op : {}", dbEnd - dbStart);
 
 		if (isExist && !effectPolicy) {
 			if (Strings.isNullOrEmpty(objMeta.getAcl())) {
@@ -386,7 +390,7 @@ public class PutObject extends S3Request {
 
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			logger.debug("taggingxml : {}", taggingxml);
+			// logger.debug("taggingxml : {}", taggingxml);
 			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
@@ -396,6 +400,8 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		// long fileEnd = System.currentTimeMillis();
+		// logger.error("put file op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Object.getVersionId());

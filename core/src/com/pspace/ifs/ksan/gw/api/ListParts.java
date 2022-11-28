@@ -34,6 +34,7 @@ import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.multipart.ResultParts;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -120,7 +121,7 @@ public class ListParts extends S3Request {
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
 			XMLStreamWriter xmlStreamWriter = xmlOutputFactory.createXMLStreamWriter(writer);

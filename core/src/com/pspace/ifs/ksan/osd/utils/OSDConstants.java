@@ -25,10 +25,10 @@ public final class OSDConstants {
     public static final String OSD_LOCAL_IP = "local_ip";
     public static final String OSD_PORT = "port";
 
-    public static final String OBJ_DIR = "obj";
-	public static final String TEMP_DIR = "temp";
-	public static final String TRASH_DIR = "trash";
-	public static final String EC_DIR = "ec";
+    // public static final String OBJ_DIR = "obj";
+	// public static final String TEMP_DIR = "temp";
+	// public static final String TRASH_DIR = "trash";
+	// public static final String EC_DIR = "ec";
 
     public static final String EC_FUNCTION = "ec";
     public static final String EC_SCHEDULE_MINUTES = "ec_schedule_minutes";
@@ -169,7 +169,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_PART_START = "getPart start ...";
     public static final String LOG_OSD_SERVER_GET_PART_INFO = "path : {}, objId : {}, partNo : {}";
     public static final String LOG_OSD_SERVER_GET_PART_END = "getPart end ... read total : {}";
-    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "get - success : path={}, objId={}, partNo={}";
+    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "getPart - success : path={}, objId={}, partNo={}";
 
     public static final String LOG_OSD_SERVER_PART_START = "part start ...";
     public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}, key : {}";
@@ -191,6 +191,15 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_INFO = "path : {}, objId : {}, partNos : {}";
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_END = "abortMultipart end ...";
     public static final String LOG_OSD_SERVER_ABORE_MULTIPART_SUCCESS_INFO = "abortMultipart - success : path : {}, objId : {}, partNos : {}";
+
+    public static final String LOG_OSD_SERVER_PUT_EC_PART_START = "put ec part start ...";
+    public static final String LOG_OSD_SERVER_PUT_EC_PART_END = "put ec part end ...";
+
+    public static final String LOG_OSD_SERVER_GET_EC_PART_START = "get ec part start ...";
+    public static final String LOG_OSD_SERVER_GET_EC_PART_END = "get ec part end ...";
+
+    public static final String LOG_OSD_SERVER_DELETE_EC_PART_START = "delete ec part start ...";
+    public static final String LOG_OSD_SERVER_DELETE_EC_PART_END = "delete ec part end ...";
 
     // DoECPriObject
     public static final String LOG_DO_EC_PRI_OBJECT_START = "DoECPriObject start ...";

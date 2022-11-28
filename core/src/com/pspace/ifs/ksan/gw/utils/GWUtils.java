@@ -70,6 +70,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
+import com.pspace.ifs.ksan.libs.Constants;
 
 public class GWUtils {
 
@@ -281,14 +282,14 @@ public class GWUtils {
 		}
 	}
 	
-	public static GWDB getDBInstance() {
-		if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
-			return MariaDB.getInstance();
-		} else {
-			logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
-			return null;
-		}
-	}
+	// public static GWDB getDBInstance() {
+	// 	if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
+	// 		return MariaDB.getInstance();
+	// 	} else {
+	// 		logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
+	// 		return null;
+	// 	}
+	// }
 
 	public static boolean likematch(String first, String second) {
 		// If we reach at the end of both strings,
@@ -1270,17 +1271,17 @@ public class GWUtils {
 				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (Disk disk : server.getDiskList()) {
-							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 							file.mkdirs();
 						}
 					}

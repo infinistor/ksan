@@ -108,9 +108,9 @@ public class GW {
 			connector.setHost(GWConfig.getInstance().getEndpoint().getHost());
 			connector.setPort(GWConfig.getInstance().getEndpoint().getPort());
 			
-			// if(GWConfig2.getInstance().jettyMaxIdleTimeout() > 30000) {
+			if (GWConfig.getInstance().getJettyMaxIdleTimeout() > 30000) {
 				connector.setIdleTimeout(GWConfig.getInstance().getJettyMaxIdleTimeout());
-			// }
+			}
 			
 			connector.setReuseAddress(true);
 			server.addConnector(connector);
@@ -125,7 +125,7 @@ public class GW {
 			connector = new ServerConnector(server, sslContextFactory, httpConnectionFactory);
 			connector.setHost(GWConfig.getInstance().getSecureEndpoint().getHost());
 			connector.setPort(GWConfig.getInstance().getSecureEndpoint().getPort());
-			if(GWConfig.getInstance().getJettyMaxIdleTimeout() > 30000) {
+			if (GWConfig.getInstance().getJettyMaxIdleTimeout() > 30000) {
 				connector.setIdleTimeout(GWConfig.getInstance().getJettyMaxIdleTimeout());
 			}
 
@@ -138,18 +138,18 @@ public class GW {
 		handler = new GWHandlerJetty();
 		server.setHandler(handler);
 
-		GWDB s3DB = GWUtils.getDBInstance();
-		try {
-			s3DB.init(GWConfig.getInstance().getDbHost(), String.valueOf(GWConfig.getInstance().getDbPort()), GWConfig.getInstance().getDatabase(), GWConfig.getInstance().getDbUser(), GWConfig.getInstance().getDbPass(), (int)GWConfig.getInstance().getDbPoolSize());
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-		}
+		// GWDB s3DB = GWUtils.getDBInstance();
+		// try {
+		// 	s3DB.init(GWConfig.getInstance().getDbHost(), String.valueOf(GWConfig.getInstance().getDbPort()), GWConfig.getInstance().getDatabase(), GWConfig.getInstance().getDbUser(), GWConfig.getInstance().getDbPass(), (int)GWConfig.getInstance().getDbPoolSize());
+		// } catch (Exception e) {
+		// 	PrintStack.logging(logger, e);
+		// }
 
-		try {
-			OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-		}
+		// try {
+		// 	OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
+		// } catch (Exception e) {
+		// 	PrintStack.logging(logger, e);
+		// }
 
 		try {
 			ObjManagerHelper.getInstance().init((int)GWConfig.getInstance().getObjManagerCount());

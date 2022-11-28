@@ -25,8 +25,8 @@ public class DiskPool {
     public static final String REPLICATION_TYPE_ERASURE_CODE = "ErasureCode";
     public static final String SERVERS = "Servers";
     public static final String EC = "EC";
-    public static final String EC_M = "M";
-    public static final String EC_K = "K";
+    public static final String EC_M = "M";  // the number of coding chunks
+    public static final String EC_K = "K";  // the number of data chunks
 
     private String id;
     private String name;

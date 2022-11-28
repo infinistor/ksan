@@ -59,6 +59,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
+import com.pspace.ifs.ksan.libs.KsanUtils;
 
 import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
@@ -201,32 +202,9 @@ public class AzuObjectOperation {
 
     private long getObjectLocal(OutputStream outputStream, String path, String objId) throws IOException, AzuException {
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-        File ecFile = new File(makeECPath(path, objId, versionId));
         File file = null;
 
-        // if (ecFile.exists()) {
-        //     logger.info(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE, ecFile.getName());
-        //     String command = GWConstants.ZUNFEC
-        //                     + makeECDecodePath(path, objId, versionId)
-        //                     + GWConstants.SPACE + ecFile + GWConstants.ZFEC_0
-        //                     + GWConstants.SPACE + ecFile + GWConstants.ZFEC_1
-        //                     + GWConstants.SPACE + ecFile + GWConstants.ZFEC_2
-        //                     + GWConstants.SPACE + ecFile + GWConstants.ZFEC_3;
-        //     logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND, command);
-        //     Process p = Runtime.getRuntime().exec(command);
-        //     try {
-        //         int exitCode = p.waitFor();
-        //         p.destroy();
-        //         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE, exitCode);
-        //     } catch (InterruptedException e) {
-        //         logger.error(e.getMessage());
-        //     }
-
-        //     file = new File(makeECDecodePath(path, objId, versionId));
-        // } else {
-        //     file = new File(makeObjPath(path, objId, versionId));
-        // }
-        file = new File(makeObjPath(path, objId, versionId));
+        file = new File(KsanUtils.makeObjPath(path, objId, versionId));
 
         logger.info("obj path : {}", file.getAbsolutePath());
         long actualSize = 0L;
@@ -260,10 +238,6 @@ public class AzuObjectOperation {
 
         outputStream.flush();
         outputStream.close();
-
-        if (ecFile.exists()) {
-            file.delete();
-        }
 
         return actualSize;
     }
@@ -312,14 +286,14 @@ public class AzuObjectOperation {
                 
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        tmpFilePrimary = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        trashPrimary = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        tmpFilePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        trashPrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         isPrimaryCache = true;
                     } else {
-                        filePrimary = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        tmpFilePrimary = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        trashPrimary = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        filePrimary = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        tmpFilePrimary = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        trashPrimary = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                     }
                     com.google.common.io.Files.createParentDirs(filePrimary);
                     com.google.common.io.Files.createParentDirs(tmpFilePrimary);
@@ -345,14 +319,14 @@ public class AzuObjectOperation {
                 if (objMeta.isReplicaExist()) {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            fileReplica = new File(makeCachePath(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            tmpFileReplica = new File(makeCachePath(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                            trashReplica = new File(makeCachePath(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                            tmpFileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                            trashReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
                             isReplicaCache = true;
                         } else {
-                            fileReplica = new File(makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            tmpFileReplica = new File(makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
-                            trashReplica = new File(makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                            fileReplica = new File(KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                            tmpFileReplica = new File(KsanUtils.makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                            trashReplica = new File(KsanUtils.makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
                         }
                         com.google.common.io.Files.createParentDirs(fileReplica);
                         com.google.common.io.Files.createParentDirs(tmpFileReplica);
@@ -422,7 +396,7 @@ public class AzuObjectOperation {
 
                     retryRenameTo(tmpFilePrimary, filePrimary);
                     if (isPrimaryCache) {
-                        String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
+                        String path = KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
                         com.google.common.io.Files.createParentDirs(new File(path));
                         logger.debug("path : {}, primary path : {}", path, filePrimary.getAbsolutePath());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
@@ -445,7 +419,7 @@ public class AzuObjectOperation {
                         // setAttributeFileReplication(tmpFileReplica, GWConstants.FILE_ATTRIBUTE_REPLICATION_REPLICA, GWConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         retryRenameTo(tmpFileReplica, fileReplica);
                         if (isReplicaCache) {
-                            String path = makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
+                            String path = KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
                             com.google.common.io.Files.createParentDirs(new File(path));
                             logger.debug("path : {}, primary path : {}", path, fileReplica.getAbsolutePath());
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
@@ -458,19 +432,19 @@ public class AzuObjectOperation {
                 File trashFile = null;
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        file = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        tmpFile = new File(makeCachePath(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        trashFile = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        File link = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        File link = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         com.google.common.io.Files.createParentDirs(file);
                         com.google.common.io.Files.createParentDirs(tmpFile);
                         com.google.common.io.Files.createParentDirs(link);
                         fosPrimary = new FileOutputStream(tmpFile, false);
                         isPrimaryCache = true;
                     } else {
-                        file = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        tmpFile = new File(makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        trashFile = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        file = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        trashFile = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         com.google.common.io.Files.createParentDirs(file);
                         com.google.common.io.Files.createParentDirs(tmpFile);
                         fosPrimary = new FileOutputStream(tmpFile, false);
@@ -529,7 +503,7 @@ public class AzuObjectOperation {
                     
                     retryRenameTo(tmpFile, file);
                     if (isPrimaryCache) {
-                        String path = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
+                        String path = KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
                         Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }
@@ -648,18 +622,18 @@ public class AzuObjectOperation {
         File file = null;
         File trashFile = null;
         if (GWConfig.getInstance().isCacheDiskpath()) {
-            file = new File(makeCachePath(makeObjPath(path, objId, versionId)));
-            trashFile = new File(makeCachePath(makeTrashPath(path, objId, versionId)));
+            file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(path, objId, versionId)));
+            trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(path, objId, versionId)));
         } else {
-            file = new File(makeObjPath(path, objId, versionId));
-            trashFile = new File(makeTrashPath(path, objId, versionId));
+            file = new File(KsanUtils.makeObjPath(path, objId, versionId));
+            trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
         }
 
         updateBucketUsed(objMeta.getBucket(), file.length() * objMeta.getReplicaCount() * -1);
         if (file.exists()) {
             retryRenameTo(file, trashFile);
             if (GWConfig.getInstance().isCacheDiskpath()) {
-                File link = new File(makeObjPath(path, objId, versionId));
+                File link = new File(KsanUtils.makeObjPath(path, objId, versionId));
                 link.delete();
             }
         }
@@ -683,9 +657,9 @@ public class AzuObjectOperation {
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(makeCachePath(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
                     } else {
-                        filePrimary = new File(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                        filePrimary = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
                     }
                     com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
@@ -707,9 +681,9 @@ public class AzuObjectOperation {
                 if (objMeta.isReplicaExist()) {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            fileReplica = new File(makeCachePath(makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId)));
+                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId)));
                         } else {
-                            fileReplica = new File(makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId));
+                            fileReplica = new File(KsanUtils.makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId));
                         }
                         com.google.common.io.Files.createParentDirs(fileReplica);
                         fosReplica = new FileOutputStream(fileReplica, false);
@@ -771,9 +745,9 @@ public class AzuObjectOperation {
             } else {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(makeCachePath(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
                     } else {
-                        filePrimary = new File(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                        filePrimary = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
                     }
                     com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
@@ -849,13 +823,13 @@ public class AzuObjectOperation {
 
         if (GWConfig.getInstance().isCacheDiskpath()) {
             isCacheDiskpath = true;
-            file = new File(makeCachePath(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-            tmpFile = new File(makeCachePath(makeTempCompleteMultipartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-            trashFile = new File(makeCachePath(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+            file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+            tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempCompleteMultipartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+            trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
         } else {
-            file = new File(makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-            tmpFile = new File(makeTempCompleteMultipartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-            trashFile = new File(makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            file = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            tmpFile = new File(KsanUtils.makeTempCompleteMultipartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            trashFile = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
         }
         
         try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
@@ -864,9 +838,9 @@ public class AzuObjectOperation {
             md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
             for (String blockId: blockList) {
                 if (GWConfig.getInstance().isCacheDiskpath()) {
-                    block = new File(makeCachePath(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                    block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
                 } else {
-                    block = new File(makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                    block = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
                 }
 
                 FileInputStream fis = new FileInputStream(block);
@@ -891,7 +865,7 @@ public class AzuObjectOperation {
             // }
             retryRenameTo(tmpFile, file);
             if (isCacheDiskpath) {
-                String filePath = makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
+                String filePath = KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
                 Files.createSymbolicLink(Paths.get(filePath), Paths.get(file.getAbsolutePath()));
             }
 
@@ -910,22 +884,6 @@ public class AzuObjectOperation {
         }
 
         return s3Object;
-    }
-
-    private String makeDirectoryName(String objId) {
-        byte[] path = new byte[6];
-        byte[] byteObjId = objId.getBytes();
-
-        path[0] = GWConstants.CHAR_SLASH;
-        int index = 1;
-        
-        path[index++] = byteObjId[0];
-        path[index++] = byteObjId[1];
-        path[index++] = GWConstants.CHAR_SLASH;
-        path[index++] = byteObjId[2];
-        path[index] = byteObjId[3];
-
-        return new String(path);
     }
 
     private void setObjManager() throws Exception {
@@ -952,82 +910,6 @@ public class AzuObjectOperation {
 			}
 		}
 	}
-
-    private String makeObjPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + GWConstants.SLASH + GWConstants.OBJ_DIR + makeDirectoryName(objId) + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_OBJ_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeTempPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + GWConstants.SLASH + GWConstants.TEMP_DIR + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + uuid + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_TEMP_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeTrashPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + GWConstants.SLASH + GWConstants.TRASH_DIR + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + versionId + GWConstants.DASH + uuid;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_TRASH_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeECPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + GWConstants.SLASH + GWConstants.EC_DIR + makeDirectoryName(objId) + GWConstants.SLASH + GWConstants.POINT + objId + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_EC_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeTempPartPath(String path, String objId, String partNumber) {
-        String fullPath = path + GWConstants.SLASH + GWConstants.TEMP_DIR + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + partNumber;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_TEMP_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeTempCompleteMultipartPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + GWConstants.SLASH + GWConstants.TEMP_COMPLETE_DIR + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_TEMP_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeTempCopyPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + GWConstants.SLASH + GWConstants.TEMP_COPY_DIR + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_TEMP_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeECDecodePath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = GWConstants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + GWConstants.SLASH + GWConstants.EC_DIR + makeDirectoryName(objId) + GWConstants.SLASH + objId + GWConstants.UNDERSCORE + versionId;
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_EC_PATH, fullPath);
-        return fullPath;
-    }
-
-    private String makeCachePath(String path) {
-        String fullPath = GWConfig.getInstance().getCacheDiskpath() + path;
-        return fullPath;
-    }
 
     private void retryRenameTo(File srcFile, File destFile) throws IOException {
         if (srcFile.exists()) {

@@ -13,6 +13,23 @@ package com.pspace.ifs.ksan.libs;
 
 public class Constants {
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
+
+	public static final char CHAR_SLASH = '/';
+	public static final String SLASH = "/";
+	public static final String UNDERSCORE = "_";
+	public static final String DASH = "-";
+	public static final String POINT = ".";
+	public static final String SPACE = " ";
+
+	public static final String OBJ_DIR = "obj";
+	public static final String TEMP_DIR = "temp";
+	public static final String TEMP_COMPLETE_DIR = "temp/complete";
+	public static final String TEMP_COPY_DIR = "temp/copy";
+	public static final String TRASH_DIR = "trash";
+	public static final String EC_DIR = "ec";
+
+	public static final String VERSIONING_DISABLE_TAIL = "null";
+
 	public static final String COLON = ":";
 	public static final String CHARSET_UTF_8 = "UTF-8";
 
@@ -44,11 +61,15 @@ public class Constants {
 	public static final String LOG_OSDCLIENT_SOCKET_INFO = "socket : {}";
 	public static final String LOG_OSDCLIENT_CLOSE_SOCKET_INFO = "close socket : {}";
 	public static final String LOG_OSDCLIENT_SOCKET_ERROR = "socket error, {}";
-	public static final String LOG_OSDCLIENT_HEADER = "get header : {}";
+	public static final String LOG_OSDCLIENT_GET_HEADER = "get header : {}";
+	public static final String LOG_OSDCLIENT_GET_EC_PART_HEADER = "get ec part header : {}";
 	public static final String LOG_OSDCLIENT_READ = "read {} bytes";
 	public static final String LOG_OSDCLIENT_WRITE = "write {} bytes";
 	public static final String LOG_OSDCLIENT_PUT_HEADER = "put header : {}";
+	public static final String LOG_OSDCLIENT_PUT_EC_PART_HEADER = "put ec part header : {}";
 	public static final String LOG_OSDCLIENT_DELETE_HEADER = "delete header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_REPLICA_HEADER = "delete replica header : {}";
+	public static final String LOG_OSDCLIENT_DELETE_EC_PART_HEADER = "delete ec part header : {}";
 	public static final String LOG_OSDCLIENT_COPY_HEADER = "copy header : {}";
 	public static final String LOG_OSDCLIENT_PART_HEADER = "part header : {}";
 	public static final String LOG_OSDCLIENT_DELETE_PART_HEADER = "delete part header : {}";
@@ -63,11 +84,16 @@ public class Constants {
 	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "diskid";
 	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "pri";
 	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "rep";
-	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
+	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "nul";
+	public static final int FILE_ATTRIBUTE_REPLICATION_SIZE = 3;
+	public static final int FILE_ATTRIBUTE_REPLICATION_DISK_ID_SIZE = 36;
 
 	public static final String ZFEC = "zfec -d ";
     public static final String ZFEC_PREFIX_OPTION = " -p ";
-    public static final String ZFEC_TOTAL_NUMBER_OPTION = " -m 4 ";
+    public static final String ZFEC_TOTAL_SHARES_OPTION = " -m ";
+	public static final String ZFEC_REQUIRED_SHARES_OPTION = " -k ";
+	public static final String ZFEC_SUFFIX = ".fec";
+	public static final String ZUNFEC = "zunfec -o ";
 
 	private Constants() {
 		throw new IllegalStateException("Utility class");
