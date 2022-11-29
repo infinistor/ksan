@@ -1636,6 +1636,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   There is a service attached to that server. Delete the server after deleting the attached service.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE {
+            get {
+                return ResourceManager.GetString("EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Please enter the server id.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_SERVERS_REQUIRE_ID {

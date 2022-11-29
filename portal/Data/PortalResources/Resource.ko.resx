@@ -1141,6 +1141,9 @@
   <data name="EM_SERVERS_REMOVE_AFTER_REMOVING_DISK" xml:space="preserve">
     <value>해당 서버에 연결된 디스크가 존재합니다. 연결된 디스크를 삭제 후에 서버를 삭제하여 주세요.</value>
   </data>
+  <data name="EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE" xml:space="preserve">
+    <value>해당 서버에 연결된 서비스가 존재합니다. 연결된 서비스를 삭제 후에 서버를 삭제하여 주세요.</value>
+  </data>
   <data name="EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL" xml:space="preserve">
     <value>해당 디스크가 포함된 디스크 풀이 존재합니다. 해당 디스크 풀에서 디스크를 제거한 후 삭제하여 주세요.</value>
   </data>
