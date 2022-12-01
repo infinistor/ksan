@@ -59,6 +59,9 @@ public class GWConfig {
 	private boolean isNoDisk;
 	private boolean isNoReplica;
     private boolean isNoOperation;
+    private boolean isPREV;
+    private boolean isDBOP;
+    private boolean isS3OP;
 
     private String logging;
     private boolean isLogging;
@@ -355,6 +358,30 @@ public class GWConfig {
         this.isNoOperation = isNoOperation;
     }
 
+    public boolean isPREV() {
+        return isPREV;
+    }
+
+    public void setPREV(boolean isPREV) {
+        this.isPREV = isPREV;
+    }
+
+    public boolean isDBOP() {
+        return isDBOP;
+    }
+
+    public void setDBOP(boolean isDBOP) {
+        this.isDBOP = isDBOP;
+    }
+
+    public boolean isS3OP() {
+        return isS3OP;
+    }
+
+    public void setS3OP(boolean isS3OP) {
+        this.isS3OP = isS3OP;
+    }
+
     public boolean isLogging() {
         return isLogging;
     }
@@ -397,6 +424,9 @@ public class GWConfig {
             setNoDisk(false);
             setNoReplica(false);
             setNoOperation(false);
+            setPREV(false);
+            setDBOP(false);
+            setS3OP(false);
 		} else {
 			if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_OPTION)) {
 				setPerformanceMode(GWConstants.PERFORMANCE_MODE_NO_OPTION);
@@ -405,30 +435,72 @@ public class GWConfig {
                 setNoDisk(false);
                 setNoReplica(false);
                 setNoOperation(false);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_IO)) {
 				setNoOption(false);
                 setNoIO(true);
                 setNoDisk(false);
                 setNoReplica(false);
                 setNoOperation(false);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_DISK)) {
 				setNoOption(false);
                 setNoIO(false);
                 setNoDisk(true);
                 setNoReplica(false);
                 setNoOperation(false);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_REPLICA)) {
 				setNoOption(false);
                 setNoIO(false);
                 setNoDisk(false);
                 setNoReplica(true);
                 setNoOperation(false);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(false);
 			} else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_NO_OPERATION)) {
                 setNoOption(false);
                 setNoIO(false);
                 setNoDisk(false);
                 setNoReplica(false);
                 setNoOperation(true);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(false);
+            } else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_PREV)) {
+                setNoOption(false);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(false);
+                setNoOperation(false);
+                setPREV(true);
+                setDBOP(false);
+                setS3OP(false);
+            } else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_DB_OP)) {
+                setNoOption(false);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(false);
+                setNoOperation(false);
+                setPREV(false);
+                setDBOP(true);
+                setS3OP(false);
+            } else if (getPerformanceMode().equals(GWConstants.PERFORMANCE_MODE_S3_OPERATION)) {
+                setNoOption(false);
+                setNoIO(false);
+                setNoDisk(false);
+                setNoReplica(false);
+                setNoOperation(false);
+                setPREV(false);
+                setDBOP(false);
+                setS3OP(true);
             }
 		}
 

@@ -16,6 +16,7 @@ import static java.util.Objects.requireNonNull;
 import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -156,6 +157,7 @@ public class GW {
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		}
+		// ObjManagers.getInstance().init();
 
 		if (GWConfig.getInstance().isCacheDiskpath()) {
 			GWUtils.initCache(GWConfig.getInstance().getCacheDiskpath());

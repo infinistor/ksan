@@ -63,91 +63,98 @@ public class DataPutObject extends S3DataRequest {
 		userMetadata = new TreeMap<String, String>();
 		logger = LoggerFactory.getLogger(DataPutObject.class);
 		hasAclKeyword = false;
+		// cacheControl = "";
+		// contentDisposition = "";
+		// contentEncoding = "";
+		// contentLanguage = "";
+		// contentMD5 = "";
+		// contentType = "";
+		// expires = "";
+		// acl = "";
+		// grantFullControl = "";
+		// grantRead = "";
+		// grantWrite = "";
+		// grantReadAcp = "";
+		// grantWriteAcp = "";
+		// decodedContentLength = "";
+		// serverSideEncryption = "";
+		// storageClass = "";
+		// websiteRedirectLocation = "";
+		// serverSideEncryptionCustomerAlgorithm = "";
+		// serverSideEncryptionCustomerKey = "";
+		// serverSideEncryptionCustomerKeyMD5 = "";
+		// serverSideEncryptionAwsKmsKeyId = "";
+		// serverSideEncryptionContext = "";
+		// serverSideEncryptionBucketKeyEnabled = "";
+		// requestPayer = "";
+		// tagging = "";
+		// objectLockMode = "";
+		// objectLockRetainUntilDate = "";
+		// objectLockLegalHold = "";
+		// expectedBucketOwner = "";
+		// versionId = "";
+		// replication = "";
+		// dr = "";
+		// logging = "";
 	}
 
 	@Override
-	public void extract() throws GWException {		
+	public void extract() throws GWException {
+		cacheControl = s3Parameter.getRequest().getHeader(GWConstants.CACHE_CONTROL);
+		contentDisposition = s3Parameter.getRequest().getHeader(GWConstants.CONTENT_DISPOSITION);
+		contentEncoding = s3Parameter.getRequest().getHeader(GWConstants.CONTENT_ENCODING);
+		contentLanguage = s3Parameter.getRequest().getHeader(GWConstants.CONTENT_LANGUAGE);
+		contentMD5 = s3Parameter.getRequest().getHeader(GWConstants.CONTENT_MD5);
+		contentType = s3Parameter.getRequest().getHeader(GWConstants.CONTENT_TYPE);
+		expires = s3Parameter.getRequest().getHeader(GWConstants.EXPIRES);
+		acl = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_ACL);
+		if (!Strings.isNullOrEmpty(acl)) {
+			hasAclKeyword = true;
+		}
+		grantFullControl = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_GRANT_FULL_CONTROL);
+		if (!Strings.isNullOrEmpty(grantFullControl)) {
+			hasAclKeyword = true;
+		}
+		grantRead = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_GRANT_READ);
+		if (!Strings.isNullOrEmpty(grantRead)) {
+			hasAclKeyword = true;
+		}
+		grantReadAcp = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_GRANT_READ_ACP);
+		if (!Strings.isNullOrEmpty(grantReadAcp)) {
+			hasAclKeyword = true;
+		}
+		grantWrite = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_GRANT_WRITE);
+		if (!Strings.isNullOrEmpty(grantWrite)) {
+			hasAclKeyword = true;
+		}
+		grantWriteAcp = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_GRANT_WRITE_ACP);
+		if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+			hasAclKeyword = true;
+		}
+		decodedContentLength = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_DECODED_CONTENT_LENGTH);
+		serverSideEncryption = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION);
+		storageClass = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_STORAGE_CLASS);
+		websiteRedirectLocation = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_WEBSITE_REDIRECT_LOCATION);
+		serverSideEncryptionCustomerAlgorithm = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM);
+
+		serverSideEncryptionCustomerKey = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY);
+		serverSideEncryptionCustomerKeyMD5 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5);
+		serverSideEncryptionAwsKmsKeyId = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID);
+		serverSideEncryptionContext = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CONTEXT);
+		serverSideEncryptionBucketKeyEnabled = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_BUCKET_KEY_ENABLED);
+		requestPayer = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_REQUEST_PAYER);
+		tagging = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_TAGGING);
+		objectLockMode = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE);
+		objectLockRetainUntilDate = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE);
+		objectLockLegalHold = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD);
+		expectedBucketOwner = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER);
+		versionId = s3Parameter.getRequest().getHeader(GWConstants.X_IFS_VERSION_ID);
+
 		for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
-			if (headerName.equalsIgnoreCase(GWConstants.CACHE_CONTROL)) {
-				cacheControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_DISPOSITION)) {
-				contentDisposition = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_ENCODING)) {
-				contentEncoding = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_LANGUAGE)) {
-				contentLanguage = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_MD5)) {
-				contentMD5 = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_TYPE)) {
-				contentType = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.EXPIRES)) {
-				expires = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
-				acl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(acl)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
-				grantFullControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(grantFullControl)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
-				grantRead = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(grantRead)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
-				grantReadAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(grantReadAcp)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
-				grantWrite = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(grantWrite)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
-				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				if (!Strings.isNullOrEmpty(grantWriteAcp)) {
-					hasAclKeyword = true;
-				}
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_DECODED_CONTENT_LENGTH)) {
-				decodedContentLength = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION)) {
-				serverSideEncryption = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_STORAGE_CLASS)) {
-				storageClass = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_WEBSITE_REDIRECT_LOCATION)) {
-				websiteRedirectLocation = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM)) {
-				serverSideEncryptionCustomerAlgorithm = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY)) {
-				serverSideEncryptionCustomerKey = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5)) {
-				serverSideEncryptionCustomerKeyMD5 = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID)) {
-				serverSideEncryptionAwsKmsKeyId = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CONTEXT)) {
-				serverSideEncryptionContext = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_BUCKET_KEY_ENABLED)) {
-				serverSideEncryptionBucketKeyEnabled = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_REQUEST_PAYER)) {
-				requestPayer = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_TAGGING)) {
-				tagging = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_MODE)) {
-				objectLockMode = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE)) {
-				objectLockRetainUntilDate = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD)) {
-				objectLockLegalHold = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
-				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-			} else if (headerName.startsWith(GWConstants.USER_METADATA_PREFIX) ) {
+			if (headerName.startsWith(GWConstants.USER_METADATA_PREFIX) ) {
 				userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_VERSION_ID)) {
-				versionId = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				versionId = s3Parameter.getRequest().getHeader(headerName);
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_REPLICATION)) {
 				replication = GWConstants.IFS_HEADER_REPLICATION;
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_DR)) {
@@ -156,6 +163,96 @@ public class DataPutObject extends S3DataRequest {
 				logging = GWConstants.IFS_HEADER_LOGGING;
 			}
 		}
+
+		// for (String headerName : Collections.list(s3Parameter.getRequest().getHeaderNames())) {
+		// 	if (headerName.equalsIgnoreCase(GWConstants.CACHE_CONTROL)) {
+		// 		cacheControl = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_DISPOSITION)) {
+		// 		contentDisposition = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_ENCODING)) {
+		// 		contentEncoding = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_LANGUAGE)) {
+		// 		contentLanguage = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_MD5)) {
+		// 		contentMD5 = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.CONTENT_TYPE)) {
+		// 		contentType = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.EXPIRES)) {
+		// 		expires = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
+		// 		acl = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(acl)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
+		// 		grantFullControl = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(grantFullControl)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
+		// 		grantRead = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(grantRead)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
+		// 		grantReadAcp = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(grantReadAcp)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
+		// 		grantWrite = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(grantWrite)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
+		// 		grantWriteAcp = s3Parameter.getRequest().getHeader(headerName);
+		// 		if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+		// 			hasAclKeyword = true;
+		// 		}
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_DECODED_CONTENT_LENGTH)) {
+		// 		decodedContentLength = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION)) {
+		// 		serverSideEncryption = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_STORAGE_CLASS)) {
+		// 		storageClass = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_WEBSITE_REDIRECT_LOCATION)) {
+		// 		websiteRedirectLocation = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM)) {
+		// 		serverSideEncryptionCustomerAlgorithm = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY)) {
+		// 		serverSideEncryptionCustomerKey = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5)) {
+		// 		serverSideEncryptionCustomerKeyMD5 = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID)) {
+		// 		serverSideEncryptionAwsKmsKeyId = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CONTEXT)) {
+		// 		serverSideEncryptionContext = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_BUCKET_KEY_ENABLED)) {
+		// 		serverSideEncryptionBucketKeyEnabled = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_REQUEST_PAYER)) {
+		// 		requestPayer = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_TAGGING)) {
+		// 		tagging = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_MODE)) {
+		// 		objectLockMode = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE)) {
+		// 		objectLockRetainUntilDate = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD)) {
+		// 		objectLockLegalHold = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
+		// 		expectedBucketOwner = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.startsWith(GWConstants.USER_METADATA_PREFIX) ) {
+		// 		userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_VERSION_ID)) {
+		// 		versionId = s3Parameter.getRequest().getHeader(headerName);
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_REPLICATION)) {
+		// 		replication = GWConstants.IFS_HEADER_REPLICATION;
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_DR)) {
+		// 		dr = GWConstants.IFS_HEADER_DR;
+		// 	} else if (headerName.equalsIgnoreCase(GWConstants.X_IFS_LOGGING)) {
+		// 		logging = GWConstants.IFS_HEADER_LOGGING;
+		// 	}
+		// }
 
 		keyXAmzAcl = getAcl();
 		keyXAmzGrantFullControl = getGrantFullControl();

@@ -113,7 +113,7 @@ public class S3Metadata {
 	}
 
 	public String getStorageType() {
-		return Strings.nullToEmpty(storageType);
+		return storageType;
 	}
 
 	public void setStorageType(String storageType) {
@@ -121,7 +121,7 @@ public class S3Metadata {
 	}
 
 	public String getName() {
-		return Strings.nullToEmpty(name);
+		return name;
 	}
 
 	public void setName(String name) {
@@ -129,7 +129,7 @@ public class S3Metadata {
 	}
 
 	public String getUri() {
-		return Strings.nullToEmpty(uri);
+		return uri;
 	}
 
 	public void setUri(String uri) {
@@ -137,7 +137,7 @@ public class S3Metadata {
 	}
 
 	public String getETag() {
-		return Strings.nullToEmpty(eTag);
+		return eTag;
 	}
 
 	public void setETag(String eTag) {
@@ -177,7 +177,7 @@ public class S3Metadata {
 	}
 
 	public String getTier() {
-		return Strings.nullToEmpty(tier);
+		return tier;
 	}
 
 	public void setTier(String tier) {
@@ -185,7 +185,7 @@ public class S3Metadata {
 	}
 
 	public String getCacheControl() {
-		return Strings.nullToEmpty(cacheControl);
+		return cacheControl;
 	}
 
 	public void setCacheControl(String cacheControl) {
@@ -193,7 +193,7 @@ public class S3Metadata {
 	}
 
 	public String getReadEncryption() {
-		return Strings.nullToEmpty(readEncryption);
+		return readEncryption;
 	}
 
 	public void setReadEncryption(String readEncryption) {
@@ -201,7 +201,7 @@ public class S3Metadata {
 	}
 
 	public String getReadEncryptionSize() {
-		return Strings.nullToEmpty(readEncryptionSize);
+		return readEncryptionSize;
 	}
 
 	public void setReadEncryptionSize(String readEncryptionSize) {
@@ -209,7 +209,7 @@ public class S3Metadata {
 	}
 
 	public String getCustomerAlgorithm() {
-		return Strings.nullToEmpty(customerAlgorithm);
+		return customerAlgorithm;
 	}
 
 	public void setCustomerAlgorithm(String customerAlgorithm) {
@@ -217,7 +217,7 @@ public class S3Metadata {
 	}
 
 	public String getCustomerKey() {
-		return Strings.nullToEmpty(customerKey);
+		return customerKey;
 	}
 
 	public void setCustomerKey(String customerKey) {
@@ -225,7 +225,7 @@ public class S3Metadata {
 	}
 
 	public String getCustomerKeyMD5() {
-		return Strings.nullToEmpty(customerKeyMD5);
+		return customerKeyMD5;
 	}
 
 	public void setCustomerKeyMD5(String customerKeyMD5) {
@@ -233,7 +233,7 @@ public class S3Metadata {
 	}
 
 	public String getServersideEncryption() {
-		return Strings.nullToEmpty(serversideEncryption);
+		return serversideEncryption;
 	}
 
 	public void setServersideEncryption(String serversideEncryption) {
@@ -241,7 +241,7 @@ public class S3Metadata {
 	}
 
 	public String getDeleteMarker() {
-		return Strings.nullToEmpty(deleteMarker);
+		return deleteMarker;
 	}
 
 	public void setDeleteMarker(String deleteMarker) {
@@ -249,7 +249,7 @@ public class S3Metadata {
 	}
 
 	public String getIsLatest() {
-		return Strings.nullToEmpty(isLatest);
+		return isLatest;
 	}
 
 	public void setIsLatest(String isLatest) {
@@ -265,7 +265,7 @@ public class S3Metadata {
 	}
 
 	public String getContentDisposition() {
-		return Strings.nullToEmpty(contentDisposition);
+		return contentDisposition;
 	}
 
 	public void setContentDisposition(String contentDisposition) {
@@ -273,7 +273,7 @@ public class S3Metadata {
 	}
 
 	public String getContentEncoding() {
-		return Strings.nullToEmpty(contentEncoding);
+		return contentEncoding;
 	}
 
 	public void setContentEncoding(String contentEncoding) {
@@ -281,7 +281,7 @@ public class S3Metadata {
 	}
 
 	public String getContentType() {
-		return Strings.nullToEmpty(contentType);
+		return contentType;
 	}
 
 	public void setContentType(String contentType) {
@@ -289,7 +289,7 @@ public class S3Metadata {
 	}
 
 	public String getOwnerId() {
-		return Strings.nullToEmpty(ownerId);
+		return ownerId;
 	}
 
 	public void setOwnerId(String ownerId) {
@@ -297,7 +297,7 @@ public class S3Metadata {
 	}
 
 	public String getOwnerName() {
-		return Strings.nullToEmpty(ownerName);
+		return ownerName;
 	}
 
 	public void setOwnerName(String ownerName) {
@@ -305,7 +305,7 @@ public class S3Metadata {
 	}
 
 	public String getContentLanguage() {
-		return Strings.nullToEmpty(contentLanguage);
+		return contentLanguage;
 	}
 
 	public void setContentLanguage(String contentLanguage) {
@@ -321,7 +321,7 @@ public class S3Metadata {
 	}
 
 	public String getTaggingCount() {
-		return Strings.nullToEmpty(taggingCount);
+		return taggingCount;
 	}
 
 	public void setTaggingCount(String taggingCount) {
@@ -337,7 +337,7 @@ public class S3Metadata {
 	}
 
 	public String getContentMD5() {
-		return Strings.nullToEmpty(contentMD5);
+		return contentMD5;
 	}
 
 	public void setContentMD5(String contentMD5) {
@@ -345,7 +345,7 @@ public class S3Metadata {
 	}
 
 	public String getEncryption() {
-		return Strings.nullToEmpty(encryption);
+		return encryption;
 	}
 
 	public void setEncryption(String encryption) {
@@ -353,7 +353,7 @@ public class S3Metadata {
 	}
 
 	public String getVersionId() {
-		return Strings.nullToEmpty(versionId);
+		return versionId;
 	}
 
 	public void setVersionId(String versionId) {
@@ -361,7 +361,7 @@ public class S3Metadata {
 	}
 
 	public String getUploadId() {
-		return Strings.nullToEmpty(uploadId);
+		return uploadId;
 	}
 
 	public void setUploadId(String uploadId) {
