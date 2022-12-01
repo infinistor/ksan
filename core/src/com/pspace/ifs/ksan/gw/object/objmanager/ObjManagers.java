@@ -62,7 +62,7 @@ public class ObjManagers {
         }
     }
 
-    public synchronized ObjManager getObjManager() {
+    public synchronized ObjManager getObjManager() throws Exception {
         if (index >= 99) {
             index = -1;
         }
