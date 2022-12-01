@@ -139,185 +139,185 @@ public class S3ObjectOperation {
         }
 
         // check EC exists
-        File ecFile = new File(KsanUtils.makeECPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+        // File ecFile = new File(KsanUtils.makeECPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
         // logger.debug("ecfile : {}", ecFile.getAbsolutePath());
-        if (ecFile.exists()) {
-            List<ECPart> ecList = new ArrayList<ECPart>();
-            for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
-                for (Server server : pool.getServerList()) {
-                    for (Disk disk : server.getDiskList()) {
-                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
-                        ecList.add(ecPart);
-                    }
-                }
-            }
-            int numberOfCodingChunks = DiskManager.getInstance().getECM(objMeta.getPrimaryDisk().getId());
-            int numberOfDataChunks = DiskManager.getInstance().getECK(objMeta.getPrimaryDisk().getId());
-            logger.debug("numberOfCodingChunks : {}, numberOfDataChunks : {}", numberOfCodingChunks, numberOfDataChunks);
-            int getECPartCount = 0;
-            for (ECPart ecPart : ecList) {
-                String newECPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
-                File newECPartFile = new File(newECPartPath);
-                if (ecPart.getServerIP().equals(GWUtils.getLocalIP())) {
-                    // if local disk, move file
-                    if (ecPart.getDiskPath().equals(objMeta.getPrimaryDisk().getPath())) {
-                        FileUtils.copyFile(ecFile, newECPartFile);
-                        ecPart.setProcessed(true);
-                    } else {
-                        File sourceECPartFile = new File(KsanUtils.makeECPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        if (sourceECPartFile.exists()) {
-                            FileUtils.copyFile(sourceECPartFile, newECPartFile);
-                            ecPart.setProcessed(true);
-                        } else {
-                            logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
-                        }
-                    }
-                } else {
-                    try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
-                        String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objMeta.getObjId(), versionId);
-                        OSDClient ecClient = new OSDClient(ecPart.getServerIP(), (int)GWConfig.getInstance().getOsdPort());
-                        logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
-                        ecClient.getECPartInit(getPath, fos);
-                        ecClient.getECPart();
-                        ecPart.setProcessed(true);
-                    } catch (IOException e) {
-                        PrintStack.logging(logger, e);
-                    }
-                }
-                getECPartCount++;
-            }
-            // zunfec
-            String ecAllFilePath = KsanUtils.makeECDecodePath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-            String command = Constants.ZUNFEC + ecAllFilePath;
-            getECPartCount = 0;
-            for (ECPart ecPart : ecList) {
-                String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
-                if (ecPart.isProcessed()) {
-                    command += Constants.SPACE + ecPartPath;
-                    getECPartCount++;
-                }
-            }
-            logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND, command);
-            Process p = Runtime.getRuntime().exec(command);
-            try {
-                int exitCode = p.waitFor();
-                p.destroy();
-                logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE, exitCode);
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage());
-            }
-            File ecAllFile = new File(ecAllFilePath);
-            if (ecAllFile.exists()) {
-                logger.info("zunfec result : {}, {}", ecAllFile.getAbsolutePath(), ecAllFile.length());
-                byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
-                CtrCryptoInputStream encryptIS = null;
+        // if (ecFile.exists()) {
+        //     List<ECPart> ecList = new ArrayList<ECPart>();
+        //     for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+        //         for (Server server : pool.getServerList()) {
+        //             for (Disk disk : server.getDiskList()) {
+        //                 ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+        //                 ecList.add(ecPart);
+        //             }
+        //         }
+        //     }
+        //     int numberOfCodingChunks = DiskManager.getInstance().getECM(objMeta.getPrimaryDisk().getId());
+        //     int numberOfDataChunks = DiskManager.getInstance().getECK(objMeta.getPrimaryDisk().getId());
+        //     logger.debug("numberOfCodingChunks : {}, numberOfDataChunks : {}", numberOfCodingChunks, numberOfDataChunks);
+        //     int getECPartCount = 0;
+        //     for (ECPart ecPart : ecList) {
+        //         String newECPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+        //         File newECPartFile = new File(newECPartPath);
+        //         if (ecPart.getServerIP().equals(GWUtils.getLocalIP())) {
+        //             // if local disk, move file
+        //             if (ecPart.getDiskPath().equals(objMeta.getPrimaryDisk().getPath())) {
+        //                 FileUtils.copyFile(ecFile, newECPartFile);
+        //                 ecPart.setProcessed(true);
+        //             } else {
+        //                 File sourceECPartFile = new File(KsanUtils.makeECPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+        //                 if (sourceECPartFile.exists()) {
+        //                     FileUtils.copyFile(sourceECPartFile, newECPartFile);
+        //                     ecPart.setProcessed(true);
+        //                 } else {
+        //                     logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+        //                 }
+        //             }
+        //         } else {
+        //             try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
+        //                 String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objMeta.getObjId(), versionId);
+        //                 OSDClient ecClient = new OSDClient(ecPart.getServerIP(), (int)GWConfig.getInstance().getOsdPort());
+        //                 logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+        //                 ecClient.getECPartInit(getPath, fos);
+        //                 ecClient.getECPart();
+        //                 ecPart.setProcessed(true);
+        //             } catch (IOException e) {
+        //                 PrintStack.logging(logger, e);
+        //             }
+        //         }
+        //         getECPartCount++;
+        //     }
+        //     // zunfec
+        //     String ecAllFilePath = KsanUtils.makeECDecodePath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
+        //     String command = Constants.ZUNFEC + ecAllFilePath;
+        //     getECPartCount = 0;
+        //     for (ECPart ecPart : ecList) {
+        //         String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+        //         if (ecPart.isProcessed()) {
+        //             command += Constants.SPACE + ecPartPath;
+        //             getECPartCount++;
+        //         }
+        //     }
+        //     logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND, command);
+        //     Process p = Runtime.getRuntime().exec(command);
+        //     try {
+        //         int exitCode = p.waitFor();
+        //         p.destroy();
+        //         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE, exitCode);
+        //     } catch (InterruptedException e) {
+        //         logger.error(e.getMessage());
+        //     }
+        //     File ecAllFile = new File(ecAllFilePath);
+        //     if (ecAllFile.exists()) {
+        //         logger.info("zunfec result : {}, {}", ecAllFile.getAbsolutePath(), ecAllFile.length());
+        //         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
+        //         CtrCryptoInputStream encryptIS = null;
 
-                try (FileInputStream fis = new FileInputStream(ecAllFile); OutputStream os = s3Parameter.getResponse().getOutputStream()) {
-                    long remaingLength = 0L;
-                    int readLength = 0;
-                    int readBytes;
+        //         try (FileInputStream fis = new FileInputStream(ecAllFile); OutputStream os = s3Parameter.getResponse().getOutputStream()) {
+        //             long remaingLength = 0L;
+        //             int readLength = 0;
+        //             int readBytes;
 
-                    if (Strings.isNullOrEmpty(sourceRange)) {
-                        if (!Strings.isNullOrEmpty(key)) {
-                            encryptIS = GWUtils.initCtrDecrypt(fis, key);
-                            while ((readLength = encryptIS.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
-                                actualSize += readLength;
-                                os.write(buffer, 0, readLength);
-                                logger.debug("read length : {}", readLength);
-                            }
-                        } else {
-                            remaingLength = ecAllFile.length();
-                            while (remaingLength > 0) {
-                                readBytes = 0;
-                                if (remaingLength < GWConstants.MAXBUFSIZE) {
-                                    readBytes = (int)remaingLength;
-                                } else {
-                                    readBytes = GWConstants.MAXBUFSIZE;
-                                }
+        //             if (Strings.isNullOrEmpty(sourceRange)) {
+        //                 if (!Strings.isNullOrEmpty(key)) {
+        //                     encryptIS = GWUtils.initCtrDecrypt(fis, key);
+        //                     while ((readLength = encryptIS.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
+        //                         actualSize += readLength;
+        //                         os.write(buffer, 0, readLength);
+        //                         logger.debug("read length : {}", readLength);
+        //                     }
+        //                 } else {
+        //                     remaingLength = ecAllFile.length();
+        //                     while (remaingLength > 0) {
+        //                         readBytes = 0;
+        //                         if (remaingLength < GWConstants.MAXBUFSIZE) {
+        //                             readBytes = (int)remaingLength;
+        //                         } else {
+        //                             readBytes = GWConstants.MAXBUFSIZE;
+        //                         }
             
-                                if (remaingLength >= GWConstants.MAXBUFSIZE) {
-                                        readLength = GWConstants.MAXBUFSIZE;
-                                } else {
-                                    readLength = (int)remaingLength;
-                                }
-                                readLength = fis.read(buffer, 0, readBytes);
-                                logger.debug("read length : {}", readLength);
-                                actualSize += readLength;
-                                os.write(buffer, 0, readLength);
-                                remaingLength -= readLength;
-                            }
-                        }
-                    } else {
-                        String[] ranges = sourceRange.split(GWConstants.SLASH);
-                        for (String range : ranges) {
-                            String[] rangeParts = range.split(GWConstants.COMMA);
-                            long offset = Longs.tryParse(rangeParts[0]);
-                            long length = Longs.tryParse(rangeParts[1]);
-                            logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_RANGE, offset, length);
+        //                         if (remaingLength >= GWConstants.MAXBUFSIZE) {
+        //                                 readLength = GWConstants.MAXBUFSIZE;
+        //                         } else {
+        //                             readLength = (int)remaingLength;
+        //                         }
+        //                         readLength = fis.read(buffer, 0, readBytes);
+        //                         logger.debug("read length : {}", readLength);
+        //                         actualSize += readLength;
+        //                         os.write(buffer, 0, readLength);
+        //                         remaingLength -= readLength;
+        //                     }
+        //                 }
+        //             } else {
+        //                 String[] ranges = sourceRange.split(GWConstants.SLASH);
+        //                 for (String range : ranges) {
+        //                     String[] rangeParts = range.split(GWConstants.COMMA);
+        //                     long offset = Longs.tryParse(rangeParts[0]);
+        //                     long length = Longs.tryParse(rangeParts[1]);
+        //                     logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_RANGE, offset, length);
 
-                            remaingLength = length;
+        //                     remaingLength = length;
                             
-                            if (!Strings.isNullOrEmpty(key)) {
-                                long skipOffset = 0;
-                                encryptIS = GWUtils.initCtrDecrypt(fis, key);
+        //                     if (!Strings.isNullOrEmpty(key)) {
+        //                         long skipOffset = 0;
+        //                         encryptIS = GWUtils.initCtrDecrypt(fis, key);
 
-                                if (offset > 0) {
-                                    long skip = encryptIS.skip(offset);
-                                    logger.debug("skip : {}", skip);
-                                }
-                                while (remaingLength > 0) {
-                                    readBytes = 0;
-                                    if (remaingLength < GWConstants.MAXBUFSIZE) {
-                                        readBytes = (int)remaingLength;
-                                    } else {
-                                        readBytes = GWConstants.MAXBUFSIZE;
-                                    }
+        //                         if (offset > 0) {
+        //                             long skip = encryptIS.skip(offset);
+        //                             logger.debug("skip : {}", skip);
+        //                         }
+        //                         while (remaingLength > 0) {
+        //                             readBytes = 0;
+        //                             if (remaingLength < GWConstants.MAXBUFSIZE) {
+        //                                 readBytes = (int)remaingLength;
+        //                             } else {
+        //                                 readBytes = GWConstants.MAXBUFSIZE;
+        //                             }
 
-                                    if ((readLength = encryptIS.read(buffer, 0, readBytes)) != -1) {
-                                        skipOffset += readLength;
-                                        logger.debug("read {} bytes", readLength);
-                                        actualSize += readLength;
-                                        os.write(buffer, 0, readLength);
-                                        remaingLength -= readLength;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            } else {
-                                if (offset > 0) {
-                                    fis.skip(offset);
-                                }
-                                while (remaingLength > 0) {
-                                    readBytes = 0;
-                                    if (remaingLength < GWConstants.MAXBUFSIZE) {
-                                        readBytes = (int)remaingLength;
-                                    } else {
-                                        readBytes = GWConstants.MAXBUFSIZE;
-                                    }
+        //                             if ((readLength = encryptIS.read(buffer, 0, readBytes)) != -1) {
+        //                                 skipOffset += readLength;
+        //                                 logger.debug("read {} bytes", readLength);
+        //                                 actualSize += readLength;
+        //                                 os.write(buffer, 0, readLength);
+        //                                 remaingLength -= readLength;
+        //                             } else {
+        //                                 break;
+        //                             }
+        //                         }
+        //                     } else {
+        //                         if (offset > 0) {
+        //                             fis.skip(offset);
+        //                         }
+        //                         while (remaingLength > 0) {
+        //                             readBytes = 0;
+        //                             if (remaingLength < GWConstants.MAXBUFSIZE) {
+        //                                 readBytes = (int)remaingLength;
+        //                             } else {
+        //                                 readBytes = GWConstants.MAXBUFSIZE;
+        //                             }
             
-                                    readLength = fis.read(buffer, 0, readBytes);
+        //                             readLength = fis.read(buffer, 0, readBytes);
                                     
-                                    actualSize += readLength;
-                                    os.write(buffer, 0, readLength);
-                                    remaingLength -= readLength;
-                                }
-                            }
-                        }
-                    }
-                    os.flush();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-                }
+        //                             actualSize += readLength;
+        //                             os.write(buffer, 0, readLength);
+        //                             remaingLength -= readLength;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             os.flush();
+        //         } catch (IOException e) {
+        //             PrintStack.logging(logger, e);
+        //             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        //         }
 
-                if (encryptIS != null) {
-                    encryptIS.close();
-                }
+        //         if (encryptIS != null) {
+        //             encryptIS.close();
+        //         }
 
-                s3Parameter.addResponseSize(actualSize);
-                return;
-            }
-        }
+        //         s3Parameter.addResponseSize(actualSize);
+        //         return;
+        //     }
+        // }
 
         try {
             if (objMeta.getReplicaCount() > 1) {
@@ -437,6 +437,7 @@ public class S3ObjectOperation {
 
             return 100*1000;
         } 
+
         // logger.info("obj path : {}", file.getAbsolutePath());
         long actualSize = 0L;
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -1199,10 +1200,11 @@ public class S3ObjectOperation {
                     // OSDClientManager.getInstance().returnOSDClient(clientReplica);
                     clientReplica = null;
                 }
-            } else {
-                logger.error(GWConstants.LOG_S3OBJECT_OPERATION_OPTION_NO_CASE, GWConfig.getInstance().getPerformanceMode());
-                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-            }
+            } 
+            // else {
+                // logger.error(GWConstants.LOG_S3OBJECT_OPERATION_OPTION_NO_CASE, GWConfig.getInstance().getPerformanceMode());
+                // throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+            // }
 
             byte[] digest = md5er.digest();
 			String eTag = base16().lowerCase().encode(digest);

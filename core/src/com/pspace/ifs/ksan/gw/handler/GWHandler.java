@@ -31,15 +31,16 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.AsyncHandler;
-import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
+import com.pspace.ifs.ksan.objmanager.ObjManager;
 
 import org.apache.http.HttpHeaders;
 import org.eclipse.jetty.server.Request;
@@ -74,6 +75,18 @@ public class GWHandler {
 			return;
 		}
 
+		// if (GWConfig.getInstance().isDBOP()) {
+		// 	ObjManager objManager = ObjManagers.getInstance().getObjManager();
+		// 	try {
+		// 		objManager.open("db-test", "file1.txt");
+		// 	} catch (Exception e) {
+		// 		logger.error("Failed to open");
+		// 	}
+			
+		// 	response.setStatus(HttpServletResponse.SC_OK);
+		// 	return;
+		// }
+		
         long requestSize = 0L;
 		String method = request.getMethod();
 		requestSize = method.length();
@@ -93,7 +106,6 @@ public class GWHandler {
 
 		for (String parameter : Collections.list(request.getParameterNames())) {
 			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
-
 			requestSize += parameter.length();
 			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
 				requestSize += request.getParameter(parameter).length();
@@ -199,6 +211,11 @@ public class GWHandler {
 		
 		s3Request = s3RequestFactory.createS3Request(s3Parameter);
 		
+		if (GWConfig.getInstance().isPREV()) {
+			response.setStatus(HttpServletResponse.SC_OK);
+			return;
+		}
+
 		s3Request.process();
 		s3Parameter.setStatusCode(response.getStatus());
 		AsyncHandler.s3logging(s3Parameter);

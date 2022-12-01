@@ -77,6 +77,10 @@ public final class GWConstants {
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 	public static final String PERFORMANCE_MODE_NO_REPLICA = "NO_REPLICA";
 	public static final String PERFORMANCE_MODE_NO_OPERATION = "NO_OPERATION";
+	public static final String PERFORMANCE_MODE_PREV = "PREV";
+	public static final String PERFORMANCE_MODE_DB_OP = "DB_OPERATION";
+	public static final String PERFORMANCE_MODE_S3_OPERATION = "S3_OPERATION";
+
 	public static final int JETTY_MAX_THREADS = 1000;
 	public static final int JETTY_MAX_IDLE_TIMEOUT = 30000;
 	public static final long MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024;
