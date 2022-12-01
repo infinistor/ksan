@@ -48,6 +48,7 @@ import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
@@ -196,7 +197,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, repVersionId);
 		}
 
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);

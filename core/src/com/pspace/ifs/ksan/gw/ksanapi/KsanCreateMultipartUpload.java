@@ -73,7 +73,22 @@ public class KsanCreateMultipartUpload extends S3Request {
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		// String xml = getBucketInfo().getAcl();
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		// String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		// 								null, 
+		// 								dataCreateMultipartUpload.hasAclKeyword(), 
+		// 								null, 
+		// 								dataCreateMultipartUpload.getAcl(),
+		// 								getBucketInfo(),
+		// 								getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
+		// 								getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
+		// 								dataCreateMultipartUpload.getGrantRead(),
+		// 								dataCreateMultipartUpload.getGrantWrite(), 
+		// 								dataCreateMultipartUpload.getGrantFullControl(), 
+		// 								dataCreateMultipartUpload.getGrantReadAcp(), 
+		// 								dataCreateMultipartUpload.getGrantWriteAcp(),
+		// 								s3Parameter,
+		// 								false);
+		String xml = GWUtils.makeAdmAclXml(accessControlPolicy, 
 										null, 
 										dataCreateMultipartUpload.hasAclKeyword(), 
 										null, 
@@ -86,8 +101,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 										dataCreateMultipartUpload.getGrantFullControl(), 
 										dataCreateMultipartUpload.getGrantReadAcp(), 
 										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter,
-										false);
+										s3Parameter);										
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();

@@ -140,7 +140,7 @@ namespace PortalSvr.Services
 					// 서비스가 존재하지 않을 경우
 					if (KsanPortalApi.Data.Items.Count == 0)
 					{
-						var KsanPortalApiName = "main-portal-api";
+						var KsanPortalApiName = "portal-api1";
 
 						var Response = await m_serviceProvider.Add(new RequestService()
 						{
@@ -233,8 +233,8 @@ namespace PortalSvr.Services
 						{
 							Name = RegionName,
 							Address = m_configuration["AppSettings:Host"],
-							Port = 8080,
-							SSLPort = 8443
+							Port = 7070,
+							SSLPort = 7443
 						};
 						var Response = await m_regionProvider.Add(Request);
 
@@ -285,7 +285,7 @@ namespace PortalSvr.Services
 					}
 
 					//Lifecycle 서비스가 등록되지 않은 경우 등록한다.
-					var LifecycleName = "ksan-lifecycle-manager";
+					var LifecycleName = "LifecycleManager1";
 					var Lifecycle = await m_serviceProvider.Get(LifecycleName);
 					if (Lifecycle == null || Lifecycle.Result != EnumResponseResult.Success)
 					{
@@ -304,7 +304,7 @@ namespace PortalSvr.Services
 					}
 
 					//LogManager 서비스가 등록되지 않은 경우 등록한다.
-					var LogManagerName = "ksan-log-manager";
+					var LogManagerName = "LogManager1";
 					var LogManager = await m_serviceProvider.Get(LogManagerName);
 					if (LogManager == null || LogManager.Result != EnumResponseResult.Success)
 					{
@@ -323,7 +323,7 @@ namespace PortalSvr.Services
 					}
 
 					//Replication 서비스가 등록되지 않은 경우 등록한다.
-					var ReplicationName = "ksan-replication-manager";
+					var ReplicationName = "ReplicationManager1";
 					var Replication = await m_serviceProvider.Get(ReplicationName);
 					if (Replication == null || Replication.Result != EnumResponseResult.Success)
 					{

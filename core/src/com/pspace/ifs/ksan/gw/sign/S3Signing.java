@@ -42,6 +42,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -106,7 +107,7 @@ public class S3Signing {
 
 		for (int i = 0; i < path.length; i++) {
 			try {
-				path[i] = URLDecoder.decode(path[i], GWConstants.CHARSET_UTF_8);
+				path[i] = URLDecoder.decode(path[i], Constants.CHARSET_UTF_8);
 			} catch (UnsupportedEncodingException e) {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE, s3Parameter);
@@ -194,7 +195,7 @@ public class S3Signing {
 		String[] path = uri.split(GWConstants.SLASH, 3);
 		for (int i = 0; i < path.length; i++) {
 			try {
-				path[i] = URLDecoder.decode(path[i], GWConstants.CHARSET_UTF_8);
+				path[i] = URLDecoder.decode(path[i], Constants.CHARSET_UTF_8);
 			} catch (UnsupportedEncodingException e) {
 				throw new GWException(GWErrorCode.SERVER_ERROR, GWConstants.LOG_S3SIGNING_UNSUPPORT_ENCODING_LANGUAGE, s3Parameter);
 			}
@@ -273,39 +274,6 @@ public class S3Signing {
 		if (headernull) {
 			headerAuthorization = null;
 		}
-		
-		
-		
-		// if (headerAuthorization == null) {
-		// 	String algorithm = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_ALGORITHM);
-
-		// 	if (algorithm == null) { //v2 query
-		// 		String identity = s3Parameter.getRequest().getParameter(GWConstants.AWS_ACCESS_KEY_ID);
-		// 		String signature = s3Parameter.getRequest().getParameter(GWConstants.SIGNATURE);
-		// 		if (identity == null || signature == null) {
-		// 			logger.error(GWConstants.LOG_S3SIGNING_V2_SIGNATURE_NULL, uri);
-		// 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// 		}
-		// 		headerAuthorization = GWConstants.AWS_SPACE + identity + GWConstants.COLON + signature;
-		// 		presignedUrl = true;
-		// 	} else if (algorithm.equals(GWConstants.AWS4_HMAC_SHA256)) { //v4 query
-		// 		String credential = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_CREDENTIAL);
-		// 		String signedHeaders = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNEDHEADERS);
-		// 		String signature = s3Parameter.getRequest().getParameter(GWConstants.X_AMZ_SIGNATURE);
-		// 		if (credential == null || signedHeaders == null || signature == null) {
-		// 			logger.error(GWConstants.LOG_S3SIGNING_V4_CREDENTIAL_NULL, uri);
-		// 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		// 		}
-		// 		headerAuthorization = GWConstants.AWS4_HMAC_SHA256 +
-		// 				GWConstants.SIGN_CREDENTIAL + credential +
-		// 				GWConstants.SIGN_REQEUEST_SIGNED_HEADERS + signedHeaders +
-		// 				GWConstants.SIGN_SIGNATURE + signature;
-		// 		presignedUrl = true;
-		// 	} else {
-		// 		logger.error(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM_VALUE, algorithm);
-		// 		throw new IllegalArgumentException(GWConstants.LOG_S3SIGNING_UNKNOWN_ALGORITHM + algorithm);
-		// 	}
-		// }
 
 		long dateSkew = 0; //date for timeskew check
 
@@ -350,12 +318,6 @@ public class S3Signing {
 		} else {
 			haveDate = false;
 		}
-
-		if (haveDate) {
-			GWUtils.isTimeSkewed(dateSkew, maxDateSkew, s3Parameter);
-		}
-		
-		String credential = user.getAccessSecret();
 		
 		String expiresString = s3Parameter.getRequest().getParameter(GWConstants.EXPIRES);
 		if (expiresString != null) { // v2 query
@@ -381,6 +343,11 @@ public class S3Signing {
 			}
 		}
 		
+		if (haveDate) {
+			GWUtils.isTimeSkewed(dateSkew, maxDateSkew, s3Parameter);
+		}
+		
+		String credential = user.getAccessSecret();
 		String expectedSignature = null;
 
 		// When presigned url is generated, it doesn't consider service path

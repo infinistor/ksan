@@ -27,6 +27,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.multipart.ResultUploads;
 import com.pspace.ifs.ksan.libs.multipart.Upload;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -85,7 +86,7 @@ public class ListMultipartUploads extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);

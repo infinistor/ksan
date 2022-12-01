@@ -48,7 +48,7 @@ public class Azu {
 
     public void init() {
         logger.info("azu start!");
-        configure();
+        // configure();
 
         ExecutorThreadPool pool = new ExecutorThreadPool(100);
 		pool.setName("AZU");

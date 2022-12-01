@@ -76,6 +76,11 @@ public final class GWConstants {
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 	public static final String PERFORMANCE_MODE_NO_REPLICA = "NO_REPLICA";
+	public static final String PERFORMANCE_MODE_NO_OPERATION = "NO_OPERATION";
+	public static final String PERFORMANCE_MODE_PREV = "PREV";
+	public static final String PERFORMANCE_MODE_DB_OP = "DB_OPERATION";
+	public static final String PERFORMANCE_MODE_S3_OPERATION = "S3_OPERATION";
+
 	public static final int JETTY_MAX_THREADS = 1000;
 	public static final int JETTY_MAX_IDLE_TIMEOUT = 30000;
 	public static final long MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024;
@@ -139,12 +144,6 @@ public final class GWConstants {
 	public static final String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
-	public static final String OBJ_DIR = "obj";
-	public static final String TEMP_DIR = "temp";
-	public static final String TEMP_COMPLETE_DIR = "temp/complete";
-	public static final String TEMP_COPY_DIR = "temp/copy";
-	public static final String TRASH_DIR = "trash";
-	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
 
 	public static final String METHOD_PUT = "PUT";
@@ -1381,11 +1380,6 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_IP_NULL = "diskid : {} -> ip is null. check disk pool";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_PATH_NULL = "diskid : {} -> path is null. check disk pool";
-	public static final String ZUNFEC = "zunfec -o ";
-	public static final String ZFEC_0 = ".0_4.fec";
-	public static final String ZFEC_1 = ".1_4.fec";
-	public static final String ZFEC_2 = ".2_4.fec";
-	public static final String ZFEC_3 = ".3_4.fec";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND = "command : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE = "DECODE EC : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE = "DECODE exit : {}";

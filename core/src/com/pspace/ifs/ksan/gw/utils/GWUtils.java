@@ -70,6 +70,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
+import com.pspace.ifs.ksan.libs.Constants;
 
 public class GWUtils {
 
@@ -92,89 +93,89 @@ public class GWUtils {
 	
 	public static void addMetadataToResponse(HttpServletRequest request, HttpServletResponse response, S3Metadata s3Metadata, List<String> ContentLength_Headers, Long streamsize) {
 		
-		addResponseHeaderWithOverride(request, response,
-				HttpHeaders.CACHE_CONTROL, GWConstants.RESPONSE_CACHE_CONTROL,
-				s3Metadata.getCacheControl());
-		addResponseHeaderWithOverride(request, response,
-				HttpHeaders.CONTENT_ENCODING, GWConstants.RESPONSE_CONTENT_ENCODING,
-				s3Metadata.getContentEncoding()); 
-		addResponseHeaderWithOverride(request, response,
-				HttpHeaders.CONTENT_LANGUAGE, GWConstants.RESPONSE_CONTENT_LANGUAGE, 
-				s3Metadata.getContentLanguage());
-		addResponseHeaderWithOverride(request, response,
-				HttpHeaders.CONTENT_DISPOSITION, GWConstants.RESPONSE_CONTENT_DISPOSITION,
-				s3Metadata.getContentDisposition());
+		// addResponseHeaderWithOverride(request, response,
+		// 		HttpHeaders.CACHE_CONTROL, GWConstants.RESPONSE_CACHE_CONTROL,
+		// 		s3Metadata.getCacheControl());
+		// addResponseHeaderWithOverride(request, response,
+		// 		HttpHeaders.CONTENT_ENCODING, GWConstants.RESPONSE_CONTENT_ENCODING,
+		// 		s3Metadata.getContentEncoding()); 
+		// addResponseHeaderWithOverride(request, response,
+		// 		HttpHeaders.CONTENT_LANGUAGE, GWConstants.RESPONSE_CONTENT_LANGUAGE, 
+		// 		s3Metadata.getContentLanguage());
+		// addResponseHeaderWithOverride(request, response,
+		// 		HttpHeaders.CONTENT_DISPOSITION, GWConstants.RESPONSE_CONTENT_DISPOSITION,
+		// 		s3Metadata.getContentDisposition());
 		
-		// TODO: handles only a single range due to jclouds limitations
-		Collection<String> contentRanges = ContentLength_Headers;
-		if (ContentLength_Headers != null && !contentRanges.isEmpty()) {
-			for (String contents : ContentLength_Headers) {
-				response.addHeader(HttpHeaders.CONTENT_RANGE, contents);
-			}
+		// // TODO: handles only a single range due to jclouds limitations
+		// Collection<String> contentRanges = ContentLength_Headers;
+		// if (ContentLength_Headers != null && !contentRanges.isEmpty()) {
+		// 	for (String contents : ContentLength_Headers) {
+		// 		response.addHeader(HttpHeaders.CONTENT_RANGE, contents);
+		// 	}
 			
-			response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
-			response.addHeader(HttpHeaders.CONTENT_LENGTH, streamsize.toString());
-		} else {
-			response.addHeader(HttpHeaders.CONTENT_LENGTH, s3Metadata.getContentLength().toString());
-		}
+		// 	response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
+		// 	response.addHeader(HttpHeaders.CONTENT_LENGTH, streamsize.toString());
+		// } else {
+		// 	response.addHeader(HttpHeaders.CONTENT_LENGTH, s3Metadata.getContentLength().toString());
+		// }
 				
-		String overrideContentType = request.getParameter(GWConstants.RESPONSE_CONTENT_TYPE);
-		response.setContentType(overrideContentType != null ? overrideContentType : s3Metadata.getContentType());
+		// String overrideContentType = request.getParameter(GWConstants.RESPONSE_CONTENT_TYPE);
+		// response.setContentType(overrideContentType != null ? overrideContentType : s3Metadata.getContentType());
 		
-		if (s3Metadata.getCustomerAlgorithm() != null ) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, s3Metadata.getCustomerAlgorithm());
-		}
+		// if (s3Metadata.getCustomerAlgorithm() != null ) {
+		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, s3Metadata.getCustomerAlgorithm());
+		// }
 		
-		if (s3Metadata.getCustomerKey() != null ) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY, s3Metadata.getCustomerKey());
-		}
+		// if (s3Metadata.getCustomerKey() != null ) {
+		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY, s3Metadata.getCustomerKey());
+		// }
 		
-		if (s3Metadata.getCustomerKeyMD5() != null ) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, s3Metadata.getCustomerKeyMD5());
-		}
+		// if (s3Metadata.getCustomerKeyMD5() != null ) {
+		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, s3Metadata.getCustomerKeyMD5());
+		// }
 		
-		if (s3Metadata.getServersideEncryption() != null ) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, s3Metadata.getServersideEncryption());
-		}
+		// if (s3Metadata.getServersideEncryption() != null ) {
+		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, s3Metadata.getServersideEncryption());
+		// }
 		
-		if (s3Metadata.getLockMode() != null) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, s3Metadata.getLockMode());
-		}
+		// if (s3Metadata.getLockMode() != null) {
+		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, s3Metadata.getLockMode());
+		// }
 
-		if (s3Metadata.getLockExpires() != null) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, s3Metadata.getLockExpires());
-		}
+		// if (s3Metadata.getLockExpires() != null) {
+		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, s3Metadata.getLockExpires());
+		// }
 
-		if (s3Metadata.getLegalHold() != null) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, s3Metadata.getLegalHold());
-		}
+		// if (s3Metadata.getLegalHold() != null) {
+		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, s3Metadata.getLegalHold());
+		// }
 
-		if (s3Metadata.getUserMetadataMap() != null ) {
-			for (Map.Entry<String, String> entry : s3Metadata.getUserMetadataMap().entrySet()) {
-				response.addHeader(entry.getKey(), entry.getValue());
-				logger.info(GWConstants.LOG_UTILS_USER_META_DATA, entry.getKey(), entry.getValue());
-			}
-		}
+		// if (s3Metadata.getUserMetadataMap() != null ) {
+		// 	for (Map.Entry<String, String> entry : s3Metadata.getUserMetadataMap().entrySet()) {
+		// 		response.addHeader(entry.getKey(), entry.getValue());
+		// 		logger.info(GWConstants.LOG_UTILS_USER_META_DATA, entry.getKey(), entry.getValue());
+		// 	}
+		// }
 
 		response.addHeader(HttpHeaders.ETAG, maybeQuoteETag(s3Metadata.getETag()));
 		
-		String overrideExpires = request.getParameter(GWConstants.RESPONSE_EXPIRES);
-		if (overrideExpires != null) {
-			response.addHeader(HttpHeaders.EXPIRES, overrideExpires);
-		} else {
-			Date expires = s3Metadata.getExpires();
-			if (expires != null) {
-				response.addDateHeader(HttpHeaders.EXPIRES, expires.getTime());
-			}
-		}
+		// String overrideExpires = request.getParameter(GWConstants.RESPONSE_EXPIRES);
+		// if (overrideExpires != null) {
+		// 	response.addHeader(HttpHeaders.EXPIRES, overrideExpires);
+		// } else {
+		// 	Date expires = s3Metadata.getExpires();
+		// 	if (expires != null) {
+		// 		response.addDateHeader(HttpHeaders.EXPIRES, expires.getTime());
+		// 	}
+		// }
 		
-		response.addDateHeader(HttpHeaders.LAST_MODIFIED, s3Metadata.getLastModified().getTime());
+		// response.addDateHeader(HttpHeaders.LAST_MODIFIED, s3Metadata.getLastModified().getTime());
 		
-		if (s3Metadata.getTaggingCount() != null) {
-			response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, s3Metadata.getTaggingCount());
-		}
+		// if (s3Metadata.getTaggingCount() != null) {
+		// 	response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, s3Metadata.getTaggingCount());
+		// }
 		
-		response.addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
+		// response.addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
 	}
 
 	/** Parse ISO 8601 timestamp into seconds since 1970. */
@@ -281,14 +282,14 @@ public class GWUtils {
 		}
 	}
 	
-	public static GWDB getDBInstance() {
-		if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
-			return MariaDB.getInstance();
-		} else {
-			logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
-			return null;
-		}
-	}
+	// public static GWDB getDBInstance() {
+	// 	if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
+	// 		return MariaDB.getInstance();
+	// 	} else {
+	// 		logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
+	// 		return null;
+	// 	}
+	// }
 
 	public static boolean likematch(String first, String second) {
 		// If we reach at the end of both strings,
@@ -1270,17 +1271,17 @@ public class GWUtils {
 				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (Disk disk : server.getDiskList()) {
-							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
 							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 							file.mkdirs();
 						}
 					}

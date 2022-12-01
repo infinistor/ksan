@@ -35,6 +35,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 
 import org.slf4j.LoggerFactory;
 
@@ -62,20 +63,30 @@ public class GetObject extends S3Request implements S3AddResponse {
 
 		DataGetObject dataGetObject = new DataGetObject(s3Parameter);
 		dataGetObject.extract();
-		
+
 		String versionId = dataGetObject.getVersionId();
+		// String versionId = null;
+		// String range = null;
 		String range = dataGetObject.getRange();
 		String ifMatch = dataGetObject.getIfMatch();
 		String ifNoneMatch = dataGetObject.getIfNoneMatch();
 		String ifModifiedSince = dataGetObject.getIfModifiedSince();
 		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
 
+		// long dbStart = System.currentTimeMillis();
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
+
+		if (GWConfig.getInstance().isDBOP()) {
+			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+			return;
+		}
+		// long dbEnd = System.currentTimeMillis();
+		// logger.error("get - db op : {}", dbEnd - dbStart);
 		
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
@@ -165,6 +176,13 @@ public class GetObject extends S3Request implements S3AddResponse {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		if (GWConfig.getInstance().isS3OP()) {
+			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+			return;
+		}
+
+		// long fileEnd = System.currentTimeMillis();
+		// logger.error("get op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().setStatus(resultRange.getStatus());
 	}
 

@@ -552,7 +552,7 @@ namespace PortalProvider.Providers.Servers
 
 				// 해당 서버에 연결된 서비스가 존재하는 경우
 				if (await m_dbContext.Services.AnyAsync(i => i.ServerId == Exist.Id))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REMOVE_AFTER_REMOVING_SERVER);
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE);
 
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
@@ -882,7 +882,7 @@ namespace PortalProvider.Providers.Servers
 		{
 			try
 			{
-				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{

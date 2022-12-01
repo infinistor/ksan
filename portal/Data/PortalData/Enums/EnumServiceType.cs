@@ -34,7 +34,7 @@ namespace PortalData.Enums
 		/// <summary>PortalBridge</summary>
 		ksanPortalBridge,
 		/// <summary>Agent</summary>
-		KsanAgent,
+		ksanAgent,
 		/// <summary>OSD</summary>
 		ksanOSD,
 		/// <summary>GW</summary>

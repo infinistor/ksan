@@ -240,7 +240,24 @@ public class OSDPortal {
 
 				for (int i = 0; i < jsonItems.size(); i++) {
 					JSONObject item = (JSONObject)jsonItems.get(i);
-					DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
+					JSONObject jsonEC = (JSONObject)item.get(DiskPool.EC);
+					
+					DiskPool diskPool = null;
+					if (jsonEC != null) {
+						logger.info("jsonEC : {}", jsonEC.toString());
+						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
+						   	    				(String)item.get(DiskPool.NAME), 
+												(String)item.get(DiskPool.DISK_POOL_TYPE), 
+												(String)item.get(DiskPool.REPLICATION_TYPE),
+												(int)(long)jsonEC.get(DiskPool.EC_M),
+												(int)(long)jsonEC.get(DiskPool.EC_K));
+					} else {
+						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
+												(String)item.get(DiskPool.NAME), 
+												(String)item.get(DiskPool.DISK_POOL_TYPE), 
+												(String)item.get(DiskPool.REPLICATION_TYPE));
+					}
+					// DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
 					if (jsonServers != null && jsonServers.size() == 0) {
 						logger.info("diskpools -- servers is empty");

@@ -43,6 +43,7 @@ import com.google.common.net.PercentEscaper;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -487,7 +488,7 @@ final public class S3Signature {
                     }
 
                     // 2021-04-14 UTF-8 signing fix
-                    value = value.replaceAll(GWConstants.CHARSET_UTF_8, GWConstants.CHARSET_UTF_8_LOWER);
+                    value = value.replaceAll(Constants.CHARSET_UTF_8, GWConstants.CHARSET_UTF_8_LOWER);
 
                     values.add(value);
                 }

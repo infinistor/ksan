@@ -911,7 +911,7 @@ namespace PortalProvider.Providers.Services
 		{
 			try
 			{
-				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{

@@ -67,8 +67,15 @@ public class S3User {
             HashMap<String, String> map = new HashMap<String, String>();
             map.put(USER_DISK_POOLS_DISKPOOL_ID, (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID));
             map.put(USER_DISK_POOLS_STORAGE_CLASS, (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
+            // logger.debug("DiskPoolId:{}, StorageClass : {}", (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID), (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
             userDiskPools.add(map);
         }
+        // logger.debug("getUserDefaultDiskpoolId:{}", getUserDefaultDiskpoolId());
+        // logger.debug("userDiskPools:{}", userDiskPools.toString());
+        // for (HashMap<String, String> map : userDiskPools) {
+        //     logger.debug("map:{}", map.toString());
+        //     logger.debug("DiskPoolId:{}, StorageClass : {}", map.get(USER_DISK_POOLS_DISKPOOL_ID), map.get(USER_DISK_POOLS_STORAGE_CLASS));
+        // }
     }
 
     public String getUserName() {
@@ -122,7 +129,7 @@ public class S3User {
 
     public String getUserDefaultDiskpoolId() {
         for (HashMap<String, String> map : userDiskPools) {
-            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(STANDARD)) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equalsIgnoreCase(STANDARD)) {
                 return map.get(USER_DISK_POOLS_DISKPOOL_ID);
             }
         }
@@ -131,7 +138,7 @@ public class S3User {
 
     public String getUserDiskpoolId(String storageClass) {
         for (HashMap<String, String> map : userDiskPools) {
-            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(storageClass)) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equalsIgnoreCase(storageClass)) {
                 return map.get(USER_DISK_POOLS_DISKPOOL_ID);
             }
         }

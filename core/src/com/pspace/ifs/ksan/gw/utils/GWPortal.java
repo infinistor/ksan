@@ -31,6 +31,7 @@ import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import com.google.common.base.Strings;
 import org.apache.http.HttpResponse;
@@ -559,16 +560,16 @@ public class GWPortal {
 					if (jsonEC != null) {
 						logger.info("jsonEC : {}", jsonEC.toString());
 						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
-														 (String)item.get(DiskPool.NAME), 
-														 (String)item.get(DiskPool.DISK_POOL_TYPE), 
-														 (String)item.get(DiskPool.REPLICATION_TYPE),
-														 (int)(long)jsonEC.get(DiskPool.EC_M),
-														 (int)(long)jsonEC.get(DiskPool.EC_K));
+						   	    				(String)item.get(DiskPool.NAME), 
+												(String)item.get(DiskPool.DISK_POOL_TYPE), 
+												(String)item.get(DiskPool.REPLICATION_TYPE),
+												(int)(long)jsonEC.get(DiskPool.EC_M),
+												(int)(long)jsonEC.get(DiskPool.EC_K));
 					} else {
 						diskPool = new DiskPool((String)item.get(DiskPool.ID), 
-														 (String)item.get(DiskPool.NAME), 
-														 (String)item.get(DiskPool.DISK_POOL_TYPE), 
-														 (String)item.get(DiskPool.REPLICATION_TYPE));
+												(String)item.get(DiskPool.NAME), 
+												(String)item.get(DiskPool.DISK_POOL_TYPE), 
+												(String)item.get(DiskPool.REPLICATION_TYPE));
 					}
 					
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
@@ -603,11 +604,11 @@ public class GWPortal {
 					for (Server server : diskpool.getServerList()) {
 						if (GWUtils.getLocalIP().equals(server.getIp())) {
 							for (Disk disk : server.getDiskList()) {
-								File file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.OBJ_DIR);
+								File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
 								file.mkdirs();
-								file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TEMP_DIR);
+								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
 								file.mkdirs();
-								file = new File(disk.getPath() + GWConstants.SLASH + GWConstants.TRASH_DIR);
+								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 								file.mkdirs();
 							}
 						}

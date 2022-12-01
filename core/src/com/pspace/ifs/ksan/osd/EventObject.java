@@ -91,14 +91,14 @@ class MoveObjectCallback implements MQCallback {
 		logger.info("targetOsdIp : {}", targetOsdIp);
 
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-		String fullPath = OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId);
+		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
 		logger.info("source full path : {}", fullPath);
 		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {
 			if (KsanUtils.getLocalIP().equals(targetOsdIp)) {
-				File file = new File(OSDUtils.getInstance().makeObjPath(targetDiskPath, objId, versionId));
-				File tmpFile = new File(OSDUtils.getInstance().makeTempPath(targetDiskPath, objId, versionId));
-				File trashFile = new File(OSDUtils.getInstance().makeTrashPath(targetDiskPath, objId, versionId));
+				File file = new File(KsanUtils.makeObjPath(targetDiskPath, objId, versionId));
+				File tmpFile = new File(KsanUtils.makeTempPath(targetDiskPath, objId, versionId));
+				File trashFile = new File(KsanUtils.makeTrashPath(targetDiskPath, objId, versionId));
 	
 				com.google.common.io.Files.createParentDirs(file);
 				com.google.common.io.Files.createParentDirs(tmpFile);
@@ -193,7 +193,7 @@ class DeleteObjectCallback implements MQCallback {
 		logger.info("diskId : {}", diskId);
 		logger.info("diskPath : {}", diskPath);
 		
-		String fullPath = OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId);
+		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
 		logger.info("full path : {}", fullPath);
 		File file = new File(fullPath);
 		if (file.exists()) {
@@ -257,7 +257,7 @@ class GetAttrObjectCallBack implements MQCallback {
 		logger.info("diskId : {}", diskId);
 		logger.info("diskPath : {}", diskPath);
 
-		String fullPath = OSDUtils.getInstance().makeObjPath(diskPath, objId, versionId);
+		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
 		logger.info("full path : {}", fullPath);
 
 		File file = new File(fullPath);
@@ -343,14 +343,14 @@ class CopyObjectCallback implements MQCallback {
 		logger.info("targetOsdIp : {}", targetOsdIp);
 
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-		String fullPath = OSDUtils.getInstance().makeObjPath(sourceDiskPath, objId, versionId);
+		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
 		logger.info("full path : {}", fullPath);
 		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {
 			if (KsanUtils.getLocalIP().equals(targetOsdIp)) {
-				File file = new File(OSDUtils.getInstance().makeObjPath(targetDiskPath, objId, versionId));
-				File tmpFile = new File(OSDUtils.getInstance().makeTempPath(targetDiskPath, objId, versionId));
-				File trashFile = new File(OSDUtils.getInstance().makeTrashPath(targetDiskPath, objId, versionId));
+				File file = new File(KsanUtils.makeObjPath(targetDiskPath, objId, versionId));
+				File tmpFile = new File(KsanUtils.makeTempPath(targetDiskPath, objId, versionId));
+				File trashFile = new File(KsanUtils.makeTrashPath(targetDiskPath, objId, versionId));
 	
 				com.google.common.io.Files.createParentDirs(file);
 				com.google.common.io.Files.createParentDirs(tmpFile);

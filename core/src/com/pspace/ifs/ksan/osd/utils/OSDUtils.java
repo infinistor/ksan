@@ -122,68 +122,68 @@ public class OSDUtils {
     //     return null;
     // }
 
-    private String makeDirectoryName(String objId) {
-        byte[] path = new byte[6];
-        byte[] byteObjId = objId.getBytes();
+    // private String makeDirectoryName(String objId) {
+    //     byte[] path = new byte[6];
+    //     byte[] byteObjId = objId.getBytes();
 
-        path[0] = OSDConstants.CHAR_SLASH;
-        int index = 1;
+    //     path[0] = OSDConstants.CHAR_SLASH;
+    //     int index = 1;
         
-        path[index++] = byteObjId[0];
-        path[index++] = byteObjId[1];
-        path[index++] = OSDConstants.CHAR_SLASH;
-        path[index++] = byteObjId[2];
-        path[index] = byteObjId[3];
+    //     path[index++] = byteObjId[0];
+    //     path[index++] = byteObjId[1];
+    //     path[index++] = OSDConstants.CHAR_SLASH;
+    //     path[index++] = byteObjId[2];
+    //     path[index] = byteObjId[3];
 
-        return new String(path);
-    }
+    //     return new String(path);
+    // }
 
-    public String makePath(String path, String fileName) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(fileName) + OSDConstants.SLASH + fileName;
-        return fullPath;
-    }
+    // public String makePath(String path, String fileName) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(fileName) + OSDConstants.SLASH + fileName;
+    //     return fullPath;
+    // }
 
-    public String makeObjPath(String path, String objId, String versionId) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeObjPath(String path, String objId, String versionId) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeTempPath(String path, String objId, String versionId) {
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + uuid + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeTempPath(String path, String objId, String versionId) {
+    //     String uuid = UUID.randomUUID().toString();
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + uuid + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeTempPartPath(String path, String objId, String partNumber) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + partNumber;
-        return fullPath;
-    }
+    // public String makeTempPartPath(String path, String objId, String partNumber) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + partNumber;
+    //     return fullPath;
+    // }
 
-    public String makeTrashPath(String path, String objId, String versionId) {
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TRASH_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId + uuid;
-        return fullPath;
-    }
+    // public String makeTrashPath(String path, String objId, String versionId) {
+    //     String uuid = UUID.randomUUID().toString();
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TRASH_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId + uuid;
+    //     return fullPath;
+    // }
 
-    public String makeCachePath(String path) {
-        String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
-        return fullPath;
-    }
+    // public String makeCachePath(String path) {
+    //     String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
+    //     return fullPath;
+    // }
 
-    public String makeECPath(String path, String objId, String versionId) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.EC_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + OSDConstants.POINT + objId + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeECPath(String path, String objId, String versionId) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.EC_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + OSDConstants.POINT + objId + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeECDirectory(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName);
-        return fullPath;
-    }
+    // public String makeECDirectory(String fileName, String ecPath) {
+    //     String fullPath = ecPath + makeDirectoryName(fileName);
+    //     return fullPath;
+    // }
 
-    public String makeECTempPath(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName) + OSDConstants.SLASH + OSDConstants.POINT + fileName;
-        return fullPath;
-    }
+    // public String makeECTempPath(String fileName, String ecPath) {
+    //     String fullPath = ecPath + makeDirectoryName(fileName) + OSDConstants.SLASH + OSDConstants.POINT + fileName;
+    //     return fullPath;
+    // }
 
     // public DISKPOOLLIST getDiskPoolList() {
     //     DISKPOOLLIST diskpoolList = null;

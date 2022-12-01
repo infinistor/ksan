@@ -31,6 +31,7 @@ import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
@@ -72,7 +73,7 @@ public class ListBucketTagSearch extends S3Request {
 			max = Integer.parseInt(maxKeys);
 		}
 
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
 		List<Metadata> tagList = listBucketTags(bucket, dataListBucketTagSearch.getTag(), max);
