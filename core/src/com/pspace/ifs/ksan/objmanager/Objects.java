@@ -320,7 +320,7 @@ public class Objects {
     
     public List<Metadata> listObjectWithTags(String bucketName, String tagsList, int maxObjects) throws SQLException{
         Object query = getListWithTagQuery(tagsList);
-        logger.debug("[listObjectWithTags] tagsList> {} query> {}", tagsList, query.toString());
+        logger.debug("[listObjectWithTags] tagsList> {} query> {} maxObjects {}", tagsList, query.toString(), maxObjects);
         return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
 }
