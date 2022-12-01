@@ -421,7 +421,7 @@ namespace PortalProvider.Providers.Accounts
 				else
 				{
 					// 해당 사용자 이름이 존재하는 경우
-					if (await m_dbContext.KsanUsers.AsNoTracking().Where(i => i.Name == UserName).AnyAsync())
+					if (await m_dbContext.KsanUsers.AsNoTracking().AnyAsync(i => i.Name.Equals(UserName)))
 					{
 						Result.Code = Resource.EC_COMMON__DUPLICATED_DATA;
 						Result.Message = Resource.EM_COMMON_NAME_ALREADY_EXIST;

@@ -189,6 +189,9 @@ namespace PortalProvider.Providers.DiskGuids
 						// 정보를 수정한다.
 						Exist.Name = Request.Name;
 						Exist.Description = Request.Description;
+						Exist.DiskPoolType = (EnumDbDiskPoolType)Request.DiskPoolType;
+						Exist.ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType;
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
@@ -490,7 +493,8 @@ namespace PortalProvider.Providers.DiskGuids
 			try
 			{
 				// 동일한 이름이 존재하는 경우
-				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
+				// return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
 			}
 			catch (Exception ex)
 			{

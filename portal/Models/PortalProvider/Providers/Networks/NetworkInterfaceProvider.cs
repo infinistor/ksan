@@ -803,7 +803,7 @@ namespace PortalProvider.Providers.Networks
 					return new ResponseData<bool>(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				// 동일한 이름이 존재하는 경우
-				if (await m_dbContext.NetworkInterfaces.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != InterfaceGuid) && i.ServerId == ServerGuid && i.Name == Request.Name))
+				if (await m_dbContext.NetworkInterfaces.AsNoTracking().AnyAsync(i => (ExceptId.IsEmpty() || i.Id != InterfaceGuid) && i.ServerId == ServerGuid && i.Name.Equals(Request.Name)))
 					Result.Data = true;
 				// 동일한 이름이 존재하지 않는 경우
 				else
