@@ -855,7 +855,7 @@ namespace PortalProvider.Providers.DiskGuids
 			try
 			{
 				// 동일한 이름이 존재하는지 확인한다.
-				return await m_dbContext.Disks.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Disks.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{

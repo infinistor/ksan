@@ -22,24 +22,24 @@ import com.pspace.backend.libs.s3format.ReplicationConfiguration.Rule.Filter.Tag
 
 public class ReplicationData {
 
-	public Boolean Status;
-	public Boolean DeleteMarker;
+	public boolean Status;
+	public boolean DeleteMarker;
 	public String TargetAccessControlTranslationOwner;
 	public String TargetAccount;
 	public String TargetBucket;
 	public String TargetRegion;
 	public int TargetMetricsEventThreshold;
-	public Boolean TargetMetricsStatus;
-	public Boolean TargetReplicationTimeStatus;
+	public boolean TargetMetricsStatus;
+	public boolean TargetReplicationTimeStatus;
 	public int TargetReplicationTime;
-	public Boolean ExistingObjectReplicationStatus;
+	public boolean ExistingObjectReplicationStatus;
 	public String Prefix;
 	public Collection<Tag> Tags;
 	public String ID;
 	public int Priority;
-	public Boolean ReplicaModificationsStatus;
+	public boolean ReplicaModificationsStatus;
 
-	public Boolean isFiltering;
+	public boolean isFiltering;
 
 	public ReplicationData() {
 		Init();
@@ -62,6 +62,7 @@ public class ReplicationData {
 		ID = "";
 		Priority = 0;
 		ReplicaModificationsStatus = false;
+		isFiltering = false;
 	}
 
 	public boolean Set(ReplicationConfiguration.Rule Conf) {

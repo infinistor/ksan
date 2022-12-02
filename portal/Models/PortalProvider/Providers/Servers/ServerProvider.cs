@@ -882,7 +882,7 @@ namespace PortalProvider.Providers.Servers
 		{
 			try
 			{
-				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{

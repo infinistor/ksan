@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 	<!--로그 파일 저장 위치-->
-	<property name="LIFECYCLE_LOGS_PATH" value="/var/log/ksan/lifecycle" />
+	<property name="LOGS_PATH" value="/var/log/ksan/s3backend" />
 	<property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objmanager" />
 
 	<appender name="LIFECYCLE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${LIFECYCLE_LOGS_PATH}/lifecycle.log</file>
+		<file>${LOGS_PATH}/lifecycle.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>${LIFECYCLE_LOGS_PATH}/lifecycle.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
+			<fileNamePattern>${LOGS_PATH}/lifecycle.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
 			<maxHistory>7</maxHistory>
 			<maxFileSize>100MB</maxFileSize>
 		</rollingPolicy>
