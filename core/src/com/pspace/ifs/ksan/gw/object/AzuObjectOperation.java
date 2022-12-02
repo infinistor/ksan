@@ -88,7 +88,7 @@ public class AzuObjectOperation {
         }
     }
 
-    public void getObject() throws Exception {       
+    public void getObject(String range) throws Exception {       
         OSDClient client = null;
         String sourceRange = AzuConstants.EMPTY_STRING;
         long actualSize = 0L;
@@ -104,11 +104,11 @@ public class AzuObjectOperation {
 
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     logger.debug("get local - objid : {}, primary get - path : {}", objMeta.getObjId(), objMeta.getPrimaryDisk().getPath());
-                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
+                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), range, objMeta.getObjId());
                     azuParameter.addResponseSize(actualSize);
                 } else if (objMeta.isReplicaExist() && GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                     logger.debug("get local - objid : {}, replica get - path : {}", objMeta.getObjId(), objMeta.getReplicaDisk().getPath());
-                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getReplicaDisk().getPath(), objMeta.getObjId());
+                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getReplicaDisk().getPath(), range, objMeta.getObjId());
                     azuParameter.addResponseSize(actualSize);
                 } else {
                     logger.debug("get osd - objid : {}, primary osd : {}", objMeta.getObjId(), objMeta.getPrimaryDisk().getOsdIp());
@@ -162,7 +162,7 @@ public class AzuObjectOperation {
                 }
             } else {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), objMeta.getObjId());
+                    actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), range, objMeta.getObjId());
                     azuParameter.addResponseSize(actualSize);
                 } else {
                     try {
@@ -200,7 +200,7 @@ public class AzuObjectOperation {
         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_FILE_SIZE, actualSize);
     }
 
-    private long getObjectLocal(OutputStream outputStream, String path, String objId) throws IOException, AzuException {
+    private long getObjectLocal(OutputStream outputStream, String path, String range, String objId) throws IOException, AzuException {
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
         File file = null;
 
@@ -208,34 +208,61 @@ public class AzuObjectOperation {
 
         logger.info("obj path : {}", file.getAbsolutePath());
         long actualSize = 0L;
+
         try (FileInputStream fis = new FileInputStream(file)) {
             long remaingLength = 0L;
             int readLength = 0;
             int readBytes;
-
             remaingLength = file.length();
-            while (remaingLength > 0) {
-                readBytes = 0;
-                if (remaingLength < GWConstants.MAXBUFSIZE) {
-                    readBytes = (int)remaingLength;
-                } else {
-                    readBytes = GWConstants.MAXBUFSIZE;
-                }
 
-                if (remaingLength >= GWConstants.MAXBUFSIZE) {
-                        readLength = GWConstants.MAXBUFSIZE;
-                } else {
-                    readLength = (int)remaingLength;
+            if (Strings.isNullOrEmpty(range)) {
+                while (remaingLength > 0) {
+                    readBytes = 0;
+                    if (remaingLength < GWConstants.MAXBUFSIZE) {
+                        readBytes = (int)remaingLength;
+                    } else {
+                        readBytes = GWConstants.MAXBUFSIZE;
+                    }
+    
+                    if (remaingLength >= GWConstants.MAXBUFSIZE) {
+                            readLength = GWConstants.MAXBUFSIZE;
+                    } else {
+                        readLength = (int)remaingLength;
+                    }
+                    readLength = fis.read(buffer, 0, readBytes);
+                    
+                    actualSize += readLength;
+                    outputStream.write(buffer, 0, readLength);
+                    // s3Parameter.addResponseSize(readLength);
+                    remaingLength -= readLength;
                 }
-                readLength = fis.read(buffer, 0, readBytes);
-                
-                actualSize += readLength;
-                outputStream.write(buffer, 0, readLength);
-                // s3Parameter.addResponseSize(readLength);
-                remaingLength -= readLength;
+            } else {
+                String[] infos = range.split(GWConstants.EQUAL);
+                String[] ranges = infos[1].split(GWConstants.DASH);
+                long offset = Longs.tryParse(ranges[0]);
+                long length = Longs.tryParse(ranges[1]);
+                logger.info("offset : {}, length : {}", offset, length);
+                remaingLength = length - offset + 1;
+                if (offset > 0) {
+                    fis.skip(offset);
+                }
+                while (remaingLength > 0) {
+                    readBytes = 0;
+                    if (remaingLength < GWConstants.MAXBUFSIZE) {
+                        readBytes = (int)remaingLength;
+                    } else {
+                        readBytes = GWConstants.MAXBUFSIZE;
+                    }
+
+                    readLength = fis.read(buffer, 0, readBytes);
+                    
+                    actualSize += readLength;
+                    outputStream.write(buffer, 0, readLength);
+                    remaingLength -= readLength;
+                }
             }
         }
-
+        
         outputStream.flush();
         outputStream.close();
 

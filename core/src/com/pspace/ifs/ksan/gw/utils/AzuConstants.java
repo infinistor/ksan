@@ -36,6 +36,7 @@ public final class AzuConstants {
 
     public static final String CANONICAL_HEADER_START_WITH = "x-ms-";
     public static final String X_MS_CLIENT_REQUEST_ID = "x-ms-client-request-id";
+    public static final String X_MS_RANGE = "x-ms-range";
     public static final String X_MS_DATE = "x-ms-date";
 	public static final String X_MS_VERSION = "x-ms-version";
     public static final String X_MS_BLOB_CONTENT_TYPE = "X-Ms-Blob-Content-Type";
