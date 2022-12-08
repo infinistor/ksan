@@ -34,7 +34,7 @@ public class ObjManager {
     private DiskAllocation dAlloc;
     private static ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    private OSDClient osdc;
+    //private OSDClient osdc;
     private ObjManagerSharedResource obmsr;
     private ObjMultipart multipart;
     private BucketManager bucketMGT;
@@ -59,7 +59,7 @@ public class ObjManager {
 
         dAlloc = new DiskAllocation(obmCache);
 
-        osdc = new OSDClient(config);
+        //osdc = new OSDClient(config);
         
         multipart = new ObjMultipart(dbm);
         
