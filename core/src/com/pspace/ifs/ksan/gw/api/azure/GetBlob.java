@@ -68,9 +68,12 @@ public class GetBlob extends AzuRequest {
             throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
         }
 
+        String range = azuParameter.getRequest().getHeader(AzuConstants.X_MS_RANGE);
+        logger.debug("range : {}", range);
+
 		AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
 		try {
-			azuObjectOperation.getObject();
+			azuObjectOperation.getObject(range);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
