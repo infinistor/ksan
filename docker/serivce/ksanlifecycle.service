@@ -1,0 +1,12 @@
+[Unit]
+Description=KSAN GW Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a ksan-lifecycle
+ExecStop=/usr/bin/docker stop -t 2 ksan-lifecycle
+
+[Install]
+WantedBy=multi-user.target
