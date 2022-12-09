@@ -11,41 +11,14 @@
 """
 
 
-##### FILE FORMAT TYPE Define #####
-ConfigTypeINI = 'INI'
-ConfigTypeObject = 'Object'
+import os
+import sys
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
-
-
-##### Path Define #####
-ProcDiskStatsPath = '/proc/diskstats'
-
-
-"""
-##### HTTP #####
-"""
-### http header key ###
-HeaderContentType = 'Content-Type'
-HeaderAuth = 'Authorization'
-
-
-### http method ###
-GetMethod = 'GET'
-PostMethod = 'POST'
-PutMethod = 'PUT'
-DeleteMethod = 'DELETE'
-
-
-
-
-##### ENCODING #####
-UTF8 = 'utf-8'
-
-
-
-
-#####  Header of Response Body Class for deserialization #####
-ResponseItemsHeaderModule = 'common.base_utils.ResponseItemsHeader'
-ResponseHeaderModule = 'common.base_utils.ResponseHeader'
-ResponseHeaderWithDataModule = 'common.base_utils.ResponseHeaderWithData'
-
+from server.server_api import *
+from network.network_api import *
+from service.service_api import *
+from disk.disk_api import *
+from user.user_manage import *
+from disk.diskpool_manage import *

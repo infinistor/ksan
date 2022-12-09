@@ -12,10 +12,10 @@
 
 import os, sys
 import psutil
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from server.server_manage import GetAllServerDetailInfo, ShowServerInfo
-from service.service_manage import ShowServiceInfoWithServerInfo, ShowServiceInfo
-from disk.diskpool_manage import GetDiskPoolInfo, ShowDiskPoolInfo
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from portal_api.apis import *
+from disk.diskpool_manage import GetDiskPoolInfo, ShowDiskPoolInfoNew
 from user.user_manage import GetS3UserInfo, ShowS3UserInfo
 from const.common import ResOk, ResultSuccess, MoreDetailInfo, SimpleInfo, DetailInfo
 
@@ -39,7 +39,8 @@ def ShowSystemInfo(PortalIp, PortalPort, PortalApiKey, logger, Detail=False):
 
     # Get Service Info
     print("\n[KSAN Service Information]")
-    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+    #Res, Errmsg, Ret, Data = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
+    Res, Errmsg, Ret, Data = GetServiceInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
 
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
@@ -55,18 +56,8 @@ def ShowSystemInfo(PortalIp, PortalPort, PortalApiKey, logger, Detail=False):
     if Res != ResOk:
         print(Errmsg)
     else:
-        if DispLevel is True:
-            Detail = MoreDetailInfo
-        elif DispLevel:
-            Detail = DetailInfo
-        else:
-            Detail = SimpleInfo
-
-        Res, Errmsg, Ret, ServerDetailInfo = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
-        if Res != ResOk:
-            print(Errmsg)
-        else:
-            ShowDiskPoolInfo(DiskPoolList, ServerDetailInfo, Detail=True, SysinfoDisp=SysinfoDisp)
+        Detail = SimpleInfo
+        ShowDiskPoolInfoNew(DiskPoolList, Detail=Detail, SysinfoDsp=True)
 
     print("\n[KSAN User Information]")
     Res, Errmsg, Ret, Users = GetS3UserInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)

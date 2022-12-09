@@ -10,13 +10,6 @@
 """
 import re
 
-ServiceItemsDetailModule = 'const.service.ServiceItemsDetail'
-ServiceDetailModule = 'const.service.ServiceDetail'
-ServiceControlModule = 'const.service.ServiceControl'
-ServiceGroupItemsModule = 'const.service.ServiceGroupItems'
-ServiceGroupDetailModule = 'const.service.ServiceGroupDetail'
-ServiceConfigModule = 'const.service.ServiceConfigItems'
-
 SystemdServicePidFinder = re.compile('Main PID: ([\d]+)')
 
 class AddServiceInfoObject:
@@ -134,6 +127,7 @@ class ServiceItemsDetail:
         self.MemoryTotal = None
         self.MemoryUsed = None
         self.ThreadCount = None
+        self.Server = None
         self.ModDate = None
         self.ModId = None
         self.ModName = None

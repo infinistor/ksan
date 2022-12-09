@@ -12,7 +12,8 @@
 import os, sys
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from disk.disk_manage import DiskUtilHandler
+sys.path.insert(1, os.getcwd())
+from disk.disk_api import DiskUtilHandler
 from service.service_manage import ServiceUtilHandler
 from configure.config import ConfigUtilHandler
 from disk.diskpool_manage import DiskpoolUtilHandler
@@ -22,9 +23,7 @@ from util.fsck import FsckUtilHandler
 from util.getattr import GetAttrUtilHandler
 from util.cbalance import CbalanceUtilHandler
 from util.sysinfo import ShowSystemInfo
-from network.network_manage import *
-from common.init import *
-from common.utils import AvoidSigInt
+from common.base_utils import *
 
 
 class KsanOptionParser(OptionParser):
@@ -33,10 +32,10 @@ class KsanOptionParser(OptionParser):
         self.Usage = """
   ksan [sysinfo]|[server|service|disk|diskpool|user] [actions] [option]*
     [actions]
-          sysinfo                                                                  : display total system info
-          server   [add|remove|list]                                               : server management      
+          sysinfo                                                                  : display summary of system info
+          server   [add|remove|list|update]                                        : server management      
           service  [add|remove|list|start|stop|restart]                            : service management 
-          config   [add|remove|list|set|get]                                       : serivce config management
+          config   [add|remove|list|set|get]                                       : service config management
           disk     [add|remove|list|start|stop|set]                                : disk management 
           diskpool [add|remove|list|add2disk|remove2disk|set]                      : diskpool management 
           user     [add|remove|list|add2storageclass|remove2storageclass|set]      : ksan user management 
@@ -48,18 +47,33 @@ class KsanOptionParser(OptionParser):
           --ServerName                                                             : server name 
           --ServiceName                                                            : service name
           --DiskName                                                               : disk name 
-          --DiskpoolName                                                           : diskpool name 
+          --DiskPoolName                                                           : diskpool name 
           --UserName                                                               : user name
-          --ServiceType                                                            : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
-                                                                                      ksanLifecycle|ksanReplication|ksanMetering]
-          --ConfVerId                                                              : config version
-          --RepType                                                                : replication type[1|2] 1: 1+0, 2:1+1
-          --DiskpoolType                                                           : diskpool type[standard|archive]
-          --DefaultDiskpool                                                        : set user's default diskpool
-          --StorageClass                                                           : user's storage class[standard_ia|onezone_ia|intelligent_tiering|
-                                                                                      glacier|reduced_redundancy|deep_archive|outposts|glacier_ir]
+          --ServiceType                                                            : service type [ksanAgent|ksanOSD|ksanGW|
+                                                                                     ksanLifecycleManager|ksanReplicationManager|ksanLogManager]
+          --ConfVerId                                                              : specific config version id
+                                                                                     'last' value specify the latest config version id.
+          --Tolerance                                                              : diskpool's fault tolerance [disable|replication|ec(k:m)]
+                                                                                     ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
+          --DiskPoolType                                                           : diskpool type[standard|archive]
+          --DefaultDiskPool                                                        : set user's default diskpool
+          --StorageClass                                                           : user-defined storage class for s3-compatible
           --Host                                                                   : server ip or hostname 
-          --DiskPath                                                               : osd disk mount path 
+          --DiskPath                                                               : osd disk's mount path 
+          
+          --BucketName                                                             : specify the name of the bucket 
+          --KeyName                                                                : specify the object key
+          --ObjId                                                                  : specify the object Id instead of object key
+          --SrcDiskName                                                            : specify the source disk Name
+          --DstDiskName                                                            : specify the destination disk name
+          --EmptyDisk                                                              : set to enable empty disk operation
+          --OkLocalMove                                                            : allow to move to local another disk (default: false)
+          --Size                                                                   : specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units
+          --CheckOnly                                                              : specify if you wish only to check not to fix 
+          --VersionId                                                              : specify the object version Id if you wish particular version of an object
+          --Checksum                                                               : display the checksum and size of the object from ksanOSD
+
+
           
     [option]
           --v                                                                      : display info in detail
@@ -78,12 +92,12 @@ class KsanOptionParser(OptionParser):
         self.add_option("--ConfVerId", "--confverid", dest="ConfigVersionId", help='service config version id')
 
         self.add_option("--DiskName", "--diskname", dest="DiskName", help='disk name')
-        self.add_option("--DiskPath", "--diskpath", dest="DiskPath", help='osd disk mount path')
-        self.add_option("--DiskpoolName", "--diskpoolname", dest="DiskpoolName", help='diskpool name')
-        self.add_option("--RepType", "--reptype", dest="RepType", help='replication type')
-        self.add_option("--DiskpoolType", "--diskpooltype",dest="DiskpoolType", help='diskpool type')
+        self.add_option("--DiskPath", "--diskpath", dest="DiskPath", help='osd disk\'s mount path')
+        self.add_option("--DiskPoolName", "--DiskpoolName", "--diskpoolname", dest="DiskpoolName", help='diskpool name')
+        self.add_option("--Tolerance", "--tolerance", dest="RepType", help='replication type')
+        self.add_option("--DiskPoolType", "--DiskpoolType", "--diskpooltype",dest="DiskpoolType", help='diskpool type')
         self.add_option("--UserName", "--username", dest="UserName", help='user name')
-        self.add_option("--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", help='user\'s default diskpool')
+        self.add_option("--DefaultDiskPool", "--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", help='user\'s default diskpool')
         self.add_option("--ConfFile", "--conffile", dest="ConfFile", help='config file path')
         self.add_option("--Email", "--email", dest="Email", help='user\' e-mail address')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
@@ -123,10 +137,12 @@ class KsanServerUtilOptParser(OptionParser):
                 add                                 : register server
                 remove                              : remove server      
                 list                                : show server info                            
+                update                              : update server info                            
           [options]
                 --ServerName                        : server name
                 --Host                              : target server ip or hostname
                 --v                                 : show info in detail
+                --vv                                : show info in more detail
                 
           [example]
                 1. register server 
@@ -139,12 +155,14 @@ class KsanServerUtilOptParser(OptionParser):
                 3. show server info 
                  # ./ksan server list  
                  # ./ksan server list --v
+                 # ./ksan server list --vv
         """
 
         self.AddOption()
     def AddOption(self):
         self.add_option('-d', "--Debug", dest='debug', action='store_true')
         self.add_option("--ServerName", "--servername", dest="ServerName", help='server name')
+        self.add_option("--NetworkName", "--networkname", dest="NetworkName", help='network name')
         self.add_option("--Host", "--host", dest="Host", help='server ip or hostname')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
         self.add_option("--VV", "--vv", dest="MoreDetail", action="store_true", help='display information in more detail')
@@ -167,25 +185,27 @@ class KsanServiceUtilOptParser(OptionParser):
         [options]
               --ServerName                          : server name
               --ServiceName                         : service name 
-              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
-                                                      ksanLifecycle|ksanReplication|ksanMetering]
-              --V                                   : show info in detail
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|
+                                                      ksanLifecycleManager|ksanReplicationManager|ksanLogManager]
+              --v                                   : show info in detail
+              --vv                                  : show info in more detail
               
          [example]
               1. register service 
-                # ./ksan service add --ServiceType ksanosd --ServiceName ksan_osd1 --ServerName oosd1              
-                # ./ksan service add --ServiceType ksangw --ServiceName ksan_gw2 --ServerName oosd2 
+                # ./ksan service add --ServiceType ksanosd --ServiceName osd1 --ServerName server1              
+                # ./ksan service add --ServiceType ksangw --ServiceName gw2 --ServerName server2 
                 
               2. remove service
-                # ./ksan service add --ServiceName ksan_osd1
+                # ./ksan service remove --ServiceName osd1
                 
               3. show service info 
                 # ./ksan service list 
                 # ./ksan service list --v
+                # ./ksan service list --vv
                 
-              4. start/stop/restart servcie 
-                # ./ksan service start --ServiceName ksan_osd1
-                # ./ksan service stop --ServiceName ksan_osd1
+              4. start/stop/restart service 
+                # ./ksan service start --ServiceName osd1
+                # ./ksan service stop --ServiceName osd1
               """
 
         self.AddOption()
@@ -195,6 +215,7 @@ class KsanServiceUtilOptParser(OptionParser):
         self.add_option("--ServiceName", "--servicename",dest="ServiceName", help='service name')
         self.add_option("--ServiceType", "--servicetype", dest="ServiceType", help='service type')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
+        self.add_option("--VV", "--vv", dest="MoreDetail", action="store_true", help='display information in detail')
 
     def print_help(self):
         print(self.Usage)
@@ -210,28 +231,33 @@ class KsanConfigUtilOptParser(OptionParser):
               set                                   : apply config 
               get                                   : show the current applied config 
         [options]
-              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanRecovery|
-                                                      ksanLifecycle|ksanReplication|ksanMetering]
-              --ConfVerId                           : config version id
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|
+                                                      ksanLifecycleManager|ksanReplicationManager|ksanLogManager]
+              --ConfVerId                           : specific config version id
+                                                      'last' value scpecifies the latest config version id 
+              --ConfFile                            : save current config to file or add config from file 
        [example]
               1. add config 
                 # ./ksan config add --ServiceType ksanosd              
+                # ./ksan config add --ServiceType ksanosd --ConfFile ksanosd.conf           
               2. remove config  
-                # ./ksan config remove --ConfVerId 5 --ServiceType ksangw  
+                # ./ksan config remove --ServiceType ksangw --ConfVerId 5  
               3. show config list    
                 # ./ksan config list --ServiceType ksanosd   
                 # ./ksan config list --ServiceType ksangw  
               4. set config 
                 # ./ksan config set --ConfVerId 5 --ServiceType ksangw 
+                # ./ksan config set --ConfVerId last --ServiceType ksangw 
               5. get config 
                 # ./ksan config get --ServiceType ksanosd 
+                # ./ksan config get --ServiceType ksanosd --ConfFile ksanosd.conf 
               """
         self.AddOption()
     def AddOption(self):
         self.add_option('-d', "--Debug", dest='debug', action='store_true')
         self.add_option("--ServiceType" , "--servicetype", dest="ServiceType", help='service type')
-        self.add_option("--ConfVerId", "--confverid", dest="ConfigVersionId", help='config version id')
-        self.add_option("--ConfFile", "--conffile", dest="ConfFile", help='config file')
+        self.add_option("--ConfVerId", "--ConfVerid", "--Confverid", "--confverid", dest="ConfigVersionId", help='config version id')
+        self.add_option("--ConfFile", "--Conffile", "--conffile", dest="ConfFile", help='config file')
 
     def print_help(self):
         print(self.Usage)
@@ -254,8 +280,8 @@ class KsanDiskUtilOptParser(OptionParser):
               --DiskName                            : disk name 
               --DiskPath                            : disk mount path 
               --Mode                                : disk mode [ro|readonly|rw|readwrite]
-              --V                                   : show info in detail 
-              --VV                                  : show info in more detail
+              --v                                   : show info in detail 
+              --vv                                  : show info in more detail
               --Continue                            : display info in every n seconds
               
         [example]
@@ -286,7 +312,7 @@ class KsanDiskUtilOptParser(OptionParser):
         self.add_option('-d', "--Debug", dest='debug', action='store_true')
         self.add_option("--ServerName", "--servername", dest="ServerName", help='server name')
         self.add_option("--DiskName", "--diskname", dest="DiskName", help='disk name')
-        self.add_option("--DiskPath", "--diskpath", dest="DiskPath", help='osd disk mount path')
+        self.add_option("--DiskPath", "--diskpath", dest="DiskPath", help='osd disk\'s mount path')
         self.add_option("--Mode", "--mode", dest="Mode", help='disk mode')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
         self.add_option("--VV", "--vv", dest="MoreDetail", action="store_true", help='display information in more detail')
@@ -309,49 +335,48 @@ class KsanDiskpoolUtilOptParser(OptionParser):
               get                                   : get diskpool default diskpool
 
         [options]
-              --DiskpoolName                        : diskpool name 
+              --DiskPoolName                        : diskpool name 
               --DiskName                            : disk name 
-              --RepType                             : disk replica type [1|2] 1: 1+0, 2: 1+1
-              --DiskpoolType                        : diskpool type [standard|archive]
-              --DefaultDiskpool                     : default diskpool name
-              --V                                   : show info in detail 
-              --VV                                  : show info in more detail 
-              --Continue                            : display info in every n seconds
+              --Tolerance                           : diskpool's fault tolerance [disable|replication|ec(k:m)]
+                                                      ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
+              --DiskPoolType                        : diskpool type [standard|archive]
+              --DefaultDiskPool                     : system's default diskpool
+              --v                                   : show info in detail 
+              --Continue                            : show info in every n seconds
               
         [example]
               1. add diskpool   
-                # ./ksan diskpool add --DiskpoolName diskpool1 --RepType 2 --DiskpoolType standard
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType standard
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance ec(6:2) --DiskPoolType archive
                 
               2. remove diskpool  
-                # ./ksan diskpool remove --DiskpoolName diskpool1 
+                # ./ksan diskpool remove --DiskPoolName diskpool1 
                 
               3. show diskpool list    
                 # ./ksan diskpool list
                 # ./ksan diskpool list --v 
-                # ./ksan diskpool list --vv
                 # ./ksan diskpool list --v --Continue 1
                 
               4. add disk to diskpool  
-                # ./ksan diskpool add2disk --DiskpoolName diskpool1 --DiskName disk1  
-                # ./ksan diskpool remove2disk --DiskpoolName diskpool1 --DiskName disk1              
+                # ./ksan diskpool add2disk --DiskPoolName diskpool1 --DiskName disk1  
+                # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
                 
               5. set/get diskpool default diskpool 
-                # ./ksan diskpool set --DefaultDiskpool --DiskpoolName diskpool1
-                # ./ksan diskpool get --DefaultDiskpool
+                # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1
+                # ./ksan diskpool get --DefaultDiskPool
                 
 
                 """
         self.AddOption()
     def AddOption(self):
         self.add_option('-d', "--Debug", "--debug", dest='debug', action='store_true')
-        self.add_option("--DiskpoolName", "--diskpoolname", dest="DiskpoolName", help='diskpool name')
+        self.add_option("--DiskpoolName", "--DiskPoolName","--diskpoolname", dest="DiskpoolName", help='diskpool name')
         self.add_option("--DiskName", "--diskname", dest="DiskName", help='disk name')
-        self.add_option("--RepType", "--reptype", dest="RepType", help='replication type')
-        self.add_option("--DiskpoolType", "--diskpooltype", dest="DiskpoolType", help='diskpool type')
-        self.add_option("--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", action="store_true", help='user\'s default diskpool')
-        self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
-        self.add_option("--VV", "--vv", dest="MoreDetail", action="store_true", help='display information in more simple')
-        self.add_option("--Continue", "--continue", dest="Continue", type="int", help='display information continually in every n seconds')
+        self.add_option("--Tolerance", "--tolerance", dest="RepType", help='replication type')
+        self.add_option("--DiskpoolType", "--Diskpooltype","--DiskPoolType", "--diskpooltype", dest="DiskpoolType", help='diskpool type')
+        self.add_option("--DefaultDiskPool", "--DefaultdiskPool", "--defaultdiskpool", "--DefaultDiskpool", dest="DefaultDiskpool", action="store_true", help='user\'s default diskpool')
+        self.add_option("--V", "--v", dest="Detail", action="store_true", help='show information in detail')
+        self.add_option("--Continue", "--continue", dest="Continue", type="int", help='show information continually in every n seconds')
 
     def print_help(self):
         print(self.Usage)
@@ -364,22 +389,21 @@ class KsanUserUtilOptParser(OptionParser):
               add                                   : add user   
               remove                                : remove user 
               list                                  : show user info 
-              add2storagegclass                     : add storage class to user 
-              remove2storagegclass                  : remove storage slass from user 
+              add2storageclass                     : add storage class to user 
+              remove2storageclass                  : remove storage class from user 
               set                                   : change user email address 
               
         [options]     
               --UserName                            : user name 
-              --DiskpoolName                        : diskpool name 
-              --DefaultDiskpool                     : user's default diskpool 
-              --StorageClass                        : user's storage class[standard_ia|onezone_ia|intelligent_tiering|
-                                                       glacier|reduced_redundancy|deep_archive|outposts|glacier_ir]                                                      
+              --DiskPoolName                        : diskpool name 
+              --DefaultDiskPool                     : user's default diskpool 
+              --StorageClass                        : user-defined storage class for s3-compatible                                                     
               --Email                               : user's Email 
-              --V                                   : show info in detail 
+              --v                                   : show info in detail 
               
         [example]
               1. add user    
-                # ./ksan user add --UserName user1 --Email user1@pspace.co.kr --DefaultDiskpool diskpool1
+                # ./ksan user add --UserName user1 --Email user1@pspace.co.kr --DefaultDiskPool diskpool1
                 # ./ksan user add --UserName user1 --Email user1@pspace.co.kr 
                 
               2. remove user   
@@ -390,8 +414,8 @@ class KsanUserUtilOptParser(OptionParser):
                 # ./ksan user list --v 
               
               4. add/remove storage class to user 
-                # ./ksan user add2storageclass --UserName user1 --DiskpoolName diskpool1 --StorageClass glacier 
-                # ./ksan user remove2storageclass --UserName user1 --DiskpoolName diskpool1 --StorageClass glacier 
+                # ./ksan user add2storageclass --UserName user1 --DiskPoolName diskpool1 --StorageClass classname 
+                # ./ksan user remove2storageclass --UserName user1 --DiskPoolName diskpool1 --StorageClass classname 
                 
               5. change user's email address 
                 # ./ksan user set --UserName user1 --Email user1@pspace.com
@@ -402,8 +426,8 @@ class KsanUserUtilOptParser(OptionParser):
         self.add_option('-d', "--Debug", dest='debug', action='store_true')
         self.add_option("--UserId", "--userid", dest="UserId", help='user id')
         self.add_option("--UserName", "--username", dest="UserName", help='user name')
-        self.add_option("--DiskpoolName", "--diskpoolname", dest="DiskpoolName", help='diskpool name')
-        self.add_option("--DefaultDiskpool", "--defaultdiskpool", dest="DefaultDiskpool", help='user\'s default diskpool')
+        self.add_option("--DiskpoolName", "--DiskPoolName","--diskpoolname", dest="DiskpoolName", help='diskpool name')
+        self.add_option("--DefaultDiskpool", "--DefaultDiskPool", "--defaultdiskpool", dest="DefaultDiskpool", help='user\'s default diskpool')
         self.add_option("--StorageClass", "--storageclass", dest="StorageClass", help='user\'s storage class')
         self.add_option("--Email", "--email", dest="Email", help='user\' e-mail address')
         self.add_option("--V", "--v", dest="Detail", action="store_true", help='display information in detail')
@@ -434,44 +458,44 @@ class KsanFsckUtilOptParser(OptionParser):
         self.AddOption()
 
     def AddOption(self):
-        self.add_option("--BucketName", "--bucketname", dest="BucketName", help='bucket name')
-        self.add_option("--DiskName", "--DiskName", dest="DiskName", help='disk name')
-        self.add_option("--CheckOnly", "--checkonly", dest="CheckOnly", action='store_true', help='check only mode')
+        self.add_option("--BucketName", "--Bucketname", "--bucketname", dest="BucketName", help='bucket name')
+        self.add_option("--DiskName", "--Diskname", "--diskname", dest="DiskName", help='disk name')
+        self.add_option("--CheckOnly", "--Checkonly", "--checkonly", dest="CheckOnly", action='store_true', help='check only mode')
         self.add_option('--Debug', "--debug", dest='debug', action='store_true', help='display debug log')
 
     def print_help(self):
         print(self.Usage)
 
+
 class KsanGetAttrUtilOptParser(OptionParser):
     def __init__(self):
         super(KsanGetAttrUtilOptParser, self).__init__()
         self.Usage = """
-        ksan getattr [option]*
+        ksan getattr [BucketName] [option]*
 
         [options]     
-              --BucketName                            : specify the name of the bucket 
               --Checksum                              : display the checksum and size of the object from ksanOSD 
-              --Key                                   : specify the object key
-              --ObjectId                              : specify the object Id if you wish to display with Id rather than object key
+              --KeyName                               : specify the object key
+              --ObjId                                 : specify the object Id if you with to display with Id rather than object key
               --VersionId                             : specify the object version Id if you wish particular version of an object
 
         [example]
-              ksan getattr --BucketName bucket1 --Key file1.txt 
-              ksan getattr --BucketName bucket1 --Key file1.txt --Checksum 
-              ksan getattr --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 
-              ksan getattr --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af 
-              ksan getattr --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 
+              ksan getattr bucket1 --KeyName file1.txt 
+              ksan getattr bucket1 --KeyName file1.txt --Checksum 
+              ksan getattr bucket1 --KeyName file1.txt --VersionId 526554498818254 
+              ksan getattr bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af 
+              ksan getattr bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 
 
                 """
 
         self.AddOption()
 
     def AddOption(self):
-        self.add_option("--BucketName", "--bucketname", dest="BucketName", help='bucket name')
-        self.add_option("--Checksum", "--checksum", dest="Checksum", help='display checksum and size of the object from ksanOSD')
-        self.add_option("--Key", "--key", dest="Key", help='object key')
-        self.add_option("--ObjectId", "--objectid", dest="ObjectId", help='object id')
-        self.add_option("--VersionId", "--versionid", dest="VersionId", help='version id')
+        #self.add_option("--BucketName", "--bucketname", dest="BucketName", help='bucket name')
+        self.add_option("--Checksum", "--checksum", action='store_true', dest="Checksum", help='display checksum and size of the object from ksanOSD')
+        self.add_option("--KeyName", "--Keyname", "--keyname", dest="Key", help='object key')
+        self.add_option("--ObjId", "--Objid", "--objid", dest="ObjectId", help='object id')
+        self.add_option("--VersionId", "--Versionid", "--versionid", dest="VersionId", help='version id')
         self.add_option('--Debug', "--debug", dest='debug', action='store_true', help='display debug log')
 
     def print_help(self):
@@ -485,31 +509,26 @@ class KsanCbalanceUtilOptParser(OptionParser):
         ksan cbalance [option]*
 
         [options]     
-              --BucketName                            : specify the name of the bucket 
-              --Checksum                              : display the checksum and size of the object from ksanOSD 
-              --Key                                   : specify the object key
-              --ObjectId                              : specify the object Id if you wish to display with Id rather than an object key
-              --VersionId                             : specify the object version Id if you wish particular version of an object
-              --BucketName                            : specify the name of the bucket you wish to balance
-              --DstDiskName                           : specify the destination disk Name
+              --BucketName                            : specify the name of the bucket you wish to balance 
+              --KeyName                               : specify the object key
+              --DstDiskName                           : specify the destination disk name
               --EmptyDisk                             : set to enable empty disk operation
-              --Key                                   : specify the object key
               --ObjId                                 : specify the object Id instead of object key
               --OkLocalMove                           : allow to move to local another disk (default: false)
               --Size                                  : specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units
               --SrcDiskName                           : specify the source disk Name
               --VersionId                             : specify the object version Id if you wish particular version of an object
-              --Debug                                 : display debug log to the terminal
+              --Debug                                 : display debug log to the terminal (default: false)
 
 
         [example]
               1. move a single object and the object can be idetified either key or object Id
-                ksan cbalance --BucketName bucket1 --Key file1.txt --SrcDiskName osd1_disk1 
-                ksan cbalance --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --KeyName file1.txt --SrcDiskName osd1_disk1 
+                ksan cbalance --BucketName bucket1 --KeyName file1.txt --VersionId 526554498818254 --SrcDiskName osd1_disk1 
                 ksan cbalance --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 --SrcDiskName osd1_disk1 
                 ksan cbalance --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --SrcDiskName osd1_disk1 
-                ksan cbalance --BucketName bucket1 --Key file1.txt --DstDiskName osd2_disk2
-                ksan cbalance --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2
+                ksan cbalance --BucketName bucket1 --KeyName file1.txt --DstDiskName osd2_disk2
+                ksan cbalance --BucketName bucket1 --KeyName file1.txt --VersionId 526554498818254 --DstDiskName osd3_disk2
 
               2. move a spefic amount of object from one disk to others
                 ksan cbalance --SrcDiskName osd1_disk1  --DstDiskName osd2_disk2 --Size 2GB 
@@ -522,18 +541,16 @@ class KsanCbalanceUtilOptParser(OptionParser):
         self.AddOption()
 
     def AddOption(self):
-        self.add_option("--BucketName", "--BucketName", dest="BucketName", help='specify the name of thebucket')
-        self.add_option("--Checksum", "--Checksum", dest="Checksum", help='display the checksum and size of the object from ksanOSD')
-        self.add_option("--Key", "--key", dest="Key", help='specify the object key')
-        self.add_option("--ObjectId", "--ObjectId", dest="ObjectId", help='specify the object Id if you wish to display with Id rather than an object key')
-        self.add_option("--VersionId", "--VersionId", dest="VersionId", help='specify the object version Id if you wish particular version of an object')
-        self.add_option("--DstDiskName", "--DstDiskName", dest="DstDiskName", help='specify the destination diskName')
-        self.add_option("--EmptyDisk", "--EmptyDisk", dest="EmptyDisk", help='set to enable empty disk operation')
-        self.add_option("--ObjId", "--ObjId", dest="ObjId", help='specify the object Id instead of object key')
-        self.add_option("--OkLocalMove", "--OkLocalMove", dest="OkLocalMove", help='allow to move to local an other disk(default:false)')
-        self.add_option("--Size", "--Size", dest="Size", help='specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units')
-        self.add_option("--SrcDiskName", "--SrcDiskName", dest="SrcDiskName", help='specify the source diskName')
-        self.add_option("--Debug", "--Debug", dest="debug", help='display debug log to the terminal')
+        self.add_option("--BucketName", "--bucketname", dest="BucketName", help='specify the name of thebucket')
+        self.add_option("--KeyName", "--keyname", "--Keyname", dest="Key", help='specify the object key')
+        self.add_option("--VersionId", "--Versionid", "--versionid", dest="VersionId", help='specify the object version Id if you wish particular version of an object')
+        self.add_option("--DstDiskName", "--Dstdiskname", "--dstdiskname", dest="DstDiskName", help='specify the destination diskName')
+        self.add_option("--EmptyDisk", "--Emptydisk", "--emptydisk", dest="EmptyDisk", help='set to enable empty disk operation')
+        self.add_option("--ObjId", "--objid", "--Objid", dest="ObjId", help='specify the object Id instead of object key')
+        self.add_option("--OkLocalMove", "--oklocalmove", "--OkLocalmove", dest="OkLocalMove", help='allow to move to local an other disk(default:false)')
+        self.add_option("--Size", "--size", dest="Size", help='specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units')
+        self.add_option("--SrcDiskName", "--SrcDiskname", "--srcdiskname", dest="SrcDiskName", help='specify the source diskName')
+        self.add_option("--Debug", "--debug", dest="debug", help='display debug log to the terminal')
 
     def print_help(self):
         print(self.Usage)

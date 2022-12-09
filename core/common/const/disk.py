@@ -9,11 +9,6 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
 
-DiskItemsDetailModule = 'const.disk.DiskItemsDetail'
-DiskDetailModule = 'const.disk.DiskDetail'
-AllDiskItemsDetailModule = 'const.disk.AllDiskItemsDetail'
-DiskPoolItemsModule = 'const.disk.DiskPoolItems'
-DiskPoolDetailModule = 'const.disk.DiskPoolDetail'
 
 class DiskItemsDetail:
     def __init__(self):
@@ -117,6 +112,7 @@ class DiskDetailMqBroadcast:
 
 class AddDiskObject:
     def __init__(self):
+        self.ServerId = ''
         self.DiskPoolId = ''
         self.Name = ''
         self.Path = ''
@@ -129,8 +125,9 @@ class AddDiskObject:
         self.UsedSize = 0
         self.Rwmode = 'ReadOnly'
 
-    def Set(self, Name, Path, State, TotalInode, ReservedInode, UsedInode, TotalSize, ReservedSize, UsedSize, RwMode, DiskPoolId=''):
+    def Set(self, ServerId, Name, Path, State, TotalInode, ReservedInode, UsedInode, TotalSize, ReservedSize, UsedSize, RwMode, DiskPoolId=''):
 
+        self.ServerId = ServerId
         self.DiskPoolId = DiskPoolId
         self.Name = Name
         self.Path = Path
@@ -200,6 +197,10 @@ class DiskPoolItems:
         self.Id = None
         self.Name = None
         self.Description = None
+        self.DiskPoolType = None
+        self.ReplicationType = None
+        self.EC = None
+        self.Disks = None
         self.ModDate = None
         self.ModId = None
         self.ModName = None
