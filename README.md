@@ -39,6 +39,7 @@ KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 �
 현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO)를 참조해 주십시오.
 
 ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
+ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다.
 
 <br><br>
 
@@ -52,9 +53,9 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 
 그리고 KSAN 시스템의 오브젝트 데이터는 서로 다른 OSD의 OSDDISK에 복제본을 배치 및 저장하는 방식으로 단일 지점의 물리적인 장애에 대응하도록 설계되었습니다. 또한 ksanGW는 HAProxy 등의 서비스 로드밸런서를 이용해 오브젝트 스토리지 서비스의 가용성을 보장할 수 있습니다.
 
-또한 KSAN 시스템은 재해 상황에 대해서도 서비스 가용성을 보장할 수 있습니다. 2022년 3분기 이후에 공개 및 제공이 예정되어 있는 ksanDR 모듈은 지역적으로 배치되는 KSAN 시스템들 간의 오브젝트 데이터를 실시간으로 동기화하는 기능을 제공할 예정입니다.
+또한 KSAN 시스템은 재해 상황에 대해서도 서비스 가용성을 보장할 수 있습니다. ksanReplicationManager 모듈은 ksanGW에서 기록하는 Service Log를 기반으로 다른 지역에 구축된 KSAN 시스템들 간의 오브젝트 데이터를 실시간으로 동기화하는 기능을 제공합니다.
 
-ℹ️ 재해 상황에 대한 서비스 고가용성 지원을 위한 ksanDR 기능은 2022년 4분기에 공개될 예정입니다.
+ℹ️ 재해 상황에 대한 서비스 고가용성 지원을 위한 ksanReplicationManager 기능은 v1.2.0 부터 지원합니다.
 
 <br><br>
 
@@ -64,7 +65,7 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 
 또한 1+1 복제 방식으로 OSDDISK에 분산 저장된 오브젝트 데이터를 특정 시간이 지나면 자동으로 Erasure Coding으로 처리해 더 적은 백엔드 저장 자원으로 오브젝트 데이터를 보관할 수 있도록 설계되었습니다.
 
-ℹ️ KSAN의 Erasure Coding 기능은 2022년 4분기에 공개될 예정입니다.
+ℹ️ KSAN의 Erasure Coding 기능은 v1.2.0 부터 지원합니다.
 
 
 <br><br>
