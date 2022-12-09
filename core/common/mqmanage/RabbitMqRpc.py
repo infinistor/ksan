@@ -18,7 +18,6 @@ import json
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from Enums import EnumResponseResult
 from const.mq import *
 from mqmanage import RabbitMqConfiguration
 

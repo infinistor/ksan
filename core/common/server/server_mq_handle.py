@@ -15,7 +15,6 @@ if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 #from common.common.mqutils import Mq
 from server.server_api import GetServerUsage
-import mqmanage.mq_api
 import mqmanage.mq
 from const.common import *
 from const.server import ServerUsageItems, ServerStateItems
