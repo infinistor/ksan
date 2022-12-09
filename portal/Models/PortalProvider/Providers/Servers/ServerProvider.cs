@@ -32,6 +32,7 @@ using MTLib.HttpClient;
 using PortalData.Requests.Agent;
 using PortalProvider.Providers.RabbitMQ;
 using MTLib.Reflection;
+using System.Net;
 
 namespace PortalProvider.Providers.Servers
 {
@@ -171,7 +172,13 @@ namespace PortalProvider.Providers.Servers
 					PortalApiKey = InternalServiceApiKey.KeyValue
 				};
 				var Response = await client.Post<ResponseData>($"http://{Request.ServerIp}:6380/api/v1/Servers", SendData);
-				Result.CopyValueFrom(Response.Data);
+				if (Response.StatusCode == HttpStatusCode.OK)
+					Result.CopyValueFrom(Response.Data);
+				else
+				{
+					Result.Code = "EC999";
+					Result.Message = $"Server communication error. ({Response.StatusCode})";
+				}
 			}
 			catch (Exception ex)
 			{
