@@ -43,6 +43,7 @@ import com.google.common.net.PercentEscaper;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,9 @@ final public class S3Signature {
             GWConstants.PARAMETER_CORS,
             GWConstants.PARAMETER_TAGGING,
             GWConstants.PARAMETER_REPLICATION,
-            GWConstants.PARAMETER_DELETE
+            GWConstants.PARAMETER_DELETE,
+            GWConstants.PARAMETER_TAG_INDEX,
+            GWConstants.PARAMETER_RESTORE
     );
 
     S3Signature() { 
@@ -113,30 +116,31 @@ final public class S3Signature {
         }
 
         // Build string to sign
-        StringBuilder builder = new StringBuilder()
-                .append(request.getMethod())
+        StringBuilder builder = new StringBuilder();
+        
+        String expires = request.getParameter(GWConstants.EXPIRES);
+        if (queryAuth) {
+            builder.append(request.getMethod())
+                .append(GWConstants.CHAR_NEWLINE)
+                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_MD5)))
+                .append(GWConstants.CHAR_NEWLINE)
+                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_TYPE)))
+                .append(GWConstants.CHAR_NEWLINE);
+            // If expires is  not nil, then it is query string sign
+            // If expires is nil,maybe alse query string sign
+            // So should check other accessid para ,presign to judge.
+            // not the expires
+            builder.append(Strings.nullToEmpty(request.getParameter(HttpHeaders.EXPIRES)));
+        } else {
+            builder.append(request.getMethod())
                 .append(GWConstants.CHAR_NEWLINE)
                 .append(Strings.nullToEmpty(request.getHeader(HttpHeaders.CONTENT_MD5)))
                 .append(GWConstants.CHAR_NEWLINE)
                 .append(Strings.nullToEmpty(request.getHeader(HttpHeaders.CONTENT_TYPE)))
                 .append(GWConstants.CHAR_NEWLINE);
-        
-        String expires = request.getParameter(GWConstants.EXPIRES);
-        if (queryAuth) {
-            // If expires is  not nil, then it is query string sign
-            // If expires is nil,maybe alse query string sign
-            // So should check other accessid para ,presign to judge.
-            // not the expires
-        	if(expires == null) {
-        		builder.append(Strings.nullToEmpty(expires));
-        	} else {
-        		logger.info(GWConstants.LOG_S3SIGNATURE_EXPIRES, expires);
-        		builder.append(Strings.nullToEmpty(expires));
-        	}
-        } else {
         	if (!bothDateHeader) {
         		if (canonicalizedHeaders.containsKey(GWConstants.X_AMZ_DATE_LOWER)) {
-        			builder.append("");
+        			builder.append(GWConstants.EMPTY_STRING);
         		} else {
         			if (request.getHeader(HttpHeaders.DATE) != null) {
         				logger.info(GWConstants.LOG_S3SIGNATURE_DATE, request.getHeader(HttpHeaders.DATE));
@@ -165,8 +169,7 @@ final public class S3Signature {
         builder.append(uri);
 
         char separator = GWConstants.CHAR_QUESTION;
-        List<String> subresources = Collections.list(
-                request.getParameterNames());
+        List<String> subresources = Collections.list(request.getParameterNames());
         Collections.sort(subresources);
         for (String subresource : subresources) {
             if (SIGNED_SUBRESOURCES.contains(subresource)) {
@@ -187,13 +190,12 @@ final public class S3Signature {
         Mac mac;
         try {
             mac = Mac.getInstance(GWConstants.HMAC_SHA1);
-            mac.init(new SecretKeySpec(credential.getBytes(
-                    StandardCharsets.UTF_8), GWConstants.HMAC_SHA1));
+            mac.init(new SecretKeySpec(credential.getBytes(StandardCharsets.UTF_8), GWConstants.HMAC_SHA1));
         } catch (InvalidKeyException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        return BaseEncoding.base64().encode(mac.doFinal(
-                stringToSign.getBytes(StandardCharsets.UTF_8)));
+
+        return BaseEncoding.base64().encode(mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8)));
     }
 
     private byte[] signMessage(byte[] data, byte[] key, String algorithm)
@@ -341,7 +343,7 @@ final public class S3Signature {
         }
 
         logger.info(canonicalRequest);
-       
+
         return getMessageDigest(
                 canonicalRequest.getBytes(StandardCharsets.UTF_8),
                 hashAlgorithm);
@@ -486,7 +488,7 @@ final public class S3Signature {
                     }
 
                     // 2021-04-14 UTF-8 signing fix
-                    value = value.replaceAll(GWConstants.CHARSET_UTF_8, GWConstants.CHARSET_UTF_8_LOWER);
+                    value = value.replaceAll(Constants.CHARSET_UTF_8, GWConstants.CHARSET_UTF_8_LOWER);
 
                     values.add(value);
                 }

@@ -41,6 +41,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.DiskpoolEC.cs">
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.DiskUsage.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
@@ -136,6 +140,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.S3Logging.cs">
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.Server.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
@@ -152,7 +160,7 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
-		<Compile Update="PortalModels.ServiceDisk.cs">
+		<Compile Update="PortalModels.ServiceEventLog.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>

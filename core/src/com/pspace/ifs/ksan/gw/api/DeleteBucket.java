@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.pspace.ifs.ksan.gw.data.DataDeleteBucket;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -21,8 +22,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
-
-
+import com.google.common.base.Strings;
 
 public class DeleteBucket extends S3Request{
 
@@ -36,12 +36,18 @@ public class DeleteBucket extends S3Request{
         logger.info(GWConstants.LOG_DELETE_BUCKET_START);
         String bucket = s3Parameter.getBucketName();
         initBucketInfo(bucket);
-        
-        S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
+
+        DataDeleteBucket dataDeleteBucket = new DataDeleteBucket(s3Parameter);
+        dataDeleteBucket.extract();
+
+        String expectedBucketOwner = dataDeleteBucket.getExpectedBucketOwner();
+        if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
+            if (!isBucketOwner(expectedBucketOwner)) {
+                throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+            }
+        }
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);

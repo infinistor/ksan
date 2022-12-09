@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -300,122 +300,122 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanRecovery, Version));
 		}
 		#endregion
-		#region KsanLifecycle
-		/// <summary>KsanLifecycle 설정 목록을 가져온다.</summary>
+		#region KsanLifecycleManager
+		/// <summary>KsanLifecycleManager 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanLifecycle")]
-		public async Task<ActionResult> GetConfigListForKsanLifecycle()
+		[HttpGet("List/KsanLifecycleManager")]
+		public async Task<ActionResult> GetConfigListForKsanLifecycleManager()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanLifecycle));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanLifecycleManager));
 		}
 
-		/// <summary>KsanLifecycle 설정을 가져온다.</summary>
+		/// <summary>KsanLifecycleManager 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanLifecycle")]
-		public async Task<ActionResult> GetConfigForKsanLifecycle()
+		[HttpGet("KsanLifecycleManager")]
+		public async Task<ActionResult> GetConfigForKsanLifecycleManager()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLifecycle));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLifecycleManager));
 		}
 
-		/// <summary>특정 버전의 KsanLifecycle 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanLifecycleManager 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanLifecycle/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanLifecycle([FromRoute] int Version)
+		[HttpGet("KsanLifecycleManager/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanLifecycleManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLifecycle, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanLifecycleManager, Version));
 		}
 
-		/// <summary>KsanLifecycle 설정을 저장한다.</summary>
+		/// <summary>KsanLifecycleManager 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanLifecycle")]
-		public async Task<ActionResult> SetConfigForKsanLifecycle([FromBody] string Config)
+		[HttpPost("KsanLifecycleManager")]
+		public async Task<ActionResult> SetConfigForKsanLifecycleManager([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanLifecycle, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanLifecycleManager, Config = Config }));
 		}
 
-		/// <summary>KsanLifecycle 설정의 버전을 변경한다.</summary>
+		/// <summary>KsanLifecycleManager 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanLifecycle/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanLifecycle([FromRoute] int Version)
+		[HttpPut("KsanLifecycleManager/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanLifecycleManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycle, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanLifecycleManager, Version));
 		}
 
-		/// <summary>KsanLifecycle 설정의 버전을 삭제한다.</summary>
+		/// <summary>KsanLifecycleManager 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanLifecycle/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanLifecycle([FromRoute] int Version)
+		[HttpDelete("KsanLifecycleManager/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanLifecycleManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLifecycle, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLifecycleManager, Version));
 		}
 		#endregion
-		#region KsanReplication
-		/// <summary>KsanReplication 설정 목록을 가져온다.</summary>
+		#region KsanReplicationManager
+		/// <summary>KsanReplicationManager 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanReplication")]
-		public async Task<ActionResult> GetConfigListForKsanReplication()
+		[HttpGet("List/KsanReplicationManager")]
+		public async Task<ActionResult> GetConfigListForKsanReplicationManager()
 		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanReplication));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanReplicationManager));
 		}
 
-		/// <summary>KsanReplication 설정을 가져온다.</summary>
+		/// <summary>KsanReplicationManager 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanReplication")]
-		public async Task<ActionResult> GetConfigForKsanReplication()
+		[HttpGet("KsanReplicationManager")]
+		public async Task<ActionResult> GetConfigForKsanReplicationManager()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanReplication));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanReplicationManager));
 		}
 
-		/// <summary>특정 버전의 KsanReplication 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanReplicationManager 설정을 가져온다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanReplication/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanReplication([FromRoute] int Version)
+		[HttpGet("KsanReplicationManager/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanReplicationManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanReplication, Version));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanReplicationManager, Version));
 		}
 
-		/// <summary>KsanReplication 설정을 저장한다.</summary>
+		/// <summary>KsanReplicationManager 설정을 저장한다.</summary>
 		/// <param name="Config">서비스 설정 정보</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanReplication")]
-		public async Task<ActionResult> SetConfigForKsanReplication([FromBody] string Config)
+		[HttpPost("KsanReplicationManager")]
+		public async Task<ActionResult> SetConfigForKsanReplicationManager([FromBody] string Config)
 		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanReplication, Config = Config }));
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanReplicationManager, Config = Config }));
 		}
 
-		/// <summary>KsanReplication 설정의 버전을 변경한다.</summary>
+		/// <summary>KsanReplicationManager 설정의 버전을 변경한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanReplication/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanReplication([FromRoute] int Version)
+		[HttpPut("KsanReplicationManager/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanReplicationManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanReplication, Version));
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanReplicationManager, Version));
 		}
 
-		/// <summary>KsanReplication 설정의 버전을 삭제한다.</summary>
+		/// <summary>KsanReplicationManager 설정의 버전을 삭제한다.</summary>
 		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanReplication/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanReplication([FromRoute] int Version)
+		[HttpDelete("KsanReplicationManager/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanReplicationManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanReplication, Version));
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanReplicationManager, Version));
 		}
 		#endregion
 		#region KsanLogManager
@@ -475,65 +475,6 @@ namespace PortalSvr.Controllers.Config
 		public async Task<ActionResult> RemoveConfigForKsanLogManager([FromRoute] int Version)
 		{
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLogManager, Version));
-		}
-		#endregion
-		#region KsanMetering
-		/// <summary>KsanMetering 설정 목록을 가져온다.</summary>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
-		[HttpGet("List/KsanMetering")]
-		public async Task<ActionResult> GetConfigListForKsanMetering()
-		{
-			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanMetering));
-		}
-
-		/// <summary>KsanMetering 설정을 가져온다.</summary>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanMetering")]
-		public async Task<ActionResult> GetConfigForKsanMetering()
-		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanMetering));
-		}
-
-		/// <summary>특정 버전의 KsanMetering 설정을 가져온다.</summary>
-		/// <param name="Version">서비스 버전</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("KsanMetering/{Version}")]
-		public async Task<ActionResult> GetConfigForKsanMetering([FromRoute] int Version)
-		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanMetering, Version));
-		}
-
-		/// <summary>KsanMetering 설정을 저장한다.</summary>
-		/// <param name="Config">서비스 설정 정보</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPost("KsanMetering")]
-		public async Task<ActionResult> SetConfigForKsanMetering([FromBody] string Config)
-		{
-			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanMetering, Config = Config }));
-		}
-
-		/// <summary>KsanMetering 설정의 버전을 변경한다.</summary>
-		/// <param name="Version">서비스 버전</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
-		[HttpPut("KsanMetering/{Version}")]
-		public async Task<ActionResult> SetConfigLastVersionForKsanMetering([FromRoute] int Version)
-		{
-			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanMetering, Version));
-		}
-
-		/// <summary>KsanMetering 설정의 버전을 삭제한다.</summary>
-		/// <param name="Version">서비스 버전</param>
-		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("KsanMetering/{Version}")]
-		public async Task<ActionResult> RemoveConfigForKsanMetering([FromRoute] int Version)
-		{
-			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanMetering, Version));
 		}
 		#endregion
 	}

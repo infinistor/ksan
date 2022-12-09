@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.util.Date;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.security.InvalidParameterException;
@@ -24,6 +26,7 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -57,17 +60,11 @@ public class DeleteObjects extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		
 		DataDeleteObjects dataDeleteObjects = new DataDeleteObjects(s3Parameter);
 		dataDeleteObjects.extract();
@@ -102,7 +99,7 @@ public class DeleteObjects extends S3Request {
 			logger.debug(GWConstants.LOG_DELETE_OBJECTS_SIZE, objectNames.size());
 
 			for (Objects object : objectNames) {
-				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet);
+				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet, dataDeleteObjects);
 				xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
 			}
 
@@ -125,7 +122,7 @@ public class DeleteObjects extends S3Request {
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 
-	public void deleteObject(S3Parameter s3Parameter, String object, String versionId, XMLStreamWriter xml, boolean quiet) throws GWException {
+	public void deleteObject(S3Parameter s3Parameter, String object, String versionId, XMLStreamWriter xml, boolean quiet, DataDeleteObjects dataDeleteObjects) throws GWException {
 		String bucket = s3Parameter.getBucketName();
 		
         String versioningStatus = getBucketInfo().getVersioning();
@@ -164,6 +161,16 @@ public class DeleteObjects extends S3Request {
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
 		
 		try {
+			if (Strings.isNullOrEmpty(versionId)) {
+				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT, s3Parameter, dataDeleteObjects)) {
+					checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				}
+			} else {
+				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION, s3Parameter, dataDeleteObjects)) {
+					checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				}
+			}
+
 			if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) { // Bucket Versioning Enabled
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_ENABLED);
 				if (GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {	// request versionId is null
@@ -178,13 +185,18 @@ public class DeleteObjects extends S3Request {
 						try {
 							S3Metadata s3Metadata = new S3Metadata();
 							s3Metadata.setName(object);
+							s3Metadata.setLastModified(new Date());
+							s3Metadata.setContentLength(0L);
+							s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 							s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 							s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 							s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+							versionId = String.valueOf(System.nanoTime());
 							s3Metadata.setVersionId(versionId);
 
 							ObjectMapper jsonMapper = new ObjectMapper();
 							String jsonmeta = "";
+							// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 							jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 							int result;
 							objMeta.set("", "", jsonmeta, "", 0L);
@@ -231,13 +243,18 @@ public class DeleteObjects extends S3Request {
 							try {
 								S3Metadata s3Metadata = new S3Metadata();
 								s3Metadata.setName(object);
+								s3Metadata.setLastModified(new Date());
+								s3Metadata.setContentLength(0L);
+								s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 								s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 								s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+								versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 								s3Metadata.setVersionId(versionId);
 
 								ObjectMapper jsonMapper = new ObjectMapper();
 								String jsonmeta = "";
+								// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 								jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 
 								int result;

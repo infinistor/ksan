@@ -39,10 +39,7 @@ public class GetBucketAcl extends S3Request {
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -52,13 +49,15 @@ public class GetBucketAcl extends S3Request {
 		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
 		dataGetObjectAcl.extract();
 
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter, dataGetObjectAcl)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		}
+
 		String aclInfo = getBucketInfo().getAcl();
 		logger.debug(GWConstants.LOG_ACL, aclInfo);
 		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
 			aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;
 		}
-
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
 
         try {
 			if (!Strings.isNullOrEmpty(aclInfo)) {

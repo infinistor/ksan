@@ -2,22 +2,31 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace PortalModels
 {
 
 	public partial class PortalModel : DbContext
 	{
-
 		public PortalModel() : base()
 		{
 			OnCreated();
@@ -33,7 +42,7 @@ namespace PortalModels
 		{
 			if (!optionsBuilder.IsConfigured ||
 				(!optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().Any(ext => !string.IsNullOrEmpty(ext.ConnectionString) || ext.Connection != null) &&
-				 !optionsBuilder.Options.Extensions.Any(ext => !(ext is RelationalOptionsExtension) && !(ext is CoreOptionsExtension))))
+				!optionsBuilder.Options.Extensions.Any(ext => !(ext is RelationalOptionsExtension) && !(ext is CoreOptionsExtension))))
 			{
 			}
 			CustomizeConfiguration(ref optionsBuilder);
@@ -80,8 +89,6 @@ namespace PortalModels
 
 		public virtual DbSet<Disk> Disks { get; set; }
 
-		public virtual DbSet<ServiceDisk> ServiceDisks { get; set; }
-
 		public virtual DbSet<DiskPool> DiskPools { get; set; }
 
 		public virtual DbSet<ServerUsage> ServerUsages { get; set; }
@@ -101,6 +108,10 @@ namespace PortalModels
 		public virtual DbSet<Region> Regions { get; set; }
 
 		public virtual DbSet<ServiceEventLog> ServiceEventLogs { get; set; }
+
+		public virtual DbSet<S3Logging> S3Loggings { get; set; }
+
+		public virtual DbSet<DiskPoolEC> DiskPoolECs { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -163,9 +174,6 @@ namespace PortalModels
 			this.DiskMapping(modelBuilder);
 			this.CustomizeDiskMapping(modelBuilder);
 
-			this.ServiceDiskMapping(modelBuilder);
-			this.CustomizeServiceDiskMapping(modelBuilder);
-
 			this.DiskPoolMapping(modelBuilder);
 			this.CustomizeDiskPoolMapping(modelBuilder);
 
@@ -195,6 +203,12 @@ namespace PortalModels
 
 			this.ServiceEventLogMapping(modelBuilder);
 			this.CustomizeServiceEventLogMapping(modelBuilder);
+
+			this.S3LoggingMapping(modelBuilder);
+			this.CustomizeS3LoggingMapping(modelBuilder);
+
+			this.DiskPoolECMapping(modelBuilder);
+			this.CustomizeDiskPoolECMapping(modelBuilder);
 
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
@@ -601,20 +615,6 @@ namespace PortalModels
 
 		#endregion
 
-		#region ServiceDisk Mapping
-
-		private void ServiceDiskMapping(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<ServiceDisk>().ToTable(@"SERVICE_DISKS");
-			modelBuilder.Entity<ServiceDisk>().Property(x => x.ServiceId).HasColumnName(@"SERVICE_ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServiceDisk>().Property(x => x.DiskId).HasColumnName(@"DISK_ID").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<ServiceDisk>().HasKey(@"ServiceId", @"DiskId");
-		}
-
-		partial void CustomizeServiceDiskMapping(ModelBuilder modelBuilder);
-
-		#endregion
-
 		#region DiskPool Mapping
 
 		private void DiskPoolMapping(ModelBuilder modelBuilder)
@@ -797,6 +797,58 @@ namespace PortalModels
 
 		#endregion
 
+		#region S3Logging Mapping
+
+		private void S3LoggingMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<S3Logging>().ToTable(@"S3LOGGING");
+			modelBuilder.Entity<S3Logging>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedOnAdd();
+			modelBuilder.Entity<S3Logging>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.RemoteHost).HasColumnName(@"REMOTE_HOST").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.RequestUser).HasColumnName(@"REQUEST_USER").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.RequestId).HasColumnName(@"REQUEST_ID").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.Operation).HasColumnName(@"OPERATION").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.ObjectName).HasColumnName(@"OBJECT_NAME").HasColumnType(@"varchar(2048)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.RequestUri).HasColumnName(@"REQUEST_URI").HasColumnType(@"varchar(2048)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.StatusCode).HasColumnName(@"STATUS_CODE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.ErrorCode).HasColumnName(@"ERROR_CODE").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.ResponseLength).HasColumnName(@"RESPONSE_LENGTH").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.ObjectLength).HasColumnName(@"OBJECT_LENGTH").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.TotalTime).HasColumnName(@"TOTAL_TIME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.RequestLength).HasColumnName(@"REQUEST_LENGTH").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.Rererer).HasColumnName(@"RERERER").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.UserAgent).HasColumnName(@"USER_AGENT").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.VersionId).HasColumnName(@"VERSION_ID").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.HostId).HasColumnName(@"HOST_ID").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.Sign).HasColumnName(@"SIGN").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.SslGroup).HasColumnName(@"SSL_GROUP").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.SignType).HasColumnName(@"SIGN_TYPE").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.Endpoint).HasColumnName(@"ENDPOINT").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().Property(x => x.TlsVersion).HasColumnName(@"TLS_VERSION").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3Logging>().HasKey(@"Id");
+		}
+
+		partial void CustomizeS3LoggingMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region DiskPoolEC Mapping
+
+		private void DiskPoolECMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<DiskPoolEC>().ToTable(@"DISK_POOL_ECS");
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.M).HasColumnName(@"M").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().Property(x => x.K).HasColumnName(@"K").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<DiskPoolEC>().HasKey(@"DiskPoolId");
+		}
+
+		partial void CustomizeDiskPoolECMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
 		private void RelationshipsMapping(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<NetworkInterface>().HasOne(x => x.Server).WithMany(op => op.NetworkInterfaces).HasForeignKey(@"ServerId").IsRequired(true);
@@ -814,9 +866,8 @@ namespace PortalModels
 			modelBuilder.Entity<Service>().HasOne(x => x.ServiceGroup).WithMany(op => op.Services).HasForeignKey(@"GroupId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasOne(x => x.RegUser).WithMany(op => op.RegServices).HasForeignKey(@"RegId").IsRequired(false);
 			modelBuilder.Entity<Service>().HasOne(x => x.ModUser).WithMany(op => op.ModServices).HasForeignKey(@"ModId").IsRequired(false);
-			modelBuilder.Entity<Service>().HasMany(x => x.ServiceDisks).WithOne(op => op.Service).HasForeignKey(@"ServiceId").IsRequired(true);
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceUsages).WithOne(op => op.Service).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
-			modelBuilder.Entity<Service>().HasOne(x => x.Server).WithMany(op => op.Services).HasForeignKey(@"ServerId").IsRequired(true);
+			modelBuilder.Entity<Service>().HasOne(x => x.Server).WithMany(op => op.Services).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Service>().HasMany(x => x.ServiceEventLogs).WithOne(op => op.Service).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceNetworkInterfaceVlan>().HasOne(x => x.Service).WithMany(op => op.Vlans).HasForeignKey(@"ServiceId").IsRequired(true);
@@ -824,9 +875,9 @@ namespace PortalModels
 
 			modelBuilder.Entity<Server>().HasMany(x => x.NetworkInterfaces).WithOne(op => op.Server).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Server>().HasOne(x => x.ModUser).WithMany(op => op.ModServers).HasForeignKey(@"ModId").IsRequired(false);
-			modelBuilder.Entity<Server>().HasMany(x => x.Disks).WithOne(op => op.Server).HasForeignKey(@"ServerId").IsRequired(true);
+			modelBuilder.Entity<Server>().HasMany(x => x.Disks).WithOne(op => op.Server).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Server>().HasMany(x => x.ServerUsages).WithOne(op => op.Server).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
-			modelBuilder.Entity<Server>().HasMany(x => x.Services).WithOne(op => op.Server).HasForeignKey(@"ServerId").IsRequired(true);
+			modelBuilder.Entity<Server>().HasMany(x => x.Services).WithOne(op => op.Server).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 
 			modelBuilder.Entity<ServiceGroup>().HasMany(x => x.Services).WithOne(op => op.ServiceGroup).HasForeignKey(@"GroupId").IsRequired(false);
 			modelBuilder.Entity<ServiceGroup>().HasOne(x => x.RegUser).WithMany(op => op.RegServiceGroups).HasForeignKey(@"RegId").IsRequired(false);
@@ -865,16 +916,13 @@ namespace PortalModels
 
 			modelBuilder.Entity<UserActionLog>().HasOne(x => x.User).WithMany(op => op.UserActionLogs).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"UserId").IsRequired(true);
 
-			modelBuilder.Entity<Disk>().HasOne(x => x.Server).WithMany(op => op.Disks).HasForeignKey(@"ServerId").IsRequired(true);
-			modelBuilder.Entity<Disk>().HasMany(x => x.ServiceDisks).WithOne(op => op.Disk).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"DiskId").IsRequired(true);
+			modelBuilder.Entity<Disk>().HasOne(x => x.Server).WithMany(op => op.Disks).OnDelete(DeleteBehavior.Restrict).HasForeignKey(@"ServerId").IsRequired(true);
 			modelBuilder.Entity<Disk>().HasOne(x => x.DiskPool).WithMany(op => op.Disks).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<Disk>().HasMany(x => x.DiskUsages).WithOne(op => op.Disk).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
-			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Service).WithMany(op => op.ServiceDisks).HasForeignKey(@"ServiceId").IsRequired(true);
-			modelBuilder.Entity<ServiceDisk>().HasOne(x => x.Disk).WithMany(op => op.ServiceDisks).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"DiskId").IsRequired(true);
-
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
+			modelBuilder.Entity<DiskPool>().HasOne(x => x.EC).WithOne(op => op.DiskPool).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(false);
 
 			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
@@ -890,6 +938,8 @@ namespace PortalModels
 			modelBuilder.Entity<DiskUsage>().HasOne(x => x.Disk).WithMany(op => op.DiskUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
 			modelBuilder.Entity<ServiceEventLog>().HasOne(x => x.Service).WithMany(op => op.ServiceEventLogs).HasForeignKey(@"Id").IsRequired(true);
+
+			modelBuilder.Entity<DiskPoolEC>().HasOne(x => x.DiskPool).WithOne(op => op.EC).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(true);
 		}
 
 		partial void CustomizeMapping(ref ModelBuilder modelBuilder);

@@ -40,10 +40,7 @@ public class GetObjectTagging extends S3Request {
 		logger.info(GWConstants.LOG_GET_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -56,6 +53,7 @@ public class GetObjectTagging extends S3Request {
 		String object = s3Parameter.getObjectName();
 
 		String versionId = dataGetObjectTagging.getVersionId();
+		s3Parameter.setVersionId(versionId);
 		
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -64,10 +62,17 @@ public class GetObjectTagging extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 		
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_TAGGING, s3Parameter, dataGetObjectTagging)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_TAGGING, s3Parameter, dataGetObjectTagging)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		}
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
-
 		String taggingInfo = objMeta.getTag();
 		logger.info(GWConstants.LOG_TAGGING, taggingInfo);
 		if ( Strings.isNullOrEmpty(taggingInfo)) {

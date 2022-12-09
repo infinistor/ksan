@@ -58,6 +58,8 @@ public enum GWErrorCode {
     INVALID_REQUEST(HttpServletResponse.SC_BAD_REQUEST, "Bad Request"),
     INVALID_TAG(HttpServletResponse.SC_BAD_REQUEST,
             "The requested tagging key or value exceeds length"),
+    INVALID_TARGET_BUCKET_FOR_LOGGING(HttpServletResponse.SC_BAD_REQUEST,
+            "InvalidTargetBucketForLogging"),            
     INVALID_EXCEED_TAG(HttpServletResponse.SC_BAD_REQUEST,
             "The requested tagging count has not exceed 10"),
     INVALID_CORS_ORIGIN(HttpServletResponse.SC_BAD_REQUEST,
@@ -67,6 +69,7 @@ public enum GWErrorCode {
     MALFORMED_X_M_L(HttpServletResponse.SC_BAD_REQUEST,
             "The XML you provided was not well-formed or did not validate" +
             " against our published schema."),
+    MALFORMED_ACL(HttpServletResponse.SC_BAD_REQUEST, "MalformedACLError"),
     MAX_MESSAGE_LENGTH_EXCEEDED(HttpServletResponse.SC_BAD_REQUEST,
             "Your request was too big."),
     METHOD_NOT_ALLOWED(HttpServletResponse.SC_METHOD_NOT_ALLOWED,

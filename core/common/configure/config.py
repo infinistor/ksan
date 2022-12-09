@@ -9,9 +9,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
-from const.common import *
-from service.service_manage import SetServiceConfig, GetServiceConfig, DsPServiceConf, \
-    UpdateServiceConfigVersion, RemoveServiceConfig, GetServiceConfigList, ShowConfigList
+from portal_api.apis import *
 
 
 def ConfigUtilHandler(Conf, Action, Parser, logger):
@@ -61,8 +59,16 @@ def ConfigUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             print('config version is required.')
             sys.exit(-1)
+
         Version = options.ConfigVersionId
         ServiceType = ServiceTypeConversion[options.ServiceType.lower()]
+        if str(Version).lower() == 'last':
+            LatestConfig, ErrLog = GetLatestServiceConfig(PortalIp, PortalPort, PortalApiKey, ServiceType, logger=logger)
+            if LatestConfig is None:
+                print('fail to get last version config info. %s' % ErrLog)
+                return
+            Version = LatestConfig.Version
+
         Res, Errmsg, Ret = UpdateServiceConfigVersion(PortalIp, PortalPort, PortalApiKey, ServiceType, Version, logger=logger)
         print(Ret.Result, Ret.Message)
 

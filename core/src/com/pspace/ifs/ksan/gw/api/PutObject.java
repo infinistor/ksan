@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -48,9 +49,6 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 import org.slf4j.LoggerFactory;
-
-
-
 public class PutObject extends S3Request {
 
 	public PutObject(S3Parameter s3Parameter) {
@@ -68,20 +66,19 @@ public class PutObject extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-		
 		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
 		dataPutObject.extract();
+
+		boolean effectPolicy = checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject);
+		if (!effectPolicy) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 
 		S3Metadata s3Metadata = new S3Metadata();
 
@@ -197,7 +194,8 @@ public class PutObject extends S3Request {
 										dataPutObject.getGrantFullControl(), 
 										dataPutObject.getGrantReadAcp(), 
 										dataPutObject.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
@@ -326,12 +324,16 @@ public class PutObject extends S3Request {
 			s3Metadata.setLegalHold(dataPutObject.getObjectLockLegalHold());
 		}
 
+		// long dbStart = System.currentTimeMillis();
 		String versioningStatus = getBucketVersioning(bucket);
 		String versionId = null;
 		Metadata objMeta = null;
+		boolean isExist = false;
+		
 		try {
 			// check exist object
 			objMeta = open(bucket, object);
+			isExist = true;
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 			} else {
@@ -339,6 +341,8 @@ public class PutObject extends S3Request {
 			}
 		} catch (GWException e) {
 			logger.info(e.getMessage());
+			// reset error code
+			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
 			if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 				versionId = String.valueOf(System.nanoTime());
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
@@ -347,6 +351,17 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+		// long dbEnd = System.currentTimeMillis();
+		// logger.error("put, db op : {}", dbEnd - dbStart);
+
+		if (isExist && !effectPolicy) {
+			if (Strings.isNullOrEmpty(objMeta.getAcl())) {
+				objMeta.setAcl(GWUtils.makeOriginalXml(aclXml, s3Parameter));
+			}
+			checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
+
+		s3Parameter.setVersionId(versionId);
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		S3Object s3Object = objectOperation.putObject();
 
@@ -366,6 +381,7 @@ public class PutObject extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonmeta = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
@@ -374,6 +390,7 @@ public class PutObject extends S3Request {
 
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
+			// logger.debug("taggingxml : {}", taggingxml);
 			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
@@ -383,6 +400,8 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		// long fileEnd = System.currentTimeMillis();
+		// logger.error("put file op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Object.getVersionId());

@@ -41,6 +41,7 @@ public class S3User {
     private String userEmail;
 	private String accessKey;
 	private String accessSecret;
+    private String azureKey;
     private List<HashMap<String, String>> userDiskPools;
 
     public S3User() {
@@ -49,6 +50,7 @@ public class S3User {
         userEmail = "";
         accessKey = "";
         accessSecret = "";
+        azureKey = "";
         userDiskPools = new ArrayList<HashMap<String, String>>();
     }
 
@@ -58,14 +60,22 @@ public class S3User {
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes()));
         userDiskPools = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < diskpools.size(); i++) {
             JSONObject item = (JSONObject)diskpools.get(i);
             HashMap<String, String> map = new HashMap<String, String>();
             map.put(USER_DISK_POOLS_DISKPOOL_ID, (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID));
             map.put(USER_DISK_POOLS_STORAGE_CLASS, (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
+            // logger.debug("DiskPoolId:{}, StorageClass : {}", (String)item.get(S3User.USER_DISK_POOLS_DISKPOOL_ID), (String)item.get(S3User.USER_DISK_POOLS_STORAGE_CLASS));
             userDiskPools.add(map);
         }
+        // logger.debug("getUserDefaultDiskpoolId:{}", getUserDefaultDiskpoolId());
+        // logger.debug("userDiskPools:{}", userDiskPools.toString());
+        // for (HashMap<String, String> map : userDiskPools) {
+        //     logger.debug("map:{}", map.toString());
+        //     logger.debug("DiskPoolId:{}, StorageClass : {}", map.get(USER_DISK_POOLS_DISKPOOL_ID), map.get(USER_DISK_POOLS_STORAGE_CLASS));
+        // }
     }
 
     public String getUserName() {
@@ -98,6 +108,7 @@ public class S3User {
 
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes()));
     }
 
     public String getAccessSecret() {
@@ -108,13 +119,17 @@ public class S3User {
         this.accessSecret = accessSecret;
     }
 
+    public String getAzureKey() {
+        return Strings.nullToEmpty(azureKey);
+    }
+
     public List<HashMap<String, String>> getUserDiskpools() {
         return userDiskPools;
     }
 
     public String getUserDefaultDiskpoolId() {
         for (HashMap<String, String> map : userDiskPools) {
-            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(STANDARD)) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equalsIgnoreCase(STANDARD)) {
                 return map.get(USER_DISK_POOLS_DISKPOOL_ID);
             }
         }
@@ -123,7 +138,7 @@ public class S3User {
 
     public String getUserDiskpoolId(String storageClass) {
         for (HashMap<String, String> map : userDiskPools) {
-            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equals(storageClass)) {
+            if (map.get(USER_DISK_POOLS_STORAGE_CLASS).equalsIgnoreCase(storageClass)) {
                 return map.get(USER_DISK_POOLS_DISKPOOL_ID);
             }
         }

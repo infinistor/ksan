@@ -298,6 +298,8 @@ public class DiskMonitor {
             String status = (String)jO.get(KEYS.REPLICACOUNT.label);
             if (status.equalsIgnoreCase("OnePlusOne"))
                 res.replicaCount = 2;
+            else if (status.equalsIgnoreCase("ErasureCode"))
+                res.replicaCount = 2;
             else
                 res.replicaCount = 1;
         }

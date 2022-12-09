@@ -50,10 +50,9 @@
 			<Member Name="ksanOSD" p1:Guid="b9f075bb-d63e-4429-bc8c-cfead67aecdf" />
 			<Member Name="ksanGW" p1:Guid="43e5e4b7-cf41-4636-8bc1-a2047d78be00" />
 			<Member Name="ksanRecovery" p1:Guid="62ea8d32-a690-4ee5-beda-e374c5255c5f" />
-			<Member Name="ksanLifecycle" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
-			<Member Name="ksanReplication" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
+			<Member Name="ksanLifecycleManager" p1:Guid="0a81ef6f-297d-4d18-98a4-7acbad48596a" />
+			<Member Name="ksanReplicationManager" p1:Guid="b40b10be-2bf4-4f72-a174-cf92e44ff10c" />
 			<Member Name="ksanLogManager" p1:Guid="24dedc15-4d20-4238-94f2-50ea55305521" />
-			<Member Name="ksanMetering" p1:Guid="61aec2a0-f5a1-4b6a-b0c4-1458f71fcd67" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceGroupMode" class="EnumDbServiceGroupMode" p1:Guid="1628f072-6bf5-4dac-bae5-cf99e35c93ab">
 			<Documentation>
@@ -120,6 +119,7 @@
 			<Member Name="OnePlusZero" Value="1" p1:Guid="bcb76aed-20b4-4fea-b412-5a7a04f7a6cf" />
 			<Member Name="OnePlusOne" p1:Guid="1d298d1d-45ae-4a42-be53-d51c554244d1" />
 			<Member Name="OnePlusTwo" p1:Guid="3442acff-12a7-4fed-8d29-47587931d509" />
+			<Member Name="ErasureCode" p1:Guid="b98a30ab-70ee-4018-9cce-64a9d153ec88" />
 		</EnumType>
 		<EnumType Name="EnumDbServiceEventType" class="EnumDbServiceEventType" p1:Guid="006d84a3-475a-43f4-9e3e-20cd1dbc5b09">
 			<Documentation>
@@ -1191,25 +1191,6 @@
 			<column name="" />
 		</property>
 	</class>
-	<class name="ServiceDisk" entity-set="ServiceDisks" p1:Guid="877659ce-b722-4da3-8feb-01dd6028c715">
-		<Documentation>
-			<Summary>서비스 사용 디스크 정보</Summary>
-		</Documentation>
-		<composite-id>
-			<key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="72a45164-2db7-4a0a-80de-5730034ab0e1">
-				<Documentation>
-					<Summary>서비스 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-			<key-property name="DiskId" type="Guid" p1:ValidateRequired="true" p1:Guid="16897381-f09a-4d44-9232-2f33d919a58e">
-				<Documentation>
-					<Summary>디스크 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-		</composite-id>
-	</class>
 	<class name="DiskPool" entity-set="DiskPools" p1:Guid="ea6bfc23-fbe0-4269-a7fc-b996a1572ffb">
 		<Documentation>
 			<Summary>디스크 Pool 정보</Summary>
@@ -1624,6 +1605,178 @@
 			<column name="" />
 		</property>
 	</class>
+	<class name="S3Logging" entity-set="S3Loggings" table="S3LOGGING" p1:Guid="52fc09c5-6d3e-4fa6-974e-7a3ab3851447">
+		<Documentation>
+			<Summary>ksanGW 로그</Summary>
+		</Documentation>
+		<id name="Id" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ce6a58ad-2095-47f5-ac06-5f5c55d7ebb1">
+			<Documentation>
+				<Summary>아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</id>
+		<property name="UserName" type="String" p1:ValidateRequired="true" p1:Guid="a1f90e45-64c0-4ee5-ab94-f831b9e4ae9e">
+			<Documentation>
+				<Summary>유저명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="BucketName" type="String" p1:ValidateRequired="true" p1:Guid="c4720e26-9370-4cf5-b8dd-c6d00f083246">
+			<Documentation>
+				<Summary>버킷명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="InDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="7f065b6b-dff0-4be4-ab05-343620674201">
+			<Documentation>
+				<Summary>발생시각</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RemoteHost" type="String" p1:ValidateRequired="true" p1:Guid="8a7cfae9-ab2a-4297-bdc8-ba2c1ee15840">
+			<Documentation>
+				<Summary>원격 호스트</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="RequestUser" type="String" p1:ValidateRequired="true" p1:Guid="d795b0b3-ab7f-41ea-be07-e95a09b28343">
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="RequestId" type="String" p1:ValidateRequired="true" p1:Guid="1eb00eb9-62d4-49ca-adb2-ac170043eb51">
+			<Documentation>
+				<Summary>요청 아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="Operation" type="String" p1:ValidateRequired="true" p1:Guid="b8a2868e-02e8-4468-b669-de6ec9ff8614">
+			<Documentation>
+				<Summary>API 명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="ObjectName" type="String" p1:ValidateRequired="true" p1:Guid="57b672f8-a1d9-4799-b9ce-4480138b117a">
+			<Documentation>
+				<Summary>오브젝트명</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(2048)" />
+		</property>
+		<property name="RequestUri" type="String" p1:ValidateRequired="true" p1:Guid="e1c8e1da-b824-49f6-a26e-b0ebc6415f60">
+			<Documentation>
+				<Summary>요청URI</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(2048)" />
+		</property>
+		<property name="StatusCode" type="Int32" p1:ValidateRequired="true" p1:Guid="a64efb5e-bd92-48c4-b5ef-e49422f8ddc7">
+			<Documentation>
+				<Summary>상태코드</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ErrorCode" type="String" p1:ValidateRequired="true" p1:Guid="69ecd0c9-9c78-4a0c-85df-a38e57478f32">
+			<Documentation>
+				<Summary>에러코드</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="ResponseLength" type="Int64" p1:ValidateRequired="true" p1:Guid="f2347512-3b7c-4664-8a87-1ffcea5d8c0a">
+			<Documentation>
+				<Summary>응답 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ObjectLength" type="Int64" p1:ValidateRequired="true" p1:Guid="459c10c4-d761-4ffb-ae22-3a69bde90d94">
+			<Documentation>
+				<Summary>오브젝트 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="TotalTime" type="Int64" p1:ValidateRequired="true" p1:Guid="0ad8a140-96f7-4fe8-a394-5d8f1f9db894">
+			<Documentation>
+				<Summary>총 소요시간</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="RequestLength" type="Int64" p1:ValidateRequired="true" p1:Guid="452a458c-6dcf-4106-8e89-786075b756e9">
+			<Documentation>
+				<Summary>요청 크기</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="Rererer" type="String" p1:ValidateRequired="true" p1:Guid="5aadfa75-ba8d-45dd-83d3-fbb0b8972786">
+			<Documentation>
+				<Summary>참조</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="UserAgent" type="String" p1:ValidateRequired="true" p1:Guid="390c6866-2510-4c6c-9248-0c0bcb3fefce">
+			<Documentation>
+				<Summary>대리인</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="VersionId" type="String" p1:ValidateRequired="true" p1:Guid="931ab459-7383-4ca7-8493-04ae3a61e510">
+			<Documentation>
+				<Summary>버전아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="HostId" type="String" p1:ValidateRequired="true" p1:Guid="7e83dc14-0bc7-40f9-b54b-9af281ec2e15">
+			<Documentation>
+				<Summary>호스트아이디</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(256)" />
+		</property>
+		<property name="Sign" type="String" p1:ValidateRequired="true" p1:Guid="bc365d04-f299-47bd-afa4-a4e6ba83fb9e">
+			<Documentation>
+				<Summary>사인</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+		<property name="SslGroup" type="String" p1:ValidateRequired="true" p1:Guid="af16885c-98e1-46f3-b82f-90a149140c7b">
+			<Documentation>
+				<Summary>SSL 그륩</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="SignType" type="String" p1:ValidateRequired="true" p1:Guid="8b278a50-d284-44b9-8070-631c777bdcfa">
+			<Documentation>
+				<Summary>사인 종류</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+		<property name="Endpoint" type="String" p1:ValidateRequired="true" p1:Guid="0e2a6c34-bd01-4940-a0fd-4ee9afbc3da0">
+			<Documentation>
+				<Summary>엔드포인트</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(64)" />
+		</property>
+		<property name="TlsVersion" type="String" p1:ValidateRequired="true" p1:Guid="9634a617-3aff-4a49-a681-1b38c96bed04">
+			<Documentation>
+				<Summary>TLS 버전</Summary>
+			</Documentation>
+			<column name="" sql-type="varchar(32)" />
+		</property>
+	</class>
+	<class name="DiskPoolEC" entity-set="DiskPoolECs" p1:Guid="5d574bbd-0f8f-47d8-a04b-8ec1b3b49c71">
+		<Documentation>
+			<Summary>디스크풀 EC 설정</Summary>
+		</Documentation>
+		<id name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="aaebf213-5120-4a80-8ac7-ed32816606a7">
+			<column name="" />
+		</id>
+		<property name="M" type="Int32" p1:ValidateRequired="true" p1:Guid="ca7cb144-b1d4-46cf-ada0-95eb7415c1c7">
+			<Documentation>
+				<Summary>원본 파일 등분 갯수</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="K" type="Int32" p1:ValidateRequired="true" p1:Guid="8f45acfe-8983-47e4-9ee9-5477026cb1cf">
+			<Documentation>
+				<Summary>인코딩 갯수</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+	</class>
 	<associations>
 		<association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
 			<end1 multiplicity="One" name="Service" class="ServiceNetworkInterfaceVlan" relation-class="Service" constrained="True" lazy="False" p1:Guid="bb0c2d17-10ca-44ed-9c5c-fa47ed882f4e">
@@ -1918,7 +2071,7 @@
 				<property name="RegId" />
 			</end2>
 		</association>
-		<association name="Server_Disk" cardinality="OneToMany" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
+		<association name="Server_Disk" cardinality="OneToMany" on-delete="Restrict" p1:Guid="62d1c3ea-aecc-4555-ac44-a1347c784f3e">
 			<end1 multiplicity="One" name="Server" class="Disk" relation-class="Server" constrained="True" lazy="False" p1:Guid="a92818b6-8f39-4f11-99eb-452a48615d7e">
 				<Documentation>
 					<Summary>서버 정보</Summary>
@@ -1930,34 +2083,6 @@
 					<Summary>디스크 목록</Summary>
 				</Documentation>
 				<property name="ServerId" />
-			</end2>
-		</association>
-		<association name="Service_ServiceDisk" cardinality="OneToMany" p1:Guid="a4478423-7385-4fc1-b845-9cdb8f97ad93">
-			<end1 multiplicity="One" name="Service" class="ServiceDisk" relation-class="Service" constrained="True" lazy="False" p1:Guid="1607eab9-d9af-4464-b61d-1c26f0cd3e78">
-				<Documentation>
-					<Summary>서비스 정보</Summary>
-				</Documentation>
-				<property name="Id" />
-			</end1>
-			<end2 multiplicity="Many" name="ServiceDisks" class="Service" relation-class="ServiceDisk" lazy="False" p1:Guid="f459e10a-8674-4147-b301-735c7dfaa3a0">
-				<Documentation>
-					<Summary>서비스 디스크 정보 목록</Summary>
-				</Documentation>
-				<property name="ServiceId" />
-			</end2>
-		</association>
-		<association name="Disk_ServiceDisk" cardinality="OneToMany" on-delete="Cascade" p1:Guid="ace4e055-8875-43d9-aaa7-3eadfcb29dd4">
-			<end1 multiplicity="One" name="Disk" class="ServiceDisk" relation-class="Disk" constrained="True" lazy="False" p1:Guid="284baa95-8993-43d5-81f8-068c60d71d83">
-				<Documentation>
-					<Summary>디스크 정보</Summary>
-				</Documentation>
-				<property name="Id" />
-			</end1>
-			<end2 multiplicity="Many" name="ServiceDisks" class="Disk" relation-class="ServiceDisk" lazy="False" p1:Guid="07dbefd3-48b5-4681-b806-53c9aa417fc9">
-				<Documentation>
-					<Summary>서비스 디스크 목록</Summary>
-				</Documentation>
-				<property name="DiskId" />
 			</end2>
 		</association>
 		<association name="DiskPool_Disk" cardinality="OneToMany" p1:Guid="9432ec0d-4ae7-4ca7-9334-660f926e5447">
@@ -2022,7 +2147,7 @@
 				<property name="Id" />
 			</end2>
 		</association>
-		<association name="Server_Service" cardinality="OneToMany" p1:Guid="516dd396-dfe2-49e1-97fb-d4241370e2f4">
+		<association name="Server_Service" cardinality="OneToMany" on-delete="Restrict" p1:Guid="516dd396-dfe2-49e1-97fb-d4241370e2f4">
 			<end1 multiplicity="One" name="Server" class="Service" relation-class="Server" constrained="True" lazy="False" p1:Guid="7a1104d6-325d-4cd9-893b-e4a1fbe500e0">
 				<property name="Id" />
 			</end1>
@@ -2036,6 +2161,14 @@
 			</end1>
 			<end2 multiplicity="Many" name="ServiceEventLogs" class="Service" relation-class="ServiceEventLog" lazy="False" p1:Guid="4dcc1299-0080-4749-9b69-5f1df8b62967">
 				<property name="Id" />
+			</end2>
+		</association>
+		<association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
+			<end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+				<property name="Id" />
+			</end1>
+			<end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">
+				<property name="DiskPoolId" />
 			</end2>
 		</association>
 	</associations>

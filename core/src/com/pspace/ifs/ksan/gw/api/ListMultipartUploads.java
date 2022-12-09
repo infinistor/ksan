@@ -27,6 +27,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.multipart.ResultUploads;
 import com.pspace.ifs.ksan.libs.multipart.Upload;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
@@ -46,20 +47,19 @@ public class ListMultipartUploads extends S3Request {
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		DataListMultipartUploads dataListMultipartUploads = new DataListMultipartUploads(s3Parameter);
 		dataListMultipartUploads.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_MULTIPART_UPLOADS, s3Parameter, dataListMultipartUploads)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		String delimiter = dataListMultipartUploads.getDelimiter();
 		String encodingType = dataListMultipartUploads.getEncodingType();
@@ -86,7 +86,7 @@ public class ListMultipartUploads extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);

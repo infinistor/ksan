@@ -30,6 +30,7 @@ import com.pspace.ifs.ksan.gw.format.ReplicationConfiguration.Rule.Filter.And.Ta
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -47,24 +48,23 @@ public class PutBucketReplication extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_START);
         String bucket = s3Parameter.getBucketName();
         initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-        
+
         if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(getBucketVersioning(bucket))) {
-            throw new GWException(GWErrorCode.INVALID_REPLICATION_REQUEST, s3Parameter);
+            throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
         }
         
 		DataPutBucketReplication dataPutBucketReplication = new DataPutBucketReplication(s3Parameter);
 		dataPutBucketReplication.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_REPLICATION_CONFIGURATION, s3Parameter, dataPutBucketReplication)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		String replicationXml = dataPutBucketReplication.getReplicationXml();
         checkBucketReplication(replicationXml);
@@ -103,7 +103,7 @@ public class PutBucketReplication extends S3Request {
 				} else {
 					byte[] array = new byte[7]; // length is bounded by 7
 					new Random().nextBytes(array);
-					String generatedString = new String(array, Charset.forName(GWConstants.CHARSET_UTF_8));
+					String generatedString = new String(array, Charset.forName(Constants.CHARSET_UTF_8));
 					id.put(generatedString, generatedString);
 				}
 				
@@ -164,7 +164,7 @@ public class PutBucketReplication extends S3Request {
                         }
 
 						if (Strings.isNullOrEmpty(arnPath[3])) {
-                            if (isExistBucket(arnPath[5])) {
+                            if (!isExistBucket(arnPath[5])) {
                                 throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
                             }
 

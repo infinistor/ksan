@@ -16,7 +16,8 @@ import java.io.InputStream;
 
 import com.google.common.io.ByteStreams;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parse an AWS v4 signature chunked stream.  Reference:
@@ -32,7 +33,7 @@ public final class ChunkedInputStream extends FilterInputStream {
             value = GWConstants.LOG_CHUNKED_INPUT_STREAM_URF,
             justification = GWConstants.LOG_CHUNKED_JUSTIFICATION)
     private String currentSignature;
-
+    Logger logger = LoggerFactory.getLogger(ChunkedInputStream.class);
     public ChunkedInputStream(InputStream is) {
         super(is);
     }
@@ -69,6 +70,7 @@ public final class ChunkedInputStream extends FilterInputStream {
             }
             b[off + i] = (byte) ch;
         }
+        logger.info("chunkedInput ... read ...");
         if (i == 0) {
             return -1;
         }

@@ -16,6 +16,7 @@ import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 
 import org.slf4j.LoggerFactory;
 

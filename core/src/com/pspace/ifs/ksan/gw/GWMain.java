@@ -14,10 +14,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.TimeZone;
+import java.util.Locale;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import com.pspace.ifs.ksan.gw.handler.GW;
+import com.pspace.ifs.ksan.gw.handler.Azu;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -34,6 +37,7 @@ import jnr.posix.util.Platform;
 
 public class GWMain {
 	private static GW gw;
+	
 	private static final Logger logger = LoggerFactory.getLogger(GWMain.class);
 
 	private GWMain() {
@@ -50,6 +54,32 @@ public class GWMain {
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
 		writePID();
+
+		// setting timezone, locale 
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		Locale.setDefault(Locale.KOREA);
+
+		logger.info("GWMain Started.");
+		
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				Azu azu = new Azu();
+				try {
+					azu.init();
+					azu.start();
+					azu.join();
+					logger.error("Stop ksan azu ...");
+				} catch (IllegalStateException e) {
+					logger.error(e.getMessage());
+					System.exit(1);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+					System.exit(1);
+				}
+			}
+		};
+		thread.start();
 
 		gw = new GW();
 

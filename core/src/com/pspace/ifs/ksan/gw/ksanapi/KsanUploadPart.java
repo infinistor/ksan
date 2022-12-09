@@ -48,29 +48,15 @@ public class KsanUploadPart extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_UPLOAD_PART_START);
+		logger.info(GWConstants.LOG_ADMIN_UPLOAD_PART_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
 
 		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
-		GWUtils.checkCors(s3Parameter);
 
-        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
-        if (user == null) {
-            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-        }
-        s3Parameter.setUser(user);
-		
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		GWUtils.checkCors(s3Parameter);
 		
 		DataUploadPart dataUploadPart = new DataUploadPart(s3Parameter);
 		dataUploadPart.extract();

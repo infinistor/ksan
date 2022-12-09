@@ -12,6 +12,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.mongodb.BasicDBObject;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
@@ -19,6 +20,9 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,6 +176,9 @@ public class Objects {
                logger.debug("[OVERWRITE OBJECT] {}", mt2);
                dbm.deleteObject(bucketName, key, mt.getVersionId()); 
             }
+            else if (mt.getVersionId().equalsIgnoreCase("null")){
+               dbm.deleteObject(bucketName, key, mt.getVersionId());  
+            }
         } catch(ResourceNotFoundException ex){
             
         }
@@ -188,6 +195,66 @@ public class Objects {
         return dbm.insertObject(mt); 
     }
     
+    private HashMap<String, String> getTagsKeyValue(String tagsList){
+        String arr[];
+        HashMap<String, String> tags = new HashMap<>();
+        
+        if (tagsList.isEmpty())
+            return tags;
+        
+        if (tagsList.contains(","))
+            arr = tagsList.split(",");
+        else{
+           arr = new String[1]; 
+           arr[0]= tagsList;
+        }
+        
+        for (String tag : arr){
+            if (tag.contains(":")){
+               String kv[] = tag.split(":");
+               tags.put(kv[0], kv[1]);
+            }
+            else
+              tags.put(tag, " ");  
+        }
+        return tags;
+    }
+    
+    private Object getListWithTagQuery(String tagsList){
+        String sql = "";
+        List<BasicDBObject> and = new ArrayList();
+        HashMap<String, String> pair = getTagsKeyValue(tagsList);
+        if (pair.isEmpty())
+            return null;
+        if (dbm instanceof MongoDataRepository){
+            for (String key : pair.keySet()){
+               and.add(new BasicDBObject("TagKey", new BasicDBObject("$eq", key)));
+               String value = pair.get(key);
+               if (!value.isEmpty())
+                   and.add(new BasicDBObject("TagValue", new BasicDBObject("$eq", value)));
+            }
+
+            if (and.size() == 1)
+                return and.get(0);
+            else
+                return new BasicDBObject("$and", and.toArray());
+        }
+        else {
+            for (String key : pair.keySet()){
+                String value = pair.get(key);
+                if (sql.isEmpty())
+                    sql = sql + "WHERE TagKey=" + key;
+                else{
+                    sql = sql + " AND TagKey=" + key;  
+                } 
+
+                if (!value.isEmpty())
+                    sql = sql + " AND TagValue=" + value;
+            }
+            return sql;
+        }
+    }
+      
     /******************************************************************/
     
     public Metadata open(String bucketName, String key, String versionId) throws ResourceNotFoundException{
@@ -225,7 +292,8 @@ public class Objects {
     public void updateObjectAcl(Metadata mt) throws SQLException {
         dbm.updateObjectAcl(mt);
     }
-     private static int parseMaxKeys(String maxKeysStr){
+    
+    private static int parseMaxKeys(String maxKeysStr){
         int maxKeys;
         try{
             maxKeys = Integer.parseInt(maxKeysStr);
@@ -248,5 +316,11 @@ public class Objects {
     public ObjectListParameter listObjectVersions(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix(), true);
         return list.getList();
+    }
+    
+    public List<Metadata> listObjectWithTags(String bucketName, String tagsList, int maxObjects) throws SQLException{
+        Object query = getListWithTagQuery(tagsList);
+        logger.debug("[listObjectWithTags] tagsList> {} query> {} maxObjects {}", tagsList, query.toString(), maxObjects);
+        return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
 }

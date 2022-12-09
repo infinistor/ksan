@@ -35,6 +35,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +55,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -66,25 +63,46 @@ public class GetObject extends S3Request implements S3AddResponse {
 
 		DataGetObject dataGetObject = new DataGetObject(s3Parameter);
 		dataGetObject.extract();
-		
+
 		String versionId = dataGetObject.getVersionId();
+		// String versionId = null;
+		// String range = null;
 		String range = dataGetObject.getRange();
 		String ifMatch = dataGetObject.getIfMatch();
 		String ifNoneMatch = dataGetObject.getIfNoneMatch();
 		String ifModifiedSince = dataGetObject.getIfModifiedSince();
 		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
 
+		// long dbStart = System.currentTimeMillis();
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
 
+		if (GWConfig.getInstance().isDBOP()) {
+			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+			return;
+		}
+		// long dbEnd = System.currentTimeMillis();
+		// logger.error("get - db op : {}", dbEnd - dbStart);
+		
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT, s3Parameter, dataGetObject)) {
+				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION, s3Parameter, dataGetObject)) {
+				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			}
+		}
+
+		versionId = objMeta.getVersionId();
+		s3Parameter.setVersionId(versionId);
 
 		S3Metadata s3Metadata = null;
 		
@@ -158,6 +176,13 @@ public class GetObject extends S3Request implements S3AddResponse {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		if (GWConfig.getInstance().isS3OP()) {
+			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+			return;
+		}
+
+		// long fileEnd = System.currentTimeMillis();
+		// logger.error("get op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().setStatus(resultRange.getStatus());
 	}
 
@@ -194,7 +219,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 				HttpHeaders.CONTENT_TYPE, GWConstants.RESPONSE_CONTENT_TYPE,
 				metadata.getContentType());
 		
-		// TODO: handles only a single range due to jclouds limitations
 		Collection<String> contentRanges = contentsHeaders;
 		if (contentsHeaders != null && !contentRanges.isEmpty()) {
 			for (String contents : contentsHeaders) {
@@ -227,15 +251,15 @@ public class GetObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
 		}
 
-		if (metadata.getLockMode() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLockMode())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, metadata.getLockMode());
 		}
 
-		if (metadata.getLockExpires() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLockExpires())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, metadata.getLockExpires());
 		}
 
-		if (metadata.getLegalHold() != null) {
+		if (!Strings.isNullOrEmpty(metadata.getLegalHold())) {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
 		}
 

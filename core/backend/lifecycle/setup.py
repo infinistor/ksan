@@ -16,6 +16,6 @@ Version = '0.8.0'
 setup(
     name='ksan-lifecycle-util',
     version=Version,
-    data_files=[('/usr/local/ksan/etc', ['./ksanLifecycle_log_conf.xml'])],
+    data_files=[('/usr/local/ksan/etc', ['./ksanLifecycleManager_log_conf.xml'])],
 )
 

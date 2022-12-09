@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -28,6 +28,7 @@ using MTLib.CommonData;
 using MTLib.Core;
 using MTLib.EntityFramework;
 using PortalData.Responses.Servers;
+using PortalData.Enums;
 
 namespace PortalProvider.Providers.DiskGuids
 {
@@ -100,7 +101,21 @@ namespace PortalProvider.Providers.DiskGuids
 							ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType,
 							DefaultDiskPool = Exist.Result == EnumResponseResult.Success ? false : true,
 						};
+
 						await m_dbContext.DiskPools.AddAsync(newData);
+
+						if (Request.ReplicationType == EnumDiskPoolReplicaType.ErasureCode)
+						{
+							var NewEC = new DiskPoolEC()
+							{
+								DiskPoolId = newData.Id,
+								K = 6,
+								M = 2
+							};
+							newData.EC = NewEC;
+
+							await m_dbContext.DiskPoolECs.AddAsync(NewEC);
+						}
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 						await Transaction.CommitAsync();
 
@@ -174,6 +189,9 @@ namespace PortalProvider.Providers.DiskGuids
 						// 정보를 수정한다.
 						Exist.Name = Request.Name;
 						Exist.Description = Request.Description;
+						Exist.DiskPoolType = (EnumDbDiskPoolType)Request.DiskPoolType;
+						Exist.ReplicationType = (EnumDbDiskPoolReplicaType)Request.ReplicationType;
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
@@ -327,8 +345,9 @@ namespace PortalProvider.Providers.DiskGuids
 							|| (SearchFields.Contains("path") && i.Disks.Where(j => j.Path.Contains(SearchKeyword)).Any())
 						)
 					)
+					.Include(i => i.EC)
 					.OrderByWithDirection(OrderFields, OrderDirections)
-					.CreateListAsync<DiskPool, ResponseDiskPool>(Skip, CountPerPage);
+					.CreateListAsync<dynamic, ResponseDiskPool>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
 
@@ -356,11 +375,10 @@ namespace PortalProvider.Providers.DiskGuids
 				AddDefaultOrders("Name", "asc");
 
 				// 목록을 가져온다.
-				Result.Data = await m_dbContext.DiskPools.AsNoTracking().CreateListAsync<DiskPool, ResponseDiskPoolDetails>();
+				Result.Data = await m_dbContext.DiskPools.AsNoTracking().Include(i => i.EC).CreateListAsync<DiskPool, ResponseDiskPoolDetails>();
 
-				for (int i = 0; i < Result.Data.Items.Count; i++)
+				foreach (var DiskPool in Result.Data.Items)
 				{
-					var DiskPool = Result.Data.Items[i];
 					if (!Guid.TryParse(DiskPool.Id, out Guid DiskPoolGuid)) continue;
 					var Data = await m_dbContext.Servers.AsNoTracking()
 						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolGuid))
@@ -410,10 +428,10 @@ namespace PortalProvider.Providers.DiskGuids
 
 				// Id로 조회할경우
 				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
-					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).Include(i => i.EC).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).Include(i => i.EC).FirstOrDefaultAsync<DiskPool, ResponseDiskPoolWithDisks>();
 
 				// 해당 데이터가 존재하지 않는 경우
 				if (Exist == null)
@@ -475,7 +493,8 @@ namespace PortalProvider.Providers.DiskGuids
 			try
 			{
 				// 동일한 이름이 존재하는 경우
-				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
+				// return await m_dbContext.DiskPools.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
 			}
 			catch (Exception ex)
 			{
@@ -498,6 +517,7 @@ namespace PortalProvider.Providers.DiskGuids
 				var Exist = await m_dbContext.DiskPools
 					.AsNoTracking()
 					.Where(i => i.DefaultDiskPool == true)
+					.Include(i => i.EC)
 					.FirstOrDefaultAsync<DiskPool, ResponseDiskPool>();
 
 				// 존재하지 않을 경우

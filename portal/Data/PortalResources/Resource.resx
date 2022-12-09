@@ -1441,13 +1441,17 @@
     <value>There is a disk attached to that server. Delete the server after deleting the attached disk.</value>
     <comment>해당 서버에 연결된 디스크가 존재합니다. 연결된 디스크를 삭제 후에 서버를 삭제하여 주세요.</comment>
   </data>
+  <data name="EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE" xml:space="preserve">
+    <value>There is a service attached to that server. Delete the server after deleting the attached service.</value>
+    <comment>해당 서버에 연결된 서비스가 존재합니다. 연결된 서비스를 삭제 후에 서버를 삭제하여 주세요.</comment>
+  </data>
   <data name="EM_DISKS_REMOVE_AFTER_REMOVING_DISKPOOL" xml:space="preserve">
     <value>A disk pool containing that disk exists. Remove the disk from the disk pool and delete it.</value>
     <comment>해당 디스크가 포함된 디스크 풀이 존재합니다. 해당 디스크 풀에서 디스크를 제거한 후 삭제하여 주세요.</comment>
   </data>
-  <data name="EM_DISKS_REMOVE_AFTER_REMOVING_SERVICE" xml:space="preserve">
-    <value>There is a service that uses that disk. Remove the disk from the service and delete it.</value>
-    <comment>해당 디스크를 사용하는 서비스가 존재합니다. 해당 서비스에서 디스크를 제거한 후 삭제하여 주세요.</comment>
+  <data name="EM_DISKS_REMOVE_AFTER_REMOVING_SERVER" xml:space="preserve">
+    <value>There is a server that uses that disk. Remove the disk from the server and delete it.</value>
+    <comment>해당 디스크를 사용하는 서버가 존재합니다. 해당 서버에서 디스크를 제거한 후 삭제하여 주세요.</comment>
   </data>
   <data name="EM_SERVICES_THREAD_COUNT_MUST_BE_AT_LEAST_0" xml:space="preserve">
     <value>Thread count must be at least 0.</value>
@@ -1912,5 +1916,9 @@
   </data>
   <data name="ENV_DEFAULT_USER_SECRETKEY" xml:space="preserve">
     <value>DEFAULT_USER_SECRETKEY</value>
+  </data>
+  <data name="UL_DISKPOOL_REPLICA_TYPE_EC" xml:space="preserve">
+    <value>EC</value>
+    <comment>ErasureCode</comment>
   </data>
 </root>

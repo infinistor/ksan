@@ -37,11 +37,7 @@ public class DeleteObjectTagging extends S3Request {
 		initBucketInfo(bucket);
 
 		String object = s3Parameter.getObjectName();
-		
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -52,17 +48,24 @@ public class DeleteObjectTagging extends S3Request {
 		dataDeleteObjectTagging.extract();
 
 		String versionId = dataDeleteObjectTagging.getVersionId();
-		
+		s3Parameter.setVersionId(versionId);
+
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
-		objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
 
-		checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
+				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		}
 
 		objMeta.setTag("");
 		updateObjectTagging(objMeta);

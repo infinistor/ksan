@@ -43,28 +43,49 @@ public class DataPutBucketAcl extends S3DataRequest {
 			if (headerName.equalsIgnoreCase(GWConstants.CONTENT_MD5)) {
 				contentMD5 = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_EXPECTED_BUCKET_OWNER)) {
-				hasAclKeyword = true;
 				expectedBucketOwner = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
-				hasAclKeyword = true;
 				acl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(acl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
-				hasAclKeyword = true;
 				grantFullControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(grantFullControl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
-				hasAclKeyword = true;
 				grantRead = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(grantRead)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
-				hasAclKeyword = true;
 				grantReadAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(grantReadAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
-				hasAclKeyword = true;
 				grantWrite = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(grantWrite)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
-				hasAclKeyword = true;
 				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
+				if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+					hasAclKeyword = true;
+				}
 			}
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
 	}
 	
 	public boolean hasAclKeyword() {

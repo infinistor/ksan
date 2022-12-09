@@ -39,20 +39,19 @@ public class PutBucketTagging extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-		
+
 		DataPutBucketTagging dataPutBucketTagging = new DataPutBucketTagging(s3Parameter);
 		dataPutBucketTagging.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter, dataPutBucketTagging)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 		
 		String taggingXml = dataPutBucketTagging.getTaggingXml();
         logger.debug(GWConstants.LOG_PUT_BUCKET_TAGGING, taggingXml);

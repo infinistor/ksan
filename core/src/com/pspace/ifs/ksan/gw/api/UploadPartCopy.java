@@ -38,6 +38,7 @@ import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -59,11 +60,7 @@ public class UploadPartCopy extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
-		
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -97,7 +94,7 @@ public class UploadPartCopy extends S3Request {
 		}
 		
 		try {
-			copySource = URLDecoder.decode(copySource, GWConstants.CHARSET_UTF_8);
+			copySource = URLDecoder.decode(copySource, Constants.CHARSET_UTF_8);
 			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE, copySource);
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
@@ -131,6 +128,7 @@ public class UploadPartCopy extends S3Request {
 			srcVersionId = source[1].replaceAll(GWConstants.DOUBLE_QUOTE, "");
 		}
 
+		logger.info("source bucket: {}, key: {}, versionId: {},", srcBucket, srcObjectName, srcVersionId);
 		String versioningStatus = getBucketVersioning(srcBucket);
 
 		Metadata srcMeta = null;
@@ -152,7 +150,7 @@ public class UploadPartCopy extends S3Request {
 		
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
-		srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
+		// srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
 		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 
 		// get metadata
@@ -246,7 +244,9 @@ public class UploadPartCopy extends S3Request {
 
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
-		
+		if (path == null) {
+			path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
+		}
 		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
 
 		// String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
@@ -268,7 +268,7 @@ public class UploadPartCopy extends S3Request {
 		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
 		
 		s3Parameter.setFileSize(s3Object.getFileSize());
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);

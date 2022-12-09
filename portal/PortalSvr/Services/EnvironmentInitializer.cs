@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -61,18 +61,6 @@ namespace PortalSvr.Services
 		public static readonly string KEY_PASSWORD = "Password";
 		#endregion
 		#region KsanGW
-		/// <summary> GW Repository </summary>
-		public static readonly string KEY_GW_DB_REPOSITORY = "gw.db_repository";
-		/// <summary> GW DB 호스트 </summary>
-		public static readonly string KEY_GW_DB_HOST = "gw.db_host";
-		/// <summary> GW DB 포트 </summary>
-		public static readonly string KEY_GW_DB_PORT = "gw.dbPort";
-		/// <summary> GW DB 명 </summary>
-		public static readonly string KEY_GW_DB_NAME = "gw.db_name";
-		/// <summary> GW DB 아이디 </summary>
-		public static readonly string KEY_GW_DB_USER = "gw.db_user";
-		/// <summary> GW DB 비밀번호 </summary>
-		public static readonly string KEY_GW_DB_PASSWORD = "gw.db_password";
 		/// <summary> GW keystore 파일 경로 </summary>
 		public static readonly string KEY_GW_KEYSTONE_FILE_PATH = "gw.keystore_path";
 		/// <summary> GW keystore 비밀번호 </summary>
@@ -118,12 +106,12 @@ namespace PortalSvr.Services
 		public const string KSAN_GW_SETTINGS_FILE = "Resources/ksangw.json";
 		/// <summary> Ksan OSD 설정 파일 경로 </summary>
 		public const string KSAN_OSD_SETTINGS_FILE = "Resources/ksanosd.json";
-		/// <summary> Ksan Lifecycle 설정 파일 경로 </summary>
-		public const string KSAN_LIFECYCLE_SETTINGS_FILE = "Resources/ksanLifecycle.json";
+		/// <summary> Ksan Lifecycle Manager 설정 파일 경로 </summary>
+		public const string KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE = "Resources/ksanLifecycleManager.json";
 		/// <summary> Ksan LogManager 설정 파일 경로 </summary>
-		public const string KSAN_LOGMANAGER_SETTINGS_FILE = "Resources/ksanLogManager.json";
-		/// <summary> ksan Replication 설정 파일 경로 </summary>
-		public const string KSAN_REPLICATION_SETTINGS_FILE = "Resources/ksanReplication.json";
+		public const string KSAN_LOG_MANAGER_SETTINGS_FILE = "Resources/ksanLogManager.json";
+		/// <summary> ksan Replication Manager 설정 파일 경로 </summary>
+		public const string KSAN_REPLICATION_MANAGER_SETTINGS_FILE = "Resources/ksanReplicationManager.json";
 		#endregion
 
 		/// <summary> 초기화 </summary>
@@ -156,30 +144,30 @@ namespace PortalSvr.Services
 			// 	return;
 			// }
 
-			// KsanLifecycle의 기본 설정 정보를 읽어온다.
-			string StrKsanLifecycle = File.ReadAllText(KSAN_LIFECYCLE_SETTINGS_FILE);
-			JObject KsanLifecycle = JObject.Parse(StrKsanLifecycle);
-			if (KsanLifecycle == null)
+			// KsanLifecycleManager의 기본 설정 정보를 읽어온다.
+			string StrKsanLifecycleManager = File.ReadAllText(KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE);
+			JObject KsanLifecycleManager = JObject.Parse(StrKsanLifecycleManager);
+			if (KsanLifecycleManager == null)
 			{
-				Console.WriteLine($"{KSAN_LIFECYCLE_SETTINGS_FILE} is Empty");
+				Console.WriteLine($"{KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE} is Empty");
 				return;
 			}
 
 			// KsanLogManager의 기본 설정 정보를 읽어온다.
-			string StrKsanLogManager = File.ReadAllText(KSAN_LOGMANAGER_SETTINGS_FILE);
+			string StrKsanLogManager = File.ReadAllText(KSAN_LOG_MANAGER_SETTINGS_FILE);
 			JObject KsanLogManager = JObject.Parse(StrKsanLogManager);
 			if (KsanLogManager == null)
 			{
-				Console.WriteLine($"{KSAN_LOGMANAGER_SETTINGS_FILE} is Empty");
+				Console.WriteLine($"{KSAN_LOG_MANAGER_SETTINGS_FILE} is Empty");
 				return;
 			}
 
-			// KsanReplication의 기본 설정 정보를 읽어온다.
-			string StrKsanReplication = File.ReadAllText(KSAN_REPLICATION_SETTINGS_FILE);
-			JObject KsanReplication = JObject.Parse(StrKsanReplication);
-			if (KsanReplication == null)
+			// KsanReplicationManager의 기본 설정 정보를 읽어온다.
+			string StrKsanReplicationManager = File.ReadAllText(KSAN_REPLICATION_MANAGER_SETTINGS_FILE);
+			JObject KsanReplicationManager = JObject.Parse(StrKsanReplicationManager);
+			if (KsanReplicationManager == null)
 			{
-				Console.WriteLine($"{KSAN_REPLICATION_SETTINGS_FILE} is Empty");
+				Console.WriteLine($"{KSAN_REPLICATION_MANAGER_SETTINGS_FILE} is Empty");
 				return;
 			}
 
@@ -228,7 +216,6 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
-				KsanGW[KEY_GW_DB_NAME] = DatabaseName;
 				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
@@ -268,19 +255,19 @@ namespace PortalSvr.Services
 				KsanGW[KEY_OBJ_DB_USER] = MongoDBUser;
 				KsanGW[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 
-				KsanLifecycle[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
-				KsanLifecycle[KEY_OBJ_DB_HOST] = MongoDBHost;
-				KsanLifecycle[KEY_OBJ_DB_PORT] = MongoDBPort;
-				KsanLifecycle[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanLifecycle[KEY_OBJ_DB_USER] = MongoDBUser;
-				KsanLifecycle[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
+				KsanLifecycleManager[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				KsanLifecycleManager[KEY_OBJ_DB_HOST] = MongoDBHost;
+				KsanLifecycleManager[KEY_OBJ_DB_PORT] = MongoDBPort;
+				KsanLifecycleManager[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanLifecycleManager[KEY_OBJ_DB_USER] = MongoDBUser;
+				KsanLifecycleManager[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 
-				KsanReplication[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
-				KsanReplication[KEY_OBJ_DB_HOST] = MongoDBHost;
-				KsanReplication[KEY_OBJ_DB_PORT] = MongoDBPort;
-				KsanReplication[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanReplication[KEY_OBJ_DB_USER] = MongoDBUser;
-				KsanReplication[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
+				KsanReplicationManager[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				KsanReplicationManager[KEY_OBJ_DB_HOST] = MongoDBHost;
+				KsanReplicationManager[KEY_OBJ_DB_PORT] = MongoDBPort;
+				KsanReplicationManager[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanReplicationManager[KEY_OBJ_DB_USER] = MongoDBUser;
+				KsanReplicationManager[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 
 				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
 				KsanLogManager[KEY_LOG_DB_HOST] = MongoDBHost;
@@ -298,19 +285,19 @@ namespace PortalSvr.Services
 				KsanGW[KEY_OBJ_DB_USER] = MariaDBUser;
 				KsanGW[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 
-				KsanLifecycle[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-				KsanLifecycle[KEY_OBJ_DB_HOST] = MariaDBHost;
-				KsanLifecycle[KEY_OBJ_DB_PORT] = MariaDBPort;
-				KsanLifecycle[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanLifecycle[KEY_OBJ_DB_USER] = MariaDBUser;
-				KsanLifecycle[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
+				KsanLifecycleManager[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				KsanLifecycleManager[KEY_OBJ_DB_HOST] = MariaDBHost;
+				KsanLifecycleManager[KEY_OBJ_DB_PORT] = MariaDBPort;
+				KsanLifecycleManager[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanLifecycleManager[KEY_OBJ_DB_USER] = MariaDBUser;
+				KsanLifecycleManager[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 
-				KsanReplication[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-				KsanReplication[KEY_OBJ_DB_HOST] = MariaDBHost;
-				KsanReplication[KEY_OBJ_DB_PORT] = MariaDBPort;
-				KsanReplication[KEY_OBJ_DB_NAME] = DatabaseName;
-				KsanReplication[KEY_OBJ_DB_USER] = MariaDBUser;
-				KsanReplication[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
+				KsanReplicationManager[KEY_OBJ_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				KsanReplicationManager[KEY_OBJ_DB_HOST] = MariaDBHost;
+				KsanReplicationManager[KEY_OBJ_DB_PORT] = MariaDBPort;
+				KsanReplicationManager[KEY_OBJ_DB_NAME] = DatabaseName;
+				KsanReplicationManager[KEY_OBJ_DB_USER] = MariaDBUser;
+				KsanReplicationManager[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 
 				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
 				KsanLogManager[KEY_LOG_DB_HOST] = MariaDBHost;
@@ -319,14 +306,6 @@ namespace PortalSvr.Services
 				KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
 				KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
 			}
-
-			// KsanGW DB 설정
-			KsanGW[KEY_GW_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-			KsanGW[KEY_GW_DB_HOST] = MariaDBHost;
-			KsanGW[KEY_GW_DB_PORT] = MariaDBPort;
-			KsanGW[KEY_GW_DB_NAME] = DatabaseName;
-			KsanGW[KEY_GW_DB_USER] = MariaDBUser;
-			KsanGW[KEY_GW_DB_PASSWORD] = MariaDBPassword;
 
 			//KsanGW KeyStone
 			if (GetEnvValue(Resource.ENV_GW_KEYSTORE_FILE_PATH, out string GWKeystoneFilePath))
@@ -337,9 +316,9 @@ namespace PortalSvr.Services
 			File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
 			File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
 			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
-			File.WriteAllText(KSAN_LIFECYCLE_SETTINGS_FILE, KsanLifecycle.ToString());
-			File.WriteAllText(KSAN_LOGMANAGER_SETTINGS_FILE, KsanLogManager.ToString());
-			File.WriteAllText(KSAN_REPLICATION_SETTINGS_FILE, KsanReplication.ToString());
+			File.WriteAllText(KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE, KsanLifecycleManager.ToString());
+			File.WriteAllText(KSAN_LOG_MANAGER_SETTINGS_FILE, KsanLogManager.ToString());
+			File.WriteAllText(KSAN_REPLICATION_MANAGER_SETTINGS_FILE, KsanReplicationManager.ToString());
 		}
 
 		/// <summary> 환경변수 값을 가져온다.</summary>

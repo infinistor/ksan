@@ -13,12 +13,10 @@
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.shcommand import shcall
-from server.server_manage import *
-from disk.diskpool_manage import GetDefaultDiskPool
-from const.http import ResponseHeaderModule
-from const.user import AddUserObject, S3UserObjectModule, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from const.common import *
+from common.utils import *
 
 
 def FsckUtilHandler(Conf, Action, Parser, logger):
@@ -39,7 +37,7 @@ def FsckUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
 
-        FsckCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceFsck)
+        FsckCmd = 'java -jar %s/%s.jar ' % (KsanUtilDirPath, TypeServiceFsck)
         if options.BucketName:
             FsckCmd += '--BucketName %s' % options.BucketName
         else:

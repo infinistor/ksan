@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import java.util.ArrayList;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import com.google.common.base.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -43,20 +43,19 @@ public class PutBucketAcl extends S3Request {
 		logger.info(GWConstants.LOG_PUT_BUCKET_ACL_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
 
 		DataPutBucketAcl dataPutBucketAcl = new DataPutBucketAcl(s3Parameter);
 		dataPutBucketAcl.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_ACL, s3Parameter, dataPutBucketAcl)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		AccessControlPolicy preAccessControlPolicy = null;
 		
@@ -75,8 +74,6 @@ public class PutBucketAcl extends S3Request {
 		accessControlPolicy.aclList = new AccessControlList();
 		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
 		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
 		String xml = GWUtils.makeAclXml(accessControlPolicy, 
 										preAccessControlPolicy, 
@@ -91,7 +88,8 @@ public class PutBucketAcl extends S3Request {
 										dataPutBucketAcl.getGrantFullControl(), 
 										dataPutBucketAcl.getGrantReadAcp(), 
 										dataPutBucketAcl.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										true);
 
 		logger.debug(GWConstants.LOG_ACL, xml);
 

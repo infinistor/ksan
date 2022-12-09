@@ -122,68 +122,68 @@ public class OSDUtils {
     //     return null;
     // }
 
-    private String makeDirectoryName(String objId) {
-        byte[] path = new byte[6];
-        byte[] byteObjId = objId.getBytes();
+    // private String makeDirectoryName(String objId) {
+    //     byte[] path = new byte[6];
+    //     byte[] byteObjId = objId.getBytes();
 
-        path[0] = OSDConstants.CHAR_SLASH;
-        int index = 1;
+    //     path[0] = OSDConstants.CHAR_SLASH;
+    //     int index = 1;
         
-        path[index++] = byteObjId[0];
-        path[index++] = byteObjId[1];
-        path[index++] = OSDConstants.CHAR_SLASH;
-        path[index++] = byteObjId[2];
-        path[index] = byteObjId[3];
+    //     path[index++] = byteObjId[0];
+    //     path[index++] = byteObjId[1];
+    //     path[index++] = OSDConstants.CHAR_SLASH;
+    //     path[index++] = byteObjId[2];
+    //     path[index] = byteObjId[3];
 
-        return new String(path);
-    }
+    //     return new String(path);
+    // }
 
-    public String makePath(String path, String fileName) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(fileName) + OSDConstants.SLASH + fileName;
-        return fullPath;
-    }
+    // public String makePath(String path, String fileName) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(fileName) + OSDConstants.SLASH + fileName;
+    //     return fullPath;
+    // }
 
-    public String makeObjPath(String path, String objId, String versionId) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeObjPath(String path, String objId, String versionId) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.OBJ_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeTempPath(String path, String objId, String versionId) {
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + uuid + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeTempPath(String path, String objId, String versionId) {
+    //     String uuid = UUID.randomUUID().toString();
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + uuid + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeTempPartPath(String path, String objId, String partNumber) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + partNumber;
-        return fullPath;
-    }
+    // public String makeTempPartPath(String path, String objId, String partNumber) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TEMP_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + partNumber;
+    //     return fullPath;
+    // }
 
-    public String makeTrashPath(String path, String objId, String versionId) {
-        String uuid = UUID.randomUUID().toString();
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.TRASH_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId + uuid;
-        return fullPath;
-    }
+    // public String makeTrashPath(String path, String objId, String versionId) {
+    //     String uuid = UUID.randomUUID().toString();
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.TRASH_DIR + OSDConstants.SLASH + objId + OSDConstants.UNDERSCORE + versionId + uuid;
+    //     return fullPath;
+    // }
 
-    public String makeCachePath(String path) {
-        String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
-        return fullPath;
-    }
+    // public String makeCachePath(String path) {
+    //     String fullPath = OSDConfig.getInstance().getCacheDiskpath() + path;
+    //     return fullPath;
+    // }
 
-    public String makeECPath(String path, String objId, String versionId) {
-        String fullPath = path + OSDConstants.SLASH + OSDConstants.EC_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + OSDConstants.POINT + objId + OSDConstants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    // public String makeECPath(String path, String objId, String versionId) {
+    //     String fullPath = path + OSDConstants.SLASH + OSDConstants.EC_DIR + makeDirectoryName(objId) + OSDConstants.SLASH + OSDConstants.POINT + objId + OSDConstants.UNDERSCORE + versionId;
+    //     return fullPath;
+    // }
 
-    public String makeECDirectory(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName);
-        return fullPath;
-    }
+    // public String makeECDirectory(String fileName, String ecPath) {
+    //     String fullPath = ecPath + makeDirectoryName(fileName);
+    //     return fullPath;
+    // }
 
-    public String makeECTempPath(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName) + OSDConstants.SLASH + OSDConstants.POINT + fileName;
-        return fullPath;
-    }
+    // public String makeECTempPath(String fileName, String ecPath) {
+    //     String fullPath = ecPath + makeDirectoryName(fileName) + OSDConstants.SLASH + OSDConstants.POINT + fileName;
+    //     return fullPath;
+    // }
 
     // public DISKPOOLLIST getDiskPoolList() {
     //     DISKPOOLLIST diskpoolList = null;
@@ -223,46 +223,50 @@ public class OSDUtils {
     //     }
     // }
 
-    public String getAttributeFileReplication(File file) {
-        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
-        ByteBuffer buf = null;
-        try {
-            buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICATION));
-            view.read(OSDConstants.FILE_ATTRIBUTE_REPLICATION, buf);
-            buf.flip();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalArgumentException iae) {
-            logger.error(iae.getMessage());
-        } catch (SecurityException e) {
-            logger.error(e.getMessage());
-        }
+    // public String getAttributeFileReplication(File file) {
+    //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+    //     ByteBuffer buf = null;
+    //     try {
+    //         buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICATION));
+    //         view.read(OSDConstants.FILE_ATTRIBUTE_REPLICATION, buf);
+    //         buf.flip();
+    //     } catch (IOException e) {
+    //         logger.error(e.getMessage());
+    //     } catch (IllegalArgumentException iae) {
+    //         logger.error(iae.getMessage());
+    //     } catch (SecurityException e) {
+    //         logger.error(e.getMessage());
+    //     }
 
-        return Charset.defaultCharset().decode(buf).toString();
-    }
+    //     return Charset.defaultCharset().decode(buf).toString();
+    // }
 
-    public String getAttributeFileReplicaDiskID(File file) {
-        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
-        ByteBuffer buf = null;
-        try {
-            buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID));
-            view.read(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
-            buf.flip();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalArgumentException iae) {
-            logger.error(iae.getMessage());
-        } catch (SecurityException e) {
-            logger.error(e.getMessage());
-        }
+    // public String getAttributeFileReplicaDiskID(File file) {
+    //     UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+    //     ByteBuffer buf = null;
+    //     try {
+    //         buf = ByteBuffer.allocate(view.size(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID));
+    //         view.read(OSDConstants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
+    //         buf.flip();
+    //     } catch (IOException e) {
+    //         logger.error(e.getMessage());
+    //     } catch (IllegalArgumentException iae) {
+    //         logger.error(iae.getMessage());
+    //     } catch (SecurityException e) {
+    //         logger.error(e.getMessage());
+    //     }
 
-        return Charset.defaultCharset().decode(buf).toString();
-    }
+    //     return Charset.defaultCharset().decode(buf).toString();
+    // }
 
     public static void sendHeader(Socket socket, String header) throws IOException {
         byte[] buffer = header.getBytes(OSDConstants.CHARSET_UTF_8);
-		byte length = (byte)buffer.length;
+        String strLength = Integer.toString(buffer.length);
+        byte[] lengthBuffer = strLength.getBytes(OSDConstants.CHARSET_UTF_8);
+
+		byte length = (byte)lengthBuffer.length;
 		socket.getOutputStream().write(length);
+        socket.getOutputStream().write(lengthBuffer, 0, length);
 		
 		socket.getOutputStream().write(buffer, 0, buffer.length);
 		socket.getOutputStream().flush();

@@ -15,6 +15,7 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -44,23 +45,37 @@ public class PutObjectTagging extends S3Request {
         logger.info(GWConstants.LOG_PUT_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		String object = s3Parameter.getObjectName();
 
 		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
 		dataPutObjectTagging.extract();
+		String versionId = dataPutObjectTagging.getVersionId();
 
+		Metadata objMeta = null;
+		if (Strings.isNullOrEmpty(versionId)) {
+			objMeta = open(bucket, object);
+		} else {
+			objMeta = open(bucket, object, versionId);
+		}
+
+		s3Parameter.setTaggingInfo(objMeta.getTag());
+		if (Strings.isNullOrEmpty(versionId)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter, dataPutObjectTagging)) {
+				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		} else {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter, dataPutObjectTagging)) {
+				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			}
+		}
+		
 		String taggingCount = GWConstants.TAGGING_INIT;
 		String taggingXml = dataPutObjectTagging.getTaggingXml();
 		try {
@@ -95,14 +110,6 @@ public class PutObjectTagging extends S3Request {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-
-		String versionId = dataPutObjectTagging.getVersionId();
-		Metadata objMeta = null;
-		if (Strings.isNullOrEmpty(versionId)) {
-			objMeta = open(bucket, object);
-		} else {
-			objMeta = open(bucket, object, versionId);
-		}
 		
 		S3Metadata s3Metadata = null;
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -115,10 +122,11 @@ public class PutObjectTagging extends S3Request {
 		}
 
 		s3Metadata.setTaggingCount(taggingCount);
-		ObjectMapper jsonMapper = new ObjectMapper();
+		// ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonMeta = "";
 		try {
-			jsonMeta = jsonMapper.writeValueAsString(s3Metadata);
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

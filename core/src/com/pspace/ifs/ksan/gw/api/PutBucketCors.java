@@ -33,20 +33,19 @@ public class PutBucketCors extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_CORS_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
-		
+
 		DataPutBucketCors bucketCors = new DataPutBucketCors(s3Parameter);
 		bucketCors.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_CORS, s3Parameter, bucketCors)) {
+			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		}
 
 		String corsInfo = bucketCors.getCorsXml();
 		updateBucketCors(bucket, corsInfo);

@@ -9,102 +9,80 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
 import re
+from enum import Enum
+from const.common import *
+import json
+import pika
 
 
-"""
-######### mq info define #########
-"""
-MqVirtualHost = '/'
-MqUser = 'ksanmq'
-MqPassword = 'YOUR_MQ_PASSWORD'
-
-DiskStart = 'Good'
-DiskStop = 'Stop'
-MqDiskQueueName = 'disk'
-MqDiskQueueExchangeName = 'disk'
-MqDiskQueueRoutingKey = "*.services.disks.control"
-
-## server routing key
-RoutKeyServerAdd = '*.servers.added'
-RoutKeyServerAddFinder = re.compile('.servers.added')
-RoutKeyServerDel = '*.servers.removed'
-RoutKeyServerDelFinder = re.compile('.servers.removed')
-RoutKeyServerUpdate = '*.servers.updated'
-RoutKeyServerUpdateFinder = re.compile('.servers.updated')
-RoutKeyServerState = '*.servers.state'
-RoutKeyServerUsage = '*.servers.usage'
-
-## network routing key
-RoutKeyNetwork = '.servers.interfaces.'
-RoutKeyNetworkLinkState = '*.servers.interfaces.linkstate'
-RoutKeyNetworkUsage = '*.servers.interfaces.usage'
-RoutKeyNetworkVlanUsage = '*.servers.interfaces.vlans.usage'
-
-RoutKeyNetworkRpcFinder = re.compile('.servers.[\d\w-]+.interfaces.')
-RoutKeyNetworkAddFinder = re.compile('.servers.[\d\w-]+.interfaces.add')
-RoutKeyNetworkAddedFinder = re.compile('.servers.interfaces.added')
-RoutKeyNetworkUpdateFinder = re.compile('.servers.[\d\w-]+.interfaces.update')
-
-## disk routing key
-RoutKeyDisk = '.servers.disks.'
-RoutKeyDiskAdded = '.servers.disks.added'
-RoutKeyDiskDel = '.servers.disks.removed'
-RoutKeyDiskState = '.servers.disks.state'
-RoutKeyDiskHaAction = '.servers.disks.haaction'
-RoutKeyDiskUsage = '.servers.disks.usage'
-RoutKeyDiskUpdated = '.servers.disks.updated'
-RoutKeyDiskGetMode = '.servers.disks.rwmode'
-RoutKeyDiskSetMode = '.servers.disks.rwmode.update'
-RoutKeyDiskStartStop = '.servers.disks.control'
-## rpc
-RoutKeyDiskRpcFinder = re.compile('.servers.[\w\d-]+.disks')
-RoutKeyDiskCheckMountFinder = re.compile('.servers.[\w\d-]+.disks.check_mount')
-RoutKeyDiskWirteDiskIdFinder = re.compile('.servers.[\w\d-]+.disks.write_disk_id')
-
-## disk pool routing key
-RoutKeyDiskPool = 'servers.diskpools.'
-RoutKeyDiskPoolAdd = 'servers.diskpools.added'
-RoutKeyDiskPoolDel = 'servers.diskpools.removed'
-RoutKeyDiskPoolUpdate = 'servers.diskpools.updated'
-
-## service routing key
-RoutKeyService = '.services.'
-RoutKeyServiceRpcFinder = re.compile('.services.[\d\w-]+.')
-RoutKeyServiceState = '.services.state'
-RoutKeyServiceHaAction = '.services.haaction'
-RoutKeyServiceUsage = '.services.usage'
-RoutKeyServiceControlFinder = re.compile('.services.[\d\w-]+.control')
-RoutKeyServiceOsdConfLoadFinder = re.compile('.services.[\d\w-]+.config.osd.load')
-RoutKeyServiceOsdConfSaveFinder = re.compile('.services.[\d\w-]+.config.osd.save')
-RoutKeyServiceGwConfLoadFinder = re.compile('.services.[\d\w-]+.config.gw.load')
-RoutKeyServiceGwConfSaveFinder = re.compile('.services.[\d\w-]+.config.gw.save')
-
-"""
-EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.stat", "*.servers.usage",
-                       "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
-                       "*.servers.interfaces.linkstate", "*.servers.interfaces.usage", "*.servers.interfaces.vlans.added",
-                       "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",
-                       "*.servers.disks.added", "*.servers.disks.updated", "*.servers.disks.removed", "*.servers.disks.state",
-                       "*.servers.disks.size", "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
-                       "*.servers.diskpools.removed",
-                       "*.services.state", "*.services.stat", "*.services.haaction", "*.services.usage"]
-"""
+class EnumResponseResult(Enum):
+    Error = -1
+    Warning = 0
+    Success = 1
 
 
-EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added",
-                       "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
-                       "*.servers.interfaces.vlans.added",
-                       "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",
-                       "*.servers.disks.added", "*.servers.disks.updated", "*.servers.disks.removed",
-                        "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
-                       "*.servers.diskpools.removed", "*.services.added", "*.services.updated", "*.services.removed"]
 
-MonRoutingKeyList = ["*.servers.updated", "*.servers.removed", "*.servers.interfaces.added", "*.servers.added",
-                     "*.servers.interfaces.updated", "*.servers.interfaces.removed", "*.servers.interfaces.vlans.added"
-                    , "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",
-                     "*.servers.disks.added", "*.servers.disks.updated", "*.servers.disks.removed",
-                     "*.servers.disks.rwmode", "*.servers.diskpools.added", "*.servers.diskpools.updated",
-                     "*.servers.diskpools.removed", "*.services.added", "*.services.updated"]
+from typing import TypeVar, Generic, Type
 
-## Exchange Name
-ExchangeName = 'ksan.system'
+T = TypeVar('T')
+
+class ResponseData:
+    def __init__(self, result: EnumResponseResult = EnumResponseResult.Error, code: str = "", messsage: str = "") -> None:
+        self.Result = result
+        self.Code = code
+        self.Message = messsage
+
+    def load(self, data: dict):
+        self.Result = data[RetKeyResult]
+        self.Code = data[RetKeyCode]
+        self.Message = data[RetKeyMessage]
+
+
+
+def MqReturn(Result, Code=0, Messages='', Data=None):
+    Ret = dict()
+    if Result is True or Result == ResultSuccess:
+        Ret['Result'] = 'Success'
+    else:
+        Ret['Result'] = 'Error'
+    Ret['Code'] = Code
+
+    Ret['Message'] = Messages
+    if Data:
+        Ret['Data'] = Data
+    #Ret['Data'] = json.dumps(Ret)
+    return json.dumps(Ret)
+
+def RemoveQueue(QueueHost, QueueName):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(QueueHost))
+    channel = connection.channel()
+
+    channel.queue_delete(queue=QueueName)
+    connection.close()
+
+
+
+
+class ResponseDataWithData(Generic[T]):
+    def __init__(self, result: EnumResponseResult = EnumResponseResult.Error, code: str = "", message: str = "", value: T = None) -> None:
+        super().__init__()
+        self.Result = result
+        self.Code = code
+        self.Message = message
+        self.Data = value
+
+    def load(self, data: dict):
+        self.__dict__ = data.copy()
+
+
+class ResponseMqData:
+    def __init__(self, result: EnumResponseResult = EnumResponseResult.Error, code: str = "", messsage: str = "") -> None:
+        self.Result = result
+        self.Code = code
+        self.Message = messsage
+        self.IsProcessed = False
+
+    def load(self, data: dict):
+        self.Result = data[RetKeyResult]
+        self.Code = data[RetKeyCode]
+        self.Message = data[RetKeyMessage]

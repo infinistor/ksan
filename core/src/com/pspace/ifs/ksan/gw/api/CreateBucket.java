@@ -28,6 +28,8 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.gw.identity.S3Bucket;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.LoggerFactory;
 
@@ -79,10 +81,12 @@ public class CreateBucket extends S3Request {
 										dataCreateBucket.getGrantFullControl(), 
 										dataCreateBucket.getGrantReadAcp(), 
 										dataCreateBucket.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		logger.debug(GWConstants.LOG_ACL, xml);
 
 		int result = 0;
+		logger.info("user : {}, {}, {}", s3Parameter.getUser().getAccessKey(), s3Parameter.getUser().getUserDiskpoolId(GWConstants.AWS_TIER_STANTARD), s3Parameter.getUser().getUserDefaultDiskpoolId());
 		String diskpoolId = s3Parameter.getUser().getUserDefaultDiskpoolId();
 		logger.info("user default diskpoolId : {}", diskpoolId);
 
@@ -92,6 +96,14 @@ public class CreateBucket extends S3Request {
 		bucket.setUserName(s3Parameter.getUser().getUserName());
 		bucket.setAcl(xml);
 		bucket.setDiskPoolId(diskpoolId);
+
+		S3Bucket s3Bucket = new S3Bucket();
+		s3Bucket.setBucket(bucket.getName());
+		s3Bucket.setUserName(bucket.getUserName());
+		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
+		// s3Bucket.setCors(getBucketInfo().getCors());
+		// s3Bucket.setAccess(getBucketInfo().getAccess());
+		s3Parameter.setBucket(s3Bucket);
 
 		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);

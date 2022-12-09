@@ -27,13 +27,14 @@ public class AsyncHandler {
     public static CompletableFuture<Integer> s3logging(S3Parameter s3Parameter) {
         CompletableFuture<Integer> future = new CompletableFuture<>();
         new Thread( () -> {
-            if (GWConfig.getInstance().isEventLog()) {
-                GWDB gwDB = GWUtils.getDBInstance();
-                try {
-                    gwDB.putS3logging(s3Parameter);
-                } catch (GWException e) {
-                    PrintStack.logging(logger, e);
-                }
+            if (GWConfig.getInstance().isLogging()) {
+                // GWDB gwDB = GWUtils.getDBInstance();
+                // try {
+                //     gwDB.putS3logging(s3Parameter);
+                // } catch (GWException e) {
+                //     PrintStack.logging(logger, e);
+                // }
+                GWLogging.getInstance().sendLog(s3Parameter);
             }
         }).start();
 

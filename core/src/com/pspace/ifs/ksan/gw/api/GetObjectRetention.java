@@ -18,8 +18,10 @@ import javax.xml.stream.XMLStreamException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataGetObjectRetention;
+import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -48,10 +50,6 @@ public class GetObjectRetention extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 		
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
@@ -61,6 +59,7 @@ public class GetObjectRetention extends S3Request {
         DataGetObjectRetention dataGetObjectRetention = new DataGetObjectRetention(s3Parameter);
 		dataGetObjectRetention.extract();
         String versionId = dataGetObjectRetention.getVersionId();
+		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
         if (Strings.isNullOrEmpty(versionId)) {
@@ -70,9 +69,27 @@ public class GetObjectRetention extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
-        objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
+		s3Parameter.setTaggingInfo(objMeta.getTag());
         
-        checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_RETENTION, s3Parameter, dataGetObjectRetention)) {
+			checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
+
+		try {
+			String objectLock = getBucketInfo().getObjectLock();
+			if (Strings.isNullOrEmpty(objectLock)) {
+				logger.info("bucket objectlock is null or empty.");
+				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+			}
+			ObjectLockConfiguration oc = new XmlMapper().readValue(objectLock, ObjectLockConfiguration.class);
+			if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED)) {
+				logger.info("bucket objectlock is not equals Enabled.");
+				throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+			}
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
 
         String meta = objMeta.getMeta();
         S3Metadata s3Metadata;

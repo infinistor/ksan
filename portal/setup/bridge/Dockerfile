@@ -1,7 +1,7 @@
 FROM nginx:1.19.7
 ARG source=.
 WORKDIR /
-EXPOSE 443 80
+EXPOSE 443 80 6443
 ADD ["pspace.crt", "/etc/ssl/certs/"]
 ADD ["pspace.key", "/etc/ssl/certs/"]
 ADD ["nginx.conf", "/etc/nginx/"]

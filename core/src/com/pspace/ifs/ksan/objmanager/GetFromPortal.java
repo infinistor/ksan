@@ -324,6 +324,8 @@ public class GetFromPortal {
             DISKPOOL dp = new DISKPOOL(diskpoolId, diskpoolName);
             if (replication.equalsIgnoreCase("OnePlusOne"))
                 dp.setDefaultReplicaCount(2);
+            else if (replication.equalsIgnoreCase("ErasureCode"))
+                dp.setDefaultReplicaCount(2);
             else
                 dp.setDefaultReplicaCount(1);
             

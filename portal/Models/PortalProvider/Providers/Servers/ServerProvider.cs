@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -32,6 +32,7 @@ using MTLib.HttpClient;
 using PortalData.Requests.Agent;
 using PortalProvider.Providers.RabbitMQ;
 using MTLib.Reflection;
+using System.Net;
 
 namespace PortalProvider.Providers.Servers
 {
@@ -171,7 +172,13 @@ namespace PortalProvider.Providers.Servers
 					PortalApiKey = InternalServiceApiKey.KeyValue
 				};
 				var Response = await client.Post<ResponseData>($"http://{Request.ServerIp}:6380/api/v1/Servers", SendData);
-				Result.CopyValueFrom(Response.Data);
+				if (Response.StatusCode == HttpStatusCode.OK)
+					Result.CopyValueFrom(Response.Data);
+				else
+				{
+					Result.Code = "EC999";
+					Result.Message = $"Server communication error. ({Response.StatusCode})";
+				}
 			}
 			catch (Exception ex)
 			{
@@ -550,6 +557,10 @@ namespace PortalProvider.Providers.Servers
 				if (await m_dbContext.Disks.AnyAsync(i => i.ServerId == Exist.Id))
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_DISK);
 
+				// 해당 서버에 연결된 서비스가 존재하는 경우
+				if (await m_dbContext.Services.AnyAsync(i => i.ServerId == Exist.Id))
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_SERVERS_REMOVE_AFTER_REMOVING_SERVICE);
+
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -682,27 +693,77 @@ namespace PortalProvider.Providers.Servers
 						)
 						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
-					.Select(i => new
-					{
-						i.Id,
-						i.Name,
-						i.Description,
-						i.CpuModel,
-						i.Clock,
-						i.State,
-						i.Rack,
-						i.LoadAverage1M,
-						i.LoadAverage5M,
-						i.LoadAverage15M,
-						i.MemoryTotal,
-						i.MemoryUsed,
-						MemoryFree = i.MemoryTotal - i.MemoryUsed < 0 ? 0 : i.MemoryTotal - i.MemoryUsed,
-						i.ModDate,
-						i.ModId,
-						i.ModName
-					})
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<dynamic, ResponseServer>(Skip, CountPerPage);
+
+				Result.Result = EnumResponseResult.Success;
+
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+		/// <summary>서버 목록을 가져온다.</summary>
+		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
+		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
+		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchKeyword">검색어</param>
+		/// <returns>서버 목록 객체</returns>
+		public async Task<ResponseList<ResponseServerDetail>> GetListDetails(
+			List<EnumServerState> SearchStates = null,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
+		)
+		{
+			var Result = new ResponseList<ResponseServerDetail>();
+			try
+			{
+				// 기본 정렬 정보 추가
+				ClearDefaultOrders();
+				AddDefaultOrders("Name", "asc");
+
+				// 정렬 필드를 초기화 한다.
+				InitOrderFields(ref OrderFields, ref OrderDirections);
+
+				// 검색 필드를  초기화한다.
+				InitSearchFields(ref SearchFields);
+
+				short Clock = -1;
+				if (SearchFields != null && SearchFields.Contains("clock"))
+				{
+					if (!short.TryParse(SearchKeyword, out Clock))
+						Clock = -1;
+				}
+
+				// 목록을 가져온다.
+				Result.Data = await m_dbContext.Servers.AsNoTracking()
+					.Where(i =>
+						(
+							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("cpumodel") && i.CpuModel.Contains(SearchKeyword))
+							|| (SearchFields.Contains("clock") && i.Clock == Clock)
+						)
+						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
+					)
+					.Include(i => i.Disks)
+					.Include(i => i.Services)
+					.Include(i => i.NetworkInterfaces)
+					.ThenInclude(i => i.NetworkInterfaceVlans)
+					.OrderByWithDirection(OrderFields, OrderDirections)
+					.CreateListAsync<dynamic, ResponseServerDetail>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
 
@@ -828,7 +889,7 @@ namespace PortalProvider.Providers.Servers
 		{
 			try
 			{
-				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Servers.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{

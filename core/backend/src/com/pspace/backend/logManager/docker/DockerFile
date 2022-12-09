@@ -1,0 +1,27 @@
+FROM maven:3.8.6-jdk-11 as libsbuild
+WORKDIR /src
+COPY ./core/src/com/pspace/ifs/ksan/libs/ /src/
+RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
+########################################################################
+FROM maven:3.8.6-jdk-11 as objmanagerbuild
+WORKDIR /src
+COPY ./core/src/com/pspace/ifs/ksan/objmanager/ /src/
+RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
+########################################################################
+FROM maven:3.8.6-jdk-11 as backendlibsbuild
+WORKDIR /src
+COPY ./core/backend/src/com/pspace/backend/libs/ /src/
+RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
+#######################################################################
+FROM maven:3.8.6-jdk-11 as build
+WORKDIR /src
+COPY ./core/backend/src/com/pspace/backend/logManager/ /src/
+RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
+########################################################################
+FROM openjdk:11-jre-slim
+WORKDIR /app
+RUN mkdir -p /usr/local/ksan/etc/
+COPY ./core/backend/src/com/pspace/backend/logManager/ksanLogManager_log_conf.xml /usr/local/ksan/etc/
+COPY --from=build /src/target/ksanLogManager.jar /usr/local/ksan/sbin/
+COPY ./core/backend/src/com/pspace/backend/logManager/docker/start.sh /app
+CMD ["/app/start.sh"]

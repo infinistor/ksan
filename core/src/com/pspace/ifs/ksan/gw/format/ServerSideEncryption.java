@@ -39,7 +39,7 @@ public final class ServerSideEncryption {
 			String KMSMasterKeyID;
 		}
 
-		@JacksonXmlProperty(localName = GWConstants.OBJECT_LOCK_ENABLED)
+		@JacksonXmlProperty(localName = GWConstants.BUCKET_KEY_ENABLED)
 		public
 		String BucketKeyEnabled;
 	}

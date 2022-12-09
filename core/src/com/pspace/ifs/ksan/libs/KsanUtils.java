@@ -15,6 +15,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.UUID;
 
 import com.google.common.base.Strings;
 
@@ -72,6 +80,153 @@ public class KsanUtils {
                 }
             }
             logger.error(LOG_OSD_SERVER_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
+        } else {
+            logger.info("{}, File does not exist. ", srcFile.getAbsolutePath());
         }
+    }
+
+    private static String makeDirectoryName(String objId) {
+        byte[] path = new byte[6];
+        byte[] byteObjId = objId.getBytes();
+
+        path[0] = Constants.CHAR_SLASH;
+        int index = 1;
+        
+        path[index++] = byteObjId[0];
+        path[index++] = byteObjId[1];
+        path[index++] = Constants.CHAR_SLASH;
+        path[index++] = byteObjId[2];
+        path[index] = byteObjId[3];
+
+        return new String(path);
+    }
+
+    public static String makePath(String path, String fileName) {
+        String fullPath = path + Constants.SLASH + Constants.OBJ_DIR + makeDirectoryName(fileName) + Constants.SLASH + fileName;
+        return fullPath;
+    }
+
+    public static String makeObjPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String fullPath = path + Constants.SLASH + Constants.OBJ_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeTempPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String uuid = UUID.randomUUID().toString();
+        String fullPath = path + Constants.SLASH + Constants.TEMP_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + uuid + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeTrashPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String uuid = UUID.randomUUID().toString();
+        String fullPath = path + Constants.SLASH + Constants.TRASH_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId + Constants.DASH + uuid;
+        return fullPath;
+    }
+
+    public static String makeECPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + Constants.POINT + objId + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeTempPartPath(String path, String objId, String partNumber) {
+        String fullPath = path + Constants.SLASH + Constants.TEMP_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + partNumber;
+        return fullPath;
+    }
+
+    public static String makeTempCompleteMultipartPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String fullPath = path + Constants.SLASH + Constants.TEMP_COMPLETE_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeTempCopyPath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String fullPath = path + Constants.SLASH + Constants.TEMP_COPY_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeECDecodePath(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
+        return fullPath;
+    }
+
+    public static String makeECDirectory(String fileName, String ecPath) {
+        String fullPath = ecPath + makeDirectoryName(fileName);
+        return fullPath;
+    }
+
+    public static String makeECTempPath(String fileName, String ecPath) {
+        String fullPath = ecPath + makeDirectoryName(fileName) + Constants.SLASH + Constants.POINT + fileName;
+        return fullPath;
+    }
+
+
+    public static void setAttributeFileReplication(File file, String replica, String diskID) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        try {
+            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(replica));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(diskID));
+            logger.debug("Set attribute file replication {}, {}", replica, diskID);
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+        }
+    }
+
+    public static String getAttributeFileReplication(File file) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        ByteBuffer buf = null;
+        try {
+            buf = ByteBuffer.allocateDirect(Constants.FILE_ATTRIBUTE_REPLICATION_SIZE);
+            view.read(Constants.FILE_ATTRIBUTE_REPLICATION, buf);
+            buf.flip();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            logger.error(iae.getMessage());
+        } catch (SecurityException e) {
+            logger.error(e.getMessage());
+        }
+        String replica = Charset.defaultCharset().decode(buf).toString();
+        logger.debug("get replica : {}", replica);
+        return replica;
+    }
+
+    public static String getAttributeFileReplicaDiskID(File file) {
+        UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
+        ByteBuffer buf = null;
+        try {
+            buf = ByteBuffer.allocateDirect(Constants.FILE_ATTRIBUTE_REPLICATION_DISK_ID_SIZE);
+            view.read(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, buf);
+            buf.flip();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            logger.error(iae.getMessage());
+        } catch (SecurityException e) {
+            logger.error(e.getMessage());
+        }
+
+        String diskID = Charset.defaultCharset().decode(buf).toString();
+        logger.debug("file replicaDiskID : {}", diskID);
+        return diskID;
     }
 }

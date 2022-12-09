@@ -95,22 +95,34 @@ public class DataCopyObject extends S3DataRequest {
 				copySourceIfUnmodifiedSince = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_ACL)) {
 				acl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(acl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_FULL_CONTROL)) {
 				grantFullControl = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantFullControl)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ)) {
 				grantRead = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantRead)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_READ_ACP)) {
 				grantReadAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantReadAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE)) {
 				grantWrite = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWrite)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_GRANT_WRITE_ACP)) {
 				grantWriteAcp = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
-				hasAclKeyword = true;
+				if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+					hasAclKeyword = true;
+				}
 			} else if (headerName.equalsIgnoreCase(GWConstants.EXPIRES)) {
 				expires = Strings.nullToEmpty(s3Parameter.getRequest().getHeader(headerName));
 			} else if (headerName.equalsIgnoreCase(GWConstants.X_AMZ_METADATA_DIRECTIVE)) {
@@ -158,6 +170,22 @@ public class DataCopyObject extends S3DataRequest {
 				userMetadata.put(headerName, s3Parameter.getRequest().getHeader(headerName));
 			}
 		}
+
+		keyXAmzCopySource = getCopySource();
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
+		keyXAmzMetadataDirective = getMetadataDirective();
+		keyXAmzServerSideEncryption = getServerSideEncryption();
+		keyXAmzServerSideEncryptionAwsKmsKeyId = getServerSideEncryptionAwsKmsKeyId();
+		keyXAmzStorageClass = getStorageClass();
+		keyXAmzWebsiteRedirectLocation = getWebsiteRedirectLocation();
+		keyXAmzObjectLockMode = getObjectLockMode();
+		keyXAmzObjectLockRetainUntilDate = getObjectLockRetainUntilDate();
+		keyXAmzObjectLockLegalHold = getObjectLockLegalHold();
 	}
 
 	public boolean hasAclKeyword() {

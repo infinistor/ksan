@@ -68,10 +68,24 @@ public class OSDClient {
 						+ OsdData.DELIMITER + versionId 
 						+ OsdData.DELIMITER + sourceRange
 						+ OsdData.DELIMITER + key;
-		logger.debug(Constants.LOG_OSDCLIENT_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
 		byPassOut = out;
+	}
+
+	public void getInitWithMD5(String path, String objId, String versionId, long fileSize, String sourceRange, OutputStream out, MessageDigest md5er, String key) throws IOException {
+		String header = OsdData.GET 
+						+ OsdData.DELIMITER + path 
+						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + versionId 
+						+ OsdData.DELIMITER + sourceRange
+						+ OsdData.DELIMITER + key;
+		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
+		sendHeader(header);
+		this.fileSize = fileSize;
+		byPassOut = out;
+		this.md5er = md5er;
 	}
 
 	public long get() throws IOException {
@@ -91,6 +105,26 @@ public class OSDClient {
 		// byPassOut.close();
 		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
 		return readTotal;
+	} 
+
+	public long getWithMD5() throws IOException {
+		byte[] buffer = new byte[Constants.MAXBUFSIZE];
+		int readByte = Constants.MAXBUFSIZE;
+		int readLength = 0;
+		long readTotal = 0L;
+		
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
+			readTotal += readLength;
+			byPassOut.write(buffer, 0, readLength);
+			md5er.update(buffer, 0, readLength);
+			if (readTotal >= fileSize) {
+				break;
+			}
+		}
+		byPassOut.flush();
+		// byPassOut.close();
+		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
+		return readTotal;
 	}
 
 	public void getPartInit(String path, String objId, String partNo, long fileSize, OutputStream out, MessageDigest md5er) throws IOException {
@@ -98,7 +132,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + partNo;
-		logger.debug(Constants.LOG_OSDCLIENT_HEADER, header);
+		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
 		byPassOut = out;
@@ -158,6 +192,20 @@ public class OSDClient {
 		sendHeader(header);
 	}
 
+	public void deleteReplica(String path) throws IOException {
+		String header = OsdData.DELETE_REPLICA
+						+ OsdData.DELIMITER + path;
+		logger.debug(Constants.LOG_OSDCLIENT_DELETE_REPLICA_HEADER, header);
+		sendHeader(header);
+	}
+
+	public void deleteECPart(String path) throws IOException {
+		String header = OsdData.DELETE_EC_PART
+						+ OsdData.DELIMITER + path;
+		logger.debug(Constants.LOG_OSDCLIENT_DELETE_EC_PART_HEADER, header);
+		sendHeader(header);
+	}
+
 	public void copy(String srcPath, String srcObjId, String srcVersionId, String destPath, String destObjId, String destVersionId, String replication, String replicaDiskID) throws IOException {
 		String header = OsdData.COPY 
 						+ OsdData.DELIMITER + srcPath 
@@ -196,27 +244,30 @@ public class OSDClient {
 		sendHeader(header);
 	}
 
-	public OsdData partCopy(String srcPath, String srcObjId, String srcVersionId, String copySourceRange, String destPath, String destObjId, String partNo) throws IOException {
+	public OsdData partCopy(String srcDiskId, String srcObjId, String srcVersionId, String srcLength, String copySourceRange, String destPath, String destObjId, String partNo) throws IOException {
 		String header = OsdData.PART_COPY 
-						+ OsdData.DELIMITER + srcPath 
+						+ OsdData.DELIMITER + srcDiskId 
 						+ OsdData.DELIMITER + srcObjId 
 						+ OsdData.DELIMITER + srcVersionId 
 						+ OsdData.DELIMITER + destPath 
 						+ OsdData.DELIMITER + destObjId 
 						+ OsdData.DELIMITER + partNo 
-						+ OsdData.DELIMITER + copySourceRange;
+						+ OsdData.DELIMITER + copySourceRange
+						+ OsdData.DELIMITER + srcLength;
 		logger.debug(Constants.LOG_OSDCLIENT_PART_COPY_HEADER, header);
 		sendHeader(header);
 
 		return receiveData();
 	}
 
-	public OsdData completeMultipart(String path, String objId, String versionId, String key, String partNos) throws IOException {
+	public OsdData completeMultipart(String path, String objId, String versionId, String key, String replication, String replicaDiskID, String partNos) throws IOException {
 		String header = OsdData.COMPLETE_MULTIPART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
 						+ OsdData.DELIMITER + versionId 
 						+ OsdData.DELIMITER + key
+						+ OsdData.DELIMITER + replication 
+						+ OsdData.DELIMITER + replicaDiskID
 						+ OsdData.DELIMITER + partNos;
 		logger.debug(Constants.LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER, header);
 		sendHeader(header);
@@ -231,6 +282,46 @@ public class OSDClient {
 						+ OsdData.DELIMITER + partNos;
 		logger.debug(Constants.LOG_OSDCLIENT_ABORT_MULTIPART_HEADER, header);
 		sendHeader(header);
+	}
+
+	public void getECPartInit(String path, OutputStream out) throws IOException {
+		String header = OsdData.GET_EC_PART
+						+ OsdData.DELIMITER + path;
+		logger.debug(Constants.LOG_OSDCLIENT_GET_EC_PART_HEADER, header);
+		sendHeader(header);
+		byPassOut = out;
+	}
+
+	public long getECPart() throws IOException {
+		byte[] buffer = new byte[Constants.MAXBUFSIZE];
+		int readByte = Constants.MAXBUFSIZE;
+		int readLength = 0;
+		long readTotal = 0L;
+		
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
+			readTotal += readLength;
+			byPassOut.write(buffer, 0, readLength);
+		}
+		byPassOut.flush();
+		// byPassOut.close();
+		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
+		return readTotal;
+	} 
+
+	public void putECPartInit(String path, long length) throws IOException {
+		String header = OsdData.PUT_EC_PART
+						+ OsdData.DELIMITER + path
+						+ OsdData.DELIMITER + String.valueOf(length);
+		logger.debug(Constants.LOG_OSDCLIENT_PUT_EC_PART_HEADER, header);
+		sendHeader(header);
+	}
+
+	public void putECPart(byte[] buffer, int offset, int length) throws IOException {
+		socket.getOutputStream().write(buffer, offset, length);
+	}
+
+	public void putECPartFlush() throws IOException {
+		socket.getOutputStream().flush();
 	}
 
 	private void sendHeader(String header) throws IOException {
@@ -248,11 +339,19 @@ public class OSDClient {
 	}
 
 	private OsdData receiveData() throws IOException {
-		DataInputStream si = new DataInputStream(socket.getInputStream());
-		int size = si.readInt();
-		byte[] buffer = new byte[size];
-		si.read(buffer, 0, size);
-		String result = new String(buffer, 0, size);
+		int length = socket.getInputStream().read();
+		if (length == -1) {
+			logger.info("socket {} EOF ...", socket.getRemoteSocketAddress().toString());
+			return null;
+		}
+		byte[] lengthBuffer = new byte[length];
+		socket.getInputStream().read(lengthBuffer, 0, length);
+		String strLength = new String(lengthBuffer);
+
+		length = Integer.parseInt(strLength);
+		byte[] buffer = new byte[length];
+		socket.getInputStream().read(buffer, 0, length);
+		String result = new String(buffer, 0, length);
 		String[] ArrayResult = result.split(Constants.COLON, -1);
 
 		OsdData data = new OsdData();
@@ -266,6 +365,25 @@ public class OSDClient {
 		}
 
 		return null;
+
+		// DataInputStream si = new DataInputStream(socket.getInputStream());
+		// int size = si.readInt();
+		// byte[] buffer = new byte[size];
+		// si.read(buffer, 0, size);
+		// String result = new String(buffer, 0, size);
+		// String[] ArrayResult = result.split(Constants.COLON, -1);
+
+		// OsdData data = new OsdData();
+		// switch (ArrayResult[0]) {
+		// case OsdData.FILE:
+		// 	data.setETag(ArrayResult[1]);
+		// 	data.setFileSize(Long.parseLong(ArrayResult[2]));
+		// 	return data;
+		// default:
+		// 	logger.error(Constants.LOG_OSDCLIENT_UNKNOWN_RESULT, ArrayResult[1]);
+		// }
+
+		// return null;
 	}
 
 	public String getHost() {
@@ -285,6 +403,33 @@ public class OSDClient {
 
 	public void desactivate() {
 		logger.debug(Constants.LOG_OSDCLIENT_DESACTIVATE_SOCKET);
+	}
+
+	public void getECInit(String path, String objId, String versionId, long fileSize, String sourceRange, OutputStream out, String key) throws IOException {
+		String header = OsdData.GET_EC_PART 
+						+ OsdData.DELIMITER + path 
+						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + versionId 
+						+ OsdData.DELIMITER + sourceRange
+						+ OsdData.DELIMITER + key;
+		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
+		sendHeader(header);
+		this.fileSize = fileSize;
+		byPassOut = out;
+	}
+
+	public void putECInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID, String key, String mode) throws IOException {
+		String header = OsdData.PUT_EC_PART
+						+ OsdData.DELIMITER + path 
+						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + versionId 
+						+ OsdData.DELIMITER + String.valueOf(length) 
+						+ OsdData.DELIMITER + replication 
+						+ OsdData.DELIMITER + replicaDiskID
+						+ OsdData.DELIMITER + key
+						+ OsdData.DELIMITER + mode;
+		logger.debug(Constants.LOG_OSDCLIENT_PUT_HEADER, header);
+		sendHeader(header);
 	}
 }
 

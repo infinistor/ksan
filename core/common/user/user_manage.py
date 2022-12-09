@@ -13,11 +13,12 @@
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from server.server_manage import *
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from const.common import *
 from disk.diskpool_manage import GetDefaultDiskPool
-from const.http import ResponseHeaderModule
-from const.user import AddUserObject, S3UserObjectModule, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
+from const.user import AddUserObject, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
+from common.utils import *
 
 
 @catch_exceptions()
@@ -273,7 +274,6 @@ def RemoveS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserNa
     return Res, Errmsg, Ret
 
 
-
 @catch_exceptions()
 def ShowS3UserInfo(UserList, Detail=None, SysinfoDisp=False):
     """
@@ -282,27 +282,28 @@ def ShowS3UserInfo(UserList, Detail=None, SysinfoDisp=False):
     :param NicId:
     :return:
     """
+    UserList = UserListOrdering(UserList)
     if SysinfoDisp is True:
         UserTitleLine = '=' * 105
         UserDataLine = '-' * 105
-        title = "|%s|%s|%s|" % ('User'.center(25), 'AccessKey'.center(32), 'SecretKey'.center(44))
+        title = "|%s|%s|%s|" % ('UserName'.ljust(25), 'AccessKey'.ljust(32), 'SecretKey'.ljust(44))
         UserDiskPoolStorageClassLine = ''
         UserDiskPoolStorageClassTitle = ''
     else:
         if Detail is None:
             UserTitleLine = '=' * 92
             UserDataLine = '-' * 92
-            title ="|%s|%s|%s|" % ('Name'.center(20), 'Email'.center(30), 'Id'.center(38))
+            title ="|%s|%s|%s|" % ('UserName'.ljust(20), 'Email'.ljust(30), 'UserId'.ljust(38))
             UserDiskPoolStorageClassLine = ''
             UserDiskPoolStorageClassTitle = ''
         else:
             UserTitleLine = '=' * 166
             UserDataLine = '-' * 166
-            title = "|%s|%s|%s|%s|%s|" % ('Name'.center(20), 'AccessKey'.center(30),
-                                          'SecretKey'.center(42), 'Email'.center(30), 'Id'.center(38))
+            title = "|%s|%s|%s|%s|%s|" % ('UserName'.ljust(20), 'AccessKey'.ljust(30),
+                                          'SecretKey'.ljust(42), 'Email'.ljust(30), 'UserId'.ljust(38))
 
             UserDiskPoolStorageClassLine = '%s%s' % (' ' * 101, '-' * 65)
-            UserDiskPoolStorageClassTitle = "%s|%s|%s|%s|" % (' ' * 101, "DiskPoolName".center(20), "StorageClass".center(20), " "*21)
+            UserDiskPoolStorageClassTitle = "%s|%s|%s|%s|" % (' ' * 101, "DiskPoolName".ljust(20), "StorageClass".ljust(20), " "*21)
 
     print(UserTitleLine)
     print(title)
@@ -313,15 +314,15 @@ def ShowS3UserInfo(UserList, Detail=None, SysinfoDisp=False):
 
             user.Email = user.Email if user.Email is not None else ''
             if SysinfoDisp is True:
-                _user = "|%s|%s|%s|" % ('{:25.25}'.format(str(user.Name).center(25)), user.AccessKey.center(32), user.SecretKey.center(44))
+                _user = "|%s|%s|%s|" % ('{:25.25}'.format(str(user.Name).ljust(25)), user.AccessKey.ljust(32), user.SecretKey.ljust(44))
             else:
                 if Detail is None:
-                    _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)), user.Email.center(30), user.Id.center(38))
+                    _user ="|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).ljust(20)), user.Email.ljust(30), user.Id.ljust(38))
                 else:
-                    _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).center(20)),
-                                                user.AccessKey.center(30), user.SecretKey.center(42), user.Email.center(30), user.Id.center(38))
+                    _user ="|%s|%s|%s|%s|%s|" % ('{:20.20}'.format(str(user.Name).ljust(20)),
+                                                user.AccessKey.ljust(30), user.SecretKey.ljust(42), user.Email.ljust(30), user.Id.ljust(38))
                     for diskpool in user.UserDiskPools:
-                        _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].center(20), diskpool['StorageClass'].center(20), " "*21)
+                        _userdiskpool += "%s|%s|%s|%s|\n" % (' ' * 101, diskpool['DiskPoolName'].ljust(20), diskpool['StorageClass'].ljust(20), " "*21)
                         _userdiskpool += "%s%s\n" % (' ' * 101, '-' * 65)
 
             print(_user)
@@ -332,9 +333,22 @@ def ShowS3UserInfo(UserList, Detail=None, SysinfoDisp=False):
                 print(_userdiskpool)
                 print(UserDataLine)
     else:
-        print('No user data'.center(105))
+        print('No user data'.ljust(105))
         print(UserDataLine)
 
+
+def UserListOrdering(UserList):
+    NewUserList = list()
+    UserNameDict = dict()
+    for userinfo in UserList:
+        UserName = userinfo.Name
+        UserNameDict[UserName] = userinfo
+
+    for username in sorted(UserNameDict.keys(), key=str.casefold):
+        userinfo = UserNameDict[username]
+        NewUserList.append(userinfo)
+
+    return NewUserList
 
 def UserUtilHandler(Conf, Action, Parser, logger):
 
@@ -369,7 +383,7 @@ def UserUtilHandler(Conf, Action, Parser, logger):
         Res, Errmsg, Ret = AddS3User(PortalIp, PortalPort, PortalApiKey, options.UserName,
                                      DiskPoolName=DefaultDiskpoolName, Email=options.Email, logger=logger)
         if Res == ResOk:
-            print(Ret.Result)
+            print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
     elif Action.lower() == 'remove':
@@ -382,7 +396,7 @@ def UserUtilHandler(Conf, Action, Parser, logger):
         if Conf['isRemove'] == 'yes':
             Res, Errmsg, Ret = RemoveS3User(PortalIp, PortalPort, PortalApiKey, UserName=options.UserName, logger=logger)
             if Res == ResOk:
-                print(Ret.Result)
+                print(Ret.Result, Ret.Message)
             else:
                 print(Errmsg)
 
@@ -391,10 +405,14 @@ def UserUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
 
+        if options.StorageClass not in ValidStorageClassList:
+            print('Error : Unsupported User-defined Storage Class Name - Please Insert s3-compatible storage class (eg. glacier)')
+            sys.exit(-1)
+
         Res, Errmsg, Ret = AddS3UserStorageClass(PortalIp, PortalPort, PortalApiKey ,options.StorageClass,
                                                  UserName=options.UserName, DiskPoolName=options.DiskpoolName, logger=logger)
         if Res == ResOk:
-            print(Ret.Result)
+            print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
 
@@ -403,10 +421,14 @@ def UserUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
 
+        if options.StorageClass not in ValidStorageClassList:
+            print('Error : Unsupported User-defined Storage Class Name - Please Insert s3-compatible storage class (eg. glacier)')
+            sys.exit(-1)
+
         Res, Errmsg, Ret = RemoveS3UserStorageClass(PortalIp, PortalPort, PortalApiKey, options.StorageClass, UserName=options.UserName, DiskPoolName=options.DiskpoolName,
                                       logger=logger)
         if Res == ResOk:
-            print(Ret.Result)
+            print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
 

@@ -181,7 +181,7 @@ public class ObjMultipart{
         
         DBCallBack cb = new ListMultipartCallBack(); 
         //System.out.println("sql : " + sql);
-        dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
+        //dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
         return this.list;
     }
 

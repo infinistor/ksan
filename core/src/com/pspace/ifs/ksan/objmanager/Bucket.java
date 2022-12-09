@@ -44,6 +44,7 @@ public class Bucket {
     private int replicaCount;
     private long usedSpace; // new
     private long fileCount; // new
+    private boolean objTagIndexEnabled;
     
     public Bucket(){
         name = "";
@@ -62,6 +63,7 @@ public class Bucket {
         logging = "";
         usedSpace = 0;
         fileCount = 0;
+        objTagIndexEnabled = false;
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -81,6 +83,7 @@ public class Bucket {
         logging = "";
         usedSpace = 0;
         fileCount = 0;
+        objTagIndexEnabled = false;
     }
     
     public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
@@ -103,6 +106,7 @@ public class Bucket {
         logging = "";
         usedSpace = 0;
         fileCount = 0;
+        objTagIndexEnabled = false;
     }
     
     private void setHashOfName() {
@@ -204,7 +208,11 @@ public class Bucket {
     }
     
     public void setLogging(String logging){
-        this.tagging = logging;
+        this.logging = logging;
+    }
+    
+    public void setObjectTagIndexEnabled(boolean enabled){
+        objTagIndexEnabled = enabled;
     }
     
     public String getName(){
@@ -295,6 +303,10 @@ public class Bucket {
     
     public String getLogging(){
         return this.logging;
+    }
+    
+    public boolean isObjectTagIndexEnabled(){
+        return objTagIndexEnabled;
     }
     
     @Override

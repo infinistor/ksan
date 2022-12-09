@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -769,10 +769,10 @@ namespace PortalProvider.Providers.Services
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		public async Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			List<EnumServiceState> SearchStates = null
-			, int Skip = 0, int CountPerPage = 100
-			, List<string> OrderFields = null, List<string> OrderDirections = null
-			, List<string> SearchFields = null, string SearchKeyword = ""
+			List<EnumServiceState> SearchStates = null, EnumServiceType ServiceType = EnumServiceType.Unknown,
+			int Skip = 0, int CountPerPage = 100,
+			List<string> OrderFields = null, List<string> OrderDirections = null,
+			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			var Result = new ResponseList<ResponseServiceWithGroup>();
@@ -788,24 +788,24 @@ namespace PortalProvider.Providers.Services
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref SearchFields);
 
-				var serviceType = EnumServiceType.Unknown;
 				if (SearchFields != null && SearchFields.Contains("servicetype"))
-					Enum.TryParse(SearchKeyword, out serviceType);
+					Enum.TryParse(SearchKeyword, out ServiceType);
 
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Services.AsNoTracking()
 					.Where(i =>
 						(
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
+							|| (ServiceType != EnumServiceType.Unknown && i.ServiceType == (EnumDbServiceType)ServiceType)
 							|| (SearchFields.Contains("groupname") && i.ServiceGroup != null && i.ServiceGroup.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("servicetype") && i.ServiceType == (EnumDbServiceType)serviceType)
 							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
 						) && (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.Include(i => i.ServiceGroup)
+					.Include(i => i.Server)
 					.CreateListAsync<Service, ResponseServiceWithGroup>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
@@ -911,7 +911,7 @@ namespace PortalProvider.Providers.Services
 		{
 			try
 			{
-				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name == Name);
+				return await m_dbContext.Services.AsNoTracking().AnyAsync(i => (ExceptId == null || i.Id != ExceptId) && i.Name.Equals(Name));
 			}
 			catch (Exception ex)
 			{
@@ -1170,7 +1170,6 @@ namespace PortalProvider.Providers.Services
 				var ServiceEventType = EnumServiceEventType.Error;
 				if (SearchFields.Contains("ServiceEventType", StringComparer.OrdinalIgnoreCase))
 					Enum.TryParse(SearchKeyword, out ServiceEventType);
-
 
 				// 서비스 정보를 가져온다
 				Service Service = null;

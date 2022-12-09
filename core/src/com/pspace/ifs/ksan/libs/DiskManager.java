@@ -49,7 +49,7 @@ public class DiskManager {
     private static final Logger logger = LoggerFactory.getLogger(DiskManager.class);
     private List<DiskPool> diskPoolList;
     private String localHost;
-    private HashMap<String, String> localDiskInfoMap = new HashMap<String, String>();
+    private HashMap<String, String> localDiskInfoMap;
     
     public static DiskManager getInstance() {
         return LazyHolder.INSTANCE;
@@ -62,6 +62,7 @@ public class DiskManager {
     private DiskManager() {
         localHost = KsanUtils.getLocalIP();
         diskPoolList = new ArrayList<DiskPool>();
+        localDiskInfoMap = new HashMap<String, String>();
     }
 
     public void configure() {
@@ -145,6 +146,32 @@ public class DiskManager {
         }
 
         return null;
+    }
+
+    public int getECM(String diskID) {
+        for (DiskPool pool : diskPoolList) {
+            for (Server server : pool.getServerList()) {
+                for (Disk disk : server.getDiskList()) {
+                    if (diskID.equals(disk.getId())) {
+                        return pool.getErasureCodeM();
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getECK(String diskID) {
+        for (DiskPool pool : diskPoolList) {
+            for (Server server : pool.getServerList()) {
+                for (Disk disk : server.getDiskList()) {
+                    if (diskID.equals(disk.getId())) {
+                        return pool.getErasureCodeK();
+                    }
+                }
+            }
+        }
+        return 0;
     }
 
     public void saveFile() throws IOException {

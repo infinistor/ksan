@@ -2,7 +2,7 @@
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
 * the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.  See LICENSE for details
+* 3 of the License.See LICENSE for details
 *
 * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
@@ -10,6 +10,11 @@
 */
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Common;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace PortalModels
 {
@@ -26,7 +31,6 @@ namespace PortalModels
 			this.MemoryUsed = 0m;
 			this.ThreadCount = 0;
 			this.Vlans = new List<ServiceNetworkInterfaceVlan>();
-			this.ServiceDisks = new List<ServiceDisk>();
 			this.ServiceUsages = new List<ServiceUsage>();
 			this.ServiceEventLogs = new List<ServiceEventLog>();
 			OnCreated();
@@ -97,9 +101,6 @@ namespace PortalModels
 
 		/// <summary> 수정 사용자 정보 </summary>
 		public virtual User ModUser { get; set; }
-
-		/// <summary> 서비스 디스크 정보 목록 </summary>
-		public virtual IList<ServiceDisk> ServiceDisks { get; set; }
 
 		public virtual IList<ServiceUsage> ServiceUsages { get; set; }
 

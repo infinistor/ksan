@@ -16,6 +16,7 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
@@ -44,28 +45,11 @@ public class KsanPutObjectTagging extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-        logger.info(GWConstants.LOG_PUT_OBJECT_TAGGING_START);
+        logger.info(GWConstants.LOG_ADMIN_PUT_OBJECT_TAGGING_START);
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
-		GWUtils.checkCors(s3Parameter);
-
-        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
-        if (user == null) {
-            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-        }
-        s3Parameter.setUser(user);
-		
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
-		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-
 		String object = s3Parameter.getObjectName();
+		GWUtils.checkCors(s3Parameter);
 
 		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
 		dataPutObjectTagging.extract();
@@ -124,10 +108,11 @@ public class KsanPutObjectTagging extends S3Request {
 		}
 
 		s3Metadata.setTaggingCount(taggingCount);
-		ObjectMapper jsonMapper = new ObjectMapper();
+		// ObjectMapper jsonMapper = new ObjectMapper();
 		String jsonMeta = "";
 		try {
-			jsonMeta = jsonMapper.writeValueAsString(s3Metadata);
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

@@ -34,11 +34,14 @@ public class ObjManager {
     private DiskAllocation dAlloc;
     private static ObjManagerCache  obmCache;
     private ObjManagerConfig config;
-    private OSDClient osdc;
+    //private OSDClient osdc;
     private ObjManagerSharedResource obmsr;
     private ObjMultipart multipart;
     private BucketManager bucketMGT;
     private Objects objectMGT;
+    private ObjTagsIndexing objectIndexing;
+    private RestoreObjects restoreObj;
+    
     private static Logger logger;
    
     private void init(ObjManagerConfig config) throws Exception {
@@ -56,13 +59,17 @@ public class ObjManager {
 
         dAlloc = new DiskAllocation(obmCache);
 
-        osdc = new OSDClient(config);
+        //osdc = new OSDClient(config);
         
         multipart = new ObjMultipart(dbm);
         
         bucketMGT = new BucketManager(dbm, obmCache);
         
         objectMGT = new Objects(dbm, dAlloc, obmCache, bucketMGT);
+        
+        objectIndexing = new ObjTagsIndexing(bucketMGT, objectMGT);
+        
+        restoreObj = new RestoreObjects(dbm);
     }
     
     public ObjManager() throws Exception {
@@ -363,7 +370,7 @@ public class ObjManager {
     }
 
     public void updateBucketPolicy(String bucketName, String policy) throws SQLException, ResourceNotFoundException {
-        bucketMGT.updateBucketObjectLock(bucketName, policy);
+        bucketMGT.updateBucketPolicy(bucketName, policy);
     }
 
     public void updateBucketUsed(String bucketName, long size) throws SQLException, ResourceNotFoundException {
@@ -385,6 +392,14 @@ public class ObjManager {
     
     public void updateDiskpools(String routingKey, String body){
         this.obmsr.getDiskMonitor().update(routingKey, body);
+    }
+    
+    public ObjTagsIndexing getObjectTagsIndexing(){
+        return this.objectIndexing;
+    }
+    
+    public RestoreObjects getRestoreObjects(){
+        return this.restoreObj;
     }
     
     // for pool

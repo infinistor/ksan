@@ -14,16 +14,10 @@
 import os, sys
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from disk.disk_mq_handle import *
-from service.service_mq_handle import *
-import mqmanage
-from Enums.EnumResponseResult import EnumResponseResult
-from common.ResponseMqData import ResponseMqData
-from const.mq import RoutKeyDisk, RoutKeyDiskRpcFinder, RoutKeyDiskPool, RoutKeyService, RoutKeyServiceRpcFinder, \
-    RoutKeyNetwork, RoutKeyNetworkRpcFinder, RoutKeyServerUpdate, RoutKeyServerAdd, RoutKeyServerDel
+#from service.service_mq_handle import MqServiceHandler
+#import mqmanage
 from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
-import network.network_mq_handle
-from server.server_mq_handle import *
+from portal_api.apis import *
 
 import json
 import pika
@@ -54,17 +48,27 @@ class RabbitMqReceiver:
         self.MonConf = MonConf
         self.GlobalFlag = GlobalFlag  # {'ServiceUpdated': Updated, 'DiskUpdated': Updated, 'NetworkUpdated': Checked}
         # Rabbit MQ 리스너 초기화
-        self.initializeRabbitMqListener(self.m_config)
+        while True:
+            try:
+                self.initializeRabbitMqListener(self.m_config)
 
-        #result = self.m_channel.queue_declare(queue='', exclusive=True)
-        #self.m_callback_queue = result.method.queue
-        print(self.m_queue_name)
-        self.m_channel.basic_consume(
-            queue=self.m_queue_name,
-            on_message_callback=self.on_response,
-            auto_ack=False)
+                #result = self.m_channel.queue_declare(queue='', exclusive=True)
+                #self.m_callback_queue = result.method.queue
+                print(self.m_queue_name)
+                self.m_channel.basic_consume(
+                    queue=self.m_queue_name,
+                    on_message_callback=self.on_response,
+                    auto_ack=False)
 
-        self.m_channel.start_consuming()
+                self.m_channel.start_consuming()
+            except pika.exceptions.AMQPChannelError as err:
+                logger.error('1rabbitmq server connection fail %s %d' % (str(err), sys.exc_info()[2].tb_lineno))
+                time.sleep(5)
+                continue
+            except Exception as err:
+                logger.error('2rabbitmq server connection fail %s %d' % (str(err), sys.exc_info()[2].tb_lineno))
+                time.sleep(5)
+
 
     """ Rabbit MQ 리스너 초기화
     Args:
@@ -174,7 +178,7 @@ class RabbitMqReceiver:
             #Response.IsProcessed = True
             return ResponseReturn
         elif RoutKeyNetwork in RoutingKey or RoutKeyNetworkRpcFinder.search(RoutingKey):
-            ResponseReturn = network.network_mq_handle.MqNetworkHandler(self.MonConf, RoutingKey, body, Response, self.ServerId, self.ServiceList, self.GlobalFlag, self.logger)
+            ResponseReturn = MqNetworkHandler(self.MonConf, RoutingKey, body, Response, self.ServerId, self.ServiceList, self.GlobalFlag, self.logger)
             Response.IsProcessed = True
             return ResponseReturn
         elif RoutKeyServerUpdate in RoutingKey or RoutKeyServerDel in RoutingKey or RoutKeyServerAdd in RoutingKey:
@@ -184,7 +188,7 @@ class RabbitMqReceiver:
         else:
             self.logger.debug("Skip RouteKey: %s" % str(RoutingKey))
             Response.IsProcessed = True
-            ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
+            ResponseReturn = MqReturn(ResultSuccess)
             return ResponseReturn
 
 

@@ -31,6 +31,8 @@ public final class AccessControlPolicy {
     	sb.append(GWConstants.LEFT_BRACE);
         if (owner != null) {
             sb.append(GWConstants.ACCESS_OW).append(owner);
+        } else {
+            sb.append(GWConstants.ACCESS_OW_EMPTY);
         }
 
         if (aclList != null) {

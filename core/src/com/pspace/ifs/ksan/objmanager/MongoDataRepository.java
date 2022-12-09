@@ -114,6 +114,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String FILECOUNT="fileCount";
     private static final String USEDSPACE="usedSpace";
     private static final String LOGGING="logging";
+    private static final String OBJECTTAG_INDEXING = "objTagIndexing";
     
     // for multipart upload
     private static final String UPLOADID="uploadId";
@@ -135,6 +136,15 @@ public class MongoDataRepository implements DataRepository{
     private static final String LOGMSG = "log";
     private static final String LIFECYCLEID= "idx";
     private static final String ISFAILED = "isFailed";
+    
+    // for Object Tag indexing
+    private static final String OBJTAGINDEX_TABLE = "ObjTagIndex";
+    private static final String TAG_KEY = "TagKey";
+    private static final String TAG_VALUE = "TagValue";
+    
+    // for restore objects
+    private static final String OBJRESTORE_TABLE = "RESTOREOBJECTS";
+    private static final String OBJRESTORE_REQUEST = "request";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
         this.username = username;
@@ -146,6 +156,7 @@ public class MongoDataRepository implements DataRepository{
         createBucketsHolder();
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
+        createRestoreObjHolder();
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -211,6 +222,35 @@ public class MongoDataRepository implements DataRepository{
         }
     }
     
+    private void createObjTagHolder(String bucketName){
+        Document index;
+        String collectionName = bucketName +  "_" + OBJTAGINDEX_TABLE;
+        //objid, versionid, uploadid
+        index = new Document(OBJID, 1);
+        index.append(VERSIONID, 1);
+        index.append(TAG_KEY, 1);
+        MongoCollection<Document> objTag = database.getCollection(collectionName);
+        if (objTag == null){
+            database.createCollection(collectionName);
+            objTag = database.getCollection(collectionName);
+            objTag.createIndex(index, new IndexOptions().unique(true));
+        }
+    }
+    
+    private MongoCollection<Document> getObjTagIndexCollection(String bucketName){
+        MongoCollection<Document> objTag;
+        String collectionName = bucketName +  "_" + OBJTAGINDEX_TABLE;
+        
+        objTag = this.database.getCollection(collectionName);
+        if (objTag == null){
+            database.createCollection(collectionName);
+            objTag = database.getCollection(collectionName);
+            objTag.createIndex(Indexes.ascending(OBJID, VERSIONID, TAG_KEY), new IndexOptions().unique(true));
+        }
+        
+        return objTag;
+    }
+    
     private MongoCollection<Document> getLifCyclesCollection(String collectionName){
         MongoCollection<Document> lifeCycle;
         
@@ -237,6 +277,31 @@ public class MongoDataRepository implements DataRepository{
         return multip;
     }
     
+    private void createRestoreObjHolder(){
+        Document index;
+    
+        index = new Document(OBJID, 1);
+        index.append(VERSIONID, 1);
+        //index.append(BUCKETNAME, 1);
+        MongoCollection<Document> restoreObj = database.getCollection(OBJRESTORE_TABLE);
+        if (restoreObj == null){
+            database.createCollection(OBJRESTORE_TABLE);
+            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+            restoreObj.createIndex(index, new IndexOptions().unique(true));
+        }
+    }
+    
+    private MongoCollection<Document> getRestoreObjCollection(){
+        MongoCollection<Document> restoreObj;
+            
+        restoreObj = this.database.getCollection(OBJRESTORE_TABLE);
+        if (restoreObj == null){
+            database.createCollection(OBJRESTORE_TABLE);
+            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+            restoreObj.createIndex(Indexes.ascending(OBJID, VERSIONID), new IndexOptions().unique(true));
+        }       
+        return restoreObj;
+    }
     
     private String getCurrentDateTime(){
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"); 
@@ -252,6 +317,23 @@ public class MongoDataRepository implements DataRepository{
             date = new Date();
         }
         return date;
+    }
+    
+    private String convertXML2Json(String xmlstr){
+        String tags[] = xmlstr.split("<Tagging>");
+        if (tags.length > 1){
+            String tag = tags[1].replaceAll("<Tagging>", "").replaceAll("</Tagging>", "");
+            tag = tag.replaceAll("<TagSet>", "{");
+            tag = tag.replaceAll("</TagSet>", "}");
+            tag = tag.replaceAll("<Tag>", "");
+            tag = tag.replaceAll("</Tag>", ",");
+            tag = tag.replaceAll("<Key>", "\"");
+            tag = tag.replaceAll("</Key>", "\": ");
+            tag = tag.replaceAll("<Value>", " \"");
+            tag = tag.replaceAll("</Value>", "\" ");
+            return tag;
+        }   
+        return null;
     }
     
     @Override
@@ -279,6 +361,8 @@ public class MongoDataRepository implements DataRepository{
             objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
         objects.insertOne(doc);
         updateBucketObjectCount(md.getBucket(), 1);
+    
+        insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
         return 0;
     }
 
@@ -429,50 +513,48 @@ public class MongoDataRepository implements DataRepository{
     public Bucket insertBucket(Bucket bt) throws ResourceAlreadyExistException{
         Document doc;
         Document index;
-        //try{ 
-            doc = new Document(BUCKETNAME, bt.getName());
-            //doc.append(BUCKETNAME, bucketName);
-            doc.append(DISKPOOLID, bt.getDiskPoolId());
-            doc.append(BUCKETID, new Metadata(bt.getName(), "/").getBucketId());
-            doc.append(USERID, bt.getUserId());
-            doc.append(ACL, bt.getAcl());
-            doc.append(REPLICACOUNT, bt.getReplicaCount());
-            
-            doc.append(USERNAME, bt.getUserName());
-            doc.append(WEB, "");
-            doc.append(CORS, "");
-            doc.append(LIFECYCLE, "");
-            doc.append(ACCESS, "");
-            doc.append(TAGGING, "");
-            doc.append(REPLICATION, "");
-            doc.append(VERSIONING, "");
-            doc.append(MFADELETE, "");
-            
-            doc.append(ENCRYPTION, bt.getEncryption());
-            doc.append(OBJECTLOCK, bt.getObjectLock());
-            doc.append(POLICY, "");
-            doc.append(FILECOUNT, 0L);
-            doc.append(USEDSPACE, 0L);
-            doc.append(CREATETIME, getCurrentDateTime());
-            doc.append(LOGGING, "");
-            
-            buckets.insertOne(doc);
-            database.createCollection(bt.getName());
-            // for index for object collection
-            index = new Document(OBJID, 1);
-            index.append(VERSIONID, 1);
-            index.append(LASTVERSION, 1);
-            index.append(DELETEMARKER, 1);
-            //index.append(OBJKEY, 1);
-            database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
-            // wild index for listobjects
-            Document wildIndex = new Document(OBJID + ".$**", 1);
-            database.getCollection(bt.getName()).createIndex(wildIndex); 
-            //bt = new Bucket(bucketName, bucketName, diskPoolId);
-            //getUserDiskPool(bt);
-        /*} catch(SQLException ex){
-            throw new ResourceAlreadyExistException(String.format("Bucket(%s) is laready exist in the db!", bt.getName()), ex);
-        }*/
+        
+        doc = new Document(BUCKETNAME, bt.getName());
+        //doc.append(BUCKETNAME, bucketName);
+        doc.append(DISKPOOLID, bt.getDiskPoolId());
+        doc.append(BUCKETID, new Metadata(bt.getName(), "/").getBucketId());
+        doc.append(USERID, bt.getUserId());
+        doc.append(ACL, bt.getAcl());
+        doc.append(REPLICACOUNT, bt.getReplicaCount());
+
+        doc.append(USERNAME, bt.getUserName());
+        doc.append(WEB, "");
+        doc.append(CORS, "");
+        doc.append(LIFECYCLE, "");
+        doc.append(ACCESS, "");
+        doc.append(TAGGING, bt.getTagging());
+        doc.append(REPLICATION, "");
+        doc.append(VERSIONING, "");
+        doc.append(MFADELETE, "");
+
+        doc.append(ENCRYPTION, bt.getEncryption());
+        doc.append(OBJECTLOCK, bt.getObjectLock());
+        doc.append(POLICY, "");
+        doc.append(FILECOUNT, 0L);
+        doc.append(USEDSPACE, 0L);
+        doc.append(CREATETIME, getCurrentDateTime());
+        doc.append(LOGGING, bt.getLogging());
+        doc.append(OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
+
+        buckets.insertOne(doc);
+        database.createCollection(bt.getName());
+        // for index for object collection
+        index = new Document(OBJID, 1);
+        index.append(VERSIONID, 1);
+        index.append(LASTVERSION, 1);
+        index.append(DELETEMARKER, 1);
+        //index.append(OBJKEY, 1);
+        database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+        // wild index for listobjects
+        Document wildIndex = new Document(OBJID + ".$**", 1);
+        database.getCollection(bt.getName()).createIndex(wildIndex); 
+         
+        createObjTagHolder(bt.getName());
         return bt;
     }
 
@@ -480,6 +562,7 @@ public class MongoDataRepository implements DataRepository{
     public int deleteBucket(String bucketName) {
         buckets.deleteOne(Filters.eq(BUCKETNAME, bucketName));
         this.database.getCollection(bucketName).drop();
+        getObjTagIndexCollection(bucketName).drop();
         return 0;
     }
 
@@ -515,6 +598,9 @@ public class MongoDataRepository implements DataRepository{
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
         String logging  = doc.getString(LOGGING);
+        boolean objTagIndexing = false;
+        if (doc.containsKey(OBJECTTAG_INDEXING))
+            objTagIndexing = doc.getBoolean(OBJECTTAG_INDEXING);
         
         Date createTime;
         try {
@@ -549,6 +635,7 @@ public class MongoDataRepository implements DataRepository{
         bt.setFileCount(fileCount);
         bt.setUsedSpace(usedSpace);
         bt.setLogging(logging);
+        bt.setObjectTagIndexEnabled(objTagIndexing);
         return bt;
     }
     
@@ -653,67 +740,13 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException{
         List<Integer> list=new ArrayList<>();
-        /*MongoCollection<Document> multip;
-        String collName;
-        
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
-        if (multip == null)
-            return null;
-        
-        FindIterable fit = multip.find(Filters.and(eq(UPLOADID, uploadid), Filters.gt(PARTNO, partNoMarker)))
-                .limit(maxParts).sort(new BasicDBObject(PARTNO, 1 ));
-     
-        Iterator it = fit.iterator();
-        while((it.hasNext())){
-            Document doc = (Document)it.next();
-            list.add(doc.getInteger(PARTNO));
-        }*/
         return list;
     }
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
-        /*MongoCollection<Document> multip;
-        String collName;
-        String key;
-        String uploadid;
-        long partNo;
-        int counter = 0;
-        boolean isTruncated = false;
-        
-        collName = getMultiPartUploadCollName(bucket);
-        multip = this.database.getCollection(collName);
-        
-        BasicDBObject sortList = new BasicDBObject(OBJKEY, 1 );
-        sortList.append(UPLOADID, 1);
-        sortList.append(PARTNO, 1);
-        FindIterable fit = multip.find((BasicDBObject)query).limit(maxKeys + 1)
-                .sort(sortList);
-     
-        Iterator it = fit.iterator();
-        while((it.hasNext())){
-            Document doc = (Document)it.next();
-            key      = doc.getString(OBJKEY);
-            uploadid = doc.getString(UPLOADID);
-            partNo   = (long )doc.getInteger(PARTNO);
-            ++counter;
-            if (counter == maxKeys){
-                isTruncated =it.hasNext();
-                System.out.println("counter : "+ counter + " max :" + maxKeys + " next :" + isTruncated);
-            }
-            
-            callback.call(key, uploadid, "", partNo, "", "", "", isTruncated);
-            if (isTruncated == true)
-                break;
-        }*/
+ 
     }
-
-    /*@Override
-    public ObjectListParameter selectObjects(String bucketName, Object query, int maxKeys) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
-    }*/
     
     private int updateVersionDelete(String bucketName, String objId){
         MongoCollection<Document> objects;
@@ -769,6 +802,8 @@ public class MongoDataRepository implements DataRepository{
                 updateVersionDelete(bucketName, objId);
             
             updateBucketObjectCount(bucketName, -1);
+           
+            removeObjTag(bucketName, objId, versionId, "");
         }
         return nchange;
     }
@@ -972,6 +1007,16 @@ public class MongoDataRepository implements DataRepository{
         return 0;
     }
     
+    private int updateBucket(String bucketName, String key, boolean value){
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        Document doc =(Document)fit.first();
+        if (doc == null)
+          return -1;
+        
+        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.set(key, value));
+        return 0;
+    }
+    
     private int updateBucketObjectSpaceCount(String bucketName, String key, long value){
         FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         Document doc =(Document)fit.first();
@@ -1020,6 +1065,11 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void updateBucketLogging(Bucket bt) throws SQLException {
         updateBucket(bt.getName(), LOGGING, bt.getLogging());
+    }
+    
+    @Override
+    public void updateBucketObjTagIndexing(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
     }
     
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,
@@ -1230,6 +1280,7 @@ public class MongoDataRepository implements DataRepository{
     public void updateObjectTagging(Metadata mt) throws SQLException {
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), TAG, mt.getTag());
         updateObject(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), META, mt.getMeta());
+        insertObjTag(mt.getBucket(),  mt.getObjId(), mt.getVersionId(), mt.getTag());
     }
 
     @Override
@@ -1435,5 +1486,170 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException {
         return deleteLifeCycle(LIFECYCLESFAILEDEVENTS, lc);
+    }
+    
+    private int insertObjTag(String bucketName, String objId, String versionId, String tags) {
+        Bucket bt;
+        MongoCollection<Document> objTags = getObjTagIndexCollection(bucketName);
+        
+        if (tags == null)
+            return 0;
+        
+        if (tags.isEmpty())
+            return 0;
+        
+        try {
+            bt = selectBucket(bucketName);
+            if (!bt.isObjectTagIndexEnabled())
+                return 0;
+        } catch (ResourceNotFoundException | SQLException ex) {
+            return 0;
+        } 
+        
+        if (objTags == null){
+            //throw new SQLException("[insertObjTag] mongo db holder for object Tags indexing not found!");
+            return 0;
+        }
+        
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null)
+            return 0; // ignore
+        
+        if (tagsJson.isEmpty())
+            return 0; // ignore
+        
+        Document doc = new Document(OBJID, objId);        
+        doc.append(VERSIONID, versionId);
+        
+        
+        Document tagDoc = Document.parse(tagsJson);
+        String key, value;
+        Iterator it = tagDoc.keySet().iterator();
+        while(it.hasNext()){
+            key = (String)it.next();
+            value = tagDoc.getString(key);
+            if (doc.containsKey(TAG_KEY))
+                doc.replace(TAG_KEY, key);
+            else
+                doc.append(TAG_KEY, key);
+            if (doc.containsKey(TAG_VALUE))
+                doc.replace(TAG_VALUE, value);
+            else
+                doc.append(TAG_VALUE, value);
+
+            objTags.insertOne(doc);
+        }
+        return 0;
+    }
+    
+    private int removeObjTag(String bucketName, String objId, String versionId, String tags){
+        MongoCollection<Document> objTags = getObjTagIndexCollection(bucketName);
+        int ret = 0;
+        
+        if (objTags == null){
+            return 0;
+            //throw new SQLException("[removeObjTag] mongo db holder for object Tags indexing not found!");
+        }
+        
+        String tagsJson = convertXML2Json(tags);
+        if (tagsJson == null){
+            objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+            ret++;
+            return ret;
+        }
+        
+        if (tagsJson.isEmpty()){
+            objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+            ret++;
+            return ret;
+        }
+             
+        Document doc = Document.parse(tagsJson);
+        String key;
+        Iterator it = doc.keySet().iterator();
+        if (it.hasNext()){
+            while(it.hasNext()){
+                key = (String)it.next();
+                objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId), eq(TAG_KEY, key)));
+                ret++;
+            }
+        }
+        else{
+            objTags.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+            ret++;
+        }
+        return ret;
+    }
+  
+    @Override 
+    public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxObjects) throws SQLException{
+        MongoCollection<Document> objectsTags;
+        objectsTags = getObjTagIndexCollection(bucketName);
+        BasicDBObject mongoQuery =(BasicDBObject)query;
+       
+        FindIterable<Document> oit = objectsTags.find(mongoQuery).limit(maxObjects);
+        Iterator it = oit.iterator();
+        List<Metadata> list = new ArrayList();
+        while((it.hasNext())){
+            Document doc = (Document)it.next();
+            String objId         = doc.getString(OBJID);
+            String versionid   = doc.getString(VERSIONID);
+            Metadata mt;
+            try {
+                mt = selectSingleObjectInternal(bucketName, objId, versionid);
+                list.add(mt);
+            } catch (ResourceNotFoundException ex) {
+                //Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            }  
+        }
+        return list;
+    }
+    
+    @Override
+    public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException{
+        MongoCollection<Document> objRestore = getRestoreObjCollection();
+        
+        if (request == null)
+            return -1;
+        
+        if (request.isEmpty())
+            return -1;
+         
+        if (objRestore == null){
+            //throw new SQLException("[insertRestoreObjectRequest] mongo db holder for restore objects  not found!");
+            return -1;
+        }
+        
+        Document doc = new Document(BUCKETNAME, bucketName);        
+        doc.append(OBJID, objId);
+        doc.append(OBJKEY, key);
+        doc.append(VERSIONID, versionId);
+        doc.append(OBJRESTORE_REQUEST, request);
+        objRestore.insertOne(doc);
+    
+        return 0;
+    }
+    
+    @Override
+    public String getRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException{
+        MongoCollection<Document> objRestore;
+        String request=null;
+        
+        objRestore = getRestoreObjCollection();
+        FindIterable<Document> oit = objRestore.find(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
+        Iterator it = oit.iterator();
+        if((it.hasNext())){
+            Document doc = (Document)it.next();
+            request      = doc.getString(OBJRESTORE_REQUEST);
+        }
+        return request; 
+    }
+    
+    @Override
+    public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException{
+        MongoCollection<Document> objRestore;
+               
+        objRestore = getRestoreObjCollection();
+        objRestore.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
     }
 }

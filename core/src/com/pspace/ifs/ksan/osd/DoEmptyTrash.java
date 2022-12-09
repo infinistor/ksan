@@ -24,14 +24,15 @@ import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.DiskManager;
-import com.pspace.ifs.ksan.libs.KsanUtils;
+import com.pspace.ifs.ksan.libs.KsanUtils; 
+import com.pspace.ifs.ksan.libs.Constants;
 
 public class DoEmptyTrash implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoEmptyTrash.class);
 
     @Override
     public void run() {
-        logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
+        // logger.info(OSDConstants.LOG_DO_EMPTY_TRASH_START);
         
         if (OSDConfig.getInstance().isCacheDiskpath()) {
             recursiveEmptyCache(OSDConfig.getInstance().getCacheDiskpath());
@@ -39,7 +40,7 @@ public class DoEmptyTrash implements Runnable {
 
         HashMap<String, String> diskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
         diskInfoMap.forEach((diskId, diskPath) -> {
-            String trashDir = diskPath + OSDConstants.SLASH + OSDConstants.TRASH_DIR;
+            String trashDir = diskPath + Constants.SLASH + Constants.TRASH_DIR;
             empty(trashDir);
         });
     }
@@ -50,7 +51,7 @@ public class DoEmptyTrash implements Runnable {
 
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
-                if (files[i].getName().equals(OSDConstants.TRASH_DIR)) {
+                if (files[i].getName().equals(Constants.TRASH_DIR)) {
                     empty(files[i].getAbsolutePath());
                 }
             }

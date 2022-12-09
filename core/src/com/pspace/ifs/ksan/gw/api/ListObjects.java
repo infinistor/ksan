@@ -28,6 +28,7 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
@@ -46,20 +47,20 @@ public class ListObjects extends S3Request {
 
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
-
 		DataListBuckets dataListBuckets = new DataListBuckets(s3Parameter);
 		dataListBuckets.extract();
+
+		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBuckets)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		}
 
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {
@@ -86,7 +87,7 @@ public class ListObjects extends S3Request {
 		logger.debug("marker : {}", dataListBuckets.getMarker());
 		logger.debug("prefix : {}", dataListBuckets.getPrefix());
 		logger.debug("maxKeys : {}", dataListBuckets.getMaxkeys());
-		s3Parameter.getResponse().setCharacterEncoding(GWConstants.CHARSET_UTF_8);
+		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
 		ObjectListParameter objectListParameter = listObject(bucket, s3ObjectList);

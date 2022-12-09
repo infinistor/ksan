@@ -20,6 +20,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataCreateMultipartUpload;
@@ -56,20 +57,18 @@ public class CreateMultipartUpload extends S3Request {
 
 		String object = s3Parameter.getObjectName();
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCreateMultipartUpload)) {
+			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		}
 
 		accessControlPolicy = new AccessControlPolicy();
 		accessControlPolicy.aclList = new AccessControlList();
@@ -91,7 +90,8 @@ public class CreateMultipartUpload extends S3Request {
 										dataCreateMultipartUpload.getGrantFullControl(), 
 										dataCreateMultipartUpload.getGrantReadAcp(), 
 										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter,
+										false);
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();
@@ -169,6 +169,7 @@ public class CreateMultipartUpload extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String metaJson = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			metaJson = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);

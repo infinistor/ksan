@@ -22,6 +22,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.data.DataCreateMultipartUpload;
@@ -52,30 +53,14 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 	@Override
 	public void process() throws GWException {
-		logger.info(GWConstants.LOG_CREATE_MULTIPART_UPLOAD_START);
+		logger.info(GWConstants.LOG_ADMIN_CREATE_MULTIPART_UPLOAD_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
 		String object = s3Parameter.getObjectName();
 
-		S3Bucket s3Bucket = new S3Bucket();
-		s3Bucket.setCors(getBucketInfo().getCors());
-		s3Bucket.setAccess(getBucketInfo().getAccess());
-		s3Parameter.setBucket(s3Bucket);
 		GWUtils.checkCors(s3Parameter);
-
-        S3User user = S3UserManager.getInstance().getUserByName(getBucketInfo().getUserName());
-        if (user == null) {
-            throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-        }
-        s3Parameter.setUser(user);
-
-		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
-
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
@@ -87,20 +72,36 @@ public class KsanCreateMultipartUpload extends S3Request {
 		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
 		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
 
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		// String xml = getBucketInfo().getAcl();
+		// String xml = GWUtils.makeAclXml(accessControlPolicy, 
+		// 								null, 
+		// 								dataCreateMultipartUpload.hasAclKeyword(), 
+		// 								null, 
+		// 								dataCreateMultipartUpload.getAcl(),
+		// 								getBucketInfo(),
+		// 								getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
+		// 								getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
+		// 								dataCreateMultipartUpload.getGrantRead(),
+		// 								dataCreateMultipartUpload.getGrantWrite(), 
+		// 								dataCreateMultipartUpload.getGrantFullControl(), 
+		// 								dataCreateMultipartUpload.getGrantReadAcp(), 
+		// 								dataCreateMultipartUpload.getGrantWriteAcp(),
+		// 								s3Parameter,
+		// 								false);
+		String xml = GWUtils.makeAdmAclXml(accessControlPolicy, 
 										null, 
 										dataCreateMultipartUpload.hasAclKeyword(), 
 										null, 
 										dataCreateMultipartUpload.getAcl(),
 										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
+										getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
+										getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
 										dataCreateMultipartUpload.getGrantRead(),
 										dataCreateMultipartUpload.getGrantWrite(), 
 										dataCreateMultipartUpload.getGrantFullControl(), 
 										dataCreateMultipartUpload.getGrantReadAcp(), 
 										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter);
+										s3Parameter);										
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();
@@ -122,8 +123,8 @@ public class KsanCreateMultipartUpload extends S3Request {
 		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 		
 		S3Metadata s3Metadata = new S3Metadata();
-		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
-		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
+		s3Metadata.setOwnerId(getBucketInfo().getUserId());
+		s3Metadata.setOwnerName(getBucketInfo().getUserName());
 		s3Metadata.setServersideEncryption(serverSideEncryption);
 		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		s3Metadata.setCustomerKey(customerKey);
@@ -178,6 +179,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		String metaJson = "";
 		try {
+			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 			metaJson = jsonMapper.writeValueAsString(s3Metadata);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
@@ -198,7 +200,6 @@ public class KsanCreateMultipartUpload extends S3Request {
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
 			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
-			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

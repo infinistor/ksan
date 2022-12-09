@@ -14,26 +14,19 @@
 import os, sys
 import pdb
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.utils import IsDaemonRunning, CreatePidFile
-from common.init import UpdateConf, isValidConfig, WaitAgentConfComplete, GetAgentConfig
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
+#sys.path.insert(1, os.getcwd())
+#sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from network.network_mq_handle import *
-from common.daemon import Daemon
-from common.shcommand import UpdateEtcHosts, shcall
-from service.service_manage import *
-from service.service_mq_handle import ServiceMonitoring
+from service.service_manage import ServiceMonitoring
 from server.server_mq_handle import MonUpdateServerUsage
 from disk.disk_mq_handle import DiskUsageMonitoring, ReportDiskIo
-from const.mq import EdgeRoutingKeyList
-from const.common import *
 from const.network import RequestNetworkInterfaceItems
-from mqmanage.mq import *
-from rest.server import StartRestServer
-import time
-from optparse import OptionParser
-import threading
-import logging
-import inspect
+from mqmanage.mq import Mq
+from rest.agent_api_server import StartRestServer
+from const.common import *
 
 # Check Network Info
 
@@ -248,7 +241,7 @@ def RegisterManagementNetwork(logger):
             break
 
     if isNetworkAdded is True:
-        RegisterService(conf, TypeServiceAgent, logger)
+        RegisterService(conf, KsanAgentName, logger, ServiceNicname='Agent')
 
 
 

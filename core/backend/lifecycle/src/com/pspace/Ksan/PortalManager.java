@@ -94,7 +94,7 @@ public class PortalManager {
 	}
 
 	private String GetConfigURL() {
-		return String.format("%s/api/v1/Config/KsanLifecycle", GetURL());
+		return String.format("%s/api/v1/Config/KsanLifecycleManager", GetURL());
 	}
 
 	private String GetRegionURL(String RegionName) {

@@ -33,6 +33,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
     public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
+	public static final String MQUEUE_LOG_EXCHANGE_NAME = "ksan.log";
 
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
@@ -50,6 +51,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_ADDED_ROUTING_KEY = "*.services.added";
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
+	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
@@ -74,6 +76,11 @@ public final class GWConstants {
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
 	public static final String PERFORMANCE_MODE_NO_DISK = "NO_DISK";
 	public static final String PERFORMANCE_MODE_NO_REPLICA = "NO_REPLICA";
+	public static final String PERFORMANCE_MODE_NO_OPERATION = "NO_OPERATION";
+	public static final String PERFORMANCE_MODE_PREV = "PREV";
+	public static final String PERFORMANCE_MODE_DB_OP = "DB_OPERATION";
+	public static final String PERFORMANCE_MODE_S3_OPERATION = "S3_OPERATION";
+
 	public static final int JETTY_MAX_THREADS = 1000;
 	public static final int JETTY_MAX_IDLE_TIMEOUT = 30000;
 	public static final long MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024;
@@ -137,12 +144,6 @@ public final class GWConstants {
 	public static final String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
-	public static final String OBJ_DIR = "obj";
-	public static final String TEMP_DIR = "temp";
-	public static final String TEMP_COMPLETE_DIR = "temp/complete";
-	public static final String TEMP_COPY_DIR = "temp/copy";
-	public static final String TRASH_DIR = "trash";
-	public static final String EC_DIR = "ec";
 	public static final int RETRY_COUNT = 3;
 
 	public static final String METHOD_PUT = "PUT";
@@ -155,6 +156,7 @@ public final class GWConstants {
 	public static final String STRING_TRUE = "TRUE";
 	public static final String STRING_FALSE = "FALSE";
 	public static final String ALLOW = "Allow";
+	public static final String DENY = "Deny";
 	public static final String STRING_ERROR = "Error";
 	public static final String CODE = "Code";
 	public static final String MESSAGE = "Message";
@@ -237,6 +239,8 @@ public final class GWConstants {
 	public static final String VERSIONING_DISABLE_TAIL = "null";
 	public static final String GOVERNANCE = "GOVERNANCE";
 	public static final String COMPLIANCE = "COMPLIANCE";
+	public static final String ON = "ON";
+	public static final String OFF = "OFF";
 
 	public static final String S3_ARN = "arn:aws:s3";
 	public static final String HTTP = "http://";
@@ -260,6 +264,7 @@ public final class GWConstants {
 	public static final String PARAMETER_LIFECYCLE = "lifecycle";
 	public static final String PARAMETER_PUBLIC_ACCESS_BLOCK = "publicAccessBlock";
 	public static final String PARAMETER_TAGGING = "tagging";
+	public static final String PARAMETER_TAG_INDEX = "tag-index";
 	public static final String PARAMETER_ENCRYPTION = "encryption";
 	public static final String PARAMETER_OBJECT_LOCK = "object-lock";
 	public static final String PARAMETER_REPLICATION = "replication";
@@ -273,6 +278,7 @@ public final class GWConstants {
 	public static final String PARAMETER_VERSIONING = "versioning";
 	public static final String PARAMETER_LIST_TYPE = "list-type";
 	public static final String PARAMETER_VERSIONS = "versions";
+	public static final String PARAMETER_LIST_TAG_SEARCH = "list-tag-search";
 	public static final String PARAMETER_RETENTION = "retention";
 	public static final String PARAMETER_LEGAL_HOLD = "legal-hold";
 	public static final String PARAMETER_DELETE = "delete";
@@ -281,6 +287,7 @@ public final class GWConstants {
 	public static final String PARAMETER_COPY_SOURCE = "x-amz-copy-source";
 	public static final String PARAMETER_TORRENT = "torrent";
 	public static final String PARAMETER_VERSION_ID = "versionId";
+	public static final String PARAMETER_RESTORE = "restore";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";
@@ -355,6 +362,30 @@ public final class GWConstants {
 
 	public static final String ACTION_BYPASS_GOVERNANCE_RETENTION = "s3:BypassGovernanceRetention";
 	
+	// policy condition keys constatns
+	public static final String KEY_AUTH_TYPE = "s3:authType";
+	public static final String KEY_DELIMITER = "s3:delimiter";
+	public static final String KEY_MAXKYES = "s3:max-keys";
+	public static final String KEY_PREFIX = "s3:prefix";
+	public static final String KEY_X_AMZ_CONTENT_SHA256 = "s3:x-amz-content-sha256";
+	public static final String KEY_EXISTING_OBJECT_TAG = "s3:ExistingObjectTag";
+
+	public static final String KEY_X_AMZ_ACL = "s3:x-amz-acl";
+	public static final String KEY_X_AMZ_COPY_SOURCE = "s3:x-amz-copy-source";
+	public static final String KEY_X_AMZ_GRANT_FULL_CONTROL = "s3:x-amz-grant-full-control";
+	public static final String KEY_XAMZ_GRANT_READ = "s3:x-amz-grant-read";
+	public static final String KEY_X_AMZ_GRANT_READ_ACP = "s3:x-amz-grant-read-acp";
+	public static final String KEY_X_AMZ_GRANT_WRITE = "s3:x-amz-grant-write";
+	public static final String KEY_X_AMZ_GRANT_WRITE_ACP = "s3:x-amz-grant-write-acp";
+	public static final String KEY_X_AMZ_METADATA_DIRECTIVE = "s3:x-amz-metadata-directive";
+	public static final String KEY_X_AMZ_SERVER_SIDE_ENCRYPTION = "s3:x-amz-server-side-encryption";
+	public static final String KEY_X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID = "s3:x-amz-server-side-encryption-aws-kms-key-id";
+	public static final String KEY_X_AMZ_STORAGE_CLASS = "s3:x-amz-storage-class";
+	public static final String KEY_X_AMZ_WEBSITE_REDIRECT_LOCATION = "s3:x-amz-website-redirect-location";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_MODE = "s3:x-amz-object-lock-mode";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE = "s3:x-amz-object-lock-retain-until-date";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_REMAINING_RETENTION_DAYS = "s3:x-amz-object-lock-remaining-retention-days";
+	public static final String KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD = "s3:x-amz-object-lock-legal_hold";
 
 	public static final String CHARSET_UTF_8 = "UTF-8";
 	public static final String CHARSET_UTF_8_LOWER = "utf-8";
@@ -364,6 +395,7 @@ public final class GWConstants {
 	public static final String ISO_8601_TIME_SIMPLE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String ISO_8601_TIME_FORMAT_MILI = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	public static final String LIFECYCLE_CONTAIN_TIME = "T00:00:00";
+	public static final String LOG_8601_DATE = "8601date : {}";
 
 	public static final String HMAC_SHA1 = "HmacSHA1";
 	public static final String AWS4_HMAC_SHA256 = "AWS4-HMAC-SHA256";
@@ -443,6 +475,7 @@ public final class GWConstants {
 	public static final String X_AMZ_COPY_SOURCE_RANGE = "x-amz-copy-source-range";
 	public static final String X_AMZ_VERSION_ID = "x-amz-version-id";
 	public static final String X_AMZ_DELETE_MARKER = "x-amz-delete-marker";
+	public static final String X_AMZ_SDK_CHECKSUM_ALGORITHM = "x-amz-sdk-checksum-algorithm";
 
 	public static final String USER_METADATA_PREFIX = "x-amz-meta-";
 
@@ -492,6 +525,7 @@ public final class GWConstants {
 	public static final String KEY_MARKER = "key-marker";
 	public static final String MAX_UPLOADS = "max-uploads";
 	public static final String UPLOAD_ID_MARKER = "upload-id-marker";
+	public static final String TAG = "tag";
 	
 	public static final String CONTINUATION_TOKEN = "continuation-token";
 	public static final String FETCH_OWNER = "fetch-owner";
@@ -609,6 +643,9 @@ public final class GWConstants {
 	public static final String VERSION_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></VersioningConfiguration>";
 	public static final String VERSION_CONFIGURATION_XMLNS_SUSPENDED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Suspended</Status></VersioningConfiguration>";
 
+	public static final String TAG_INDEX_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Disabled</Status></TagIndexingConfiguration>";
+	public static final String TAG_INDEX_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></TagIndexingConfiguration>";
+
 	public static final String TAGGING = "Tagging";
 	public static final String TAG_SET = "TagSet";
 	public static final String TAG_SET_ASSIGN = "tagset=";
@@ -616,6 +653,7 @@ public final class GWConstants {
 	public static final String XML_TYPE = "type";
 
 	public static final String LIST_BUCKET_RESULT = "ListBucketResult";
+	public static final String LIST_BUCKET_TAG_SEARCH = "ListBucketTagSearchResult";
 	public static final String LIST_VERSIONS_RESULT = "ListVersionsResult";
 	public static final String LIST_ALL_MY_BUCKETS_RESULT = "ListAllMyBucketsResult";
 	public static final String RETENTION = "Retention";
@@ -631,6 +669,7 @@ public final class GWConstants {
 	public static final String KMS_MASTERKEY_ID = "KMSMasterKeyID";
 	public static final String BUCKET_KEY_ENABLED = "BucketKeyEnabled";
 	public static final String OBJECT_LOCK_ENABLED = "ObjectLockEnabled";
+	public static final String LEGAL_HOLD = "LegalHold";
 	public static final String DEFAULT_RETENTION = "DefaultRetention";
 	public static final String ACCESS_CONTROL_LIST = "AccessControlList";
 	public static final String DELETE_MARKER_REPLICATION = "DeleteMarkerReplication";
@@ -744,6 +783,7 @@ public final class GWConstants {
 	public static final String LEFT_BRACE = "{";
 	public static final String RIGHT_BRACE = "}";
 	public static final String ACCESS_OW = "\"ow\":";
+	public static final String ACCESS_OW_EMPTY = "\"ow\":{}";
 	public static final String ACCESS_ACS = ",\"acs\":";
 	public static final String ACCESS_ID = "\"id\":";
 	public static final String ACCESS_COMMA_ID = ",\"id\":";
@@ -842,7 +882,8 @@ public final class GWConstants {
 	public static final int RANGE_LENGTH_INDEX = 1;
 
 	public static final String UTILITY_EXCHANGE_KEY = "UtilityExchange";
-	public static final String MESSAGE_QUEUE_OPTION = "fanout";
+	public static final String MESSAGE_QUEUE_OPTION_FANOUT = "fanout";
+	public static final String MESSAGE_QUEUE_OPTION_DIRECT = "direct";
 
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
@@ -889,6 +930,7 @@ public final class GWConstants {
 
 	// CompleteMultipartUpload
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_START = "CompleteMultipartUpload ...";
+	public static final String LOG_ADMIN_COMPLETE_MULTIPART_UPLOAD_START = "AdmCompleteMultipartUpload ...";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_PART_NO_EXIST = ": upload part doesn't exist";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_XML_PARTS_SIZE = "xml parts size : {}";
 	public static final String LOG_COMPLETE_MULTIPART_UPLOAD_PARTS_SIZE = "parts size : {}";
@@ -920,6 +962,7 @@ public final class GWConstants {
 
 	// CreateMultipartUpload
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_START = "CreateMultipartUpload ...";
+	public static final String LOG_ADMIN_CREATE_MULTIPART_UPLOAD_START = "AdmCreateMultipartUpload ...";
 	public static final String LOG_CREATE_MULTIPART_UPLOAD_FAILED = "object insert failed(CreateMultipartUpload). bucket={}, object={}";
 
 	// DeleteBucket
@@ -946,11 +989,15 @@ public final class GWConstants {
 	// DeleteBucketTagging
 	public static final String LOG_DELETE_BUCKET_TAGGING_START = "DeleteBucketTagging ...";
 
+	// DeleteBucketTagIndex
+	public static final String LOG_DELETE_BUCKET_TAG_INDEX_START = "DeleteBucketTagIndex ...";
+
 	// DeleteBucketWebsite
 	public static final String LOG_DELETE_BUCKET_WEBSITE_START = "DeleteBucketWebsite ...";
 
 	// DeleteObject
 	public static final String LOG_DELETE_OBJECT_START = "DeleteObject ...";
+	public static final String LOG_ADMIN_DELETE_OBJECT_START = "AdmDeleteObject ...";
 	public static final String LOG_DELETE_OBJECT = "delete : {}/{}";
 	public static final String LOG_DELETE_OBJECT_INFO = "versionId : {}, isLastVersion : {}, deleteMarker : {}";
 	public static final String LOG_DELETE_OBJECT_BUCKET_VERSIONING = "bucket versioning : {}";
@@ -969,12 +1016,14 @@ public final class GWConstants {
 
 	// DeleteObjectTagging
 	public static final String LOG_DELETE_OBJECT_TAGGING_START = "DeleteObjectTagging ...";
+	public static final String LOG_ADMIN_DELETE_OBJECT_TAGGING_START = "AdmDeleteObjectTagging ...";
 
 	// DeleteBucketPublicAccessBlock
 	public static final String LOG_DELETE_BUCKET_PUBLIC_ACCESS_BLOCK_START = "DeleteBucketPublicAccessBlock ...";
 
 	// GetBucketAcl
 	public static final String LOG_GET_BUCKET_ACL_START = "GetBucketAcl ...";
+	public static final String LOG_ADMIN_GET_BUCKET_ACL_START = "AdmGetBucketAcl ...";
 
 	// GetBucketCors
 	public static final String LOG_GET_BUCKET_CORS_START = "GetBucketCors ...";
@@ -1009,18 +1058,30 @@ public final class GWConstants {
 	// GetBucketTagging
 	public static final String LOG_GET_BUCKET_TAGGING_START = "GetBucketTagging ...";
 
+	// GetBucketTagIndex
+	public static final String LOG_GET_BUCKET_TAG_INDEX_START = "GetBucketTagIndex ...";
+
 	// GetBucketVersioning
 	public static final String LOG_GET_BUCKET_VERSIONING_START = "GetBucketVersioning ...";
 	public static final String LOG_GET_BUCKET_VERSIONING = "bucket({}) versioning : {}";
 	public static final String LOG_GET_BUCKET_VERSIONING_WRONG = "not defined versioning status: {}";
 	public static final String LOG_GET_BUCKET_VERSIONING_XML = "xml : {}";
 
+	// GetBucketTagIndexing
+	public static final String LOG_GET_BUCKET_TAG_INDEX_XML = "xml : {}";
+
 	// GetBucketWebsite
 	public static final String LOG_GET_BUCKET_WEBSITE_START = "GetBucketWebsite ...";
 	public static final String LOG_GET_BUCKET_WEBSITE = "web : {}";
 
+	// GetBucketLogging
+	public static final String LOG_GET_BUCKET_LOGGING_START = "GetBucketLogging ...";
+	public static final String LOG_GET_BUCKET_LOGGING = "logging : {}";
+	public static final String LOG_GET_BUCKET_LOGGING_EMPTY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<BucketLoggingStatus xmlns=\"http://doc.s3.amazonaws.com/2006-03-01\"/>";
+
 	// GetObjcet
 	public static final String LOG_GET_OBJECT_START = "GetObjcet ...";
+	public static final String LOG_ADMIN_GET_OBJECT_START = "AdmGetObjcet ...";
 	public static final String LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH = "encryption-customer-key does not match";
 	public static final String LOG_GET_OBJECT_IF_MATCH_ETAG = "source etag : {}, IfMatch : {}";
 	public static final String LOG_GET_OBJECT_IF_NONE_MATCH_ETAG = "source etag : {}, IfNoneMatch : {}";
@@ -1032,12 +1093,17 @@ public final class GWConstants {
 
 	// GetObjectAcl
 	public static final String LOG_GET_OBJECT_ACL_START = "GetObjectAcl ...";
+	public static final String LOG_ADMIN_GET_OBJECT_ACL_START = "AdmGetObjectAcl ...";
 	
 	// GetObjectRetention
 	public static final String LOG_GET_OBJECT_RETENTION_START = "GetObjectRetention ...";
 
+	// GetObjectLockConfiguration
+	public static final String LOG_GET_OBJECT_LOCK_CONFIGURATION_START = "GetObjectLockConfiguration ...";
+
 	// GetObjectTagging
 	public static final String LOG_GET_OBJECT_TAGGING_START = "GetObjectTagging ...";
+	public static final String LOG_ADMIN_GET_OBJECT_TAGGING_START = "AdmGetObjectTagging ...";
 
 	// GetPublicAccessBlock
 	public static final String LOG_GET_PUBLIC_ACCESS_BLOCK_START = "GetPublicAccessBlock ...";
@@ -1047,11 +1113,14 @@ public final class GWConstants {
 
 	// HeadObject
 	public static final String LOG_HEAD_OBJECT_START = "HeadObject ...";
+	public static final String LOG_ADMIN_HEAD_OBJECT_START = "AdmHeadObject ...";
 
 	// ListBuckets
 	public static final String LOG_LIST_BUCKETS_START = "ListBuckets ...";
 	public static final String LOG_LIST_BUCKETS_SIZE = "bucket list size : {}";
 	public static final String LOG_LIST_BUCKETS_INFO = "{}, {}";
+
+	// ListBucketTag
 
 	// ListMultipartUploads
 	public static final String LOG_LIST_MULTIPART_UPLOADS_START = "ListMultipartUploads ...";
@@ -1063,6 +1132,8 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_START = "ListObject ...";
 	public static final String LOG_LIST_OBJECT_PREFIX_ENCODING = "prefix, encoding type : {}, {}";
 
+	// ListBucketTagSearch
+	public static final String LOG_LIST_BUCKET_TAG_SEARCH_START = "ListBucketTagSearch ...";
 	// ListObjectV2
 	public static final String LOG_LIST_OBJECT_V2_START = "ListObjectV2 ...";
 
@@ -1071,6 +1142,7 @@ public final class GWConstants {
 	public static final String LOG_LIST_OBJECT_VERSIONS_MAXKEYS = "maxKeys = {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_KEY_COUNT = "key count : {}";
 	public static final String LOG_LIST_OBJECT_VERSIONS_INFO = "object : {}, lastModified : {}, versionId : {}";
+	public static final String LOG_LIST_OBJECT_VERSIONS_MARKER = "deleteMarker : {}, lastModified : {}, versionId : {}";
 
 	// ListParts
 	public static final String LOG_LIST_PARTS_START = "ListParts ...";
@@ -1097,7 +1169,7 @@ public final class GWConstants {
 	public static final String LOG_PUT_BUCKET_LIFECYCLE_XML = "lifecycle : {}";
 
 	// PutBucketObjectLock
-	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutObjectLockConfiguration ...";
+	public static final String LOG_PUT_BUCKET_OBJECT_LOCK_START = "PutBucketObjectLock ...";
 	public static final String LOG_PUT_BUCKET_OBJECT_LOCK = "ObjectLock : {}";
 
 	// PutBucketPolicy
@@ -1142,14 +1214,22 @@ public final class GWConstants {
 	public static final String LOG_PUT_BUCKET_TAGGING_START = "PutBucketTagging ...";
 	public static final String LOG_PUT_BUCKET_TAGGING = "tagging xml : {}";
 
+	// PutBucketTagIndex
+	public static final String LOG_PUT_BUCKET_TAG_INDEX_START = "PutBucketTagIndex ...";
+	public static final String LOG_PUT_BUCKET_TAG_INDEX = "tagIndex xml : {}";
+
 	// PutBucketVersioning
 	public static final String LOG_PUT_BUCKET_VERSIONING_START = "PutBucketVersioning ...";
 
 	// PutBucketWebsite
 	public static final String LOG_PUT_BUCKET_WEBSITE_START = "PutBucketWebsite ...";
 
+	// PutBucketLogging
+	public static final String LOG_PUT_BUCKET_LOGGING_START = "PutBucketLogging ...";
+
 	// PutObject
 	public static final String LOG_PUT_OBJECT_START = "PutObject ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_START = "AdmPutObject ...";
 	public static final String LOG_PUT_OBJECT_HASHCODE_ILLEGAL = "HashCode Illegal";
 	public static final String LOG_PUT_OBJECT_TAGGING_KEY_LENGTH = "key length : {}";
 	public static final String LOG_PUT_OBJECT_TAGGING_VALUE_LENGTH = "key value length : {}";
@@ -1163,18 +1243,26 @@ public final class GWConstants {
 	
 	// PutObjectAcl
 	public static final String LOG_PUT_OBJECT_ACL_START = "PutObjectAcl ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_ACL_START = "AdmPutObjectAcl ...";
+
+	// PutObjectLegalHold
+	// PutObjectRetention
+	public static final String LOG_PUT_OBJECT_LEGALHOLD_START = "PutObjectLegalHold ...";
 
 	// PutObjectRetention
 	public static final String LOG_PUT_OBJECT_RETENTION_START = "PutObjectRetention ...";
+	public static final String LOG_CUR_NEW_DATE = "cur : {}, new : {}";
 
 	// PutObjectTagging
 	public static final String LOG_PUT_OBJECT_TAGGING_START = "PutObjectTagging ...";
+	public static final String LOG_ADMIN_PUT_OBJECT_TAGGING_START = "AdmPutObjectTagging ...";
 
 	// PutBucketPublicAccessBlock
 	public static final String LOG_PUT_BUCKET_PUBLIC_ACCESS_BLOCK_START = "PutBucketPublicAccessBlock ...";
 
 	// UploadPart
 	public static final String LOG_UPLOAD_PART_START = "UploadPart ...";
+	public static final String LOG_ADMIN_UPLOAD_PART_START = "AdmUploadPart ...";
 	public static final String LOG_UPLOAD_PART_WRONG_PART_NUMBER = " : Part number must be an integer between 1 and 10000, inclusive";
 	public static final int MAX_PARTS_SIZE = 10000;
 	public static final String ARGMENT_NAME = "ArgumentName";
@@ -1186,6 +1274,9 @@ public final class GWConstants {
 	public static final String LOG_UPLOAD_PART_COPY_START = "UploadPartCopy ...";
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE = "copySource : {}";
 	public static final String LOG_UPLOAD_PART_COPY_SOURCE_RANGE = "copy source range : {}, file size : {}";
+
+	// RestoreObject
+	public static final String LOG_RESTORE_OBJECT_START = "RestoreObject ...";
 
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
@@ -1201,6 +1292,7 @@ public final class GWConstants {
 	public static final String LOG_UTILS_TIME_SKEWED = "time skewed : {}, now : {}";
 	public static final String LOG_UTILS_UNDEFINED_DB = "undefined db repository.";
 	public static final String LOG_UTILS_KEY = "key : {}";
+	public static final String LOG_UTILS_HAS_KEYWORD_ACL = "has keyword : {}";
 	public static final String LOG_UTILS_SOURCE_ACL = "source acl : {}";
 	public static final String LOG_UTILS_CANNED_ACL = "cannedAcl : {}";
 	public static final String LOG_UTILS_ACL_XML = "aclXml : {}";
@@ -1232,6 +1324,7 @@ public final class GWConstants {
 	public static final String LOG_DATA_PART_NUMBER_MARKER_NULL = "partNumberMarker is null or empty";
 	public static final String LOG_DATA_LIFECYCLE_R1_STATUS = "rl.status : {}";
 	public static final String LOG_DATA_LIFECYCLE_LCC_RULE_SIZE = "lcc.rules.size : {}, id.size : {}";
+	public static final String LOG_DATA_TAG_NULL = "tag is null or empty";
 
 	// ObjManagerHelper
 	public static final String LOG_OBJMANAGER_COUNT = "objManager count : {}";
@@ -1262,11 +1355,11 @@ public final class GWConstants {
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
-	public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
-	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
-	public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
-	public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
-	public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
+	// public static final String FILE_ATTRIBUTE_REPLICATION = "replication";
+	// public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID = "replica-diskid";
+	// public static final String FILE_ATTRUBUTE_REPLICATION_PRIMARY = "primary";
+	// public static final String FILE_ATTRIBUTE_REPLICATION_REPLICA = "replica";
+	// public static final String FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL = "null";
 	public static final String LOG_S3OBJECT_OPERATION_FILE_SIZE = "get obeject file size : {}";
 	public static final String LOG_S3OBJECT_OPERATION_RANGE = "offset : {}, length : {}";
 	public static final String LOG_S3OBJECT_OPERATION_OBJECT_PRIMARY_INFO = "obj primary : {}";
@@ -1287,11 +1380,6 @@ public final class GWConstants {
 	public static final String LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE = "copySourceRange : {}";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_IP_NULL = "diskid : {} -> ip is null. check disk pool";
 	public static final String LOG_S3OBJECT_OPERATION_DISK_PATH_NULL = "diskid : {} -> path is null. check disk pool";
-	public static final String ZUNFEC = "zunfec -o ";
-	public static final String ZFEC_0 = ".0_4.fec";
-	public static final String ZFEC_1 = ".1_4.fec";
-	public static final String ZFEC_2 = ".2_4.fec";
-	public static final String ZFEC_3 = ".3_4.fec";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND = "command : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE = "DECODE EC : {}";
 	public static final String LOG_S3OBJECT_OPERATION_ZUNFEC_DECODE_EXIT_VALUE = "DECODE exit : {}";
@@ -1379,4 +1467,35 @@ public final class GWConstants {
 	public static final String GWPORTAL_RECEIVED_USER_REMOVED = "removed";
 	public static final String LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY = "wrong routingKey : {}";
 	public static final String LOG_GWPORTAL_RECEIVED_USER_DATA = "Id:{}, Name:{}, Email:{}, AccessKey:{}, SecretKey:{}";
+
+	// log
+	public static final String GW_LOG_USER_NAME = "UserName";
+	public static final String GW_LOG_BUCKET_NAME = "BucketName";
+	public static final String GW_LOG_DATE = "Date";
+	public static final String GW_LOG_REMOTE_HOST = "RemoteHost";
+	public static final String GW_LOG_REQUEST_USER = "RequestUser";
+	public static final String GW_LOG_REQUEST_ID = "RequestId";
+	public static final String GW_LOG_OPERATION = "Operation";
+	public static final String GW_LOG_OBJECT_NAME = "ObjectName";
+	public static final String GW_LOG_REQUEST_URI = "RequestURI";
+	public static final String GW_LOG_STATUS_CODE = "StatusCode";
+	public static final String GW_LOG_ERROR_CODE = "ErrorCode";
+	public static final String GW_LOG_RESPONSE_LENGTH = "ResponseLength";
+	public static final String GW_LOG_OBJECT_LENGTH = "ObjectLength";
+	public static final String GW_LOG_TOTAL_TIME = "TotalTime";
+	public static final String GW_LOG_REQUEST_LENGTH = "RequestLength";
+	public static final String GW_LOG_REFERER = "Referer";
+	public static final String GW_LOG_USER_AGENT = "UserAgent";
+	public static final String GW_LOG_VERSION_ID = "VersionId";
+	public static final String GW_LOG_HOST_ID = "HostId";
+	public static final String GW_LOG_SIGN = "Sign";
+	public static final String GW_LOG_SSL_GROUP = "SSLGroup";
+	public static final String GW_LOG_SIGN_TYPE = "SignType";
+	public static final String GW_LOG_END_POINT = "EndPoint";
+	public static final String GW_LOG_TLS_VERSION = "TLSVersion";
+
+	public static final String LOG_KEY = "key : {}";
+	public static final String LOG_VALUE = "value : {}";
+	public static final String LOG_T_KEY = "t.key : {}";
+	public static final String LOG_T_VALUE = "t.value : {}";
 }
