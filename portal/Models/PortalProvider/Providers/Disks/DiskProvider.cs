@@ -220,40 +220,45 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Id.IsEmpty())
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_ID);
 
-				// 서버 아이디가 존재하고 유효한 Guid가 아닌 경우
+				// 서버를 변경할 경우
 				Guid ServerGuid = Guid.Empty;
-				if (!Request.ServerId.IsEmpty() && !Guid.TryParse(Request.ServerId, out ServerGuid))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
-
-				// 서버 아이디가 유효한 경우
-				if (ServerGuid != Guid.Empty)
+				if (!Request.ServerId.IsEmpty())
 				{
-					// 해당 서버 정보를 가져온다.
-					var Server = await this.m_dbContext.Servers.AsNoTracking()
-						.Where(i => i.Id == ServerGuid)
-						.FirstOrDefaultAsync();
+					//서버 정보를 가져온다.
+					Server Server = null;
 
-					// 해당 서버가 존재하지 않는 경우
+					// Guid일 경우
+					if (Guid.TryParse(Request.ServerId, out ServerGuid))
+						Server = await this.m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == ServerGuid);
+					// 이름일 경우
+					else
+						Server = await m_dbContext.Servers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.ServerId);
+
+					//유효한 서버가 아닐 경우
 					if (Server == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.UL_COMMON__NO_SERVER);
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_SERVER_ID);
+
+					ServerGuid = Server.Id;
 				}
 
-				// 디스크 풀 아이디가 존재하고 유효한 Guid가 아닌 경우
+				// 디스크 풀을 변경할 경우
 				Guid DiskPoolGuid = Guid.Empty;
-				if (!Request.DiskPoolId.IsEmpty() && !Guid.TryParse(Request.DiskPoolId, out DiskPoolGuid))
-					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_INVALID_DISK_POOL_ID);
-
-				// 디스크 풀 아이디가 유효한 경우
-				if (DiskPoolGuid != Guid.Empty)
+				if (!Request.DiskPoolId.IsEmpty())
 				{
-					// 해당 디스크 풀 정보를 가져온다.
-					var DiskPool = await this.m_dbContext.DiskPools.AsNoTracking()
-						.Where(i => i.Id == DiskPoolGuid)
-						.FirstOrDefaultAsync();
+					// 디스크 풀 정보를 가져온다.
+					DiskPool DiskPool = null;
+					// Id로 조회할경우
+					if (Guid.TryParse(Request.DiskPoolId, out DiskPoolGuid))
+						DiskPool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskPoolGuid);
+					// 이름으로 조회할 경우
+					else
+						DiskPool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == Request.DiskPoolId);
 
-					// 해당 디스크 풀이 존재하지 않는 경우
+					// 디스크 풀이 존재하지 않는 경우
 					if (DiskPool == null)
-						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+
+					DiskPoolGuid = DiskPool.Id;
 				}
 
 				// 해당 정보를 가져온다.
@@ -278,7 +283,11 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist.Path != Request.Path)
 				{
 					// 디스크가 이미 마운트되어 있는지 확인 요청
-					var Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path }, 10);
+					ResponseData Response;
+					if (ServerGuid != Guid.Empty)
+						Response = SendRpcMq($"*.servers.{ServerGuid}.disks.check_mount", new { ServerId = ServerGuid, Request.Path }, 10);
+					else
+						Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, Request.Path }, 10);
 
 					// 실패인 경우
 					if (Response.Result != EnumResponseResult.Success)

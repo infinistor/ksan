@@ -247,7 +247,7 @@ namespace PortalSvr.Services
 					if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
 					//gw 서비스가 등록되지 않은 경우 등록한다.
-					var GWName = "gw1";
+					var GWName = "GW1";
 					var GW = await m_serviceProvider.Get(GWName);
 					if (GW == null || GW.Result != EnumResponseResult.Success)
 					{
@@ -266,7 +266,7 @@ namespace PortalSvr.Services
 					}
 
 					//osd 서비스가 등록되지 않은 경우 등록한다.
-					var OSDName = "osd1";
+					var OSDName = "OSD1";
 					var OSD = await m_serviceProvider.Get(OSDName);
 					if (OSD == null || OSD.Result != EnumResponseResult.Success)
 					{
