@@ -39,6 +39,7 @@ KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 �
 현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO)를 참조해 주십시오.
 
 ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
+
 ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다.
 
 <br><br>
