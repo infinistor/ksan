@@ -13,12 +13,10 @@
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.shcommand import shcall
-from server.server_manage import *
-from disk.diskpool_manage import GetDefaultDiskPool
-from const.http import ResponseHeaderModule
-from const.user import AddUserObject, S3UserObjectModule, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from const.common import *
+from common.utils import *
 
 
 def GetAttrUtilHandler(Conf, Action, Parser, logger):
@@ -35,15 +33,22 @@ def GetAttrUtilHandler(Conf, Action, Parser, logger):
         sys.exit(-1)
 
     if Action.lower() == 'getattr':
-        if not (options.BucketName or options.Key):
+        if len(args) != 2:
+            Parser.print_help()
+            print('bucket name is required')
+            sys.exit(-1)
+
+        BucketName = args[1]
+
+        if not (options.ObjectId or options.Key):
             Parser.print_help()
             sys.exit(-1)
 
-        GetAttrCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceGetAttr)
-        GetAttrCmd += '--BucketName %s' % options.BucketName
+        GetAttrCmd = 'java -jar %s/%s.jar ' % (KsanUtilDirPath, TypeServiceGetAttr)
+        GetAttrCmd += '--BucketName %s' % BucketName
 
         if options.Key:
-            GetAttrCmd += ' --Key %s' % options.Key
+            GetAttrCmd += ' --Key "%s"' % options.Key
         else:
             GetAttrCmd += ' --ObjectId %s' % options.ObjectId
         if options.VersionId:
@@ -51,6 +56,7 @@ def GetAttrUtilHandler(Conf, Action, Parser, logger):
 
         out, err = shcall(GetAttrCmd)
         print(out, err)
+        logger.debug("%s %s %s" % (GetAttrCmd, out, err))
     else:
         Parser.print_help()
 

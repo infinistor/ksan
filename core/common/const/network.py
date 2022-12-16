@@ -8,10 +8,8 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
-from common.log import catch_exceptions
-
-NetworkInterfaceItemsModule = 'const.network.NetworkInterfaceItems'
-VlanNetworkInterfaceItemsModule = 'const.network.VlanNetworkInterfaceItems'
+#from common.log import catch_exceptions
+#from const.common import *
 
 
 class NetworkInterfaceItems:
@@ -37,7 +35,6 @@ class NetworkInterfaceItems:
         self.ModName = ''
 
 
-@catch_exceptions()
 class RequestNetworkInterfaceItems(object):
     """
     request to register network info to ifsportalsvr
@@ -69,7 +66,6 @@ class RequestNetworkInterfaceItems(object):
         self.Dns2 = Nic['Dns2']
 
 
-@catch_exceptions()
 class VlanNetworkInterfaceItems:
     def __init__(self):
         self.Id = None
@@ -90,7 +86,6 @@ class VlanNetworkInterfaceItems:
         self.RegName = None
 
 
-@catch_exceptions()
 class RequestNetworkInterfaceCheck(object):
     """
     request to register network info to ifsportalsvr
@@ -99,7 +94,6 @@ class RequestNetworkInterfaceCheck(object):
         self.Name = NicName
 
 
-@catch_exceptions()
 class NetworkInterfaceLinkStateItems(object):
     """
     request to update network interface status to ifsportalsvr
@@ -111,7 +105,6 @@ class NetworkInterfaceLinkStateItems(object):
         self.LinkState = LinkState
 
 
-@catch_exceptions()
 class RequestNetworkInterfaceStat(object):
     """
     request to update network interface stat to ifsportalsvr
@@ -138,7 +131,6 @@ class RequestVlanNetworkInterfaceInfo(object):
             self.SubnetMask = SubnetMask
             self.Gateway = Gateway
 
-@catch_exceptions()
 class ResPonseVlanNetworkInterfaceItems(object):
     def __init__(self, dic):
             self.Id = dic["Id"]
@@ -155,7 +147,6 @@ class ResPonseVlanNetworkInterfaceItems(object):
             self.RegName = dic["RegName"]
 
 
-@catch_exceptions()
 class RequestVlanNetworkInterfaceCheck(object):
     """
     request to register network info to ifsportalsvr

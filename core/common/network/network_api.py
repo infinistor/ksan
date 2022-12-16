@@ -12,13 +12,20 @@
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.network import GetNetwork
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from const.common import *
+#from common.network import GetNetwork
+#from common.httpapi import RestApi
 from const.network import ResPonseVlanNetworkInterfaceItems, RequestNetworkInterfaceItems, \
-    RequestVlanNetworkInterfaceInfo, NetworkInterfaceLinkStateItems, RequestNetworkInterfaceCheck, RequestVlanNetworkInterfaceCheck
-from server.server_manage import *
-from const.network import NetworkInterfaceItemsModule
-from const.http import ResponseHeaderModule
+    RequestVlanNetworkInterfaceInfo, NetworkInterfaceLinkStateItems, RequestNetworkInterfaceCheck, \
+    RequestVlanNetworkInterfaceCheck
+from const.common import NetworkInterfaceItemsModule
+#from const.common import *
+#from const.http import ResPonseHeader, ResponseHeaderModule
+#from server.server_api import GetServerInfo, GetAllServerDetailInfo
+from portal_api.apis import *
+
 
 
 def ManageNetworkInterface():
@@ -82,14 +89,14 @@ def GetAllNetworkInterface(Ip, Port, ServerId=None, logger=None):
 
 
 @catch_exceptions()
-def GetNetworkInterfaceDetailWithId(Ip, Port, InterfaceId, logger=None):
+def GetNetworkInterfaceDetailWithId(PortalIp, PortalPort, PortalApiKey, InterfaceId, logger=None):
     """
     Get Server Detail info with Interface Id
     :param InterfaceId:
     :param logger:
     :return:If Success, ServerItemsDetailModule ojbect, otherwise None
     """
-    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(Ip, Port, logger=logger)
+    Res, Errmsg, Ret, Data = GetAllServerDetailInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
     if Res == ResOk:
         if Ret.Result == ResultSuccess:
             for Svr in Data:
@@ -432,6 +439,49 @@ def check_exist_vlan_network_interface(ip, port, ServerId, NicId, Tag, VlanId=No
         return Ret, Errmsg, Header.Data
     else:
         return Ret, Errmsg, None
+
+
+
+
+
+@catch_exceptions()
+def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, GlobalFlag, logger):
+    logger.debug("%s %s %s" % (str(RoutingKey), str(Body), str(Response)))
+    ResponseReturn = MqReturn(ResultSuccess)
+    Body = Body.decode('utf-8')
+    Body = json.loads(Body)
+    body = DictToObject(Body)
+    if RoutKeyNetworkAddFinder.search(RoutingKey) or RoutKeyNetworkUpdateFinder.search(RoutingKey):
+        GlobalFlag['NetworkUpdated'] = Updated
+        if body.ServerId == ServerId:
+            Response.IsProcessed = True
+            ret, errmsg = ManageNetworkInterface()
+            if ret is False:
+                ResponseReturn = MqReturn(ret, Code=1, Messages='fail')
+            print(ResponseReturn)
+        return ResponseReturn
+
+    elif RoutKeyNetworkAddedFinder.search(RoutingKey):
+            ServerId = body.ServerId
+            IpAddress = body.IpAddress
+            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.PortalHost, int(MonConf.PortalPort),MonConf.PortalApiKey,  ServerId=ServerId, logger=logger)
+            if Res == ResOk:
+                if Ret.Result == ResultSuccess:
+                    HostName = Data.Name
+                    HostInfo = [(IpAddress, HostName)]
+                    UpdateEtcHosts(HostInfo, 'add')
+                    logging.log(logging.INFO, 'new host is added. %s' % str(HostInfo))
+                else:
+                    logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Ret.Message))
+            else:
+                logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Errmsg))
+
+
+
+    else:
+        Response.IsProcessed = True
+        return ResponseReturn
+'''
 class MyOptionParser(OptionParser):
     def print_help(self):
         Usage = """
@@ -453,3 +503,4 @@ class MyOptionParser(OptionParser):
         print(Usage)
 
 """
+'''

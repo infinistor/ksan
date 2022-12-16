@@ -8,16 +8,19 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
-import sys
-import socket, platform
-import psutil
-from common.log import catch_exceptions
-from const.common import ServerStateOffline
+import os, sys
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from typing import TYPE_CHECKING
 
-ServerItemsModule = 'const.server.ServerItems'
-ServerItemsDetailModule = 'const.server.ServerItemsDetail'
-ServerUsageItemsModule = 'const.server.ServerUsageItems'
-ServerStateItemsModule = 'const.server.ServerStateItems'
+import socket, platform
+#from common.log import catch_exceptions
+#from const.common import ServerStateOffline
+from const.common import *
+#from const.common import ServerStateOffline
+#from common.log import catch_exceptions
+
+
 
 
 class ServerItems(object):
@@ -39,7 +42,6 @@ class ServerItems(object):
         self.ModId = ''
         self.ModName = ''
 
-    @catch_exceptions()
     def Set(self, dic):
         self.Id = dic["Id"]
         self.Name = dic["Name"]

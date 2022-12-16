@@ -12,13 +12,9 @@
 
 import os, sys
 import time
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from const.common import *
-from common.utils import IsDaemonRunning, CheckParams
-from common.shcommand import *
-from service.service_manage import AddService
-import xml.etree.ElementTree as ET
-import signal
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from common.utils import *
 
 class ServiceUnit:
     def __init__(self, logger, ServiceType):
@@ -34,6 +30,10 @@ class ServiceUnit:
             self.ServiceUnit = SystemdKsanOSDServiceName
         elif self.ServiceType.lower() == TypeServiceLifecycle.lower():
             self.ServiceUnit = SystemdKsanLifecycleServiceName
+        elif self.ServiceType.lower() == TypeServiceReplication.lower():
+            self.ServiceUnit = SystemdKsanReplicationServiceName
+        elif self.ServiceType.lower() == TypeServiceLogManager.lower():
+            self.ServiceUnit = SystemdKsanLogManagerServiceName
 
     def Start(self):
         Cmd = 'systemctl start %s' % self.ServiceUnit

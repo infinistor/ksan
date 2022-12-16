@@ -12,18 +12,13 @@
 
 # -*- coding: utf-8 -*-
 import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from disk.disk_manage import *
-from const.common import DiskPoolXmlPath
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from const.disk import DiskDetailMqBroadcast
-from common.init import GetConf, WaitAgentConfComplete, GetAgentConfig
-from const.mq import MqVirtualHost, RoutKeyDiskUsage, ExchangeName, RoutKeyDiskCheckMountFinder, \
-    RoutKeyDiskWirteDiskIdFinder, RoutKeyDiskAdded, RoutKeyDiskPoolUpdate, RoutKeyDiskStartStop, RoutKeyDiskState, \
-    RoutKeyDiskDel
 import mqmanage.mq
+from portal_api.apis import *
 import time
 import json
-import logging
 import inspect
 import xml.etree.ElementTree as ET
 
@@ -60,7 +55,7 @@ def ReportDiskIo(Conf, DiskStatInfo, GlobalFlag, logger):
     Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
     conf = GetAgentConfig(Conf)
     MqDiskUpdated = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyDiskUsage, ExchangeName,
-                                   QueueName='')
+                                   QueueName='', logger=logger)
     DiskMonitorInterval = int(conf.DiskMonitorInterval)/1000
 
     Res, Errmsg, Ret, DiskList = GetDiskInfo(conf.PortalHost, int(conf.PortalPort), conf.PortalApiKey)
@@ -109,9 +104,11 @@ def UpdateDiskPartitionInfo(DiskList):
     """
     DiskStatInfo = list()
     for disk in DiskList:
+        DiskPath = '%s/' % disk.Path
         for part in psutil.disk_partitions():
             TmpDiskInfo = dict()
-            if disk.Path == part.mountpoint:
+            PartitionMountPath = '%s/' % part.mountpoint
+            if DiskPath.startswith(PartitionMountPath):
                 Device = re.sub('/dev/', '', part.device)
                 TmpDiskInfo['Path'] = disk.Path
                 TmpDiskInfo['Device'] = Device
@@ -123,6 +120,13 @@ def UpdateDiskPartitionInfo(DiskList):
                 TmpDiskInfo['ReadPerSec'] = 0
                 TmpDiskInfo['WritePerSec'] = 0
                 TmpDiskInfo['LapTime'] = time.time()
+                TmpDiskInfo['TotalInode'] = disk.TotalInode
+                TmpDiskInfo['UsedInode'] = disk.UsedInode
+                TmpDiskInfo['ReservedInode'] = disk.ReservedInode
+                TmpDiskInfo['TotalSize'] = disk.TotalSize
+                TmpDiskInfo['UsedSize'] = disk.UsedSize
+                TmpDiskInfo['ReservedSize'] = disk.ReservedSize
+
                 DiskStatInfo.append(TmpDiskInfo)
 
     return DiskStatInfo
@@ -236,62 +240,6 @@ def DiskUsageMonitoring(Conf, DiskStatInfo, GlobalFlag, logger):
 
         time.sleep(IntervalMiddle)
 
-
-def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
-    logger.debug("%s %s" % (str(RoutingKey), str(Body)))
-    if RoutKeyDiskCheckMountFinder.search(RoutingKey):
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Body = Body.decode('utf-8')
-        Body = json.loads(Body)
-        body = DictToObject(Body)
-        if ServerId == body.ServerId:
-            ret = CheckDiskMount(body.Path)
-            if ret is False:
-                ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages='No such disk is found')
-            Response.IsProcessed = True
-        logger.debug(ResponseReturn)
-        return ResponseReturn
-    elif RoutKeyDiskWirteDiskIdFinder.search(RoutingKey):
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Body = Body.decode('utf-8')
-        Body = json.loads(Body)
-        body = DictToObject(Body)
-        if ServerId == body.ServerId:
-            ret, errmsg = WriteDiskId(body.Path, body.Id)
-            if ret is False:
-                ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages=errmsg)
-            Response.IsProcessed = True
-        logger.debug(ResponseReturn)
-        return ResponseReturn
-    elif RoutingKey.endswith(RoutKeyDiskAdded):
-        GlobalFlag['DiskUpdated'] = Updated
-        logging.log(logging.INFO, "Disk Info is Added")
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Body = Body.decode('utf-8')
-        Body = json.loads(Body)
-        body = DictToObject(Body)
-        Response.IsProcessed = True
-        logger.debug(ResponseReturn)
-        return ResponseReturn
-    elif RoutingKey.endswith(RoutKeyDiskPoolUpdate) or \
-            RoutingKey.endswith(RoutKeyDiskStartStop) or \
-            RoutingKey.endswith(RoutKeyDiskState) or \
-            RoutingKey.endswith(RoutKeyDiskDel):
-        logging.log(logging.INFO, "Disk Info is Updated")
-        GlobalFlag['DiskUpdated'] = Updated
-        GlobalFlag['DiskPoolUpdated'] = Updated
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Body = Body.decode('utf-8')
-        Body = json.loads(Body)
-        body = DictToObject(Body)
-        Response.IsProcessed = True
-        logger.debug(ResponseReturn)
-        #UpdateDiskPoolXml()
-        return ResponseReturn
-    else:
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Response.IsProcessed = True
-        return ResponseReturn
 
 
 @catch_exceptions()

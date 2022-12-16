@@ -15,14 +15,14 @@ import pdb
 import time
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.shcommand import *
-from common.utils import Byte2HumanValue, DisplayDiskState, DisplayDiskMode
-from const.disk import AddDiskObject, UpdateDiskSizeObject, DiskDetailModule, AllDiskItemsDetailModule
-from server.server_manage import *
-from optparse import OptionParser
-import re
-import psutil
-import jsonpickle
+#from const.mq import *
+from const.common import *
+from common.utils import *
+#from const.common import DiskDetailModule, AllDiskItemsDetailModule
+from const.disk import AddDiskObject, UpdateDiskSizeObject
+#from common.httpapi import RestApi
+from common.base_utils import *
+from portal_api.apis import *
 
 ParsingDiskInode = re.compile("([\d\w_\-/]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d])\%")
 
@@ -87,7 +87,7 @@ def AddDisk(Ip, Port, ApiKey, Path, DiskName, ServerId=None, ServerName=None, Di
 
     Url = '/api/v1/Disks/%s' % TargetServer
     disk = AddDiskObject()
-    disk.Set(DiskName, Path, DiskStop, 0, 0, 0, 0, 0, 0, DiskModeRw, DiskPoolId=DiskPoolId)
+    disk.Set(ServerId, DiskName, Path, DiskStop, 0, 0, 0, 0, 0, 0, DiskModeRw, DiskPoolId=DiskPoolId)
     body = jsonpickle.encode(disk, make_refs=False)
     Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
     Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ResponseHeaderModule)
@@ -127,6 +127,40 @@ def UpdateDiskInfo(Ip, Port, ApiKey, DiskId=None, DiskPoolId=None, Path=None, Na
         return Res, Errmsg, Ret
     else:
         return Res, Errmsg, None
+
+
+def UpdateDiskInfoDetail(PortalIp, PortalPort, PortalApiKey, DiskId, logger=None):
+
+    # get server info
+    Res, Errmsg, DiskData, ServerId = GetDiskInfoWithId(PortalIp, PortalPort, PortalApiKey, DiskId=DiskId, logger=logger)
+    if Res == ResOk:
+        if DiskData is not None:
+            InputServerInfo = [{'key': 'ServerId', 'value': DiskData.ServerId, 'type': str, 'question': 'Insert new disk\'s server id'},
+                               {'key': 'DiskPoolId', 'value': DiskData.DiskPoolId, 'type': str, 'question': 'Insert new disk\'s diskpool id'},
+                               {'key': 'Name', 'value': DiskData.Name, 'type': str, 'question': 'Insert new disk name'},
+                               {'key': 'Path', 'value': DiskData.Path, 'type': str, 'question': 'Insert new disk path'}
+                               ]
+            for info in InputServerInfo:
+
+                QuestionString = info['question']
+                ValueType = info['type']
+                DefaultValue = info['value']
+                DiskData.__dict__[info['key']] = get_input(QuestionString, ValueType, DefaultValue)
+
+        Url = '/api/v1/Disks/%s' % DiskId
+        disk = AddDiskObject()
+        disk.Set(DiskData.__dict__['ServerId'], DiskData.Name, DiskData.Path, DiskData.State, DiskData.TotalInode, DiskData.ReservedInode,
+                 DiskData.UsedInode, DiskData.TotalSize, DiskData.ReservedSize, DiskData.UsedSize, DiskData.RwMode, DiskPoolId=DiskData.DiskPoolId)
+        body = jsonpickle.encode(disk, make_refs=False)
+        Params = body
+        Conn = RestApi(PortalIp, PortalPort, Url, authkey=PortalApiKey, params=Params, logger=logger)
+        Ret, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResPonseHeader)
+        if Ret != ResOk:
+            return Ret, Errmsg
+        else:
+            return Data.Result, Data.Message
+    else:
+        return Res, Errmsg
 
 
 @catch_exceptions()
@@ -325,58 +359,164 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
     :return:
     """
 
-    if Detail in [DetailInfo, MoreDetailInfo]:
-        DiskTitleLine = '%s' % ('=' * 316)
-        DiskDataLine = '%s' % ('-' * 316)
-        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15),
-               'TotalSize'.center(9), 'UsedSize'.center(8), 'FreeSize'.center(8),
-                'TotalInode'.center(20), 'UsedInode'.center(20), 'ReservedInode'.center(20), 'Read'.center(6), 'Write'.center(6),
-                    'RwMode'.center(6), 'DiskId'.center(38), 'DiskPoolId'.center(38), 'State'.center(7))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
-    elif Detail is SimpleInfo:
-        DiskTitleLine = '%s' % ('=' * 106)
-        DiskDataLine = '%s' % ('-' * 106)
-        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15),
-                'TotalSize'.center(9), 'UsedSize'.center(8), 'FreeSize'.center(8),
-                'Read'.center(6), 'Write'.center(6),
-                    'RwMode'.center(6), 'State'.center(7))  # 'ModeDate'.center(20), 'ModId'.center(20), 'ModName'.center(20), 'Id'.center(30))
+    DiskList = DiskListOrdering(DiskList)
+
+    if Detail == MoreDetailInfo:
+        DiskTitleLine = '%s' % ('=' * 228)
+        DiskDataLine = '%s' % ('-' * 228)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
+               'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8), 'Read'.ljust(8), 'Write'.ljust(8),
+                    'RwMode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20), 'UsedInode'.ljust(20),
+            'ReservedInode'.ljust(20) , 'DiskPoolName'.ljust(15), 'DiskId'.ljust(38))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
+
+    elif Detail == DetailInfo:
+        DiskTitleLine = '%s' % ('=' * 189)
+        DiskDataLine = '%s' % ('-' * 189)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
+                'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8), 'Read'.ljust(8), 'Write'.ljust(8),
+            'RwMode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20),
+            'UsedInode'.ljust(20), 'ReservedInode'.ljust(20), 'DiskPoolName'.ljust(15))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
     else:
-        DiskTitleLine = '%s' % ('=' * 64)
-        DiskDataLine = '%s' % ('-' * 64)
-        title = "|%s|%s|%s|%s|%s|" % ('ServerName'.center(15), 'DiskName'.center(15), 'Path'.center(15), 'RwMode'.center(6), 'State'.center(7))
+        DiskTitleLine = '%s' % ('=' * 110)
+        DiskDataLine = '%s' % ('-' * 110)
+        title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
+                'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8),
+                'Read'.ljust(8), 'Write'.ljust(8),
+                    'RwMode'.ljust(6), 'Status'.ljust(7))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
+    #else:
+    #    DiskTitleLine = '%s' % ('=' * 64)
+    #    DiskDataLine = '%s' % ('-' * 64)
+    #    title = "|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15), 'RwMode'.ljust(6), 'State'.ljust(7))
     print(DiskTitleLine)
     print(title)
     print(DiskTitleLine)
 
     for disk in DiskList:
-
         #if DiskId is not None and disk.Id != DiskId:
         #    continue
         #    svr = GetDataFromBody(disk.Server, ServerItemsModule)
         #if ServerId is not None and ServerId != svr.Id:
         #    continue
-        if Detail in [DetailInfo, MoreDetailInfo]:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
-                                       '{:15.15}'.format(disk.Path.center(15)),
-                                        str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).center(9),
-                                       str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).center(8), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).center(8),
-                                        str(int(disk.TotalInode)).center(20), str(int(disk.UsedInode)).center(20), str(int(disk.ReservedInode)).center(20),
-                                        str(Byte2HumanValue(disk.Read, 'DiskRW')).center(6), str(Byte2HumanValue(disk.Write, 'DiskRw')).center(6),
-                                        DisplayDiskMode(disk.RwMode).center(6),str(disk.Id).center(38) ,str(disk.DiskPoolId).center(38), DisplayDiskState(disk.State).center(7))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
-        elif Detail == SimpleInfo:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
-                                       '{:15.15}'.format(disk.Path.center(15)),
-                                        str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).center(10),
-                                       str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).center(10), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).center(10),
-                                        str(Byte2HumanValue(disk.Read, 'DiskRw')).center(6), str(Byte2HumanValue(disk.Write, 'DiskRw')).center(6),
-                                        DisplayDiskMode(disk.RwMode).center(6), DisplayDiskState(disk.State).center(7))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
-        else:
+        if Detail == MoreDetailInfo:
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+                '{:15.15}'.format(disk.Path.ljust(15)), str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(9),
+               str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(8),
+                str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(8),
+                str(Byte2HumanValue(disk.Read, 'DiskRw')).rjust(8), str(Byte2HumanValue(disk.Write, 'DiskRw')).rjust(8),
+                DisplayDiskMode(disk.RwMode).ljust(6), DisplayDiskState(disk.State).ljust(7),
+            "{:,}".format(int(disk.TotalInode)).rjust(20), "{:,}".format(int(disk.UsedInode)).rjust(20), "{:,}".format(int(disk.ReservedInode)).rjust(20),
+             str(disk.DiskPoolName).ljust(15), str(disk.Id).ljust(38))  # svr.ModDate.rjust(20), svr.ModId.rjust(20), svr.ModName.rjust(20), svr.Id.rjust(30))
+        elif Detail == DetailInfo:
+                _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+             '{:15.15}'.format(disk.Path.ljust(15)),
+             str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(9),
+             str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(8), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(8),
+             str(Byte2HumanValue(disk.Read, 'DiskRw')).rjust(8), str(Byte2HumanValue(disk.Write, 'DiskRw')).rjust(8),
+             DisplayDiskMode(disk.RwMode).ljust(6),
+            DisplayDiskState(disk.State).ljust(7),"{:,}".format(int(disk.TotalInode)).rjust(20), "{:,}".format(int(disk.UsedInode)).rjust(20),
+            "{:,}".format(int(disk.ReservedInode)).rjust(20), str(disk.DiskPoolName).ljust(15))  # svr.ModDate.rjust(20), svr.ModId.rjust(20), svr.ModName.rjust(20), svr.Id.rjust(30))
 
-            _dsp = "|%s|%s|%s|%s|%s|" % (disk.Server.Name.center(15), disk.Name.center(15),
-                                             disk.Path.center(15), DisplayDiskMode(disk.RwMode).center(6),
-                                             DisplayDiskState(disk.State).center(7))
+        else:
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+                                       '{:15.15}'.format(disk.Path.ljust(15)),
+                                        str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(10),
+                                       str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(10), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(10),
+                                        str(Byte2HumanValue(disk.Read, 'DiskRw')).rjust(8), str(Byte2HumanValue(disk.Write, 'DiskRw')).rjust(8),
+                                        DisplayDiskMode(disk.RwMode).ljust(6), DisplayDiskState(disk.State).ljust(7))  # svr.ModDate.center(20), svr.ModId.center(20), svr.ModName.center(20), svr.Id.center(30))
+        #else:
+
+        #    _dsp = "|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+        #                                     disk.Path.ljust(15), DisplayDiskMode(disk.RwMode).ljust(6),
+        #                                     DisplayDiskState(disk.State).ljust(7))
 
         print(_dsp)
         print(DiskDataLine)
+
+def DiskListOrdering(DiskList):
+    TotalNewDiskList = list()
+    ServerNameDict = dict()
+    for diskinfo in DiskList:
+        ServerName = diskinfo.Server.Name
+        if ServerName not in ServerNameDict:
+            ServerNameDict[ServerName] = list()
+            ServerNameDict[ServerName].append(diskinfo)
+        else:
+            ServerNameDict[ServerName].append(diskinfo)
+
+    for servername in sorted(ServerNameDict.keys(), key=str.casefold):
+        disklist = ServerNameDict[servername]
+        DiskNameDict = dict()
+        for idx, disk in enumerate(disklist):
+            DiskNameDict[disk.Name] = disk
+
+        newdisklist = list()
+        for diskname in sorted(DiskNameDict.keys(), key=str.casefold) :
+            disk = DiskNameDict[diskname]
+            newdisklist.append(disk)
+
+        TotalNewDiskList += newdisklist
+
+    return TotalNewDiskList
+
+
+
+def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
+    logger.debug("%s %s" % (str(RoutingKey), str(Body)))
+    if RoutKeyDiskCheckMountFinder.search(RoutingKey):
+        ResponseReturn = MqReturn(ResultSuccess)
+        Body = Body.decode('utf-8')
+        Body = json.loads(Body)
+        body = DictToObject(Body)
+        if ServerId == body.ServerId:
+            ret = CheckDiskMount(body.Path)
+            if ret is False:
+                ResponseReturn = MqReturn(ret, Code=1, Messages='No such disk is found')
+            Response.IsProcessed = True
+        logger.debug(ResponseReturn)
+        return ResponseReturn
+    elif RoutKeyDiskWirteDiskIdFinder.search(RoutingKey):
+        ResponseReturn = MqReturn(ResultSuccess)
+        Body = Body.decode('utf-8')
+        Body = json.loads(Body)
+        body = DictToObject(Body)
+        if ServerId == body.ServerId:
+            ret, errmsg = WriteDiskId(body.Path, body.Id)
+            if ret is False:
+                ResponseReturn = MqReturn(ret, Code=1, Messages=errmsg)
+            Response.IsProcessed = True
+        logger.debug(ResponseReturn)
+        return ResponseReturn
+    elif RoutingKey.endswith((RoutKeyDiskAdded, RoutKeyDiskDel, RoutKeyDiskUpdated)):
+        Body = Body.decode('utf-8')
+        Body = json.loads(Body)
+        body = DictToObject(Body)
+        GlobalFlag['DiskUpdated'] = Updated
+        logger.debug("disk updated %s" % body.Id)
+        logging.log(logging.INFO, "Disk Info is Added")
+        ResponseReturn = MqReturn(ResultSuccess)
+        Response.IsProcessed = True
+        logger.debug(ResponseReturn)
+        return ResponseReturn
+    elif RoutingKey.endswith(RoutKeyDiskPoolUpdate) or \
+            RoutingKey.endswith(RoutKeyDiskStartStop) or \
+            RoutingKey.endswith(RoutKeyDiskState) or \
+            RoutingKey.endswith(RoutKeyDiskDel):
+        logging.log(logging.INFO, "Disk Info is Updated")
+        GlobalFlag['DiskUpdated'] = Updated
+        GlobalFlag['DiskPoolUpdated'] = Updated
+        ResponseReturn = MqReturn(ResultSuccess)
+        Body = Body.decode('utf-8')
+        Body = json.loads(Body)
+        body = DictToObject(Body)
+        Response.IsProcessed = True
+        logger.debug(ResponseReturn)
+        #UpdateDiskPoolXml()
+        return ResponseReturn
+    else:
+        ResponseReturn = MqReturn(ResultSuccess)
+        Response.IsProcessed = True
+        return ResponseReturn
+
 
 
 def DiskUtilHandler(Conf, Action, Parser, logger):
@@ -415,14 +555,8 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
         if not options.DiskName:
             Parser.print_help()
             sys.exit(-1)
-        Res, Errmsg, Ret = UpdateDiskInfo(PortalIp, PortalPort, PortalApiKey, Path=options.Path,
-                                            DiskPoolId=options.DiskPoolId, Name=options.DiskName,
-                                          Description=options.Description, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
-
+        Res, Errmsg = UpdateDiskInfoDetail(PortalIp, PortalPort, PortalApiKey, options.DiskName, logger=logger)
+        print(Res, Errmsg)
 
     elif Action.lower() == 'update_size':
         if not options.DiskName:
@@ -481,3 +615,4 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
                 time.sleep(int(options.Continue))
     else:
         Parser.print_help()
+

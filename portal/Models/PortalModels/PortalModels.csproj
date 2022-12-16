@@ -164,6 +164,10 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
+		<Compile Update="PortalModels.ServiceEventLog.cs">
+			<AutoGen>True</AutoGen>
+			<DependentUpon>PortalModels.efml</DependentUpon>
+		</Compile>
 		<Compile Update="PortalModels.ServiceGroup.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>

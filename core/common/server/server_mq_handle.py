@@ -11,14 +11,14 @@
 """
 
 import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 #from common.common.mqutils import Mq
-from server.server_manage import *
+from server.server_api import GetServerUsage
 import mqmanage.mq
 from const.common import *
 from const.server import ServerUsageItems, ServerStateItems
-from common.init import GetConf, WaitAgentConfComplete, GetAgentConfig
-from common.shcommand import UpdateEtcHosts
+from common.base_utils import GetConf, WaitAgentConfComplete, GetAgentConfig
 from const.mq import MqVirtualHost, RoutKeyServerUsage, ExchangeName, RoutKeyServerState, \
     RoutKeyServerUpdateFinder, RoutKeyServerAddFinder, RoutKeyServerDelFinder
 import socket
@@ -30,8 +30,8 @@ def MonUpdateServerUsage(Conf, logger):
 
     Conf = WaitAgentConfComplete(inspect.stack()[1][3], logger)
     conf = GetAgentConfig(Conf)
-    ServerUsageMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerUsage, ExchangeName)
-    ServerStateMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerState, ExchangeName)
+    ServerUsageMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerUsage, ExchangeName, logger=logger)
+    ServerStateMq = mqmanage.mq.Mq(conf.MQHost, int(conf.MQPort), MqVirtualHost, conf.MQUser, conf.MQPassword, RoutKeyServerState, ExchangeName, logger=logger)
     ServerMonitorInterval = int(conf.ServerMonitorInterval)/1000
     while True:
         svr = GetServerUsage(conf.ServerId)
@@ -50,55 +50,3 @@ def MonUpdateServerUsage(Conf, logger):
         ServerStateMq.Sender(Mqsend)
 
         time.sleep(ServerMonitorInterval)
-
-
-def MqServerHandler(Conf, RoutingKey, Body, Response, ServerId, logger):
-    logger.debug("MqServerHandler %s %s" % (str(RoutingKey), str(Body)))
-    try:
-        ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-        Body = Body.decode('utf-8')
-        Body = json.loads(Body)
-        body = DictToObject(Body)
-        if RoutKeyServerUpdateFinder.search(RoutingKey) or RoutKeyServerAddFinder.search(RoutingKey):
-            #IpAddress = body.NetworkInterfaces.IpAddress # not available
-            pass
-
-        elif RoutKeyServerDelFinder.search(RoutingKey):
-            HostName = body.Name
-            HostInfo = [('', HostName)]
-            UpdateEtcHosts(HostInfo, 'remove')
-            logging.log(logging.INFO, 'host is removed. %s' % str(HostInfo))
-            if ServerId == body.Id:
-                ret, errlog = RemoveQueue(Conf)
-                if ret is False:
-                    logging.error('fail to remove queue %s' % errlog)
-                else:
-                    logging.log(logging.INFO, 'success to remove queue')
-                if os.path.exists(MonServicedConfPath):
-                    os.unlink(MonServicedConfPath)
-                    logging.log(logging.INFO, 'ksanMonitor.conf is removed')
-
-        '''
-        if RoutKeyServerUpdateFinder.search(RoutingKey):
-            ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-            Body = Body.decode('utf-8')
-            Body = json.loads(Body)
-            body = DictToObject(Body)
-            if ServerId == body.ServerId:
-                ret = CheckDiskMount(body.Path)
-                if ret is False:
-                    ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages='No such disk is found')
-                Response.IsProcessed = True
-            print(ResponseReturn)
-            return ResponseReturn
-        '''
-        return ResponseReturn
-    except Exception as err:
-        print(err)
-
-def RemoveQueue(Conf):
-    QueueHost = Conf.MQHost
-    QueueName = 'ksan-agent-%s' % Conf.ServerId
-    mqmanage.mq.RemoveQueue(QueueHost, QueueName)
-    return True, ''
-

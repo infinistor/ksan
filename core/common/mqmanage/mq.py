@@ -18,12 +18,10 @@ import pika
 import pdb
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
     sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from const.common import *
 from mqmanage.RabbitMqReceiver import RabbitMqReceiver
 from mqmanage.RabbitMqConfiguration import RabbitMqConfiguration
 from mqmanage.RabbitMqRpc import RabbitMqRpc
 from mqmanage.RabbitMqSender import RabbitMqSender
-import json
 
 class Mq:
     def __init__(self, Host, Port, VirtualHost, User, Password, RoutingKey, ExchangeName, QueueName=None, ServerId=None,
@@ -45,7 +43,7 @@ class Mq:
         self.GlobalFlag = GlobalFlag
 
     def Sender(self, Data):
-        mqSender = RabbitMqSender(self.config)
+        mqSender = RabbitMqSender(self.config, logger=self.logger)
         mqSender.send(self.config.exchangeName, self.routingkey, Data)
 
     def Receiver(self):
@@ -55,26 +53,3 @@ class Mq:
     def Rpc(self, Data):
         mqRpc = RabbitMqRpc(self.config)
         mqRpc.send(self.config.exchangeName, self.config.exchangeName, Data)
-
-
-@catch_exceptions()
-def MqReturn(Result, Code=0, Messages='', Data=None):
-    Ret = dict()
-    if Result is True or Result == ResultSuccess:
-        Ret['Result'] = 'Success'
-    else:
-        Ret['Result'] = 'Error'
-    Ret['Code'] = Code
-
-    Ret['Message'] = Messages
-    if Data:
-        Ret['Data'] = Data
-    #Ret['Data'] = json.dumps(Ret)
-    return json.dumps(Ret)
-
-def RemoveQueue(QueueHost, QueueName):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(QueueHost))
-    channel = connection.channel()
-
-    channel.queue_delete(queue=QueueName)
-    connection.close()

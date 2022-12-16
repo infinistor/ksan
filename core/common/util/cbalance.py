@@ -13,12 +13,11 @@
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from common.shcommand import shcall
-from server.server_manage import *
-from disk.diskpool_manage import GetDefaultDiskPool
-from const.http import ResponseHeaderModule
-from const.user import AddUserObject, S3UserObjectModule, S3UserStorageClassObject, S3UserObject, S3UserUpdateObject
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+#from server.server_api import *
+from const.common import *
+from common.utils import *
 
 
 def CbalanceUtilHandler(Conf, Action, Parser, logger):
@@ -39,7 +38,7 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
         if not options.BucketName:
             #print('Bucket Name is required')
             isValid = False
-        elif not (options.Key or options.ObjectId):
+        elif not (options.Key or options.ObjId):
             #print('Key or ObjectId is required')
             isValid = False
         elif not (options.DstDiskName or options.VersionId or options.SrcDiskName):
@@ -49,15 +48,15 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
 
-        CbalanceCmd = 'java -jar %s/%s ' % (KsanUtilDirPath, TypeServiceCbalance)
+        CbalanceCmd = 'java -jar %s/%s.jar ' % (KsanUtilDirPath, TypeServiceCbalance)
         CbalanceCmd += '--BucketName %s' % options.BucketName
 
         if options.Key:
             CbalanceCmd += ' --Key %s' % options.Key
         else:
-            CbalanceCmd += ' --ObjectId %s' % options.ObjectId
+            CbalanceCmd += ' --ObjId %s' % options.ObjId
         if options.VersionId:
-            CbalanceCmd += ' --VersionId ' % options.VersionId
+            CbalanceCmd += ' --VersionId %s' % options.VersionId
         if options.DstDiskName:
             CbalanceCmd += ' --DstDiskName %s' % options.DstDiskName
         if options.SrcDiskName:

@@ -14,18 +14,18 @@
 import os, sys
 import pdb
 import time
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-import mqmanage.mq
-from common.shcommand import UpdateEtcHosts
-from common.init import WaitAgentConfComplete, GetAgentConfig
+if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
+#from const.common import *
 from const.network import RequestNetworkInterfaceStat, NetworkInterfaceLinkStateItems
-from network.network_manage import *
-from const.mq import RoutKeyNetworkUsage, ExchangeName, RoutKeyNetworkLinkState, RoutKeyNetworkAddFinder, \
-    RoutKeyNetworkUpdateFinder, RoutKeyNetworkAddedFinder
+#from const.mq import RoutKeyNetworkUsage, ExchangeName, RoutKeyNetworkLinkState, RoutKeyNetworkAddFinder, \
+#    RoutKeyNetworkUpdateFinder, RoutKeyNetworkAddedFinder
+from common.utils import *
+from const.common import *
 from mqmanage.mq import *
-import jsonpickle
-import logging
-import inspect
+from portal_api.apis import *
+
 
 @catch_exceptions()
 def UpdateNetworkStat(Conf, GlobalFlag, logger):
@@ -44,8 +44,8 @@ def UpdateNetworkStat(Conf, GlobalFlag, logger):
     #mqSender.send(config.exchangeName, "*", data)
     LocalDev = GetNetwork()
 
-    NetworkUsageMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkUsage, ExchangeName)
-    NetworkLinkStateMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkLinkState, ExchangeName)
+    NetworkUsageMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkUsage, ExchangeName, logger=logger)
+    NetworkLinkStateMq = Mq(conf.MQHost, int(conf.MQPort), '/', conf.MQUser, conf.MQPassword, RoutKeyNetworkLinkState, ExchangeName, logger=logger)
     #Res, Errmsg, Ret, AllNetDevs = GetNetworkInterface(conf.mgs.MgsIp, int(conf.mgs.IfsPortalPort), conf.mgs.ServerId)
     NetworkMonitorInterval = int(conf.NetworkMonitorInterval)/1000
     while True:
@@ -89,40 +89,3 @@ def UpdateNetworkStat(Conf, GlobalFlag, logger):
 
         time.sleep(IntervalMiddle)
 
-@catch_exceptions()
-def MqNetworkHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, GlobalFlag, logger):
-    logger.debug("%s %s %s" % (str(RoutingKey), str(Body), str(Response)))
-    ResponseReturn = mqmanage.mq.MqReturn(ResultSuccess)
-    Body = Body.decode('utf-8')
-    Body = json.loads(Body)
-    body = DictToObject(Body)
-    if RoutKeyNetworkAddFinder.search(RoutingKey) or RoutKeyNetworkUpdateFinder.search(RoutingKey):
-        GlobalFlag['NetworkUpdated'] = Updated
-        if body.ServerId == ServerId:
-            Response.IsProcessed = True
-            ret, errmsg = ManageNetworkInterface()
-            if ret is False:
-                ResponseReturn = mqmanage.mq.MqReturn(ret, Code=1, Messages='fail')
-            print(ResponseReturn)
-        return ResponseReturn
-
-    elif RoutKeyNetworkAddedFinder.search(RoutingKey):
-            ServerId = body.ServerId
-            IpAddress = body.IpAddress
-            Res, Errmsg , Ret, Data = GetServerInfo(MonConf.PortalHost, int(MonConf.PortalPort),MonConf.PortalApiKey,  ServerId=ServerId, logger=logger)
-            if Res == ResOk:
-                if Ret.Result == ResultSuccess:
-                    HostName = Data.Name
-                    HostInfo = [(IpAddress, HostName)]
-                    UpdateEtcHosts(HostInfo, 'add')
-                    logging.log(logging.INFO, 'new host is added. %s' % str(HostInfo))
-                else:
-                    logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Ret.Message))
-            else:
-                logger.error('fail to add hostname to /etc/hosts with ip: %s %s' % (IpAddress, Errmsg))
-
-
-
-    else:
-        Response.IsProcessed = True
-        return ResponseReturn
