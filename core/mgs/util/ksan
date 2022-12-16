@@ -347,7 +347,7 @@ class KsanDiskpoolUtilOptParser(OptionParser):
         [example]
               1. add diskpool   
                 # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType standard
-                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance ec(6:2) --DiskPoolType archive
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance 'ec(6:2)' --DiskPoolType archive
                 
               2. remove diskpool  
                 # ./ksan diskpool remove --DiskPoolName diskpool1 
