@@ -68,7 +68,6 @@ public class IpAddress extends PolicyCondition {
     @Override
     public boolean compare(String comp) throws GWException {
         boolean ret = false;
-
         if (Strings.isNullOrEmpty(comp)) {
             return ret;
         }
@@ -76,7 +75,10 @@ public class IpAddress extends PolicyCondition {
         for (String s : value) {
             IPAddressString network = new IPAddressString(s);
             IPAddressString address = new IPAddressString(comp);
+            logger.debug("{}, {}", network.getAddress().getCount(), address.getAddress().getCount());
+            logger.debug("policy ip : {}, comp ip : {}", s, comp);
             if (network.contains(address)) {
+                logger.debug("contains ip : {}, {}", s, comp);
                 ret = true;
                 break;
             }
