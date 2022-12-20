@@ -176,6 +176,7 @@ public final class GWConstants {
 	public static final char CHAR_ASTERISK = '*';
 	public static final char CHAR_LEFT_BRACE = '{';
 	public static final char CHAR_RIGHT_BRACE = '}';
+
 	public static final String EMPTY_STRING = "";
 	public static final String AWS = "AWS";
 	public static final String AWS_SPACE = "AWS ";
@@ -254,6 +255,7 @@ public final class GWConstants {
 	public static final String PART = "Part";
 	public static final String PARTNUMBER = "PartNumber";
 	public static final String AWS_TIER_STANTARD = "STANDARD";
+	public static final String AWS_TIER_GLACIER = "GLACIER";
 
 	public static final String CATEGORY_ROOT = "root";
 	public static final String CATEGORY_BUCKET = "bucket";
@@ -288,6 +290,7 @@ public final class GWConstants {
 	public static final String PARAMETER_TORRENT = "torrent";
 	public static final String PARAMETER_VERSION_ID = "versionId";
 	public static final String PARAMETER_RESTORE = "restore";
+	public static final String PARAMETER_STORAGE_MOVE = "storagemove";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";
@@ -1277,9 +1280,14 @@ public final class GWConstants {
 
 	// RestoreObject
 	public static final String LOG_RESTORE_OBJECT_START = "RestoreObject ...";
+	public static final String LOG_ADMIN_RESTORE_OBJECT_START = "AdmRestoreObject ...";
+	public static final String LOG_ADMIN_RESTORE_OBJECT_INFO = "restore object : {}/{}, size {}, etag {}, versionId {}";
 
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
+
+	// KsanStorageMove
+	public static final String LOG_ADMIN_STORAGE_MOVE_START = "AdmStorageMove ...";
 
 	// GWUtils
 	public static final String LOG_UTILS_INIT_CACHE = "init disk for cache and dir ...";
