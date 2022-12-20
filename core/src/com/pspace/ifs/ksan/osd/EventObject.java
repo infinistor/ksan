@@ -15,6 +15,9 @@ import static com.google.common.io.BaseEncoding.base16;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 
 import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import java.io.IOException;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -26,11 +29,19 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
-import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.libs.data.OsdData;
+import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.disk.Disk;
+import com.pspace.ifs.ksan.libs.disk.DiskPool;
+import com.pspace.ifs.ksan.libs.disk.Server;
+import com.pspace.ifs.ksan.libs.data.ECPart;
+import com.pspace.ifs.ksan.libs.Constants;
+import com.pspace.ifs.ksan.libs.PrintStack;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +52,8 @@ import java.security.MessageDigest;
 
 import org.json.simple.parser.ParseException;
 import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.io.FileUtils;
 
 class MoveObjectCallback implements MQCallback {
 	private static final Logger logger = LoggerFactory.getLogger(MoveObjectCallback.class);
@@ -92,6 +105,97 @@ class MoveObjectCallback implements MQCallback {
 
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
 		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
+
+		// check EC exists
+        File ecFile = new File(KsanUtils.makeECPath(sourceDiskPath, objId, versionId));
+        logger.debug("ecfile : {}", ecFile.getAbsolutePath());
+        if (ecFile.exists()) {
+			try {
+				List<ECPart> ecList = new ArrayList<ECPart>();
+				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+					for (Server server : pool.getServerList()) {
+						for (Disk disk : server.getDiskList()) {
+							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ecList.add(ecPart);
+						}
+					}
+				}
+				int numberOfCodingChunks = DiskManager.getInstance().getECM(sourceDiskId);
+				int numberOfDataChunks = DiskManager.getInstance().getECK(sourceDiskId);
+				logger.debug("numberOfCodingChunks : {}, numberOfDataChunks : {}", numberOfCodingChunks, numberOfDataChunks);
+				int getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String newECPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					logger.debug("ec part file : {}", newECPartPath);
+					File newECPartFile = new File(newECPartPath);
+					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
+						// if local disk, move file
+						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						if (sourceECPartFile.exists()) {
+							FileUtils.copyFile(sourceECPartFile, newECPartFile);
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} else {
+							logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+						}
+					} else {
+						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
+							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
+							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+							ecClient.getECPartInit(getPath, fos);
+							if (ecClient.getECPart() == 0) {
+								logger.debug("no data ...");
+								if (ecClient.isValid()) {
+									ecClient.close();
+								}
+								continue;
+							}
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} catch (IOException e) {
+							PrintStack.logging(logger, e);
+						}
+					}
+				}
+				// zunfec
+				String ecAllFilePath = KsanUtils.makeECDecodePath(sourceDiskPath, objId, versionId);
+				String command = Constants.ZUNFEC + ecAllFilePath;
+				getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					if (ecPart.isProcessed()) {
+						command += Constants.SPACE + ecPartPath;
+						getECPartCount++;
+					}
+				}
+				logger.debug("command : {}", command);
+				Process p = Runtime.getRuntime().exec(command);
+				try {
+					int exitCode = p.waitFor();
+					p.destroy();
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+
+				// delete junk file
+				String ecDir = KsanUtils.makeECDirectoryPath(sourceDiskPath, objId);
+				File dir = new File(ecDir);
+				File[] ecFiles = dir.listFiles();
+				for (int i = 0; i < ecFiles.length; i++) {
+					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+							ecFiles[i].delete();
+						}
+					}
+				}
+				
+				fullPath = ecAllFilePath;
+			} catch (IOException e) {
+				PrintStack.logging(logger, e);
+			}
+        }
+
 		logger.info("source full path : {}", fullPath);
 		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {
@@ -193,6 +297,48 @@ class DeleteObjectCallback implements MQCallback {
 		logger.info("diskId : {}", diskId);
 		logger.info("diskPath : {}", diskPath);
 		
+		// check EC exists
+        File ecFile = new File(KsanUtils.makeECPath(diskPath, objId, versionId));
+        if (ecFile.exists()) {
+            logger.debug("ec exist : {}", ecFile.getAbsolutePath());
+            List<ECPart> ecList = new ArrayList<ECPart>();
+            for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+                for (Server server : pool.getServerList()) {
+                    for (Disk disk : server.getDiskList()) {
+                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ecList.add(ecPart);
+                    }
+                }
+            }
+
+            for (ECPart ecPart : ecList) {
+                String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+                if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
+                    File file = new File(getPath);
+                    if (file.exists()) {
+                        if (file.delete()) {
+                            logger.debug("delete ec part : {}", getPath);
+                        } else {
+                            logger.debug("fail to delete ec part : {}", getPath);
+                        }
+                    } else {
+                        logger.debug("ec part does not exist.", getPath);
+                    }
+                } else {
+                    try {
+                        OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
+                        logger.debug("delete ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+                        ecClient.deleteECPart(getPath);
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                    }
+                }
+            }
+
+			logger.info("success delete object : {}", ecFile.getAbsolutePath());
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+        }
+
 		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
 		logger.info("full path : {}", fullPath);
 		File file = new File(fullPath);
@@ -260,7 +406,98 @@ class GetAttrObjectCallBack implements MQCallback {
 		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
 		logger.info("full path : {}", fullPath);
 
+		// check EC exists
+        File ecFile = new File(KsanUtils.makeECPath(diskPath, objId, versionId));
+        logger.debug("ecfile : {}", ecFile.getAbsolutePath());
+        if (ecFile.exists()) {
+			try {
+				List<ECPart> ecList = new ArrayList<ECPart>();
+				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+					for (Server server : pool.getServerList()) {
+						for (Disk disk : server.getDiskList()) {
+							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ecList.add(ecPart);
+						}
+					}
+				}
+				int numberOfCodingChunks = DiskManager.getInstance().getECM(diskId);
+				int numberOfDataChunks = DiskManager.getInstance().getECK(diskId);
+				logger.debug("numberOfCodingChunks : {}, numberOfDataChunks : {}", numberOfCodingChunks, numberOfDataChunks);
+				int getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String newECPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					logger.debug("ec part file : {}", newECPartPath);
+					File newECPartFile = new File(newECPartPath);
+					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
+						// if local disk, move file
+						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						if (sourceECPartFile.exists()) {
+							FileUtils.copyFile(sourceECPartFile, newECPartFile);
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} else {
+							logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+						}
+					} else {
+						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
+							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
+							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+							ecClient.getECPartInit(getPath, fos);
+							if (ecClient.getECPart() == 0) {
+								logger.debug("no data ...");
+								if (ecClient.isValid()) {
+									ecClient.close();
+								}
+								continue;
+							}
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} catch (IOException e) {
+							PrintStack.logging(logger, e);
+						}
+					}
+				}
+				// zunfec
+				String ecAllFilePath = KsanUtils.makeECDecodePath(diskPath, objId, versionId);
+				String command = Constants.ZUNFEC + ecAllFilePath;
+				getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					if (ecPart.isProcessed()) {
+						command += Constants.SPACE + ecPartPath;
+						getECPartCount++;
+					}
+				}
+				logger.debug("command : {}", command);
+				Process p = Runtime.getRuntime().exec(command);
+				try {
+					int exitCode = p.waitFor();
+					p.destroy();
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+
+				// delete junk file
+				String ecDir = KsanUtils.makeECDirectoryPath(diskPath, objId);
+				File dir = new File(ecDir);
+				File[] ecFiles = dir.listFiles();
+				for (int i = 0; i < ecFiles.length; i++) {
+					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+							ecFiles[i].delete();
+						}
+					}
+				}
+				
+				fullPath = ecAllFilePath;
+			} catch (IOException e) {
+				PrintStack.logging(logger, e);
+			}
+        }
+		
 		File file = new File(fullPath);
+		logger.debug("file path : {}", file.getAbsolutePath());
 		if (file.exists()) {
 			byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
 			MessageDigest md5er = null;
@@ -344,6 +581,97 @@ class CopyObjectCallback implements MQCallback {
 
 		byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
 		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
+
+		// check EC exists
+        File ecFile = new File(KsanUtils.makeECPath(sourceDiskPath, objId, versionId));
+        logger.debug("ecfile : {}", ecFile.getAbsolutePath());
+        if (ecFile.exists()) {
+			try {
+				List<ECPart> ecList = new ArrayList<ECPart>();
+				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+					for (Server server : pool.getServerList()) {
+						for (Disk disk : server.getDiskList()) {
+							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ecList.add(ecPart);
+						}
+					}
+				}
+				int numberOfCodingChunks = DiskManager.getInstance().getECM(sourceDiskId);
+				int numberOfDataChunks = DiskManager.getInstance().getECK(sourceDiskId);
+				logger.debug("numberOfCodingChunks : {}, numberOfDataChunks : {}", numberOfCodingChunks, numberOfDataChunks);
+				int getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String newECPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					logger.debug("ec part file : {}", newECPartPath);
+					File newECPartFile = new File(newECPartPath);
+					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
+						// if local disk, move file
+						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						if (sourceECPartFile.exists()) {
+							FileUtils.copyFile(sourceECPartFile, newECPartFile);
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} else {
+							logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+						}
+					} else {
+						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
+							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
+							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+							ecClient.getECPartInit(getPath, fos);
+							if (ecClient.getECPart() == 0) {
+								logger.debug("no data ...");
+								if (ecClient.isValid()) {
+									ecClient.close();
+								}
+								continue;
+							}
+							ecPart.setProcessed(true);
+							getECPartCount++;
+						} catch (IOException e) {
+							PrintStack.logging(logger, e);
+						}
+					}
+				}
+				// zunfec
+				String ecAllFilePath = KsanUtils.makeECDecodePath(sourceDiskPath, objId, versionId);
+				String command = Constants.ZUNFEC + ecAllFilePath;
+				getECPartCount = 0;
+				for (ECPart ecPart : ecList) {
+					String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
+					if (ecPart.isProcessed()) {
+						command += Constants.SPACE + ecPartPath;
+						getECPartCount++;
+					}
+				}
+				logger.debug("command : {}", command);
+				Process p = Runtime.getRuntime().exec(command);
+				try {
+					int exitCode = p.waitFor();
+					p.destroy();
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+
+				// delete junk file
+				String ecDir = KsanUtils.makeECDirectoryPath(sourceDiskPath, objId);
+				File dir = new File(ecDir);
+				File[] ecFiles = dir.listFiles();
+				for (int i = 0; i < ecFiles.length; i++) {
+					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+							ecFiles[i].delete();
+						}
+					}
+				}
+				
+				fullPath = ecAllFilePath;
+			} catch (IOException e) {
+				PrintStack.logging(logger, e);
+			}
+        }
+
 		logger.info("full path : {}", fullPath);
 		File srcFile = new File(fullPath);
 		try (FileInputStream fis = new FileInputStream(srcFile)) {

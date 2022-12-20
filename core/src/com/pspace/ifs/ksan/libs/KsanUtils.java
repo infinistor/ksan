@@ -169,6 +169,11 @@ public class KsanUtils {
         return fullPath;
     }
 
+    public static String makeECDirectoryPath(String path, String objId) {
+        String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId);
+        return fullPath;
+    }
+
     public static String makeECDirectory(String fileName, String ecPath) {
         String fullPath = ecPath + makeDirectoryName(fileName);
         return fullPath;

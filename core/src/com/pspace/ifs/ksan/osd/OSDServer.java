@@ -372,7 +372,7 @@ public class OSDServer {
             logger.info(OSDConstants.LOG_OSD_SERVER_GET_SUCCESS_INFO, path, objId, versionId, sourceRange);
         }
 
-        private void getECPart(String[] headers) {
+        private void getECPart(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_EC_PART_START);
             String path = headers[OsdData.PATH_INDEX];
             logger.debug("path : {}", path);
@@ -399,6 +399,7 @@ public class OSDServer {
                 socket.getOutputStream().close();
             } catch (IOException e) {
                 PrintStack.logging(logger, e);
+                socket.close();
             }
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_EC_PART_END);
