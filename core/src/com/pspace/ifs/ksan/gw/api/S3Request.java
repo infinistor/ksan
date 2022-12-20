@@ -1661,69 +1661,6 @@ public abstract class S3Request {
 		}
 	}
 
-	protected boolean checkPolicyBucket(String action, S3DataRequest dataRequest) throws GWException {
-		boolean effect = false;
-		String policyJson = s3Parameter.getBucket().getPolicy();
-		if (Strings.isNullOrEmpty(policyJson)) {
-			return effect;
-		}
-
-		Policy policy = null;
-		// read policy
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			policy = jsonMapper.readValue(policyJson, Policy.class);
-
-			if (policy == null) {
-				return effect;
-			}
-		} catch (JsonMappingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		// check policy - loop statement
-		for (Statement s : policy.statements) {
-
-			// action check
-			for (String a : s.actions) {
-				boolean effectcheck = false;
-				if (action.equals(a) || GWConstants.ACTION_ALL.equals(a)) {
-					// check principal (id)
-					for (String aws : s.principal.aws) {
-						if (policyIdCheck(aws))
-							break;
-					}
-
-					// check Resource (object path, bucket path)
-					for (String resource : s.resources) {
-						if (policyResourceCheck(resource))
-							break;
-					}
-
-					if (conditioncheck(s3Parameter, s, dataRequest)) {
-						effectcheck = true;
-					}
-
-					if (s.effect.equals(GWConstants.ALLOW)) {
-						if (!effectcheck) {
-							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-						} else {
-							effect = true;
-						}
-					} else if (s.effect.equals(GWConstants.DENY) && effectcheck) {
-						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-					}
-				}
-			}
-		}
-
-		return effect;
-	}
-
 	protected boolean policyIdCheck(String aws) {
 		boolean effectcheck = false;
 		if (aws.equals(GWConstants.ASTERISK)) {
@@ -1786,120 +1723,6 @@ public abstract class S3Request {
 		return effectcheck;
 	}
 
-	protected boolean conditioncheck(S3Parameter s3Parameter, Statement s, S3DataRequest dataRequest) throws GWException {
-		// condition check
-		boolean conditioncheck = true;
-		if (s.condition == null)
-			return conditioncheck;
-
-		for (Map.Entry<String, JsonNode> entry : s.condition.getUserExtensions().entries()) {
-			PolicyCondition pc = PolicyConditionFactory.createPolicyCondition(entry.getKey(), entry.getValue());
-			if (pc == null) {
-				continue;
-			}
-
-			pc.process();
-
-			String comp = null;
-			switch (pc.getKey()) {
-				case GWConstants.KEY_AUTH_TYPE:
-					break;
-				case GWConstants.KEY_DELIMITER:
-					comp = dataRequest.getPolicyDelimter();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_MAXKYES:
-					comp = dataRequest.getPolicyMaxkeys();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_PREFIX:
-					comp = dataRequest.getPolicyPrefix();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_CONTENT_SHA256:
-					comp = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_ACL:
-					comp = dataRequest.getXAmzAcl();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_COPY_SOURCE:
-					comp = dataRequest.getXAmzCopySource();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_GRANT_FULL_CONTROL:
-					comp = dataRequest.getXAmzGrantFullControl();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_XAMZ_GRANT_READ:
-					comp = dataRequest.getXAmzGrantRead();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_GRANT_READ_ACP:
-					comp = dataRequest.getXAmzGrantReadAcp();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_GRANT_WRITE:
-					comp = dataRequest.getXAmzGrantWrite();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_GRANT_WRITE_ACP:
-					comp = dataRequest.getXAmzGrantWriteAcp();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_METADATA_DIRECTIVE:
-					comp = dataRequest.getXAmzMetadataDirective();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION:
-					comp = dataRequest.getXAmzServerSideEncryption();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID:
-					comp = dataRequest.getXAmzServerSideEncryptionAwsKmsKeyId();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_STORAGE_CLASS:
-					comp = dataRequest.getXAmzStorageClass();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_WEBSITE_REDIRECT_LOCATION:
-					comp = dataRequest.getXAmzWebsiteRedirectLocation();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_MODE:
-					comp = dataRequest.getXAmzObjectLockMode();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE:
-					comp = dataRequest.getXAmzObjectLockRetainUntilDate();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_REMAINING_RETENTION_DAYS:
-					comp = dataRequest.getXAmzObjectLockRemainingRetentionDays();
-					conditioncheck = pc.compare(comp);
-					break;
-				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD:
-					comp = dataRequest.getXAmzObjectLockLegalHold();
-					conditioncheck = pc.compare(comp);
-					break;
-				default:
-					break;
-			}
-
-			if (pc.getKey().startsWith(GWConstants.KEY_EXISTING_OBJECT_TAG)) {
-				conditioncheck = pc.compareTagging(s3Parameter);
-			}
-
-			if (conditioncheck == false) {
-				break;
-			}
-		}
-
-		return conditioncheck;
-	}
-
 	public void retentionCheck(String meta, String bypassGovernanceRetention, S3Parameter s3Parameter) throws GWException {
 		S3Metadata retentionMetadata = null;
 		if (!Strings.isNullOrEmpty(meta)) {
@@ -1937,13 +1760,12 @@ public abstract class S3Request {
 	}
 
 	public boolean checkPolicyBucket(String givenAction, S3Parameter s3Parameter, S3DataRequest dataRequest) throws GWException {
-		logger.info("checkPolicyBucket...");
 		boolean effect = false;
 		String policyJson = s3Parameter.getBucket().getPolicy();
 		if (Strings.isNullOrEmpty(policyJson)) {
 			return effect;
 		}
-		logger.info("bucket policy : {}", policyJson);
+
 		Policy policy = null;
 		ObjectMapper jsonMapper = new ObjectMapper();
 		try {
@@ -1955,13 +1777,13 @@ public abstract class S3Request {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-		logger.info("1...");
+
 		// check policy 
 		for (Statement statement : policy.statements) {
 			// check action
+			logger.debug("statement : {}", statement);
 			for (String action : statement.actions) {
 				boolean isEffect = false;
-				logger.info("given action : {}, action : {}", givenAction, action);
 				if (givenAction.equals(action) || GWConstants.ACTION_ALL.equals(action)) {
 					// check principal (id)
 					for (String aws : statement.principal.aws) {
@@ -1969,18 +1791,17 @@ public abstract class S3Request {
 							break;
 						}
 					}
-					logger.info("2...");
 					// check Resource (object path, bucket path)
 					for (String resource : statement.resources) {
 						if (checkPolicyResource(resource, s3Parameter)) {
 							break;
 						}
 					}
-					logger.info("3...");
+
 					if (checkCondition(s3Parameter, statement, dataRequest)) {
 						isEffect = true;
 					}
-					logger.info("4...");
+
 					if (statement.effect.equals(GWConstants.ALLOW)) {
 						logger.info("allow... {}", isEffect);
 						if (isEffect) {
@@ -1989,6 +1810,7 @@ public abstract class S3Request {
 							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 						}
 					} else if (statement.effect.equals(GWConstants.DENY)) {
+						logger.info("deny... {}", isEffect);
 						if (isEffect) {
 							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 						}
@@ -2069,6 +1891,7 @@ public abstract class S3Request {
 			return conditioncheck;
 
 		for (Map.Entry<String, JsonNode> entry : s.condition.getUserExtensions().entries()) {
+			logger.debug("key:{}, value:{}", entry.getKey(), entry.getValue());
 			PolicyCondition pc = PolicyConditionFactory.createPolicyCondition(entry.getKey(), entry.getValue());
 			if (pc == null) {
 				continue;
@@ -2160,6 +1983,13 @@ public abstract class S3Request {
 				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD:
 					comp = dataRequest.getXAmzObjectLockLegalHold();
 					conditioncheck = pc.compare(comp);
+					break;
+				// IP address
+				case "aws:SourceIp":
+					comp = s3Parameter.getRemoteAddr();
+					logger.debug("client ip : {}", comp);
+					conditioncheck = pc.compare(comp);
+					logger.debug("condition : {}", conditioncheck);
 					break;
 				default:
 					break;
