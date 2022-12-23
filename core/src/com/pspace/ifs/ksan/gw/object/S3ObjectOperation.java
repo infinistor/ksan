@@ -2032,7 +2032,7 @@ public class S3ObjectOperation {
         return s3Object;
     }
 
-    private S3Object uploadPartEncription(String path, long length, InputStream is) throws GWException {
+    private S3Object uploadPartEncryption(String path, long length, InputStream is) throws GWException {
         S3Object s3Object = new S3Object();
         MessageDigest md5er = null;
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
