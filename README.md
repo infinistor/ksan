@@ -73,7 +73,7 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 
 ## KSAN 시작하기
 
-[Quick Start Guide 문서](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/quick-start-guide-rC1ZgcsjS3)를 참고하여 KSAN을 직접 사용해 보세요.
+[Quick Start Guide 문서](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/quick-start-guide-rC1ZgcsjS3)를 참고하여 KSAN을 빠르게 시작할 수 있습니다.
 
 
 <br><br><br>
