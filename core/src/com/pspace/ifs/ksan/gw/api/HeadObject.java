@@ -226,5 +226,7 @@ public class HeadObject extends S3Request implements S3AddResponse {
 		} else {
 			response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
 		}
+
+		response.addHeader(GWConstants.X_AMZ_STORAGE_CLASS, metadata.getTier());
 	}
 }

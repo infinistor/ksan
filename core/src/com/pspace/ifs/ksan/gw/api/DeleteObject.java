@@ -119,19 +119,27 @@ public class DeleteObject extends S3Request {
 				retentionCheck(objMeta.getMeta(), dataDeleteObject.getBypassGovernanceRetention(), s3Parameter);
 				
 				if (Strings.isNullOrEmpty(versionId)) {	// request versionId is null
-					if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
-						remove(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL);
-					} else {
-						// put delete marker
-						putDeleteMarker(bucket, object, String.valueOf(System.nanoTime()), s3Metadata, objMeta);
-					}
+					// 최신 파일이 marker일 경우 marker를 지우는 버그 수정
+
+					// put delete marker
+					putDeleteMarker(bucket, object, String.valueOf(System.nanoTime()), s3Metadata, objMeta);
+					// put delete marker가 발생할 경우 header에 x-amz-delete-marker : true 추가
+					s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
 				} else {	// request with versionId
 					if (isLastVersion) {
 						remove(bucket, object, versionId);
 						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE)) {
 							objectOperation.deleteObject();
-						} 
+						} else if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
+							// marker를 지울 때에도 x-amz-delete-marker : true 추가
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+						}
 					} else {	// request with versionId not currentVid
+						// marker를 지울 때에도 x-amz-delete-marker : true 추가
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+						}
+
 						remove(bucket, object, versionId);
 						objectOperation.deleteObject();
 					}
@@ -139,12 +147,18 @@ public class DeleteObject extends S3Request {
 			} else if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_SUSPENDED)) { // Bucket Versioning Suspended 
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_SUSPENDED);
 				if (Strings.isNullOrEmpty(versionId)) {
+					// isLastVersion을 가진 object의 version이 null일때 
+					// null version을 가진 파일이면 삭제하고 null 버전 marker를 생성
+					// null version을 가진 marker라면 삭제하고 null 버전 marker를 생성
+					// null version이 아니라면 marker 생성
+					// Metadata.getVersion() == null remove ? null이 아니라면 no remove
 					if (isLastVersion) {
 						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
 							remove(bucket, object, GWConstants.OBJECT_TYPE_MARK);
 						} else {
 							// put delete marker
 							putDeleteMarker(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL, s3Metadata, objMeta);
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
 						}
 					} else {
 						remove(bucket, object, objMeta.getVersionId());
@@ -160,7 +174,7 @@ public class DeleteObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 		}
-				
+
 		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
