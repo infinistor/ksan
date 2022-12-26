@@ -12,6 +12,7 @@
 package com.pspace.ifs.ksan.utils.getattr;
 
 import ch.qos.logback.classic.LoggerContext;
+import com.pspace.ifs.ksan.objmanager.DISK;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +22,13 @@ import com.pspace.ifs.ksan.objmanager.OSDClient;
 import com.pspace.ifs.ksan.objmanager.OSDResponseParser;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,22 +45,31 @@ import org.slf4j.LoggerFactory;
 public class GetAttr {
     
     @Option(name="--BucketName", usage="Specify the name of the bucket")
-    private  String bucketName = "";
+    private String bucketName = "";
     
     @Option(name="--Key", usage="Specify the object key")
-    private String ObjectPath = "";
+    private  String ObjectPath = "";
     
     @Option(name="--ObjId", usage="Specify the object Id if you with to display with Id rather than object key")
-    private String objId = "";
+    private  String objId = "";
     
     @Option(name="--VersionId", usage="Specify the object version Id if you wish particular version of an object")
-    private String versionId ="null";
+    private  String versionId ="null";
+    
+    @Option(name="--JsonFormat", usage="To display the output in json format")
+    private  boolean jsonFormated = false;
+    
+    @Option(name="--ListInFile", usage="Specify the list of object request in a file")
+    private  String listInFile="";
+    
+    @Option(name="--OutputInFile", usage="Store the out in the file")
+    private  String outputInFile="";
     
     @Option(name="--Checksum", usage="To display the checksum and size of the object from OSD")
-    private boolean checksum = false;
+    private  boolean checksum = false;
      
    // @Option(name="--isBucket", usage="set it if you wish to display the attribute of a bucket")
-    private boolean isFile = true;
+    private  boolean isFile = true;
     
     @Option(name="--Help",usage="To display this help menu")
     public boolean getHelp = false;
@@ -102,7 +119,7 @@ public class GetAttr {
  
         } catch( CmdLineException ex ) {
            System.err.println(ex.getMessage());
-           System.err.format("%s --BucketName <bucket Name> [--Key <object path> |--ObjId <object id>] [--VersionId <versionId>] --Checksum\n", getProgramName());
+           System.err.format("%s --BucketName <bucket Name> [--Key <object path> |--ObjId <object id>] [--VersionId <versionId>] [--Checksum ] [--JsonFormat]\n", getProgramName());
            return -1;
         }
         
@@ -114,6 +131,9 @@ public class GetAttr {
                 return 0;
         }
        
+        if (!listInFile.isEmpty())
+            return 0;
+        
         System.err.format("Invalid argument is given \n");
         return -1;
     }
@@ -133,12 +153,14 @@ public class GetAttr {
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt \n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --Checksum \n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --Key file1.txt --VersionId 526554498818254 --JsonFormat \n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af \n", getProgramName());
+        System.err.format("  Example: %s --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --JsonFormat\n", getProgramName());
         System.err.format("  Example: %s --BucketName bucket1 --ObjId bd01856bfd2065d0d1ee20c03bd3a9af --VersionId 526554498818254 \n", getProgramName());
         System.err.println();
     }
      
-    void displayMeta(Metadata mt){
+    void displayMeta(Metadata mt) throws IOException{
         String RESET  = "\u001B[0m";
         String GREEN  = "\u001B[32m";
         String RED    = "\u001B[31m";
@@ -149,21 +171,32 @@ public class GetAttr {
         String osdMsg;
         String replicaOSDIP;
         
+        if (jsonFormated){
+            if (outputInFile.isEmpty())
+                System.out.println(mt);
+            else
+                logToAFile(mt.toString());
+            return;
+        }
         try {
-            replicaOSDIP= mt.getReplicaDisk().getOsdIp();
-            dskMsg = String.format(" PrimaryDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%7s%s)\n  ReplicaDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%7s%s)",
+            DISK dsk= mt.getReplicaDisk();
+            replicaOSDIP= dsk.getOsdIp();
+            dskMsg = String.format("PrimaryDisk>  diskId : %-37s Name : %s HostIP : %s diskPath : %s (%s%s%s)\n ReplicaDisk>  diskId : %-37s  Name : %s  HostIP : %s  diskPath : %s (%s%s%s)",
                     mt.getPrimaryDisk().getId(), 
                     mt.getPrimaryDisk().getOsdIp(),
+                    mt.getPrimaryDisk().getHostName(),
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET,
                     mt.getReplicaDisk().getId(), 
                     replicaOSDIP,
+                    dsk.getHostName(),
                     mt.getReplicaDisk().getPath(), GREEN,
                     mt.getReplicaDisk().getStatus(), RESET);
         } catch (ResourceNotFoundException ex) {
-            dskMsg = String.format(" PrimaryDisk>  diskId : %-37s(%-16s)  diskPath : %s (%s%s%s)\n",
+            dskMsg = String.format("PrimaryDisk>  diskId : %-37s Name : %s HostIP : %s diskPath : %s (%s%s%s)\n",
                     mt.getPrimaryDisk().getId(), 
                     mt.getPrimaryDisk().getOsdIp(),
+                    mt.getPrimaryDisk().getHostName(),
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET);
                     replicaOSDIP = "";
@@ -179,10 +212,18 @@ public class GetAttr {
         else
            osdMsg =""; 
         
-        System.out.format("\n bucketName : %s \n ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica   : %d"
-               + "\n %s \n %s"
-               , bucketName, mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), mt.getReplicaCount(), dskMsg, osdMsg);
-        System.out.println();
+        String output = "";
+        if (outputInFile.isEmpty()){
+            output= String.format("ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica : %d "
+                   + " \n Etag       : %s  \n tag        : %s  \n lastModifedTime : %d \n %s \n %s"
+                   , mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), mt.getReplicaCount(), 
+                   mt.getEtag(), mt.getTag(), mt.getLastModified(), dskMsg, osdMsg);
+            System.out.print(output);
+            System.out.println();
+        }
+        else{
+            logToAFile(output);
+        }
     }
     
     void displayNothing(){
@@ -223,6 +264,42 @@ public class GetAttr {
         }
     }
     
+    void logToAFile(String output) throws IOException{
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        PrintWriter out = null;
+        try{
+            fw = new FileWriter(outputInFile, true);
+            bw = new BufferedWriter(fw);
+            out = new PrintWriter(bw);
+            out.println(output);
+            //out.close();
+        }
+        finally {
+            if(out != null)
+                out.close();
+           if(bw != null)
+            bw.close();
+           
+           if(fw != null)
+            fw.close();
+        }
+    }
+    
+    int getCommandFromFile() throws FileNotFoundException, IOException{
+        String line;
+        File file = new File(listInFile);
+        BufferedReader br
+            = new BufferedReader(new FileReader(file));
+        while ((line = br.readLine()) != null){
+             if (parseArgs(line.split(" ")) == 0){
+                 getObjects();
+             }
+            System.out.println(line);
+        }
+        return 0;
+    }
+    
     static void disableDebuglog(String driver){
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(driver);
@@ -250,7 +327,10 @@ public class GetAttr {
         }
         
         try {
-            gattr.getObjects();
+            if (gattr.listInFile.isEmpty())
+                gattr.getObjects();
+            else
+                gattr.getCommandFromFile();
             System.exit(0);  
         } catch (Exception ex) {
             System.out.println(ex);

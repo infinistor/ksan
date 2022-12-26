@@ -225,6 +225,7 @@ public class GetFromPortal {
             String path = (String)disk.get("Path");
             String status = (String)disk.get("State");
             String mode = (String)disk.get("RwMode");
+            String diskName = (String)disk.get("Name");
             double totalInode = (double)disk.get("TotalInode");
             double usedInode = (double)disk.get("UsedInode");
             //double reserverdInode = (double)disk.get("ReservedInode");
@@ -234,6 +235,7 @@ public class GetFromPortal {
             DISK dsk = new DISK();
             dsk.setId(diskId);
             dsk.setPath(path);
+            dsk.setHostName(diskName);
             dsk.setSpace(totalSize, usedSize, reserverdSize);
             dsk.setInode(totalInode, usedInode);
             dsk.setOSDIP(svr.ipaddrToString(svr.getIpAddress()));
