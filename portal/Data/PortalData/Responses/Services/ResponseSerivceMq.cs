@@ -19,6 +19,9 @@ namespace PortalData.Responses.Services
 		/// <summary>서비스 아이디</summary>
 		public string Id { get; set; }
 
+		/// <summary>서버 아이디</summary>
+		public string ServerId { get; set; }
+
 		/// <summary>서비스 그룹 아이디</summary>
 		public string GroupId { get; set; }
 		
