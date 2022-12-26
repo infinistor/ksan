@@ -8,13 +8,12 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Lifecycle;
+package Lifecycle;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -25,39 +24,51 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.objmanager.LifeCycle;
-import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
-import com.pspace.s3format.LifecycleConfiguration;
-import com.pspace.s3format.LifecycleConfiguration.Rule;
-import com.pspace.s3format.Tagging;
+import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.s3format.LifecycleConfiguration;
+import com.pspace.backend.libs.s3format.LifecycleConfiguration.Rule;
+import com.pspace.backend.libs.s3format.Tagging;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class LifecycleFilter {
 	private final SimpleDateFormat StringDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private final ObjManagerUtil ObjManager;
-	private final Logger logger;
+	private final AgentConfig ksanConfig;
+	private final ObjManagerHelper objManager;
+	private final Logger logger = LoggerFactory.getLogger(LifecycleFilter.class);
+	private final MQSender mq;
 
-	public LifecycleFilter(ObjManagerUtil DB) {
-		this.ObjManager = DB;
-		logger = LoggerFactory.getLogger(LifecycleFilter.class);
+	public LifecycleFilter() throws Exception {
+		objManager = ObjManagerHelper.getInstance();
+
+		this.ksanConfig = AgentConfig.getInstance();
+		mq = new MQSender(
+				ksanConfig.MQHost,
+				ksanConfig.MQPort,
+				ksanConfig.MQUser,
+				ksanConfig.MQPassword,
+				Constants.MQ_KSAN_LOG_EXCHANGE,
+				Constants.MQ_EXCHANGE_OPTION_TOPIC,
+				Constants.MQ_BINDING_LIFECYCLE_EVENT);
 	}
 
-	public boolean Filtering() throws SQLException {
+	public void Filtering() throws SQLException {
 		logger.info("Lifecycle Filtering Start!");
-		var result = false;
 
-		var BucketList = ObjManager.getBucketList();
-		var LifecycleManager = ObjManager.getLifeCycleManagmentInsatance();
+		var BucketList = objManager.getBucketList();
 
 		if (BucketList.size() > 0) {
 			for (var Bucket : BucketList) {
 				var BucketName = Bucket.getName();
-				var EventList = new ArrayList<LifeCycle>();
 
 				// 버킷의 수명주기 설정을 가져온다.
 				var Lifecycle = GetLifecycleConfiguration(Bucket.getLifecycle());
 
 				// 버킷의 수명주기 설정을 불러오지 못할 경우 스킵
-				if (Lifecycle == null) continue;
+				if (Lifecycle == null)
+					continue;
 
 				// 버킷의 수명주기 규칙이 비어있거나 재대로 불러오지 못할 경우 스킵
 				if (Lifecycle.rules == null || Lifecycle.rules.size() == 0) {
@@ -66,21 +77,21 @@ public class LifecycleFilter {
 				}
 
 				// 오브젝트 목록 가져오기
-				var ObjectList = ObjManager.listObjects(BucketName, "", 1000);
+				var ObjectList = objManager.listObjects(BucketName, "", 1000);
 				// 룰정보 가져오기
 				var Rules = Lifecycle.rules;
 
-				for (var Rule : Rules) {
+				for (var rule : Rules) {
 					// 버킷의 수명주기 설정이 활성화 되어있지 않을 경우 스킵
-					if (!isEnabled(Rule.status))
+					if (!isEnabled(rule.status))
 						continue;
 
 					// 오브젝트의 수명주기가 설정되었을 경우
-					if (Rule.expiration != null) {
+					if (rule.expiration != null) {
 						// 오브젝트의 수명주기가 특정한 날짜일 경우
-						if (Rule.expiration.date != null) {
+						if (rule.expiration.date != null) {
 							// 문자열에서 DATE로 변경
-							Date ExpiredTime = StringToDate(Rule.expiration.date);
+							Date ExpiredTime = StringToDate(rule.expiration.date);
 
 							// 변경 성공시에만 동작
 							if (ExpiredTime != null) {
@@ -89,95 +100,164 @@ public class LifecycleFilter {
 									var Object = ObjectList.get(Index);
 
 									// 스킵 체크
-									if (LifecycleSkipCheck(Rule, Object))
+									if (LifecycleSkipCheck(rule, Object))
 										continue;
 
 									// 오브젝트의 수명주기가 만료되었을 경우
 									if (ExpiredCheck(ExpiredTime)) {
-										// DB에 저장
-										EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
-												Object.getVersionId(), "", ""));
+										// 이벤트 저장
+										try {
+											var item = new LifecycleEventData(Object.getBucket(), Object.getPath(), "",
+													"", "");
+											mq.send(item.toString());
 
-										// 목록에서 제거
-										ObjectList.remove(Index);
-
-										// Filter로 1개 이상 이벤트를 처리함을 표시
-										if (!result)
-											result = true;
+											// 목록에서 제거
+											ObjectList.remove(Index);
+										} catch (Exception e) {
+											logger.error("", e);
+										}
 									}
 								}
 							}
 						}
 						// 오브젝트의 수명주기가 일정 기간일 경우
-						else if (Rule.expiration.days != null) {
+						else if (rule.expiration.days != null) {
 							// 기간을 숫자로 변환
-							var ExpiredDays = NumberUtils.toInt(Rule.expiration.days);
+							var ExpiredDays = NumberUtils.toInt(rule.expiration.days);
 
 							// 버킷에 존재하는 모든 오브젝트에 대한 수명주기 검사
 							for (int Index = ObjectList.size() - 1; Index >= 0; Index--) {
 								var Object = ObjectList.get(Index);
 
 								// 스킵 체크
-								if (LifecycleSkipCheck(Rule, Object))
+								if (LifecycleSkipCheck(rule, Object))
 									continue;
 
 								// 오브젝트의 수명주기가 만료되었을 경우
 								if (ExpiredCheck(Object.getLastModified(), ExpiredDays)) {
-									// DB에 저장
-									EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
-											Object.getVersionId(), "", ""));
+									// 이벤트 저장
+									try {
+										var item = new LifecycleEventData(Object.getBucket(), Object.getPath(), "", "",
+												"");
+										mq.send(item.toString());
 
-									// 목록에서 제거
-									ObjectList.remove(Index);
-
-									// Filter로 1개 이상 이벤트를 처리함을 표시
-									if (!result)
-										result = true;
+										// 목록에서 제거
+										ObjectList.remove(Index);
+									} catch (Exception e) {
+										logger.error("", e);
+									}
 								}
 							}
 						}
 					}
+
+					// 오브젝트의 변환주기가 설정되었을 경우
+					if (rule.transition != null && StringUtils.isNotBlank(rule.transition.StorageClass)) {
+						// 오브젝트의 변환주기가 특정한 날짜일 경우
+						if (rule.transition.date != null) {
+							// 문자열에서 DATE로 변경
+							Date ExpiredTime = StringToDate(rule.transition.date);
+
+							// 변경 성공시에만 동작
+							if (ExpiredTime != null) {
+								// 버킷에 존재하는 모든 오브젝트에 대한 변환주기 검사
+								for (int Index = ObjectList.size() - 1; Index >= 0; Index--) {
+									var Object = ObjectList.get(Index);
+
+									// 스킵 체크
+									if (LifecycleSkipCheck(rule, Object))
+										continue;
+
+									// 오브젝트의 변환주기가 만료되었을 경우
+									if (ExpiredCheck(ExpiredTime)) {
+										// 이벤트 저장
+										try {
+											var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
+													Object.getVersionId(), "", rule.transition.StorageClass);
+											mq.send(item.toString());
+
+											// 목록에서 제거
+											ObjectList.remove(Index);
+										} catch (Exception e) {
+											logger.error("", e);
+										}
+									}
+								}
+							}
+						}
+						// 오브젝트의 변환주기가 일정 기간일 경우
+						else if (rule.transition.days != null) {
+							// 기간을 숫자로 변환
+							var ExpiredDays = NumberUtils.toInt(rule.transition.days);
+
+							// 버킷에 존재하는 모든 오브젝트에 대한 변환주기 검사
+							for (int Index = ObjectList.size() - 1; Index >= 0; Index--) {
+								var Object = ObjectList.get(Index);
+
+								// 스킵 체크
+								if (LifecycleSkipCheck(rule, Object))
+									continue;
+
+								// 오브젝트의 변환주기가 만료되었을 경우
+								if (ExpiredCheck(Object.getLastModified(), ExpiredDays)) {
+									// 이벤트 저장
+									try {
+										var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
+												Object.getVersionId(), "", rule.transition.StorageClass);
+										mq.send(item.toString());
+
+										// 목록에서 제거
+										ObjectList.remove(Index);
+									} catch (Exception e) {
+										logger.error("", e);
+									}
+								}
+							}
+						}
+					}
+
 					// 오브젝트의 버저닝 수명주기가 설정 되었을 경우
-					if (Rule.versionexpiration != null && !StringUtils.isBlank(Rule.versionexpiration.NoncurrentDays)) {
+					if (rule.versionexpiration != null && !StringUtils.isBlank(rule.versionexpiration.NoncurrentDays)) {
 						// 기간을 숫자로 변환
-						var ExpiredDays = NumberUtils.toInt(Rule.versionexpiration.NoncurrentDays);
+						var ExpiredDays = NumberUtils.toInt(rule.versionexpiration.NoncurrentDays);
 
 						// 버킷에 존재하는 모든 오브젝트에 대한 수명주기 검사
 						for (int Index = ObjectList.size() - 1; Index >= 0; Index--) {
 							var Object = ObjectList.get(Index);
 
 							// 스킵 체크
-							if (LifecycleVersioningSkipCheck(Rule, Object))
+							if (LifecycleVersioningSkipCheck(rule, Object))
 								continue;
 
 							// 오브젝트의 수명주기가 만료되었을 경우
 							if (ExpiredCheck(Object.getLastModified(), ExpiredDays)) {
-								// DB에 저장
-								EventList.add(new LifeCycle(0, Object.getBucket(), Object.getPath(),
-										Object.getVersionId(), "", ""));
+								// 이벤트 저장
+								try {
+									var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
+											Object.getVersionId(), "", "");
+									mq.send(item.toString());
 
-								// 목록에서 제거
-								ObjectList.remove(Index);
-
-								// Filter로 1개 이상 이벤트를 처리함을 표시
-								if (!result)
-									result = true;
+									// 목록에서 제거
+									ObjectList.remove(Index);
+								} catch (Exception e) {
+									logger.error("", e);
+								}
 							}
 						}
 					}
 
 					// Multipart의 part 수명주기가 설정 되었을 경우
-					if (Rule.abortincompletemultipartupload != null
-							&& !StringUtils.isBlank(Rule.abortincompletemultipartupload.DaysAfterInitiation)) {
+					if (rule.abortincompletemultipartupload != null
+							&& !StringUtils.isBlank(rule.abortincompletemultipartupload.DaysAfterInitiation)) {
 						// 기간을 숫자로 변환
-						var ExpiredDays = NumberUtils.toInt(Rule.abortincompletemultipartupload.DaysAfterInitiation);
+						var ExpiredDays = NumberUtils.toInt(rule.abortincompletemultipartupload.DaysAfterInitiation);
 
 						// 업로드 중인 Multipart 목록을 가져온다.
-						var Multiparts = ObjManager.getMultipartInsatance(BucketName);
+						var Multiparts = objManager.getMultipartInsatance(BucketName);
 						for (var Multipart : Multiparts.listUploads("", "", "", "", 1000)) {
 
 							// 오브젝트의 이름이 필터 설정에 만족하지 못할 경우 스킵
-							if (LifecycleMultipartSkipCheck(Rule, Multipart.getKey()))
+							if (LifecycleMultipartSkipCheck(rule, Multipart.getKey()))
 								continue;
 
 							// 오브젝트의 Part 목록을 가져온다.
@@ -189,22 +269,22 @@ public class LifecycleFilter {
 
 								// Multipart의 수명주기가 만료 되었을 경우
 								if (ExpiredCheck(Part.getLastModified(), ExpiredDays)) {
-									EventList.add(new LifeCycle(0, Multipart.getBucket(), Multipart.getKey(), "", Multipart.getUploadId(), ""));
+									// 이벤트 저장
+									try {
+										var item = new LifecycleEventData(Multipart.getBucket(), Multipart.getKey(), "",
+												Multipart.getUploadId(), "");
+										mq.send(item.toString());
 
-									// Filter로 1개 이상 이벤트를 처리함을 표시
-									if (!result)
-										result = true;
+									} catch (Exception e) {
+										logger.error("", e);
+									}
 								}
 							}
 						}
 					}
 				}
-
-				// 이벤트를 DB에 저장
-				LifecycleManager.putLifeCycleEvents(EventList);
 			}
 		}
-		return result;
 	}
 
 	private boolean LifecycleSkipCheck(Rule Rule, com.pspace.ifs.ksan.objmanager.Metadata Object) {
@@ -395,7 +475,8 @@ public class LifecycleFilter {
 	}
 
 	private LifecycleConfiguration GetLifecycleConfiguration(String StrLifecycle) {
-		if (StringUtils.isBlank(StrLifecycle)) return null;
+		if (StringUtils.isBlank(StrLifecycle))
+			return null;
 		try {
 			// 수명주기 설정 언마샬링
 			return new XmlMapper().readValue(StrLifecycle, LifecycleConfiguration.class);
@@ -405,9 +486,9 @@ public class LifecycleFilter {
 		}
 	}
 
-	private Tagging getTagging(String StrTags)
-	{
-		if (StringUtils.isBlank(StrTags)) return new Tagging();
+	private Tagging getTagging(String StrTags) {
+		if (StringUtils.isBlank(StrTags))
+			return new Tagging();
 		try {
 			// 수명주기 설정 언마샬링
 			return new XmlMapper().readValue(StrTags, Tagging.class);

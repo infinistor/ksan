@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+	<!--로그 파일 저장 위치-->
+	<property name="LOGS_PATH" value="/var/log/ksan/s3backend" />
+	<property name="OBJMANAGER_LOGS_PATH" value="/var/log/ksan/objmanager" />
+
+	<appender name="LIFECYCLE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOGS_PATH}/lifecycle.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOGS_PATH}/lifecycle.log.%d{yyyy-MM-dd, ${logback.timezone:-Asia/Seoul}}.%i.log.gz</fileNamePattern>
+			<maxHistory>7</maxHistory>
+			<maxFileSize>100MB</maxFileSize>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS, ${logback.timezone:-Asia/Seoul}} [%thread{5}][%logger{10}.%method:%line] : %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="OBJMANAGER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${OBJMANAGER_LOGS_PATH}/objmanager.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${OBJMANAGER_LOGS_PATH}/objmanager.log.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<maxHistory>30</maxHistory>
+			<maxFileSize>1000MB</maxFileSize>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS, ${logback.timezone:-Asia/Seoul}} [%logger{10}.%method:%line]: %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="ERROR">
+		<appender-ref ref="LIFECYCLE"/>
+	</root>
+	<logger name="com.pspace.ifs.ksan.objmanager" level="ERROR">
+		<appender-ref ref="OBJMANAGER"/>
+	</logger>
+
+</configuration>
