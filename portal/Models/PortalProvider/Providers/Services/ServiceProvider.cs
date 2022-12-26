@@ -843,6 +843,7 @@ namespace PortalProvider.Providers.Services
 					.Where(i => i.Id == ServiceGuid)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
+					.Include(i => i.Server)
 					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
 				// 이름으로 조회할 경우
 				else
@@ -850,6 +851,7 @@ namespace PortalProvider.Providers.Services
 					.Where(i => i.Name == Id)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
+					.Include(i => i.Server)
 					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
 
 				// 해당 데이터가 존재하지 않는 경우
