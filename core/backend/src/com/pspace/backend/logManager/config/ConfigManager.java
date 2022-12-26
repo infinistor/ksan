@@ -44,12 +44,12 @@ public class ConfigManager {
 
 	public ObjManagerConfig getObjManagerConfig() throws IOException {
 		var item = new ObjManagerConfig();
-		item.dbRepository = config.DBType;
-		item.dbHost = config.DBHost;
-		item.dbport = config.DBPort;
-		item.dbName = config.DBName;
-		item.dbUsername = config.DBUser;
-		item.dbPassword = config.DBPassword;
+		item.dbRepository = config.dbType;
+		item.dbHost = config.dbHost;
+		item.dbport = config.dbPort;
+		item.dbName = config.dbName;
+		item.dbUsername = config.dbUser;
+		item.dbPassword = config.dbPassword;
 
 		return item;
 	}
@@ -59,34 +59,34 @@ public class ConfigManager {
 	}
 
 	public int getDBPoolSize() {
-		return config.DBPoolSize;
+		return config.dbPoolSize;
 	}
 
 	public int getDBExpires() {
-		return config.DBExpires;
+		return config.dbExpires;
 	}
 
 	public int getCheckInterval() {
-		return config.CheckInterval;
+		return config.checkInterval;
 	}
 
 	public DBConfig getDBConfig() {
 		var dbconfig = new DBConfig();
-		dbconfig.Type = config.DBType;
-		dbconfig.Host = config.DBHost;
-		dbconfig.Port = config.DBPort;
-		dbconfig.DatabaseName = config.DBName;
-		dbconfig.User = config.DBUser;
-		dbconfig.Password = config.DBPassword;
-		dbconfig.PoolSize = config.DBPoolSize;
-		dbconfig.Expires = config.DBExpires;
+		dbconfig.Type = config.dbType;
+		dbconfig.Host = config.dbHost;
+		dbconfig.Port = config.dbPort;
+		dbconfig.DatabaseName = config.dbName;
+		dbconfig.User = config.dbUser;
+		dbconfig.Password = config.dbPassword;
+		dbconfig.PoolSize = config.dbPoolSize;
+		dbconfig.Expires = config.dbExpires;
 
 		return dbconfig;
 	}
 
 	public MeteringConfig getMeteringConfig()
 	{
-		return new MeteringConfig(config.MeterMinute, config.AssertHour);
+		return new MeteringConfig(config.meterMinute, config.assertHour);
 	}
 
 	@Override

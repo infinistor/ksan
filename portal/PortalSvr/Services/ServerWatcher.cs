@@ -34,7 +34,7 @@ namespace PortalSvr.Services
 	{
 		/// <summary> 타이머</summary>
 		private Timer m_timer = null;
-		
+
 		/// <summary>서비스 팩토리</summary>
 		protected readonly IServiceScopeFactory m_serviceScopeFactory;
 
