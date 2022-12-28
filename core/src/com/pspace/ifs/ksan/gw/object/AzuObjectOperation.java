@@ -46,7 +46,7 @@ import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
 import com.pspace.ifs.ksan.libs.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
@@ -80,6 +80,7 @@ public class AzuObjectOperation {
         this.objMeta = objMeta;
         this.s3Meta = s3Meta;
         this.azuParameter = azuParameter;
+        objManager = ObjManagers.getInstance().getObjManager();
 
         if (Strings.isNullOrEmpty(versionId)) {
             this.versionId = GWConstants.VERSIONING_DISABLE_TAIL;
@@ -913,28 +914,12 @@ public class AzuObjectOperation {
         return s3Object;
     }
 
-    private void setObjManager() throws Exception {
-		objManager = ObjManagerHelper.getInstance().getObjManager();
-	}
-
-	private void releaseObjManager() throws Exception {
-		ObjManagerHelper.getInstance().returnObjManager(objManager);
-	}
-
     private void updateBucketUsed(String bucketName, long size) throws AzuException {
 		try {
-			setObjManager();
 			objManager.updateBucketUsed(bucketName, size);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 	}
 
