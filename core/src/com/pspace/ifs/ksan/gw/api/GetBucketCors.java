@@ -49,7 +49,7 @@ public class GetBucketCors extends S3Request {
 		dataGetBucketCors.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_CORS, s3Parameter, dataGetBucketCors)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 		
 		String cors = getBucketInfo().getCors();

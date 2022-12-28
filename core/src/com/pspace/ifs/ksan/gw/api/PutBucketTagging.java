@@ -50,7 +50,7 @@ public class PutBucketTagging extends S3Request {
 		dataPutBucketTagging.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter, dataPutBucketTagging)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 		
 		String taggingXml = dataPutBucketTagging.getTaggingXml();

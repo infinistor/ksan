@@ -59,7 +59,7 @@ public class PutObjectRetention extends S3Request {
 		String versionId = dataPutObjectRetention.getVersionId();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_RETENTION, s3Parameter, dataPutObjectRetention)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 		
 		Metadata objMeta = null;

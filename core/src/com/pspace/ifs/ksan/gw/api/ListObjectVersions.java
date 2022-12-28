@@ -58,7 +58,7 @@ public class ListObjectVersions extends S3Request {
 		dataListObjectVersions.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_VERSIONS, s3Parameter, dataListObjectVersions)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		String delimiter = dataListObjectVersions.getDelimiter();

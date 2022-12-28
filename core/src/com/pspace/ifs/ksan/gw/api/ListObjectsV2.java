@@ -58,7 +58,7 @@ public class ListObjectsV2 extends S3Request {
 		dataListObjectV2.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListObjectV2)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		// read header

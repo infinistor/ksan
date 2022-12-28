@@ -51,7 +51,7 @@ public class PutBucketObjectLock extends S3Request {
 		dataPutBucketObjectLock.extract();
 
         if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataPutBucketObjectLock)) {
-            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+            checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
         }
 
 		String ObjectLockXml = dataPutBucketObjectLock.getObjectLockXml();

@@ -46,7 +46,7 @@ import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -840,17 +840,17 @@ public class S3ObjectOperation {
                     
                     if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                            tmpFilePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                            trashPrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                            filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                            tmpFilePrimary = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                            trashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             isPrimaryCache = true;
                         } else {
                             filePrimary = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             tmpFilePrimary = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             trashPrimary = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         }
-                        com.google.common.io.Files.createParentDirs(filePrimary);
-                        com.google.common.io.Files.createParentDirs(tmpFilePrimary);
+                        // com.google.common.io.Files.createParentDirs(filePrimary);
+                        // com.google.common.io.Files.createParentDirs(tmpFilePrimary);
                         fosPrimary = new FileOutputStream(tmpFilePrimary, false);
                     } else {
                         // clientPrimary = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
@@ -873,17 +873,17 @@ public class S3ObjectOperation {
                     if (objMeta.isReplicaExist()) {
                         if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                             if (GWConfig.getInstance().isCacheDiskpath()) {
-                                fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                                tmpFileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
-                                trashReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId)));
+                                fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                tmpFileReplica = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
+                                trashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
                                 isReplicaCache = true;
                             } else {
                                 fileReplica = new File(KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
                                 tmpFileReplica = new File(KsanUtils.makeTempPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
                                 trashReplica = new File(KsanUtils.makeTrashPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId));
                             }
-                            com.google.common.io.Files.createParentDirs(fileReplica);
-                            com.google.common.io.Files.createParentDirs(tmpFileReplica);
+                            // com.google.common.io.Files.createParentDirs(fileReplica);
+                            // com.google.common.io.Files.createParentDirs(tmpFileReplica);
                             fosReplica = new FileOutputStream(tmpFileReplica, false);
                         } else {
                             // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
@@ -952,7 +952,7 @@ public class S3ObjectOperation {
                         retryRenameTo(tmpFilePrimary, filePrimary);
                         if (isPrimaryCache) {
                             String path = KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId);
-                            com.google.common.io.Files.createParentDirs(new File(path));
+                            // com.google.common.io.Files.createParentDirs(new File(path));
                             logger.debug("path : {}, primary path : {}", path, filePrimary.getAbsolutePath());
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
@@ -976,7 +976,7 @@ public class S3ObjectOperation {
                             retryRenameTo(tmpFileReplica, fileReplica);
                             if (isReplicaCache) {
                                 String path = KsanUtils.makeObjPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), versionId);
-                                com.google.common.io.Files.createParentDirs(new File(path));
+                                // com.google.common.io.Files.createParentDirs(new File(path));
                                 logger.debug("path : {}, primary path : {}", path, fileReplica.getAbsolutePath());
                                 Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                             }
@@ -988,21 +988,21 @@ public class S3ObjectOperation {
                     File trashFile = null;
                     if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                            tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                            file = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                            tmpFile = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                             File link = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                            com.google.common.io.Files.createParentDirs(file);
-                            com.google.common.io.Files.createParentDirs(tmpFile);
-                            com.google.common.io.Files.createParentDirs(link);
+                            // com.google.common.io.Files.createParentDirs(file);
+                            // com.google.common.io.Files.createParentDirs(tmpFile);
+                            // com.google.common.io.Files.createParentDirs(link);
                             fosPrimary = new FileOutputStream(tmpFile, false);
                             isPrimaryCache = true;
                         } else {
                             file = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                             trashFile = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                            com.google.common.io.Files.createParentDirs(file);
-                            com.google.common.io.Files.createParentDirs(tmpFile);
+                            // com.google.common.io.Files.createParentDirs(file);
+                            // com.google.common.io.Files.createParentDirs(tmpFile);
                             fosPrimary = new FileOutputStream(tmpFile, false);
                         }
                     } else {
@@ -1074,21 +1074,21 @@ public class S3ObjectOperation {
                 File trashFile = null;
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
-                        tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
+                        file = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                        tmpFile = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)));
                         File link = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        com.google.common.io.Files.createParentDirs(file);
-                        com.google.common.io.Files.createParentDirs(tmpFile);
-                        com.google.common.io.Files.createParentDirs(link);
+                        // com.google.common.io.Files.createParentDirs(file);
+                        // com.google.common.io.Files.createParentDirs(tmpFile);
+                        // com.google.common.io.Files.createParentDirs(link);
                         fosPrimary = new FileOutputStream(tmpFile, false);
                         isPrimaryCache = true;
                     } else {
                         file = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
                         trashFile = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
-                        com.google.common.io.Files.createParentDirs(file);
-                        com.google.common.io.Files.createParentDirs(tmpFile);
+                        // com.google.common.io.Files.createParentDirs(file);
+                        // com.google.common.io.Files.createParentDirs(tmpFile);
                         fosPrimary = new FileOutputStream(tmpFile, false);
                     }
                     
@@ -1216,7 +1216,6 @@ public class S3ObjectOperation {
 
             byte[] digest = md5er.digest();
 			String eTag = base16().lowerCase().encode(digest);
-            // String eTag = GWConstants.DIRECTORY_MD5;
 
             s3Object.setEtag(eTag);
             s3Object.setLastModified(new Date());
@@ -1225,9 +1224,6 @@ public class S3ObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
 
             calSize = putSize - existFileSize;
-            if (GWConfig.getInstance().isNoOption()) {
-                updateBucketUsed(objMeta.getBucket(), calSize);
-            }
         } catch (NoSuchAlgorithmException | IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -2838,33 +2834,13 @@ public class S3ObjectOperation {
         }
     }
 
-    private void setObjManager() throws Exception {
-		objManager = ObjManagerHelper.getInstance().getObjManager();
-	}
-
-	private void releaseObjManager() throws Exception {
-		ObjManagerHelper.getInstance().returnObjManager(objManager);
-	}
-
-    // private String GWConfig.getInstance().getCacheDiskpath() + (String path) {
-    //     String fullPath = GWConfig.getInstance().getCacheDiskpath() + path;
-    //     return fullPath;
-    // }
-
     private void updateBucketUsed(String bucketName, long size) throws GWException {
 		try {
-			setObjManager();
+            objManager = ObjManagers.getInstance().getObjManager();
 			objManager.updateBucketUsed(bucketName, size);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		}
 	}
 

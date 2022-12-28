@@ -169,8 +169,10 @@ public class CopyObject extends S3Request {
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 		
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCopyObject)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-			checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			// checkGrantBucket2(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			// checkGrantObject2(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_WRITE);
+			checkGrantObject(false, GWConstants.GRANT_READ);
 		}
 		
 
@@ -260,28 +262,7 @@ public class CopyObject extends S3Request {
 			}
 		}
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
-
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
-										  null, 
-										  dataCopyObject.hasAclKeyword(), 
-										  null, 
-										  dataCopyObject.getAcl(),
-										  getBucketInfo(),
-										  s3Parameter.getUser().getUserId(),
-										  s3Parameter.getUser().getUserName(),
-										  dataCopyObject.getGrantRead(),
-										  dataCopyObject.getGrantWrite(), 
-										  dataCopyObject.getGrantFullControl(), 
-										  dataCopyObject.getGrantReadAcp(), 
-										  dataCopyObject.getGrantWriteAcp(),
-										  s3Parameter,
-										  false);
+		String aclXml = makeAcl(null, null, dataCopyObject);
         
 		// check replace or copy
         boolean bReplaceMetadata = false;

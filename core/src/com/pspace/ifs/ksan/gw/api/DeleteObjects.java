@@ -163,11 +163,13 @@ public class DeleteObjects extends S3Request {
 		try {
 			if (Strings.isNullOrEmpty(versionId)) {
 				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT, s3Parameter, dataDeleteObjects)) {
-					checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+					// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+					checkGrantBucket(true, GWConstants.GRANT_WRITE);
 				}
 			} else {
 				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION, s3Parameter, dataDeleteObjects)) {
-					checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+					// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+					checkGrantBucket(true, GWConstants.GRANT_WRITE);
 				}
 			}
 

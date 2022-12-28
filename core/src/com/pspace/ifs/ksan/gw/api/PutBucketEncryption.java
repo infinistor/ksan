@@ -45,7 +45,7 @@ public class PutBucketEncryption extends S3Request {
 		dataPutBucketEncryption.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_ENCRYPTION_CONFIGURATION, s3Parameter, dataPutBucketEncryption)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String encryptionInfo = dataPutBucketEncryption.getEncryptionXml();

@@ -67,31 +67,10 @@ public class CreateMultipartUpload extends S3Request {
 		dataCreateMultipartUpload.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCreateMultipartUpload)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
-
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
-										null, 
-										dataCreateMultipartUpload.hasAclKeyword(), 
-										null, 
-										dataCreateMultipartUpload.getAcl(),
-										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
-										dataCreateMultipartUpload.getGrantRead(),
-										dataCreateMultipartUpload.getGrantWrite(), 
-										dataCreateMultipartUpload.getGrantFullControl(), 
-										dataCreateMultipartUpload.getGrantReadAcp(), 
-										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter,
-										false);
+		String xml = makeAcl(null, null, dataCreateMultipartUpload);
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();

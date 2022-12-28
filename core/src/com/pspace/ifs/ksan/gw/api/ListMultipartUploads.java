@@ -58,7 +58,7 @@ public class ListMultipartUploads extends S3Request {
 		dataListMultipartUploads.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_MULTIPART_UPLOADS, s3Parameter, dataListMultipartUploads)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		String delimiter = dataListMultipartUploads.getDelimiter();

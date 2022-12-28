@@ -44,7 +44,7 @@ public class PutBucketLifecycleConfiguration extends S3Request {
 		dataPutBucketLifeCycle.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_LIFECYCLE_CONFIGURATION, s3Parameter, dataPutBucketLifeCycle)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();

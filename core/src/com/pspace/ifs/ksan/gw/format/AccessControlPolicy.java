@@ -10,42 +10,36 @@
 */
 package com.pspace.ifs.ksan.gw.format;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
-/** Represent an Amazon AccessControlPolicy for a container or object. */
-// CHECKSTYLE:OFF
-public final class AccessControlPolicy {
-    @JacksonXmlProperty(localName = GWConstants.XML_OWNER)
-	public Owner owner;
-    @JacksonXmlProperty(localName = GWConstants.ACCESS_CONTROL_LIST)
-	public AccessControlList aclList;
+public class AccessControlPolicy {
+    public Owner owner;
+    public AccessControlList aclList;
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-    	sb.append(GWConstants.LEFT_BRACE);
-        if (owner != null) {
-            sb.append(GWConstants.ACCESS_OW).append(owner);
-        } else {
-            sb.append(GWConstants.ACCESS_OW_EMPTY);
-        }
+        sb.append(GWConstants.CHAR_LEFT_BRACE);
+        sb.append(GWConstants.ACCESS_OW);
+        sb.append(owner.toString());
+        sb.append(GWConstants.ACCESS_ACS);
+        sb.append(aclList.toString());
+        return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
+    }
 
-        if (aclList != null) {
-            sb.append(GWConstants.ACCESS_ACS).append(aclList);
-        }
-    	
-    	return sb.append(GWConstants.RIGHT_BRACE).toString();
+    public String toXml() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><AccessControlPolicy xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">");
+        sb.append(owner.toXml());
+        sb.append(aclList.toXml());
+        return sb.append("</AccessControlPolicy>").toString();
     }
 
     public static final class Owner {
-        @JacksonXmlProperty(localName = GWConstants.XML_ID)
 		public String id;
-        @JacksonXmlProperty(localName = GWConstants.XML_DISPLAY_NAME)
         public String displayName;
 
         @Override
@@ -62,12 +56,28 @@ public final class AccessControlPolicy {
 
         	return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
         }
+
+        public String toXml() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<Owner>");
+            if (!Strings.isNullOrEmpty(id)) {
+                sb.append("<ID>");
+                sb.append(id);
+                sb.append("</ID>");
+            }
+
+            if (!Strings.isNullOrEmpty(displayName)) {
+                sb.append("<DisplayName>");
+                sb.append(displayName);
+                sb.append("</DisplayName>");
+            }
+            sb.append("</Owner>");
+            return sb.toString();
+        }
     }
 
     public static final class AccessControlList {
-        @JacksonXmlProperty(localName = GWConstants.XML_GRANT)
-        @JacksonXmlElementWrapper(useWrapping = false)
-		public Collection<Grant> grants;
+		public ArrayList<Grant> grants;
 
         @Override
         public String toString() {
@@ -81,10 +91,20 @@ public final class AccessControlPolicy {
         	return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
         }
 
+        public String toXml() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<AccessControlList>");
+            if (grants != null) {
+                for(Grant grant: grants) {
+                    sb.append(grant.toXml());
+                }
+            }
+            sb.append("</AccessControlList>");
+            return sb.toString();
+        }
+
         public static final class Grant {
-            @JacksonXmlProperty(localName = GWConstants.XML_GRANTEE)
 			public Grantee grantee;
-            @JacksonXmlProperty(localName = GWConstants.XML_PERMISSION)
 			public String permission;
 
             @Override
@@ -100,15 +120,15 @@ public final class AccessControlPolicy {
                     String tempPermission = "";
 
                     if(permission.equals(GWConstants.GRANT_FULL_CONTROL)) {
-                        tempPermission = GWConstants.GRANT_AB_FC;
+                        tempPermission = GWConstants.GRANT_AB_FULLCONTROL;
                     } else if (permission.equals(GWConstants.GRANT_WRITE)) {
-                        tempPermission = GWConstants.GRANT_AB_W;
+                        tempPermission = GWConstants.GRANT_AB_WRITE;
                     } else if (permission.equals(GWConstants.GRANT_READ)) {
-                        tempPermission = GWConstants.GRANT_AB_R;
+                        tempPermission = GWConstants.GRANT_AB_READ;
                     } else if (permission.equals(GWConstants.GRANT_WRITE_ACP)) {
-                        tempPermission = GWConstants.GRANT_AB_WA;
+                        tempPermission = GWConstants.GRANT_AB_WRITE_ACP;
                     } else if (permission.equals(GWConstants.GRANT_READ_ACP)) {
-                        tempPermission = GWConstants.GRANT_AB_RA;
+                        tempPermission = GWConstants.GRANT_AB_READ_ACP;
                     }
 
                     sb.append(GWConstants.ACCESS_PERM).append(GWConstants.DOUBLE_QUOTE).append(tempPermission).append(GWConstants.DOUBLE_QUOTE);
@@ -117,16 +137,21 @@ public final class AccessControlPolicy {
             	return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
             }
 
+            public String toXml() {
+                StringBuilder sb = new StringBuilder();
+                sb.append("<Grant>");
+                sb.append(grantee.toXml());
+                sb.append("<Permission>");
+                sb.append(permission);
+                sb.append("</Permission>");
+                sb.append("</Grant>");
+                return sb.toString();
+            }
+
             public static final class Grantee {
-                @JacksonXmlProperty(namespace=GWConstants.XML_SCHEMA, localName = GWConstants.XML_TYPE, isAttribute = true)
                 public String type;
-                @JacksonXmlProperty(localName = GWConstants.XML_ID)
 				public String id;
-                @JacksonXmlProperty(localName = GWConstants.XML_DISPLAY_NAME)
                 public String displayName;
-                @JacksonXmlProperty(localName = GWConstants.XML_EMAIL_ADDRESS)
-                public String emailAddress;
-                @JacksonXmlProperty(localName = GWConstants.XML_URI)
 				public String uri;
 
                 @Override
@@ -137,9 +162,9 @@ public final class AccessControlPolicy {
                     if(!Strings.isNullOrEmpty(type)) {
                         String tempType = "";
                         if(type.equals(GWConstants.CANONICAL_USER)) {
-                            tempType = GWConstants.GRANT_AB_CU;
+                            tempType = GWConstants.GRANT_AB_CANONICAL_USER;
                         } else if (type.equals(GWConstants.GROUP)) {
-                            tempType = GWConstants.GRANT_AB_G;
+                            tempType = GWConstants.GRANT_AB_GROUP;
                         }
 
                         sb.append(GWConstants.ACCESS_TYPE).append(GWConstants.DOUBLE_QUOTE).append(tempType).append(GWConstants.DOUBLE_QUOTE);
@@ -153,17 +178,13 @@ public final class AccessControlPolicy {
                         sb.append(GWConstants.ACCESS_DDN).append(GWConstants.DOUBLE_QUOTE).append(displayName).append(GWConstants.DOUBLE_QUOTE);
                     }
 
-                    if(!Strings.isNullOrEmpty(emailAddress)) {
-                        sb.append(GWConstants.ACCESS_EA).append(GWConstants.DOUBLE_QUOTE).append(emailAddress).append(GWConstants.DOUBLE_QUOTE);
-                    }
-
                 	if(!Strings.isNullOrEmpty(uri)) {
                         String tempUri = "";
                         
                         if(uri.equals(GWConstants.AWS_GRANT_URI_ALL_USERS)) {
-                            tempUri = GWConstants.GRANT_AB_PU;
+                            tempUri = GWConstants.GRANT_AB_ALL_USER;
                         } else if(uri.equals(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS)) {
-                            tempUri = GWConstants.GRANT_AB_AU;
+                            tempUri = GWConstants.GRANT_AB_AUTH_USER;
                         }
 
                         sb.append(GWConstants.ACCESS_URI).append(GWConstants.DOUBLE_QUOTE).append(tempUri).append(GWConstants.DOUBLE_QUOTE);
@@ -171,8 +192,35 @@ public final class AccessControlPolicy {
                 	
                 	return sb.append(GWConstants.CHAR_RIGHT_BRACE).toString();
                 }
+
+                public String toXml() {
+                    StringBuilder sb = new StringBuilder();
+                    if (!Strings.isNullOrEmpty(type)) {
+                        if(type.equals(GWConstants.CANONICAL_USER)) {
+                            sb.append("<Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">");
+                            sb.append("<ID>");
+                            sb.append(id);
+                            sb.append("</ID>");
+                            if (!Strings.isNullOrEmpty(displayName)) {
+                                sb.append("<DisplayName>");
+                                sb.append(displayName);
+                                sb.append("</DisplayName>");
+                            }
+                            sb.append("</Grantee>");
+                        } else if (type.equals(GWConstants.GROUP)) {
+                            sb.append("<Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"Group\">");
+                            if (uri.equals(GWConstants.AWS_GRANT_URI_ALL_USERS)) {
+                                sb.append("<URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>");
+                            } else if (uri.equals(GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS)) {
+                                sb.append("<URI>http://acs.amazonaws.com/groups/global/AuthenticatedUsers</URI>");
+                            }
+                            sb.append("</Grantee>");
+                        }
+                    }
+                    
+                    return sb.toString();
+                }
             }
         }
     }
 }
-// CHECKSTYLE:ON
