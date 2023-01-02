@@ -24,6 +24,7 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.AdminClient.KsanClient;
 import com.pspace.backend.libs.Data.BackendHeaders;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
@@ -39,12 +40,15 @@ import com.pspace.ifs.ksan.libs.mq.MQSender;
 public class LifecycleSender implements MQCallback {
 	private final Logger logger = LoggerFactory.getLogger(LifecycleSender.class);
 	private final AmazonS3 Client;
+	private final KsanClient ksanClient;
 	private final AgentConfig ksanConfig;
 	private final ObjectMapper Mapper = new ObjectMapper();
 	private final MQSender mq;
 
 	public LifecycleSender(S3RegionData region) throws Exception {
 		Client = CreateClient(region);
+		ksanClient = new KsanClient(region.Address, region.Port, region.AccessKey, region.SecretKey);
+
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
 				ksanConfig.MQHost,
@@ -76,7 +80,7 @@ public class LifecycleSender implements MQCallback {
 				if (StringUtils.isBlank(event.uploadId)) {
 					// storageClass가 존재할 경우 스토리지 클래스 이동
 					if (StringUtils.isNotBlank(event.storageClass)) {
-
+						Result = RestoreObject(event.bucketName, event.objectName, event.storageClass, event.versionId);
 					}
 					// VersionId가 존재하지 않을 경우 일반적인 삭제로 취급
 					else if (StringUtils.isBlank(event.versionId))
@@ -100,14 +104,14 @@ public class LifecycleSender implements MQCallback {
 				// 이벤트 저장
 				try {
 					var item = new LifecycleLogData(event, Result);
-					mq.send(item.toString());
+					mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
 
 				} catch (Exception e) {
 					logger.error("", e);
 				}
 
 			}
-
+			mq.send(event.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
 			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
 		} catch (Exception e) {
 			logger.error("", e);
@@ -127,13 +131,11 @@ public class LifecycleSender implements MQCallback {
 				.withPathStyleAccessEnabled(true).build();
 	}
 
-	protected String RestoreObject(String bucketName, String objectName, String storageClass) {
+	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
+	
 		var Result = "";
 		try {
-			var Request = new DeleteObjectRequest(bucketName, objectName);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_LIFECYCLE, BackendHeaders.HEADER_DATA);
-			Client.deleteObject(Request);
+			ksanClient.StorageMove(bucketName, objectName, storageClass, versionId);
 		} catch (Exception e) {
 			logger.error("", e);
 			Result = e.getMessage();

@@ -42,7 +42,6 @@ public class LifecycleFilter {
 
 	public LifecycleFilter() throws Exception {
 		objManager = ObjManagerHelper.getInstance();
-
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
 				ksanConfig.MQHost,
@@ -109,7 +108,8 @@ public class LifecycleFilter {
 										try {
 											var item = new LifecycleEventData(Object.getBucket(), Object.getPath(), "",
 													"", "");
-											mq.send(item.toString());
+											mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+											logger.info(item.toString());
 
 											// 목록에서 제거
 											ObjectList.remove(Index);
@@ -139,7 +139,8 @@ public class LifecycleFilter {
 									try {
 										var item = new LifecycleEventData(Object.getBucket(), Object.getPath(), "", "",
 												"");
-										mq.send(item.toString());
+										mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+										logger.info(item.toString());
 
 										// 목록에서 제거
 										ObjectList.remove(Index);
@@ -165,16 +166,16 @@ public class LifecycleFilter {
 									var Object = ObjectList.get(Index);
 
 									// 스킵 체크
-									if (LifecycleSkipCheck(rule, Object))
+									if (LifecycleSkipCheck(rule, Object) || Object.getMeta().contains(rule.transition.StorageClass))
 										continue;
 
 									// 오브젝트의 변환주기가 만료되었을 경우
 									if (ExpiredCheck(ExpiredTime)) {
 										// 이벤트 저장
 										try {
-											var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
-													Object.getVersionId(), "", rule.transition.StorageClass);
-											mq.send(item.toString());
+											var item = new LifecycleEventData(Object.getBucket(), Object.getPath(), Object.getVersionId(), rule.transition.StorageClass, "");
+											mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+											logger.info(item.toString());
 
 											// 목록에서 제거
 											ObjectList.remove(Index);
@@ -195,7 +196,7 @@ public class LifecycleFilter {
 								var Object = ObjectList.get(Index);
 
 								// 스킵 체크
-								if (LifecycleSkipCheck(rule, Object))
+								if (LifecycleSkipCheck(rule, Object) || Object.getMeta().contains(rule.transition.StorageClass))
 									continue;
 
 								// 오브젝트의 변환주기가 만료되었을 경우
@@ -203,8 +204,9 @@ public class LifecycleFilter {
 									// 이벤트 저장
 									try {
 										var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
-												Object.getVersionId(), "", rule.transition.StorageClass);
-										mq.send(item.toString());
+												Object.getVersionId(), rule.transition.StorageClass, "");
+										mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+										logger.info(item.toString());
 
 										// 목록에서 제거
 										ObjectList.remove(Index);
@@ -235,7 +237,8 @@ public class LifecycleFilter {
 								try {
 									var item = new LifecycleEventData(Object.getBucket(), Object.getPath(),
 											Object.getVersionId(), "", "");
-									mq.send(item.toString());
+									mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+									logger.info(item.toString());
 
 									// 목록에서 제거
 									ObjectList.remove(Index);
@@ -273,7 +276,8 @@ public class LifecycleFilter {
 									try {
 										var item = new LifecycleEventData(Multipart.getBucket(), Multipart.getKey(), "",
 												Multipart.getUploadId(), "");
-										mq.send(item.toString());
+										mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
+										logger.info(item.toString());
 
 									} catch (Exception e) {
 										logger.error("", e);

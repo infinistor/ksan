@@ -86,4 +86,9 @@ public class ConfigManager {
 	public long getCheckInterval() {
 		return config.checkInterval;
 	}
+
+	@Override
+	public String toString(){
+		return config.toString();
+	}
 }

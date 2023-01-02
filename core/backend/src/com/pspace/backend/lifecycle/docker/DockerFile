@@ -23,5 +23,5 @@ WORKDIR /app
 RUN mkdir -p /usr/local/ksan/etc/
 COPY ./core/backend/src/com/pspace/backend/lifecycle/ksanLifecycleManager_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanLifecycleManager.jar /usr/local/ksan/sbin/
-COPY ./core/backend/src/com/pspace/backend/lifecycle/docker/start.sh /app
+COPY ./core/backend/src/com/pspace/backend/lifecycle/docker/start.sh /app/
 CMD ["/app/start.sh"]

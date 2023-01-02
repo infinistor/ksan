@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Heartbeat.Heartbeat;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.libs.Ksan.Data.AgentConfig;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
@@ -66,17 +67,28 @@ public class Main {
 		logger.info("Portal initialized");
 
 		// Read Configuration to Portal
-		var lifecycleConfig = ConfigManager.getInstance();
-		if (lifecycleConfig == null) {
-			logger.error("Lifecycle Config Read Failed!");
+		var config = ConfigManager.getInstance();
+		try {
+			config.update();
+			logger.info(config.toString());
+		} catch (Exception e) {
+			logger.error("Lifecycle Config Read Failed!", e);
 			return;
 		}
-		logger.info(lifecycleConfig.toString());
 
 		// Read Region to Portal
-		var region = portal.getRegion(lifecycleConfig.getRegion());
+		var region = portal.getRegion(config.getRegion());
 		if (region == null) {
 			logger.error("Region Read Failed!");
+			return;
+		}
+
+		// ObjManager 초기화
+		var ObjManager = ObjManagerHelper.getInstance();
+		try {
+			ObjManager.init(config.getObjManagerConfig());
+		} catch (Exception e) {
+			logger.error("", e);
 			return;
 		}
 
@@ -87,15 +99,25 @@ public class Main {
 				ksanConfig.MQPort,
 				ksanConfig.MQUser,
 				ksanConfig.MQPassword,
-				Constants.MQ_QUEUE_REPLICATION_EVENT_ADD,
+				Constants.MQ_QUEUE_LIFECYCLE_EVENT_ADD,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				false,
 				"",
-				Constants.MQ_BINDING_REPLICATION_EVENT,
+				Constants.MQ_BINDING_LIFECYCLE_EVENT,
 				eventCallback);
 
 		var today = Utility.GetNowDay();
-		var AlreadyRun = false;
+		var AlreadyRun = true;
+
+		var Filter = new LifecycleFilter();
+		try {
+			logger.info("Lifecycle Filter Start!");
+			Filter.Filtering();
+			logger.info("Lifecycle Filter End!");
+		} catch (Exception e) {
+			logger.error("", e);
+			return;
+		}
 
 		while (true) {
 			try {
@@ -105,12 +127,12 @@ public class Main {
 				}
 
 				// Schedule
-				var Schedule = Utility.String2Time(lifecycleConfig.getSchedule());
+				var Schedule = Utility.String2Time(config.getSchedule());
 				if (Schedule < 0) {
-					logger.error("Schedule is not a valid value. {}\n", lifecycleConfig.getSchedule());
+					logger.error("Schedule is not a valid value. {}\n", config.getSchedule());
 					return;
 				}
-				Thread.sleep(lifecycleConfig.getCheckInterval());
+				Thread.sleep(config.getCheckInterval());
 
 				if (!Utility.isRun(Schedule) || AlreadyRun) {
 					continue;
@@ -118,7 +140,6 @@ public class Main {
 				AlreadyRun = true;
 
 				logger.info("Lifecycle Filter Start!");
-				var Filter = new LifecycleFilter();
 				Filter.Filtering();
 				logger.info("Lifecycle Manager End!");
 			} catch (Exception e) {
