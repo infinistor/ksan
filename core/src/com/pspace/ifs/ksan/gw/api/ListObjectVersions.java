@@ -151,7 +151,7 @@ public class ListObjectVersions extends S3Request {
 			for (S3Metadata s3Metadata : objectListParameter.getObjects()) {
 				if (s3Metadata != null) {
 					if (s3Metadata.getDeleteMarker() != null) {
-						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARK) == 0) {
+						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARKER) == 0) {
 							xmlStreamWriter.writeStartElement(GWConstants.XML_DELETE_MARKER);	
 						} else {
 							xmlStreamWriter.writeStartElement(GWConstants.VERSION);
@@ -173,7 +173,7 @@ public class ListObjectVersions extends S3Request {
 						writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 						xmlStreamWriter.writeEndElement();
 
-						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARK) == 0) {
+						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARKER) == 0) {
 							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MARKER, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
 						} else {
 							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());

@@ -176,7 +176,7 @@ public class DeleteObjects extends S3Request {
 			if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) { // Bucket Versioning Enabled
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_ENABLED);
 				if (GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {	// request versionId is null
-					if (deleteMarker != null && deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
+					if (deleteMarker != null && deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 						remove(bucket, object, versionId);
 						if(!quiet) {
 							xml.writeStartElement(GWConstants.DELETE_RESULT_DELETED);
@@ -192,7 +192,7 @@ public class DeleteObjects extends S3Request {
 							s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 							s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 							s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-							s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+							s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARKER);
 							versionId = String.valueOf(System.nanoTime());
 							s3Metadata.setVersionId(versionId);
 
@@ -202,7 +202,7 @@ public class DeleteObjects extends S3Request {
 							jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 							int result;
 							objMeta.set("", "", jsonmeta, "", 0L);
-							objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARK, true);
+							objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 							result = insertObject(bucket, object, objMeta);
 							
 							logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
@@ -218,7 +218,7 @@ public class DeleteObjects extends S3Request {
 					}
 				} else {	// request with versionId
 					if (isLastVersion) {	// request with versionId and same currentVid
-						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 							remove(bucket, object);
 						} else if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE)) {
 							remove(bucket, object, versionId);
@@ -239,7 +239,7 @@ public class DeleteObjects extends S3Request {
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_SUSPENDED);
 				if (GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {
 					if (isLastVersion) {
-						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 							remove(bucket, object, versionId);
 						} else {			
 							try {
@@ -250,7 +250,7 @@ public class DeleteObjects extends S3Request {
 								s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 								s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 								s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+								s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARKER);
 								versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 								s3Metadata.setVersionId(versionId);
 
@@ -261,7 +261,7 @@ public class DeleteObjects extends S3Request {
 
 								int result;
 								objMeta.set("", "", jsonmeta, "", 0L);
-								objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARK, true);
+								objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 								result = insertObject(bucket, object, objMeta);
 								// if (objMeta.getReplicaDisk() != null) {
 								// 	result = insertObject(bucket, object, "", jsonmeta, "", 0L, "", objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_MARK);

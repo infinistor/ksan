@@ -232,7 +232,7 @@ public final class GWConstants {
 	public static final int AWS4_SERVICE_INDEX = 3;
 	
 	public static final String OBJECT_TYPE_FILE = "file";
-	public static final String OBJECT_TYPE_MARK = "mark";
+	public static final String OBJECT_TYPE_MARKER = "mark";
 	public static final String STATUS_ENABLED = "Enabled";
 	public static final String STATUS_DISABLED = "Disabled";
 	public static final String VERSIONING_ENABLED = "Enabled";

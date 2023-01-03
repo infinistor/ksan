@@ -126,7 +126,7 @@ public class DeleteObject extends S3Request {
 					// put delete marker
 					putDeleteMarker(bucket, object, String.valueOf(System.nanoTime()), s3Metadata, objMeta);
 					// put delete marker가 발생할 경우 header에 x-amz-delete-marker : true 추가
-					s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+					s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 				} else {	// request with versionId
 					if (isLastVersion) {
 						remove(bucket, object, versionId);
@@ -134,12 +134,12 @@ public class DeleteObject extends S3Request {
 							objectOperation.deleteObject();
 						} else if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 							// marker를 지울 때에도 x-amz-delete-marker : true 추가
-							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 						}
 					} else {	// request with versionId not currentVid
 						// marker를 지울 때에도 x-amz-delete-marker : true 추가
 						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
-							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 						}
 
 						remove(bucket, object, versionId);
@@ -155,12 +155,12 @@ public class DeleteObject extends S3Request {
 					// null version이 아니라면 marker 생성
 					// Metadata.getVersion() == null remove ? null이 아니라면 no remove
 					if (isLastVersion) {
-						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
-							remove(bucket, object, GWConstants.OBJECT_TYPE_MARK);
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
+							remove(bucket, object, GWConstants.OBJECT_TYPE_MARKER);
 						} else {
 							// put delete marker
 							putDeleteMarker(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL, s3Metadata, objMeta);
-							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.TRUE);
+							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 						}
 					} else {
 						remove(bucket, object, objMeta.getVersionId());
@@ -183,7 +183,7 @@ public class DeleteObject extends S3Request {
 
 	private void putDeleteMarker(String bucket, String object, String versionId, S3Metadata s3Metadata, Metadata objMeta) throws GWException {
 		try {
-			s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+			s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARKER);
 			s3Metadata.setLastModified(new Date());
 			s3Metadata.setContentLength(0L);
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
@@ -194,7 +194,7 @@ public class DeleteObject extends S3Request {
 			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
 			objMeta.set("", "", jsonmeta, "", 0L);
-			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARK, true);
+			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 			result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
