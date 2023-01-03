@@ -98,7 +98,6 @@ public class GW {
 		httpConnectionFactory.getHttpConfiguration().setHttpCompliance(customHttpCompliance);
 		UriCompliance customUriCompliance = UriCompliance.from(GWConstants.LOG_GW_RFC3986);
 		httpConnectionFactory.getHttpConfiguration().setUriCompliance(customUriCompliance);
-		//httpConnectionFactory.getHttpConfiguration().setUriCompliance(UriCompliance.RFC3986);
 
 		ServerConnector connector;
 		if (GWConfig.getInstance().getEndpoint() != null) {
@@ -138,13 +137,6 @@ public class GW {
 		handler = new GWHandlerJetty();
 		server.setHandler(handler);
 
-		// GWDB s3DB = GWUtils.getDBInstance();
-		// try {
-		// 	s3DB.init(GWConfig.getInstance().getDbHost(), String.valueOf(GWConfig.getInstance().getDbPort()), GWConfig.getInstance().getDatabase(), GWConfig.getInstance().getDbUser(), GWConfig.getInstance().getDbPass(), (int)GWConfig.getInstance().getDbPoolSize());
-		// } catch (Exception e) {
-		// 	PrintStack.logging(logger, e);
-		// }
-
 		// try {
 		// 	OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
 		// } catch (Exception e) {
@@ -156,6 +148,12 @@ public class GW {
 		if (GWConfig.getInstance().isCacheDiskpath()) {
 			GWUtils.initCache(GWConfig.getInstance().getCacheDiskpath());
 		}
+		// long start = System.currentTimeMillis();
+		GWUtils.initDisk();
+		// long end = System.currentTimeMillis();
+		// logger.error("disk init times : {} ms", end - start);
+		
+		GWUtils.initEC();
 	}
 
 	public void start() throws Exception {

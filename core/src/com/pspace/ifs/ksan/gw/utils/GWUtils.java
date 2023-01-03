@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.HashMap;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -550,23 +551,96 @@ public class GWUtils {
 	public static void initCache(String cacheDisk) {
 		if (!Strings.isNullOrEmpty(cacheDisk)) {
 			logger.debug(GWConstants.LOG_UTILS_INIT_CACHE);
+			int length = 0;
 			for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
 				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (Disk disk : server.getDiskList()) {
-							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+							StringBuilder sb = new StringBuilder();
+							sb.append(cacheDisk);
+							sb.append(disk.getPath());
+							sb.append(Constants.SLASH); 
+							length = sb.length();
+							sb.append(Constants.OBJ_DIR);
+
+							File file = new File(sb.toString());
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+							// makeSubDirs(sb.toString());
+
+							StringBuilder sbTemp = sb.delete(length, sb.length());
+							sbTemp.append(Constants.TEMP_DIR);
+							file = new File(sbTemp.toString());
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
+
+							sbTemp = sb.delete(length, sb.length());
+							sbTemp.append(Constants.TRASH_DIR);
+							file = new File(sbTemp.toString());
 							file.mkdirs();
 						}
+					}
+				}
+			}
+		}
+	}
+
+	public static void initDisk() {
+		for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+			for (Server server : diskpool.getServerList()) {
+				if (GWUtils.getLocalIP().equals(server.getIp())) {
+					for (Disk disk : server.getDiskList()) {
+						File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						file.mkdirs();
+						// makeSubDirs(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+						file.mkdirs();
+						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
+						file.mkdirs();
+					}
+				}
+			}
+		}
+	}
+
+	public static void initEC() {
+		HashMap<String, String> localDiskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
+
+		if (localDiskInfoMap!= null) {
+			localDiskInfoMap.forEach((diskId, diskPath) -> {
+				int numberOfCodingChunks = DiskManager.getInstance().getECM(diskId);
+				int numberOfDataChunks = DiskManager.getInstance().getECK(diskId);
+				if (numberOfCodingChunks > 0 && numberOfDataChunks > 0) {
+					// check EC
+					StringBuilder sb = new StringBuilder();
+					sb.append(diskPath);
+					sb.append(Constants.SLASH);
+					sb.append(Constants.EC_DIR);
+					File file = new File(sb.toString());
+					file.mkdirs();
+					// makeSubDirs(sb.toString());
+				}
+			});
+		}
+    }
+
+	private static void makeSubDirs(String path) {
+		byte[] data = new byte[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+		
+		byte[] subPath = new byte[6];
+		subPath[0] = '/';
+		subPath[3] = '/';
+
+		File file = null;
+		for (int i = 0; i < 36; i++) {
+			for (int j = 0; j < 36; j++) {
+				for (int k = 0; k < 36; k++) {
+					for (int l = 0; l < 36; l++) {
+						subPath[1] = data[i];
+						subPath[2] = data[j];
+						subPath[4] = data[k];
+						subPath[5] = data[l];
+
+						file = new File(path + new String(subPath));
+						file.mkdirs();
 					}
 				}
 			}
