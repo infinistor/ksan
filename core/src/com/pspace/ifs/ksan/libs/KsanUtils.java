@@ -85,7 +85,7 @@ public class KsanUtils {
         }
     }
 
-    private static String makeDirectoryFirstName(String objId) {
+    private static String makeDirectorySub(String objId) {
         byte[] path = new byte[3];
         byte[] byteObjId = objId.getBytes();
         path[0] = Constants.CHAR_SLASH;
@@ -95,28 +95,16 @@ public class KsanUtils {
         return new String(path);
     }
 
-    private static String makeDirectorySecondName(String objId) {
-        byte[] path = new byte[3];
-        byte[] byteObjId = objId.getBytes();
-        path[0] = Constants.CHAR_SLASH;
-        path[1] = byteObjId[2];
-        path[2] = byteObjId[3];
-
-        return new String(path);
-    }
-
     private static String makeDirectoryName(String objId) {
         byte[] path = new byte[6];
         byte[] byteObjId = objId.getBytes();
 
         path[0] = Constants.CHAR_SLASH;
-        int index = 1;
-        
-        path[index++] = byteObjId[0];
-        path[index++] = byteObjId[1];
-        path[index++] = Constants.CHAR_SLASH;
-        path[index++] = byteObjId[2];
-        path[index] = byteObjId[3];
+        path[1] = byteObjId[0];
+        path[2] = byteObjId[1];
+        path[3] = Constants.CHAR_SLASH;
+        path[4] = byteObjId[2];
+        path[5] = byteObjId[3];
 
         return new String(path);
     }
@@ -134,13 +122,13 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.OBJ_DIR);
-        sb.append(makeDirectoryFirstName(objId));
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
             objDir.mkdir();
         }
-        sb.append(makeDirectorySecondName(objId));
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
             objDir.mkdir();
@@ -152,8 +140,23 @@ public class KsanUtils {
         sb.append(versionId);
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.OBJ_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        // return fullPath;
+    }
+
+    public static String makeObjPathForOpen(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
     }
 
     public static String makeTempPath(String path, String objId, String versionId) {
@@ -173,8 +176,19 @@ public class KsanUtils {
         sb.append(versionId);
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.TEMP_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + uuid + Constants.UNDERSCORE + versionId;
-        // return fullPath;
+    }
+
+    public static String makeTempPartPath(String path, String objId, String partNo) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TEMP_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(partNo);
+
+        return sb.toString();
     }
 
     public static String makeTrashPath(String path, String objId, String versionId) {
@@ -206,13 +220,13 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.EC_DIR);
-        sb.append(makeDirectoryFirstName(objId));
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
             objDir.mkdir();
         }
-        sb.append(makeDirectorySecondName(objId));
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
             objDir.mkdir();
@@ -225,11 +239,27 @@ public class KsanUtils {
         sb.append(versionId);
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + Constants.POINT + objId + Constants.UNDERSCORE + versionId;
-        // return fullPath;
     }
 
-    public static String makeTempPartPath(String path, String objId, String partNumber) {
+    public static String makeECPathForOpen(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.EC_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(Constants.POINT);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static String qmakeTempPartPath(String path, String objId, String partNumber) {
         StringBuilder sb = new StringBuilder();
         sb.append(path);
         sb.append(Constants.SLASH);
@@ -258,8 +288,6 @@ public class KsanUtils {
         sb.append(versionId);
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.TEMP_COMPLETE_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        // return fullPath;
     }
 
     public static String makeTempCopyPath(String path, String objId, String versionId) {
@@ -276,38 +304,6 @@ public class KsanUtils {
         sb.append(versionId);
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.TEMP_COPY_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        // return fullPath;
-    }
-
-    public static String makeECDecodePath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = Constants.VERSIONING_DISABLE_TAIL;
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(path);
-        sb.append(Constants.SLASH);
-        sb.append(Constants.EC_DIR);
-        sb.append(makeDirectoryFirstName(objId));
-
-        File objDir = new File(sb.toString());
-        if (!objDir.exists()) {
-            objDir.mkdir();
-        }
-        sb.append(makeDirectorySecondName(objId));
-        objDir = new File(sb.toString());
-        if (!objDir.exists()) {
-            objDir.mkdir();
-        }
-
-        sb.append(Constants.SLASH);
-        sb.append(objId);
-        sb.append(Constants.UNDERSCORE);
-        sb.append(versionId);
-
-        return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        // return fullPath;
     }
 
     public static String makeECDirectoryPath(String path, String objId) {
@@ -315,27 +311,29 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.EC_DIR);
-        sb.append(makeDirectoryName(objId));
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
 
         return sb.toString();
-        // String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId);
-        // return fullPath;
     }
 
     public static String makeECDirectory(String fileName, String ecPath) {
         StringBuilder sb = new StringBuilder();
         sb.append(ecPath);
-        sb.append(makeDirectoryName(fileName));
+        sb.append(makeDirectorySub(fileName.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
+
+        sb.append(makeDirectorySub(fileName.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
 
         return sb.toString();
-        // String fullPath = ecPath + makeDirectoryName(fileName);
-        // return fullPath;
     }
-
-    // public static String makeECTempPath(String fileName, String ecPath) {
-    //     String fullPath = ecPath + makeDirectoryName(fileName) + Constants.SLASH + Constants.POINT + fileName;
-    //     return fullPath;
-    // }
 
     public static void setAttributeFileReplication(File file, String replica, String diskID) {
         UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
