@@ -61,8 +61,6 @@ import com.pspace.ifs.ksan.libs.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 
-import de.sfuhrm.openssl4j.OpenSSL4JProvider;
-
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 import org.slf4j.Logger;
@@ -290,7 +288,8 @@ public class AzuObjectOperation {
         long calSize = 0L;
 
         try {
-            MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
             int readLength = 0;
             
@@ -681,7 +680,8 @@ public class AzuObjectOperation {
         OSDClient clientReplica = null;
 
         try {
-            md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
@@ -863,7 +863,8 @@ public class AzuObjectOperation {
         try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
             com.google.common.io.Files.createParentDirs(file);
             com.google.common.io.Files.createParentDirs(tmpFile);
-            md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             for (String blockId: blockList) {
                 if (GWConfig.getInstance().isCacheDiskpath()) {
                     block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
