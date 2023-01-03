@@ -126,9 +126,13 @@ public class PutObject extends S3Request {
 		if (!Strings.isNullOrEmpty(contentLanguage)) {
 			s3Metadata.setContentLanguage(contentLanguage);
 		}
+
 		if (!Strings.isNullOrEmpty(contentType)) {
 			s3Metadata.setContentType(contentType);
+		} else {
+			s3Metadata.setContentType(GWConstants.CONTENT_TYPE_X_DIRECTORY);
 		}
+
 		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
 			s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		}
