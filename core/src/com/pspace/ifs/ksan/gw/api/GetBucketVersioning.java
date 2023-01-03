@@ -49,7 +49,7 @@ public class GetBucketVersioning extends S3Request {
 		dataGetBucketVersioning.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_VERSIONING, s3Parameter, dataGetBucketVersioning)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 		
 		String versioningStatus = getBucketInfo().getVersioning();

@@ -51,7 +51,7 @@ public class PutBucketTagIndex extends S3Request {
 		dataPutBucketTagIndex.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter, dataPutBucketTagIndex)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 		
 		String tagIndexXml = dataPutBucketTagIndex.getTagIndexXml();

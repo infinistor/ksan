@@ -64,44 +64,8 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
 		dataCreateMultipartUpload.extract();
-
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
-
-		// String xml = getBucketInfo().getAcl();
-		// String xml = GWUtils.makeAclXml(accessControlPolicy, 
-		// 								null, 
-		// 								dataCreateMultipartUpload.hasAclKeyword(), 
-		// 								null, 
-		// 								dataCreateMultipartUpload.getAcl(),
-		// 								getBucketInfo(),
-		// 								getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
-		// 								getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
-		// 								dataCreateMultipartUpload.getGrantRead(),
-		// 								dataCreateMultipartUpload.getGrantWrite(), 
-		// 								dataCreateMultipartUpload.getGrantFullControl(), 
-		// 								dataCreateMultipartUpload.getGrantReadAcp(), 
-		// 								dataCreateMultipartUpload.getGrantWriteAcp(),
-		// 								s3Parameter,
-		// 								false);
-		String xml = GWUtils.makeAdmAclXml(accessControlPolicy, 
-										null, 
-										dataCreateMultipartUpload.hasAclKeyword(), 
-										null, 
-										dataCreateMultipartUpload.getAcl(),
-										getBucketInfo(),
-										getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
-										getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
-										dataCreateMultipartUpload.getGrantRead(),
-										dataCreateMultipartUpload.getGrantWrite(), 
-										dataCreateMultipartUpload.getGrantFullControl(), 
-										dataCreateMultipartUpload.getGrantReadAcp(), 
-										dataCreateMultipartUpload.getGrantWriteAcp(),
-										s3Parameter);										
+		
+		String xml = makeAcl(null, null, dataCreateMultipartUpload);
 		
 		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();

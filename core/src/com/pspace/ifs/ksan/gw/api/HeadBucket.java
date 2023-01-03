@@ -43,7 +43,7 @@ public class HeadBucket extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		checkGrantBucket(false, GWConstants.GRANT_READ);
 		
 		DataHeadBucket dataHeadBucket = new DataHeadBucket(s3Parameter);
 		dataHeadBucket.extract();
@@ -55,10 +55,6 @@ public class HeadBucket extends S3Request {
 			}
 		}
 		
-		if (isGrant(s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ)) {
-			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-		} else {
-			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-		}
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 }

@@ -49,7 +49,7 @@ public class PutBucketLogging extends S3Request {
 		dataPutBucketLogging.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_LOGGING, s3Parameter, dataPutBucketLogging)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String loggingInfo = dataPutBucketLogging.getLoggingXml();

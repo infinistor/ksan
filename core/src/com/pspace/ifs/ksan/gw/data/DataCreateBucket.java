@@ -74,6 +74,13 @@ public class DataCreateBucket extends S3DataRequest {
 				}
 			} 
 		}
+
+		keyXAmzAcl = getAcl();
+		keyXAmzGrantFullControl = getGrantFullControl();
+		keyXAmzGrantRead = getGrantRead();
+		keyXAmzGrantReadAcp = getGrantReadAcp();
+		keyXAmzGrantWrite = getGrantWrite();
+		keyXAmzGrantWriteAcp = getGrantWriteAcp();
 	}
 	
 	public boolean hasAclKeyword() {

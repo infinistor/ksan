@@ -70,7 +70,7 @@ public class GetObjectLegalHold extends S3Request {
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_LEGAL_HOLD, s3Parameter, dataGetObjectLegalHold)) {
-			checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantObject(true, GWConstants.GRANT_READ);
 		}
 
 		String objectLock = getBucketInfo().getObjectLock();

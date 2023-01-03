@@ -46,7 +46,7 @@ public class GetBucketLocation extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		

@@ -25,6 +25,7 @@ public class ObjManagers {
     private ObjManagerConfig config;
     private ObjManager[] arrayObjManager = new ObjManager[(int)GWConfig.getInstance().getObjManagerCount()];
     private int index;
+    private int counts;
 
     public static ObjManagers getInstance() {
         return LazyHolder.INSTANCE;
@@ -54,25 +55,36 @@ public class ObjManagers {
         }
         
         index = -1;
+        counts = (int)GWConfig.getInstance().getObjManagerCount();
+        arrayObjManager = new ObjManager[counts];
     }
 
     public void init() throws Exception {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < counts; i++) {
             arrayObjManager[i] = new ObjManager(config);
         }
     }
 
-    public synchronized ObjManager getObjManager() throws Exception {
-        if (index >= 99) {
+    public synchronized ObjManager getObjManager() {
+        if (index >= counts - 1) {
             index = -1;
         }
         
         index++;
         
-        if (arrayObjManager[index] == null) {
-            arrayObjManager[index] = new ObjManager(config);
+        try {
+            if (arrayObjManager[index] == null) {
+                arrayObjManager[index] = new ObjManager(config);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
 
         return arrayObjManager[index];
+    }
+
+    public void notifyChangeDiskpools(String routingKey, String body) {
+        ObjManager objManager = getObjManager();
+        objManager.updateDiskpools(routingKey, body);
     }
 }

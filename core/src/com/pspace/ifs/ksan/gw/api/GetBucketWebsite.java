@@ -48,7 +48,9 @@ public class GetBucketWebsite extends S3Request {
 		DataGetBucketWebsite dataGetBucketWebsite = new DataGetBucketWebsite(s3Parameter);
 		dataGetBucketWebsite.extract();
 
-		checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_REPLICATION_CONFIGURATION, s3Parameter, dataGetBucketWebsite)) {
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
+		}
 		
 		String web = getBucketInfo().getWeb();
 		logger.debug(GWConstants.LOG_GET_BUCKET_WEBSITE, web);

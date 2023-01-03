@@ -107,7 +107,7 @@ class MoveObjectCallback implements MQCallback {
 		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
 
 		// check EC exists
-        File ecFile = new File(KsanUtils.makeECPath(sourceDiskPath, objId, versionId));
+        File ecFile = new File(KsanUtils.makeECPathForOpen(sourceDiskPath, objId, versionId));
         logger.debug("ecfile : {}", ecFile.getAbsolutePath());
         if (ecFile.exists()) {
 			try {
@@ -130,7 +130,7 @@ class MoveObjectCallback implements MQCallback {
 					File newECPartFile = new File(newECPartPath);
 					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
 						// if local disk, move file
-						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						File sourceECPartFile = new File(KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId));
 						if (sourceECPartFile.exists()) {
 							FileUtils.copyFile(sourceECPartFile, newECPartFile);
 							ecPart.setProcessed(true);
@@ -140,7 +140,7 @@ class MoveObjectCallback implements MQCallback {
 						}
 					} else {
 						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
-							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId);
 							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
 							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
 							ecClient.getECPartInit(getPath, fos);
@@ -159,7 +159,7 @@ class MoveObjectCallback implements MQCallback {
 					}
 				}
 				// zunfec
-				String ecAllFilePath = KsanUtils.makeECDecodePath(sourceDiskPath, objId, versionId);
+				String ecAllFilePath = KsanUtils.makeECPathForOpen(sourceDiskPath, objId, versionId);
 				String command = Constants.ZUNFEC + ecAllFilePath;
 				getECPartCount = 0;
 				for (ECPart ecPart : ecList) {
@@ -298,7 +298,7 @@ class DeleteObjectCallback implements MQCallback {
 		logger.info("diskPath : {}", diskPath);
 		
 		// check EC exists
-        File ecFile = new File(KsanUtils.makeECPath(diskPath, objId, versionId));
+        File ecFile = new File(KsanUtils.makeECPathForOpen(diskPath, objId, versionId));
         if (ecFile.exists()) {
             logger.debug("ec exist : {}", ecFile.getAbsolutePath());
             List<ECPart> ecList = new ArrayList<ECPart>();
@@ -312,7 +312,7 @@ class DeleteObjectCallback implements MQCallback {
             }
 
             for (ECPart ecPart : ecList) {
-                String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+                String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId);
                 if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
                     File file = new File(getPath);
                     if (file.exists()) {
@@ -407,7 +407,7 @@ class GetAttrObjectCallBack implements MQCallback {
 		logger.info("full path : {}", fullPath);
 
 		// check EC exists
-        File ecFile = new File(KsanUtils.makeECPath(diskPath, objId, versionId));
+        File ecFile = new File(KsanUtils.makeECPathForOpen(diskPath, objId, versionId));
         logger.debug("ecfile : {}", ecFile.getAbsolutePath());
         if (ecFile.exists()) {
 			try {
@@ -430,7 +430,7 @@ class GetAttrObjectCallBack implements MQCallback {
 					File newECPartFile = new File(newECPartPath);
 					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
 						// if local disk, move file
-						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						File sourceECPartFile = new File(KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId));
 						if (sourceECPartFile.exists()) {
 							FileUtils.copyFile(sourceECPartFile, newECPartFile);
 							ecPart.setProcessed(true);
@@ -440,7 +440,7 @@ class GetAttrObjectCallBack implements MQCallback {
 						}
 					} else {
 						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
-							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId);
 							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
 							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
 							ecClient.getECPartInit(getPath, fos);
@@ -459,7 +459,7 @@ class GetAttrObjectCallBack implements MQCallback {
 					}
 				}
 				// zunfec
-				String ecAllFilePath = KsanUtils.makeECDecodePath(diskPath, objId, versionId);
+				String ecAllFilePath = KsanUtils.makeECPathForOpen(diskPath, objId, versionId);
 				String command = Constants.ZUNFEC + ecAllFilePath;
 				getECPartCount = 0;
 				for (ECPart ecPart : ecList) {
@@ -583,7 +583,7 @@ class CopyObjectCallback implements MQCallback {
 		String fullPath = KsanUtils.makeObjPath(sourceDiskPath, objId, versionId);
 
 		// check EC exists
-        File ecFile = new File(KsanUtils.makeECPath(sourceDiskPath, objId, versionId));
+        File ecFile = new File(KsanUtils.makeECPathForOpen(sourceDiskPath, objId, versionId));
         logger.debug("ecfile : {}", ecFile.getAbsolutePath());
         if (ecFile.exists()) {
 			try {
@@ -606,7 +606,7 @@ class CopyObjectCallback implements MQCallback {
 					File newECPartFile = new File(newECPartPath);
 					if (ecPart.getServerIP().equals(KsanUtils.getLocalIP())) {
 						// if local disk, move file
-						File sourceECPartFile = new File(KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId));
+						File sourceECPartFile = new File(KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId));
 						if (sourceECPartFile.exists()) {
 							FileUtils.copyFile(sourceECPartFile, newECPartFile);
 							ecPart.setProcessed(true);
@@ -616,7 +616,7 @@ class CopyObjectCallback implements MQCallback {
 						}
 					} else {
 						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
-							String getPath = KsanUtils.makeECPath(ecPart.getDiskPath(), objId, versionId);
+							String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId);
 							OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
 							logger.debug("get ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
 							ecClient.getECPartInit(getPath, fos);
@@ -635,7 +635,7 @@ class CopyObjectCallback implements MQCallback {
 					}
 				}
 				// zunfec
-				String ecAllFilePath = KsanUtils.makeECDecodePath(sourceDiskPath, objId, versionId);
+				String ecAllFilePath = KsanUtils.makeECPathForOpen(sourceDiskPath, objId, versionId);
 				String command = Constants.ZUNFEC + ecAllFilePath;
 				getECPartCount = 0;
 				for (ECPart ecPart : ecList) {

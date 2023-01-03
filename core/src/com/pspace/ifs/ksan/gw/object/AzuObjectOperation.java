@@ -46,7 +46,7 @@ import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
 import com.pspace.ifs.ksan.libs.multipart.Part;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
@@ -60,8 +60,6 @@ import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.KsanUtils;
-
-import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -80,6 +78,7 @@ public class AzuObjectOperation {
         this.objMeta = objMeta;
         this.s3Meta = s3Meta;
         this.azuParameter = azuParameter;
+        objManager = ObjManagers.getInstance().getObjManager();
 
         if (Strings.isNullOrEmpty(versionId)) {
             this.versionId = GWConstants.VERSIONING_DISABLE_TAIL;
@@ -289,7 +288,8 @@ public class AzuObjectOperation {
         long calSize = 0L;
 
         try {
-            MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
             int readLength = 0;
             
@@ -680,7 +680,8 @@ public class AzuObjectOperation {
         OSDClient clientReplica = null;
 
         try {
-            md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
@@ -862,7 +863,8 @@ public class AzuObjectOperation {
         try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
             com.google.common.io.Files.createParentDirs(file);
             com.google.common.io.Files.createParentDirs(tmpFile);
-            md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+            md5er = MessageDigest.getInstance(GWConstants.MD5);
+
             for (String blockId: blockList) {
                 if (GWConfig.getInstance().isCacheDiskpath()) {
                     block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
@@ -913,28 +915,12 @@ public class AzuObjectOperation {
         return s3Object;
     }
 
-    private void setObjManager() throws Exception {
-		objManager = ObjManagerHelper.getInstance().getObjManager();
-	}
-
-	private void releaseObjManager() throws Exception {
-		ObjManagerHelper.getInstance().returnObjManager(objManager);
-	}
-
     private void updateBucketUsed(String bucketName, long size) throws AzuException {
 		try {
-			setObjManager();
 			objManager.updateBucketUsed(bucketName, size);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 	}
 
