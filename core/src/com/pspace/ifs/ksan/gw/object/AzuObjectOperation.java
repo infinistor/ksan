@@ -546,9 +546,6 @@ public class AzuObjectOperation {
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
 
             calSize = putSize - existFileSize;
-            if (GWConfig.getInstance().isNoOption()) {
-                updateBucketUsed(objMeta.getBucket(), calSize);
-            }
         } catch (NoSuchAlgorithmException | IOException e) {
             PrintStack.logging(logger, e);
             throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
@@ -656,7 +653,6 @@ public class AzuObjectOperation {
             trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
         }
 
-        updateBucketUsed(objMeta.getBucket(), file.length() * objMeta.getReplicaCount() * -1);
         if (file.exists()) {
             retryRenameTo(file, trashFile);
             if (GWConfig.getInstance().isCacheDiskpath()) {
@@ -914,15 +910,6 @@ public class AzuObjectOperation {
 
         return s3Object;
     }
-
-    private void updateBucketUsed(String bucketName, long size) throws AzuException {
-		try {
-			objManager.updateBucketUsed(bucketName, size);
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		}
-	}
 
     private void retryRenameTo(File srcFile, File destFile) throws IOException {
         if (srcFile.exists()) {
