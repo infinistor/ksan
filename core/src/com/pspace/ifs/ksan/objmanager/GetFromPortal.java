@@ -443,7 +443,7 @@ public class GetFromPortal {
           
         objc.dbRepository = (String)jsonConfig.get(DBREPOSITORY);
         objc.dbHost = (String)jsonConfig.get(DBHOST);
-        objc.dbport = Long.valueOf(jsonConfig.get(DBPORT).toString());
+        objc.dbPort = Long.valueOf(jsonConfig.get(DBPORT).toString());
         objc.dbName = (String)jsonConfig.get(DBNAME);
         objc.dbUsername = (String)jsonConfig.get(DBUSER);
         objc.dbPassword = (String)jsonConfig.get(DBPASSWORD);
