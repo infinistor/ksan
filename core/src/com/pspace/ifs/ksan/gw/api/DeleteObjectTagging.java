@@ -59,11 +59,13 @@ public class DeleteObjectTagging extends S3Request {
 
 		if (Strings.isNullOrEmpty(versionId)) {
 			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
-				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				// checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				checkGrantObject(true, GWConstants.GRANT_WRITE);
 			}
 		} else {
 			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
-				checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				// checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				checkGrantObject(true, GWConstants.GRANT_WRITE);
 			}
 		}
 

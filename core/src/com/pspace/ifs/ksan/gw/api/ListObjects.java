@@ -59,7 +59,7 @@ public class ListObjects extends S3Request {
 
 		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBuckets)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		S3ObjectList s3ObjectList = new S3ObjectList();

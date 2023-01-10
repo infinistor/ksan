@@ -67,7 +67,7 @@ public class UploadPartCopy extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		
 		DataUploadPartCopy dataUploadPartCopy = new DataUploadPartCopy(s3Parameter);
 		dataUploadPartCopy.extract();
@@ -151,7 +151,8 @@ public class UploadPartCopy extends S3Request {
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
 		// srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		// checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		checkGrantObject(false, GWConstants.GRANT_READ);
 
 		// get metadata
 		S3Metadata s3SrcMetadata = new S3Metadata();

@@ -183,27 +183,8 @@ public class KsanPutObject extends S3Request {
 			}
 		}
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
+		String aclXml = makeAcl(null, null, dataPutObject);
 
-		String aclXml = GWUtils.makeAdmAclXml(accessControlPolicy, 
-										null, 
-										dataPutObject.hasAclKeyword(), 
-										null, 
-										dataPutObject.getAcl(),
-										getBucketInfo(),
-										getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
-										getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
-										dataPutObject.getGrantRead(),
-										dataPutObject.getGrantWrite(), 
-										dataPutObject.getGrantFullControl(), 
-										dataPutObject.getGrantReadAcp(), 
-										dataPutObject.getGrantWriteAcp(),
-										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);

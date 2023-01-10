@@ -69,7 +69,7 @@ public class ListParts extends S3Request {
 		dataListParts.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter, dataListParts)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		String maxParts = dataListParts.getMaxParts();

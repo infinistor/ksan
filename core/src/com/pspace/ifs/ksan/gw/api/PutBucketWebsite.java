@@ -46,7 +46,7 @@ public class PutBucketWebsite extends S3Request {
 		dataPutBucketWebsite.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_WEBSITE, s3Parameter, dataPutBucketWebsite)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String webXml = dataPutBucketWebsite.getWebsiteXml();

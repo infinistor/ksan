@@ -49,7 +49,7 @@ public class GetBucketLifecycleConfiguration extends S3Request {
 		dataGetBucketLifecycleConfiguration.extract();
 		
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_LIFECYCLE_CONFIGURATION, s3Parameter, dataGetBucketLifecycleConfiguration)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
 		String lifecycle = getBucketInfo().getLifecycle();

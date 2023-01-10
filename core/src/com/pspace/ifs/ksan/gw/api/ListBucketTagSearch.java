@@ -62,7 +62,7 @@ public class ListBucketTagSearch extends S3Request {
 
 		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
 		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBucketTagSearch)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		String encodingType = dataListBucketTagSearch.getEncodingType();

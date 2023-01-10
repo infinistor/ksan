@@ -65,15 +65,12 @@ public class GetObject extends S3Request implements S3AddResponse {
 		dataGetObject.extract();
 
 		String versionId = dataGetObject.getVersionId();
-		// String versionId = null;
-		// String range = null;
 		String range = dataGetObject.getRange();
 		String ifMatch = dataGetObject.getIfMatch();
 		String ifNoneMatch = dataGetObject.getIfNoneMatch();
 		String ifModifiedSince = dataGetObject.getIfModifiedSince();
 		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
 
-		// long dbStart = System.currentTimeMillis();
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
@@ -85,19 +82,17 @@ public class GetObject extends S3Request implements S3AddResponse {
 			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 			return;
 		}
-		// long dbEnd = System.currentTimeMillis();
-		// logger.error("get - db op : {}", dbEnd - dbStart);
 		
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 
 		if (Strings.isNullOrEmpty(versionId)) {
 			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT, s3Parameter, dataGetObject)) {
-				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+				checkGrantObject(false, GWConstants.GRANT_READ);
 			}
 		} else {
 			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION, s3Parameter, dataGetObject)) {
-				checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+				checkGrantObject(false, GWConstants.GRANT_READ);
 			}
 		}
 
@@ -181,8 +176,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 			return;
 		}
 
-		// long fileEnd = System.currentTimeMillis();
-		// logger.error("get op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().setStatus(resultRange.getStatus());
 	}
 

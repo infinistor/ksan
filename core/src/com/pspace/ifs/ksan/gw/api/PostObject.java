@@ -187,11 +187,13 @@ public class PostObject extends S3Request {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.validatePost(dataPostObject);
 
-			if (!isGrantBucket(s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
+			if (!checkGrant(true, false, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
+				logger.error(GWConstants.LOG_REQUEST_PUBLIC_ACCESS_DENIED);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		} else {
-			if (!isGrantBucket(GWConstants.LOG_REQUEST_ROOT_ID, GWConstants.GRANT_WRITE)) {
+			if (!checkGrant(true, false, GWConstants.LOG_REQUEST_ROOT_ID, GWConstants.GRANT_WRITE)) {
+				logger.error(GWConstants.LOG_REQUEST_PUBLIC_ACCESS_DENIED);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
@@ -256,21 +258,7 @@ public class PostObject extends S3Request {
 			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
 
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
-										null, 
-										dataPostObject.getAclKeyword(), 
-										null, 
-										dataPostObject.getAcl(),
-										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
-										dataPostObject.getGrantRead(),
-										dataPostObject.getGrantWrite(), 
-										dataPostObject.getGrantFullControl(), 
-										dataPostObject.getGrantReadAcp(), 
-										dataPostObject.getGrantWriteAcp(),
-										s3Parameter,
-										false);
+		String aclXml = makeAcl(null, null, dataPostObject);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);

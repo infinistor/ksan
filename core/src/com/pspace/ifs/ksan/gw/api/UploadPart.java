@@ -57,7 +57,7 @@ public class UploadPart extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+		checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		
 		DataUploadPart dataUploadPart = new DataUploadPart(s3Parameter);
 		dataUploadPart.extract();

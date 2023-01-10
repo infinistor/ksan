@@ -105,16 +105,6 @@ public class KsanStorageMove extends S3Request {
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
         objectOperation.storageMove(restoreObjMeta);
 
-        String aclXml = null;
-        try {
-            XmlMapper xmlMapper = new XmlMapper();
-            AccessControlPolicy checkAcl = xmlMapper.readValue(objMeta.getAcl(), AccessControlPolicy.class);
-			aclXml = checkAcl.toString();
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-        }
-
         String jsonmeta = "";
 		try {
 			jsonmeta = objectMapper.writeValueAsString(s3Metadata);
@@ -124,7 +114,7 @@ public class KsanStorageMove extends S3Request {
 		}
 
         try {
-            restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), jsonmeta, aclXml, objMeta.getSize());
+            restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), jsonmeta, objMeta.getAcl(), objMeta.getSize());
         	restoreObjMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, restoreObjMeta);
 			logger.debug(GWConstants.LOG_ADMIN_RESTORE_OBJECT_INFO, bucket, object, objMeta.getSize(), objMeta.getEtag(), versionId);

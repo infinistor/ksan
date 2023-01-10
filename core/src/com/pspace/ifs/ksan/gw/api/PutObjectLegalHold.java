@@ -59,7 +59,7 @@ public class PutObjectLegalHold extends S3Request {
         dataPutObjectLegalHold.extract();
 
         if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_LEGAL_HOLD, s3Parameter, dataPutObjectLegalHold)) {
-            checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+            checkGrantBucket(false, GWConstants.GRANT_WRITE);
         }
 
         String versionId = dataPutObjectLegalHold.getVersionId();
