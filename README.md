@@ -36,7 +36,9 @@ KSAN은 오브젝트 스토리지 서비스 시장에서 가장 널리 사용되
 
 KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 따라 Microsoft Azure API 및 Google Cloud API를 순차적으로 제공할 예정입니다.
 
-현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO)를 참조해 주십시오.
+현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO))를 참조해 주십시오.
+
+현재 KSAN에서 지원하는 AZURE BLOB 호환 API는 이 문서([AZURE BLOB Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-blob-apis-2uUmS24H5E))를 참조해 주십시오.
 
 ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
 
@@ -73,14 +75,18 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 
 ## KSAN 시작하기
 
-[Quick Start Guide 문서](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/quick-start-guide-rC1ZgcsjS3)를 참고하여 KSAN을 직접 사용해 보세요.
+* [Quick Start Guide](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/quick-start-guide-rC1ZgcsjS3)
+* [KSAN CLI Usage](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksan-cli-usage-PMTp2vuLMK)
+* [KSAN S3-Compatible APIs](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO)
+* [KSAN AZURE-Compatible BLOB APIs](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-blob-apis-2uUmS24H5E)
+
 
 
 <br><br><br>
 
 ---
 
-⚠️ 이 프로젝트는 아직 상업적 제품 제작에 적합한 단계가 아닙니다. 2022년 중에 상업적 이용에 적합한 수준에 도달하는 것을 목표로 하고 있습니다.
+⚠️ 이 프로젝트는 아직 상업적 제품 제작에 적합한 단계가 아닙니다. 2023년 상반기 중에 상업적 이용에 적합한 수준에 도달하는 것을 목표로 하고 있습니다.
 
 ℹ️ 이 프로젝트를 교육 및 연구목적에 적합한 단계입니다. 교육에 활용하는 경우 연락해주시면 필요에 따라 기술지원을 제공해 드리겠습니다.
 

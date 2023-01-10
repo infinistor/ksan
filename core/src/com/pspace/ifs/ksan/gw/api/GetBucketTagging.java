@@ -47,7 +47,7 @@ public class GetBucketTagging extends S3Request {
 		dataGetBucketTagging.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_TAGGING, s3Parameter, dataGetBucketTagging)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
 		String tag = getBucketInfo().getTagging();

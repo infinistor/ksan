@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 
 import com.pspace.ifs.ksan.gw.identity.S3Region;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
@@ -81,7 +81,7 @@ class DiskUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
@@ -101,7 +101,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);

@@ -52,7 +52,7 @@ public class GetBucketObjectLock extends S3Request {
         dataGetBucketObjectLock.extract();
 
         if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataGetBucketObjectLock)) {
-            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
         }
         
         String objectLock = getBucketInfo().getObjectLock();

@@ -49,7 +49,7 @@ public class GetBucketReplication extends S3Request {
 		dataGetBucketReplication.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_REPLICATION_CONFIGURATION, s3Parameter, dataGetBucketReplication)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
         String replication = getBucketInfo().getReplication();

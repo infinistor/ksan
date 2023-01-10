@@ -63,7 +63,7 @@ public class PutBucketReplication extends S3Request {
 		dataPutBucketReplication.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_REPLICATION_CONFIGURATION, s3Parameter, dataPutBucketReplication)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String replicationXml = dataPutBucketReplication.getReplicationXml();

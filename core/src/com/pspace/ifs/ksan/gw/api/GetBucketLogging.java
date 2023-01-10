@@ -48,7 +48,7 @@ public class GetBucketLogging extends S3Request {
         dataGetBucketLogging.extract();
 		
         if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_LOGGING, s3Parameter, dataGetBucketLogging)) {
-            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
         }
 
 		String logging = getBucketInfo().getLogging();

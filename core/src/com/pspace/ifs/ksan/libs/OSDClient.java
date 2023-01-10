@@ -127,7 +127,7 @@ public class OSDClient {
 		return readTotal;
 	}
 
-	public void getPartInit(String path, String objId, String partNo, long fileSize, OutputStream out, MessageDigest md5er) throws IOException {
+	public void getPartInit(String path, String objId, String partNo, long fileSize, OutputStream out/*, MessageDigest md5er*/) throws IOException {
 		String header = OsdData.GET_PART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
@@ -136,7 +136,7 @@ public class OSDClient {
 		sendHeader(header);
 		this.fileSize = fileSize;
 		byPassOut = out;
-		this.md5er = md5er;
+		// this.md5er = md5er;
 	}
 
 	public long getPart() throws IOException {
@@ -148,7 +148,7 @@ public class OSDClient {
 		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
-			md5er.update(buffer, 0, readLength);
+			// md5er.update(buffer, 0, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}

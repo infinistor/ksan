@@ -29,7 +29,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.format.LoggingConfiguration;
 
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 
@@ -75,20 +75,15 @@ public class DataPutBucketLogging extends S3DataRequest {
 				if (lc.loggingEnabled.targetBucket != null) {
 					ObjManager objManager = null;
 					boolean isTargetBucket = true;
+					
 					try {
-						objManager = ObjManagerHelper.getInstance().getObjManager();
+						objManager = ObjManagers.getInstance().getObjManager();
 						isTargetBucket = objManager.isBucketExist(lc.loggingEnabled.targetBucket);
 					} catch (Exception e) {
 						PrintStack.logging(logger, e);
 						throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-					} finally {
-						try {
-							ObjManagerHelper.getInstance().returnObjManager(objManager);
-						} catch (Exception e) {
-							PrintStack.logging(logger, e);
-							throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-						}
-					}
+					} 
+
 					if (!isTargetBucket) {
 						throw new GWException(GWErrorCode.INVALID_TARGET_BUCKET_FOR_LOGGING, s3Parameter);
 					}

@@ -44,7 +44,7 @@ public class PutBucketCors extends S3Request {
 		bucketCors.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_CORS, s3Parameter, bucketCors)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String corsInfo = bucketCors.getCorsXml();

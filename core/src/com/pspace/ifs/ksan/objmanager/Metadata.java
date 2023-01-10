@@ -18,6 +18,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.time.Instant;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -308,7 +309,32 @@ public class Metadata {
     @Override
     public String toString(){
         String replicaDiskStr;
+        JSONObject jsonStr = new JSONObject();
+        jsonStr.put("bucketName", bucket);
+        jsonStr.put("path", path);
+        jsonStr.put("etag", etag);
+        jsonStr.put("tag", tag);
+        jsonStr.put("meta", meta);
+        jsonStr.put("acl", acl);
+        jsonStr.put("objId", objid);
+        jsonStr.put("bucketId", bucketId);
+        jsonStr.put("lastModified", lastModified);
+        jsonStr.put("size", size);
+        jsonStr.put("replicaCount", replicaCount);
+        jsonStr.put("versionId", versionId);
+        jsonStr.put("deleteMarker", deleteMarker);
+        jsonStr.put("lastVersion", lastVersion);
+        jsonStr.put("primaryDisk", getPrimaryDisk());
+        try{
+            DISK dsk = getReplicaDisk();
+            replicaDiskStr = dsk.toString();
+        } catch(ResourceNotFoundException ex){
+            replicaDiskStr = "{ }";
+        }
         
+        jsonStr.put("replicaDisk", replicaDiskStr);
+        return jsonStr.toJSONString();
+        /*
         try{
             if (this.isReplicaExist())
                 replicaDiskStr = this.getReplicaDisk().toString();
@@ -322,6 +348,6 @@ public class Metadata {
                 "{path : %s etag : %s tag : %s meta : %s acl : %s objid : %s PrimaryDisk: %s ReplicaDisk : %s}", 
                 this.getPath(), this.getEtag(), 
                 this.getTag(), this.getMeta(), this.getAcl(), this.getObjId(), 
-                this.getPrimaryDisk().toString(), replicaDiskStr);
+                this.getPrimaryDisk().toString(), replicaDiskStr);*/
     }
 }

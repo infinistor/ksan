@@ -47,7 +47,7 @@ public class GetBucketPolicy extends S3Request {
 		dataGetBucketPolicy.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_POLICY, s3Parameter, dataGetBucketPolicy)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
 		String policy = getBucketInfo().getPolicy();

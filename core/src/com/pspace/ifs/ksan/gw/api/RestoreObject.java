@@ -63,11 +63,11 @@ public class RestoreObject extends S3Request {
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 		if (Strings.isNullOrEmpty(versionId)) {
 			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter, dataRestoreObject)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		} else {
 			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter, dataRestoreObject)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		}
 

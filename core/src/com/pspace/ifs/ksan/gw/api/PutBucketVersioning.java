@@ -50,7 +50,7 @@ public class PutBucketVersioning extends S3Request {
 		dataPutBucketVersioning.extract();
 
 		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_VERSIONING, s3Parameter, dataPutBucketVersioning)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
 		String versionXml = dataPutBucketVersioning.getVersioningXml();

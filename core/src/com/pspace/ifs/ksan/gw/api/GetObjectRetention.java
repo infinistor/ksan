@@ -72,7 +72,7 @@ public class GetObjectRetention extends S3Request {
 		s3Parameter.setTaggingInfo(objMeta.getTag());
         
 		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_RETENTION, s3Parameter, dataGetObjectRetention)) {
-			checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+			checkGrantObject(true, GWConstants.GRANT_READ);
 		}
 
 		try {

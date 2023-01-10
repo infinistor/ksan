@@ -182,6 +182,10 @@ public class DoECPriObject implements Runnable {
             byte[] buffer = new byte[Constants.MAXBUFSIZE];
             for (int i = 0, j = 1; i < ends.length; i++) {
                 logger.debug("file : {}", files[i].getName());
+                if (!files[i].getName().endsWith(".fec")) {
+                    files[i].delete();
+                    continue;
+                }
                 for (ECPart sendECPart : sendList) {
                     String ecPartPath = KsanUtils.makeECDirectory(files[i].getName().substring(1), sendECPart.getDiskPath() + Constants.SLASH + Constants.EC_DIR) + Constants.SLASH + Constants.POINT + fileName;
                     if (!sendECPart.isProcessed()) {

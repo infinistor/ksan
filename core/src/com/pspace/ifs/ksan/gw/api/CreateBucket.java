@@ -61,29 +61,7 @@ public class CreateBucket extends S3Request {
 		DataCreateBucket dataCreateBucket = new DataCreateBucket(s3Parameter);
 		dataCreateBucket.extract();
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
-		
-		String xml = GWUtils.makeAclXml(accessControlPolicy, 
-										null, 
-										dataCreateBucket.hasAclKeyword(), 
-										null, 
-										dataCreateBucket.getAcl(),
-										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
-										dataCreateBucket.getGrantRead(),
-										dataCreateBucket.getGrantWrite(), 
-										dataCreateBucket.getGrantFullControl(), 
-										dataCreateBucket.getGrantReadAcp(), 
-										dataCreateBucket.getGrantWriteAcp(),
-										s3Parameter,
-										false);
-		logger.debug(GWConstants.LOG_ACL, xml);
+		String xml = makeAcl(null, null, dataCreateBucket);
 
 		int result = 0;
 		logger.info("user : {}, {}, {}", s3Parameter.getUser().getAccessKey(), s3Parameter.getUser().getUserDiskpoolId(GWConstants.AWS_TIER_STANTARD), s3Parameter.getUser().getUserDefaultDiskpoolId());

@@ -82,8 +82,7 @@ public class HeadObject extends S3Request implements S3AddResponse {
 			return;
 		}
 
-		// objMeta.setAcl(GWUtils.makeOriginalXml(objMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		checkGrantObject(false, GWConstants.GRANT_READ);
 
 		// meta info
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -226,5 +225,7 @@ public class HeadObject extends S3Request implements S3AddResponse {
 		} else {
 			response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
 		}
+
+		response.addHeader(GWConstants.X_AMZ_STORAGE_CLASS, metadata.getTier());
 	}
 }

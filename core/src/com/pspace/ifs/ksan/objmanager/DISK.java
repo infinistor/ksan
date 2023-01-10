@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import org.json.simple.JSONObject;
+
 public class DISK{
     private String path;
     private String diskid;
@@ -19,6 +21,7 @@ public class DISK{
     private double totalInode;
     private double usedInode;
     private String osdIp;
+    private String hostname;
     private String osdServerId;
     private String diskPoolId;
     private int role; // primary or replica
@@ -26,6 +29,7 @@ public class DISK{
     private DiskStatus status; // GOOD, STOPPED, BROKEN, UNKNOWN;
     
     public DISK(){
+        hostname = "";
         this.path = "";
         this.diskid = "";
         this.role = 0;
@@ -78,6 +82,10 @@ public class DISK{
         return diskPoolId;
     }
     
+    public String getHostName(){
+        return hostname;
+    }
+    
     public void setOSDServerId(String osdServerId){
         this.osdServerId = osdServerId;
     }
@@ -121,10 +129,23 @@ public class DISK{
         this.diskPoolId = diskPoolId;
     }
     
+    public void setHostName(String hostname){
+        this.hostname = hostname;
+    }
     @Override
     public String toString(){
-        return String.format(
+         JSONObject jsonStr = new JSONObject();
+         jsonStr.put("hostname",getHostName());
+         jsonStr.put("Path", getPath());
+         jsonStr.put("OsdIP", getOsdIp());
+         jsonStr.put("diskPoolId", getDiskPoolId());
+         jsonStr.put("diskId", getId());
+         jsonStr.put("mode", getMode());
+         jsonStr.put("role", getRole());
+         jsonStr.put("status", getStatus());
+         return jsonStr.toJSONString();
+        /*return String.format(
                 "{ OsdIP : %s, diskPoolId : %s, path : %s, diskid : %s, mode : %s,  status : %s }", 
-                getOsdIp(), getDiskPoolId(), getPath(), getId(), getMode(), getStatus());
+                getOsdIp(), getDiskPoolId(), getPath(), getId(), getMode(), getStatus());*/
     }
 }

@@ -40,7 +40,7 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
@@ -123,7 +123,7 @@ public class S3Signing {
 		Bucket bucketInfo = null;
 		ObjManager objManager = null;
 		try {
-			objManager = ObjManagerHelper.getInstance().getObjManager();
+			objManager = ObjManagers.getInstance().getObjManager();
 			bucketInfo = objManager.getBucket(bucket);
 		} catch (ResourceNotFoundException e) {
 			logger.info("bucket({}) is not fount in the db", bucket);
@@ -132,12 +132,6 @@ public class S3Signing {
 			PrintStack.logging(logger, e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-		} finally {
-			try {
-				ObjManagerHelper.getInstance().returnObjManager(objManager);
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-			}
 		}
 
 		if (bucketInfo == null) {
