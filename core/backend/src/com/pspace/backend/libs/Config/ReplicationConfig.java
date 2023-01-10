@@ -17,31 +17,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ReplicationConfig {
 
 	@JsonProperty("objM.db_repository")
-	public String DBType;
+	public String dbType;
 
 	@JsonProperty("objM.db_host")
-	public String DBHost;
+	public String dbHost;
 
 	@JsonProperty("objM.db_port")
-	public int DBPort;
+	public int dbPort;
 
 	@JsonProperty("objM.db_name")
-	public String DBName;
+	public String dbName;
 
 	@JsonProperty("objM.db_user")
-	public String DBUser;
+	public String dbUser;
 
 	@JsonProperty("objM.db_password")
-	public String DBPassword;
+	public String dbPassword;
 
 	@JsonProperty("ksan.region")
-	public String Region;
+	public String region;
 	
 	@JsonProperty("replication.upload_thread_count")
-	public int ReplicationUploadThreadCount;
+	public int threadCount;
 	
 	@JsonProperty("replication.multipart_size")
-	public long ReplicationPartSize;
+	public long partSize;
 	
 	@Override
 	public String toString() {

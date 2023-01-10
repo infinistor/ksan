@@ -85,7 +85,6 @@ public class Main {
 			return;
 		}
 
-
 		// Replication Initialization
 		var Replicator = new MainReplicator();
 		if (!Replicator.Start(config.getReplicationUploadThreadCount())) {

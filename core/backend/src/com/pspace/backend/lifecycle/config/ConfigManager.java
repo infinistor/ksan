@@ -12,16 +12,13 @@ package config;
 
 import java.io.IOException;
 
-import com.pspace.backend.libs.Config.LogManagerConfig;
+import com.pspace.backend.libs.Config.LifecycleManagerConfig;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
-import db.DBConfig;
-import metering.MeteringConfig;
-
 public class ConfigManager {
 
-	private static LogManagerConfig config = null;
+	private static LifecycleManagerConfig config = null;
 	private static PortalManager portal = null;
 
 	public static ConfigManager getInstance() {
@@ -37,7 +34,7 @@ public class ConfigManager {
 	}
 
 	public void update() throws IllegalStateException {
-		config = portal.getLogManagerConfig();
+		config = portal.getLifecycleManagerConfig();
 		if (config == null)
 			throw new IllegalStateException("Backend Config is not initialized");
 	}
@@ -54,43 +51,44 @@ public class ConfigManager {
 		return item;
 	}
 
+	public String getDBType() {
+		return config.dbType;
+	}
+
+	public String getDBHost() {
+		return config.dbHost;
+	}
+
+	public int getDBPort() {
+		return config.dbPort;
+	}
+
+	public String getDBName() {
+		return config.dbName;
+	}
+
+	public String getDBUser() {
+		return config.dbUser;
+	}
+
+	public String getDBPassword() {
+		return config.dbPassword;
+	}
+
 	public String getRegion() {
-		return config.Region;
+		return config.region;
 	}
 
-	public int getDBPoolSize() {
-		return config.dbPoolSize;
+	public String getSchedule() {
+		return config.schedule;
 	}
 
-	public int getDBExpires() {
-		return config.dbExpires;
-	}
-
-	public int getCheckInterval() {
+	public long getCheckInterval() {
 		return config.checkInterval;
 	}
 
-	public DBConfig getDBConfig() {
-		var dbconfig = new DBConfig();
-		dbconfig.Type = config.dbType;
-		dbconfig.Host = config.dbHost;
-		dbconfig.Port = config.dbPort;
-		dbconfig.DatabaseName = config.dbName;
-		dbconfig.User = config.dbUser;
-		dbconfig.Password = config.dbPassword;
-		dbconfig.PoolSize = config.dbPoolSize;
-		dbconfig.Expires = config.dbExpires;
-
-		return dbconfig;
-	}
-
-	public MeteringConfig getMeteringConfig()
-	{
-		return new MeteringConfig(config.meterMinute, config.assertHour);
-	}
-
 	@Override
-	public String toString() {
+	public String toString(){
 		return config.toString();
 	}
 }

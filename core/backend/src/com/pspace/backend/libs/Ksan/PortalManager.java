@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Config.LogManagerConfig;
 import com.pspace.backend.libs.Config.ReplicationConfig;
+import com.pspace.backend.libs.Config.LifecycleManagerConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
@@ -123,6 +124,39 @@ public class PortalManager {
 		return null;
 	}
 
+	/**
+	 * LifecycleManager 설정 정보를 가져온다.
+	 * 
+	 * @return LifecycleManager 설정 정보
+	 */
+	public LifecycleManagerConfig getLifecycleManagerConfig() {
+		try (var Client = getClient();) {
+
+			var get = getRequest(getLifecycleManagerConfigURL());
+			var Response = Client.execute(get);
+			if (Response.getStatusLine().getStatusCode() == 200) {
+				ResponseHandler<String> handler = new BasicResponseHandler();
+				var Body = handler.handleResponse(Response);
+				logger.debug("Body : {}", Body);
+
+				var Mapper = new ObjectMapper();
+				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				});
+
+				if (!Result.Code.isEmpty()) {
+					logger.error("{}, {}", Result.Code, Result.Message);
+					return null;
+				}
+
+				return Mapper.readValue(Result.Data.Config, LifecycleManagerConfig.class);
+			}
+
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return null;
+	}
+
 	public boolean RegionInit() {
 		try (var Client = getClient();) {
 
@@ -187,7 +221,7 @@ public class PortalManager {
 		return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
 	}
 
-	private String getLifecycleConfigURL() {
+	private String getLifecycleManagerConfigURL() {
 		return String.format("%s/api/v1/Config/KsanLifecycleManager", getURL());
 	}
 

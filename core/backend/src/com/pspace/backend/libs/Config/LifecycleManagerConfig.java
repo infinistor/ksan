@@ -8,43 +8,40 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data.Lifecycle;
+package com.pspace.backend.libs.Config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Utility;
 
-public class LifecycleLogData extends LifecycleEventData {
+public class LifecycleManagerConfig {
 
-	public String date;
-	public String message;
+	@JsonProperty("objM.db_repository")
+	public String dbType;
 
-	public LifecycleLogData() {
-		Init();
-	}
+	@JsonProperty("objM.db_host")
+	public String dbHost;
 
-	public LifecycleLogData(LifecycleEventData data, String message) {
-		super(data);
-		this.date = Utility.GetNowTime();
-		this.message = message;
-	}
+	@JsonProperty("objM.db_port")
+	public int dbPort;
 
-	public LifecycleLogData(String bucketName, String objectName, String date, String versionId, String storageClass, String uploadId, String message) {
-		super(bucketName, objectName, storageClass, versionId, uploadId);
-		this.date = date;
-		this.message = message;
-	}
+	@JsonProperty("objM.db_name")
+	public String dbName;
 
-	@Override
-	public void Init() {
-		this.bucketName = "";
-		this.objectName = "";
-		this.versionId = "";
-		this.storageClass = "";
-		this.uploadId = "";
-		this.date = "";
-		this.message = "";
-	}
+	@JsonProperty("objM.db_user")
+	public String dbUser;
+
+	@JsonProperty("objM.db_password")
+	public String dbPassword;
+
+	@JsonProperty("ksan.region")
+	public String region;
+	
+	@JsonProperty("lifecycle.schedule")
+	public String schedule;
+
+	@JsonProperty("lifecycle.check_interval")
+	public long checkInterval;
 
 	@Override
 	public String toString() {

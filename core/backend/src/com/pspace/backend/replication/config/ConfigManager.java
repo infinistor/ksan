@@ -41,49 +41,49 @@ public class ConfigManager {
 
 	public ObjManagerConfig getObjManagerConfig() throws IOException {
 		var item = new ObjManagerConfig();
-		item.dbRepository = config.DBType;
-		item.dbHost = config.DBHost;
-		item.dbport = config.DBPort;
-		item.dbName = config.DBName;
-		item.dbUsername = config.DBUser;
-		item.dbPassword = config.DBPassword;
+		item.dbRepository = config.dbType;
+		item.dbHost = config.dbHost;
+		item.dbport = config.dbPort;
+		item.dbName = config.dbName;
+		item.dbUsername = config.dbUser;
+		item.dbPassword = config.dbPassword;
 
 		return item;
 	}
 
 	public String getDBType() {
-		return config.DBType;
+		return config.dbType;
 	}
 
 	public String getDBHost() {
-		return config.DBHost;
+		return config.dbHost;
 	}
 
 	public int getDBPort() {
-		return config.DBPort;
+		return config.dbPort;
 	}
 
 	public String getDBName() {
-		return config.DBName;
+		return config.dbName;
 	}
 
 	public String getDBUser() {
-		return config.DBUser;
+		return config.dbUser;
 	}
 
 	public String getDBPassword() {
-		return config.DBPassword;
+		return config.dbPassword;
 	}
 
 	public String getRegion() {
-		return config.Region;
+		return config.region;
 	}
 
 	public int getReplicationUploadThreadCount() {
-		return config.ReplicationUploadThreadCount;
+		return config.threadCount;
 	}
 
 	public long getReplicationPartSize() {
-		return config.ReplicationPartSize;
+		return config.partSize;
 	}
 }
