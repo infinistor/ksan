@@ -57,7 +57,7 @@ public class Recovery {
             try {
                 ret = fixObject(body);
                 if (ret ==  0) 
-                    return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+                    return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
             } catch(Exception ex){
                 logger.error(ex.getMessage());
                 System.out.println(ex);
