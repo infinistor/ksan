@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketEncryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -41,14 +40,11 @@ public class PutBucketEncryption extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketEncryption dataPutBucketEncryption = new DataPutBucketEncryption(s3Parameter);
-		dataPutBucketEncryption.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_ENCRYPTION_CONFIGURATION, s3Parameter, dataPutBucketEncryption)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_ENCRYPTION_CONFIGURATION, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String encryptionInfo = dataPutBucketEncryption.getEncryptionXml();
+		String encryptionInfo = s3RequestData.getEncryptionXml();
         updateBucketEncryption(bucket, encryptionInfo);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

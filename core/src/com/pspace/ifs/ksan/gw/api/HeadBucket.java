@@ -13,7 +13,6 @@ package com.pspace.ifs.ksan.gw.api;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataHeadBucket;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -44,11 +43,8 @@ public class HeadBucket extends S3Request {
 		}
 
 		checkGrantBucket(false, GWConstants.GRANT_READ);
-		
-		DataHeadBucket dataHeadBucket = new DataHeadBucket(s3Parameter);
-		dataHeadBucket.extract();
 
-		String expectedBucketOwner = dataHeadBucket.getExpectedBucketOwner();
+		String expectedBucketOwner = s3RequestData.getExpectedBucketOwner();
 		if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
 			if (!isBucketOwner(expectedBucketOwner)) {
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);

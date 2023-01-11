@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AclTransfer;
@@ -46,11 +45,8 @@ public class GetBucketAcl extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
-		dataGetObjectAcl.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter, dataGetObjectAcl)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 

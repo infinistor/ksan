@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataGetObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -58,16 +57,13 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
-
-		DataGetObject dataGetObject = new DataGetObject(s3Parameter);
-		dataGetObject.extract();
 		
-		String versionId = dataGetObject.getVersionId();
-		String range = dataGetObject.getRange();
-		String ifMatch = dataGetObject.getIfMatch();
-		String ifNoneMatch = dataGetObject.getIfNoneMatch();
-		String ifModifiedSince = dataGetObject.getIfModifiedSince();
-		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
+		String versionId = s3RequestData.getVersionId();
+		String range = s3RequestData.getRange();
+		String ifMatch = s3RequestData.getIfMatch();
+		String ifNoneMatch = s3RequestData.getIfNoneMatch();
+		String ifModifiedSince = s3RequestData.getIfModifiedSince();
+		String ifUnmodifiedSince = s3RequestData.getIfUnmodifiedSince();
 
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -93,8 +89,8 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 
 		// check customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
-			if (!Strings.isNullOrEmpty(dataGetObject.getServerSideEncryptionCustomerKey())) {
-				if (!s3Metadata.getCustomerKey().equals(dataGetObject.getServerSideEncryptionCustomerKey())) {
+			if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
+				if (!s3Metadata.getCustomerKey().equals(s3RequestData.getServerSideEncryptionCustomerKey())) {
 					logger.warn(GWConstants.LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH);
 					throw new GWException(GWErrorCode.KEY_DOES_NOT_MATCH, s3Parameter);
 				}

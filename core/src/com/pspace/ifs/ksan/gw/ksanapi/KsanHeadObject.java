@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 
-import com.pspace.ifs.ksan.gw.data.DataHeadObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -54,13 +53,10 @@ public class KsanHeadObject extends S3Request implements S3AddResponse {
 		String object = s3Parameter.getObjectName();
 
 		GWUtils.checkCors(s3Parameter);
-	
-		DataHeadObject dataHeadObject = new DataHeadObject(s3Parameter);
-		dataHeadObject.extract();
-		
-		String versionId = dataHeadObject.getVersionId();
-		
-		String expectedBucketOwner = dataHeadObject.getExpectedBucketOwner();
+
+		String versionId = s3RequestData.getVersionId();
+
+		String expectedBucketOwner = s3RequestData.getExpectedBucketOwner();
 		if (!Strings.isNullOrEmpty(expectedBucketOwner) && !isBucketOwner(expectedBucketOwner)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
@@ -81,8 +77,8 @@ public class KsanHeadObject extends S3Request implements S3AddResponse {
 
 			// check customer-key
 			if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
-				if (!Strings.isNullOrEmpty(dataHeadObject.getServerSideEncryptionCustomerKey())) {
-					if (!s3Metadata.getCustomerKey().equals(dataHeadObject.getServerSideEncryptionCustomerKey())) {
+				if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
+					if (!s3Metadata.getCustomerKey().equals(s3RequestData.getServerSideEncryptionCustomerKey())) {
 						logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_INVALID);
 					throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 					}

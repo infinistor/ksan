@@ -14,7 +14,6 @@ import java.util.SortedMap;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataAbortMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -51,12 +50,9 @@ public class AbortMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataAbortMultipartUpload dataAbortMultipartUpload = new DataAbortMultipartUpload(s3Parameter);
-		dataAbortMultipartUpload.extract();
+		checkPolicyBucket(GWConstants.ACTION_ABORT_MULTIPART_UPLOAD, s3Parameter);
 
-		checkPolicyBucket(GWConstants.ACTION_ABORT_MULTIPART_UPLOAD, s3Parameter, dataAbortMultipartUpload);
-
-		String uploadId = dataAbortMultipartUpload.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 		
 		s3Parameter.setUploadId(uploadId);
 

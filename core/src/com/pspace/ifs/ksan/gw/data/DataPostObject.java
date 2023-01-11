@@ -30,7 +30,7 @@ import org.apache.commons.fileupload.FileUploadBase.FileUploadIOException;
 import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
 import org.slf4j.LoggerFactory;
 
-public class DataPostObject extends S3DataRequest {
+public class DataPostObject extends S3RequestData{
     private String accesskey;
 	private byte[] payload;
 	private String key;
@@ -81,7 +81,6 @@ public class DataPostObject extends S3DataRequest {
 		logger = LoggerFactory.getLogger(DataPostObject.class);
     }
 
-    @Override
     public void extract() throws GWException {
         String boundaryHeader = s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE);
 		String boundary = boundaryHeader.substring(boundaryHeader.indexOf('=') + 1);
@@ -229,11 +228,6 @@ public class DataPostObject extends S3DataRequest {
 
 	public String getContentLanguage() {
 		return contentLanguage;
-	}
-
-	@Override
-	public String getContentLength() {
-		return super.getContentLength();
 	}
 
 	public String getContentMD5() {

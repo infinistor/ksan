@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketPolicy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -40,14 +39,11 @@ public class PutBucketPolicy extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketPolicy dataPutBucketPolicy = new DataPutBucketPolicy(s3Parameter);
-		dataPutBucketPolicy.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_POLICY, s3Parameter, dataPutBucketPolicy)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_POLICY, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String policyJson = dataPutBucketPolicy.getPolicyJson();
+		String policyJson = s3RequestData.getPolicyJson();
 
 		GWUtils.isPublicPolicyBucket(policyJson, s3Parameter);
 		

@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataDeleteObjects;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.DeleteMultipleObjectsRequest;
@@ -66,9 +65,7 @@ public class DeleteObjects extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		DataDeleteObjects dataDeleteObjects = new DataDeleteObjects(s3Parameter);
-		dataDeleteObjects.extract();
-		String deleteXml = dataDeleteObjects.getDeleteXml();
+		String deleteXml = s3RequestData.getDeleteXml();
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 		try {
@@ -99,7 +96,7 @@ public class DeleteObjects extends S3Request {
 			logger.debug(GWConstants.LOG_DELETE_OBJECTS_SIZE, objectNames.size());
 
 			for (Objects object : objectNames) {
-				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet, dataDeleteObjects);
+				deleteObject(s3Parameter, object.objectName, object.versionId, xmlStreamWriter, deleteMultipleObjectsRequest.quiet);
 				xmlStreamWriter.flush(); // In Tomcat, if you use flush(), you lose connection. jakarta, need to check
 			}
 
@@ -122,7 +119,7 @@ public class DeleteObjects extends S3Request {
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 
-	public void deleteObject(S3Parameter s3Parameter, String object, String versionId, XMLStreamWriter xml, boolean quiet, DataDeleteObjects dataDeleteObjects) throws GWException {
+	public void deleteObject(S3Parameter s3Parameter, String object, String versionId, XMLStreamWriter xml, boolean quiet) throws GWException {
 		String bucket = s3Parameter.getBucketName();
 		
         String versioningStatus = getBucketInfo().getVersioning();
@@ -162,13 +159,11 @@ public class DeleteObjects extends S3Request {
 		
 		try {
 			if (Strings.isNullOrEmpty(versionId)) {
-				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT, s3Parameter, dataDeleteObjects)) {
-					// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT, s3Parameter)) {
 					checkGrantBucket(true, GWConstants.GRANT_WRITE);
 				}
 			} else {
-				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION, s3Parameter, dataDeleteObjects)) {
-					// checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+				if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION, s3Parameter)) {
 					checkGrantBucket(true, GWConstants.GRANT_WRITE);
 				}
 			}

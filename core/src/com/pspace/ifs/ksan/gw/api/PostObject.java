@@ -258,7 +258,7 @@ public class PostObject extends S3Request {
 			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
 
-		String aclXml = makeAcl(null, null, dataPostObject);
+		String aclXml = makeAcl(null, dataPostObject);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);

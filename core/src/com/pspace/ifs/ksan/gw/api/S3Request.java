@@ -54,7 +54,8 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistEx
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
-import com.pspace.ifs.ksan.gw.data.S3DataRequest;
+import com.pspace.ifs.ksan.gw.data.DataPostObject;
+import com.pspace.ifs.ksan.gw.data.S3RequestData;
 import com.pspace.ifs.ksan.gw.format.Policy;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
 import com.pspace.ifs.ksan.gw.condition.PolicyCondition;
@@ -65,6 +66,7 @@ import org.slf4j.Logger;
 
 public abstract class S3Request {
 	protected S3Parameter s3Parameter;
+	protected S3RequestData s3RequestData;
 	protected ObjManager objManager;
 	protected Logger logger;
 	protected Bucket srcBucket;
@@ -75,6 +77,7 @@ public abstract class S3Request {
 
 	public S3Request(S3Parameter s3Parameter) {
 		this.s3Parameter = s3Parameter;
+		s3RequestData = new S3RequestData(s3Parameter);
 		srcBucket = null;
 		dstBucket = null;
 		bucketAccessControlPolicy = null;
@@ -835,7 +838,7 @@ public abstract class S3Request {
 		}
 	}
 
-	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, String aclXml, S3DataRequest data) throws GWException {
+	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, boolean isUseAclXml) throws GWException {
 		PublicAccessBlockConfiguration pabc = null;
 		if (dstBucket != null && !Strings.isNullOrEmpty(dstBucket.getAccess())) {
 			try {
@@ -859,17 +862,38 @@ public abstract class S3Request {
 			acp.owner.displayName = s3Parameter.getUser().getUserName();
 		}
 
-		if (!Strings.isNullOrEmpty(aclXml)) {
-			acp = AclTransfer.getInstance().getAclClassFromXml(aclXml, s3Parameter);
+		String cannedAcl = s3RequestData.getXAmzAcl();
+		String grantRead = s3RequestData.getXAmzGrantRead();
+		String grantReadAcp = s3RequestData.getXAmzGrantReadAcp();
+		String grantWrite = s3RequestData.getXAmzGrantWrite();
+		String grantWriteAcp = s3RequestData.getXAmzGrantWriteAcp();
+		String grantFullControl = s3RequestData.getXAmzGrantFullControl();
+
+		boolean isKeyword = false;
+		if (!Strings.isNullOrEmpty(cannedAcl)) {
+			isKeyword = true;
+		} else if (!Strings.isNullOrEmpty(grantRead)) {
+			isKeyword = true;
+		} else if (!Strings.isNullOrEmpty(grantReadAcp)) {
+			isKeyword = true;
+		} else if (!Strings.isNullOrEmpty(grantWrite)) {
+			isKeyword = true;
+		} else if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+			isKeyword = true;
+		} else if (!Strings.isNullOrEmpty(grantFullControl)) {
+			isKeyword = true;
+		}
+
+		if (!isKeyword && isUseAclXml) {
+			acp = AclTransfer.getInstance().getAclClassFromXml(s3RequestData.getAclXml(), s3Parameter);
 		} else {
-			String cannedAcl = data.getXAmzAcl();
 			logger.debug("x-amz-acl : {}", cannedAcl);
 			if (Strings.isNullOrEmpty(cannedAcl)) {
-				if (Strings.isNullOrEmpty(data.getXAmzGrantRead())
-				&& Strings.isNullOrEmpty(data.getXAmzGrantReadAcp())
-				&& Strings.isNullOrEmpty(data.getXAmzGrantWrite())
-				&& Strings.isNullOrEmpty(data.getXAmzGrantWriteAcp())
-				&& Strings.isNullOrEmpty(data.getXAmzGrantFullControl())) {
+				if (Strings.isNullOrEmpty(grantRead)
+				&& Strings.isNullOrEmpty(grantReadAcp)
+				&& Strings.isNullOrEmpty(grantWrite)
+				&& Strings.isNullOrEmpty(grantWriteAcp)
+				&& Strings.isNullOrEmpty(grantFullControl)) {
 					Grant priUser = new Grant();
 					priUser.grantee = new Grantee();
 					priUser.grantee.type = GWConstants.CANONICAL_USER;
@@ -992,21 +1016,214 @@ public abstract class S3Request {
 				}
 			}
 
-			if (!Strings.isNullOrEmpty(data.getXAmzGrantRead())) {
-				readAclHeader(data.getXAmzGrantRead(), GWConstants.GRANT_READ, acp);
+			if (!Strings.isNullOrEmpty(grantRead)) {
+				readAclHeader(grantRead, GWConstants.GRANT_READ, acp);
 			}
-			if (!Strings.isNullOrEmpty(data.getXAmzGrantWrite())) {
-				readAclHeader(data.getXAmzGrantWrite(), GWConstants.GRANT_WRITE, acp);
+			if (!Strings.isNullOrEmpty(grantWrite)) {
+				readAclHeader(grantWrite, GWConstants.GRANT_WRITE, acp);
 			}
-			if (!Strings.isNullOrEmpty(data.getXAmzGrantReadAcp())) {
-				readAclHeader(data.getXAmzGrantReadAcp(), GWConstants.GRANT_READ_ACP, acp);
+			if (!Strings.isNullOrEmpty(grantReadAcp)) {
+				readAclHeader(grantReadAcp, GWConstants.GRANT_READ_ACP, acp);
 			}
-			if (!Strings.isNullOrEmpty(data.getXAmzGrantWriteAcp())) {
-				readAclHeader(data.getXAmzGrantWriteAcp(), GWConstants.GRANT_WRITE_ACP, acp);
+			if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+				readAclHeader(grantWriteAcp, GWConstants.GRANT_WRITE_ACP, acp);
 			}
-			if (!Strings.isNullOrEmpty(data.getXAmzGrantFullControl())) {
-				readAclHeader(data.getXAmzGrantFullControl(), GWConstants.GRANT_FULL_CONTROL, acp);
+			if (!Strings.isNullOrEmpty(grantFullControl)) {
+				readAclHeader(grantFullControl, GWConstants.GRANT_FULL_CONTROL, acp);
 			}
+		}
+
+		// check user
+		if (S3UserManager.getInstance().getUserById(acp.owner.id) == null) {
+			logger.error("cant find user id : {}", acp.owner.id);
+			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+		}
+		for (Grant grant: acp.aclList.grants) {
+			if (!Strings.isNullOrEmpty(grant.grantee.id)) {
+				if (S3UserManager.getInstance().getUserById(grant.grantee.id) == null) {
+					logger.error("cant find user id : {}", grant.grantee.id);
+					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
+				}
+			}
+		}
+
+		return AclTransfer.getInstance().getAclJson(acp);
+	}
+
+	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, DataPostObject data) throws GWException {
+		PublicAccessBlockConfiguration pabc = null;
+		if (dstBucket != null && !Strings.isNullOrEmpty(dstBucket.getAccess())) {
+			try {
+				pabc = new XmlMapper().readValue(dstBucket.getAccess(), PublicAccessBlockConfiguration.class);
+			} catch (JsonProcessingException e) {
+				PrintStack.logging(logger, e);
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+		}
+
+		AccessControlPolicy acp = new AccessControlPolicy();
+		acp.aclList = new AccessControlList();
+		acp.aclList.grants = new ArrayList<Grant>();
+		acp.owner = new Owner();
+
+		if (preAccessControlPolicy != null) {
+			acp.owner.id = preAccessControlPolicy.owner.id;
+			acp.owner.displayName = preAccessControlPolicy.owner.displayName;
+		} else {			
+			acp.owner.id = s3Parameter.getUser().getUserId();
+			acp.owner.displayName = s3Parameter.getUser().getUserName();
+		}
+
+		String cannedAcl = data.getXAmzAcl();
+		String grantRead = data.getXAmzGrantRead();
+		String grantReadAcp = data.getXAmzGrantReadAcp();
+		String grantWrite = data.getXAmzGrantWrite();
+		String grantWriteAcp = data.getXAmzGrantWriteAcp();
+		String grantFullControl = data.getXAmzGrantFullControl();
+
+		logger.debug("x-amz-acl : {}", cannedAcl);
+		if (Strings.isNullOrEmpty(cannedAcl)) {
+			if (Strings.isNullOrEmpty(grantRead)
+			&& Strings.isNullOrEmpty(grantReadAcp)
+			&& Strings.isNullOrEmpty(grantWrite)
+			&& Strings.isNullOrEmpty(grantWriteAcp)
+			&& Strings.isNullOrEmpty(grantFullControl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+			}
+		} else {
+			if (GWConstants.CANNED_ACLS_PRIVATE.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+
+				Grant pubReadUser = new Grant();
+				pubReadUser.grantee = new Grantee();
+				pubReadUser.grantee.type = GWConstants.GROUP;
+				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubReadUser.permission = GWConstants.GRANT_READ;
+				acp.aclList.grants.add(pubReadUser);
+			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ_WRITE.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+
+				Grant pubReadUser = new Grant();
+				pubReadUser.grantee = new Grantee();
+				pubReadUser.grantee.type = GWConstants.GROUP;
+				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubReadUser.permission = GWConstants.GRANT_READ;
+				acp.aclList.grants.add(pubReadUser);
+
+				Grant pubWriteUser = new Grant();
+				pubWriteUser.grantee = new Grantee();
+				pubWriteUser.grantee.type = GWConstants.GROUP;
+				pubWriteUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
+				pubWriteUser.permission = GWConstants.GRANT_WRITE;
+				acp.aclList.grants.add(pubWriteUser);
+			} else if (GWConstants.CANNED_ACLS_AUTHENTICATED_READ.equalsIgnoreCase(cannedAcl)) {
+				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
+					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
+					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+				}
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+
+				Grant authReadUser = new Grant();
+				authReadUser.grantee = new Grantee();
+				authReadUser.grantee.type = GWConstants.GROUP;
+				authReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS;
+				authReadUser.permission = GWConstants.GRANT_READ;
+				acp.aclList.grants.add(authReadUser);
+			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_READ.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+
+				Grant bucketOwnerReadUser = new Grant();
+				bucketOwnerReadUser.grantee = new Grantee();
+				bucketOwnerReadUser.grantee.type = GWConstants.CANONICAL_USER;
+				bucketOwnerReadUser.grantee.id = dstBucket.getUserId();
+				bucketOwnerReadUser.grantee.displayName = dstBucket.getUserName();
+				bucketOwnerReadUser.permission = GWConstants.GRANT_READ;
+				acp.aclList.grants.add(bucketOwnerReadUser);
+			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_FULL_CONTROL.equalsIgnoreCase(cannedAcl)) {
+				Grant priUser = new Grant();
+				priUser.grantee = new Grantee();
+				priUser.grantee.type = GWConstants.CANONICAL_USER;
+				priUser.grantee.id = acp.owner.id;
+				priUser.grantee.displayName = acp.owner.displayName;
+				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(priUser);
+
+				Grant bucketOwnerFullUser = new Grant();
+				bucketOwnerFullUser.grantee = new Grantee();
+				bucketOwnerFullUser.grantee.type = GWConstants.CANONICAL_USER;
+				bucketOwnerFullUser.grantee.id = dstBucket.getUserId();
+				bucketOwnerFullUser.grantee.displayName = dstBucket.getUserName();
+				bucketOwnerFullUser.permission = GWConstants.GRANT_FULL_CONTROL;
+				acp.aclList.grants.add(bucketOwnerFullUser);
+			} else if (GWConstants.CANNED_ACLS.contains(cannedAcl)) {
+				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_ACCESS_CANNED_ACL, cannedAcl);
+				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+			} else {
+				logger.error(HttpServletResponse.SC_BAD_REQUEST + GWConstants.LOG_ACCESS_PROCESS_FAILED);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+			}
+		}
+
+		if (!Strings.isNullOrEmpty(grantRead)) {
+			readAclHeader(grantRead, GWConstants.GRANT_READ, acp);
+		}
+		if (!Strings.isNullOrEmpty(grantWrite)) {
+			readAclHeader(grantWrite, GWConstants.GRANT_WRITE, acp);
+		}
+		if (!Strings.isNullOrEmpty(grantReadAcp)) {
+			readAclHeader(grantReadAcp, GWConstants.GRANT_READ_ACP, acp);
+		}
+		if (!Strings.isNullOrEmpty(grantWriteAcp)) {
+			readAclHeader(grantWriteAcp, GWConstants.GRANT_WRITE_ACP, acp);
+		}
+		if (!Strings.isNullOrEmpty(grantFullControl)) {
+			readAclHeader(grantFullControl, GWConstants.GRANT_FULL_CONTROL, acp);
 		}
 
 		// check user
@@ -1124,7 +1341,7 @@ public abstract class S3Request {
 		}
 	}
 
-	public boolean checkPolicyBucket(String givenAction, S3Parameter s3Parameter, S3DataRequest dataRequest) throws GWException {
+	public boolean checkPolicyBucket(String givenAction, S3Parameter s3Parameter) throws GWException {
 		boolean effect = false;
 		String policyJson = s3Parameter.getBucket().getPolicy();
 		if (Strings.isNullOrEmpty(policyJson)) {
@@ -1163,7 +1380,7 @@ public abstract class S3Request {
 						}
 					}
 
-					if (checkCondition(s3Parameter, statement, dataRequest)) {
+					if (checkCondition(s3Parameter, statement)) {
 						isEffect = true;
 					}
 
@@ -1249,7 +1466,7 @@ public abstract class S3Request {
 		return effectcheck;
 	}
 
-	public boolean checkCondition(S3Parameter s3Parameter, Statement s, S3DataRequest dataRequest) throws GWException {
+	public boolean checkCondition(S3Parameter s3Parameter, Statement s) throws GWException {
 		// condition check
 		boolean conditioncheck = true;
 		if (s.condition == null)
@@ -1270,83 +1487,83 @@ public abstract class S3Request {
 				case GWConstants.KEY_AUTH_TYPE:
 					break;
 				case GWConstants.KEY_DELIMITER:
-					comp = dataRequest.getPolicyDelimter();
+					comp = s3RequestData.getPolicyDelimter();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_MAXKYES:
-					comp = dataRequest.getPolicyMaxkeys();
+					comp = s3RequestData.getPolicyMaxkeys();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_PREFIX:
-					comp = dataRequest.getPolicyPrefix();
+					comp = s3RequestData.getPolicyPrefix();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_CONTENT_SHA256:
-					comp = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
+					comp = s3RequestData.getContentSHA256();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_ACL:
-					comp = dataRequest.getXAmzAcl();
+					comp = s3RequestData.getXAmzAcl();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_COPY_SOURCE:
-					comp = dataRequest.getXAmzCopySource();
+					comp = s3RequestData.getXAmzCopySource();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_GRANT_FULL_CONTROL:
-					comp = dataRequest.getXAmzGrantFullControl();
+					comp = s3RequestData.getXAmzGrantFullControl();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_XAMZ_GRANT_READ:
-					comp = dataRequest.getXAmzGrantRead();
+					comp = s3RequestData.getXAmzGrantRead();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_GRANT_READ_ACP:
-					comp = dataRequest.getXAmzGrantReadAcp();
+					comp = s3RequestData.getXAmzGrantReadAcp();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_GRANT_WRITE:
-					comp = dataRequest.getXAmzGrantWrite();
+					comp = s3RequestData.getXAmzGrantWrite();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_GRANT_WRITE_ACP:
-					comp = dataRequest.getXAmzGrantWriteAcp();
+					comp = s3RequestData.getXAmzGrantWriteAcp();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_METADATA_DIRECTIVE:
-					comp = dataRequest.getXAmzMetadataDirective();
+					comp = s3RequestData.getXAmzMetadataDirective();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION:
-					comp = dataRequest.getXAmzServerSideEncryption();
+					comp = s3RequestData.getXAmzServerSideEncryption();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID:
-					comp = dataRequest.getXAmzServerSideEncryptionAwsKmsKeyId();
+					comp = s3RequestData.getXAmzServerSideEncryptionAwsKmsKeyId();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_STORAGE_CLASS:
-					comp = dataRequest.getXAmzStorageClass();
+					comp = s3RequestData.getXAmzStorageClass();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_WEBSITE_REDIRECT_LOCATION:
-					comp = dataRequest.getXAmzWebsiteRedirectLocation();
+					comp = s3RequestData.getXAmzWebsiteRedirectLocation();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_MODE:
-					comp = dataRequest.getXAmzObjectLockMode();
+					comp = s3RequestData.getXAmzObjectLockMode();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE:
-					comp = dataRequest.getXAmzObjectLockRetainUntilDate();
+					comp = s3RequestData.getXAmzObjectLockRetainUntilDate();
 					conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_REMAINING_RETENTION_DAYS:
-					comp = dataRequest.getXAmzObjectLockRemainingRetentionDays();
-					conditioncheck = pc.compare(comp);
+					// comp = dataRequest.getXAmzObjectLockRemainingRetentionDays();
+					// conditioncheck = pc.compare(comp);
 					break;
 				case GWConstants.KEY_X_AMZ_OBJECT_LOCK_LEGAL_HOLD:
-					comp = dataRequest.getXAmzObjectLockLegalHold();
+					comp = s3RequestData.getXAmzObjectLockLegalHold();
 					conditioncheck = pc.compare(comp);
 					break;
 				// IP address

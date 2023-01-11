@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketWebsite;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -45,10 +44,7 @@ public class GetBucketWebsite extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataGetBucketWebsite dataGetBucketWebsite = new DataGetBucketWebsite(s3Parameter);
-		dataGetBucketWebsite.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_REPLICATION_CONFIGURATION, s3Parameter, dataGetBucketWebsite)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_REPLICATION_CONFIGURATION, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 		

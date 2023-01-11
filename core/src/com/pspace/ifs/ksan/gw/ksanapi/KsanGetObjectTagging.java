@@ -18,7 +18,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -46,13 +45,9 @@ public class KsanGetObjectTagging extends S3Request {
 
 		String object = s3Parameter.getObjectName();
 		GWUtils.checkCors(s3Parameter);
-		
-		
-		DataGetObjectTagging dataGetObjectTagging = new DataGetObjectTagging(s3Parameter);
-		dataGetObjectTagging.extract();
-		
-		String versionId = dataGetObjectTagging.getVersionId();
-		
+
+		String versionId = s3RequestData.getVersionId();
+
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);

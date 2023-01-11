@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataCopyObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -77,27 +76,24 @@ public class CopyObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		DataCopyObject dataCopyObject = new DataCopyObject(s3Parameter);
-		dataCopyObject.extract();
-
-		String cacheControl = dataCopyObject.getCacheControl();
-		String contentDisposition = dataCopyObject.getContentDisposition();
-		String contentEncoding = dataCopyObject.getContentEncoding();
-		String contentLanguage = dataCopyObject.getContentLanguage();
-		String contentType = dataCopyObject.getContentType();
-		String contentLengthString = dataCopyObject.getContentLength();
-		String metadataDirective = dataCopyObject.getMetadataDirective();
-		String serversideEncryption = dataCopyObject.getServerSideEncryption();
-		String copySource = dataCopyObject.getCopySource();
-		String copySourceIfMatch = dataCopyObject.getCopySourceIfMatch();
-		String copySourceIfNoneMatch = dataCopyObject.getCopySourceIfNoneMatch();
-		String copySourceIfModifiedSince = dataCopyObject.getCopySourceIfModifiedSince();
-		String copySourceIfUnmodifiedSince = dataCopyObject.getCopySourceIfUnmodifiedSince();
-		String customerAlgorithm = dataCopyObject.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataCopyObject.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataCopyObject.getServerSideEncryptionCustomerKeyMD5();
-		Map<String, String> userMetadata = dataCopyObject.getUserMetadata();
-		String storageClass = dataCopyObject.getStorageClass();
+		String cacheControl = s3RequestData.getCacheControl();
+		String contentDisposition = s3RequestData.getContentDisposition();
+		String contentEncoding = s3RequestData.getContentEncoding();
+		String contentLanguage = s3RequestData.getContentLanguage();
+		String contentType = s3RequestData.getContentType();
+		String contentLengthString = s3RequestData.getContentLength();
+		String metadataDirective = s3RequestData.getMetadataDirective();
+		String serversideEncryption = s3RequestData.getServerSideEncryption();
+		String copySource = s3RequestData.getCopySource();
+		String copySourceIfMatch = s3RequestData.getCopySourceIfMatch();
+		String copySourceIfNoneMatch = s3RequestData.getCopySourceIfNoneMatch();
+		String copySourceIfModifiedSince = s3RequestData.getCopySourceIfModifiedSince();
+		String copySourceIfUnmodifiedSince = s3RequestData.getCopySourceIfUnmodifiedSince();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		Map<String, String> userMetadata = s3RequestData.getUserMetadata();
+		String storageClass = s3RequestData.getStorageClass();
 
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
@@ -168,20 +164,16 @@ public class CopyObject extends S3Request {
 		s3Parameter.setSrcPath(srcObjectName);
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 		
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCopyObject)) {
-			// checkGrantBucket2(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-			// checkGrantObject2(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			checkGrantObject(false, GWConstants.GRANT_READ);
 		}
 		
 
 		// get metadata
-		// S3Metadata srcMetadata = null;
 		S3Metadata s3Metadata = null;
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			// srcMetadata = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
 			s3Metadata = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
@@ -262,7 +254,7 @@ public class CopyObject extends S3Request {
 			}
 		}
 
-		String aclXml = makeAcl(null, null, dataCopyObject);
+		String aclXml = makeAcl(null, false);
         
 		// check replace or copy
         boolean bReplaceMetadata = false;

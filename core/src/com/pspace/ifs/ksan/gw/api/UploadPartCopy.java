@@ -25,7 +25,6 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataUploadPartCopy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -68,24 +67,21 @@ public class UploadPartCopy extends S3Request {
 		}
 		
 		checkGrantBucket(false, GWConstants.GRANT_WRITE);
-		
-		DataUploadPartCopy dataUploadPartCopy = new DataUploadPartCopy(s3Parameter);
-		dataUploadPartCopy.extract();
 
-		String partNumber = dataUploadPartCopy.getPartNumber();
-		String uploadId = dataUploadPartCopy.getUploadId();
-		String copySource = dataUploadPartCopy.getCopySource();
-		String copySourceRange = dataUploadPartCopy.getCopySourceRange();
-		String copySourceIfMatch = dataUploadPartCopy.getCopySourceIfMatch();
-		String copySourceIfNoneMatch = dataUploadPartCopy.getCopySourceIfNoneMatch();;
-		String copySourceIfModifiedSince = dataUploadPartCopy.getCopySourceIfModifiedSince();
-		String copySourceIfUnmodifiedSince = dataUploadPartCopy.getCopySourceIfUnmodifiedSince();
-		String customerAlgorithm = dataUploadPartCopy.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataUploadPartCopy.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataUploadPartCopy.getServerSideEncryptionCustomerKeyMD5();
-		String copySourceCustomerAlgorithm = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerAlgorithm();
-		String copySourceCustomerKey = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerKey();
-		String copySourceCustomerKeyMD5 = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerKeyMD5(); 
+		String partNumber = s3RequestData.getPartNumber();
+		String uploadId = s3RequestData.getUploadId();
+		String copySource = s3RequestData.getCopySource();
+		String copySourceRange = s3RequestData.getCopySourceRange();
+		String copySourceIfMatch = s3RequestData.getCopySourceIfMatch();
+		String copySourceIfNoneMatch = s3RequestData.getCopySourceIfNoneMatch();;
+		String copySourceIfModifiedSince = s3RequestData.getCopySourceIfModifiedSince();
+		String copySourceIfUnmodifiedSince = s3RequestData.getCopySourceIfUnmodifiedSince();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String copySourceCustomerAlgorithm = s3RequestData.getCopySourceServerSideEncryptionCustomerAlgorithm();
+		String copySourceCustomerKey = s3RequestData.getCopySourceServerSideEncryptionCustomerKey();
+		String copySourceCustomerKeyMD5 = s3RequestData.getCopySourceServerSideEncryptionCustomerKeyMD5(); 
 
 		// Check copy source
 		if (Strings.isNullOrEmpty(copySource)) {

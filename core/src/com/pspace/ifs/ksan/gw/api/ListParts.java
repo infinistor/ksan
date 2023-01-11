@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListParts;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -65,16 +64,13 @@ public class ListParts extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListParts dataListParts = new DataListParts(s3Parameter);
-		dataListParts.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter, dataListParts)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
-		String maxParts = dataListParts.getMaxParts();
-		String partNumberMarker = dataListParts.getPartNumberMarker();
-		String uploadId = dataListParts.getUploadId();
+		String maxParts = s3RequestData.getMaxParts();
+		String partNumberMarker = s3RequestData.getPartNumberMarker();
+		String uploadId = s3RequestData.getUploadId();
 		int maxPartsValue = GWConstants.MAX_PART_VALUE;
 		
 		if (!Strings.isNullOrEmpty(maxParts)) {

@@ -13,7 +13,6 @@ package com.pspace.ifs.ksan.gw.api;
 import java.io.IOException;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -42,11 +41,8 @@ public class GetBucketTagging extends S3Request {
         if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetBucketTagging dataGetBucketTagging = new DataGetBucketTagging(s3Parameter);
-		dataGetBucketTagging.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_TAGGING, s3Parameter, dataGetBucketTagging)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_TAGGING, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 

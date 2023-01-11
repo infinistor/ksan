@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Tagging;
@@ -51,11 +50,8 @@ public class KsanPutObjectTagging extends S3Request {
 		String object = s3Parameter.getObjectName();
 		GWUtils.checkCors(s3Parameter);
 
-		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
-		dataPutObjectTagging.extract();
-
 		String taggingCount = GWConstants.TAGGING_INIT;
-		String taggingXml = dataPutObjectTagging.getTaggingXml();
+		String taggingXml = s3RequestData.getTaggingXml();
 		try {
 			Tagging tagging = new XmlMapper().readValue(taggingXml, Tagging.class);
 
@@ -89,7 +85,7 @@ public class KsanPutObjectTagging extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		String versionId = dataPutObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);

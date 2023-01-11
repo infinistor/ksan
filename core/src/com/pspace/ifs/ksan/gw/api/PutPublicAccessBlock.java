@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -32,10 +31,7 @@ public class PutPublicAccessBlock extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-		DataPutPublicAccessBlock dataPutPublicAccessBlock = new DataPutPublicAccessBlock(s3Parameter);
-		dataPutPublicAccessBlock.extract();
-
-		String accessXml = dataPutPublicAccessBlock.getPublicAccessBlockXml();
+		String accessXml = s3RequestData.getPublicAccessBlockXml();
 		updateBucketAccess(bucket, accessXml);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

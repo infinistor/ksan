@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataUploadPart;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -58,13 +57,10 @@ public class UploadPart extends S3Request {
 		}
 		
 		checkGrantBucket(false, GWConstants.GRANT_WRITE);
-		
-		DataUploadPart dataUploadPart = new DataUploadPart(s3Parameter);
-		dataUploadPart.extract();
 
-		String partNumberStr = dataUploadPart.getPartNumber();
+		String partNumberStr = s3RequestData.getPartNumber();
 		int partNumber = Integer.parseInt(partNumberStr);
-		String uploadId = dataUploadPart.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 
 		s3Parameter.setUploadId(uploadId);
 		s3Parameter.setPartNumber(partNumberStr);
@@ -76,11 +72,11 @@ public class UploadPart extends S3Request {
 					(Throwable) null, ImmutableMap.of(GWConstants.ARGMENT_NAME, GWConstants.PART_NUMBER, GWConstants.ARGMENT_VALUE, partNumberStr), s3Parameter);
 		}
 
-		String contentLength = dataUploadPart.getContentLength();
-		String contentMD5String = dataUploadPart.getContentMD5();
-		String customerAlgorithm = dataUploadPart.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataUploadPart.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataUploadPart.getServerSideEncryptionCustomerKeyMD5();
+		String contentLength = s3RequestData.getContentLength();
+		String contentMD5String = s3RequestData.getContentMD5();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		
 		if (Strings.isNullOrEmpty(contentLength)) {
 			logger.error(GWConstants.LENGTH_REQUIRED);

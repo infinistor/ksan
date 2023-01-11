@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.format.AclTransfer;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -47,10 +46,8 @@ public class KsanGetObjectAcl extends S3Request {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
-
-        DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
-        dataGetObjectAcl.extract();
-        String versionId = dataGetObjectAcl.getVersionId();
+        
+        String versionId = s3RequestData.getVersionId();
 
         Metadata objMeta = null;
         if (Strings.isNullOrEmpty(versionId)) {

@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
-import com.pspace.ifs.ksan.gw.data.DataCompleteMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.CompleteMultipartUploadRequest;
@@ -75,14 +74,11 @@ public class KsanCompleteMultipartUpload extends S3Request {
 
 		GWUtils.checkCors(s3Parameter);
 
-		DataCompleteMultipartUpload dataCompleteMultipartUpload = new DataCompleteMultipartUpload(s3Parameter);
-		dataCompleteMultipartUpload.extract();
-
-		String uploadId = dataCompleteMultipartUpload.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 		s3Parameter.setUploadId(uploadId);
-		String repVersionId = dataCompleteMultipartUpload.getVersionId();
+		String repVersionId = s3RequestData.getVersionId();
 
-		String multipartXml = dataCompleteMultipartUpload.getMultipartXml();
+		String multipartXml = s3RequestData.getMultipartXml();
 		XmlMapper xmlMapper = new XmlMapper();
 		CompleteMultipartUploadRequest completeMultipartUpload = new CompleteMultipartUploadRequest();
 		try {

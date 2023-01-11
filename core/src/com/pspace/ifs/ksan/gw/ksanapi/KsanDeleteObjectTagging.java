@@ -14,7 +14,6 @@ import com.pspace.ifs.ksan.gw.api.S3Request;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataDeleteObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -43,10 +42,7 @@ public class KsanDeleteObjectTagging extends S3Request {
 		
 		GWUtils.checkCors(s3Parameter);
 
-		DataDeleteObjectTagging dataDeleteObjectTagging = new DataDeleteObjectTagging(s3Parameter);
-		dataDeleteObjectTagging.extract();
-
-		String versionId = dataDeleteObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -59,7 +55,7 @@ public class KsanDeleteObjectTagging extends S3Request {
 		objMeta.setTag("");
 		updateObjectTagging(objMeta);
 
-		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, dataDeleteObjectTagging.getVersionId());
+		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
 }

@@ -19,7 +19,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListObjectV2;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
@@ -54,24 +53,21 @@ public class ListObjectsV2 extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListObjectV2 dataListObjectV2 = new DataListObjectV2(s3Parameter);
-		dataListObjectV2.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListObjectV2)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		// read header
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		
-		if (!Strings.isNullOrEmpty(dataListObjectV2.getMaxKeys())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getMaxKeys())) {
 			try {
-				if (Integer.valueOf(dataListObjectV2.getMaxKeys()) < 0) {
+				if (Integer.valueOf(s3RequestData.getMaxKeys()) < 0) {
 					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-				} else if (Integer.valueOf(dataListObjectV2.getMaxKeys()) > 1000) {
+				} else if (Integer.valueOf(s3RequestData.getMaxKeys()) > 1000) {
 					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 				} else {
-					s3ObjectList.setMaxKeys(dataListObjectV2.getMaxKeys());
+					s3ObjectList.setMaxKeys(s3RequestData.getMaxKeys());
 				}
 			} catch (NumberFormatException e) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
@@ -80,12 +76,12 @@ public class ListObjectsV2 extends S3Request {
 			s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 		}
 		
-		s3ObjectList.setContinuationToken(dataListObjectV2.getContinuationToken());
-		s3ObjectList.setDelimiter(dataListObjectV2.getDelimiter());
-		s3ObjectList.setEncodingType(dataListObjectV2.getEncodingType());
-		s3ObjectList.setPrefix(dataListObjectV2.getPrefix());
-		s3ObjectList.setStartAfter(dataListObjectV2.getStartAfter());
-		s3ObjectList.setFetchOwner(dataListObjectV2.getFetchOwner());
+		s3ObjectList.setContinuationToken(s3RequestData.getContinuationToken());
+		s3ObjectList.setDelimiter(s3RequestData.getDelimiter());
+		s3ObjectList.setEncodingType(s3RequestData.getEncodingType());
+		s3ObjectList.setPrefix(s3RequestData.getPrefix());
+		s3ObjectList.setStartAfter(s3RequestData.getStartAfter());
+		s3ObjectList.setFetchOwner(s3RequestData.getFetchOwner());
 
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		

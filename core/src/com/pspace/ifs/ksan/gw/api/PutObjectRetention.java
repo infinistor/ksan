@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.DataPutObjectRetention;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Retention;
@@ -53,12 +52,10 @@ public class PutObjectRetention extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataPutObjectRetention dataPutObjectRetention = new DataPutObjectRetention(s3Parameter);
-		dataPutObjectRetention.extract();
-		String versionId = dataPutObjectRetention.getVersionId();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_RETENTION, s3Parameter, dataPutObjectRetention)) {
+		String versionId = s3RequestData.getVersionId();
+
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_RETENTION, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 		
@@ -101,7 +98,7 @@ public class PutObjectRetention extends S3Request {
 		String mode;
 		String retainUntilDate;
 		try {
-			Retention rt = new XmlMapper().readValue(dataPutObjectRetention.getRetentionXml(), Retention.class);
+			Retention rt = new XmlMapper().readValue(s3RequestData.getRetentionXml(), Retention.class);
 			mode = rt.mode;
 			retainUntilDate = rt.date;
 
@@ -123,8 +120,8 @@ public class PutObjectRetention extends S3Request {
 				long curDate = GWUtils.parseRetentionTimeExpire(s3Metadata.getLockExpires(), s3Parameter);
 				long newDate = GWUtils.parseRetentionTimeExpire(retainUntilDate, s3Parameter);
 				logger.info(GWConstants.LOG_CUR_NEW_DATE, curDate, newDate);
-				if (!Strings.isNullOrEmpty(dataPutObjectRetention.getBypassGovernanceRetention())) {
-					if (!dataPutObjectRetention.getBypassGovernanceRetention().equalsIgnoreCase(GWConstants.XML_TRUE) && curDate > newDate) {
+				if (!Strings.isNullOrEmpty(s3RequestData.getBypassGovernanceRetention())) {
+					if (!s3RequestData.getBypassGovernanceRetention().equalsIgnoreCase(GWConstants.XML_TRUE) && curDate > newDate) {
 						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 					}
 				} else {

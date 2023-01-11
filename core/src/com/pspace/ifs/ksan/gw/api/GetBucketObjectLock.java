@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketObjectLock;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
@@ -48,10 +47,7 @@ public class GetBucketObjectLock extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        DataGetBucketObjectLock dataGetBucketObjectLock = new DataGetBucketObjectLock(s3Parameter);
-        dataGetBucketObjectLock.extract();
-
-        if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataGetBucketObjectLock)) {
+        if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter)) {
             checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
         }
         

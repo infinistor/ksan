@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -49,11 +48,8 @@ public class PutObjectAcl extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
-		DataPutObjectAcl dataPutObjectAcl = new DataPutObjectAcl(s3Parameter);
-		dataPutObjectAcl.extract();
 		
-		String versionId = dataPutObjectAcl.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
@@ -64,16 +60,16 @@ public class PutObjectAcl extends S3Request {
 		}
         
 		if (Strings.isNullOrEmpty(versionId)) {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_ACL, s3Parameter, dataPutObjectAcl)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_ACL, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_WRITE_ACP);
 			}
 		} else {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_ACL, s3Parameter, dataPutObjectAcl)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_ACL, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_WRITE_ACP);
 			}
 		}
         
-		String xml = makeAcl(objectAccessControlPolicy, dataPutObjectAcl.getAclXml(), dataPutObjectAcl);
+		String xml = makeAcl(objectAccessControlPolicy, true);
 		logger.debug(GWConstants.LOG_ACL, xml);
 		
 		objMeta.setAcl(xml);

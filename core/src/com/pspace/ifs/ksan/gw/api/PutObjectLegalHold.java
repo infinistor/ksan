@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.DataPutObjectLegalHold;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.LegalHold;
@@ -55,14 +54,11 @@ public class PutObjectLegalHold extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        DataPutObjectLegalHold dataPutObjectLegalHold = new DataPutObjectLegalHold(s3Parameter);
-        dataPutObjectLegalHold.extract();
-
-        if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_LEGAL_HOLD, s3Parameter, dataPutObjectLegalHold)) {
+        if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_LEGAL_HOLD, s3Parameter)) {
             checkGrantBucket(false, GWConstants.GRANT_WRITE);
         }
 
-        String versionId = dataPutObjectLegalHold.getVersionId();
+        String versionId = s3RequestData.getVersionId();
         
         Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -102,7 +98,7 @@ public class PutObjectLegalHold extends S3Request {
         String status;
         LegalHold lh;
         try {
-            lh = new XmlMapper().readValue(dataPutObjectLegalHold.getLegalHoldXml(), LegalHold.class);
+            lh = new XmlMapper().readValue(s3RequestData.getLegalHoldXml(), LegalHold.class);
         } catch (JsonProcessingException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

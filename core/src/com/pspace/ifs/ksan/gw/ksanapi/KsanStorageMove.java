@@ -12,8 +12,6 @@ package com.pspace.ifs.ksan.gw.ksanapi;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
-import com.pspace.ifs.ksan.gw.data.DataRestoreObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -52,9 +50,7 @@ public class KsanStorageMove extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		DataRestoreObject dataRestoreObject = new DataRestoreObject(s3Parameter);
-        dataRestoreObject.extract();
-        String versionId = dataRestoreObject.getVersionId();
+        String versionId = s3RequestData.getVersionId();
 
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = GWConstants.VERSIONING_DISABLE_TAIL;

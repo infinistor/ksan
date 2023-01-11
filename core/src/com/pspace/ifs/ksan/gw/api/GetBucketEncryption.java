@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketEncryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -45,11 +44,8 @@ public class GetBucketEncryption extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetBucketEncryption dataGetBucketEncryption = new DataGetBucketEncryption(s3Parameter);
-		dataGetBucketEncryption.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_ENCRYPTION_CONFIGURATION, s3Parameter, dataGetBucketEncryption)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_ENCRYPTION_CONFIGURATION, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
