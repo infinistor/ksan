@@ -44,7 +44,7 @@ public class MQResponse {
         JSONObject obj;
         
         result = "";
-        code = MQResponseCode.MQ_SUCESS;
+        code = MQResponseCode.MQ_SUCCESS;
         message = "";
         qAck = -1;
         try {
