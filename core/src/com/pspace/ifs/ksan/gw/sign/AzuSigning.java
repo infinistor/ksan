@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.data.azure.AzuDataRequest;
+import com.pspace.ifs.ksan.gw.data.azure.AzuRequestData;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;

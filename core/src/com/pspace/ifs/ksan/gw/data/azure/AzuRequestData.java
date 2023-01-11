@@ -14,6 +14,8 @@ package com.pspace.ifs.ksan.gw.data.azure;
 import java.io.IOException;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
@@ -23,40 +25,68 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
 
-public abstract class AzuDataRequest {
-    String contentLength;
-	protected Logger logger;
-	protected AzuParameter parameter;
+public class AzuRequestData {
+	private Logger logger;
+	private AzuParameter parameter;
 
-    public AzuDataRequest(AzuParameter parameter) throws AzuException {
+    public AzuRequestData(AzuParameter parameter) {
 		this.parameter = parameter;
-		checkContentLength();
-		if (parameter.getResponse() != null) {
-			for (String header : parameter.getResponse().getHeaderNames()) {
-				parameter.addResponseSize(header.length());
-				String value = parameter.getResponse().getHeader(header);
-				if (!Strings.isNullOrEmpty(value)) {
-					parameter.addResponseSize(value.length());
-				}
-			}
-		}
+		logger = LoggerFactory.getLogger(AzuRequestData.class);
 	}
 
-	private void checkContentLength() throws AzuException {
-		contentLength = parameter.getRequest().getHeader(HttpHeaders.CONTENT_LENGTH);
+	public String getContentLength() throws AzuException {
+		String contentLength = parameter.getRequest().getHeader(HttpHeaders.CONTENT_LENGTH);
 		if (!Strings.isNullOrEmpty(contentLength)) {
 			long length = Long.parseLong(contentLength);
 			if (length < 0) {
 				throw new AzuException(AzuErrorCode.INVALID_ARGUMENT, parameter);
 			}
 		}
-	}
 
-	protected String getContentLength() {
 		return contentLength;
 	}
 
-	protected String readXml() throws AzuException {
+	public String getPrefix() {
+        return parameter.getRequest().getParameter(AzuConstants.PARAMETER_PREFIX);
+    }
+
+    public String getDelimiter() {
+        return parameter.getRequest().getParameter(AzuConstants.PARAMETER_DELIMITER);
+    }
+
+    public String getMaxResults() {
+        return parameter.getRequest().getParameter(AzuConstants.PARAMETER_MAX_RESULTS);
+    }
+
+    public String getInclude() {
+        return parameter.getRequest().getParameter(AzuConstants.PARAMETER_INCLUDE);
+    }
+
+	public String getContentType() {
+        return parameter.getRequest().getHeader(AzuConstants.X_MS_BLOB_CONTENT_TYPE);
+    }
+
+    public String getContentMD5() {
+        return parameter.getRequest().getHeader(AzuConstants.X_MS_BLOB_CONTENT_MD5);
+    }
+
+	public String getBlockId() {
+        return parameter.getRequest().getParameter(AzuConstants.BLOCKID);
+    }
+
+    public String getBlobContentType() {
+        return parameter.getRequest().getHeader(AzuConstants.X_MS_BLOB_CONTENT_TYPE);
+    }
+
+    public String getBlobContentMD5() {
+        return parameter.getRequest().getHeader(AzuConstants.X_MS_BLOB_CONTENT_MD5);
+    }
+
+	public String getXml() throws AzuException {
+        return readXml();
+    }
+
+	public String readXml() throws AzuException {
 		String ret = null;
 
 		try {
@@ -82,7 +112,7 @@ public abstract class AzuDataRequest {
 		return ret;
 	}
 
-	protected String readJson() throws AzuException {
+	public String readJson() throws AzuException {
 		String ret = null;
 
 		try {
@@ -103,7 +133,5 @@ public abstract class AzuDataRequest {
 		
 		return ret;
 	}
-
-	public abstract void extract() throws AzuException;
 }
 

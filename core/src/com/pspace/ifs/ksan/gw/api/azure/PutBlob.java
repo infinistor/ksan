@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.azure.DataPutBlob;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
@@ -75,13 +74,10 @@ public class PutBlob extends AzuRequest {
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
-        
-        DataPutBlob dataCreateBlob = new DataPutBlob(azuParameter);
-        dataCreateBlob.extract();
 
-        String contentsLength = dataCreateBlob.getContentLength();
+        String contentsLength = azuRequestData.getContentLength();
         long blobLength = Long.parseLong(contentsLength);
-        String contentMD5 = dataCreateBlob.getContentMD5();
+        String contentMD5 = azuRequestData.getContentMD5();
 
         logger.debug("contentsLength : {}, {}", contentsLength, blobLength);
 
@@ -113,7 +109,7 @@ public class PutBlob extends AzuRequest {
             s3Metadata.setCreationDate(new Date());
         }
 
-        s3Metadata.setContentType(dataCreateBlob.getContentType());
+        s3Metadata.setContentType(azuRequestData.getContentType());
         s3Metadata.setOwnerId(azuParameter.getUser().getUserId());
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
         s3Metadata.setContentLength(blobLength);

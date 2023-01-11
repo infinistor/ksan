@@ -838,7 +838,7 @@ public abstract class S3Request {
 		}
 	}
 
-	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, boolean isUseAclXml) throws GWException {
+	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, boolean isUsedAclXml) throws GWException {
 		PublicAccessBlockConfiguration pabc = null;
 		if (dstBucket != null && !Strings.isNullOrEmpty(dstBucket.getAccess())) {
 			try {
@@ -884,7 +884,7 @@ public abstract class S3Request {
 			isKeyword = true;
 		}
 
-		if (!isKeyword && isUseAclXml) {
+		if (!isKeyword && isUsedAclXml) {
 			acp = AclTransfer.getInstance().getAclClassFromXml(s3RequestData.getAclXml(), s3Parameter);
 		} else {
 			logger.debug("x-amz-acl : {}", cannedAcl);

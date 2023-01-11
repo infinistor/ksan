@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 
+import com.pspace.ifs.ksan.gw.data.azure.AzuRequestData;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
@@ -36,12 +37,14 @@ import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 
 public abstract class AzuRequest {
     protected AzuParameter azuParameter;
+	protected AzuRequestData azuRequestData;
     protected ObjManager objManager;
     protected Bucket container;
     protected Logger logger;
 
     public AzuRequest(AzuParameter parameter) {
         this.azuParameter = parameter;
+		azuRequestData = new AzuRequestData(parameter);
 		objManager = ObjManagers.getInstance().getObjManager();
     }
 
