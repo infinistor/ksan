@@ -1179,9 +1179,15 @@
 			<column name="" default="0" />
 		</property>
 		<property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="761e860d-48b8-47e2-9a48-9311b61b5773">
+			<Documentation>
+				<Summary>디스크 읽기</Summary>
+			</Documentation>
 			<column name="" default="0" />
 		</property>
 		<property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="bc6cc914-5704-4263-8279-c09f88d1c1da">
+			<Documentation>
+				<Summary>디스크 쓰기</Summary>
+			</Documentation>
 			<column name="" default="0" />
 		</property>
 		<property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
@@ -2164,7 +2170,7 @@
 			</end2>
 		</association>
 		<association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-			<end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+			<end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
 				<property name="Id" />
 			</end1>
 			<end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">

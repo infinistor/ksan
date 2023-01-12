@@ -57,10 +57,10 @@ namespace PortalData.Responses.Disks
 		/// <summary>사용된 크기</summary>
 		public decimal UsedSize { get; set; }
 
-		/// <summary>읽기</summary>
+		/// <summary>디스크 읽기</summary>
 		public decimal Read { get; set; }
 
-		/// <summary>사용된 크기</summary>
+		/// <summary>디스크 쓰기</summary>
 		public decimal Write { get; set; }
 
 		/// <summary>디스크 읽기/쓰기 모드</summary>
