@@ -8,25 +8,23 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using PortalData.Enums;
-using MTLib.CommonData;
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using PortalData;
+using PortalData.Requests.Disks;
+using PortalData.Requests.Networks;
 
-namespace PortalData.Requests.Services
+namespace PortalProviderInterface
 {
-	/// <summary>서비스 정보 요청 클래스</summary>
-	public class ResponseServiceEvent : CommonRequestData
-	{
-		/// <summary>서비스 아이디</summary>
-		public string Id { get; set; }
+	/// <summary>로그 데이터 프로바이더 인터페이스</summary>
+	public interface ILogProvider : IBaseProvider
+	{	
+		/// <summary> 네트워크인터페이스 사용량 목록을 가져온다.</summary>
+		/// <returns>로그 목록 객체</returns>
+		Task<ResponseList<ResponseNetworkInterfaceUsage>> GetLastNetworkUsages();
 
-		/// <summary> 이벤트 발생 시각 </summary>
-		public DateTime RegDate { get; set;}
-
-		/// <summary>서비스 이벤트 타입 </summary>
-		public EnumServiceEventType EventType { get; set; }
-
-		/// <summary>메시지 </summary>
-		public string Message { get; set; }
+		/// <summary> 디스크 사용량 목록을 가져온다.</summary>
+		/// <returns>로그 목록 객체</returns>
+		Task<ResponseList<ResponseDiskUsage>> GetLastDiskUsages();
 	}
 }

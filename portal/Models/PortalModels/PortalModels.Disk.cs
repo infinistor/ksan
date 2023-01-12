@@ -73,8 +73,10 @@ namespace PortalModels
 		/// <summary> 사용된 크기 </summary>
 		public virtual decimal UsedSize { get; set; }
 
+		/// <summary> 디스크 읽기 </summary>
 		public virtual decimal Read { get; set; }
 
+		/// <summary> 디스크 쓰기 </summary>
 		public virtual decimal Write { get; set; }
 
 		/// <summary> 디스크 읽기/쓰기 모드 </summary>

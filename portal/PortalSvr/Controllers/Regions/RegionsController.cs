@@ -72,6 +72,15 @@ namespace PortalSvr.Controllers.Regions
 			return Json(await m_dataProvider.Get(RegionName));
 		}
 
+		/// <summary>현재 시스템의 리전을 가져온다.</summary>
+		/// <returns>리전 정보 객체</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<RequestRegion>))]
+		[HttpGet("Default")]
+		public async Task<ActionResult> GetDefault()
+		{
+			return Json(await m_dataProvider.GetDefault());
+		}
+
 		/// <summary>리전을 생성한다.</summary>
 		/// <param name="Request">리전 정보</param>
 		/// <returns>리전 생성 결과</returns>

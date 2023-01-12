@@ -1179,9 +1179,15 @@
 			<column name="" default="0" />
 		</property>
 		<property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="761e860d-48b8-47e2-9a48-9311b61b5773">
+			<Documentation>
+				<Summary>디스크 읽기</Summary>
+			</Documentation>
 			<column name="" default="0" />
 		</property>
 		<property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="bc6cc914-5704-4263-8279-c09f88d1c1da">
+			<Documentation>
+				<Summary>디스크 쓰기</Summary>
+			</Documentation>
 			<column name="" default="0" />
 		</property>
 		<property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">

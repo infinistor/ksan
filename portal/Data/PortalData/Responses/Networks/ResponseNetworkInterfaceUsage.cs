@@ -8,25 +8,23 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-using PortalData.Enums;
 using MTLib.CommonData;
-using System;
 
-namespace PortalData.Requests.Services
+namespace PortalData.Requests.Networks
 {
-	/// <summary>서비스 정보 요청 클래스</summary>
-	public class ResponseServiceEvent : CommonRequestData
+	/// <summary>네트워크 인터페이스 사용 정보 수정 요청 클래스</summary>
+	public class ResponseNetworkInterfaceUsage : CommonRequestData
 	{
-		/// <summary>서비스 아이디</summary>
+		/// <summary>네트워크 인터페이스 아이디</summary>
 		public string Id { get; set; }
 
-		/// <summary> 이벤트 발생 시각 </summary>
-		public DateTime RegDate { get; set;}
+		/// <summary> 네트워크 BandWidth </summary>
+		public virtual decimal BandWidth { get; set; }
 
-		/// <summary>서비스 이벤트 타입 </summary>
-		public EnumServiceEventType EventType { get; set; }
+		/// <summary>Rx 값</summary>
+		public decimal Rx { get; set; }
 
-		/// <summary>메시지 </summary>
-		public string Message { get; set; }
+		/// <summary>Tx 값</summary>
+		public decimal Tx { get; set; }
 	}
 }
