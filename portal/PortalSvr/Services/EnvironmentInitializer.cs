@@ -42,7 +42,7 @@ namespace PortalSvr.Services
 		/// <summary> Microsoft.Hosting.Lifetime </summary>
 		public static readonly string KEY_LOG_MICROSOFT_HOSTING_LIFETIME = "Microsoft.Hosting.Lifetime";
 		/// <summary> PortalProvider </summary>
-		public static readonly string KEY_LOG_PORTALPROVIDER = "PortalProvider";
+		public static readonly string KEY_LOG_PORTAL_PROVIDER = "PortalProvider";
 		/// <summary> allowedHosts </summary>
 		public static readonly string KEY_ALLOWED_HOSTS = "AllowedHosts";
 		/// <summary> MariaDB </summary>
@@ -94,8 +94,11 @@ namespace PortalSvr.Services
 		public static readonly string KEY_LOG_DB_USER = "logM.db_user";
 		/// <summary> Ksan Log Manager DB Password </summary>
 		public static readonly string KEY_LOG_DB_PASSWORD = "logM.db_password";
+		/// <summary> Ksan Log Manager DB Pool Size </summary>
 		public static readonly string KEY_LOG_DB_POOL_SIZE = "logM.db_poolSize";
+		/// <summary> Ksan Log Manager DB Expires </summary>
 		public static readonly string KEY_LOG_DB_EXPIRES = "logM.db_expires";
+		/// <summary> Ksan Log Manager DB Check Interval </summary>
 		public static readonly string KEY_LOG_DB_CHECK_INTERVAL = "logM.check_interval";
 		#endregion
 
@@ -207,7 +210,7 @@ namespace PortalSvr.Services
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_DEFAULT] = LogLevel;
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT] = LogLevel;
 				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_MICROSOFT_HOSTING_LIFETIME] = LogLevel;
-				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_PORTALPROVIDER] = LogLevel;
+				KsanApi[KEY_LOGGING][KEY_LOG_LEVEL][KEY_LOG_PORTAL_PROVIDER] = LogLevel;
 			}
 
 			// Database

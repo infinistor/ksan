@@ -14,7 +14,7 @@ namespace PortalData.Responses.Services
 {
 
 	/// <summary>서비스 정보 응답 클래스</summary>
-	public class ResponseSerivceMq
+	public class ResponseServiceMq
 	{
 		/// <summary>서비스 아이디</summary>
 		public string Id { get; set; }
