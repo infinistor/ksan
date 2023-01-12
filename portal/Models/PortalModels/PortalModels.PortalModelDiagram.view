@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <EntityDeveloperDiagram>
 	<Diagram Version="1.22.3.0">
 		<DiagramModel>
@@ -9432,7 +9432,7 @@
 					<Scale>0.69</Scale>
 					<Location>
 						<X>-389.371982021742 px</X>
-						<Y>282.12560572984 px</Y>
+						<Y>313.043478452277 px</Y>
 					</Location>
 				</ViewPort>
 				<Oid xsi:type="SchemaModelOID">
