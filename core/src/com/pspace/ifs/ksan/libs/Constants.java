@@ -21,6 +21,7 @@ public class Constants {
 	public static final String DASH = "-";
 	public static final String POINT = ".";
 	public static final String SPACE = " ";
+	public static final String COMMA = ",";
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
@@ -95,6 +96,9 @@ public class Constants {
 	public static final String ZFEC_REQUIRED_SHARES_OPTION = " -k ";
 	public static final String ZFEC_SUFFIX = ".fec";
 	public static final String ZUNFEC = "zunfec -f -o ";
+
+	public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
+	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 
 	private Constants() {
 		throw new IllegalStateException("Utility class");
