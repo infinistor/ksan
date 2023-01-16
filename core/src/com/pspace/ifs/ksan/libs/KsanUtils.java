@@ -29,6 +29,10 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Date;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 import com.pspace.ifs.ksan.libs.data.ECPart;
 import com.pspace.ifs.ksan.libs.disk.Disk;
@@ -640,4 +644,16 @@ public class KsanUtils {
 
 		return cipherIn;
 	}
+
+    public static Date getDate(String strDate) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+        Date date = null;
+        try {
+            date = simpleDateFormat.parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return date;
+    }
 }
