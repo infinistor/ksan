@@ -10,9 +10,12 @@
 */
 package com.pspace.backend.libs.Config;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class LifecycleManagerConfig {
 
@@ -51,5 +54,17 @@ public class LifecycleManagerConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
+	}
+	
+	public ObjManagerConfig getObjManagerConfig() throws IOException {
+		var item = new ObjManagerConfig();
+		item.dbRepository = dbType;
+		item.dbHost = dbHost;
+		item.dbPort = dbPort;
+		item.dbName = dbName;
+		item.dbUsername = dbUser;
+		item.dbPassword = dbPassword;
+
+		return item;
 	}
 }

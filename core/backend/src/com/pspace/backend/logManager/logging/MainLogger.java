@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package logging;
+package com.pspace.backend.logManager.logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +16,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Config.ConfigManager;
 import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
-
-import config.ConfigManager;
 
 public class MainLogger {
 	final Logger logger = LoggerFactory.getLogger(MainLogger.class);
@@ -30,6 +29,7 @@ public class MainLogger {
 	List<MQReceiver> s3LogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> replicationLogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> LifecycleLogReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> restoreLogReceivers = new ArrayList<MQReceiver>();
 
 	// Thread SendThread;
 	// SendLogger Sender;
@@ -78,6 +78,18 @@ public class MainLogger {
 						"",
 						Constants.MQ_BINDING_LIFECYCLE_LOG,
 						new LifecycleLogReceiver()));
+
+				restoreLogReceivers.add(new MQReceiver(
+						agent.MQHost,
+						agent.MQPort,
+						agent.MQUser,
+						agent.MQPassword,
+						Constants.MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG,
+						Constants.MQ_KSAN_LOG_EXCHANGE,
+						false,
+						"",
+						Constants.MQ_BINDING_RESTORE_LOG,
+						new RestoreLogReceiver()));
 			}
 
 			return true;
