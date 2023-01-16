@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package Lifecycle;
+package com.pspace.backend.lifecycle.Lifecycle;
 
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import com.pspace.backend.libs.Data.BackendHeaders;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
@@ -66,7 +66,7 @@ public class LifecycleSender implements MQCallback {
 			logger.debug("{} -> {}", routingKey, body);
 
 			if (!routingKey.equals(Constants.MQ_BINDING_LIFECYCLE_EVENT))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 문자열을 ReplicationEventData 클래스로 변환
 			var event = Mapper.readValue(body, new TypeReference<LifecycleEventData>() {
@@ -99,7 +99,7 @@ public class LifecycleSender implements MQCallback {
 				if (Result.equals(""))
 					break;
 			}
-			// 반환값이 비어있지 않을 경우 - 에러가 발생할 경우
+			// 에러가 발생할 경우
 			if (!Result.isBlank()) {
 				// 이벤트 저장
 				try {
@@ -109,10 +109,13 @@ public class LifecycleSender implements MQCallback {
 				} catch (Exception e) {
 					logger.error("", e);
 				}
-
 			}
-			mq.send(event.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			// 성공할 경우
+			else {
+				mq.send(event.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
+			}
+
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		} catch (Exception e) {
 			logger.error("", e);
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
@@ -124,15 +127,15 @@ public class LifecycleSender implements MQCallback {
 	 *******************************************/
 
 	protected AmazonS3 CreateClient(S3RegionData region) {
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(region.AccessKey, region.SecretKey);
+		BasicAWSCredentials credentials = new BasicAWSCredentials(region.AccessKey, region.SecretKey);
 
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(region.getHttpURL(), ""))
 				.withPathStyleAccessEnabled(true).build();
 	}
 
 	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
-	
+
 		var Result = "";
 		try {
 			ksanClient.StorageMove(bucketName, objectName, storageClass, versionId);

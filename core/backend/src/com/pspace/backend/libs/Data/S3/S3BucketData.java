@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.libs.s3format.LoggingConfiguration;
 import com.pspace.backend.libs.s3format.NotificationConfiguration;
 import com.pspace.backend.libs.s3format.ReplicationConfiguration;

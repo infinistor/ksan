@@ -12,33 +12,45 @@ package com.pspace.backend.libs.Data;
 
 public class Constants {
 	public static final String AGENT_CONF_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
-	public static final String LIFECYCLE_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLifecycleManager.ServiceId";
-	public static final String LOGMANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLogManager.ServiceId";
-	public static final String REPLICATION_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanReplicationManager.ServiceId";
+	public static final String LIFECYCLE_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLifecycleManager.ServiceId";
+	public static final String LOG_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLogManager.ServiceId";
+	public static final String REPLICATION_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanReplicationManager.ServiceId";
 
 	public static final String MQ_KSAN_SYSTEM_EXCHANGE = "ksan.system";
 	public static final String MQ_KSAN_LOG_EXCHANGE = "ksan.log";
+	
 	public static final String MQ_HEARTBEAT_BINDING_KEY = "*.services.state";
 
-	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-log-manager-lifecycle-event-add";
+	/***********************************
+	 * Lifecycle Manager
+	 ***********************************/
+	public static final String MQ_QUEUE_RESTORE_EVENT_ADD = "ksan-restore-event-add";
+	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-lifecycle-event-add";
 
+	public static final String MQ_BINDING_RESTORE_EVENT = "*.services.restore.event.add";
+	public static final String MQ_BINDING_LIFECYCLE_EVENT = "*.services.lifecycle.event.add";
+
+	/***********************************
+	 * Replication Manager
+	 ***********************************/
 	public static final String MQ_QUEUE_REPLICATION_S3_LOG = "ksan-replication-s3-log";
 	public static final String MQ_QUEUE_REPLICATION_EVENT_ADD = "ksan-replication-event-add";
 
+	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
+	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
+	/***********************************
+	 * Log Manager
+	 ***********************************/
 	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-log-manager-s3-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG = "ksan-log-manager-restore-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-log-manager-lifecycle-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-log-manager-replication-event-log";
-	
 
-	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
-	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
-	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
-
+	// public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
+	public static final String MQ_BINDING_RESTORE_LOG = "*.services.restore.log.add";
 	public static final String MQ_BINDING_LIFECYCLE_LOG = "*.services.lifecycle.log.add";
-	public static final String MQ_BINDING_LIFECYCLE_EVENT = "*.services.lifecycle.event.add";
+	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
 
-	public static final String MQ_BINDING_RESTORE_EVENT = "*.services.restore.event.add";
-	
 	public static final String MQ_EXCHANGE_OPTION_DIRECT = "direct";
 	public static final String MQ_EXCHANGE_OPTION_FANOUT = "fanout";
 	public static final String MQ_EXCHANGE_OPTION_TOPIC = "topic";
@@ -48,8 +60,7 @@ public class Constants {
 	public static final String DB_TYPE_MARIADB = "MariaDB";
 	public static final String DB_TYPE_MONGODB = "MongoDB";
 
-	public static final String MQ_QUEUE_NAME(String QueueName, String ServiceId)
-	{
+	public static final String MQ_QUEUE_NAME(String QueueName, String ServiceId) {
 		return QueueName + "-" + ServiceId;
 	}
 }

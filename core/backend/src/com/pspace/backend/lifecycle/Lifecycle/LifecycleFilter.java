@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package Lifecycle;
+package com.pspace.backend.lifecycle.Lifecycle;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -27,7 +27,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.s3format.LifecycleConfiguration;
 import com.pspace.backend.libs.s3format.LifecycleConfiguration.Rule;
 import com.pspace.backend.libs.s3format.Tagging;
@@ -60,7 +60,7 @@ public class LifecycleFilter {
 
 		if (BucketList.size() > 0) {
 			for (var Bucket : BucketList) {
-				var BucketName = Bucket.getName();
+				var bucketName = Bucket.getName();
 
 				// 버킷의 수명주기 설정을 가져온다.
 				var Lifecycle = GetLifecycleConfiguration(Bucket.getLifecycle());
@@ -76,7 +76,7 @@ public class LifecycleFilter {
 				}
 
 				// 오브젝트 목록 가져오기
-				var ObjectList = objManager.listObjects(BucketName, "", 1000);
+				var ObjectList = objManager.listObjects(bucketName, "", 1000);
 				// 룰정보 가져오기
 				var Rules = Lifecycle.rules;
 
@@ -250,13 +250,13 @@ public class LifecycleFilter {
 					}
 
 					// Multipart의 part 수명주기가 설정 되었을 경우
-					if (rule.abortincompletemultipartupload != null
-							&& !StringUtils.isBlank(rule.abortincompletemultipartupload.DaysAfterInitiation)) {
+					if (rule.abortIncompleteMultipartUpload != null
+							&& !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
 						// 기간을 숫자로 변환
-						var ExpiredDays = NumberUtils.toInt(rule.abortincompletemultipartupload.DaysAfterInitiation);
+						var ExpiredDays = NumberUtils.toInt(rule.abortIncompleteMultipartUpload.DaysAfterInitiation);
 
 						// 업로드 중인 Multipart 목록을 가져온다.
-						var Multiparts = objManager.getMultipartInsatance(BucketName);
+						var Multiparts = objManager.getMultipartInstance(bucketName);
 						for (var Multipart : Multiparts.listUploads("", "", "", "", 1000)) {
 
 							// 오브젝트의 이름이 필터 설정에 만족하지 못할 경우 스킵
@@ -317,7 +317,7 @@ public class LifecycleFilter {
 					// 오브젝트의 모든 태그를 비교
 					int TagCount = Rule.filter.and.tag.size();
 					for (var FilterTag : Rule.filter.and.tag) {
-						for (var ObjectTag : Tags.tagset.tags) {
+						for (var ObjectTag : Tags.tags.tags) {
 							if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
 								TagCount--;
 						}
@@ -354,7 +354,7 @@ public class LifecycleFilter {
 				boolean Find = false;
 
 				// 오브젝트의 모든 태그를 비교
-				for (var ObjectTag : Tags.tagset.tags)
+				for (var ObjectTag : Tags.tags.tags)
 					if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
 						Find = true;
 

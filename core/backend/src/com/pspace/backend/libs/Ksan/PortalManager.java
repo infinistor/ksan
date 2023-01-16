@@ -30,15 +30,14 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Config.LogManagerConfig;
-import com.pspace.backend.libs.Config.ReplicationConfig;
 import com.pspace.backend.libs.Config.LifecycleManagerConfig;
+import com.pspace.backend.libs.Config.LogManagerConfig;
+import com.pspace.backend.libs.Config.ReplicationManagerConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
 import com.pspace.backend.libs.Ksan.Data.ResponseRegion;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
 
 public class PortalManager {
 	static final Logger logger = LoggerFactory.getLogger(PortalManager.class);
@@ -63,7 +62,7 @@ public class PortalManager {
 	 * 
 	 * @return Replication 설정 정보
 	 */
-	public ReplicationConfig getReplicationConfig() {
+	public ReplicationManagerConfig getReplicationManagerConfig() {
 		try (var Client = getClient();) {
 
 			var get = getRequest(getReplicationConfigURL());
@@ -82,7 +81,7 @@ public class PortalManager {
 					return null;
 				}
 
-				return Mapper.readValue(Result.Data.Config, ReplicationConfig.class);
+				return Mapper.readValue(Result.Data.Config, ReplicationManagerConfig.class);
 			}
 
 		} catch (Exception e) {
@@ -217,9 +216,9 @@ public class PortalManager {
 		return String.format("https://%s:%s", Config.PortalHost, Config.PortalPort);
 	}
 
-	private String getBackendConfigURL() {
-		return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
-	}
+	// private String getBackendConfigURL() {
+	// 	return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
+	// }
 
 	private String getLifecycleManagerConfigURL() {
 		return String.format("%s/api/v1/Config/KsanLifecycleManager", getURL());
@@ -233,17 +232,13 @@ public class PortalManager {
 		return String.format("%s/api/v1/Config/KsanLogManager", getURL());
 	}
 
-	private String getMeteringConfigURL() {
-		return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
-	}
-
 	private String getRegionsURL() {
 		return String.format("%s/api/v1/Regions", getURL());
 	}
 
-	private String getRegionURL(String RegionName) {
-		return String.format("%s/api/v1/Regions/%s", getURL(), RegionName);
-	}
+	// private String getRegionURL(String RegionName) {
+	// 	return String.format("%s/api/v1/Regions/%s", getURL(), RegionName);
+	// }
 
 	private HttpGet getRequest(String URL) {
 		var Request = new HttpGet(URL);

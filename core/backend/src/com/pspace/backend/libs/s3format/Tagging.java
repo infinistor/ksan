@@ -16,16 +16,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /** Represent an Amazon Tagging for a bucket or object. */
-// CHECKSTYLE:OFF
 public final class Tagging {
 	@JacksonXmlProperty(localName = "TagSet")
-	public TagSet tagset;
+	public TagSet tags;
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(TagSet.class.getSimpleName()).append('{');
-		sb.append("tagset=").append(tagset);
+		sb.append("tags=").append(tags);
 		return sb.append('}').toString();
 	}
 
@@ -48,7 +47,7 @@ public final class Tagging {
 				StringBuilder sb = new StringBuilder();
 				sb.append(Tag.class.getSimpleName()).append('{');
 				sb.append("Key=").append(key);
-				sb.append(",Vaule=").append(value);
+				sb.append(",Value=").append(value);
 				return sb.append('}').toString();
 			}
 
@@ -60,4 +59,3 @@ public final class Tagging {
 		}
 	}
 }
-// CHECKSTYLE:ON

@@ -16,15 +16,15 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
+import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.logManager.db.DBManager;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
-public class ReplicationLogReceiver implements MQCallback {
-	private final Logger logger = LoggerFactory.getLogger(ReplicationLogReceiver.class);
+public class RestoreLogReceiver implements MQCallback {
+	private final Logger logger = LoggerFactory.getLogger(RestoreLogReceiver.class);
 	private final ObjectMapper Mapper = new ObjectMapper();
 
 	@Override
@@ -33,21 +33,21 @@ public class ReplicationLogReceiver implements MQCallback {
 		try {
 			logger.debug("{} -> {}", routingKey, body);
 			
-			if (!routingKey.equals(Constants.MQ_BINDING_REPLICATION_LOG))
+			if (!routingKey.equals(Constants.MQ_BINDING_RESTORE_LOG))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
-			// 문자열을 ReplicationLogData 클래스로 변환
-			var event = Mapper.readValue(body, new TypeReference<ReplicationLogData>() {
+			// 문자열을 S3LogData 클래스로 변환
+			var event = Mapper.readValue(body, new TypeReference<LifecycleLogData>() {
 			});
 			// 변환 실패시
 			if (event == null) 
-				throw new Exception("Invalid ReplicationLogData : " + body);
+				throw new Exception("Invalid RestoreLogData : " + body);
 
 			// Get DB
 			var db = DBManager.getInstance();
 
 			//DB에 저장
-			db.insertReplicationLog(event);
+			db.insertLifecycleLog(event);
 
 		} catch (Exception e) {
 			logger.error("", e);

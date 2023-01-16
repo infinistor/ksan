@@ -116,7 +116,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>Main</mainClass>
+									<mainClass>com.pspace.backend.logManager.Main</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>

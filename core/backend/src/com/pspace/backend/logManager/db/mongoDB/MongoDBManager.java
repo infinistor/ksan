@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db.mongoDB;
+package com.pspace.backend.logManager.db.mongoDB;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,15 +25,16 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import com.pspace.backend.libs.Config.DBConfig;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
+import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
-
-import db.DBConfig;
-import db.IDBManager;
-import db.table.Lifecycle.LifecycleLogQuery;
-import db.table.Logging.LoggingQuery;
-import db.table.replication.ReplicationLogQuery;
+import com.pspace.backend.logManager.db.IDBManager;
+import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
+import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.LoggingQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationLogQuery;
 
 public class MongoDBManager implements IDBManager {
 	static final Logger logger = LoggerFactory.getLogger(MongoDBManager.class);
@@ -61,8 +62,8 @@ public class MongoDBManager implements IDBManager {
 
 	////////////////////// Logging //////////////////////
 	public List<S3LogData> getLoggingEventList(String BucketName) {
-		var rmap = Select(LoggingQuery.getSelect(BucketName));
-		return LoggingQuery.getListMariaDB(rmap);
+		var map = Select(LoggingQuery.getSelect(BucketName));
+		return LoggingQuery.getList(map);
 	}
 
 	/***************************** Insert *****************************/
@@ -77,6 +78,9 @@ public class MongoDBManager implements IDBManager {
 
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return Insert(LifecycleLogQuery.DB_TABLE_NAME, LifecycleLogQuery.getInsertDocument(data));
+	}
+	public boolean insertRestoreLog(RestoreLogData data) {
+		return Insert(RestoreLogQuery.DB_TABLE_NAME, RestoreLogQuery.getInsertDocument(data));
 	}
 
 	/***************************** Expiration *****************************/
@@ -97,7 +101,7 @@ public class MongoDBManager implements IDBManager {
 
 	private List<HashMap<String, Object>> Select(String tableName) {
 		try {
-			var rmap = new ArrayList<HashMap<String, Object>>();
+			var result = new ArrayList<HashMap<String, Object>>();
 
 			var collection = db.getCollection(tableName);
 			var cursor = collection.find().iterator();
@@ -108,10 +112,10 @@ public class MongoDBManager implements IDBManager {
 				var map = new HashMap<String, Object>(keys.size());
 				for (var key : keys)
 					map.put(key, item.get(key));
-				rmap.add(map);
+				result.add(map);
 			}
 			cursor.close();
-			return rmap;
+			return result;
 		} catch (Exception e) {
 			logger.error("Query Error : {}", tableName, e);
 		}
