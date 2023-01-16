@@ -11,32 +11,28 @@
 package com.pspace.backend.libs;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.InputStream;
-import java.io.File;
-import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);

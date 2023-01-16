@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class MQManager {
