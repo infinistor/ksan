@@ -2811,8 +2811,14 @@ public class S3ObjectOperation {
 
     public void restoreObject(Metadata restoreObjMeta) throws GWException {
         try {
-            FileUtils.moveFile(new File(KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)), 
-                               new File(KsanUtils.makeObjPath(restoreObjMeta.getPrimaryDisk().getPath(), restoreObjMeta.getObjId(), versionId)));
+            File srcFile = new File(KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            File destFile = new File(KsanUtils.makeObjPath(restoreObjMeta.getPrimaryDisk().getPath(), restoreObjMeta.getObjId(), versionId));
+
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+
+            retryRenameTo(srcFile, destFile);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -2821,8 +2827,14 @@ public class S3ObjectOperation {
 
     public void storageMove(Metadata targetObjMeta) throws GWException {
         try {
-            FileUtils.moveFile(new File(KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId)), 
-                               new File(KsanUtils.makeObjPath(targetObjMeta.getPrimaryDisk().getPath(), targetObjMeta.getObjId(), versionId)));
+            File srcFile = new File(KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            File destFile = new File(KsanUtils.makeObjPath(targetObjMeta.getPrimaryDisk().getPath(), targetObjMeta.getObjId(), versionId));
+
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+
+            retryRenameTo(srcFile, destFile);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

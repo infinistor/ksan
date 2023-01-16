@@ -32,8 +32,8 @@ import com.google.common.hash.Hashing;
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.format.AclTransfer;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
+import com.pspace.ifs.ksan.gw.format.AclTransfer;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
@@ -637,7 +637,7 @@ public abstract class S3Request {
 				AgentConfig.getInstance().getMQPassword(),
 				GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
 				GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
-				GWConstants.MQUEUE_NAME_GW_RESTORE_ROUTING_KEY);
+				"");
 
 			JSONObject obj;
 			obj = new JSONObject();
@@ -646,7 +646,8 @@ public abstract class S3Request {
 			obj.put(GWConstants.RESTORE_OBJECT_NAME, object);
 			obj.put(GWConstants.RESTORE_VERSION_ID, versionId);
 			obj.put(GWConstants.RESTORE_XML, restoreXml);
-			mqSender.send(obj.toString());
+			mqSender.send(obj.toString(), GWConstants.MQUEUE_NAME_GW_RESTORE_ROUTING_KEY);
+			logger.debug("mqsender : {}", obj.toString());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -1068,7 +1069,7 @@ public abstract class S3Request {
 			}
 		}
 
-		return AclTransfer.getInstance().getAclJson(acp);
+		return acp.toString(); // AclTransfer.getInstance().getAclJson(acp);
 	}
 
 	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, DataPostObject data) throws GWException {
