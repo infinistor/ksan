@@ -122,7 +122,7 @@ public final class LifecycleConfiguration {
 		}
 
 		@JacksonXmlProperty(localName = "AbortIncompleteMultipartUpload")
-		public AbortIncompleteMultipartUpload abortincompletemultipartupload;
+		public AbortIncompleteMultipartUpload abortIncompleteMultipartUpload;
 
 		public static final class AbortIncompleteMultipartUpload {
 			@JacksonXmlProperty(localName = "DaysAfterInitiation")
