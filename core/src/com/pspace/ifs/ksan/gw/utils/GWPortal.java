@@ -67,7 +67,7 @@ class ConfigUpdateCallback implements MQCallback{
 		GWPortal.getInstance().getConfig();
 		// ObjManagerHelper.updateAllConfig();
 		
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}    
 }
 
@@ -86,7 +86,7 @@ class DiskUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}
 }
@@ -106,7 +106,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -158,7 +158,7 @@ class UserUpdateCallBack implements MQCallback{
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -181,7 +181,7 @@ class ServiceUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -233,7 +233,7 @@ class RegionUpdateCallBack implements MQCallback{
 		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		// }
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 

@@ -171,14 +171,7 @@ public class CopyObject extends S3Request {
 		
 
 		// get metadata
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			s3Metadata = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
 
 		// check source customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
@@ -197,7 +190,6 @@ public class CopyObject extends S3Request {
 		srcEncryption.build();
 
 		// check 
-		// S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setCustomerKey(customerKey);
 		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		s3Metadata.setCustomerKeyMD5(customerKeyMD5);
@@ -272,7 +264,7 @@ public class CopyObject extends S3Request {
             }
             if (bReplaceMetadata) {
 				logger.info(GWConstants.LOG_COPY_OBJECT_REPLACE_USER_METADATA, userMetadata.toString());
-                s3Metadata.setUserMetadataMap(userMetadata);
+                s3Metadata.setUserMetadata(userMetadata);
             }
         }
 
@@ -332,22 +324,12 @@ public class CopyObject extends S3Request {
             if (!Strings.isNullOrEmpty(metadataDirective)) {
                 // update metadata
 				if (bReplaceMetadata) {
-					try {
-						S3Metadata metaClass = objectMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
-						s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
-						s3Metadata.setContentLength(metaClass.getContentLength());
-						s3Metadata.setETag(metaClass.getETag());
-					} catch (JsonProcessingException e) {
-						PrintStack.logging(logger, e);
-						throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-					}
+					S3Metadata metaClass = S3Metadata.getS3Metadata(srcMeta.getMeta());
+					s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
+					s3Metadata.setContentLength(metaClass.getContentLength());
+					s3Metadata.setETag(metaClass.getETag());
 					s3Metadata.setLastModified(new Date());
-					try {
-						jsonmeta = objectMapper.writeValueAsString(s3Metadata);
-					} catch (JsonProcessingException e) {
-						PrintStack.logging(logger, e);
-						throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-					}
+					jsonmeta = s3Metadata.toString();
 					logger.debug(GWConstants.LOG_COPY_OBJECT_META, jsonmeta);
 					srcMeta.setMeta(jsonmeta);
 					updateObjectMeta(srcMeta);
@@ -421,12 +403,7 @@ public class CopyObject extends S3Request {
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
 
-        try {
-			jsonmeta = objectMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		jsonmeta = s3Metadata.toString();
 
 		logger.debug(GWConstants.LOG_COPY_OBJECT_META, jsonmeta);
         try {

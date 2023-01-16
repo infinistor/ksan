@@ -162,16 +162,8 @@ public class CompleteMultipartUpload extends S3Request {
 		}
 
 		String acl = multipart.getAcl();
-		String meta = multipart.getMeta();
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, meta);
-			s3Metadata = objectMapper.readValue(meta, S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		
 		// check encryption
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
@@ -218,8 +210,6 @@ public class CompleteMultipartUpload extends S3Request {
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
 			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
-			
-			ObjectMapper jsonMapper = new ObjectMapper();
 			
 			SortedMap<Integer, Part> constListPart = listPart;
 
@@ -288,15 +278,7 @@ public class CompleteMultipartUpload extends S3Request {
 			s3Metadata.setDeleteMarker(s3Object.get().getDeleteMarker());
 			s3Metadata.setVersionId(s3Object.get().getVersionId());
 			
-			String jsonmeta = "";
-			try {
-				// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-				jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		
+			String jsonmeta = s3Metadata.toString();
 			int result = 0;
 			try {
 				if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {

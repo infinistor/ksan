@@ -74,22 +74,16 @@ public class CreateBucket extends S3Request {
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setBucket(bucket.getName());
 		s3Bucket.setUserName(bucket.getUserName());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 
 		if (!Strings.isNullOrEmpty(s3RequestData.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(s3RequestData.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			// bucket.setEncryption();
 			bucket.setObjectLock(objectLockXml);
 			result = createBucket(bucket);
-			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", objectLockXml);
 			putBucketVersioning(bucketName, GWConstants.STATUS_ENABLED);
 		} else {
 			result = createBucket(bucket);
-			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", "");
 		}
 
 		if (result != 0) {

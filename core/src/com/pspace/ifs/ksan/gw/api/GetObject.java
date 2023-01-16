@@ -38,7 +38,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 
 import org.slf4j.LoggerFactory;
 
-public class GetObject extends S3Request implements S3AddResponse {
+public class GetObject extends S3Request {
 
 	public GetObject(S3Parameter s3Parameter) {
 		super(s3Parameter);
@@ -95,17 +95,7 @@ public class GetObject extends S3Request implements S3AddResponse {
 		versionId = objMeta.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
-		S3Metadata s3Metadata = null;
-		
-		// meta info
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		// check customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
@@ -175,7 +165,6 @@ public class GetObject extends S3Request implements S3AddResponse {
 		s3Parameter.getResponse().setStatus(resultRange.getStatus());
 	}
 
-	@Override
 	public void addResponseHeaderWithOverride(HttpServletRequest request, HttpServletResponse response,
 			String headerName, String overrideHeaderName, String value) {
 		
@@ -189,103 +178,107 @@ public class GetObject extends S3Request implements S3AddResponse {
 		}
 	}
 
-	@Override
 	public void addMetadataToResponse(HttpServletResponse response, S3Metadata metadata, List<String> contentsHeaders,
-			Long streamSize) {
-		addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
-				HttpHeaders.CACHE_CONTROL, GWConstants.RESPONSE_CACHE_CONTROL,
-				metadata.getCacheControl());
-		addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
-				HttpHeaders.CONTENT_ENCODING, GWConstants.RESPONSE_CONTENT_ENCODING,
-				metadata.getContentEncoding()); 
-		addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
-				HttpHeaders.CONTENT_LANGUAGE, GWConstants.RESPONSE_CONTENT_LANGUAGE,
-				metadata.getContentLanguage());
-		addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
-				HttpHeaders.CONTENT_DISPOSITION, GWConstants.RESPONSE_CONTENT_DISPOSITION,
-				metadata.getContentDisposition());
-		addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
-				HttpHeaders.CONTENT_TYPE, GWConstants.RESPONSE_CONTENT_TYPE,
-				metadata.getContentType());
-		
-		Collection<String> contentRanges = contentsHeaders;
-		if (contentsHeaders != null && !contentRanges.isEmpty()) {
-			for (String contents : contentsHeaders) {
-				response.addHeader(HttpHeaders.CONTENT_RANGE, contents);
+			Long streamSize) throws GWException {
+		try {
+			addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
+					HttpHeaders.CACHE_CONTROL, GWConstants.RESPONSE_CACHE_CONTROL,
+					metadata.getCacheControl());
+			addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
+					HttpHeaders.CONTENT_ENCODING, GWConstants.RESPONSE_CONTENT_ENCODING,
+					metadata.getContentEncoding()); 
+			addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
+					HttpHeaders.CONTENT_LANGUAGE, GWConstants.RESPONSE_CONTENT_LANGUAGE,
+					metadata.getContentLanguage());
+			addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
+					HttpHeaders.CONTENT_DISPOSITION, GWConstants.RESPONSE_CONTENT_DISPOSITION,
+					metadata.getContentDisposition());
+			addResponseHeaderWithOverride(s3Parameter.getRequest(), response,
+					HttpHeaders.CONTENT_TYPE, GWConstants.RESPONSE_CONTENT_TYPE,
+					metadata.getContentType());
+			
+			Collection<String> contentRanges = contentsHeaders;
+			if (contentsHeaders != null && !contentRanges.isEmpty()) {
+				for (String contents : contentsHeaders) {
+					response.addHeader(HttpHeaders.CONTENT_RANGE, contents);
+				}
+				
+				response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
+				response.addHeader(HttpHeaders.CONTENT_LENGTH, streamSize.toString());
+			} else {
+				response.addHeader(HttpHeaders.CONTENT_LENGTH, metadata.getContentLength().toString());	
+				logger.debug(GWConstants.LOG_GET_OBJECT_CONTENT_LENGTH, metadata.getContentLength());
+			}
+					
+			String overrideContentType = s3Parameter.getRequest().getParameter(GWConstants.RESPONSE_CONTENT_TYPE);
+			response.setContentType(overrideContentType != null ? overrideContentType : metadata.getContentType());
+			
+			if (!Strings.isNullOrEmpty(metadata.getCustomerAlgorithm())) {
+				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, metadata.getCustomerAlgorithm());
 			}
 			
-			response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
-			response.addHeader(HttpHeaders.CONTENT_LENGTH, streamSize.toString());
-		} else {
-			response.addHeader(HttpHeaders.CONTENT_LENGTH, metadata.getContentLength().toString());	
-			logger.debug(GWConstants.LOG_GET_OBJECT_CONTENT_LENGTH, metadata.getContentLength());
-		}
-				
-		String overrideContentType = s3Parameter.getRequest().getParameter(GWConstants.RESPONSE_CONTENT_TYPE);
-		response.setContentType(overrideContentType != null ? overrideContentType : metadata.getContentType());
-		
-		if (!Strings.isNullOrEmpty(metadata.getCustomerAlgorithm())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, metadata.getCustomerAlgorithm());
-		}
-		
-		if (!Strings.isNullOrEmpty(metadata.getCustomerKey())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY, metadata.getCustomerKey());
-		}
-		
-		if (!Strings.isNullOrEmpty(metadata.getCustomerKeyMD5())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, metadata.getCustomerKeyMD5());
-		}
-		
-		if (!Strings.isNullOrEmpty(metadata.getServersideEncryption())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
-		}
-
-		if (!Strings.isNullOrEmpty(metadata.getLockMode())) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, metadata.getLockMode());
-		}
-
-		if (!Strings.isNullOrEmpty(metadata.getLockExpires())) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, metadata.getLockExpires());
-		}
-
-		if (!Strings.isNullOrEmpty(metadata.getLegalHold())) {
-			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
-		}
-
-		if (metadata.getUserMetadataMap() != null) {
-			for (Map.Entry<String, String> entry : metadata.getUserMetadataMap().entrySet()) {
-				response.addHeader(entry.getKey(), entry.getValue());
-				logger.debug(GWConstants.LOG_GET_OBJECT_USER_META_DATA, entry.getKey(), entry.getValue());
+			if (!Strings.isNullOrEmpty(metadata.getCustomerKey())) {
+				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY, metadata.getCustomerKey());
 			}
-		}
-		
-		response.addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(metadata.getETag()));
-		
-		String overrideExpires = s3Parameter.getRequest().getParameter(GWConstants.RESPONSE_EXPIRES);
-		if (overrideExpires != null) {
-			response.addHeader(HttpHeaders.EXPIRES, overrideExpires);
-		} else {
-			Date expires = metadata.getExpires();
-			if (expires != null) {
-				response.addDateHeader(HttpHeaders.EXPIRES, expires.getTime());
+			
+			if (!Strings.isNullOrEmpty(metadata.getCustomerKeyMD5())) {
+				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, metadata.getCustomerKeyMD5());
 			}
-		}
-		
-		logger.debug(GWConstants.LOG_GET_OBJECT_MODIFIED, metadata.getLastModified().getTime());
-		response.addDateHeader(HttpHeaders.LAST_MODIFIED, metadata.getLastModified().getTime());
-		
-		if (!Strings.isNullOrEmpty(metadata.getTaggingCount())) {
-			response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, metadata.getTaggingCount());
-		}
+			
+			if (!Strings.isNullOrEmpty(metadata.getServersideEncryption())) {
+				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
+			}
 
-		if (!Strings.isNullOrEmpty(metadata.getVersionId())) {
-			if (metadata.getVersionId().equalsIgnoreCase(GWConstants.VERSIONING_DISABLE_TAIL)) {
-				response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
+			if (!Strings.isNullOrEmpty(metadata.getLockMode())) {
+				response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, metadata.getLockMode());
+			}
+
+			if (!Strings.isNullOrEmpty(metadata.getLockExpires())) {
+				response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, metadata.getLockExpires());
+			}
+
+			if (!Strings.isNullOrEmpty(metadata.getLegalHold())) {
+				response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
+			}
+
+			if (metadata.getUserMetadata() != null) {
+				for (Map.Entry<String, String> entry : metadata.getUserMetadata().entrySet()) {
+					response.addHeader(entry.getKey(), entry.getValue());
+					logger.debug(GWConstants.LOG_GET_OBJECT_USER_META_DATA, entry.getKey(), entry.getValue());
+				}
+			}
+			
+			response.addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(metadata.getETag()));
+			
+			String overrideExpires = s3Parameter.getRequest().getParameter(GWConstants.RESPONSE_EXPIRES);
+			if (overrideExpires != null) {
+				response.addHeader(HttpHeaders.EXPIRES, overrideExpires);
 			} else {
-				response.addHeader(GWConstants.X_AMZ_VERSION_ID, metadata.getVersionId());
+				Date expires = metadata.getExpires();
+				if (expires != null) {
+					response.addDateHeader(HttpHeaders.EXPIRES, expires.getTime());
+				}
 			}
-		} else {
-			response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
+			
+			logger.debug(GWConstants.LOG_GET_OBJECT_MODIFIED, metadata.getLastModified().getTime());
+			response.addDateHeader(HttpHeaders.LAST_MODIFIED, metadata.getLastModified().getTime());
+			
+			if (!Strings.isNullOrEmpty(metadata.getTaggingCount())) {
+				response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, metadata.getTaggingCount());
+			}
+
+			if (!Strings.isNullOrEmpty(metadata.getVersionId())) {
+				if (metadata.getVersionId().equalsIgnoreCase(GWConstants.VERSIONING_DISABLE_TAIL)) {
+					response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
+				} else {
+					response.addHeader(GWConstants.X_AMZ_VERSION_ID, metadata.getVersionId());
+				}
+			} else {
+				response.addHeader(GWConstants.X_AMZ_VERSION_ID, GWConstants.VERSIONING_DISABLE_TAIL);
+			}
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 	}
 }

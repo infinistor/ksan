@@ -36,6 +36,8 @@ public class Constants {
 
 	public static final String MQ_BINDING_LIFECYCLE_LOG = "*.services.lifecycle.log.add";
 	public static final String MQ_BINDING_LIFECYCLE_EVENT = "*.services.lifecycle.event.add";
+
+	public static final String MQ_BINDING_RESTORE_EVENT = "*.services.restore.event.add";
 	
 	public static final String MQ_EXCHANGE_OPTION_DIRECT = "direct";
 	public static final String MQ_EXCHANGE_OPTION_FANOUT = "fanout";

@@ -84,15 +84,7 @@ public class ListBucketTagSearch extends S3Request {
 			xmlStreamWriter.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 			
 			for (Metadata meta : tagList) {
-				S3Metadata s3Metadata = new S3Metadata();
-				ObjectMapper jsonMapper = new ObjectMapper();
-				
-				try {
-					s3Metadata = jsonMapper.readValue(meta.getMeta(), S3Metadata.class);
-				} catch (Exception e) {
-					PrintStack.logging(logger, e);
-					throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-				}
+				S3Metadata s3Metadata = S3Metadata.getS3Metadata(meta.getMeta());
 
 				xmlStreamWriter.writeStartElement(GWConstants.XML_CONTENTS);
 				logger.debug("meta info : {}, {}, {}, {}, {}, {}, {}, {}", meta.getPath(), formatDate(s3Metadata.getLastModified()), s3Metadata.getETag(), s3Metadata.getContentLength(), s3Metadata.getTier(), meta.getTag(), s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
@@ -108,7 +100,6 @@ public class ListBucketTagSearch extends S3Request {
 				
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getContentLength().toString());
 				writeSimpleElement(xmlStreamWriter, GWConstants.STORAGE_CLASS, s3Metadata.getTier());
-				// writeSimpleElement(xmlStreamWriter, GWConstants.XML_TAG, meta.getTag());
 				writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 				xmlStreamWriter.writeEndElement();
 			}

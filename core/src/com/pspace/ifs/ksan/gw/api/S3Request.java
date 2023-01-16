@@ -29,6 +29,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AclTransfer;
@@ -41,6 +42,7 @@ import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -62,6 +64,10 @@ import com.pspace.ifs.ksan.gw.condition.PolicyCondition;
 import com.pspace.ifs.ksan.gw.condition.PolicyConditionFactory;
 import com.pspace.ifs.ksan.gw.format.PublicAccessBlockConfiguration;
 import jakarta.servlet.http.HttpServletResponse;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
+import org.json.simple.JSONObject;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 
 public abstract class S3Request {
@@ -625,7 +631,22 @@ public abstract class S3Request {
 
 	protected void insertRestoreObject(String bucket, String object, String versionId, String restoreXml) throws GWException {
 		try {
-			objManager.getRestoreObjects().insertRequest(bucket, object, versionId, restoreXml);
+			MQSender mqSender = new MQSender(AgentConfig.getInstance().getMQHost(), 
+				Integer.parseInt(AgentConfig.getInstance().getMQPort()),
+				AgentConfig.getInstance().getMQUser(),
+				AgentConfig.getInstance().getMQPassword(),
+				GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
+				GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
+				GWConstants.MQUEUE_NAME_GW_RESTORE_ROUTING_KEY);
+
+			JSONObject obj;
+			obj = new JSONObject();
+
+			obj.put(GWConstants.RESTORE_BUCKET_NAME, bucket);
+			obj.put(GWConstants.RESTORE_OBJECT_NAME, object);
+			obj.put(GWConstants.RESTORE_VERSION_ID, versionId);
+			obj.put(GWConstants.RESTORE_XML, restoreXml);
+			mqSender.send(obj.toString());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -1308,21 +1329,10 @@ public abstract class S3Request {
 	public void retentionCheck(String meta, String bypassGovernanceRetention, S3Parameter s3Parameter) throws GWException {
 		S3Metadata retentionMetadata = null;
 		if (!Strings.isNullOrEmpty(meta)) {
-			try {
-				retentionMetadata = new ObjectMapper().readValue(meta, S3Metadata.class);
-				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.GOVERNANCE)) {
-					if (Strings.isNullOrEmpty(bypassGovernanceRetention)
-						|| (!Strings.isNullOrEmpty(bypassGovernanceRetention) && !bypassGovernanceRetention.equalsIgnoreCase(GWConstants.STRING_TRUE))) {
-						// check retention date
-						long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
-						long now = System.currentTimeMillis() / 1000;
-						if (untilDate > now) {
-							throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-						}
-					}
-				}
-
-				if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.COMPLIANCE)) {
+			retentionMetadata = S3Metadata.getS3Metadata(meta);
+			if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.GOVERNANCE)) {
+				if (Strings.isNullOrEmpty(bypassGovernanceRetention)
+					|| (!Strings.isNullOrEmpty(bypassGovernanceRetention) && !bypassGovernanceRetention.equalsIgnoreCase(GWConstants.STRING_TRUE))) {
 					// check retention date
 					long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
 					long now = System.currentTimeMillis() / 1000;
@@ -1330,14 +1340,20 @@ public abstract class S3Request {
 						throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 					}
 				}
+			}
 
-				if (!Strings.isNullOrEmpty(retentionMetadata.getLegalHold()) && retentionMetadata.getLegalHold().equalsIgnoreCase(GWConstants.ON)) {
+			if (!Strings.isNullOrEmpty(retentionMetadata.getLockMode()) && retentionMetadata.getLockMode().equalsIgnoreCase(GWConstants.COMPLIANCE)) {
+				// check retention date
+				long untilDate = GWUtils.parseRetentionTimeExpire(retentionMetadata.getLockExpires(), s3Parameter);
+				long now = System.currentTimeMillis() / 1000;
+				if (untilDate > now) {
 					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 				}
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			} 
+			}
+
+			if (!Strings.isNullOrEmpty(retentionMetadata.getLegalHold()) && retentionMetadata.getLegalHold().equalsIgnoreCase(GWConstants.ON)) {
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
 		}
 	}
 

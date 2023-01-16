@@ -191,10 +191,10 @@ public class DeleteObjects extends S3Request {
 							versionId = String.valueOf(System.nanoTime());
 							s3Metadata.setVersionId(versionId);
 
-							ObjectMapper jsonMapper = new ObjectMapper();
-							String jsonmeta = "";
+							// ObjectMapper jsonMapper = new ObjectMapper();
+							String jsonmeta = s3Metadata.toString();
 							// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-							jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
+							// jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 							int result;
 							objMeta.set("", "", jsonmeta, "", 0L);
 							objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
@@ -206,7 +206,7 @@ public class DeleteObjects extends S3Request {
 							writeSimpleElement(xml, GWConstants.XML_DELETE_MARKER, GWConstants.XML_TRUE);
 							writeSimpleElement(xml, GWConstants.DELETE_RESULT_DELETE_MARKER_VERSION_ID, versionId);
 							xml.writeEndElement();
-						} catch (GWException | JsonProcessingException e) {
+						} catch (GWException e) {
 							PrintStack.logging(logger, e);
 							throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 						}
@@ -249,25 +249,15 @@ public class DeleteObjects extends S3Request {
 								versionId = GWConstants.VERSIONING_DISABLE_TAIL;
 								s3Metadata.setVersionId(versionId);
 
-								ObjectMapper jsonMapper = new ObjectMapper();
-								String jsonmeta = "";
-								// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-								jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-
 								int result;
-								objMeta.set("", "", jsonmeta, "", 0L);
+								objMeta.set("", "", s3Metadata.toString(), "", 0L);
 								objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 								result = insertObject(bucket, object, objMeta);
-								// if (objMeta.getReplicaDisk() != null) {
-								// 	result = insertObject(bucket, object, "", jsonmeta, "", 0L, "", objMeta.getPrimaryDisk().getPath(), objMeta.getReplicaDisk().getPath(), versionId, GWConstants.OBJECT_TYPE_MARK);
-								// } else {
-								// 	result = insertObject(bucket, object, "", jsonmeta, "", 0L, "", objMeta.getPrimaryDisk().getPath(), "", versionId, GWConstants.OBJECT_TYPE_MARK);
-								// }
 								if (result != 0) {
 									logger.error(GWConstants.LOG_DELETE_OBJECT_FAILED_MARKER, bucket, object);
 								}
 								logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
-							} catch (GWException | JsonProcessingException e) {
+							} catch (GWException e) {
 								PrintStack.logging(logger, e);
 								throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 							}

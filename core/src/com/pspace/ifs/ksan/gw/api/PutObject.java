@@ -77,6 +77,7 @@ public class PutObject extends S3Request {
 		}
 
 		S3Metadata s3Metadata = new S3Metadata();
+		s3Metadata.setName(object);
 
 		String cacheControl = s3RequestData.getCacheControl();
 		String contentDisposition = s3RequestData.getContentDisposition();
@@ -99,7 +100,7 @@ public class PutObject extends S3Request {
 
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-		s3Metadata.setUserMetadataMap(s3RequestData.getUserMetadata());
+		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
@@ -351,18 +352,9 @@ public class PutObject extends S3Request {
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonmeta = "";
-		try {
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
+			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);

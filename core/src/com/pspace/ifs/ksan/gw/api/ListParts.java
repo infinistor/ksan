@@ -102,18 +102,7 @@ public class ListParts extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
-		String meta = multipart.getMeta();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		S3Metadata s3Metadata;
-		try {
-			s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
-		} catch (JsonMappingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 

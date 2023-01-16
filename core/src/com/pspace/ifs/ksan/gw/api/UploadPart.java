@@ -98,15 +98,15 @@ public class UploadPart extends S3Request {
 		} 
 
 		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
-		ObjectMapper jsonMapper = new ObjectMapper();
+		S3Metadata s3Metadata = null;
 		try {
-			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
+			s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
+		} catch(Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
-		
+		s3Metadata.setPartNumber(partNumber);
+
 		// check SSE
 		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
 			if (!GWConstants.AES256.equalsIgnoreCase(customerAlgorithm)) {
@@ -149,6 +149,9 @@ public class UploadPart extends S3Request {
 				objectOperation.deletePart(part.getPrimaryDisk().getId());
 			}
 			s3Object = objectOperation.uploadPart(path, length);
+			s3Metadata.setETag(s3Object.getEtag());
+			s3Metadata.setLastModified(s3Object.getLastModified());
+			s3Metadata.setContentLength(s3Object.getFileSize());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
