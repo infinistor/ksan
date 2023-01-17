@@ -310,7 +310,7 @@ namespace PortalProvider.Providers.Services
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-							Exist.ModId = LoginUserId;
+							Exist.ModId = LoginUserId == Guid.Empty ? null : LoginUserId;
 							Exist.ModName = LoginUserName;
 							Exist.ModDate = DateTime.Now;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -510,6 +510,10 @@ namespace PortalProvider.Providers.Services
 						Exist.CpuUsage = CpuUsage;
 						Exist.MemoryUsed = MemoryUsed;
 						Exist.ThreadCount = ThreadCount;
+						Exist.ModId = LoginUserId == Guid.Empty ? null : LoginUserId;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
