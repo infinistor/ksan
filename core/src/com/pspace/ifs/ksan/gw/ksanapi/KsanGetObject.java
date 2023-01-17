@@ -75,17 +75,7 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 
-		S3Metadata s3Metadata = null;
-		
-		// meta info
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		// check customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
@@ -228,8 +218,8 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
 		}
 
-		if (metadata.getUserMetadataMap() != null) {
-			for (Map.Entry<String, String> entry : metadata.getUserMetadataMap().entrySet()) {
+		if (metadata.getUserMetadata() != null) {
+			for (Map.Entry<String, String> entry : metadata.getUserMetadata().entrySet()) {
 				response.addHeader(entry.getKey(), entry.getValue());
 				logger.debug(GWConstants.LOG_GET_OBJECT_USER_META_DATA, entry.getKey(), entry.getValue());
 			}

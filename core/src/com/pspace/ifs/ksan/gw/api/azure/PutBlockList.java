@@ -108,14 +108,7 @@ public class PutBlockList extends AzuRequest {
 
         logger.info("MD5 check, receive : {}, result : {}", azuRequestData.getBlobContentMD5(), s3Object.getEtag());
 
-        ObjectMapper jsonMapper = new ObjectMapper();
-        String jsonmeta = "";
-        try {
-            jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        }
+        String jsonmeta = s3Metadata.toString();
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {

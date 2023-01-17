@@ -320,77 +320,78 @@ public class S3Metadata {
 		return this.lockExpires;
 	}
 
-	public static final String USER_METADATA_PREFIX = "x-amz-meta-";
-	public static final String LEFT_BRACE = "{";
-	public static final String RIGHT_BRACE = "}";
-	public static final String LEFT_BRACKET = "[";
-	public static final String RIGHT_BRACKET = "]";
-	public static final String QUOTAION = "\"";
-	public static final String COLON = ":";
-	public static final String COMMA = ",";
+	private static final String USER_METADATA_PREFIX = "x-amz-meta-";
+	private static final String LEFT_BRACE = "{";
+	private static final String RIGHT_BRACE = "}";
+	private static final String LEFT_BRACKET = "[";
+	private static final String RIGHT_BRACKET = "]";
+	private static final String QUOTAION = "\"";
+	private static final String COLON = ":";
+	private static final String COMMA = ",";
 
-	public static final String KEY = "key";
-	public static final String JSON_KEY = "\"key\":";
-	public static final String USER_METADATA = "uM";
-	public static final String JSON_USER_METADATA = "\"uM\":";
-	public static final String ETAG = "eT";
-	public static final String JSON_ETAG = "\"eT\":";
-	public static final String CREATE_DATE = "cR";
-	public static final String JSON_CREATE_DATE = "\"cR\":";
-	public static final String LAST_MODIFIED = "lM";
-	public static final String JSON_LAST_MODIFIED = "\"lM\":";
-	public static final String TIER = "tier";
-	public static final String JSON_TIER = "\"tier\":";
-	public static final String CACHE_CONTROL = "cC";
-	public static final String JSON_CACHE_CONTROL = "\"cC\":";
-	public static final String CUSTOMER_ALGORITHM = "cA";
-	public static final String JSON_CUSTOMER_ALGORITHM = "\"cA\":";
-	public static final String CUSTOMER_KEY = "cK";
-	public static final String JSON_CUSTOMER_KEY = "\"cK\":";
-	public static final String CUSTOMER_KEY_MD5 = "cKMD5";
-	public static final String JSON_CUSTOMER_KEY_MD5 = "\"cKMD5\":";
-	public static final String SERVER_SIDE_ENCRYPTION = "ssE";
-	public static final String JSON_SERVER_SIDE_ENCRYPTION = "\"ssE\":";
-	public static final String DELETE_MARKER = "dM";
-	public static final String JSON_DELETE_MARKER = "\"dM\":";
-	public static final String IS_LATEST = "iL";
-	public static final String JSON_IS_LATEST = "\"iL\":";
-	public static final String CONTENT_LENGTH = "cL";
-	public static final String JSON_CONTENT_LENGTH = "\"cL\":";
-	public static final String CONTENT_DISPOSITION = "cD";
-	public static final String JSON_CONTENT_DISPOSITION = "\"cD\":";
-	public static final String CONTENT_ENCODING = "cE";
-	public static final String JSON_CONTENT_ENCODING = "\"cE\":";
-	public static final String CONTENT_TYPE = "cT";
-	public static final String JSON_CONTENT_TYPE = "\"cT\":";
-	public static final String OWNER_ID = "oI";
-	public static final String JSON_OWNER_ID = "\"oI\":";
-	public static final String OWNER_NAME = "oN";
-	public static final String JSON_OWNER_NAME = "\"oN\":";
-	public static final String CONTENT_LANGUAGE = "cLang";
-	public static final String JSON_CONTENT_LANGUAGE = "\"cLang\":";
-	public static final String TAGGING_COUNT = "tC";
-	public static final String JSON_TAGGING_COUNT = "\"tC\":";
-	public static final String DECODED_CONTENT_LENGTH = "dCL";
-	public static final String JSON_DECODED_CONTENT_LENGTH = "\"dCL\":";
-	public static final String CONTENT_MD5 = "cMD5";
-	public static final String JSON_CONTENT_MD5 = "\"cMD5\":";
-	public static final String ENCRYPTION = "en";
-	public static final String JSON_ENCRYPTION = "\"en\":";
-	public static final String VERSIONID = "vId";
-	public static final String JSON_VERSIONID = "\"vId\":";
-	public static final String UPLOADID = "uId";
-	public static final String JSON_UPLOADID = "\"uId\":";
-	public static final String PART_NUMBER = "pN";
-	public static final String JSON_PART_NUMBER = "\"pN\":";
-	public static final String EXPIRE = "ex";
-	public static final String JSON_EXPIRE = "\"ex\":";
-	public static final String LOCK_MODE = "lckM";
-	public static final String JSON_LOCK_MODE = "\"lckM\":";
-	public static final String LOCK_EXPIRES = "lckE";
-	public static final String JSON_LOCK_EXPIRES = "\"lckE\":";
-	public static final String LEGAL_HOLD = "lH";
-	public static final String JSON_LEGAL_HOLD = "\"lH\":";
+	private static final String KEY = "key";
+	private static final String JSON_KEY = "\"key\":";
+	private static final String USER_METADATA = "uM";
+	private static final String JSON_USER_METADATA = "\"uM\":";
+	private static final String ETAG = "eT";
+	private static final String JSON_ETAG = "\"eT\":";
+	private static final String CREATE_DATE = "cR";
+	private static final String JSON_CREATE_DATE = "\"cR\":";
+	private static final String LAST_MODIFIED = "lM";
+	private static final String JSON_LAST_MODIFIED = "\"lM\":";
+	private static final String TIER = "tier";
+	private static final String JSON_TIER = "\"tier\":";
+	private static final String CACHE_CONTROL = "cC";
+	private static final String JSON_CACHE_CONTROL = "\"cC\":";
+	private static final String CUSTOMER_ALGORITHM = "cA";
+	private static final String JSON_CUSTOMER_ALGORITHM = "\"cA\":";
+	private static final String CUSTOMER_KEY = "cK";
+	private static final String JSON_CUSTOMER_KEY = "\"cK\":";
+	private static final String CUSTOMER_KEY_MD5 = "cKMD5";
+	private static final String JSON_CUSTOMER_KEY_MD5 = "\"cKMD5\":";
+	private static final String SERVER_SIDE_ENCRYPTION = "ssE";
+	private static final String JSON_SERVER_SIDE_ENCRYPTION = "\"ssE\":";
+	private static final String DELETE_MARKER = "dM";
+	private static final String JSON_DELETE_MARKER = "\"dM\":";
+	private static final String IS_LATEST = "iL";
+	private static final String JSON_IS_LATEST = "\"iL\":";
+	private static final String CONTENT_LENGTH = "cL";
+	private static final String JSON_CONTENT_LENGTH = "\"cL\":";
+	private static final String CONTENT_DISPOSITION = "cD";
+	private static final String JSON_CONTENT_DISPOSITION = "\"cD\":";
+	private static final String CONTENT_ENCODING = "cE";
+	private static final String JSON_CONTENT_ENCODING = "\"cE\":";
+	private static final String CONTENT_TYPE = "cT";
+	private static final String JSON_CONTENT_TYPE = "\"cT\":";
+	private static final String OWNER_ID = "oI";
+	private static final String JSON_OWNER_ID = "\"oI\":";
+	private static final String OWNER_NAME = "oN";
+	private static final String JSON_OWNER_NAME = "\"oN\":";
+	private static final String CONTENT_LANGUAGE = "cLang";
+	private static final String JSON_CONTENT_LANGUAGE = "\"cLang\":";
+	private static final String TAGGING_COUNT = "tC";
+	private static final String JSON_TAGGING_COUNT = "\"tC\":";
+	private static final String DECODED_CONTENT_LENGTH = "dCL";
+	private static final String JSON_DECODED_CONTENT_LENGTH = "\"dCL\":";
+	private static final String CONTENT_MD5 = "cMD5";
+	private static final String JSON_CONTENT_MD5 = "\"cMD5\":";
+	private static final String ENCRYPTION = "en";
+	private static final String JSON_ENCRYPTION = "\"en\":";
+	private static final String VERSIONID = "vId";
+	private static final String JSON_VERSIONID = "\"vId\":";
+	private static final String UPLOADID = "uId";
+	private static final String JSON_UPLOADID = "\"uId\":";
+	private static final String PART_NUMBER = "pN";
+	private static final String JSON_PART_NUMBER = "\"pN\":";
+	private static final String EXPIRE = "ex";
+	private static final String JSON_EXPIRE = "\"ex\":";
+	private static final String LOCK_MODE = "lckM";
+	private static final String JSON_LOCK_MODE = "\"lckM\":";
+	private static final String LOCK_EXPIRES = "lckE";
+	private static final String JSON_LOCK_EXPIRES = "\"lckE\":";
+	private static final String LEGAL_HOLD = "lH";
+	private static final String JSON_LEGAL_HOLD = "\"lH\":";
+	private static final String EMPTY_STRING = "";
 
 	@Override
 	public String toString() {
@@ -524,7 +525,7 @@ public class S3Metadata {
 		}
 		if (contentType != null) {
 			sb.append(COMMA);
-			sb.append(JSON_CONTENT_ENCODING);
+			sb.append(JSON_CONTENT_TYPE);
 			sb.append(QUOTAION);
 			sb.append(contentType);
 			sb.append(QUOTAION);
@@ -636,155 +637,336 @@ public class S3Metadata {
 			return null;
 		}
 		S3Metadata s3Metadata = new S3Metadata();
+		logger.debug("meta : {}", json);
+		
+		// key
+		int startIndex = json.indexOf(JSON_KEY);
+		if (startIndex < 0) {
+			logger.error("can't find key ...");
+			return null;
+		}
+		startIndex += JSON_KEY.length();
+		int endIndex = json.indexOf(COMMA, startIndex);
+		String data = json.substring(startIndex + 1, endIndex - 1);
+		s3Metadata.setName(data);
 
-		StringTokenizer stk = new StringTokenizer(json, ",{}[]\"");
-		boolean isProcessed = false;
-		String token = null;
-		while (stk.hasMoreTokens()) {
-			if (!isProcessed) {
-				token = stk.nextToken();
-			} else {
-				isProcessed = false;
-			}
-			logger.debug("token : {}", token);
-			switch (token) {
-			case KEY:
-				stk.nextToken();	// ":"
-				s3Metadata.setName(stk.nextToken());
-				break;
-			case USER_METADATA:
-				stk.nextToken();	// ":"
-				while (true) {
-					token = stk.nextToken();
-					if (token.startsWith(USER_METADATA_PREFIX)) {
-						stk.nextToken();	// ":"
-						s3Metadata.addMetadata(token, stk.nextToken());
-					} else {
-						break;
-					}
+		// user metadata
+		startIndex = json.indexOf(JSON_USER_METADATA, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_USER_METADATA.length();
+			endIndex = json.indexOf(RIGHT_BRACKET);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("usermeta : {}", data);
+			int sIndex = 0;
+			int eIndex = -1;
+			String key = "";
+			String value = "";
+			while (true) {
+				// key
+				sIndex = data.indexOf(QUOTAION, eIndex + 1);
+				if (sIndex < 0) {
+					break;
 				}
-				isProcessed = true;
-				break;
-			case ETAG:
-				stk.nextToken();	// ":"
-				s3Metadata.setETag(stk.nextToken());
-				break;
-			case CREATE_DATE:
-				stk.nextToken();	// ":"
-				s3Metadata.setCreationDate(KsanUtils.getDate(stk.nextToken()));
-				break;
-			case LAST_MODIFIED:
-				stk.nextToken();	// ":"
-				s3Metadata.setLastModified(KsanUtils.getDate(stk.nextToken()));
-				break;
-			case TIER:
-				stk.nextToken();	// ":"
-				s3Metadata.setTier(stk.nextToken());
-				break;
-			case CACHE_CONTROL:
-				stk.nextToken();	// ":"
-				s3Metadata.setCacheControl(stk.nextToken());
-				break;
-			case CUSTOMER_ALGORITHM:
-				stk.nextToken();	// ":"
-				s3Metadata.setCustomerAlgorithm(stk.nextToken());
-				break;
-			case CUSTOMER_KEY:
-				stk.nextToken();	// ":"
-				s3Metadata.setCustomerKey(stk.nextToken());
-				break;
-			case CUSTOMER_KEY_MD5:
-				stk.nextToken();	// ":"
-				s3Metadata.setCustomerKeyMD5(stk.nextToken());
-				break;
-			case SERVER_SIDE_ENCRYPTION:
-				stk.nextToken();	// ":"
-				s3Metadata.setServersideEncryption(stk.nextToken());
-				break;
-			case DELETE_MARKER:
-				stk.nextToken();	// ":"
-				s3Metadata.setDeleteMarker(stk.nextToken());
-				break;
-			case IS_LATEST:
-				stk.nextToken();	// ":"
-				s3Metadata.setIsLatest(stk.nextToken());
-				break;
-			case CONTENT_LENGTH:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentLength(Long.parseLong(stk.nextToken()));
-				break;
-			case CONTENT_DISPOSITION:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentDisposition(stk.nextToken());
-				break;
-			case CONTENT_ENCODING:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentEncoding(stk.nextToken());
-				break;
-			case CONTENT_TYPE:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentType(stk.nextToken());
-				break;
-			case OWNER_ID:
-				stk.nextToken();	// ":"
-				s3Metadata.setOwnerId(stk.nextToken());
-				break;
-			case OWNER_NAME:
-				stk.nextToken();	// ":"
-				s3Metadata.setOwnerName(stk.nextToken());
-				break;
-			case CONTENT_LANGUAGE:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentLanguage(stk.nextToken());
-				break;
-			case TAGGING_COUNT:
-				stk.nextToken();	// ":"
-				s3Metadata.setTaggingCount(stk.nextToken());
-				break;
-			case DECODED_CONTENT_LENGTH:
-				stk.nextToken();	// ":"
-				s3Metadata.setDecodedContentLength(Long.parseLong(stk.nextToken()));
-				break;
-			case CONTENT_MD5:
-				stk.nextToken();	// ":"
-				s3Metadata.setContentMD5(stk.nextToken());
-				break;
-			case ENCRYPTION:
-				stk.nextToken();	// ":"
-				s3Metadata.setEncryption(stk.nextToken());
-				break;
-			case VERSIONID:
-				stk.nextToken();	// ":"
-				s3Metadata.setVersionId(stk.nextToken());
-				break;
-			case UPLOADID:
-				stk.nextToken();	// ":"
-				s3Metadata.setUploadId(stk.nextToken());
-				break;
-			case PART_NUMBER:
-				stk.nextToken();	// ":"
-				s3Metadata.setPartNumber(Integer.parseInt(stk.nextToken()));
-				break;
-			case EXPIRE:
-				stk.nextToken();	// ":"
-				s3Metadata.setExpires(KsanUtils.getDate(stk.nextToken()));
-				break;
-			case LOCK_MODE:
-				stk.nextToken();	// ":"
-				s3Metadata.setLockMode(stk.nextToken());
-				break;
-			case LOCK_EXPIRES:
-				stk.nextToken();	// ":"
-				s3Metadata.setLockExpires(stk.nextToken());
-				break;
-			case LEGAL_HOLD:
-				stk.nextToken();	// ":"
-				s3Metadata.setLegalHold(stk.nextToken());
-				break;
-			default:
-				logger.error("undefile token : {}", token);
-				break;
+				eIndex = data.indexOf(QUOTAION, sIndex + 1);
+				key = data.substring(sIndex + 1, eIndex);
+				logger.debug("key : {}", key);
+				// value
+				sIndex = data.indexOf(COLON, eIndex);
+				eIndex = data.indexOf(QUOTAION, sIndex + 2);
+				value = data.substring(sIndex + 2, eIndex);
+				logger.debug("value : {}", value); 
+				s3Metadata.addMetadata(key, value);
 			}
+		}
+
+		// etag
+		startIndex = json.indexOf(JSON_ETAG, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_ETAG.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("etag : {}", data);
+			s3Metadata.setETag(data);
+		}
+
+		// creation data
+		startIndex = json.indexOf(JSON_CREATE_DATE, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CREATE_DATE.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("creation date : {}", data);
+			s3Metadata.setCreationDate(KsanUtils.getDate(data));
+		}
+
+		// last modified
+		startIndex = json.indexOf(JSON_LAST_MODIFIED, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_LAST_MODIFIED.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("last modified : {}", data);
+			s3Metadata.setLastModified(KsanUtils.getDate(data));
+		}
+
+		// tier
+		startIndex = json.indexOf(JSON_TIER, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_TIER.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("tier : {}", data);
+			s3Metadata.setTier(data);
+		}
+
+		// cache control
+		startIndex = json.indexOf(JSON_CACHE_CONTROL, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CACHE_CONTROL.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("cache control : {}", data);
+			s3Metadata.setCacheControl(data);
+		}
+
+		// customer algorithm
+		startIndex = json.indexOf(JSON_CUSTOMER_ALGORITHM, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CUSTOMER_ALGORITHM.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("custom algorithm : {}", data);
+			s3Metadata.setCustomerAlgorithm(data);
+		}
+
+		// customer Key
+		startIndex = json.indexOf(JSON_CUSTOMER_KEY, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CUSTOMER_KEY.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("customer Key : {}", data);
+			s3Metadata.setCustomerKey(data);
+		}
+
+		// customer Key MD5
+		startIndex = json.indexOf(JSON_CUSTOMER_KEY_MD5, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CUSTOMER_KEY_MD5.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("customer Key MD5 : {}", data);
+			s3Metadata.setCustomerKeyMD5(data);
+		}
+
+		// server side encryption
+		startIndex = json.indexOf(JSON_SERVER_SIDE_ENCRYPTION, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_SERVER_SIDE_ENCRYPTION.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Server side encryption : {}", data);
+			s3Metadata.setServersideEncryption(data);
+		}
+
+		// delete marker
+		startIndex = json.indexOf(JSON_DELETE_MARKER, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_DELETE_MARKER.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Delete marker: {}", data);
+			s3Metadata.setDeleteMarker(data);
+		}
+
+		// isLatest
+		startIndex = json.indexOf(JSON_IS_LATEST, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_IS_LATEST.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Is latest: {}", data);
+			s3Metadata.setIsLatest(data);
+		}
+
+		// content length
+		startIndex = json.indexOf(JSON_CONTENT_LENGTH, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_LENGTH.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Content length: {}", data);
+			s3Metadata.setContentLength(Long.parseLong(data));
+		}
+
+		// content disposition
+		startIndex = json.indexOf(JSON_CONTENT_DISPOSITION, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_DISPOSITION.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Content disposition: {}", data);
+			s3Metadata.setContentDisposition(data);
+		}
+
+		// content encoding
+		startIndex = json.indexOf(JSON_CONTENT_ENCODING, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_ENCODING.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("Content encoding : {}", data);
+			s3Metadata.setContentEncoding(data);
+		}
+
+		// content type
+		startIndex = json.indexOf(JSON_CONTENT_TYPE, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_TYPE.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("content type : {}", data);
+			s3Metadata.setContentType(data);
+		}
+
+		// owner ID
+		startIndex = json.indexOf(JSON_OWNER_ID, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_OWNER_ID.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("owner id : {}", data);
+			s3Metadata.setOwnerId(data);
+		}
+
+		// owner name
+		startIndex = json.indexOf(JSON_OWNER_NAME, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_OWNER_NAME.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("owner name : {}", data);
+			s3Metadata.setOwnerName(data);
+		}
+
+		// content language
+		startIndex = json.indexOf(JSON_CONTENT_LANGUAGE, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_LANGUAGE.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("content language : {}", data);
+			s3Metadata.setContentLanguage(data);
+		}
+
+		// tagging count
+		startIndex = json.indexOf(JSON_TAGGING_COUNT, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_TAGGING_COUNT.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("tagging count : {}", data);
+			s3Metadata.setTaggingCount(data);
+		}
+
+		// decoded content length
+		startIndex = json.indexOf(JSON_DECODED_CONTENT_LENGTH, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_DECODED_CONTENT_LENGTH.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("decoded content length : {}", data);
+			s3Metadata.setDecodedContentLength(Long.parseLong(data));
+		}
+
+		// content MD5
+		startIndex = json.indexOf(JSON_CONTENT_MD5, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_CONTENT_MD5.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("content MD5 : {}", data);
+			s3Metadata.setContentMD5(data);
+		}
+
+		// encryption
+		startIndex = json.indexOf(JSON_ENCRYPTION, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_ENCRYPTION.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("encryption : {}", data);
+			s3Metadata.setEncryption(data);
+		}
+
+		// versionId
+		startIndex = json.indexOf(JSON_VERSIONID, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_VERSIONID.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("versionId : {}", data);
+			s3Metadata.setVersionId(data);
+		}
+
+		// uploadId
+		startIndex = json.indexOf(JSON_UPLOADID, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_UPLOADID.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("uploadId : {}", data);
+			s3Metadata.setUploadId(data);
+		}
+
+		// part number
+		startIndex = json.indexOf(JSON_PART_NUMBER, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_PART_NUMBER.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("part number : {}", data);
+			s3Metadata.setPartNumber(Integer.parseInt(data));
+		}
+
+		// expire
+		startIndex = json.indexOf(JSON_EXPIRE, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_EXPIRE.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("expire : {}", data);
+			s3Metadata.setExpires(KsanUtils.getDate(data));
+		}
+
+		// lock mode
+		startIndex = json.indexOf(JSON_LOCK_MODE, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_LOCK_MODE.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("lock mode : {}", data);
+			s3Metadata.setLockMode(data);
+		}
+
+		// lock expires
+		startIndex = json.indexOf(JSON_LOCK_EXPIRES, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_LOCK_EXPIRES.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("lock expires : {}", data);
+			s3Metadata.setLockExpires(data);
+		}
+
+		// legal hold
+		startIndex = json.indexOf(JSON_LEGAL_HOLD, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_LEGAL_HOLD.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("legal hold : {}", data);
+			s3Metadata.setLegalHold(data);
 		}
 
 		return s3Metadata;

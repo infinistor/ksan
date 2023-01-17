@@ -69,16 +69,7 @@ public class PutObjectLegalHold extends S3Request {
 		}
 
 		// meta info
-		S3Metadata s3Metadata = null;
-		String meta = "";
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
         try {
             String objectLock = getBucketInfo().getObjectLock();
@@ -114,14 +105,7 @@ public class PutObjectLegalHold extends S3Request {
         }
 
         s3Metadata.setLegalHold(status);
-        try {
-			// objectMapper.setSerializationInclusion(Include.NON_NULL);
-			meta = objectMapper.writeValueAsString(s3Metadata);
-			logger.debug("meta : {}", meta);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+        String meta = s3Metadata.toString();
 
         objMeta.setMeta(meta);
         updateObjectMeta(objMeta);

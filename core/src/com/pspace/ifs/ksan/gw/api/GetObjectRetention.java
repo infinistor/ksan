@@ -88,14 +88,7 @@ public class GetObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-        String meta = objMeta.getMeta();
-        S3Metadata s3Metadata;
-        try {
-            s3Metadata = new ObjectMapper().readValue(meta, S3Metadata.class);
-        } catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
         
         if (!Strings.isNullOrEmpty(s3Metadata.getLockMode())) {
 			XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();

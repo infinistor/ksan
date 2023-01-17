@@ -100,7 +100,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-		s3Metadata.setUserMetadataMap(s3RequestData.getUserMetadata());
+		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
@@ -136,16 +136,6 @@ public class KsanCreateMultipartUpload extends S3Request {
 			 s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String metaJson = "";
-		try {
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			metaJson = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
-		}
-
 		Metadata objMeta = null;
 		try {
 			// check exist object
@@ -159,7 +149,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
+			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

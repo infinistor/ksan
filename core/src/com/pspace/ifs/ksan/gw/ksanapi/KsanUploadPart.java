@@ -97,14 +97,7 @@ public class KsanUploadPart extends S3Request {
 		} 
 
 		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		
 		// check SSE
 		if (!Strings.isNullOrEmpty(customerAlgorithm)) {

@@ -154,18 +154,14 @@ public class KsanDeleteObject extends S3Request {
 			s3Metadata.setContentLength(0L);
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 			
-			ObjectMapper jsonMapper = new ObjectMapper();
-			String jsonmeta = "";
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
-			objMeta.set("", "", jsonmeta, "", 0L);
+			objMeta.set("", "", s3Metadata.toString(), "", 0L);
 			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 			result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
-		} catch (GWException | JsonProcessingException e) {
+		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

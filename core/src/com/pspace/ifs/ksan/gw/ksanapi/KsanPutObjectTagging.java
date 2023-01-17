@@ -93,27 +93,11 @@ public class KsanPutObjectTagging extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 		
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		s3Metadata.setTaggingCount(taggingCount);
-		// ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonMeta = "";
-		try {
-			objectMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		objMeta.setMeta(jsonMeta);
+
+		objMeta.setMeta(s3Metadata.toString());
 		objMeta.setTag(taggingXml);
 
 		updateObjectTagging(objMeta);

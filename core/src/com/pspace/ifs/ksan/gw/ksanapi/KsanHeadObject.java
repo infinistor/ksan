@@ -69,34 +69,24 @@ public class KsanHeadObject extends S3Request implements S3AddResponse {
 			objMeta = open(bucket, object, versionId);
 		}
 
-		// meta info
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			S3Metadata s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
+		logger.debug(GWConstants.LOG_META, objMeta.getMeta());
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
-			// check customer-key
-			if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
-				if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
-					if (!s3Metadata.getCustomerKey().equals(s3RequestData.getServerSideEncryptionCustomerKey())) {
-						logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_INVALID);
-					throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
-					}
-				} else {
-					logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_NULL);
-					throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+		// check customer-key
+		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
+			if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
+				if (!s3Metadata.getCustomerKey().equals(s3RequestData.getServerSideEncryptionCustomerKey())) {
+					logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_INVALID);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 				}
+			} else {
+				logger.warn(GWConstants.ENCRYPTION_CUSTOMER_KEY_IS_NULL);
+				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 			}
-
-			// s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
-			// GWUtils.addMetadataToResponse(s3Parameter.getRequest(), s3Parameter.getResponse(), s3Metadata, null, null);
-
-			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
-			addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
+
+		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
+		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);		
 	}
@@ -178,8 +168,8 @@ public class KsanHeadObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
 		}
 
-		if (metadata.getUserMetadataMap() != null) {
-			for (Map.Entry<String, String> entry : metadata.getUserMetadataMap().entrySet()) {
+		if (metadata.getUserMetadata() != null) {
+			for (Map.Entry<String, String> entry : metadata.getUserMetadata().entrySet()) {
 				response.addHeader(entry.getKey(), entry.getValue());
 				logger.debug(GWConstants.LOG_GET_OBJECT_USER_META_DATA, entry.getKey(), entry.getValue());
 			}

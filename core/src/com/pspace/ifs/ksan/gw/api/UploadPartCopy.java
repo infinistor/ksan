@@ -146,19 +146,11 @@ public class UploadPartCopy extends S3Request {
 		
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
-		// srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
-		// checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
 		checkGrantObject(false, GWConstants.GRANT_READ);
 
 		// get metadata
-		S3Metadata s3SrcMetadata = new S3Metadata();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			s3SrcMetadata = jsonMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3SrcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
+
 		S3ObjectEncryption s3SrcObjectEncryption = new S3ObjectEncryption(s3Parameter, s3SrcMetadata);
 		s3SrcObjectEncryption.build();
 
@@ -220,13 +212,7 @@ public class UploadPartCopy extends S3Request {
 		}
 
 		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
-		try {
-			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 
 		if (!Strings.isNullOrEmpty(customerKey)) {
 			if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
@@ -244,13 +230,6 @@ public class UploadPartCopy extends S3Request {
 		if (path == null) {
 			path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
 		}
-		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
-
-		// String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
-		// if (path == null) {
-		// 	logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
-		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		// }
 		
 		S3Object s3Object = null;
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
