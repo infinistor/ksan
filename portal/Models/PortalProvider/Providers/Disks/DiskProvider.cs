@@ -138,9 +138,15 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						Id = NewId.ToString(),
 						ServerId = Server.Id.ToString(),
+						RegId = LoginUserId,
+						RegName = LoginUserName,
+						RegDate = DateTime.Now,
+						ModId = LoginUserId,
+						ModName = LoginUserName,
+						ModDate = DateTime.Now,
 						Request.DiskPoolId,
 						Request.Name,
-						Request.Path
+						Request.Path,
 					}, 10);
 
 					// 실패인 경우
@@ -311,6 +317,9 @@ namespace PortalProvider.Providers.DiskGuids
 						Exist.ReservedSize = Request.ReservedSize;
 						Exist.UsedSize = Request.UsedSize;
 						Exist.RwMode = (EnumDbDiskRwMode)Request.RwMode;
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -378,6 +387,9 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.State = (EnumDbDiskState)State;
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -456,6 +468,9 @@ namespace PortalProvider.Providers.DiskGuids
 						Exist.UsedSize = Request.UsedSize;
 						Exist.Read = Request.Read;
 						Exist.Write = Request.Write;
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
 
 						// 사용정보 추가
 						m_dbContext.DiskUsages.Add(new DiskUsage()
@@ -549,6 +564,10 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.RwMode = (EnumDbDiskRwMode)DiskRwMode;
+						Exist.ModId = LoginUserId;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -686,7 +705,7 @@ namespace PortalProvider.Providers.DiskGuids
 				// 정렬 필드를 초기화 한다.
 				InitOrderFields(ref OrderFields, ref OrderDirections);
 
-				// 검색 필드를  초기화한다.
+				// 검색 필드를 초기화한다.
 				InitSearchFields(ref SearchFields);
 
 				// 목록을 가져온다.
@@ -739,14 +758,14 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
-		public async Task<ResponseList<ResponseDiskWithServer>> GetList(
+		public async Task<ResponseList<ResponseDisk>> GetList(
 			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			var Result = new ResponseList<ResponseDiskWithServer>();
+			var Result = new ResponseList<ResponseDisk>();
 
 			try
 			{
@@ -771,9 +790,8 @@ namespace PortalProvider.Providers.DiskGuids
 						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 						&& (SearchRwModes == null || SearchRwModes.Count == 0 || SearchRwModes.Select(j => (int)j).Contains((int)i.RwMode))
 					)
-					.Include(i => i.Server)
 					.OrderByWithDirection(OrderFields, OrderDirections)
-					.CreateListAsync<Disk, ResponseDiskWithServer>(Skip, CountPerPage);
+					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
 				//DiskPool 목록을 가져온다.
 				var DiskPools = await m_dbContext.DiskPools.AsNoTracking().ToListAsync();
