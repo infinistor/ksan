@@ -33,7 +33,6 @@ import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
-import com.pspace.ifs.ksan.gw.format.AclTransfer;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
@@ -136,7 +135,7 @@ public abstract class S3Request {
 			if (dstBucket != null) {
 				String bucketAcl = dstBucket.getAcl();
 				if (!Strings.isNullOrEmpty(bucketAcl)) {
-					bucketAccessControlPolicy = AclTransfer.getInstance().getAclClassFromJson(bucketAcl);
+					bucketAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(bucketAcl);
 				}
 			}
 		} catch (ResourceNotFoundException e) {
@@ -268,7 +267,7 @@ public abstract class S3Request {
 			if (meta != null) {
 				String objectAcl = meta.getAcl();
 				if (!Strings.isNullOrEmpty(objectAcl)) {
-					objectAccessControlPolicy = AclTransfer.getInstance().getAclClassFromJson(objectAcl);
+					objectAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(objectAcl);
 				}
 			}
 		} catch (ResourceNotFoundException e) {
@@ -288,7 +287,7 @@ public abstract class S3Request {
 			if (meta != null) {
 				String objectAcl = meta.getAcl();
 				if (!Strings.isNullOrEmpty(objectAcl)) {
-					objectAccessControlPolicy = AclTransfer.getInstance().getAclClassFromJson(objectAcl);
+					objectAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(objectAcl);
 				}
 			}
 		} catch (ResourceNotFoundException e) {
@@ -907,7 +906,7 @@ public abstract class S3Request {
 		}
 
 		if (!isKeyword && isUsedAclXml) {
-			acp = AclTransfer.getInstance().getAclClassFromXml(s3RequestData.getAclXml(), s3Parameter);
+			acp = AccessControlPolicy.getAclClassFromXml(s3RequestData.getAclXml(), s3Parameter);
 		} else {
 			logger.debug("x-amz-acl : {}", cannedAcl);
 			if (Strings.isNullOrEmpty(cannedAcl)) {
@@ -1069,7 +1068,7 @@ public abstract class S3Request {
 			}
 		}
 
-		return acp.toString(); // AclTransfer.getInstance().getAclJson(acp);
+		return acp.toString();
 	}
 
 	protected String makeAcl(AccessControlPolicy preAccessControlPolicy, DataPostObject data) throws GWException {
@@ -1262,7 +1261,7 @@ public abstract class S3Request {
 			}
 		}
 
-		return AclTransfer.getInstance().getAclJson(acp);
+		return acp.toString();
 	}
 
 	protected boolean policyIdCheck(String aws) {

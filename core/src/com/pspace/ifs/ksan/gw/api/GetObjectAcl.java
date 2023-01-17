@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.format.AclTransfer;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -71,7 +70,7 @@ public class GetObjectAcl extends S3Request {
             }
         }
 
-        String aclInfo = AclTransfer.getInstance().getAclXml(objectAccessControlPolicy);
+        String aclInfo = objectAccessControlPolicy.toXml();
 
         if (!aclInfo.contains(GWConstants.XML_VERSION)) {
             aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;

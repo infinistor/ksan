@@ -55,7 +55,6 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
-import com.pspace.ifs.ksan.gw.format.AclTransfer;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration;
 import com.pspace.ifs.ksan.gw.format.Policy;
 import com.pspace.ifs.ksan.gw.format.PublicAccessBlockConfiguration;
