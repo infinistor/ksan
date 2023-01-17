@@ -13,7 +13,7 @@ using PortalData.Enums;
 namespace PortalData.Responses.Disks
 {
 	/// <summary>디스크 정보 응답 클래스</summary>
-	public class ResponseDisk
+	public class ResponseDisk : ResponseDataWithModifiedBy
 	{
 		/// <summary>디스크 아이디</summary>
 		public string Id { get; set; }

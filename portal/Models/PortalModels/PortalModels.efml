@@ -1112,6 +1112,12 @@
 			</Documentation>
 			<column name="" />
 		</id>
+		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
+			<Documentation>
+				<Summary>서버 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
 		<property name="DiskPoolId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="385f2a84-c2ee-48e4-be77-213b63d98cfe">
 			<Documentation>
 				<Summary>디스크 Pool 아이디</Summary>
@@ -1124,11 +1130,41 @@
 			</Documentation>
 			<column name="" unique="True" />
 		</property>
-		<property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
+		<property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="488d3ec3-12ba-4205-9be8-57d4ada49a8f">
 			<Documentation>
-				<Summary>서버 아이디</Summary>
+				<Summary>등록자 아이디</Summary>
 			</Documentation>
 			<column name="" />
+		</property>
+		<property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="ba9bb789-0511-4605-8dfe-086d311c1dc5">
+			<Documentation>
+				<Summary>등록자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="38240694-93f2-47e0-ae76-8888c468e14e">
+			<Documentation>
+				<Summary>등록일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
+		</property>
+		<property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23b520cd-1eff-4bf6-9fae-35f4dd02683f">
+			<Documentation>
+				<Summary>수정자 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="145af3cc-569d-47bb-bc8d-54920c985b40">
+			<Documentation>
+				<Summary>수정자명</Summary>
+			</Documentation>
+			<column name="" length="255" p1:unicode="True" />
+		</property>
+		<property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="3f7b615f-b6c3-4759-a749-28abf9430a5b">
+			<Documentation>
+				<Summary>수정일시</Summary>
+			</Documentation>
+			<column name="" p1:unicode="False" />
 		</property>
 		<property name="Path" type="String" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
 			<Documentation>
@@ -2170,7 +2206,7 @@
 			</end2>
 		</association>
 		<association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-			<end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+			<end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
 				<property name="Id" />
 			</end1>
 			<end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">
