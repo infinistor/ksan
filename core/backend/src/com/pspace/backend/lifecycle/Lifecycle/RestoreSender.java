@@ -52,7 +52,7 @@ public class RestoreSender implements MQCallback {
 			String Result = "";
 			// 3회 시도
 			for (int i = 0; i < 3; i++) {
-				Result = RestoreObject(event.bucketName, event.objectName, "STANDARD", event.versionId);
+				Result = RestoreObject(event.BucketName, event.ObjectName, "STANDARD", event.VersionId);
 				// 성공했을 경우 종료
 				if (Result.equals(""))
 					break;

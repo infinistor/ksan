@@ -16,10 +16,10 @@ public class RestoreLogData extends RestoreEventData {
 	}
 
 	public void init() {
-		this.bucketName = "";
-		this.objectName = "";
-		this.versionId = "";
-		this.restoreXml = "";
+		this.BucketName = "";
+		this.ObjectName = "";
+		this.VersionId = "";
+		this.RestoreXml = "";
 		this.message = "";
 	}
 

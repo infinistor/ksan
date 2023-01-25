@@ -45,9 +45,9 @@ public class RestoreLogQuery {
 
 	public static List<Object> getInsertDBParameters(RestoreLogData data) {
 		var param = new ArrayList<Object>();
-		param.add(data.bucketName);
-		param.add(data.objectName);
-		param.add(data.versionId);
+		param.add(data.BucketName);
+		param.add(data.ObjectName);
+		param.add(data.VersionId);
 		param.add(data.message);
 
 		return param;
@@ -55,9 +55,9 @@ public class RestoreLogQuery {
 
 	public static Document getInsertDocument(RestoreLogData data) {
 		var param = new Document();
-		param.put(DB_BUCKETNAME, data.bucketName);
-		param.put(DB_OBJECTNAME, data.objectName);
-		param.put(DB_VERSIONID, data.versionId);
+		param.put(DB_BUCKETNAME, data.BucketName);
+		param.put(DB_OBJECTNAME, data.ObjectName);
+		param.put(DB_VERSIONID, data.VersionId);
 		param.put(DB_MESSAGE, data.message);
 
 		return param;
