@@ -85,7 +85,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchFields">검색필드 목록 (Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 목록 객체</returns>
-		Task<ResponseList<ResponseDiskWithServer>> GetList(
+		Task<ResponseList<ResponseDisk>> GetList(
 			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,

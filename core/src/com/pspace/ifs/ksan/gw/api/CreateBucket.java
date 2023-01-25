@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataCreateBucket;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -57,11 +56,8 @@ public class CreateBucket extends S3Request {
 			}
             throw new GWException(GWErrorCode.BUCKET_ALREADY_EXISTS, s3Parameter);
         }
-		
-		DataCreateBucket dataCreateBucket = new DataCreateBucket(s3Parameter);
-		dataCreateBucket.extract();
 
-		String xml = makeAcl(null, null, dataCreateBucket);
+		String xml = makeAcl(null, false);
 
 		int result = 0;
 		logger.info("user : {}, {}, {}", s3Parameter.getUser().getAccessKey(), s3Parameter.getUser().getUserDiskpoolId(GWConstants.AWS_TIER_STANTARD), s3Parameter.getUser().getUserDefaultDiskpoolId());
@@ -78,22 +74,16 @@ public class CreateBucket extends S3Request {
 		S3Bucket s3Bucket = new S3Bucket();
 		s3Bucket.setBucket(bucket.getName());
 		s3Bucket.setUserName(bucket.getUserName());
-		// s3Bucket.setPolicy(getBucketInfo().getPolicy());
-		// s3Bucket.setCors(getBucketInfo().getCors());
-		// s3Bucket.setAccess(getBucketInfo().getAccess());
 		s3Parameter.setBucket(s3Bucket);
 
-		if (!Strings.isNullOrEmpty(dataCreateBucket.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(dataCreateBucket.getBucketObjectLockEnabled())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getBucketObjectLockEnabled()) && GWConstants.STRING_TRUE.equalsIgnoreCase(s3RequestData.getBucketObjectLockEnabled())) {
 			logger.info(GWConstants.LOG_CREATE_BUCKET_VERSIONING_ENABLED_OBJECT_LOCK_TRUE);
 			String objectLockXml = GWConstants.OBJECT_LOCK_XML;
-			// bucket.setEncryption();
 			bucket.setObjectLock(objectLockXml);
 			result = createBucket(bucket);
-			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", objectLockXml);
 			putBucketVersioning(bucketName, GWConstants.STATUS_ENABLED);
 		} else {
 			result = createBucket(bucket);
-			// result = createBucket(bucketName, s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId(), xml, "", "");
 		}
 
 		if (result != 0) {

@@ -32,13 +32,7 @@ public class Upload {
         this.object = object;
         this.uploadId = uploadId;
         this.changeTime = changeTime;
-
-        ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-            s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-        }
+        s3Metadata = S3Metadata.getS3Metadata(meta);
     }
 
     public String getObject() {

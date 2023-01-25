@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -49,10 +48,7 @@ public class KsanPutObjectAcl extends S3Request {
 
 		GWUtils.checkCors(s3Parameter);
 
-		DataPutObjectAcl dataPutObjectAcl = new DataPutObjectAcl(s3Parameter);
-		dataPutObjectAcl.extract();
-		
-		String versionId = dataPutObjectAcl.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -61,7 +57,7 @@ public class KsanPutObjectAcl extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 
-		String xml = makeAcl(bucketAccessControlPolicy, dataPutObjectAcl.getAclXml(), dataPutObjectAcl);
+		String xml = makeAcl(bucketAccessControlPolicy, true);
 
 		logger.debug(GWConstants.LOG_ACL, xml);
 		

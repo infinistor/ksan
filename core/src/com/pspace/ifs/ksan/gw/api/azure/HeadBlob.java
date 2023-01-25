@@ -49,14 +49,7 @@ public class HeadBlob extends AzuRequest {
         logger.info(AzuConstants.LOG_HEAD_BLOB_START);
 
 		Metadata objMeta = open(azuParameter.getContainerName(), azuParameter.getBlobName());
-        ObjectMapper objectMapper = new ObjectMapper();
-        S3Metadata s3Metadata = null;
-		try {
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		}
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
         azuParameter.getResponse().setCharacterEncoding(AzuConstants.CHARSET_UTF_8);
         try {

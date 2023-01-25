@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketCors;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -40,14 +39,11 @@ public class PutBucketCors extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketCors bucketCors = new DataPutBucketCors(s3Parameter);
-		bucketCors.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_CORS, s3Parameter, bucketCors)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_CORS, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String corsInfo = bucketCors.getCorsXml();
+		String corsInfo = s3RequestData.getCorsXml();
 		updateBucketCors(bucket, corsInfo);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

@@ -10,11 +10,14 @@
 */
 package com.pspace.backend.libs.Config;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
-public class LogManagerConfig {
+public class LogManagerConfig implements IConfig {
 
 	@JsonProperty("ksan.region")
 	public String Region;
@@ -39,19 +42,19 @@ public class LogManagerConfig {
 
 	@JsonProperty("logM.db_pool_size")
 	public int dbPoolSize;
-	
+
 	@JsonProperty("logM.db_expires")
 	public int dbExpires;
-	
+
 	@JsonProperty("logM.check_interval")
 	public int checkInterval;
 
 	@JsonProperty("logM.meter_minute")
 	public int meterMinute;
-	
+
 	@JsonProperty("logM.assert_hour")
 	public int assertHour;
-	
+
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
@@ -60,5 +63,31 @@ public class LogManagerConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
+	}
+
+	public ObjManagerConfig getObjManagerConfig() throws IOException {
+		var config = new ObjManagerConfig();
+		config.dbRepository = dbType;
+		config.dbHost = dbHost;
+		config.dbPort = dbPort;
+		config.dbName = dbName;
+		config.dbUsername = dbUser;
+		config.dbPassword = dbPassword;
+
+		return config;
+	}
+
+	public DBConfig getDBConfig() {
+		var config = new DBConfig();
+		config.Type = dbType;
+		config.Host = dbHost;
+		config.Port = dbPort;
+		config.DatabaseName = dbName;
+		config.User = dbUser;
+		config.Password = dbPassword;
+		config.PoolSize = dbPoolSize;
+		config.Expires = dbExpires;
+
+		return config;
 	}
 }

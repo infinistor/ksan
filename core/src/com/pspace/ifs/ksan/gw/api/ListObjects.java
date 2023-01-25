@@ -19,7 +19,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListBuckets;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
@@ -54,23 +53,20 @@ public class ListObjects extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListBuckets dataListBuckets = new DataListBuckets(s3Parameter);
-		dataListBuckets.extract();
-
 		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBuckets)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
 		S3ObjectList s3ObjectList = new S3ObjectList();
-		if (!Strings.isNullOrEmpty(dataListBuckets.getMaxkeys())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getMaxkeys())) {
 			try {
-				if (Integer.valueOf(dataListBuckets.getMaxkeys()) < 0) {
+				if (Integer.valueOf(s3RequestData.getMaxkeys()) < 0) {
 					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-				} else if (Integer.valueOf(dataListBuckets.getMaxkeys()) > 1000) {
+				} else if (Integer.valueOf(s3RequestData.getMaxkeys()) > 1000) {
 					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 				} else {
-					s3ObjectList.setMaxKeys(dataListBuckets.getMaxkeys());
+					s3ObjectList.setMaxKeys(s3RequestData.getMaxkeys());
 				}
 			} catch (NumberFormatException e) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
@@ -79,14 +75,14 @@ public class ListObjects extends S3Request {
 			s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 		}
 
-		s3ObjectList.setDelimiter(dataListBuckets.getDelimiter());
-		s3ObjectList.setEncodingType(dataListBuckets.getEncodingType());
-		s3ObjectList.setMarker(dataListBuckets.getMarker());
-		s3ObjectList.setPrefix(dataListBuckets.getPrefix());
-		logger.debug("delimiter : {}", dataListBuckets.getDelimiter());
-		logger.debug("marker : {}", dataListBuckets.getMarker());
-		logger.debug("prefix : {}", dataListBuckets.getPrefix());
-		logger.debug("maxKeys : {}", dataListBuckets.getMaxkeys());
+		s3ObjectList.setDelimiter(s3RequestData.getDelimiter());
+		s3ObjectList.setEncodingType(s3RequestData.getEncodingType());
+		s3ObjectList.setMarker(s3RequestData.getMarker());
+		s3ObjectList.setPrefix(s3RequestData.getPrefix());
+		logger.debug("delimiter : {}", s3RequestData.getDelimiter());
+		logger.debug("marker : {}", s3RequestData.getMarker());
+		logger.debug("prefix : {}", s3RequestData.getPrefix());
+		logger.debug("maxKeys : {}", s3RequestData.getMaxkeys());
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 

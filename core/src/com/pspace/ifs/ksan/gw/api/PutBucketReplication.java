@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketReplication;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.ReplicationConfiguration;
@@ -58,15 +57,12 @@ public class PutBucketReplication extends S3Request {
         if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(getBucketVersioning(bucket))) {
             throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
         }
-        
-		DataPutBucketReplication dataPutBucketReplication = new DataPutBucketReplication(s3Parameter);
-		dataPutBucketReplication.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_REPLICATION_CONFIGURATION, s3Parameter, dataPutBucketReplication)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_REPLICATION_CONFIGURATION, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String replicationXml = dataPutBucketReplication.getReplicationXml();
+		String replicationXml = s3RequestData.getReplicationXml();
         checkBucketReplication(replicationXml);
         updateBucketReplication(bucket, replicationXml);
 

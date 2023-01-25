@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketTagIndex;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.TagIndex;
@@ -47,14 +46,11 @@ public class PutBucketTagIndex extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketTagIndex dataPutBucketTagIndex = new DataPutBucketTagIndex(s3Parameter);
-		dataPutBucketTagIndex.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter, dataPutBucketTagIndex)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 		
-		String tagIndexXml = dataPutBucketTagIndex.getTagIndexXml();
+		String tagIndexXml = s3RequestData.getTagIndexXml();
         logger.info(GWConstants.LOG_PUT_BUCKET_TAG_INDEX, tagIndexXml);
 
 		if (!Strings.isNullOrEmpty(tagIndexXml)) {

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.objmanager.Metadata;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectLegalHold;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
@@ -54,10 +53,7 @@ public class GetObjectLegalHold extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataGetObjectLegalHold dataGetObjectLegalHold = new DataGetObjectLegalHold(s3Parameter);
-		dataGetObjectLegalHold.extract();
-
-		String versionId = dataGetObjectLegalHold.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
@@ -69,7 +65,7 @@ public class GetObjectLegalHold extends S3Request {
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_LEGAL_HOLD, s3Parameter, dataGetObjectLegalHold)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_LEGAL_HOLD, s3Parameter)) {
 			checkGrantObject(true, GWConstants.GRANT_READ);
 		}
 
@@ -89,14 +85,8 @@ public class GetObjectLegalHold extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
-		String meta = objMeta.getMeta();
-        S3Metadata s3Metadata;
-        try {
-            s3Metadata = new ObjectMapper().readValue(meta, S3Metadata.class);
-        } catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
+
 		String legalHold = s3Metadata.getLegalHold();
 		if (!Strings.isNullOrEmpty(legalHold)) {
 			XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();

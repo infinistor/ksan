@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db.table.Lifecycle;
+package com.pspace.backend.logManager.db.table.Lifecycle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
-
-import db.table.QueryConstants;
+import com.pspace.backend.logManager.db.table.QueryConstants;
 
 public class LifecycleLogQuery {
 	static final Logger logger = LoggerFactory.getLogger(LifecycleLogQuery.class);
@@ -57,22 +56,22 @@ public class LifecycleLogQuery {
 
 	public static List<Object> getInsertDBParameters(LifecycleLogData data) {
 		var param = new ArrayList<Object>();
-		param.add(data.BucketName);
-		param.add(data.ObjectName);
-		param.add(data.VersionId);
-		param.add(data.UploadId);
-		param.add(data.Message);
+		param.add(data.bucketName);
+		param.add(data.objectName);
+		param.add(data.versionId);
+		param.add(data.uploadId);
+		param.add(data.message);
 
 		return param;
 	}
 
 	public static Document getInsertDocument(LifecycleLogData data) {
 		var param = new Document();
-		param.put(DB_BUCKETNAME, data.BucketName);
-		param.put(DB_OBJECTNAME, data.ObjectName);
-		param.put(DB_VERSIONID, data.VersionId);
-		param.put(DB_UPLOADID, data.UploadId);
-		param.put(DB_MESSAGE, data.Message);
+		param.put(DB_BUCKETNAME, data.bucketName);
+		param.put(DB_OBJECTNAME, data.objectName);
+		param.put(DB_VERSIONID, data.versionId);
+		param.put(DB_UPLOADID, data.uploadId);
+		param.put(DB_MESSAGE, data.message);
 
 		return param;
 	}

@@ -13,7 +13,6 @@ package com.pspace.ifs.ksan.gw.api;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataDeleteObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -44,10 +43,7 @@ public class DeleteObjectTagging extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataDeleteObjectTagging dataDeleteObjectTagging = new DataDeleteObjectTagging(s3Parameter);
-		dataDeleteObjectTagging.extract();
-
-		String versionId = dataDeleteObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
@@ -58,13 +54,11 @@ public class DeleteObjectTagging extends S3Request {
 		}
 
 		if (Strings.isNullOrEmpty(versionId)) {
-			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
-				// checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_TAGGING, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_WRITE);
 			}
 		} else {
-			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION_TAGGING, s3Parameter, dataDeleteObjectTagging)) {
-				// checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_DELETE_OBJECT_VERSION_TAGGING, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_WRITE);
 			}
 		}
@@ -72,7 +66,7 @@ public class DeleteObjectTagging extends S3Request {
 		objMeta.setTag("");
 		updateObjectTagging(objMeta);
 
-		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, dataDeleteObjectTagging.getVersionId());
+		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
 }

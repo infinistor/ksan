@@ -87,27 +87,7 @@ public class GWHandler {
 		uri = removeDuplicateRoot(uri);
 		logger.info(GWConstants.LOG_GWHANDLER_URI, uri);
 
-		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_ADDRESS, request.getRemoteAddr());
-		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_HOST, request.getRemoteHost());
-		logger.info(GWConstants.LOG_GWHANDLER_METHOD, method);
-
-		for (String parameter : Collections.list(request.getParameterNames())) {
-			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
-			requestSize += parameter.length();
-			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
-				requestSize += request.getParameter(parameter).length();
-			}
-		}
-
-		for (String headerName : Collections.list(request.getHeaderNames())) {
-			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
-				logger.info(GWConstants.LOG_GWHANDLER_HEADER, headerName, Strings.nullToEmpty(headerValue));
-				requestSize += headerName.length();
-				if (!Strings.isNullOrEmpty(headerValue)) {
-					requestSize += headerValue.length();
-				}
-			}
-		}
+		requestSize += printRequestInfo(request);
 
 		// make request id
 		String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
@@ -123,16 +103,14 @@ public class GWHandler {
 			throw new GWException(GWErrorCode.BAD_REQUEST, null);
 		}
 
-		String pathCategory = GWConstants.EMPTY_STRING;
-		if (uri.equals(GWConstants.SLASH)) {
-			pathCategory = GWConstants.CATEGORY_ROOT;
-		} else if (path.length <= 2 || path[2].isEmpty()) {
-			pathCategory = GWConstants.CATEGORY_BUCKET;
-		} else {
-			pathCategory = GWConstants.CATEGORY_OBJECT;
-		}
-
 		S3Parameter s3Parameter = new S3Parameter();
+		if (uri.equals(GWConstants.SLASH)) {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_ROOT);
+		} else if (path.length <= 2 || path[2].isEmpty()) {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_BUCKET);
+		} else {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_OBJECT);
+		}		
 		s3Parameter.setURI(uri);
 		s3Parameter.setRequestSize(requestSize);
 		s3Parameter.setRequestID(requestID);
@@ -147,7 +125,7 @@ public class GWHandler {
 		}
 		s3Parameter.setMethod(method);
 		s3Parameter.setStartTime(startTime);
-		s3Parameter.setPathCategory(pathCategory);
+		
 		s3Parameter.setMaxFileSize(maxFileSize);
 		s3Parameter.setMaxTimeSkew(maxTimeSkew);
 		s3Parameter.setRemoteHost(request.getRemoteHost());
@@ -158,7 +136,8 @@ public class GWHandler {
 		s3Parameter.setxAmzAlgorithm(request.getParameter(GWConstants.X_AMZ_ALGORITHM));
 		s3Parameter.setHostName(request.getHeader(HttpHeaders.HOST));
 		s3Parameter.setHostID(request.getHeader(GWConstants.X_AMZ_ID_2));
-		s3Parameter.setRemoteAddr(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
+		s3Parameter.setRemoteAddr(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? 
+			request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
 
 		S3Signing s3signing = new S3Signing(s3Parameter);
 		if (request.getHeader(HttpHeaders.AUTHORIZATION) == null 
@@ -279,5 +258,32 @@ public class GWHandler {
 		xml.writeStartElement(elementName);
 		xml.writeCharacters(characters);
 		xml.writeEndElement();
+	}
+
+	private long printRequestInfo(HttpServletRequest request) {
+		long requestSize = 0L;
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_ADDRESS, request.getRemoteAddr());
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_HOST, request.getRemoteHost());
+		logger.info(GWConstants.LOG_GWHANDLER_METHOD, request.getMethod());
+
+		for (String parameter : Collections.list(request.getParameterNames())) {
+			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
+			requestSize += parameter.length();
+			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
+				requestSize += request.getParameter(parameter).length();
+			}
+		}
+
+		for (String headerName : Collections.list(request.getHeaderNames())) {
+			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
+				logger.info(GWConstants.LOG_GWHANDLER_HEADER, headerName, Strings.nullToEmpty(headerValue));
+				requestSize += headerName.length();
+				if (!Strings.isNullOrEmpty(headerValue)) {
+					requestSize += headerValue.length();
+				}
+			}
+		}
+
+		return requestSize;
 	}
 }

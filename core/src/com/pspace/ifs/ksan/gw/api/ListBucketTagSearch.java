@@ -21,7 +21,6 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListBucketTagSearch;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
@@ -57,16 +56,13 @@ public class ListBucketTagSearch extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListBucketTagSearch dataListBucketTagSearch = new DataListBucketTagSearch(s3Parameter);
-		dataListBucketTagSearch.extract();
-
 		logger.info("bucket policy : {}", s3Parameter.getBucket().getPolicy());
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter, dataListBucketTagSearch)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
-		String encodingType = dataListBucketTagSearch.getEncodingType();
-		String maxKeys = dataListBucketTagSearch.getMaxkeys();
+		String encodingType = s3RequestData.getEncodingType();
+		String maxKeys = s3RequestData.getMaxkeys();
 		int max = 1000;
 
 		if (!Strings.isNullOrEmpty(maxKeys)) {
@@ -76,9 +72,9 @@ public class ListBucketTagSearch extends S3Request {
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
-		List<Metadata> tagList = listBucketTags(bucket, dataListBucketTagSearch.getTag(), max);
+		List<Metadata> tagList = listBucketTags(bucket, s3RequestData.getTag(), max);
 
-		logger.info("tag : {}", dataListBucketTagSearch.getTag());
+		logger.info("tag : {}", s3RequestData.getTag());
 		logger.info("tagList count : {}", tagList.size());
 		try (Writer writer = s3Parameter.getResponse().getWriter()) {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
@@ -88,15 +84,7 @@ public class ListBucketTagSearch extends S3Request {
 			xmlStreamWriter.writeDefaultNamespace(GWConstants.AWS_XMLNS);
 			
 			for (Metadata meta : tagList) {
-				S3Metadata s3Metadata = new S3Metadata();
-				ObjectMapper jsonMapper = new ObjectMapper();
-				
-				try {
-					s3Metadata = jsonMapper.readValue(meta.getMeta(), S3Metadata.class);
-				} catch (Exception e) {
-					PrintStack.logging(logger, e);
-					throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-				}
+				S3Metadata s3Metadata = S3Metadata.getS3Metadata(meta.getMeta());
 
 				xmlStreamWriter.writeStartElement(GWConstants.XML_CONTENTS);
 				logger.debug("meta info : {}, {}, {}, {}, {}, {}, {}, {}", meta.getPath(), formatDate(s3Metadata.getLastModified()), s3Metadata.getETag(), s3Metadata.getContentLength(), s3Metadata.getTier(), meta.getTag(), s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
@@ -112,7 +100,6 @@ public class ListBucketTagSearch extends S3Request {
 				
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_SIZE, s3Metadata.getContentLength().toString());
 				writeSimpleElement(xmlStreamWriter, GWConstants.STORAGE_CLASS, s3Metadata.getTier());
-				// writeSimpleElement(xmlStreamWriter, GWConstants.XML_TAG, meta.getTag());
 				writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 				xmlStreamWriter.writeEndElement();
 			}

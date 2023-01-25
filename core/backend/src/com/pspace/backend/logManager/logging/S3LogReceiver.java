@@ -8,21 +8,20 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package logging;
+package com.pspace.backend.logManager.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.Data.S3.S3LogData;
+import com.pspace.backend.logManager.db.DBManager;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.S3.S3LogData;
-
-import db.DBManager;
 
 public class S3LogReceiver implements MQCallback {
 	private final Logger logger = LoggerFactory.getLogger(S3LogReceiver.class);
@@ -35,7 +34,7 @@ public class S3LogReceiver implements MQCallback {
 			logger.debug("{} -> {}", routingKey, body);
 
 			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 문자열을 S3LogData 클래스로 변환
 			var event = Mapper.readValue(body, new TypeReference<S3LogData>() {
@@ -55,7 +54,7 @@ public class S3LogReceiver implements MQCallback {
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 
 }

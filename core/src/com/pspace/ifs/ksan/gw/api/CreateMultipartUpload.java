@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataCreateMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -63,19 +62,16 @@ public class CreateMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataCreateMultipartUpload dataCreateMultipartUpload = new DataCreateMultipartUpload(s3Parameter);
-		dataCreateMultipartUpload.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataCreateMultipartUpload)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter)) {
 			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 
-		String xml = makeAcl(null, null, dataCreateMultipartUpload);
+		String xml = makeAcl(null, false);
 		
-		String customerAlgorithm = dataCreateMultipartUpload.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataCreateMultipartUpload.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataCreateMultipartUpload.getServerSideEncryptionCustomerKeyMD5();
-		String serverSideEncryption = dataCreateMultipartUpload.getServerSideEncryption();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String serverSideEncryption = s3RequestData.getServerSideEncryption();
 
 		if (!Strings.isNullOrEmpty(serverSideEncryption)) {
 			if (!serverSideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
@@ -84,7 +80,7 @@ public class CreateMultipartUpload extends S3Request {
 			}
 		}
 
-		String storageClass = dataCreateMultipartUpload.getStorageClass();
+		String storageClass = s3RequestData.getStorageClass();
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
 		}
@@ -100,16 +96,16 @@ public class CreateMultipartUpload extends S3Request {
 		s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		s3Metadata.setName(object);
 
-		String cacheControl = dataCreateMultipartUpload.getCacheControl();
-		String contentDisposition = dataCreateMultipartUpload.getContentDisposition();
-		String contentEncoding = dataCreateMultipartUpload.getContentEncoding();
-		String contentLanguage = dataCreateMultipartUpload.getContentLanguage();
-		String contentType = dataCreateMultipartUpload.getContentType();
-		String serversideEncryption = dataCreateMultipartUpload.getServerSideEncryption();
+		String cacheControl = s3RequestData.getCacheControl();
+		String contentDisposition = s3RequestData.getContentDisposition();
+		String contentEncoding = s3RequestData.getContentEncoding();
+		String contentLanguage = s3RequestData.getContentLanguage();
+		String contentType = s3RequestData.getContentType();
+		String serversideEncryption = s3RequestData.getServerSideEncryption();
 
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-		s3Metadata.setUserMetadataMap(dataCreateMultipartUpload.getUserMetadata());
+		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!serversideEncryption.equalsIgnoreCase(GWConstants.AES256)) {
@@ -145,15 +141,7 @@ public class CreateMultipartUpload extends S3Request {
 			 s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String metaJson = "";
-		try {
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			metaJson = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_DB_ERROR, s3Parameter);
-		}
+		String metaJson = s3Metadata.toString();
 
 		Metadata objMeta = null;
 		try {
@@ -169,7 +157,6 @@ public class CreateMultipartUpload extends S3Request {
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
 			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
-			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketLogging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -45,14 +44,11 @@ public class PutBucketLogging extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketLogging dataPutBucketLogging = new DataPutBucketLogging(s3Parameter);
-		dataPutBucketLogging.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_LOGGING, s3Parameter, dataPutBucketLogging)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_LOGGING, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String loggingInfo = dataPutBucketLogging.getLoggingXml();
+		String loggingInfo = s3RequestData.getLoggingXml();
 		updateBucketLogging(bucket, loggingInfo);
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

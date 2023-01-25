@@ -12,8 +12,6 @@ package com.pspace.ifs.ksan.gw.ksanapi;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
-import com.pspace.ifs.ksan.gw.data.DataRestoreObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -52,9 +50,7 @@ public class KsanStorageMove extends S3Request {
 		String object = s3Parameter.getObjectName();
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
-		DataRestoreObject dataRestoreObject = new DataRestoreObject(s3Parameter);
-        dataRestoreObject.extract();
-        String versionId = dataRestoreObject.getVersionId();
+        String versionId = s3RequestData.getVersionId();
 
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = GWConstants.VERSIONING_DISABLE_TAIL;
@@ -68,15 +64,7 @@ public class KsanStorageMove extends S3Request {
 		}
 
         // meta info
-		ObjectMapper objectMapper = new ObjectMapper();
-        S3Metadata s3Metadata = null;
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
         if (s3Metadata.getTier().equalsIgnoreCase(GWConstants.AWS_TIER_STANTARD)) {
             s3Metadata.setTier(GWConstants.AWS_TIER_GLACIER);
@@ -105,16 +93,8 @@ public class KsanStorageMove extends S3Request {
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
         objectOperation.storageMove(restoreObjMeta);
 
-        String jsonmeta = "";
-		try {
-			jsonmeta = objectMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
         try {
-            restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), jsonmeta, objMeta.getAcl(), objMeta.getSize());
+            restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), s3Metadata.toString(), objMeta.getAcl(), objMeta.getSize());
         	restoreObjMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, restoreObjMeta);
 			logger.debug(GWConstants.LOG_ADMIN_RESTORE_OBJECT_INFO, bucket, object, objMeta.getSize(), objMeta.getEtag(), versionId);

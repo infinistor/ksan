@@ -11,7 +11,6 @@
 
 package com.pspace.ifs.ksan.gw.api.azure;
 
-import com.pspace.ifs.ksan.gw.data.azure.DataListBlobs;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;

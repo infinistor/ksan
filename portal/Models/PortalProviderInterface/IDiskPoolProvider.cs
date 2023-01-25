@@ -44,7 +44,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchFields">검색필드 목록 (Name, Description, Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 풀 목록 객체</returns>
-		Task<ResponseList<ResponseDiskPool>> GetList(
+		Task<ResponseList<ResponseDiskPoolWithDisks>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""

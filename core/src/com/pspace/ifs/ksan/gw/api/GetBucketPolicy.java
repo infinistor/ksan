@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketPolicy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -42,11 +41,8 @@ public class GetBucketPolicy extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetBucketPolicy dataGetBucketPolicy = new DataGetBucketPolicy(s3Parameter);
-		dataGetBucketPolicy.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_POLICY, s3Parameter, dataGetBucketPolicy)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_POLICY, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 

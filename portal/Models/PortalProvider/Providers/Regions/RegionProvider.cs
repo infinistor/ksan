@@ -232,6 +232,37 @@ namespace PortalProvider.Providers.Accounts
 			return Result;
 		}
 
+		/// <summary>현재 시스템의 리전을 가져온다.</summary>
+		/// <returns>리전 정보 객체</returns>
+		public async Task<ResponseData<ResponseRegion>> GetDefault()
+		{
+			var Result = new ResponseData<ResponseRegion>();
+			try
+			{
+				// 리전을 가져온다.
+				var RegionName = m_configuration["AppSettings:RegionName"];
+				Result.Data = await m_dbContext.Regions.AsNoTracking()
+					.Where(i => i.Name == RegionName)
+					.FirstOrDefaultAsync<Region, ResponseRegion>();
+				if (Result.Data == null)
+				{
+					Result.Code = Resource.EC_COMMON__NOT_FOUND;
+					Result.Message = Resource.EM_COMMON__NOT_FOUND;
+					Result.Result = EnumResponseResult.Error;
+				}
+				else
+					Result.Result = EnumResponseResult.Success;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
+		}
+
 		/// <summary>리전 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>

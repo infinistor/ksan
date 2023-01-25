@@ -59,14 +59,14 @@ public class S3ObjectData {
 			var MyTags = new XmlMapper().readValue(StrTagging, Tagging.class);
 			if (MyTags == null)
 				return false;
-			if (MyTags.tagset == null)
+			if (MyTags.tags == null)
 				return false;
-			if (MyTags.tagset.tags == null)
+			if (MyTags.tags.tags == null)
 				return false;
-			if (MyTags.tagset.tags.size() == 0)
+			if (MyTags.tags.tags.size() == 0)
 				return false;
 
-			for (var MyTag : MyTags.tagset.tags)
+			for (var MyTag : MyTags.tags.tags)
 				tags.add(MyTag);
 			isTagSet = true;
 			return true;

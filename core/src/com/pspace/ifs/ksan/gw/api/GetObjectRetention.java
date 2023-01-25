@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectRetention;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
@@ -56,9 +55,7 @@ public class GetObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        DataGetObjectRetention dataGetObjectRetention = new DataGetObjectRetention(s3Parameter);
-		dataGetObjectRetention.extract();
-        String versionId = dataGetObjectRetention.getVersionId();
+        String versionId = s3RequestData.getVersionId();
 		s3Parameter.setVersionId(versionId);
 
 		Metadata objMeta = null;
@@ -71,7 +68,7 @@ public class GetObjectRetention extends S3Request {
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
         
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_RETENTION, s3Parameter, dataGetObjectRetention)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_RETENTION, s3Parameter)) {
 			checkGrantObject(true, GWConstants.GRANT_READ);
 		}
 
@@ -91,14 +88,7 @@ public class GetObjectRetention extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-        String meta = objMeta.getMeta();
-        S3Metadata s3Metadata;
-        try {
-            s3Metadata = new ObjectMapper().readValue(meta, S3Metadata.class);
-        } catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
         
         if (!Strings.isNullOrEmpty(s3Metadata.getLockMode())) {
 			XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();

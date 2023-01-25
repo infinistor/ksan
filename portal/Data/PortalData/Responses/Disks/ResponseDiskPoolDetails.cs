@@ -18,5 +18,14 @@ namespace PortalData.Responses.Disks
 	{
 		/// <summary>서비스 목록</summary>
 		public List<ResponseServerDetail> Servers { get; set; } = new List<ResponseServerDetail>();
+
+		/// <summary>전체 크기</summary>
+		public decimal TotalSize { get; set; }
+
+		/// <summary>사용된 크기</summary>
+		public decimal UsedSize { get; set; }
+
+		/// <summary>사용 가능한 크기</summary>
+		public decimal FreeSize { get => TotalSize - UsedSize > 0 ? TotalSize - UsedSize : 0; }
 	}
 }

@@ -17,7 +17,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -46,13 +45,10 @@ public class GetObjectTagging extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetObjectTagging dataGetObjectTagging = new DataGetObjectTagging(s3Parameter);
-		dataGetObjectTagging.extract();
 
 		String object = s3Parameter.getObjectName();
 
-		String versionId = dataGetObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		s3Parameter.setVersionId(versionId);
 		
 		Metadata objMeta = null;
@@ -64,11 +60,11 @@ public class GetObjectTagging extends S3Request {
 		
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 		if (Strings.isNullOrEmpty(versionId)) {
-			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_TAGGING, s3Parameter, dataGetObjectTagging)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_TAGGING, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_READ);
 			}
 		} else {
-			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_TAGGING, s3Parameter, dataGetObjectTagging)) {
+			if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_TAGGING, s3Parameter)) {
 				checkGrantObject(true, GWConstants.GRANT_READ);
 			}
 		}

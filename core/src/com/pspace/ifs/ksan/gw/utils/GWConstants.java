@@ -52,6 +52,12 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
+	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
+
+	public static final String RESTORE_BUCKET_NAME = "BucketName";
+	public static final String RESTORE_OBJECT_NAME = "ObjectName";
+	public static final String RESTORE_VERSION_ID = "VersionId";
+	public static final String RESTORE_XML = "RestoreXml";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";

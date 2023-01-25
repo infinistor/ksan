@@ -18,7 +18,6 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.data.DataDeleteBucketWebsite;
 
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +39,8 @@ public class DeleteBucketWebsite extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataDeleteBucketWebsite dataDeleteBucketWebsite = new DataDeleteBucketWebsite(s3Parameter);
-		dataDeleteBucketWebsite.extract();
 
-		checkPolicyBucket(GWConstants.ACTION_DELETE_BUCKET_WEBSITE, s3Parameter, dataDeleteBucketWebsite);
+		checkPolicyBucket(GWConstants.ACTION_DELETE_BUCKET_WEBSITE, s3Parameter);
 
 		updateBucketWeb(bucket, "");
 

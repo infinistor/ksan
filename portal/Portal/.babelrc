@@ -1,0 +1,13 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+		"chrome": 59,
+		"edge": 13,
+		"firefox": 50
+	  },
+      "modules":false,
+      "loose":true
+    }]
+  ]
+}

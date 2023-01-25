@@ -22,7 +22,6 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
 import com.pspace.ifs.ksan.objmanager.LifeCycleManagment;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 
 public class ObjManagerHelper {
 	private static ObjManagerUtil ObjManager;
@@ -47,7 +46,7 @@ public class ObjManagerHelper {
 		return new S3BucketData(ObjManager.getBucket(bucketName));
 	}
 
-	public LifeCycleManagment getLifeCycleManagmentInsatance() {
+	public LifeCycleManagment getLifeCycleManagementInstance() {
 		return ObjManager.getLifeCycleManagmentInsatance();
 	}
 	public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
@@ -63,7 +62,7 @@ public class ObjManagerHelper {
 		return new S3ObjectData(ObjManager.getObject(bucketName, objectName, versionId));
 	}
 
-	public ObjMultipart getMultipartInsatance(String bucketName) {
+	public ObjMultipart getMultipartInstance(String bucketName) {
 		return ObjManager.getMultipartInsatance(bucketName);
 	}
 }

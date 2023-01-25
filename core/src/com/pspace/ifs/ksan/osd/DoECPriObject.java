@@ -199,7 +199,6 @@ public class DoECPriObject implements Runnable {
                             } catch (IOException e) {
                                 PrintStack.logging(logger, e);
                             }
-                            // FileUtils.copyFile(files[i], file);
                             sendECPart.setProcessed(true);
                         } else {
                             long fileLength = files[i].length();

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.azure.DataPutBlob;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
@@ -75,45 +74,31 @@ public class PutBlob extends AzuRequest {
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
-        
-        DataPutBlob dataCreateBlob = new DataPutBlob(azuParameter);
-        dataCreateBlob.extract();
 
-        String contentsLength = dataCreateBlob.getContentLength();
+        String contentsLength = azuRequestData.getContentLength();
         long blobLength = Long.parseLong(contentsLength);
-        String contentMD5 = dataCreateBlob.getContentMD5();
+        String contentMD5 = azuRequestData.getContentMD5();
 
         logger.debug("contentsLength : {}, {}", contentsLength, blobLength);
 
         String versionId = GWConstants.VERSIONING_DISABLE_TAIL;
         Metadata objMeta = null;
-        boolean isExist = false;
+        // boolean isExist = false;
+        S3Metadata s3Metadata = null;
         try {
             // check exist object
             objMeta = open(containerName, blobName);
-            isExist = true;
+            s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
         } catch (AzuException e) {
             logger.info(e.getMessage());
             // reset error code
             azuParameter.setErrorCode(GWConstants.EMPTY_STRING);
             objMeta = createLocal(diskpoolId, containerName, blobName, versionId);
-        }
-
-        S3Metadata s3Metadata = new S3Metadata();
-        ObjectMapper jsonMapper = new ObjectMapper();
-        if (isExist) {
-            try {
-                logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-                s3Metadata = jsonMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-            } catch (JsonProcessingException e) {
-                PrintStack.logging(logger, e);
-                throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-            }
-        } else {
+            s3Metadata = new S3Metadata();
             s3Metadata.setCreationDate(new Date());
         }
 
-        s3Metadata.setContentType(dataCreateBlob.getContentType());
+        s3Metadata.setContentType(azuRequestData.getContentType());
         s3Metadata.setOwnerId(azuParameter.getUser().getUserId());
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
         s3Metadata.setContentLength(blobLength);
@@ -130,13 +115,14 @@ public class PutBlob extends AzuRequest {
 
         logger.info("MD5 check, receive : {}, result : {}", contentMD5, s3Object.getEtag());
 
-        String jsonmeta = "";
-        try {
-            jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        }
+        String jsonmeta = s3Metadata.toString();
+        // try {
+        //     jsonMapper.setSerializationInclusion(Include.NON_NULL);
+        //     jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
+        // } catch (JsonProcessingException e) {
+        //     PrintStack.logging(logger, e);
+        //     throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
+        // }
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {

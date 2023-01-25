@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketVersioning;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Versioning;
@@ -46,14 +45,11 @@ public class PutBucketVersioning extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketVersioning dataPutBucketVersioning = new DataPutBucketVersioning(s3Parameter);
-		dataPutBucketVersioning.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_VERSIONING, s3Parameter, dataPutBucketVersioning)) {
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_VERSIONING, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String versionXml = dataPutBucketVersioning.getVersioningXml();
+		String versionXml = s3RequestData.getVersioningXml();
 		if (!Strings.isNullOrEmpty(versionXml)) {
 			Versioning versioning = new Versioning();
 			try {

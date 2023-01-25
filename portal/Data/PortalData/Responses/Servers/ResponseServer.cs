@@ -54,7 +54,7 @@ namespace PortalData.Responses.Servers
 		public decimal MemoryUsed { get; set; }
 
 		/// <summary>남은 메모리 크기</summary>
-		public decimal MemoryFree { get => MemoryTotal - MemoryUsed < 0 ? 0 : MemoryTotal - MemoryUsed; }
+		public decimal MemoryFree { get => MemoryTotal - MemoryUsed > 0 ? MemoryTotal - MemoryUsed : 0; }
 
 		/// <summary>수정일시</summary>
 		public DateTime? ModDate { get; set; } = null;

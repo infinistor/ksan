@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketLogging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -43,11 +42,8 @@ public class GetBucketLogging extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-
-        DataGetBucketLogging dataGetBucketLogging = new DataGetBucketLogging(s3Parameter);
-        dataGetBucketLogging.extract();
 		
-        if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_LOGGING, s3Parameter, dataGetBucketLogging)) {
+        if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_LOGGING, s3Parameter)) {
             checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
         }
 
