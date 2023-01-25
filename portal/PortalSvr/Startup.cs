@@ -181,6 +181,7 @@ namespace PortalSvr
 				Services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
 				Services.AddTransient<IRegionProvider, RegionProvider>();
+				Services.AddTransient<ILogProvider, LogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
 

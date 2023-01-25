@@ -11,7 +11,6 @@
 
 package com.pspace.ifs.ksan.gw.api.azure;
 
-import com.pspace.ifs.ksan.gw.data.azure.DataPutBlockList;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.format.BlockList;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
@@ -69,9 +68,7 @@ public class PutBlockList extends AzuRequest {
         String containerName = azuParameter.getContainerName();
         String blobName = azuParameter.getBlobName();
 
-        DataPutBlockList dataCompleteBlockList = new DataPutBlockList(azuParameter);
-        dataCompleteBlockList.extract();
-        String blockListXml = dataCompleteBlockList.getXml();
+        String blockListXml = azuRequestData.getXml();
         logger.info("blocklist xml : {}", blockListXml);
         
         XmlMapper xmlMapper = new XmlMapper();
@@ -95,7 +92,7 @@ public class PutBlockList extends AzuRequest {
 
         S3Metadata s3Metadata = new S3Metadata();
         s3Metadata.setCreationDate(new Date());
-        s3Metadata.setContentType(dataCompleteBlockList.getBlobContentType());
+        s3Metadata.setContentType(azuRequestData.getBlobContentType());
         s3Metadata.setOwnerId(azuParameter.getUser().getUserId());
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
 
@@ -109,16 +106,9 @@ public class PutBlockList extends AzuRequest {
         s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
         s3Metadata.setVersionId(versionId);
 
-        logger.info("MD5 check, receive : {}, result : {}", dataCompleteBlockList.getBlobContentMD5(), s3Object.getEtag());
+        logger.info("MD5 check, receive : {}, result : {}", azuRequestData.getBlobContentMD5(), s3Object.getEtag());
 
-        ObjectMapper jsonMapper = new ObjectMapper();
-        String jsonmeta = "";
-        try {
-            jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        }
+        String jsonmeta = s3Metadata.toString();
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {

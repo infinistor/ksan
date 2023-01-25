@@ -30,7 +30,6 @@ import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
@@ -74,18 +73,6 @@ public class GWHandler {
 			response.setStatus(HttpServletResponse.SC_OK);
 			return;
 		}
-
-		// if (GWConfig.getInstance().isDBOP()) {
-		// 	ObjManager objManager = ObjManagers.getInstance().getObjManager();
-		// 	try {
-		// 		objManager.open("db-test", "file1.txt");
-		// 	} catch (Exception e) {
-		// 		logger.error("Failed to open");
-		// 	}
-			
-		// 	response.setStatus(HttpServletResponse.SC_OK);
-		// 	return;
-		// }
 		
         long requestSize = 0L;
 		String method = request.getMethod();
@@ -100,27 +87,7 @@ public class GWHandler {
 		uri = removeDuplicateRoot(uri);
 		logger.info(GWConstants.LOG_GWHANDLER_URI, uri);
 
-		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_ADDRESS, request.getRemoteAddr());
-		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_HOST, request.getRemoteHost());
-		logger.info(GWConstants.LOG_GWHANDLER_METHOD, method);
-
-		for (String parameter : Collections.list(request.getParameterNames())) {
-			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
-			requestSize += parameter.length();
-			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
-				requestSize += request.getParameter(parameter).length();
-			}
-		}
-
-		for (String headerName : Collections.list(request.getHeaderNames())) {
-			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
-				logger.info(GWConstants.LOG_GWHANDLER_HEADER, headerName, Strings.nullToEmpty(headerValue));
-				requestSize += headerName.length();
-				if (!Strings.isNullOrEmpty(headerValue)) {
-					requestSize += headerValue.length();
-				}
-			}
-		}
+		requestSize += printRequestInfo(request);
 
 		// make request id
 		String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
@@ -136,19 +103,14 @@ public class GWHandler {
 			throw new GWException(GWErrorCode.BAD_REQUEST, null);
 		}
 
-		String pathCategory = GWConstants.EMPTY_STRING;
-		if (uri.equals(GWConstants.SLASH)) {
-			pathCategory = GWConstants.CATEGORY_ROOT;
-		} else if (path.length <= 2 || path[2].isEmpty()) {
-			pathCategory = GWConstants.CATEGORY_BUCKET;
-		} else {
-			pathCategory = GWConstants.CATEGORY_OBJECT;
-		}
-
-		// long infoRequest = System.currentTimeMillis();
-		// logger.error("info time : {}", infoRequest - startTime);
-
 		S3Parameter s3Parameter = new S3Parameter();
+		if (uri.equals(GWConstants.SLASH)) {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_ROOT);
+		} else if (path.length <= 2 || path[2].isEmpty()) {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_BUCKET);
+		} else {
+			s3Parameter.setPathCategory(GWConstants.CATEGORY_OBJECT);
+		}		
 		s3Parameter.setURI(uri);
 		s3Parameter.setRequestSize(requestSize);
 		s3Parameter.setRequestID(requestID);
@@ -163,7 +125,7 @@ public class GWHandler {
 		}
 		s3Parameter.setMethod(method);
 		s3Parameter.setStartTime(startTime);
-		s3Parameter.setPathCategory(pathCategory);
+		
 		s3Parameter.setMaxFileSize(maxFileSize);
 		s3Parameter.setMaxTimeSkew(maxTimeSkew);
 		s3Parameter.setRemoteHost(request.getRemoteHost());
@@ -174,10 +136,9 @@ public class GWHandler {
 		s3Parameter.setxAmzAlgorithm(request.getParameter(GWConstants.X_AMZ_ALGORITHM));
 		s3Parameter.setHostName(request.getHeader(HttpHeaders.HOST));
 		s3Parameter.setHostID(request.getHeader(GWConstants.X_AMZ_ID_2));
-		s3Parameter.setRemoteAddr(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
+		s3Parameter.setRemoteAddr(!Strings.isNullOrEmpty(request.getHeader(GWConstants.X_FORWARDED_FOR)) ? 
+			request.getHeader(GWConstants.X_FORWARDED_FOR) : request.getRemoteAddr());
 
-		// long preSign = System.currentTimeMillis();
-		// logger.error("para time : {}", preSign - startTime);
 		S3Signing s3signing = new S3Signing(s3Parameter);
 		if (request.getHeader(HttpHeaders.AUTHORIZATION) == null 
 		 	&& request.getParameter(GWConstants.X_AMZ_ALGORITHM) == null 
@@ -199,9 +160,6 @@ public class GWHandler {
 			s3Parameter.setAdmin(false);
 		}
 
-		// long preTime = System.currentTimeMillis();
-		// logger.error("sign time : {}", preTime - preSign);
-
 		S3Request s3Request = null;
 		if (s3Parameter.isAdmin()) {
 			logger.info(GWConstants.LOG_GWHANDLER_ADMIN_MOTHOD_CATEGORY, s3Parameter.getMethod(), s3Parameter.getPathCategory());
@@ -218,10 +176,10 @@ public class GWHandler {
 
 		s3Request.process();
 		s3Parameter.setStatusCode(response.getStatus());
-		AsyncHandler.s3logging(s3Parameter);
-		// long endTime = System.currentTimeMillis();
-		// logger.error("rest time : {}", endTime - preTime);
-		// logger.error("work time : {}", endTime - startTime);
+		
+		if (GWConfig.getInstance().isLogging()) {
+			AsyncHandler.s3logging(s3Parameter);
+		}
     }
 
     private String removeDuplicateRoot(String s) {
@@ -281,7 +239,9 @@ public class GWHandler {
 			throw new IOException(xse);
 		}
 
-		AsyncHandler.s3logging(s3Parameter);
+		if (GWConfig.getInstance().isLogging()) {
+			AsyncHandler.s3logging(s3Parameter);
+		}
 	}
 
 	private void sendS3Exception(HttpServletRequest request, HttpServletResponse response, GWException se) throws IOException {
@@ -298,5 +258,32 @@ public class GWHandler {
 		xml.writeStartElement(elementName);
 		xml.writeCharacters(characters);
 		xml.writeEndElement();
+	}
+
+	private long printRequestInfo(HttpServletRequest request) {
+		long requestSize = 0L;
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_ADDRESS, request.getRemoteAddr());
+		logger.info(GWConstants.LOG_GWHANDLER_CLIENT_HOST, request.getRemoteHost());
+		logger.info(GWConstants.LOG_GWHANDLER_METHOD, request.getMethod());
+
+		for (String parameter : Collections.list(request.getParameterNames())) {
+			logger.info(GWConstants.LOG_GWHANDLER_PARAMETER, parameter, Strings.nullToEmpty(request.getParameter(parameter)));
+			requestSize += parameter.length();
+			if (!Strings.isNullOrEmpty(request.getParameter(parameter))) {
+				requestSize += request.getParameter(parameter).length();
+			}
+		}
+
+		for (String headerName : Collections.list(request.getHeaderNames())) {
+			for (String headerValue : Collections.list(request.getHeaders(headerName))) {
+				logger.info(GWConstants.LOG_GWHANDLER_HEADER, headerName, Strings.nullToEmpty(headerValue));
+				requestSize += headerName.length();
+				if (!Strings.isNullOrEmpty(headerValue)) {
+					requestSize += headerValue.length();
+				}
+			}
+		}
+
+		return requestSize;
 	}
 }

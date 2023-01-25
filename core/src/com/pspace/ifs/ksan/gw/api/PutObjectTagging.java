@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Tagging;
@@ -53,10 +52,7 @@ public class PutObjectTagging extends S3Request {
 		}
 
 		String object = s3Parameter.getObjectName();
-
-		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
-		dataPutObjectTagging.extract();
-		String versionId = dataPutObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -67,17 +63,17 @@ public class PutObjectTagging extends S3Request {
 
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 		if (Strings.isNullOrEmpty(versionId)) {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter, dataPutObjectTagging)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter)) {
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		} else {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter, dataPutObjectTagging)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter)) {
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		}
 		
 		String taggingCount = GWConstants.TAGGING_INIT;
-		String taggingXml = dataPutObjectTagging.getTaggingXml();
+		String taggingXml = s3RequestData.getTaggingXml();
 		try {
 			Tagging tagging = new XmlMapper().readValue(taggingXml, Tagging.class);
 
@@ -111,27 +107,11 @@ public class PutObjectTagging extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 		
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		s3Metadata.setTaggingCount(taggingCount);
-		// ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonMeta = "";
-		try {
-			objectMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		objMeta.setMeta(jsonMeta);
+
+		objMeta.setMeta(s3Metadata.toString());
 		objMeta.setTag(taggingXml);
 
 		updateObjectTagging(objMeta);

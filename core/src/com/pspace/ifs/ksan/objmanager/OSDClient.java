@@ -144,7 +144,8 @@ public class OSDClient {
         MQResponse ret = new MQResponse(res);
         OSDResponseParser osdr = new OSDResponseParser(ret.getMessage(), "\"" + ret.getCode() + "\"");
         
-       //System.out.println("[getObjectAttr] bindingKey :> " + bindingKey + " res :> " + res + " >Message :>" + ret);
+        //System.out.println("[getObjectAttr] bindingKey :> " + bindingKey + " res :> " + res + " >Message :>" + ret);
+        //System.out.format("[getObjectAttr] request :> %s raw response :> %s  response :> %s \n", obj.toJSONString(), ret.getMessage(), osdr.toString());
         return osdr;
     }
 }

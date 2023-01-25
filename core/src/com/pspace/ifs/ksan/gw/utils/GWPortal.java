@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 
 import com.pspace.ifs.ksan.gw.identity.S3Region;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
@@ -67,7 +67,7 @@ class ConfigUpdateCallback implements MQCallback{
 		GWPortal.getInstance().getConfig();
 		// ObjManagerHelper.updateAllConfig();
 		
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}    
 }
 
@@ -81,12 +81,12 @@ class DiskUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}
 }
@@ -101,12 +101,12 @@ class DiskpoolsUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -158,7 +158,7 @@ class UserUpdateCallBack implements MQCallback{
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -181,7 +181,7 @@ class ServiceUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -233,7 +233,7 @@ class RegionUpdateCallBack implements MQCallback{
 		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		// }
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 

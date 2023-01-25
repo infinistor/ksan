@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
-import com.pspace.ifs.ksan.gw.data.DataCompleteMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.CompleteMultipartUploadRequest;
@@ -75,14 +74,11 @@ public class KsanCompleteMultipartUpload extends S3Request {
 
 		GWUtils.checkCors(s3Parameter);
 
-		DataCompleteMultipartUpload dataCompleteMultipartUpload = new DataCompleteMultipartUpload(s3Parameter);
-		dataCompleteMultipartUpload.extract();
-
-		String uploadId = dataCompleteMultipartUpload.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 		s3Parameter.setUploadId(uploadId);
-		String repVersionId = dataCompleteMultipartUpload.getVersionId();
+		String repVersionId = s3RequestData.getVersionId();
 
-		String multipartXml = dataCompleteMultipartUpload.getMultipartXml();
+		String multipartXml = s3RequestData.getMultipartXml();
 		XmlMapper xmlMapper = new XmlMapper();
 		CompleteMultipartUploadRequest completeMultipartUpload = new CompleteMultipartUploadRequest();
 		try {
@@ -167,16 +163,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 		}
 
 		String acl = multipart.getAcl();
-		String meta = multipart.getMeta();
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, meta);
-			s3Metadata = objectMapper.readValue(meta, S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		
 		// check encryption
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
@@ -206,8 +193,6 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
 			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, s3ObjectEncryption);
-			
-			// ObjectMapper jsonMapper = new ObjectMapper();
 			
 			SortedMap<Integer, Part> constListPart = listPart;
 
@@ -275,22 +260,13 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 			s3Metadata.setDeleteMarker(s3Object.get().getDeleteMarker());
 			s3Metadata.setVersionId(s3Object.get().getVersionId());
-			
-			String jsonmeta = "";
-			try {
-				objectMapper.setSerializationInclusion(Include.NON_NULL);
-				jsonmeta = objectMapper.writeValueAsString(s3Metadata);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
 		
 			int result = 0;
 			try {
 				if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 					remove(bucket, object);
 				}
-				objMeta.set(s3Object.get().getEtag(), "", jsonmeta, acl, s3Object.get().getFileSize());
+				objMeta.set(s3Object.get().getEtag(), "", s3Metadata.toString(), acl, s3Object.get().getFileSize());
 				objMeta.setVersionId(repVersionId, GWConstants.OBJECT_TYPE_FILE, true);
 				result = insertObject(bucket, object, objMeta);
 			} catch (GWException e) {

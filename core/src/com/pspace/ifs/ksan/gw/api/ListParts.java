@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListParts;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -65,16 +64,13 @@ public class ListParts extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListParts dataListParts = new DataListParts(s3Parameter);
-		dataListParts.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter, dataListParts)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_MULTIPART_UPLOAD_PARTS, s3Parameter)) {
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
-		String maxParts = dataListParts.getMaxParts();
-		String partNumberMarker = dataListParts.getPartNumberMarker();
-		String uploadId = dataListParts.getUploadId();
+		String maxParts = s3RequestData.getMaxParts();
+		String partNumberMarker = s3RequestData.getPartNumberMarker();
+		String uploadId = s3RequestData.getUploadId();
 		int maxPartsValue = GWConstants.MAX_PART_VALUE;
 		
 		if (!Strings.isNullOrEmpty(maxParts)) {
@@ -106,18 +102,7 @@ public class ListParts extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
-		String meta = multipart.getMeta();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		S3Metadata s3Metadata;
-		try {
-			s3Metadata = jsonMapper.readValue(meta, S3Metadata.class);
-		} catch (JsonMappingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataDeleteObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -53,16 +52,13 @@ public class KsanDeleteObject extends S3Request {
 		logger.debug(GWConstants.LOG_DELETE_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
-		
-		DataDeleteObject dataDeleteObject = new DataDeleteObject(s3Parameter);
-		dataDeleteObject.extract();
 
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setName(object);
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		
-		String versionId = dataDeleteObject.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		boolean isLastVersion = true;
 		String deleteMarker = null;
 
@@ -103,7 +99,7 @@ public class KsanDeleteObject extends S3Request {
 			if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) { // Bucket Versioning Enabled
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_ENABLED);
 				if (Strings.isNullOrEmpty(versionId)) {	// request versionId is null
-					if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
+					if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 						remove(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL);
 					} else {
 						// put delete marker
@@ -124,8 +120,8 @@ public class KsanDeleteObject extends S3Request {
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_SUSPENDED);
 				if (Strings.isNullOrEmpty(versionId)) {
 					if (isLastVersion) {
-						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARK)) {
-							remove(bucket, object, GWConstants.OBJECT_TYPE_MARK);
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
+							remove(bucket, object, GWConstants.OBJECT_TYPE_MARKER);
 						} else {
 							remove(bucket, object, objMeta.getVersionId());
 							objectOperation.deleteObject();
@@ -153,23 +149,19 @@ public class KsanDeleteObject extends S3Request {
 	private void putDeleteMarker(String bucket, String object, S3Metadata s3Metadata, Metadata objMeta) throws GWException {
 		try {
 			String versionId = String.valueOf(System.nanoTime());
-			s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARK);
+			s3Metadata.setDeleteMarker(GWConstants.OBJECT_TYPE_MARKER);
 			s3Metadata.setLastModified(new Date());
 			s3Metadata.setContentLength(0L);
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 			
-			ObjectMapper jsonMapper = new ObjectMapper();
-			String jsonmeta = "";
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
 			int result;
-			objMeta.set("", "", jsonmeta, "", 0L);
-			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARK, true);
+			objMeta.set("", "", s3Metadata.toString(), "", 0L);
+			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
 			result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
-		} catch (GWException | JsonProcessingException e) {
+		} catch (GWException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

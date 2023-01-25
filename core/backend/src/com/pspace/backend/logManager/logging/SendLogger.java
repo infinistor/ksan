@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package logging;
+package com.pspace.backend.logManager.logging;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,8 +32,6 @@ import com.pspace.backend.libs.Data.BackendHeaders;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 import com.pspace.backend.libs.s3format.LoggingConfiguration;
 
-import db.DBManager;
-
 public class SendLogger {
 	private final char[] TEXT = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
 			'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
@@ -44,8 +42,8 @@ public class SendLogger {
 	// private final LoggingConfig Config;
 	// private final DBManager DB;
 	// private final AmazonS3 Client;
-	private boolean Stop = false;
-	private boolean Quit = false;
+	private boolean stop = false;
+	private boolean quit = false;
 
 	public SendLogger(S3RegionData Region) {
 		// this.DB = DB;
@@ -93,23 +91,23 @@ public class SendLogger {
 	}
 
 	public void Stop() {
-		Stop = true;
+		stop = true;
 	}
 
 	public void Start() {
-		Stop = false;
+		stop = false;
 	}
 
 	public void Quit() {
-		Quit = true;
+		quit = true;
 	}
 
 	/********************** Utility ****************************/
 
 	protected AmazonS3 CreateClient(S3RegionData Region) {
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
+		BasicAWSCredentials credentials = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
 
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(Region.getHttpURL(), ""))
 				.withPathStyleAccessEnabled(true).build();
 	}

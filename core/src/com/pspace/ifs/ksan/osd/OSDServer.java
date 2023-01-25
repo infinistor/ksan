@@ -372,7 +372,7 @@ public class OSDServer {
             logger.info(OSDConstants.LOG_OSD_SERVER_GET_SUCCESS_INFO, path, objId, versionId, sourceRange);
         }
 
-        private void getECPart(String[] headers) {
+        private void getECPart(String[] headers) throws IOException {
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_EC_PART_START);
             String path = headers[OsdData.PATH_INDEX];
             logger.debug("path : {}", path);
@@ -399,6 +399,7 @@ public class OSDServer {
                 socket.getOutputStream().close();
             } catch (IOException e) {
                 PrintStack.logging(logger, e);
+                socket.close();
             }
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_GET_EC_PART_END);
@@ -1056,7 +1057,7 @@ public class OSDServer {
                                 while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
                                     totalLength += readLength;
                                     encryptOS.write(buffer, 0, readLength);
-                                    md5er.update(buffer, 0, readLength);
+                                    // md5er.update(buffer, 0, readLength);
                                 }
                                 encryptOS.flush();
                             }
@@ -1064,7 +1065,7 @@ public class OSDServer {
                             partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
                             String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
                             OSDClient client = new OSDClient(host, OSDConfig.getInstance().getPort());
-                            client.getPartInit(partPath, objId, String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), encryptOS, md5er);
+                            client.getPartInit(partPath, objId, String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), encryptOS/*, md5er*/);
                             totalLength += client.getPart();
                         }
                     }
@@ -1087,7 +1088,7 @@ public class OSDServer {
                                 while ((readLength = fis.read(buffer, 0, OSDConstants.MAXBUFSIZE)) != -1) {
                                     totalLength += readLength;
                                     tmpOut.write(buffer, 0, readLength);
-                                    md5er.update(buffer, 0, readLength);
+                                    // md5er.update(buffer, 0, readLength);
                                 }
                                 tmpOut.flush();
                             }
@@ -1096,7 +1097,7 @@ public class OSDServer {
                             partPath = DiskManager.getInstance().getPath(entry.getValue().getDiskID());
                             String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
                             OSDClient client = new OSDClient(host, OSDConfig.getInstance().getPort());
-                            client.getPartInit(partPath, objId, String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut, md5er);
+                            client.getPartInit(partPath, objId, String.valueOf(entry.getValue().getPartNumber()), entry.getValue().getPartSize(), tmpOut/*, md5er*/);
                             totalLength += client.getPart();
                         }
                     }

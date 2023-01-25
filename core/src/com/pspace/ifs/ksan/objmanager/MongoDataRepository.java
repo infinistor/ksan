@@ -551,7 +551,7 @@ public class MongoDataRepository implements DataRepository{
         //index.append(OBJKEY, 1);
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
         // wild index for listobjects
-        Document wildIndex = new Document(OBJID + ".$**", 1);
+        Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
          
         createObjTagHolder(bt.getName());
@@ -641,7 +641,8 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
-        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        //FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        FindIterable fit = buckets.find(eq(BUCKETID, new Metadata(bucketName, "/").getBucketId()));
         Document doc =(Document)fit.first();
         return parseBucket(bucketName, doc);
     }

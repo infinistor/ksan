@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataPutObjectTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Tagging;
@@ -51,11 +50,8 @@ public class KsanPutObjectTagging extends S3Request {
 		String object = s3Parameter.getObjectName();
 		GWUtils.checkCors(s3Parameter);
 
-		DataPutObjectTagging dataPutObjectTagging = new DataPutObjectTagging(s3Parameter);
-		dataPutObjectTagging.extract();
-
 		String taggingCount = GWConstants.TAGGING_INIT;
-		String taggingXml = dataPutObjectTagging.getTaggingXml();
+		String taggingXml = s3RequestData.getTaggingXml();
 		try {
 			Tagging tagging = new XmlMapper().readValue(taggingXml, Tagging.class);
 
@@ -89,7 +85,7 @@ public class KsanPutObjectTagging extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		String versionId = dataPutObjectTagging.getVersionId();
+		String versionId = s3RequestData.getVersionId();
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
@@ -97,27 +93,11 @@ public class KsanPutObjectTagging extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 		
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		s3Metadata.setTaggingCount(taggingCount);
-		// ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonMeta = "";
-		try {
-			objectMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonMeta = objectMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		objMeta.setMeta(jsonMeta);
+
+		objMeta.setMeta(s3Metadata.toString());
 		objMeta.setTag(taggingXml);
 
 		updateObjectTagging(objMeta);

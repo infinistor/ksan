@@ -187,11 +187,13 @@ public class PostObject extends S3Request {
 			S3Signing s3signing = new S3Signing(s3Parameter);
 			s3Parameter = s3signing.validatePost(dataPostObject);
 
-			if (!isGrantBucket(s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
+			if (!checkGrant(true, false, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE)) {
+				logger.error(GWConstants.LOG_REQUEST_PUBLIC_ACCESS_DENIED);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		} else {
-			if (!isGrantBucket(GWConstants.LOG_REQUEST_ROOT_ID, GWConstants.GRANT_WRITE)) {
+			if (!checkGrant(true, false, GWConstants.LOG_REQUEST_ROOT_ID, GWConstants.GRANT_WRITE)) {
+				logger.error(GWConstants.LOG_REQUEST_PUBLIC_ACCESS_DENIED);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 			}
 		}
@@ -217,9 +219,10 @@ public class PostObject extends S3Request {
 		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
 
 		S3Metadata s3Metadata = new S3Metadata();
+		s3Metadata.setName(object);
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-		s3Metadata.setUserMetadataMap(dataPostObject.getUserMetadata());
+		s3Metadata.setUserMetadata(dataPostObject.getUserMetadata());
 		s3Metadata.setContentLength(contentLength);
 
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
@@ -256,21 +259,7 @@ public class PostObject extends S3Request {
 			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
 
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
-										null, 
-										dataPostObject.getAclKeyword(), 
-										null, 
-										dataPostObject.getAcl(),
-										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
-										dataPostObject.getGrantRead(),
-										dataPostObject.getGrantWrite(), 
-										dataPostObject.getGrantFullControl(), 
-										dataPostObject.getGrantReadAcp(), 
-										dataPostObject.getGrantWriteAcp(),
-										s3Parameter,
-										false);
+		String aclXml = makeAcl(null, dataPostObject);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
@@ -359,19 +348,9 @@ public class PostObject extends S3Request {
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonmeta = "";
-		try {
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
+			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);

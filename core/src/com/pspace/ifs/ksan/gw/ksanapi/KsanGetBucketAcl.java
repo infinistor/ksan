@@ -16,7 +16,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -41,11 +40,8 @@ public class KsanGetBucketAcl extends S3Request {
 		initBucketInfo(bucket);
 
 		GWUtils.checkCors(s3Parameter);
-		
-		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
-		dataGetObjectAcl.extract();
 
-		String aclInfo = getBucketInfo().getAcl();
+		String aclInfo = bucketAccessControlPolicy.toXml();
 		logger.debug(GWConstants.LOG_ACL, aclInfo);
 		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
 			aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;

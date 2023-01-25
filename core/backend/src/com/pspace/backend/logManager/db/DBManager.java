@@ -8,18 +8,19 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db;
+package com.pspace.backend.logManager.db;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Config.DBConfig;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
+import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
-
-import db.mariaDB.MariaDBManager;
-import db.mongoDB.MongoDBManager;
+import com.pspace.backend.logManager.db.mariaDB.MariaDBManager;
+import com.pspace.backend.logManager.db.mongoDB.MongoDBManager;
 
 public class DBManager {
 	static final Logger logger = LoggerFactory.getLogger(DBManager.class);
@@ -56,6 +57,9 @@ public class DBManager {
 
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return dbManager.insertLifecycleLog(data);
+	}
+	public boolean insertRestoreLog(RestoreLogData data) {
+		return dbManager.insertRestoreLog(data);
 	}
 
 	public boolean insertApiMeter(int minutes) {

@@ -58,15 +58,7 @@ public class GetBlob extends AzuRequest {
         String versionId = GWConstants.VERSIONING_DISABLE_TAIL;
         
         Metadata objMeta = open(containerName, blobName);
-        S3Metadata s3Metadata = new S3Metadata();
-        ObjectMapper jsonMapper = new ObjectMapper();
-        try {
-            logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-            s3Metadata = jsonMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-        } catch (JsonProcessingException e) {
-            PrintStack.logging(logger, e);
-            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        }
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
         String range = azuParameter.getRequest().getHeader(AzuConstants.X_MS_RANGE);
         logger.debug("range : {}", range);

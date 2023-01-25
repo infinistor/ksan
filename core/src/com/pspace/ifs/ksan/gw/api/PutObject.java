@@ -24,7 +24,6 @@ import com.google.common.base.Strings;
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataPutObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -72,40 +71,36 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
-		dataPutObject.extract();
-
-		boolean effectPolicy = checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter, dataPutObject);
+		boolean effectPolicy = checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT, s3Parameter);
 		if (!effectPolicy) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 
 		S3Metadata s3Metadata = new S3Metadata();
+		s3Metadata.setName(object);
 
-		String cacheControl = dataPutObject.getCacheControl();
-		String contentDisposition = dataPutObject.getContentDisposition();
-		String contentEncoding = dataPutObject.getContentEncoding();
-		String contentLanguage = dataPutObject.getContentLanguage();
-		String contentType = dataPutObject.getContentType();
-		String contentLengthString = dataPutObject.getContentLength();
-		String decodedContentLengthString = dataPutObject.getDecodedContentLength();
-		String contentMD5String = dataPutObject.getContentMD5();
-		String customerAlgorithm = dataPutObject.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataPutObject.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataPutObject.getServerSideEncryptionCustomerKeyMD5();
-		String serversideEncryption = dataPutObject.getServerSideEncryption();
-		String storageClass = dataPutObject.getStorageClass();
+		String cacheControl = s3RequestData.getCacheControl();
+		String contentDisposition = s3RequestData.getContentDisposition();
+		String contentEncoding = s3RequestData.getContentEncoding();
+		String contentLanguage = s3RequestData.getContentLanguage();
+		String contentType = s3RequestData.getContentType();
+		String contentLengthString = s3RequestData.getContentLength();
+		String decodedContentLengthString = s3RequestData.getDecodedContentLength();
+		String contentMD5String = s3RequestData.getContentMD5();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String serversideEncryption = s3RequestData.getServerSideEncryption();
+		String storageClass = s3RequestData.getStorageClass();
 
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
 		}
 		String diskpoolId = s3Parameter.getUser().getUserDiskpoolId(storageClass);
 
-		logger.debug("storage class : {}, diskpoolId : {}", storageClass, diskpoolId);
-
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
-		s3Metadata.setUserMetadataMap(dataPutObject.getUserMetadata());
+		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
 		if (!Strings.isNullOrEmpty(serversideEncryption)) {
 			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
@@ -128,9 +123,13 @@ public class PutObject extends S3Request {
 		if (!Strings.isNullOrEmpty(contentLanguage)) {
 			s3Metadata.setContentLanguage(contentLanguage);
 		}
+
 		if (!Strings.isNullOrEmpty(contentType)) {
 			s3Metadata.setContentType(contentType);
+		} else {
+			s3Metadata.setContentType(GWConstants.CONTENT_TYPE_X_DIRECTORY);
 		}
+
 		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
 			s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		}
@@ -174,29 +173,8 @@ public class PutObject extends S3Request {
 			}
 		}
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
+		String aclXml = makeAcl(null, false);
 
-		String aclXml = GWUtils.makeAclXml(accessControlPolicy, 
-										null, 
-										dataPutObject.hasAclKeyword(), 
-										null, 
-										dataPutObject.getAcl(),
-										getBucketInfo(),
-										s3Parameter.getUser().getUserId(),
-										s3Parameter.getUser().getUserName(),
-										dataPutObject.getGrantRead(),
-										dataPutObject.getGrantWrite(), 
-										dataPutObject.getGrantFullControl(), 
-										dataPutObject.getGrantReadAcp(), 
-										dataPutObject.getGrantWriteAcp(),
-										s3Parameter,
-										false);
-		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
 		// check encryption
@@ -209,8 +187,8 @@ public class PutObject extends S3Request {
 		Tagging tagging = new Tagging();
 		tagging.tagset = new TagSet();
 		
-		if (!Strings.isNullOrEmpty(dataPutObject.getTagging())) {
-			String strtaggingInfo = dataPutObject.getTagging();
+		if (!Strings.isNullOrEmpty(s3RequestData.getTagging())) {
+			String strtaggingInfo = s3RequestData.getTagging();
 			String[] strtagset = strtaggingInfo.split(GWConstants.AMPERSAND);
 			int starttag = 0;
 			for (String strtag : strtagset) {
@@ -268,7 +246,7 @@ public class PutObject extends S3Request {
 			}
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockMode())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockMode())) {
 			try {
 				logger.debug(GWConstants.LOG_OBJECT_LOCK, getBucketInfo().getObjectLock());
 				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
@@ -281,17 +259,17 @@ public class PutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			if (!dataPutObject.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !dataPutObject.getObjectLockMode().equals(GWConstants.COMPLIANCE) ) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, dataPutObject.getObjectLockMode());
+			if (!s3RequestData.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !s3RequestData.getObjectLockMode().equals(GWConstants.COMPLIANCE) ) {
+				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, s3RequestData.getObjectLockMode());
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 
-			s3Metadata.setLockMode(dataPutObject.getObjectLockMode());
+			s3Metadata.setLockMode(s3RequestData.getObjectLockMode());
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockRetainUntilDate())) {
-			if (!dataPutObject.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !dataPutObject.getObjectLockMode().equals(GWConstants.COMPLIANCE)) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, dataPutObject.getObjectLockMode());
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockRetainUntilDate())) {
+			if (!s3RequestData.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !s3RequestData.getObjectLockMode().equals(GWConstants.COMPLIANCE)) {
+				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, s3RequestData.getObjectLockMode());
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 
@@ -306,10 +284,10 @@ public class PutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			s3Metadata.setLockExpires(dataPutObject.getObjectLockRetainUntilDate());
+			s3Metadata.setLockExpires(s3RequestData.getObjectLockRetainUntilDate());
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockLegalHold())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockLegalHold())) {
 			try {
 				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 				if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED) ) {
@@ -321,11 +299,10 @@ public class PutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			s3Metadata.setLegalHold(dataPutObject.getObjectLockLegalHold());
+			s3Metadata.setLegalHold(s3RequestData.getObjectLockLegalHold());
 		}
 
-		// long dbStart = System.currentTimeMillis();
-		String versioningStatus = getBucketVersioning(bucket);
+		String versioningStatus = getBucketInfo().getVersioning();
 		String versionId = null;
 		Metadata objMeta = null;
 		boolean isExist = false;
@@ -351,14 +328,11 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
-		// long dbEnd = System.currentTimeMillis();
-		// logger.error("put, db op : {}", dbEnd - dbStart);
 
 		if (isExist && !effectPolicy) {
-			if (Strings.isNullOrEmpty(objMeta.getAcl())) {
-				objMeta.setAcl(GWUtils.makeOriginalXml(aclXml, s3Parameter));
+			if (objectAccessControlPolicy != null) {
+				checkGrantObject(false, GWConstants.GRANT_WRITE);
 			}
-			checkGrantObject(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
 		}
 
 		s3Parameter.setVersionId(versionId);
@@ -378,20 +352,9 @@ public class PutObject extends S3Request {
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonmeta = "";
-		try {
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			// logger.debug("taggingxml : {}", taggingxml);
-			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
+			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, versionId);
@@ -400,12 +363,15 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-		// long fileEnd = System.currentTimeMillis();
-		// logger.error("put file op : {}", fileEnd - dbEnd);
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			logger.debug("customerAlgorithm : {}", customerAlgorithm);
+			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, customerAlgorithm);
+		}
+
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Object.getVersionId());
-			logger.debug(GWConstants.LOG_PUT_OBJECT_VERSIONID, s3Object.getVersionId());
+			
 		}
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}

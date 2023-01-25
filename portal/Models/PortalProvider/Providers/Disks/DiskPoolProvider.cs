@@ -29,6 +29,7 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using PortalData.Responses.Servers;
 using PortalData.Enums;
+using MTLib.Reflection;
 
 namespace PortalProvider.Providers.DiskGuids
 {
@@ -316,13 +317,13 @@ namespace PortalProvider.Providers.DiskGuids
 		/// <param name="SearchFields">검색필드 목록 (Name, Description, Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 풀 목록 객체</returns>
-		public async Task<ResponseList<ResponseDiskPool>> GetList(
+		public async Task<ResponseList<ResponseDiskPoolWithDisks>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
-			var Result = new ResponseList<ResponseDiskPool>();
+			var Result = new ResponseList<ResponseDiskPoolWithDisks>();
 			try
 			{
 				// 기본 정렬 정보 추가
@@ -346,8 +347,22 @@ namespace PortalProvider.Providers.DiskGuids
 						)
 					)
 					.Include(i => i.EC)
+					.Include(i => i.Disks)
 					.OrderByWithDirection(OrderFields, OrderDirections)
-					.CreateListAsync<dynamic, ResponseDiskPool>(Skip, CountPerPage);
+					.CreateListAsync<dynamic, ResponseDiskPoolWithDisks>(Skip, CountPerPage);
+
+				//서버 목록을 가져온다.
+				var Servers = await m_dbContext.Servers.AsNoTracking().ToListAsync();
+
+				foreach (var DiskPool in Result.Data.Items)
+				{
+					// 디스크에 서버와 디스크풀 이름을 추가한다.
+					foreach (var Disk in DiskPool.Disks)
+					{
+						Disk.DiskPoolName = DiskPool.Name;
+						if (Guid.TryParse(Disk.ServerId, out Guid ServerGuid)) Disk.ServerName = Servers.First(i => i.Id == ServerGuid).Name;
+					}
+				}
 
 				Result.Result = EnumResponseResult.Success;
 
@@ -377,26 +392,44 @@ namespace PortalProvider.Providers.DiskGuids
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.DiskPools.AsNoTracking().Include(i => i.EC).CreateListAsync<DiskPool, ResponseDiskPoolDetails>();
 
-				foreach (var DiskPool in Result.Data.Items)
+				for (int index = Result.Data.TotalCount - 1; index >= 0; index--)
 				{
+					var DiskPool = Result.Data.Items[index];
+					decimal TotalSize = 0;
+					decimal UsedSize = 0;
+					// 선택한 디스크풀의 Guid값을 가져온다.
 					if (!Guid.TryParse(DiskPool.Id, out Guid DiskPoolGuid)) continue;
-					var Data = await m_dbContext.Servers.AsNoTracking()
+
+					// 선택한 디스크 풀에 할당된 디스크의 목록 서버별로 가져온다.
+					var Servers = await m_dbContext.Servers.AsNoTracking()
 						.Include(i => i.Disks.Where(j => j.DiskPoolId == DiskPoolGuid))
 						.Include(i => i.NetworkInterfaces)
 						.CreateListAsync<Server, ResponseServerDetail>();
 
-					if (Data.Items.Count != 0)
+					for (int n = Servers.Items.Count - 1; n >= 0; n--)
 					{
-						var DiskPools = new List<ResponseServerDetail>();
-						for (int n = Data.Items.Count - 1; n >= 0; n--)
+						var Server = Servers.Items[n];
+						// 서버에 할당된 디스크가 없을 경우 목록에서 삭제
+						if (Server.Disks == null || Server.Disks.Count == 0) Servers.Items.RemoveAt(n);
+						else
 						{
-							if (Data.Items[n].Disks == null) Data.Items.RemoveAt(n);
-							else if (Data.Items[n].Disks.Count == 0) Data.Items.RemoveAt(n);
+							// 서버에 할당된 디스크 용량을 더한다.
+							TotalSize += Server.Disks.Sum(i => i.TotalSize);
+							UsedSize += Server.Disks.Sum(i => i.UsedSize);
 						}
-						DiskPool.Servers.AddRange(Data.Items);
 					}
-				}
 
+					// 디스크풀에 할당된 디스크가 없을 경우 목록에서 제거한다.
+					if (Servers.Items.Count == 0) Result.Data.Items.Remove(DiskPool);
+					// 조회한 정보를 저장한다.
+					else
+					{
+						DiskPool.Servers.AddRange(Servers.Items);
+						DiskPool.TotalSize = TotalSize;
+						DiskPool.UsedSize = UsedSize;
+					}
+
+				}
 				Result.Result = EnumResponseResult.Success;
 
 			}

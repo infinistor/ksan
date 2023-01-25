@@ -11,22 +11,28 @@
 package com.pspace.backend.libs;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.InputStream;
-import java.io.File;
-import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);
@@ -44,10 +50,39 @@ public class Utility {
 		}
 	}
 
-	public static String GetNowTime()
-	{
+	public static String GetNowTime() {
 		var now = new Date();
 		return simpleDateFormat.format(now);
+	}
+
+	public static int String2Time(String Value) {
+		if (Value == null || Value.isBlank())
+			return -1;
+
+		String Token[] = Value.split(":");
+		if (Token.length > 1) {
+			int Hour = Integer.parseInt(Token[0]);
+			int Min = Integer.parseInt(Token[1]);
+			return Hour * 60 + Min;
+		} else
+			return -1;
+	}
+
+	public static boolean isRun(int Time) {
+		return Time == GetNowTimetoInt();
+	}
+
+	public static int GetNowDay() {
+		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+		return time.get(Calendar.DAY_OF_YEAR);
+	}
+
+	public static int GetNowTimetoInt() {
+		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+		int Hour = time.get(Calendar.HOUR_OF_DAY);
+		int Minute = time.get(Calendar.MINUTE);
+
+		return Hour * 60 + Minute;
 	}
 
 	public static void Delay(int milliseconds) {
@@ -79,4 +114,14 @@ public class Utility {
 	public static InputStream CreateBody(String Body) {
 		return new ByteArrayInputStream(Body.getBytes());
 	}
+
+	public static AmazonS3 CreateClient(S3RegionData region) {
+		BasicAWSCredentials awsCreds = new BasicAWSCredentials(region.AccessKey, region.SecretKey);
+		logger.debug("Client : {}, {}", region.AccessKey, region.SecretKey);
+
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(region.getHttpURL(), ""))
+				.withPathStyleAccessEnabled(true).build();
+	}
+
 }

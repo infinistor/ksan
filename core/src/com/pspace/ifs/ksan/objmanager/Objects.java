@@ -115,7 +115,10 @@ public class Objects {
         
         try {
             mt = _open(bucketName, key, versionId);
-            return mt; 
+            if (mt.getPrimaryDisk().getDiskPoolId().equals(diskPoolId))
+                return mt; 
+            else
+              return _create(bucketName, key, versionId, diskPoolId, algorithm);  
         } catch (ResourceNotFoundException ex) {
             mt = _create(bucketName, key, versionId, diskPoolId, algorithm); 
             return mt; 

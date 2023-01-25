@@ -8,6 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+package com.pspace.backend.replication;
 
 import java.util.TimeZone;
 
@@ -17,12 +18,10 @@ import org.slf4j.LoggerFactory;
 import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Heartbeat.Heartbeat;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.PortalManager;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
-
-import Replicator.MainReplicator;
-import config.ConfigManager;
+import com.pspace.backend.replication.Replicator.MainReplicator;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -40,7 +39,7 @@ public class Main {
 		logger.info("ksanAgent Read end");
 		
 		// Get Service Id
-		var ServiceId = Utility.ReadServiceId(Constants.REPLICATION_SERVICE_ID_PATH);
+		var ServiceId = Utility.ReadServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 		if (ServiceId == null) {
 			logger.error("Service Id is Empty");
 			return;
@@ -67,13 +66,7 @@ public class Main {
 		logger.info("Portal initialized");
 
 		// replication 설정을 읽어온다.
-		var config = ConfigManager.getInstance();
-		try {
-			config.update();
-		} catch (Exception e) {
-			logger.error("", e);
-			return;
-		}
+		var config = portal.getReplicationManagerConfig();
 		logger.info(config.toString());
 
 		// ObjManager 초기화
@@ -85,10 +78,9 @@ public class Main {
 			return;
 		}
 
-
 		// Replication Initialization
 		var Replicator = new MainReplicator();
-		if (!Replicator.Start(config.getReplicationUploadThreadCount())) {
+		if (!Replicator.Start(config.threadCount)) {
 			logger.error("MainReplicator is not started!");
 			return;
 		}

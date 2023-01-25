@@ -13,7 +13,7 @@ using PortalData.Enums;
 namespace PortalData.Responses.Disks
 {
 	/// <summary>디스크 정보 응답 클래스</summary>
-	public class ResponseDisk
+	public class ResponseDisk : ResponseDataWithModifiedBy
 	{
 		/// <summary>디스크 아이디</summary>
 		public string Id { get; set; }
@@ -57,10 +57,10 @@ namespace PortalData.Responses.Disks
 		/// <summary>사용된 크기</summary>
 		public decimal UsedSize { get; set; }
 
-		/// <summary>읽기</summary>
+		/// <summary>디스크 읽기</summary>
 		public decimal Read { get; set; }
 
-		/// <summary>사용된 크기</summary>
+		/// <summary>디스크 쓰기</summary>
 		public decimal Write { get; set; }
 
 		/// <summary>디스크 읽기/쓰기 모드</summary>

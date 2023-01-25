@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ObjManagerConfig {
     public String dbHost;
-    public long dbport;
+    public long dbPort;
     public String dbName;
     public String dbUsername;
     public String dbPassword;
@@ -47,7 +47,7 @@ public class ObjManagerConfig {
             String mqOsdExchangename) throws IOException{
         this.dbRepository = dbRepository;
         this.dbHost = dbHost;
-        this.dbport = dbport;
+        this.dbPort = dbport;
         this.dbName = dbName;
         this.dbUsername = dbUsername;
         this.dbPassword = dbPassword;

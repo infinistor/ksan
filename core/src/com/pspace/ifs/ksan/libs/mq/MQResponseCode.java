@@ -10,7 +10,7 @@ package com.pspace.ifs.ksan.libs.mq;
  * @author legesse
  */
 public enum MQResponseCode {
-    MQ_SUCESS("MQ_SUCESS"), 
+    MQ_SUCCESS("MQ_SUCESS"), 
     MQ_OBJECT_NOT_FOUND("MQ_OBJECT_NOT_FOUND"), 
     MQ_OBJECT_EXIST("MQ_OBJECT_EXIST"), 
     MQ_NOSPACE_LEFT_IN_DISK("MQ_NOSPACE_LEFT_IN_DISK"), 

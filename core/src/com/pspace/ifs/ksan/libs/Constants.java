@@ -15,11 +15,13 @@ public class Constants {
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
 
 	public static final char CHAR_SLASH = '/';
+	public static final char CHAR_POINT = '.';
 	public static final String SLASH = "/";
 	public static final String UNDERSCORE = "_";
 	public static final String DASH = "-";
 	public static final String POINT = ".";
 	public static final String SPACE = " ";
+	public static final String COMMA = ",";
 
 	public static final String OBJ_DIR = "obj";
 	public static final String TEMP_DIR = "temp";
@@ -88,12 +90,15 @@ public class Constants {
 	public static final int FILE_ATTRIBUTE_REPLICATION_SIZE = 3;
 	public static final int FILE_ATTRIBUTE_REPLICATION_DISK_ID_SIZE = 36;
 
-	public static final String ZFEC = "zfec -d ";
+	public static final String ZFEC = "zfec -f -d ";
     public static final String ZFEC_PREFIX_OPTION = " -p ";
     public static final String ZFEC_TOTAL_SHARES_OPTION = " -m ";
 	public static final String ZFEC_REQUIRED_SHARES_OPTION = " -k ";
 	public static final String ZFEC_SUFFIX = ".fec";
-	public static final String ZUNFEC = "zunfec -o ";
+	public static final String ZUNFEC = "zunfec -f -o ";
+
+	public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
+	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 
 	private Constants() {
 		throw new IllegalStateException("Utility class");

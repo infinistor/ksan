@@ -593,9 +593,15 @@ namespace PortalModels
 		{
 			modelBuilder.Entity<Disk>().ToTable(@"DISKS");
 			modelBuilder.Entity<Disk>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<Disk>().Property(x => x.ServerId).HasColumnName(@"SERVER_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.RegId).HasColumnName(@"REG_ID").ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.RegName).HasColumnName(@"REG_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
+			modelBuilder.Entity<Disk>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.ModId).HasColumnName(@"MOD_ID").ValueGeneratedNever();
+			modelBuilder.Entity<Disk>().Property(x => x.ModName).HasColumnName(@"MOD_NAME").ValueGeneratedOnAdd().HasMaxLength(255);
+			modelBuilder.Entity<Disk>().Property(x => x.ModDate).HasColumnName(@"MOD_DATE").ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.Path).HasColumnName(@"PATH").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Disk>().Property(x => x.State).HasColumnName(@"STATE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"-2");
 			modelBuilder.Entity<Disk>().Property(x => x.TotalInode).HasColumnName(@"TOTAL_INODE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");

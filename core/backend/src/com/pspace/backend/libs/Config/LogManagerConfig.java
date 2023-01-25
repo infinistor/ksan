@@ -10,48 +10,51 @@
 */
 package com.pspace.backend.libs.Config;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
-public class LogManagerConfig {
+public class LogManagerConfig implements IConfig {
 
 	@JsonProperty("ksan.region")
 	public String Region;
 
 	@JsonProperty("logM.db_repository")
-	public String DBType;
+	public String dbType;
 
 	@JsonProperty("logM.db_host")
-	public String DBHost;
+	public String dbHost;
 
 	@JsonProperty("logM.db_port")
-	public int DBPort;
+	public int dbPort;
 
 	@JsonProperty("logM.db_name")
-	public String DBName;
+	public String dbName;
 
 	@JsonProperty("logM.db_user")
-	public String DBUser;
+	public String dbUser;
 
 	@JsonProperty("logM.db_password")
-	public String DBPassword;
+	public String dbPassword;
 
 	@JsonProperty("logM.db_pool_size")
-	public int DBPoolSize;
-	
+	public int dbPoolSize;
+
 	@JsonProperty("logM.db_expires")
-	public int DBExpires;
-	
+	public int dbExpires;
+
 	@JsonProperty("logM.check_interval")
-	public int CheckInterval;
+	public int checkInterval;
 
 	@JsonProperty("logM.meter_minute")
-	public int MeterMinute;
-	
+	public int meterMinute;
+
 	@JsonProperty("logM.assert_hour")
-	public int AssertHour;
-	
+	public int assertHour;
+
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
@@ -60,5 +63,31 @@ public class LogManagerConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
+	}
+
+	public ObjManagerConfig getObjManagerConfig() throws IOException {
+		var config = new ObjManagerConfig();
+		config.dbRepository = dbType;
+		config.dbHost = dbHost;
+		config.dbPort = dbPort;
+		config.dbName = dbName;
+		config.dbUsername = dbUser;
+		config.dbPassword = dbPassword;
+
+		return config;
+	}
+
+	public DBConfig getDBConfig() {
+		var config = new DBConfig();
+		config.Type = dbType;
+		config.Host = dbHost;
+		config.Port = dbPort;
+		config.DatabaseName = dbName;
+		config.User = dbUser;
+		config.Password = dbPassword;
+		config.PoolSize = dbPoolSize;
+		config.Expires = dbExpires;
+
+		return config;
 	}
 }

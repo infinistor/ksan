@@ -76,7 +76,10 @@ public class NotIpAddress extends PolicyCondition {
         for (String s : value) {
             IPAddressString network = new IPAddressString(s);
             IPAddressString address = new IPAddressString(comp);
+            logger.debug("{}, {}", network.getAddress().getCount(), address.getAddress().getCount());
+            logger.debug("policy not ip : {}, comp ip : {}", s, comp);
             if (!network.contains(address)) {
+                logger.debug("not contains ip : {}, {}", s, comp);
                 ret = true;
                 break;
             }

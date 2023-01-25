@@ -25,7 +25,6 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataUploadPartCopy;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -67,25 +66,22 @@ public class UploadPartCopy extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 		
-		checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
-		
-		DataUploadPartCopy dataUploadPartCopy = new DataUploadPartCopy(s3Parameter);
-		dataUploadPartCopy.extract();
+		checkGrantBucket(false, GWConstants.GRANT_WRITE);
 
-		String partNumber = dataUploadPartCopy.getPartNumber();
-		String uploadId = dataUploadPartCopy.getUploadId();
-		String copySource = dataUploadPartCopy.getCopySource();
-		String copySourceRange = dataUploadPartCopy.getCopySourceRange();
-		String copySourceIfMatch = dataUploadPartCopy.getCopySourceIfMatch();
-		String copySourceIfNoneMatch = dataUploadPartCopy.getCopySourceIfNoneMatch();;
-		String copySourceIfModifiedSince = dataUploadPartCopy.getCopySourceIfModifiedSince();
-		String copySourceIfUnmodifiedSince = dataUploadPartCopy.getCopySourceIfUnmodifiedSince();
-		String customerAlgorithm = dataUploadPartCopy.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataUploadPartCopy.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataUploadPartCopy.getServerSideEncryptionCustomerKeyMD5();
-		String copySourceCustomerAlgorithm = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerAlgorithm();
-		String copySourceCustomerKey = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerKey();
-		String copySourceCustomerKeyMD5 = dataUploadPartCopy.getCopySourceServerSideEncryptionCustomerKeyMD5(); 
+		String partNumber = s3RequestData.getPartNumber();
+		String uploadId = s3RequestData.getUploadId();
+		String copySource = s3RequestData.getCopySource();
+		String copySourceRange = s3RequestData.getCopySourceRange();
+		String copySourceIfMatch = s3RequestData.getCopySourceIfMatch();
+		String copySourceIfNoneMatch = s3RequestData.getCopySourceIfNoneMatch();;
+		String copySourceIfModifiedSince = s3RequestData.getCopySourceIfModifiedSince();
+		String copySourceIfUnmodifiedSince = s3RequestData.getCopySourceIfUnmodifiedSince();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String copySourceCustomerAlgorithm = s3RequestData.getCopySourceServerSideEncryptionCustomerAlgorithm();
+		String copySourceCustomerKey = s3RequestData.getCopySourceServerSideEncryptionCustomerKey();
+		String copySourceCustomerKeyMD5 = s3RequestData.getCopySourceServerSideEncryptionCustomerKeyMD5(); 
 
 		// Check copy source
 		if (Strings.isNullOrEmpty(copySource)) {
@@ -150,18 +146,11 @@ public class UploadPartCopy extends S3Request {
 		
 		logger.debug(GWConstants.LOG_SOURCE_INFO, srcBucket, srcObjectName, srcVersionId);
 
-		// srcMeta.setAcl(GWUtils.makeOriginalXml(srcMeta.getAcl(), s3Parameter));
-		checkGrantObject(s3Parameter.isPublicAccess(), srcMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		checkGrantObject(false, GWConstants.GRANT_READ);
 
 		// get metadata
-		S3Metadata s3SrcMetadata = new S3Metadata();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			s3SrcMetadata = jsonMapper.readValue(srcMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3SrcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
+
 		S3ObjectEncryption s3SrcObjectEncryption = new S3ObjectEncryption(s3Parameter, s3SrcMetadata);
 		s3SrcObjectEncryption.build();
 
@@ -223,13 +212,7 @@ public class UploadPartCopy extends S3Request {
 		}
 
 		// get metadata
-		S3Metadata s3Metadata = new S3Metadata();
-		try {
-			s3Metadata = jsonMapper.readValue(multipart.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 
 		if (!Strings.isNullOrEmpty(customerKey)) {
 			if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
@@ -247,13 +230,6 @@ public class UploadPartCopy extends S3Request {
 		if (path == null) {
 			path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
 		}
-		// Metadata objMeta = createCopy(srcBucket, srcObjectName, srcVersionId, bucket, object);
-
-		// String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
-		// if (path == null) {
-		// 	logger.error(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
-		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		// }
 		
 		S3Object s3Object = null;
 		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
