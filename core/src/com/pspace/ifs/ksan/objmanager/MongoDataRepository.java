@@ -163,6 +163,11 @@ public class MongoDataRepository implements DataRepository{
         String credential;
         String authSRC;
         
+        if (hosts.contains("mongodb://")){
+            url = hosts;
+            return;
+        }
+        
         if (!username.isEmpty()){
             credential = String.format("%s:%s@", username, passwd);
             authSRC = String.format("/?authSource=%s", dbname);
