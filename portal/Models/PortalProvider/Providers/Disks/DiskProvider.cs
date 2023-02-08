@@ -387,7 +387,7 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.State = (EnumDbDiskState)State;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 						// 데이터가 변경된 경우 저장
@@ -468,7 +468,7 @@ namespace PortalProvider.Providers.DiskGuids
 						Exist.UsedSize = Request.UsedSize;
 						Exist.Read = Request.Read;
 						Exist.Write = Request.Write;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 
@@ -564,7 +564,7 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.RwMode = (EnumDbDiskRwMode)DiskRwMode;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 
