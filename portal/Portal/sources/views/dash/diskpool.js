@@ -36,16 +36,20 @@ export default class DiskpoolView extends JetView {
 					xCount: 1,
 					id: MY_TABLE,
 					scroll: "auto",
+					css : "my_list",
 					type: {
-						height: 100,
+						height: 85,
 						template: (obj) => {
 							const totalUnits = obj.TotalSize;
 							const takenUnits = totalUnits > 0 ? Math.floor((obj.UsedSize / totalUnits) * 100) : 0;
-							const curve = drawCurve(50, 50, 25, takenUnits);
+							const x = 50;
+							const y = 40;
+							const r = 25;
+							const curve = drawCurve(x, y, r, takenUnits);
 							return `
 							<div style="padding-left:6px;">
-								<svg class="diskpools_unit" height="100" width="100">
-								<circle cx="50" cy="50" r="25" stroke="#DADEE0" stroke-width="15" fill="none" />
+								<svg class="diskpools_unit" height="85" width="100">
+								<circle cx="${x}" cy="${y}" r="${r}" stroke="#DADEE0" stroke-width="15" fill="none" />
 								<path d="${curve}" stroke="#1395F5" stroke-width="15" fill="none" />
 								Sorry, your browser does not support inline SVG.
 								</svg>
