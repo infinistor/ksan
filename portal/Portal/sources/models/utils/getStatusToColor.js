@@ -25,33 +25,7 @@ export function getStatusToColor(obj) {
 		case "Timeout":
 		default:
 			color = "#E63031";
-			text = "UnHealthy";
+			text = "Unhealthy";
 	}
 	return `<span style="color:${color}; font-weight:bold; font-size:15px;"> (${text})</span>`;
 }
-// /**
-//  * 서버나 서비스의 상태 정보를 반환한다.
-//  * @param {any} obj 상태정보를 포함한 객체
-//  * @returns 색을 입힌 상태 정보
-//  */
-// export function getStatusToColor(obj, style = "") {
-// 	var color = "gray";
-// 	var text = "Healthy";
-// 	switch (obj.State) {
-// 		case "Online":
-// 			color = "#2CCD70";
-// 			break;
-// 		case "Offline":
-// 			color = "red";
-// 			text = "UnHealthy";
-// 			break;
-// 		case "Timeout":
-// 			color = "blue";
-// 			text = "UnHealthy";
-// 			break;
-// 		default:
-// 			color = "gray";
-// 			text = "UnHealthy";
-// 	}
-// 	return `<span style="color:${color}; ${(style)}"> (${text})</span>`;
-// }
