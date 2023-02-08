@@ -398,7 +398,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
         #if ServerId is not None and ServerId != svr.Id:
         #    continue
         if Detail == MoreDetailInfo:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.ServerName.ljust(15), disk.Name.ljust(15),
                 '{:15.15}'.format(disk.Path.ljust(15)), str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(9),
                str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(8),
                 str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(8),
@@ -407,7 +407,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
             "{:,}".format(int(disk.TotalInode)).rjust(20), "{:,}".format(int(disk.UsedInode)).rjust(20), "{:,}".format(int(disk.ReservedInode)).rjust(20),
              str(disk.DiskPoolName).ljust(15), str(disk.Id).ljust(38))  # svr.ModDate.rjust(20), svr.ModId.rjust(20), svr.ModName.rjust(20), svr.Id.rjust(30))
         elif Detail == DetailInfo:
-                _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+                _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.ServerName.ljust(15), disk.Name.ljust(15),
              '{:15.15}'.format(disk.Path.ljust(15)),
              str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(9),
              str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(8), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(8),
@@ -417,7 +417,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
             "{:,}".format(int(disk.ReservedInode)).rjust(20), str(disk.DiskPoolName).ljust(15))  # svr.ModDate.rjust(20), svr.ModId.rjust(20), svr.ModName.rjust(20), svr.Id.rjust(30))
 
         else:
-            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.Server.Name.ljust(15), disk.Name.ljust(15),
+            _dsp = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (disk.ServerName.ljust(15), disk.Name.ljust(15),
                                        '{:15.15}'.format(disk.Path.ljust(15)),
                                         str(Byte2HumanValue(int(disk.TotalSize), 'TotalSize')).rjust(10),
                                        str(Byte2HumanValue(int(disk.UsedSize), 'UsedSize')).rjust(10), str(Byte2HumanValue(int(disk.TotalSize - disk.UsedSize - disk.ReservedSize), 'FreeSize')).rjust(10),
@@ -436,7 +436,7 @@ def DiskListOrdering(DiskList):
     TotalNewDiskList = list()
     ServerNameDict = dict()
     for diskinfo in DiskList:
-        ServerName = diskinfo.Server.Name
+        ServerName = diskinfo.ServerName
         if ServerName not in ServerNameDict:
             ServerNameDict[ServerName] = list()
             ServerNameDict[ServerName].append(diskinfo)
@@ -608,7 +608,10 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
                     Detail = DetailInfo
                 else:
                     Detail = SimpleInfo
-                ShowDiskInfo(AllDisks, Detail=Detail, Continue=options.Continue)
+                if AllDisks is not None:
+                    ShowDiskInfo(AllDisks, Detail=Detail, Continue=options.Continue)
+                else:
+                    print('fail to get disk info')
             if options.Continue is None:
                 break
             else:

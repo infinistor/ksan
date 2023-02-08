@@ -186,7 +186,7 @@ def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskId
     return Res, Errmsg, Data
 
 
-def GetDiskPoolInfo(Ip, Port, ApiKey,  DiskPoolId=None, DiskPoolName=None, logger=None):
+def OldGetDiskPoolInfo(Ip, Port, ApiKey,  DiskPoolId=None, DiskPoolName=None, logger=None):
     """
     Get All Disk Info with Server Info
     :param Ip:
@@ -226,6 +226,49 @@ def GetDiskPoolInfo(Ip, Port, ApiKey,  DiskPoolId=None, DiskPoolName=None, logge
             return Res, Errmsg, Ret, None
     else:
         return Res, Errmsg, None, None
+
+
+def GetDiskPoolInfo(Ip, Port, ApiKey,  DiskPoolId=None, DiskPoolName=None, logger=None):
+    """
+    Get All Disk Info with Server Info
+    :param Ip:
+    :param Port:
+    :param Disp:
+    :param logger:
+    :return:
+    """
+    if DiskPoolId is not None:
+        TargetDiskPool = DiskPoolId
+    elif DiskPoolName is not None:
+        TargetDiskPool = DiskPoolName
+    else:
+        TargetDiskPool = None
+
+    if TargetDiskPool is not None:
+        Url = "/api/v1/DiskPools/%s" % TargetDiskPool
+        ReturnType = DiskPoolDetailModule
+        ItemsHeader = False
+    else:
+        Url = "/api/v1/DiskPools"
+        ReturnType = DiskPoolItemsModule
+        ItemsHeader = True
+
+    Params = dict()
+    Params['countPerPage'] = 100
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=Params, logger=logger)
+
+    Res, Errmsg, Ret = Conn.get(ItemsHeader=ItemsHeader, ReturnType=ReturnType)
+    if Res == ResOk:
+        if Ret.Result == ResultSuccess:
+            if TargetDiskPool is not None:
+                return Res, Errmsg, Ret, Ret.Data
+            else:
+                return Res, Errmsg, Ret, Ret.Data.Items
+        else:
+            return Res, Errmsg, Ret, None
+    else:
+        return Res, Errmsg, None, None
+
 
 
 def GetAllDiskPoolListDetail(Ip, Port, logger=None):
@@ -325,19 +368,17 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
         TotalDiskList = list()
         ServerNameDict = dict()
         # ordering severname and disk name of diskpool
-        for server in pool.Servers:
-            servername = server['Name']
+        DiskNameDict = dict()
+        for disk in pool.Disks:
+            servername = disk.ServerName
             if servername not in ServerNameDict:
                 ServerNameDict[servername] = list()
-            DiskNameDict = dict()
-            for disk in server['Disks']:
-                diskname = disk['Name']
-                disk['ServerName'] = servername
-                DiskNameDict[diskname] = disk
+            diskname = disk.Name
+            DiskNameDict[diskname] = disk
 
-            for diskname in sorted(DiskNameDict.keys(), key=str.casefold): # ordering disk name
-                diskinfo = DiskNameDict[diskname]
-                ServerNameDict[servername].append(diskinfo)
+        for diskname in sorted(DiskNameDict.keys(), key=str.casefold): # ordering disk name
+            diskinfo = DiskNameDict[diskname]
+            ServerNameDict[diskinfo.ServerName].append(diskinfo)
 
         for server in sorted(ServerNameDict.keys(), key=str.casefold): # ordering server name
             TotalDiskList += ServerNameDict[server]
@@ -345,7 +386,7 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
         if len(TotalDiskList) > 0:
             print(DiskTitleLine)
             for idx, disk in enumerate(TotalDiskList):
-                disk = DictToObject(disk)
+                #disk = DictToObject(disk)
 
                 if SysinfoDsp is True:
                     _disk = "%s|%s|%s|%s|%s|%s|" % (
@@ -546,6 +587,7 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
 
     elif Action.lower() == 'list':
         while True:
+            #Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
             Res, Errmsg, Ret, DiskPoolList = GetDiskPoolInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)
             if Res != ResOk:
                 print(Errmsg)
