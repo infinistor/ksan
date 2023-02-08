@@ -29,32 +29,37 @@ export default class KsanUserView extends JetView {
 		return {
 			rows: [
 				{
+					view: "toolbar",
+					css: "webix_dark",
+					paddingX: 20,
+					elements: [{ view: "label", label: "Users", height: 0 }],
+					height: 50,
+					borderless: true,
+				},
+				{
 					height: 35,
 					cols: [
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-plus",
-							label: "추가",
+							tooltip: "추가",
 							autowidth: true,
 							borderless: true,
 							popup: MY_ADD_WINDOW,
 						},
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-delete",
-							label: "삭제",
+							tooltip: "삭제",
 							autowidth: true,
 							borderless: true,
 							popup: MY_DELETE_WINDOW,
 						},
 						{ view: "spacer" },
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-reload",
-							label: "새로고침",
+							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
 							click: function () {
@@ -70,11 +75,11 @@ export default class KsanUserView extends JetView {
 					select: "row",
 					multiselect: true,
 					resizeColumn: true,
-					checkboxRefresh:true,
+					checkboxRefresh: true,
 					columns: [
 						{ id: "Id", header: "Id", hidden: true },
-						{ id:"Check", header:{ content:"masterCheckbox" }, checkValue:'on', uncheckValue:'off', template:"{common.checkbox()}", width:40},
-						{ id: "Name", header: "User Name", fillspace: true, sort: "string" },
+						{ id: "Check", header: { content: "masterCheckbox" }, checkValue: 'on', uncheckValue: 'off', template: "{common.checkbox()}", width: 40 },
+						{ id: "Name", header: "User Name", fillspace: true, minWidth: 130, sort: "string" },
 						{ id: "AccessKey", header: "Access Key", width: 200, sort: "string" },
 						{ id: "SecretKey", header: "Secret Key", width: 350, sort: "string" },
 						{ id: "Email", header: "Email", width: 150, sort: "string" },

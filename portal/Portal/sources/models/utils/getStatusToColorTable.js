@@ -11,21 +11,21 @@
 
 /**
  * 서버나 서비스의 상태 정보를 반환한다.
- * @param {any} obj 상태정보를 포함한 객체
+ * @param {any} Status 상태정보
  * @returns 색을 입힌 상태 정보
  */
-export function getStatusToColor(obj) {
-	var color = "gray";
-	var text = "Healthy";
-	switch (obj.State) {
+export function getStatusToColor(Status) {
+	var color = "#E63031";
+	switch (Status) {
 		case "Online":
 			color = "#2CCD70";
 			break;
 		case "Offline":
+			color = "#5F5F5F";
+			break;
 		case "Timeout":
 		default:
 			color = "#E63031";
-			text = "Unhealthy";
 	}
-	return `<span style="color:${color}; font-weight:bold; font-size:15px;"> (${text})</span>`;
+	return `<span style="color:${color};"> ${Status}</span>`;
 }

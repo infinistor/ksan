@@ -137,7 +137,7 @@ function stopTimer() {
 function loadDiskUsages() {
 	return webix
 		.ajax()
-		.get("/api/v1/Logs/LastDIskUsages")
+		.get("/api/v1/Disks?SearchStates=Good")
 		.then(
 			function (data) {
 				var response = data.json();

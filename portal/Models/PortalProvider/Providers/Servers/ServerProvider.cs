@@ -97,7 +97,7 @@ namespace PortalProvider.Providers.Servers
 							State = (EnumDbServerState)Request.State,
 							Rack = Request.Rack,
 							MemoryTotal = Request.MemoryTotal,
-							ModId = ModId != null ? ModId : LoginUserId,
+							ModId = ModId != null ? ModId : LoginUserId != Guid.Empty ? LoginUserId : null,
 							ModName = ModName != null ? ModName : LoginUserName,
 							ModDate = DateTime.Now
 						};
@@ -359,7 +359,7 @@ namespace PortalProvider.Providers.Servers
 						// 정보를 수정한다.
 						Exist.State = (EnumDbServerState)State;
 						Exist.ModId = ModGuid != Guid.Empty ? ModGuid : null;
-						Exist.ModName = !LoginUserName.IsEmpty() ? LoginUserName : ModName;
+						Exist.ModName = ModName.IsEmpty() ? LoginUserName : ModName;
 						Exist.ModDate = DateTime.Now;
 
 						await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();

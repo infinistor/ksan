@@ -24,16 +24,7 @@ export default class TopView extends JetView {
 						{ view: "icon", icon: "mdi mdi-menu", click: () => this.app.callEvent("menu:toggle") },
 						{ view: "label", label: "KSAN", css: "header_label" },
 						{},
-						{
-							view: "icon",
-							icon: "mdi mdi-bell",
-							tooltip: "Open latest notifications",
-							click: function () {
-								this.$scope.notifications.showWin(this.$view);
-							},
-						},
-						{ width: 8 },
-						{ view: "icon", icon: "mdi mdi-settings" },
+						// { view: "icon", icon: "mdi mdi-settings" },
 						{
 							view: "icon",
 							icon: "mdi mdi-logout",
@@ -54,8 +45,7 @@ export default class TopView extends JetView {
 								{ id: "dash", value: "Dashboard", icon: "mdi mdi-view-dashboard" },
 								{ id: "servers", value: "Servers", icon: "mdi mdi-server-network" },
 								{ id: "services", value: "Services", icon: "mdi mdi-puzzle" },
-								{ id: "disks", value: "Disks", icon: "mdi mdi-harddisk" },
-								{ id: "diskpools", value: "Diskpools", icon: "mdi mdi-cloud" },
+								{ id: "diskpools", value: "Storage", icon: "mdi mdi-harddisk" },
 								{ id: "ksanusers", value: "Users", icon: "mdi mdi-account-box" },
 							],
 						},

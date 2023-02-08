@@ -71,8 +71,10 @@ public class AccessControlPolicy {
                 if (stk.nextToken().equals(GWConstants.ID)) {
                     accessControlPolicy.owner.id = stk.nextToken();
                 }
-                if (stk.nextToken().equals(GWConstants.JSON_AB_DISPLAY_NAME)) {
-                    accessControlPolicy.owner.displayName = stk.nextToken();
+                if (json.indexOf(GWConstants.JSON_AB_DISPLAY_NAME) > 0) {
+                    if (stk.nextToken().equals(GWConstants.JSON_AB_DISPLAY_NAME)) {
+                        accessControlPolicy.owner.displayName = stk.nextToken();
+                    }
                 }
                 break;
             case GWConstants.JSON_AB_ACL:
@@ -178,18 +180,18 @@ public class AccessControlPolicy {
         indexStart = owner.indexOf(GWConstants.ACL_XML_OWNER_DISPLAYNAME_START, indexStart);
         if (indexStart < 0) {
             logger.info("can not find {}", GWConstants.ACL_XML_OWNER_DISPLAYNAME_START);
-            throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+        } else {
+            indexStart += GWConstants.ACL_XML_OWNER_DISPLAYNAME_START.length();
+            indexEnd = owner.indexOf(GWConstants.ACL_XML_OWNER_DISPLAYNAME_END, indexStart);
+            if (indexEnd < 0) {
+                logger.info("can not find {}", GWConstants.ACL_XML_OWNER_DISPLAYNAME_END);
+            } else {
+                String ownerDisplayName = owner.substring(indexStart, indexEnd);
+                logger.debug("owner display name : {}", ownerDisplayName);
+                accessControlPolicy.owner.displayName = ownerDisplayName;
+            }
         }
-        indexStart += GWConstants.ACL_XML_OWNER_DISPLAYNAME_START.length();
-        indexEnd = owner.indexOf(GWConstants.ACL_XML_OWNER_DISPLAYNAME_END, indexStart);
-        if (indexEnd < 0) {
-            logger.info("can not find {}", GWConstants.ACL_XML_OWNER_DISPLAYNAME_END);
-            throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
-        }
-        String ownerDisplayName = owner.substring(indexStart, indexEnd);
-        logger.debug("owner display name : {}", ownerDisplayName);
-        accessControlPolicy.owner.displayName = ownerDisplayName;
-
+        
         // Access Control List
         indexStart = xml.indexOf(GWConstants.ACL_XML_ACCESS_CONTROL_LIST_START, indexStart);
         if (indexStart < 0) {
@@ -239,7 +241,7 @@ public class AccessControlPolicy {
                     throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
                 }
                 grantIndexStart += GWConstants.ACL_XML_GRANTEE_URI_START.length();
-                grantIndexEnd = aclGrant.indexOf(GWConstants.ACL_XML_GRANTEE_URI_END, grantIndexEnd);
+                grantIndexEnd = aclGrant.indexOf(GWConstants.ACL_XML_GRANTEE_URI_END, grantIndexStart);
                 if (grantIndexEnd < 0) {
                     logger.info("can not find {}", GWConstants.ACL_XML_GRANTEE_URI_END);
                     throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
