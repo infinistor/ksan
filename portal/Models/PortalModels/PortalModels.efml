@@ -94,6 +94,7 @@
 			</Documentation>
 			<Member Name="ReadOnly" p1:Guid="e65510cd-e66e-4d56-87b6-6af4f02add81" />
 			<Member Name="ReadWrite" p1:Guid="75cff32a-af96-4d67-afc3-5b9d3728bb94" />
+			<Member Name="Maintenance" p1:Guid="07c28edc-0a22-4e59-a074-f2a856c0cbe2" />
 		</EnumType>
 		<EnumType Name="EnumDbDiskState" class="EnumDbDiskState" p1:Guid="384e8a83-27a5-4988-9f4a-d141ba29b974">
 			<Documentation>
@@ -2206,7 +2207,7 @@
 			</end2>
 		</association>
 		<association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-			<end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+			<end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
 				<property name="Id" />
 			</end1>
 			<end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">
