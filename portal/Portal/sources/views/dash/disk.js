@@ -15,6 +15,7 @@ import { getDiskMode } from "../../models/utils/getDiskMode";
 
 const MY_URL = "/api/v1/Disks";
 const MY_TABLE = "disk_summary";
+const MY_STATUS = "disk_status";
 
 var Sorting = {
 	title: "used",
@@ -33,7 +34,7 @@ export default class DiskView extends JetView {
 					cols: [
 						{
 							view: "label",
-							label: "<span class='card_title'>Disks</span>",
+							id: MY_STATUS,
 						},
 						{},
 						{
@@ -61,7 +62,8 @@ export default class DiskView extends JetView {
 							click: function () {
 								return Sort("used");
 							}
-						}
+						},
+						{ width: 10 }
 					]
 				},
 				{
@@ -69,7 +71,7 @@ export default class DiskView extends JetView {
 					borderless: true,
 					id: MY_TABLE,
 					minWidth: 600,
-					height: 300,
+					height: 260,
 					css: "my_list",
 					type: {
 						height: "auto",
@@ -87,7 +89,6 @@ export default class DiskView extends JetView {
 						</div>`,
 					},
 					ready: function () {
-						// apply sorting
 						this.sort(SortToUsedRate, "desc");
 					},
 					url: function () {
@@ -101,6 +102,12 @@ export default class DiskView extends JetView {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
 										return null;
 									} else {
+										var status = true;
+										response.Data.Items.forEach(item => {
+											if (item.State != "Good") status = false;
+										});
+										if (status == true) $$(MY_STATUS).setValue("<span class='card_title'>Disks</span> <span class='status_marker healthy'>Healthy</span>");
+										else $$(MY_STATUS).setValue("<span class='card_title'>Disks</span> <span class='status_marker unhealthy'>Unhealthy</span>");
 										return response.Data.Items;
 									}
 								},

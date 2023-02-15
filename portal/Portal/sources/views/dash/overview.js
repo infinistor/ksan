@@ -17,7 +17,7 @@ const KSAN_OSD = "label_ksan_osd";
 const KSAN_LIFECYCLE = "label_ksan_lifecycle";
 const KSAN_LOG = "label_ksan_log";
 const KSAN_REPLICATION = "label_ksan_replication";
-const STATUS_ICON = "status_icon";
+const MY_STATUS = "service_status";
 
 const DEFAULT_PREFIX = "<span class='service_name_default'>ksan</span><span class='service_name'>";
 var global_status = true;
@@ -27,60 +27,51 @@ export default class OverviewView extends JetView {
 			type: "abslayout",
 			minWidth: 600,
 			height: 300,
-			cols: [
+			rows: [
+				{ id: MY_STATUS, view: "label" },
+				{ height: 10 },
 				{
-					rows: [
-						{
-							cols: [
-								{ label: "<span class='card_title'>System Overview</span>", view: "label" },
-								{ id: STATUS_ICON, width: 100, view: "label" },
-							],
-						},
-						{ height: 10 },
-						{
-							height: 35,
-							cols: [
-								{ label: "Region", view: "label", width: 100, height: 35, css: "overview_title" },
-								{ id: REGION_NAME, view: "label", height: 35 },
-							],
-						},
-						{
-							height: 35,
-							cols: [
-								{ label: "Services", view: "label", width: 100, height: 35, css: "overview_title" },
-								{ id: KSAN_AGENT, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ width: 100, height: 35 },
-								{ id: KSAN_GW, height: 35, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ width: 100, height: 35 },
-								{ id: KSAN_OSD, height: 35, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ width: 100, height: 35 },
-								{ id: KSAN_LIFECYCLE, height: 35, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ width: 100, height: 35 },
-								{ id: KSAN_LOG, height: 35, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ width: 100, height: 35 },
-								{ id: KSAN_REPLICATION, height: 35, view: "label" },
-							],
-						},
+					height: 35,
+					cols: [
+						{ label: "Region", view: "label", width: 100, height: 35, css: "overview_title" },
+						{ id: REGION_NAME, view: "label", height: 35 },
+					],
+				},
+				{
+					height: 35,
+					cols: [
+						{ label: "Services", view: "label", width: 100, height: 35, css: "overview_title" },
+						{ id: KSAN_AGENT, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_GW, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_OSD, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_LIFECYCLE, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_LOG, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_REPLICATION, height: 35, view: "label" },
 					],
 				},
 			],
@@ -140,8 +131,8 @@ function loadServices() {
 					$$(KSAN_LIFECYCLE).setValue(getStatus("ksanLifecycleManager", response.Data.Items));
 					$$(KSAN_LOG).setValue(getStatus("ksanLogManager", response.Data.Items));
 					$$(KSAN_REPLICATION).setValue(getStatus("ksanReplicationManager", response.Data.Items));
-					if (global_status == true) $$(STATUS_ICON).setValue("<span class='status_marker healthy'>Healthy</span>");
-					else $$(STATUS_ICON).setValue("<span class='status_marker unhealthy'>Unhealthy</span>");
+					if (global_status == true) $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker healthy'>Healthy</span>");
+					else $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker unhealthy'>Unhealthy</span>");
 
 					return usage;
 				}
@@ -183,9 +174,9 @@ function getStatus(service_type, items) {
 	else {
 		result += "<span class='service_status unhealthy'>";
 		var prefix = "(";
-		if (offlineCount > 0) {result += `${prefix}${offlineCount} Offline`; prefix = ", ";}
-		if (timeoutCount > 0) {result += `${prefix}${timeoutCount} Timeout`; prefix = ", ";}
-		if (unknownCount > 0) {result += `${prefix}${unknownCount} Unknown`;}
+		if (offlineCount > 0) { result += `${prefix}${offlineCount} Offline`; prefix = ", "; }
+		if (timeoutCount > 0) { result += `${prefix}${timeoutCount} Timeout`; prefix = ", "; }
+		if (unknownCount > 0) { result += `${prefix}${unknownCount} Unknown`; }
 		result += ")</span>";
 	}
 	return result;

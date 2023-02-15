@@ -14,7 +14,8 @@ import { showProgressIcon } from "../../models/utils/showProgressIcon";
 import { loadServers } from "../../models/load/loadServers";
 import { loadDiskPools } from "../../models/load/loadDiskPools";
 import { getDiskStateToColor } from "../../models/utils/getDiskStateToColor";
-import { getDiskMode } from "../../models/utils/getDiskMode";
+import { getDiskMode } from "../../models/enum/enum-disk-mode";
+import { getDiskModeToValue } from "../../models/enum/enum-disk-mode";
 import { moveLogin } from "../../models/utils/moveLogin";
 
 const DISKS_URL = "/api/v1/Disks";
@@ -27,7 +28,6 @@ const DISKS_DELETE_BUTTON = "disk_delete_button";
 const DISKS_START_BUTTON = "disk_start_button";
 const DISKS_STOP_BUTTON = "disk_stop_button";
 const DISKS_RW_BUTTON = "disk_rw_button";
-// const DISKS_CONTENT_MENU = "disk_content_menu";
 const DISKS_TABLE = "disk";
 
 var MyList = [];
@@ -38,7 +38,6 @@ export default class DiskView extends JetView {
 			rows: [
 				{
 					view: "toolbar",
-					css: "webix_dark",
 					paddingX: 20,
 					elements: [{ view: "label", label: "Disks", height: 0 }],
 					height: 50,
@@ -46,6 +45,8 @@ export default class DiskView extends JetView {
 				},
 				{
 					height: 35,
+					type:"clean",
+					css: "default_layout",
 					cols: [
 						{
 							view: "icon",
@@ -204,15 +205,14 @@ export default class DiskView extends JetView {
 						this.markSorting("ServerName", "asc");
 						this.markSorting("Name", "asc", true);
 						webix.extend(this, webix.ProgressBar);
-						// $$(DISKS_CONTENT_MENU).attachTo($$(DISKS_TABLE));
 					},
 					on: {
 						onSelectChange: function () {
 							unchecked();
-							$(DISKS_DELETE_BUTTON).enable();
-							$(DISKS_START_BUTTON).enable();
-							$(DISKS_STOP_BUTTON).enable();
-							$(DISKS_RW_BUTTON).enable();
+							$$(DISKS_DELETE_BUTTON).enable();
+							$$(DISKS_START_BUTTON).enable();
+							$$(DISKS_STOP_BUTTON).enable();
+							$$(DISKS_RW_BUTTON).enable();
 
 							var items = this.getSelectedItem();
 							if (items != null) {
@@ -256,7 +256,7 @@ export default class DiskView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 추가", align: "center" },
-						{ template: "<hr>" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{
 							view: "form",
 							borderless: true,
@@ -333,7 +333,8 @@ export default class DiskView extends JetView {
 				width: 250,
 				body: {
 					rows: [
-						{ view: "label", label: "디스크 삭제<hr>", align: "center" },
+						{ view: "label", label: "디스크 삭제", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -368,7 +369,8 @@ export default class DiskView extends JetView {
 				width: 250,
 				body: {
 					rows: [
-						{ view: "label", label: "디스크 시작<hr>", align: "center" },
+						{ view: "label", label: "디스크 시작", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 시작하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -403,7 +405,8 @@ export default class DiskView extends JetView {
 				width: 250,
 				body: {
 					rows: [
-						{ view: "label", label: "디스크 정지<hr>", align: "center" },
+						{ view: "label", label: "디스크 정지", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 정지하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -438,7 +441,7 @@ export default class DiskView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "RW Mode 변경", align: "center" },
-						{ template: "<hr>" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{
 							view: "form",
 							borderless: true,
@@ -446,7 +449,7 @@ export default class DiskView extends JetView {
 								labelWidth: 100,
 							},
 							elements: [
-								{ view: "richselect", label: "RW Mode", name: "rwMode", options: getDiskMode(), },
+								{ view: "richselect", label: "RW Mode", name: "rwMode", options: getDiskMode(), value: "Read Only", },
 								{
 									cols: [
 										{
@@ -463,7 +466,7 @@ export default class DiskView extends JetView {
 											value: "변경",
 											hotkey: "enter",
 											click: function () {
-												changeDisks();
+												changeDisks(this.getFormView().getValues());
 											},
 										},
 									],
@@ -472,20 +475,6 @@ export default class DiskView extends JetView {
 					]
 				},
 			});
-		// if ($$(DISKS_CONTENT_MENU) == null)
-		// 	webix.ui({
-		// 		view: "contextmenu",
-		// 		id: DISKS_CONTENT_MENU,
-		// 		data: ["Stop", "ReadOnly"],
-		// 		on: {
-		// 			onItemClick: function (id) {
-		// 				var context = this.getContext();
-		// 				var list = context.obj;
-		// 				var listId = context.id;
-		// 				webix.message("List item: <i>" + list.getItem(listId).title + "</i> <br/>Context menu item: <i>" + this.getItem(id).value + "</i>");
-		// 			},
-		// 		},
-		// 	});
 		set();
 	}
 }
@@ -545,10 +534,11 @@ function deleteDisks() {
 	var items = $$(DISKS_TABLE).getSelectedItem();
 	if (items == null) webix.message({ text: "디스크를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			deleteDisk(item.Id);
+			if (deleteDisk(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
 		deleteDisk(items.Id);
 		window.location.reload(true);
@@ -560,7 +550,7 @@ function deleteDisks() {
  */
 function deleteDisk(id) {
 	showProgressIcon(DISKS_TABLE);
-	webix
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
 		.del(`${DISKS_URL}/${id}`)
@@ -585,13 +575,13 @@ function startDisks() {
 	var items = $$(DISKS_TABLE).getSelectedItem();
 	if (items == null) webix.message({ text: "디스크를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			startDisk(item.Id);
+			if (startDisk(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		startDisk(items.Id);
-		window.location.reload(true);
+		if (startDisk(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -601,7 +591,7 @@ function startDisks() {
  */
 function startDisk(id) {
 	showProgressIcon(DISKS_TABLE);
-	webix
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
 		.put(`${DISKS_URL}/${id}/State/Good`)
@@ -626,13 +616,13 @@ function stopDisks() {
 	var items = $$(DISKS_TABLE).getSelectedItem();
 	if (items == null) webix.message({ text: "디스크를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			stopDisk(item.Id);
+			if (stopDisk(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		stopDisk(items.Id);
-		window.location.reload(true);
+		if (stopDisk(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -642,7 +632,7 @@ function stopDisks() {
  */
 function stopDisk(id) {
 	showProgressIcon(DISKS_TABLE);
-	webix
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
 		.put(`${DISKS_URL}/${id}/State/Stop`)
@@ -665,31 +655,31 @@ function stopDisk(id) {
  */
 function changeDisks(form) {
 	var items = $$(DISKS_TABLE).getSelectedItem();
-	var rwMode = form.rwMode;
+	var rwMode = getDiskModeToValue(form.rwMode);
 	if (items == null) webix.message({ text: "디스크를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			if (item.RwMode != rwMode) changeDisk(item.Id, rwMode);
+			if (item.RwMode != rwMode) if (changeDisk(item.Id, rwMode)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		if (item.RwMode != rwMode) {
-			changeDisk(items.Id, rwMode);
-			window.location.reload(true);
+		if (items.RwMode != rwMode) {
+			if (changeDisk(items.Id, rwMode)) window.location.reload(true);
 		}
 		else
 			webix.message({ text: `해당 디스크는 이미 ${rwMode} 입니다.`, type: "debug", expire: 5000 });
 	}
 }
+/**
+ * 
+ * @param {Guid} id DIsk Id
+ * @param {DiskRwMode} rwMode Disk RW Modw
+ * @returns 
+ */
 function changeDisk(id, rwMode) {
-	var item = $$(DISKS_TABLE).getSelectedItem();
-	if (item == null) {
-		webix.alert({ type: "error", text: "디스크를 선택해야 합니다." });
-		return;
-	}
 	showProgressIcon(DISKS_TABLE);
-
-	webix
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
 		.put(`${DISKS_URL}/${id}/RwMode/${rwMode}`)

@@ -13,10 +13,10 @@ import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { loadDiskPools } from "../models/load/loadDiskPools";
 import { moveLogin } from "../models/utils/moveLogin";
 
-const MY_URL = "/api/v1/KsanUsers";
-const MY_ADD_WINDOW = "ksan_user_add_window";
-const MY_DELETE_WINDOW = "ksan_user_delete_window";
-const MY_TABLE = "ksan_user";
+const USER_URL = "/api/v1/KsanUsers";
+const USER_ADD_WINDOW = "ksan_user_add_window";
+const USER_DELETE_WINDOW = "ksan_user_delete_window";
+const USER_TABLE = "ksan_user";
 const NUMBER_FORMAT = webix.Number.numToStr({
 	groupDelimiter: ",",
 	groupSize: 3,
@@ -45,7 +45,7 @@ export default class KsanUserView extends JetView {
 							tooltip: "추가",
 							autowidth: true,
 							borderless: true,
-							popup: MY_ADD_WINDOW,
+							popup: USER_ADD_WINDOW,
 						},
 						{
 							view: "icon",
@@ -53,7 +53,7 @@ export default class KsanUserView extends JetView {
 							tooltip: "삭제",
 							autowidth: true,
 							borderless: true,
-							popup: MY_DELETE_WINDOW,
+							popup: USER_DELETE_WINDOW,
 						},
 						{ view: "spacer" },
 						{
@@ -70,7 +70,7 @@ export default class KsanUserView extends JetView {
 				},
 				{
 					view: "datatable",
-					id: MY_TABLE,
+					id: USER_TABLE,
 					sort: "multi",
 					select: "row",
 					multiselect: true,
@@ -87,7 +87,7 @@ export default class KsanUserView extends JetView {
 					url: function () {
 						return webix
 							.ajax()
-							.get(MY_URL)
+							.get(USER_URL)
 							.then(
 								function (data) {
 									var response = data.json();
@@ -114,70 +114,77 @@ export default class KsanUserView extends JetView {
 		};
 	}
 	init() {
-		if ($$(MY_ADD_WINDOW) == null)
+		if ($$(USER_ADD_WINDOW) == null)
 			webix.ui({
-				id: MY_ADD_WINDOW,
+				id: USER_ADD_WINDOW,
 				view: "popup",
 				head: "Add",
 				width: 350,
 				body: {
-					view: "form",
-					borderless: true,
-					elementsConfig: {
-						labelWidth: 100,
-					},
-					elements: [
-						{ view: "text", label: "Name", name: "Name" },
-						{ view: "text", label: "Email", name: "Email" },
+					rows: [
+						{ view: "label", label: "유저 추가", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{
-							view: "richselect",
-							label: "Disk Pool",
-							name: "DiskPoolId",
-							options: {
-								body: {
-									url: function () {
-										return loadDiskPools();
-									},
-								},
+							view: "form",
+							borderless: true,
+							elementsConfig: {
+								labelWidth: 100,
 							},
-						},
-						{
-							cols: [
+							elements: [
+								{ view: "text", label: "Name", name: "Name" },
+								{ view: "text", label: "Email", name: "Email" },
 								{
-									view: "button",
-									css: "webix_secondary",
-									value: "취소",
-									click: function () {
-										this.getTopParentView().hide();
+									view: "richselect",
+									label: "Disk Pool",
+									name: "DiskPoolId",
+									options: {
+										body: {
+											url: function () {
+												return loadDiskPools();
+											},
+										},
 									},
 								},
 								{
-									view: "button",
-									css: "webix_primary",
-									value: "추가",
-									hotkey: "enter",
-									click: function () {
-										if (this.getParentView().getParentView().validate()) {
-											addKsanUser(this.getFormView().getValues());
-										} else webix.alert({ type: "error", text: "Form data is invalid" });
-									},
+									cols: [
+										{
+											view: "button",
+											css: "webix_secondary",
+											value: "취소",
+											click: function () {
+												this.getTopParentView().hide();
+											},
+										},
+										{
+											view: "button",
+											css: "webix_primary",
+											value: "추가",
+											hotkey: "enter",
+											click: function () {
+												if (this.getParentView().getParentView().validate()) {
+													addKsanUser(this.getFormView().getValues());
+												} else webix.alert({ type: "error", text: "Form data is invalid" });
+											},
+										},
+									],
 								},
 							],
-						},
-					],
-					rules: {
-						Name: webix.rules.isNotEmpty,
-					},
+							rules: {
+								Name: webix.rules.isNotEmpty,
+							},
+						}]
 				},
 			});
-		if ($$(MY_DELETE_WINDOW) == null)
+		if ($$(USER_DELETE_WINDOW) == null)
 			webix.ui({
-				id: MY_DELETE_WINDOW,
+				id: USER_DELETE_WINDOW,
 				view: "popup",
 				head: "Delete",
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "유저 삭제", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -195,7 +202,7 @@ export default class KsanUserView extends JetView {
 									value: "삭제",
 									hotkey: "enter",
 									click: function () {
-										deleteKsanUser();
+										deleteKsanUsers();
 									},
 								},
 							],
@@ -211,11 +218,11 @@ export default class KsanUserView extends JetView {
  * @param form json:{ServerId:"Server Id", DiskPoolId:"Disk Pool Id", Name:"Name", State:"State", RwMode:"RwMode", Description:"Description"}
  */
 function addKsanUser(form) {
-	showProgressIcon(MY_TABLE);
+	showProgressIcon(USER_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL, JSON.stringify(form))
+		.post(USER_URL, JSON.stringify(form))
 		.then(
 			function (data) {
 				var response = data.json();
@@ -232,28 +239,35 @@ function addKsanUser(form) {
 /**
  * 유저 목록에서 선택한 유저를 삭제한다.
  */
-function deleteKsanUser() {
-	var item = $$(MY_TABLE).getSelectedItem();
-	if (item == null) {
-		webix.alert({ type: "error", text: "유저를 선택해야 합니다." });
-		return;
+function deleteKsanUsers() {
+	var items = $$(USER_TABLE).getSelectedItem();
+	if (items == null) webix.message({ text: "유저를 선택해야 합니다.", type: "error", expire: 5000 });
+	else if (Array.isArray(items)) {
+		var result = false;
+		items.forEach(function (item) {
+			if (deleteKsanUser(item.Id)) result = true;
+		});
+		if (result) window.location.reload(true);
+	} else {
+		if (deleteKsanUser(items.Id)) window.location.reload(true);
 	}
-	var DeleteUrl = MY_URL + "/" + item.Id;
-
-	showProgressIcon(MY_TABLE);
-	webix
+}
+function deleteKsanUser(id) {
+	showProgressIcon(USER_TABLE);
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(DeleteUrl)
+		.del(`${USER_URL}/${id}`)
 		.then(
 			function (data) {
 				var response = data.json();
-				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
 				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return false;
 			}
 		);
 }

@@ -16,14 +16,14 @@ import { getServiceType } from "../models/enum/enum-service-type";
 import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { getStatusToColor } from "../models/utils/getStatusToColorTable";
 
-const MY_URL = "/api/v1/Services";
-const MY_ADD_WINDOW = "service_add_window";
-const MY_DELETE_WINDOW = "service_delete_window";
-const MY_START_WINDOW = "service_start_window";
-const MY_STOP_WINDOW = "service_stop_window";
-const MY_RESTART_WINDOW = "service_restart_window";
-const MY_CONTENT_MENU = "service_content_menu";
-const MY_TABLE = "service";
+const SERVICE_URL = "/api/v1/Services";
+const SERVICE_ADD_WINDOW = "service_add_window";
+const SERVICE_DELETE_WINDOW = "service_delete_window";
+const SERVICE_START_WINDOW = "service_start_window";
+const SERVICE_STOP_WINDOW = "service_stop_window";
+const SERVICE_RESTART_WINDOW = "service_restart_window";
+const SERVICE_CONTENT_MENU = "service_content_menu";
+const SERVICE_TABLE = "service";
 const NUMBER_FORMAT = webix.Number.numToStr({
 	groupDelimiter: ",",
 	groupSize: 3,
@@ -54,7 +54,7 @@ export default class ServiceView extends JetView {
 							tooltip: "추가",
 							autowidth: true,
 							borderless: true,
-							popup: MY_ADD_WINDOW,
+							popup: SERVICE_ADD_WINDOW,
 						},
 						{
 							view: "icon",
@@ -62,7 +62,7 @@ export default class ServiceView extends JetView {
 							tooltip: "삭제",
 							autowidth: true,
 							borderless: true,
-							popup: MY_DELETE_WINDOW,
+							popup: SERVICE_DELETE_WINDOW,
 						},
 						{
 							view: "icon",
@@ -70,7 +70,7 @@ export default class ServiceView extends JetView {
 							tooltip: "시작",
 							autowidth: true,
 							borderless: true,
-							popup: MY_START_WINDOW,
+							popup: SERVICE_START_WINDOW,
 						},
 						{
 							view: "icon",
@@ -78,7 +78,7 @@ export default class ServiceView extends JetView {
 							tooltip: "중단",
 							autowidth: true,
 							borderless: true,
-							popup: MY_STOP_WINDOW,
+							popup: SERVICE_STOP_WINDOW,
 						},
 						{
 							view: "icon",
@@ -86,7 +86,7 @@ export default class ServiceView extends JetView {
 							tooltip: "재시작",
 							autowidth: true,
 							borderless: true,
-							popup: MY_RESTART_WINDOW,
+							popup: SERVICE_RESTART_WINDOW,
 						},
 						{ view: "spacer" },
 						{
@@ -103,7 +103,7 @@ export default class ServiceView extends JetView {
 				},
 				{
 					view: "datatable",
-					id: MY_TABLE,
+					id: SERVICE_TABLE,
 					sort: "multi",
 					select: "row",
 					multiselect: true,
@@ -183,7 +183,7 @@ export default class ServiceView extends JetView {
 						this.markSorting("ServerName", "asc");
 						this.markSorting("Name", "asc", true);
 						webix.extend(this, webix.ProgressBar);
-						$$(MY_CONTENT_MENU).attachTo($$(MY_TABLE));
+						$$(SERVICE_CONTENT_MENU).attachTo($$(SERVICE_TABLE));
 					},
 					on: {
 						onSelectChange: function () {
@@ -202,8 +202,8 @@ export default class ServiceView extends JetView {
 							}
 						},
 						onCheck: function (row, column, state) {
-							if (state) $$(MY_TABLE).select(row, true);
-							else $$(MY_TABLE).unselect(row, true);
+							if (state) $$(SERVICE_TABLE).select(row, true);
+							else $$(SERVICE_TABLE).unselect(row, true);
 						},
 					},
 				},
@@ -211,74 +211,81 @@ export default class ServiceView extends JetView {
 		};
 	}
 	init() {
-		if ($$(MY_ADD_WINDOW) == null)
+		if ($$(SERVICE_ADD_WINDOW) == null)
 			webix.ui({
-				id: MY_ADD_WINDOW,
+				id: SERVICE_ADD_WINDOW,
 				view: "popup",
 				head: "Add",
 				width: 350,
 				body: {
-					view: "form",
-					borderless: true,
-					elementsConfig: {
-						labelWidth: 100,
-					},
-					elements: [
-						// { view: "text", label: "GroupId", name: "GroupId" },
-						{ view: "text", label: "Name", name: "Name" },
+					rows: [
+						{ view: "label", label: "서비스 추가", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{
-							view: "richselect",
-							label: "Server",
-							name: "ServerId",
-							options: {
-								body: {
-									url: function () {
-										return loadServers();
-									},
-								},
+							view: "form",
+							borderless: true,
+							elementsConfig: {
+								labelWidth: 100,
 							},
-						},
-						{ view: "richselect", label: "Service Type", name: "ServiceType", options: getServiceType() },
-						{ view: "textarea", height: 200, label: "Description", labelPosition: "top", name: "Description" },
-						{
-							cols: [
+							elements: [
+								// { view: "text", label: "GroupId", name: "GroupId" },
+								{ view: "text", label: "Name", name: "Name" },
 								{
-									view: "button",
-									css: "webix_secondary",
-									value: "취소",
-									click: function () {
-										this.getTopParentView().hide();
+									view: "richselect",
+									label: "Server",
+									name: "ServerId",
+									options: {
+										body: {
+											url: function () {
+												return loadServers();
+											},
+										},
 									},
 								},
+								{ view: "richselect", label: "Service Type", name: "ServiceType", options: getServiceType() },
+								{ view: "textarea", height: 200, label: "Description", labelPosition: "top", name: "Description" },
 								{
-									view: "button",
-									css: "webix_primary",
-									value: "추가",
-									hotkey: "enter",
-									click: function () {
-										if (this.getParentView().getParentView().validate()) {
-											addService(this.getFormView().getValues());
-										} else webix.message({ type: "error", expire: 5000, text: "Form data is invalid" });
-									},
+									cols: [
+										{
+											view: "button",
+											css: "webix_secondary",
+											value: "취소",
+											click: function () {
+												this.getTopParentView().hide();
+											},
+										},
+										{
+											view: "button",
+											css: "webix_primary",
+											value: "추가",
+											hotkey: "enter",
+											click: function () {
+												if (this.getParentView().getParentView().validate()) {
+													addService(this.getFormView().getValues());
+												} else webix.message({ type: "error", expire: 5000, text: "Form data is invalid" });
+											},
+										},
+									],
 								},
 							],
-						},
-					],
-					rules: {
-						Name: webix.rules.isNotEmpty,
-						ServerId: webix.rules.isNotEmpty,
-						ServiceType: webix.rules.isNotEmpty,
-					},
+							rules: {
+								Name: webix.rules.isNotEmpty,
+								ServerId: webix.rules.isNotEmpty,
+								ServiceType: webix.rules.isNotEmpty,
+							},
+						}]
 				},
 			});
-		if ($$(MY_DELETE_WINDOW) == null)
+		if ($$(SERVICE_DELETE_WINDOW) == null)
 			webix.ui({
-				id: MY_DELETE_WINDOW,
+				id: SERVICE_DELETE_WINDOW,
 				view: "popup",
 				head: "Delete",
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "서비스 삭제", align: "center" },
+						{ view: "label", css:"popup_title_line" },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -304,14 +311,16 @@ export default class ServiceView extends JetView {
 					],
 				},
 			});
-		if ($$(MY_START_WINDOW) == null)
+		if ($$(SERVICE_START_WINDOW) == null)
 			webix.ui({
-				id: MY_START_WINDOW,
+				id: SERVICE_START_WINDOW,
 				view: "popup",
 				head: "Start",
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "서비스 시작", align: "center" },
+						{ view: "label", css:"popup_title_line" },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -337,14 +346,16 @@ export default class ServiceView extends JetView {
 					],
 				},
 			});
-		if ($$(MY_STOP_WINDOW) == null)
+		if ($$(SERVICE_STOP_WINDOW) == null)
 			webix.ui({
-				id: MY_STOP_WINDOW,
+				id: SERVICE_STOP_WINDOW,
 				view: "popup",
 				head: "Stop",
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "서비스 실행", align: "center" },
+						{ view: "label", css:"popup_title_line" },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -370,14 +381,16 @@ export default class ServiceView extends JetView {
 					],
 				},
 			});
-		if ($$(MY_RESTART_WINDOW) == null)
+		if ($$(SERVICE_RESTART_WINDOW) == null)
 			webix.ui({
-				id: MY_RESTART_WINDOW,
+				id: SERVICE_RESTART_WINDOW,
 				view: "popup",
 				head: "Restart",
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "서비스 재시작", align: "center" },
+						{ view: "label", css:"popup_title_line" },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -403,10 +416,10 @@ export default class ServiceView extends JetView {
 					],
 				},
 			});
-		if ($$(MY_CONTENT_MENU) == null)
+		if ($$(SERVICE_CONTENT_MENU) == null)
 			webix.ui({
 				view: "contextmenu",
-				id: MY_CONTENT_MENU,
+				id: SERVICE_CONTENT_MENU,
 				data: ["Start", "Stop", "Restart", "Delete"],
 				on: {
 					onItemClick: function (id) {
@@ -430,7 +443,7 @@ export default class ServiceView extends JetView {
 function set() {
 	webix
 		.ajax()
-		.get(MY_URL)
+		.get(SERVICE_URL)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -440,7 +453,7 @@ function set() {
 					MyList.forEach(function (item) {
 						item.ServerName = item.Server.Name;
 					});
-					$$(MY_TABLE).parse(MyList);
+					$$(SERVICE_TABLE).parse(MyList);
 				}
 			},
 			function (error) {
@@ -461,11 +474,11 @@ function unchecked() {
  * @param form json:{GroupId:"Group Id", Name:"Name", ServerId:"Server Id", ServiceType:"Service Type", HaAction:"Ha Action", State:"State", Description:"Description"}
  */
 function addService(form) {
-	showProgressIcon(MY_TABLE);
+	showProgressIcon(SERVICE_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL, JSON.stringify(form))
+		.post(SERVICE_URL, JSON.stringify(form))
 		.then(
 			function (data) {
 				var response = data.json();
@@ -483,17 +496,17 @@ function addService(form) {
  * 목록에서 선택된 서비스를 삭제한다.
  */
 function deleteServices() {
-	var items = $$(MY_TABLE).getSelectedItem();
+	var items = $$(SERVICE_TABLE).getSelectedItem();
 	if (items == null) {
 		webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
 	} else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			deleteService(item.Id);
+			if (deleteService(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		deleteService(items.Id);
-		window.location.reload(true);
+		if (deleteService(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -501,12 +514,12 @@ function deleteServices() {
  * 특정 서비스를 삭제한다.
  * @returns 성공 / 실패 여부
  */
-function deleteService(Id) {
-	showProgressIcon(MY_TABLE);
-	webix
+function deleteService(id) {
+	showProgressIcon(SERVICE_TABLE);
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(MY_URL + "/" + Id)
+		.del(`${SERVICE_URL}/${id}`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -527,17 +540,17 @@ function deleteService(Id) {
  * 목록에서 선택된 서비스를 시작한다.
  */
 function startServices() {
-	var items = $$(MY_TABLE).getSelectedItem();
+	var items = $$(SERVICE_TABLE).getSelectedItem();
 	if (items == null) {
 		webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
 	} else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			startService(item.Id);
+			if (startService(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		startService(items.Id);
-		window.location.reload(true);
+		if (startService(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -545,12 +558,12 @@ function startServices() {
  * 특정 서비스를 시작한다.
  * @returns 성공 / 실패 여부
  */
-function startService(Id) {
-	showProgressIcon(MY_TABLE);
-	webix
+function startService(id) {
+	showProgressIcon(SERVICE_TABLE);
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL + "/" + Id + "/Start")
+		.post(`${SERVICE_URL}/${id}/Start`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -571,17 +584,17 @@ function startService(Id) {
  * 목록에서 선택된 서비스를 중지한다.
  */
 function stopServices() {
-	var items = $$(MY_TABLE).getSelectedItem();
+	var items = $$(SERVICE_TABLE).getSelectedItem();
 	if (items == null) {
 		webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
 	} else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			stopService(item.Id);
+			if (stopService(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		stopService(items.Id);
-		window.location.reload(true);
+		if (stopService(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -590,11 +603,11 @@ function stopServices() {
  * @returns 성공 / 실패 여부
  */
 function stopService(Id) {
-	showProgressIcon(MY_TABLE);
-	webix
+	showProgressIcon(SERVICE_TABLE);
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL + "/" + Id + "/Stop")
+		.post(`${SERVICE_URL}/${id}/Stop`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -614,17 +627,17 @@ function stopService(Id) {
  * 목록에서 선택된 서비스를 재시작한다.
  */
 function restartServices() {
-	var items = $$(MY_TABLE).getSelectedItem();
+	var items = $$(SERVICE_TABLE).getSelectedItem();
 	if (items == null) {
 		webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
 	} else if (Array.isArray(items)) {
+		var result = false;
 		items.forEach(function (item) {
-			restartService(item.Id);
+			if (restartService(item.Id)) result = true;
 		});
-		window.location.reload(true);
+		if (result) window.location.reload(true);
 	} else {
-		restartService(items.Id);
-		window.location.reload(true);
+		if (restartService(items.Id)) window.location.reload(true);
 	}
 }
 
@@ -633,11 +646,11 @@ function restartServices() {
  * @returns 성공 / 실패 여부
  */
 function restartService(Id) {
-	showProgressIcon(MY_TABLE);
-	webix
+	showProgressIcon(SERVICE_TABLE);
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL + "/" + Id + "/Restart")
+		.post(`${SERVICE_URL}/${id}/Restart`)
 		.then(
 			function (data) {
 				var response = data.json();

@@ -17,6 +17,7 @@ import { moveLogin } from "../../models/utils/moveLogin";
 
 const MY_URL = "/api/v1/DiskPools";
 const MY_TABLE = "diskpool_summary";
+const MY_STATUS = "diskpool_status";
 
 export default class DiskpoolView extends JetView {
 	config() {
@@ -25,10 +26,7 @@ export default class DiskpoolView extends JetView {
 			minWidth: 600,
 			height: 300,
 			rows: [
-				{
-					view: "label",
-					label: "<span class='card_title'>Disk Pools</span>",
-				},
+				{ id: MY_STATUS, view: "label" },
 				{
 					view: "list",
 					borderless: true,
@@ -36,7 +34,7 @@ export default class DiskpoolView extends JetView {
 					xCount: 1,
 					id: MY_TABLE,
 					scroll: "auto",
-					css : "my_list",
+					css: "my_list",
 					type: {
 						height: 85,
 						template: (obj) => {
@@ -78,15 +76,18 @@ export default class DiskpoolView extends JetView {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
 										return null;
 									} else {
+										var g_status = true;
 										response.Data.Items.forEach((item) => {
 											var status = true;
 											if (item.Disks != null && item.Disks.length > 0) {
-												item.Disks.forEach((disk) =>{
-													if (disk.State != "Good") status = false;
+												item.Disks.forEach((disk) => {
+													if (disk.State != "Good") { status = false; g_status = false; }
 												})
 											}
 											item.State = "Online";
 										});
+										if (g_status == true) $$(MY_STATUS).setValue("<span class='card_title'>Disk Pools</span> <span class='status_marker healthy'>Healthy</span>");
+										else $$(MY_STATUS).setValue("<span class='card_title'>Disk Pools</span> <span class='status_marker unhealthy'>Unhealthy</span>");
 										return response.Data.Items;
 									}
 								},
@@ -102,5 +103,5 @@ export default class DiskpoolView extends JetView {
 			],
 		};
 	}
-	init() {}
+	init() { }
 }
