@@ -681,6 +681,20 @@ namespace PortalProvider.Providers.DiskGuids
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
+				//DiskPool 목록을 가져온다.
+				var DiskPools = await m_dbContext.DiskPools.AsNoTracking().ToListAsync();
+
+				// 서버 목록을 가져온다.
+				var Servers = await m_dbContext.Servers.AsNoTracking().ToListAsync();
+
+				//서버와 디스크풀 이름을 추가한다.
+				foreach (var Disk in Result.Data.Items)
+				{
+					if (Disk.DiskPoolId != null && Guid.TryParse(Disk.DiskPoolId, out Guid DiskPoolGuid))
+						Disk.DiskPoolName = DiskPools.First(i => i.Id == DiskPoolGuid).Name;
+					if (Disk.ServerId != null && Guid.TryParse(Disk.ServerId, out Guid ServerGuid))
+						Disk.ServerName = Servers.First(i => i.Id == ServerGuid).Name;
+				}
 				Result.Result = EnumResponseResult.Success;
 
 			}
@@ -749,6 +763,21 @@ namespace PortalProvider.Providers.DiskGuids
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.CreateListAsync<Disk, ResponseDisk>(Skip, CountPerPage);
 
+
+				//DiskPool 목록을 가져온다.
+				var DiskPools = await m_dbContext.DiskPools.AsNoTracking().ToListAsync();
+
+				// 서버 목록을 가져온다.
+				var Servers = await m_dbContext.Servers.AsNoTracking().ToListAsync();
+
+				//서버와 디스크풀 이름을 추가한다.
+				foreach (var Disk in Result.Data.Items)
+				{
+					if (Disk.DiskPoolId != null && Guid.TryParse(Disk.DiskPoolId, out DiskPoolGuid))
+						Disk.DiskPoolName = DiskPools.First(i => i.Id == DiskPoolGuid).Name;
+					if (Disk.ServerId != null && Guid.TryParse(Disk.ServerId, out Guid ServerGuid))
+						Disk.ServerName = Servers.First(i => i.Id == ServerGuid).Name;
+				}
 				Result.Result = EnumResponseResult.Success;
 
 			}
@@ -763,8 +792,7 @@ namespace PortalProvider.Providers.DiskGuids
 			return Result;
 		}
 
-
-		/// <summary>디스크 풀 등록</summary>
+		/// <summary>디스크 풀에 디스크를 등록한다</summary>
 		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 요청 객체</param>
 		/// <returns>디스크 풀 등록 결과 객체</returns>
@@ -839,6 +867,136 @@ namespace PortalProvider.Providers.DiskGuids
 							// 디스크 풀 아이디 변경
 							Disk.DiskPoolId = Exist.Id;
 						}
+						// 데이터가 변경된 경우 저장
+						if (m_dbContext.HasChanges())
+							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+						await Transaction.CommitAsync();
+
+						Result.Result = EnumResponseResult.Success;
+						// 변경된 풀 정보 전송
+						SendMq("*.servers.diskpools.updated", (await this.Get(Id)).Data);
+					}
+					catch (Exception ex)
+					{
+						await Transaction.RollbackAsync();
+
+						NNException.Log(ex);
+
+						Result.Code = Resource.EC_COMMON__EXCEPTION;
+						Result.Message = Resource.EM_COMMON__EXCEPTION;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+
+			return Result;
+		}
+
+
+		/// <summary>디스크풀에 할당된 디스크들을 변경한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>디스크 풀 등록 결과 객체</returns>
+		public async Task<ResponseData> UpdateDisks(string Id, RequestDisks Request)
+		{
+			var Result = new ResponseData();
+			try
+			{
+				// 아이디가 유효하지 않은 경우
+				if (Id.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 요청이 유효하지 않은 경우
+				if (!Request.IsValid())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+				// 요청 목록이 비어있을 경우
+				if (Request.Disks.Count == 0)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_DISKS_REQUIRE_DISK_ID);
+
+				// 해당 정보를 가져온다.
+				DiskPool Exist = null;
+
+				// Id로 조회할경우
+				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
+					Exist = await m_dbContext.DiskPools.Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).FirstAsync();
+				// 이름으로 조회할 경우
+				else
+					Exist = await m_dbContext.DiskPools.Where(i => i.Name == Id).Include(i => i.Disks).FirstAsync();
+
+				// 해당 정보가 존재하지 않는 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
+
+
+				// 추가될 디스크 GUID 목록
+				var AddDiskGuids = new List<Guid>();
+
+				// 모든 디스크 아이디에 대해서 처리
+				foreach (var DiskId in Request.Disks)
+				{
+					Disk Disk = null;
+					// 아이디일 경우
+					if (Guid.TryParse(DiskId, out Guid DiskGuid))
+						Disk = await m_dbContext.Disks.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskGuid);
+					// 이름일 경우
+					else
+						Disk = await m_dbContext.Disks.AsNoTracking().FirstOrDefaultAsync(i => i.Name == DiskId);
+
+					// 존재하지 않을 경우
+					if (Disk == null)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
+
+					// 다른 디스크풀에 할당되어 있을 경우
+					if (Disk.DiskPoolId != Exist.Id)
+						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
+
+					AddDiskGuids.Add(Disk.Id);
+				}
+
+				// 삭제될 디스크 목록
+				var RemoveDiskGuids = new List<Guid>();
+				foreach (var RemoveDisk in Exist.Disks)
+				{
+					if (AddDiskGuids.Any(id => id == RemoveDisk.Id)) AddDiskGuids.Remove(RemoveDisk.Id);
+					else RemoveDiskGuids.Add(RemoveDisk.Id);
+				}
+
+				// 디스크풀에 디스크 추가 / 삭제
+				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
+				{
+					try
+					{
+						// 모든 디스크 아이디에 대해서 처리
+						var Disks = await m_dbContext.Disks.ToListAsync();
+
+						// 디스크풀에 디스크를 추가한다.
+						foreach (var DiskId in AddDiskGuids)
+						{
+							// 해당 디스크 정보를 가져온다.
+							var Disk = Disks.Where(i => i.Id == DiskId).First();
+
+							// 디스크 풀 아이디 변경
+							Disk.DiskPoolId = Exist.Id;
+						}
+
+						//디스크풀에 디스크를 삭제한다.
+						foreach (var DiskId in RemoveDiskGuids)
+						{
+							// 해당 디스크 정보를 가져온다.
+							var Disk = Disks.Where(i => i.Id == DiskId).First();
+
+							// 디스크 풀 아이디 변경
+							Disk.DiskPoolId = null;
+						}
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
