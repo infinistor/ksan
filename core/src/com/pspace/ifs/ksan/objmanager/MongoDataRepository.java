@@ -121,6 +121,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String PARTNO ="partNo";
     private static final String COMPLETED = "completed";
     private static final String CHANGETIME = "changeTime";
+    private static final String PARTREF = "partRef";
     
     // for utility
     private static final String ID = "Id";
@@ -714,6 +715,7 @@ public class MongoDataRepository implements DataRepository{
         doc.append(ETAG, etag);
         doc.append(SIZE, size);
         doc.append(PDISKID, pdiskid);
+        doc.append(PARTREF, "");
         
         multip.insertOne(doc);
         return 0;
@@ -889,7 +891,6 @@ public class MongoDataRepository implements DataRepository{
         return listPart;
     }
 
-    //SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?")
     @Override
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
         MongoCollection<Document> multip;
@@ -930,7 +931,6 @@ public class MongoDataRepository implements DataRepository{
         return resultParts;
     }
 
-    // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         ResultUploads resultUploads = new ResultUploads();
@@ -977,6 +977,39 @@ public class MongoDataRepository implements DataRepository{
         FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadid)); 
         Iterator it = fit.iterator();
         return it.hasNext();
+    }
+    
+    @Override
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException {
+        MongoCollection<Document> multip;
+        String partRef = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.and(Filters.eq(PARTNO, partNo), Filters.eq(UPLOADID, uploadId)));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            partRef=doc.getString(PARTREF);
+        }
+        
+        return partRef;
+    }
+    
+    @Override
+    public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException {
+        MongoCollection<Document> multip;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return -1;
+        
+        multip.updateOne(Filters.and(eq(UPLOADID, uploadId), eq(PARTNO, partNo)), Updates.set(PARTREF, partRef));
+        
+        return 0;
     }
     
     private int updateObject(String bucketName,  String objId, String versionId, String key, String value){
