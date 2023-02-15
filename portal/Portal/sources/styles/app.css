@@ -9,6 +9,13 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 /* main app */
+.popup_title_line {
+	height: 2px !important;
+	background: #999999;
+}
+.default_layout {
+	background: #ffffff;
+}
 .title_align {
 	text-align: center;
 }
@@ -25,6 +32,19 @@
 	font-weight: bold;
 }
 /* overview */
+.status_marker {
+	font-size: 15px;
+	font-weight: 500;
+	color: #ffffff;
+	padding: 2px 6px;
+	border-radius: 100px;
+}
+.status_marker.healthy {
+	background: #2ccd70;
+}
+.status_marker.unhealthy {
+	background: #e63031;
+}
 
 .status_icon {
 	background-color: #2ccd70;
@@ -56,11 +76,14 @@
 	padding-left: 10px;
 	font-size: 15px;
 	font-weight: bold;
+}
+.service_status.healthy {
 	color: #2ccd70;
 }
-.service_status.un_healthy {
-	color: #E63031;
+.service_status.unhealthy {
+	color: #e63031;
 }
+
 /* storage category */
 .main_category {
 	padding-left: 30px;
@@ -114,15 +137,18 @@
 	display: inline-block;
 	font-size: 15px;
 	width: 100px;
-	height: 100px;
-	line-height: 100px;
+	line-height: 80px;
 	text-align: center;
 }
 .diskpools_list {
-	padding-top: 25px;
+	padding-top: 15px;
 	float: left;
 	font-weight: bold;
 	font-size: 15px;
+	line-height: 170%;
+}
+.my_list .webix_list_item {
+	border-bottom: 0px;
 }
 /* disk */
 .disk_list {
@@ -158,6 +184,10 @@
 .progress_result.Good {
 	height: 100%;
 	background: #1395f5;
+}
+.webix_rpt_btn_active.webix_rpt_sort_icon .webix_icon,
+.webix_rpt_btn_active.webix_rpt_sort_icon button:hover .webix_icon {
+	color: #1ca1c1;
 }
 /* disk / network io */
 .io_write {
@@ -197,4 +227,36 @@
 	font-size: 20px;
 	font-weight: bold;
 	color: #777777;
+}
+
+/* Main Diskpools */
+
+.main_diskpools_list {
+	padding-top: 25px;
+	float: left;
+	font-weight: bold;
+	font-size: 15px;
+	line-height: 170%;
+}
+.main_diskpools_rate {
+	display: inline-block;
+	font-size: 15px;
+	width: 100px;
+	line-height: 100px;
+	text-align: center;
+}
+.main_disk_usage {
+	display: inline-block;
+	width: 130px;
+}
+.main_disk_list {
+	height: 20px;
+}
+.main_disk_progress_bar {
+	float: left;
+	background-color: #f4f5f9;
+	width: 230px;
+	height: 6px;
+	margin-top: 5px;
+	margin-bottom: 9px;
 }

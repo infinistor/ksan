@@ -223,4 +223,12 @@ public class ObjMultipart{
             return null;
         }
     }
+    
+    public int putPartRef(String uploadId, int partNo, String ref) throws SQLException, ResourceNotFoundException{
+        return dbm.setPartRef(uploadId, partNo, ref);
+    }
+    
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException{
+        return dbm.getPartRef(uploadId, partNo);
+    }
 }

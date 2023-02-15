@@ -24,6 +24,9 @@ namespace PortalData.Enums
 		ReadOnly,
 		/// <summary>읽기/쓰기</summary>
 		[Display(Name = "UL_DISKS_READ_WRITE_MODE_READ_WRITE", Description = "UL_DISKS_READ_WRITE_MODE_READ_WRITE", GroupName = "UL_DISKS_READ_WRITE_MODE", ShortName = "UL_DISKS_READ_WRITE_MODE_READ_WRITE", Prompt = "UL_DISKS_READ_WRITE_MODE_READ_WRITE", ResourceType = typeof(Resource))]
-		ReadWrite
+		ReadWrite,
+		/// <summary>관리</summary>
+		[Display(Name = "UL_DISKS_READ_WRITE_MODE_MAINTENANCE", Description = "UL_DISKS_READ_WRITE_MODE_MAINTENANCE", GroupName = "UL_DISKS_READ_WRITE_MODE", ShortName = "UL_DISKS_READ_WRITE_MODE_MAINTENANCE", Prompt = "UL_DISKS_READ_WRITE_MODE_MAINTENANCE", ResourceType = typeof(Resource))]
+		Maintenance
 	}
 }

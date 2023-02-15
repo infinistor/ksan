@@ -1,22 +1,23 @@
 /*
-* Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
-* KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
-* the GNU General Public License as published by the Free Software Foundation, either version
-* 3 of the License.See LICENSE for details
-*
-* 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
-* KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
-* KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
-*/
+ * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
+ * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version
+ * 3 of the License.See LICENSE for details
+ *
+ * 본 프로그램 및 관련 소스코드, 문서 등 모든 자료는 있는 그대로 제공이 됩니다.
+ * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
+ * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
+ */
 import { JetView } from "webix-jet";
+import { moveLogin } from "../models/utils/moveLogin";
 import { sizeToString } from "../models/utils/sizeToString";
 import { showProgressIcon } from "../models/utils/showProgressIcon";
-import { moveLogin } from "../models/utils/moveLogin";
+import { getStatusToColor } from "../models/utils/getStatusToColorTable";
 
-const MY_URL = "/api/v1/Servers";
-const MY_ADD_WINDOW = "server_add_window";
-const MY_DELETE_WINDOW = "server_delete_window";
-const MY_TABLE = "server";
+const SERVER_URL = "/api/v1/Servers";
+const SERVER_ADD_WINDOW = "server_add_window";
+const SERVER_DELETE_WINDOW = "server_delete_window";
+const SERVER_TABLE = "server";
 const NUMBER_FORMAT = webix.Number.numToStr({
 	groupDelimiter: ",",
 	groupSize: 3,
@@ -31,32 +32,37 @@ export default class ServerView extends JetView {
 		return {
 			rows: [
 				{
+					view: "toolbar",
+					css: "webix_dark",
+					paddingX: 20,
+					elements: [{ view: "label", label: "Server", height: 0 }],
+					height: 50,
+					borderless: true,
+				},
+				{
 					height: 35,
 					cols: [
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-plus",
-							label: "추가",
+							tooltip: "추가",
 							autowidth: true,
 							borderless: true,
-							popup: MY_ADD_WINDOW,
+							popup: SERVER_ADD_WINDOW,
 						},
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-delete",
-							label: "삭제",
+							tooltip: "삭제",
 							autowidth: true,
 							borderless: true,
-							popup: MY_DELETE_WINDOW,
+							popup: SERVER_DELETE_WINDOW,
 						},
 						{ view: "spacer" },
 						{
-							view: "button",
-							type: "icon",
+							view: "icon",
 							icon: "mdi mdi-reload",
-							label: "새로고침",
+							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
 							click: function () {
@@ -67,7 +73,7 @@ export default class ServerView extends JetView {
 				},
 				{
 					view: "datatable",
-					id: MY_TABLE,
+					id: SERVER_TABLE,
 					sort: "multi",
 					select: "row",
 					multiselect: true,
@@ -78,7 +84,7 @@ export default class ServerView extends JetView {
 					columns: [
 						{ id: "Id", header: "Id", hidden: true },
 						{ id: "Check", header: { content: "masterCheckbox" }, template: "{common.checkbox()}", width: 40 },
-						{ id: "Name", header: "Server Name", fillspace: true, sort: "string" },
+						{ id: "Name", header: "Server Name", fillspace: true, minWidth: 130, sort: "string" },
 						{ id: "Ip", header: "Ip Address", width: 180, sort: "string" },
 						{
 							id: "State",
@@ -86,21 +92,7 @@ export default class ServerView extends JetView {
 							width: 100,
 							sort: "string",
 							template: (obj) => {
-								var color = "gray";
-								switch (obj.State) {
-									case "Online":
-										color = "green";
-										break;
-									case "Offline":
-										color = "#E63031";
-										break;
-									case "Timeout":
-										color = "blue";
-										break;
-									default:
-										color = "gray";
-								}
-								return `<span class="${color}">${obj.State}</span>`;
+								return getStatusToColor(obj.State);
 							},
 						},
 						{
@@ -180,8 +172,8 @@ export default class ServerView extends JetView {
 							}
 						},
 						onCheck: function (row, column, state) {
-							if (state) $$(MY_TABLE).select(row, true);
-							else $$(MY_TABLE).unselect(row, true);
+							if (state) $$(SERVER_TABLE).select(row, true);
+							else $$(SERVER_TABLE).unselect(row, true);
 						},
 					},
 				},
@@ -189,53 +181,60 @@ export default class ServerView extends JetView {
 		};
 	}
 	init() {
-		if ($$(MY_ADD_WINDOW) == null)
+		if ($$(SERVER_ADD_WINDOW) == null)
 			webix.ui({
-				id: MY_ADD_WINDOW,
+				id: SERVER_ADD_WINDOW,
 				view: "popup",
 				head: "Add",
 				width: 380,
 				body: {
-					view: "form",
-					borderless: true,
-					elements: [
-						{ view: "text", label: "Host", name: "ServerIp" },
+					rows: [
+						{ view: "label", label: "서버 추가", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{
-							cols: [
+							view: "form",
+							borderless: true,
+							elements: [
+								{ view: "text", label: "Host", name: "ServerIp" },
 								{
-									view: "button",
-									css: "webix_secondary",
-									value: "취소",
-									click: function () {
-										this.getTopParentView().hide();
-									},
-								},
-								{
-									view: "button",
-									css: "webix_primary",
-									value: "추가",
-									hotkey: "enter",
-									click: function () {
-										if (this.getParentView().getParentView().validate()) {
-											addServer(this.getFormView().getValues());
-										} else webix.alert({ type: "error", text: "Form data is invalid" });
-									},
+									cols: [
+										{
+											view: "button",
+											css: "webix_secondary",
+											value: "취소",
+											click: function () {
+												this.getTopParentView().hide();
+											},
+										},
+										{
+											view: "button",
+											css: "webix_primary",
+											value: "추가",
+											hotkey: "enter",
+											click: function () {
+												if (this.getParentView().getParentView().validate()) {
+													addServer(this.getFormView().getValues());
+												} else webix.alert({ type: "error", text: "Form data is invalid" });
+											},
+										},
+									],
 								},
 							],
-						},
-					],
-					rules: {
-						ServerIp: webix.rules.isNotEmpty,
-					},
+							rules: {
+								ServerIp: webix.rules.isNotEmpty,
+							},
+						}]
 				},
 			});
-		if ($$(MY_DELETE_WINDOW) == null)
+		if ($$(SERVER_DELETE_WINDOW) == null)
 			webix.ui({
-				id: MY_DELETE_WINDOW,
+				id: SERVER_DELETE_WINDOW,
 				head: "Delete",
 				width: 280,
 				body: {
 					rows: [
+						{ view: "label", label: "서버 삭제", align: "center" },
+						{ view: "label", css:"popup_title_line" },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -253,7 +252,7 @@ export default class ServerView extends JetView {
 									value: "삭제",
 									hotkey: "enter",
 									click: function () {
-										deleteServer();
+										deleteServers();
 									},
 								},
 							],
@@ -267,7 +266,7 @@ export default class ServerView extends JetView {
 function set() {
 	webix
 		.ajax()
-		.get(MY_URL + "/Details")
+		.get(SERVER_URL + "/Details")
 		.then(
 			function (data) {
 				var response = data.json();
@@ -278,7 +277,7 @@ function set() {
 						if (item.NetworkInterfaces != null && item.NetworkInterfaces.length > 0) item.Ip = item.NetworkInterfaces[0].IpAddress;
 						else item.Ip = "";
 					});
-					$$(MY_TABLE).parse(MyList);
+					$$(SERVER_TABLE).parse(MyList);
 				}
 			},
 			function (error) {
@@ -300,11 +299,11 @@ function unchecked() {
  * @param form json data : {"ServerIp":"string"}
  */
 function addServer(form) {
-	showProgressIcon(MY_TABLE);
+	showProgressIcon(SERVER_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL + "/Initialize", JSON.stringify(form))
+		.post(SERVER_URL + "/Initialize", JSON.stringify(form))
 		.then(
 			function (data) {
 				var response = data.json();
@@ -321,28 +320,37 @@ function addServer(form) {
 /**
  * 서버 목록에서 선택한 서버를 삭제한다.
  */
-function deleteServer() {
-	var item = $$(MY_TABLE).getSelectedItem();
-	if (item == null) {
-		webix.alert({ type: "error", text: "서버를 선택해야 합니다." });
-		return;
+function deleteServers() {
+	var items = $$(SERVER_TABLE).getSelectedItem();
+	if (items == null) webix.message({ text: "서버를 선택해야 합니다.", type: "error", expire: 5000 });
+	else if (Array.isArray(items)) {
+		var result = false;
+		items.forEach(function (item) {
+			if (deleteServer(item.Id)) result = true;
+		});
+		if (result) window.location.reload(true);
+	} else {
+		if (deleteServer(items.Id)) window.location.reload(true);
 	}
-	var DeleteUrl = MY_URL + "/" + item.Id;
+}
 
-	showProgressIcon(MY_TABLE);
+function deleteServer() {
+
+	showProgressIcon(SERVER_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(DeleteUrl)
+		.del(`${SERVER_URL}/${id}`)
 		.then(
 			function (data) {
 				var response = data.json();
-				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
 				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return false;
 			}
 		);
 }

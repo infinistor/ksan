@@ -426,16 +426,9 @@ public class ListObject{
     }
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{
-        S3Metadata s3Metadata = new S3Metadata();
-        ObjectMapper jsonMapper = new ObjectMapper();
+        //S3Metadata s3Metadata = new S3Metadata();
+       S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
         
-        try {
-            s3Metadata = jsonMapper.readValue(mt.getMeta(), S3Metadata.class);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new Exception(e.getMessage());  
-        }
-
         s3Metadata.setName(objKey);
         if (listType.equalsIgnoreCase("listObjectVersion")){
            s3Metadata.setVersionId(mt.getVersionId());

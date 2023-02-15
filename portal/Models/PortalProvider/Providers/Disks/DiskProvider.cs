@@ -387,7 +387,7 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.State = (EnumDbDiskState)State;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 						// 데이터가 변경된 경우 저장
@@ -468,7 +468,7 @@ namespace PortalProvider.Providers.DiskGuids
 						Exist.UsedSize = Request.UsedSize;
 						Exist.Read = Request.Read;
 						Exist.Write = Request.Write;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 
@@ -486,15 +486,15 @@ namespace PortalProvider.Providers.DiskGuids
 						await Transaction.CommitAsync();
 						Result.Result = EnumResponseResult.Success;
 
-						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작을 경우 디스크의 상태를 Weak로 변경
-						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize < Threshold.Data.ThresholdDiskWeak)
+						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작고 ReadWrite모드일 경우 디스크의 상태를 Weak로 변경
+						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize < Threshold.Data.ThresholdDiskWeak && Exist.RwMode == EnumDbDiskRwMode.ReadWrite)
 						{
 							Exist.State = EnumDbDiskState.Weak;
 							Exist.RwMode = EnumDbDiskRwMode.ReadOnly;
 						}
 
-						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 클경우 디스크의 상태를 Good로 변경
-						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize > Threshold.Data.ThresholdDiskGood)
+						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 크고 ReadOnly모드일 경우 디스크의 상태를 Good로 변경
+						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize > Threshold.Data.ThresholdDiskGood && Exist.RwMode == EnumDbDiskRwMode.ReadOnly)
 						{
 							Exist.State = EnumDbDiskState.Good;
 							Exist.RwMode = EnumDbDiskRwMode.ReadWrite;
@@ -564,7 +564,7 @@ namespace PortalProvider.Providers.DiskGuids
 					{
 						// 정보를 수정한다.
 						Exist.RwMode = (EnumDbDiskRwMode)DiskRwMode;
-						Exist.ModId = LoginUserId;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 						Exist.ModName = LoginUserName;
 						Exist.ModDate = DateTime.Now;
 

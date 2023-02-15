@@ -22,6 +22,7 @@ namespace PortalModels
 	public enum EnumDbDiskRwMode : int
 	{
 		ReadOnly,
-		ReadWrite
+		ReadWrite,
+		Maintenance
 	}
 }

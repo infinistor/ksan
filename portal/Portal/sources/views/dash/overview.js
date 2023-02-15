@@ -17,7 +17,7 @@ const KSAN_OSD = "label_ksan_osd";
 const KSAN_LIFECYCLE = "label_ksan_lifecycle";
 const KSAN_LOG = "label_ksan_log";
 const KSAN_REPLICATION = "label_ksan_replication";
-const STATUS_ICON = "status_icon";
+const MY_STATUS = "service_status";
 
 const DEFAULT_PREFIX = "<span class='service_name_default'>ksan</span><span class='service_name'>";
 var global_status = true;
@@ -27,43 +27,51 @@ export default class OverviewView extends JetView {
 			type: "abslayout",
 			minWidth: 600,
 			height: 300,
-			cols: [
+			rows: [
+				{ id: MY_STATUS, view: "label" },
+				{ height: 10 },
 				{
-					rows: [
-						{
-							cols: [
-								{ label: "<span class='card_title'>System Overview</span>", view: "label" },
-								{ id: STATUS_ICON, view: "label", width: 60 },
-							],
-						},
-						{ height: 20 },
-						{
-							cols: [
-								{ label: "region", view: "label", width: 100, css: "overview_title" },
-								{ id: REGION_NAME, view: "label" },
-							],
-						},
-						{
-							cols: [
-								{ label: "Services", view: "label", width: 100, css: "overview_title" },
-								{ id: KSAN_AGENT, view: "label" },
-							],
-						},
-						{
-							cols: [{ width: 100 }, { id: KSAN_GW, view: "label" }],
-						},
-						{
-							cols: [{ width: 100 }, { id: KSAN_OSD, view: "label" }],
-						},
-						{
-							cols: [{ width: 100 }, { id: KSAN_LIFECYCLE, view: "label" }],
-						},
-						{
-							cols: [{ width: 100 }, { id: KSAN_LOG, view: "label" }],
-						},
-						{
-							cols: [{ width: 100 }, { id: KSAN_REPLICATION, view: "label" }],
-						},
+					height: 35,
+					cols: [
+						{ label: "Region", view: "label", width: 100, height: 35, css: "overview_title" },
+						{ id: REGION_NAME, view: "label", height: 35 },
+					],
+				},
+				{
+					height: 35,
+					cols: [
+						{ label: "Services", view: "label", width: 100, height: 35, css: "overview_title" },
+						{ id: KSAN_AGENT, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_GW, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_OSD, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_LIFECYCLE, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_LOG, height: 35, view: "label" },
+					],
+				},
+				{
+					cols: [
+						{ width: 100, height: 35 },
+						{ id: KSAN_REPLICATION, height: 35, view: "label" },
 					],
 				},
 			],
@@ -117,14 +125,14 @@ function loadServices() {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
 					return null;
 				} else {
-					$$(KSAN_AGENT).setValue(getKsanAgentString(response.Data.Items));
-					$$(KSAN_GW).setValue(getKsanGWString(response.Data.Items));
-					$$(KSAN_OSD).setValue(getKsanOSDString(response.Data.Items));
-					$$(KSAN_LIFECYCLE).setValue(getKsanLifecycleManagerString(response.Data.Items));
-					$$(KSAN_LOG).setValue(getKsanLogManagerString(response.Data.Items));
-					$$(KSAN_REPLICATION).setValue(getKsanReplicationManagerString(response.Data.Items));
-					if (global_status == true) $$(STATUS_ICON).setValue(`<image width=35px; src="codebase/images/check.png">`);
-					else $$(STATUS_ICON).setValue(`<image width=35px; src="codebase/images/alert-yellow.png">`);
+					$$(KSAN_AGENT).setValue(getStatus("ksanAgent", response.Data.Items));
+					$$(KSAN_GW).setValue(getStatus("ksanGW", response.Data.Items));
+					$$(KSAN_OSD).setValue(getStatus("ksanOSD", response.Data.Items));
+					$$(KSAN_LIFECYCLE).setValue(getStatus("ksanLifecycleManager", response.Data.Items));
+					$$(KSAN_LOG).setValue(getStatus("ksanLogManager", response.Data.Items));
+					$$(KSAN_REPLICATION).setValue(getStatus("ksanReplicationManager", response.Data.Items));
+					if (global_status == true) $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker healthy'>Healthy</span>");
+					else $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker unhealthy'>Unhealthy</span>");
 
 					return usage;
 				}
@@ -138,139 +146,38 @@ function loadServices() {
 }
 
 /**
- * KsanAgent 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanAgent Service List
- * @returns 상태 정보를 포함한 서비스 정보
+ * 서비스의 상태 정보를 출력한다.
+ * @param {string} service_type 서비스 타입
+ * @param {json} items 서비스 목록
+ * @returns 
  */
-function getKsanAgentString(items) {
+function getStatus(service_type, items) {
+	var offlineCount = 0;
+	var timeoutCount = 0;
+	var unknownCount = 0;
 	var count = 0;
-	var errorCount = 0;
-	var flag = true;
+
 	items.forEach((item) => {
-		if (item.ServiceType == "ksanAgent") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
+		if (item.ServiceType == service_type) {
+			switch (item.State) {
+				case "Offline": offlineCount++; break;
+				case "Timeout": timeoutCount++; break;
+				case "Unknown": unknownCount++; break;
 			}
 			count++;
 		}
 	});
-	return `${DEFAULT_PREFIX}Agent ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
 
-/**
- * KsanGW 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanGW Service List
- * @returns 상태 정보를 포함한 서비스 정보
- */
-function getKsanGWString(items) {
-	var count = 0;
-	var errorCount = 0;
-	var flag = true;
-	items.forEach((item) => {
-		if (item.ServiceType == "ksanGW") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
-			}
-			count++;
-		}
-	});
-	return `${DEFAULT_PREFIX}GW ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
+	var result = `${DEFAULT_PREFIX}${service_type.substring(4)} ${count - (offlineCount + timeoutCount + unknownCount)}/${count}</span>`;
 
-/**
- * KsanOSD 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanOSD Service List
- * @returns 상태 정보를 포함한 서비스 정보
- */
-function getKsanOSDString(items) {
-	var count = 0;
-	var errorCount = 0;
-	var flag = true;
-	items.forEach((item) => {
-		if (item.ServiceType == "ksanOSD") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
-			}
-			count++;
-		}
-	});
-	return `${DEFAULT_PREFIX}OSD ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
-
-/**
- * KsanLifecycleManager 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanLifecycleManager Service List
- * @returns 상태 정보를 포함한 서비스 정보
- */
-function getKsanLifecycleManagerString(items) {
-	var count = 0;
-	var errorCount = 0;
-	var flag = true;
-	items.forEach((item) => {
-		if (item.ServiceType == "ksanLifecycleManager") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
-			}
-			count++;
-		}
-	});
-	return `${DEFAULT_PREFIX}LifecycleManager ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
-
-/**
- * KsanLogManager 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanLogManager Service List
- * @returns 상태 정보를 포함한 서비스 정보
- */
-function getKsanLogManagerString(items) {
-	var count = 0;
-	var errorCount = 0;
-	var flag = true;
-	items.forEach((item) => {
-		if (item.ServiceType == "ksanLogManager") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
-			}
-			count++;
-		}
-	});
-	return `${DEFAULT_PREFIX}LogManager ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
-
-/**
- * KsanReplicationManager 서비스의 상태 정보를 가져온다.
- * @param {json} items KsanReplicationManager Service List
- * @returns 상태 정보를 포함한 서비스 정보
- */
-function getKsanReplicationManagerString(items) {
-	var count = 0;
-	var errorCount = 0;
-	var flag = true;
-	items.forEach((item) => {
-		if (item.ServiceType == "ksanReplicationManager") {
-			if (item.State != "Online") {
-				flag = false;
-				errorCount++;
-			}
-			count++;
-		}
-	});
-	return `${DEFAULT_PREFIX}ReplicationManager ${count - errorCount}/${count}</span>${getStatus(flag)}`;
-}
-
-function getStatus(flag) {
-	var status = "Healthy";
-	var style = "";
-	if (flag == false) {
-		status = "UnHealthy";
-		style = "un_healthy";
-		global_status = false;
+	if (offlineCount == 0 && timeoutCount == 0 && unknownCount == 0) result += " <span class='service_status healthy'>(Healthy)</span>";
+	else {
+		result += "<span class='service_status unhealthy'>";
+		var prefix = "(";
+		if (offlineCount > 0) { result += `${prefix}${offlineCount} Offline`; prefix = ", "; }
+		if (timeoutCount > 0) { result += `${prefix}${timeoutCount} Timeout`; prefix = ", "; }
+		if (unknownCount > 0) { result += `${prefix}${unknownCount} Unknown`; }
+		result += ")</span>";
 	}
-
-	return `<span class='service_status ${style}'>(${status})</span>`;
+	return result;
 }

@@ -80,6 +80,8 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstGetUploads;
     private PreparedStatement pstIsUpload;
     private PreparedStatement pstIsUploadPartNo;
+    private PreparedStatement pstGetPartRef;
+    private PreparedStatement pstSetPartRef;
     
     // for utility
     private PreparedStatement pstCreateUJob;
@@ -140,7 +142,9 @@ public class MysqlDataRepository implements DataRepository{
             pstGetUploads = con.prepareStatement(DataRepositoryQuery.getUploadsQuery);
             pstIsUpload = con.prepareStatement(DataRepositoryQuery.isUploadQuery);
             pstIsUploadPartNo = con.prepareStatement(DataRepositoryQuery.isUploadPartNoQuery);
-
+            pstGetPartRef = con.prepareStatement(DataRepositoryQuery.getPartRefQuery);
+            pstSetPartRef = con.prepareStatement(DataRepositoryQuery.updatePartRefQuery);
+            
            // for utility
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
             pstCreateUJob = con.prepareStatement(DataRepositoryQuery.createUJobQuery);
@@ -1088,6 +1092,32 @@ public class MysqlDataRepository implements DataRepository{
         }
         return resultUploads;
     }
+    
+    @Override
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException {
+        String partRef = " ";
+        pstGetPartRef.clearParameters();
+        pstGetPartRef.setString(1, uploadId);
+        pstGetPartRef.setInt(2, partNo);
+        ResultSet rs = pstGetPartRef.executeQuery();
+
+        while (rs.next()) {
+            partRef = rs.getString(1);
+          
+        }
+        return partRef;
+    }
+    
+    @Override
+    public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException {
+        pstSetPartRef.clearParameters();
+        pstSetPartRef.setString(1, uploadId);
+        pstSetPartRef.setInt(2, partNo);
+        pstSetPartRef.setString(3, partRef);
+        pstSetPartRef.execute();
+        return 0;
+    }
+    
 /***********************************************END*****************************************************************************/
 
 

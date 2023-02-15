@@ -15,6 +15,13 @@ import { getDiskMode } from "../../models/utils/getDiskMode";
 
 const MY_URL = "/api/v1/Disks";
 const MY_TABLE = "disk_summary";
+const MY_STATUS = "disk_status";
+
+var Sorting = {
+	title: "used",
+	direction: "desc"
+
+};
 
 export default class DiskView extends JetView {
 	config() {
@@ -24,15 +31,48 @@ export default class DiskView extends JetView {
 			height: 300,
 			rows: [
 				{
-					view: "label",
-					label: "<span class='card_title'>Disks</span>",
+					cols: [
+						{
+							view: "label",
+							id: MY_STATUS,
+						},
+						{},
+						{
+							view: "icon",
+							id: "nameSorting",
+							icon: "mdi mdi-sort-alphabetical-ascending",
+							css: "webix_rpt_sort_icon",
+							icons: {
+								asc: "mdi mdi-sort-alphabetical-ascending",
+								desc: "mdi mdi-sort-alphabetical-descending"
+							},
+							click: function () {
+								return Sort("name");
+							}
+						},
+						{
+							view: "icon",
+							id: "usedSorting",
+							icon: "mdi mdi-sort-ascending",
+							css: "webix_rpt_sort_icon webix_rpt_btn_active",
+							icons: {
+								asc: "mdi mdi-sort-ascending",
+								desc: "mdi mdi-sort-descending"
+							},
+							click: function () {
+								return Sort("used");
+							}
+						},
+						{ width: 10 }
+					]
 				},
 				{
 					view: "list",
 					borderless: true,
 					id: MY_TABLE,
 					minWidth: 600,
-					height: 300,
+					height: 260,
+					css: "my_list",
 					type: {
 						height: "auto",
 						template: (obj) => `
@@ -44,18 +84,17 @@ export default class DiskView extends JetView {
 							<span class="disk_list_name">${obj.Name}</span>
 							(${getDiskStateToColor(obj)}, ${getDiskMode(obj)})
 						</div>
-						<div class='progress_bar_element'>
-							<div class='progress_result ${(obj.UsedSize / obj.TotalSize) * 100 > 85 ? "Week" : "Good"}' style='width:${(obj.UsedSize / obj.TotalSize) * 100 + "%"}'></div>
+						<div class="progress_bar_element">
+							<div class="progress_result ${(obj.UsedSize / obj.TotalSize) * 100 > 85 ? "Week" : "Good"}" style="width:${(obj.UsedSize / obj.TotalSize) * 100 + "%"}"></div>
 						</div>`,
 					},
 					ready: function () {
-						// apply sorting
 						this.sort(SortToUsedRate, "desc");
 					},
 					url: function () {
 						return webix
 							.ajax()
-							.get("/api/v1/Disks")
+							.get(MY_URL)
 							.then(
 								function (data) {
 									var response = data.json();
@@ -63,6 +102,12 @@ export default class DiskView extends JetView {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
 										return null;
 									} else {
+										var status = true;
+										response.Data.Items.forEach(item => {
+											if (item.State != "Good") status = false;
+										});
+										if (status == true) $$(MY_STATUS).setValue("<span class='card_title'>Disks</span> <span class='status_marker healthy'>Healthy</span>");
+										else $$(MY_STATUS).setValue("<span class='card_title'>Disks</span> <span class='status_marker unhealthy'>Unhealthy</span>");
 										return response.Data.Items;
 									}
 								},
@@ -78,11 +123,33 @@ export default class DiskView extends JetView {
 			],
 		};
 	}
-	init() {}
+	init() { }
 }
 
 function SortToUsedRate(a, b) {
 	var a_rate = a.UsedSize / a.TotalSize;
 	var b_rate = b.UsedSize / b.TotalSize;
 	return a_rate > b_rate ? 1 : -1;
+}
+
+function Sort(title) {
+	var old_event = webix.copy(Sorting);
+	Sorting = {
+		title: title,
+		direction: old_event.title == title ? (old_event.direction == "asc" ? "desc" : "asc") : "asc"
+	}
+	if (Sorting.title == "used") $$(MY_TABLE).sort(SortToUsedRate, Sorting.direction);
+	else $$(MY_TABLE).sort("Name", Sorting.direction);
+	ChangeSortButtons(Sorting, old_event);
+}
+function ChangeSortButtons(new_event, old_event) {
+	var new_item = $$(new_event.title + "Sorting");
+	webix.html.addCss(new_item.$view, "webix_rpt_btn_active");
+	new_item.config.icon = new_item.config.icons[new_event.direction];
+	new_item.refresh();
+
+	if (new_event.title != old_event.title) {
+		var old_item = $$(old_event.title + "Sorting");
+		webix.html.removeCss(old_item.$view, "webix_rpt_btn_active")
+	}
 }
