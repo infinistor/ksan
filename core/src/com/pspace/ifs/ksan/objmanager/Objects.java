@@ -45,6 +45,17 @@ public class Objects {
         this.bucketMGT = bucketMGT;
     }
        
+    private Metadata _switchDisk(Metadata mt) throws ResourceNotFoundException{
+        if (mt.getPrimaryDisk().getMode() == DiskMode.MAINTENANCE){
+            if (!mt.isReplicaExist())
+                throw new ResourceNotFoundException("[_switchDisk] Bucket(" + mt.getBucket() +") and object key("+ mt.getPath() + ") all disk avaliable are in Mainenace mode!");
+            DISK dsk = mt.getPrimaryDisk();
+            mt.setPrimaryDisk(mt.getReplicaDisk());
+            mt.setReplicaDISK(dsk);
+        }
+        return mt;
+    }
+    
     private Metadata _open(String bucketName, String key, String versionId)
             throws ResourceNotFoundException{
         Metadata mt;
@@ -66,7 +77,7 @@ public class Objects {
             mt = dbm.selectSingleObject(bt.getDiskPoolId(), bucketName, key, versionId);
         
         logger.debug("[_open] End bucketName : {} key : {}  versionId : {} ", bucketName, key, versionId == null ? "null" : versionId);
-        return mt;
+        return _switchDisk(mt);
     }
     
     private Metadata _create(String bucketName, String key, String versionId, String diskPoolId, int algorithm)
