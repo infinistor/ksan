@@ -1412,4 +1412,7 @@
   <data name="EM_DISKS_INVALID_THRESHOLD" xml:space="preserve">
     <value>임계값이 유효하지 않습니다.</value>
   </data>
+  <data name="UL_DISKS_READ_WRITE_MODE_MAINTENANCE" xml:space="preserve">
+    <value>관리</value>
+  </data>
 </root>

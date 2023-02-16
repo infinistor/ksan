@@ -18,17 +18,16 @@ import { getDiskPoolReplicationType } from "../../models/enum/enum-disk-pool-rep
 import { drawCurve } from "../../models/draw/drawCurve";
 import { moveLogin } from "../../models/utils/moveLogin";
 
-const NUMBER_FORMAT = webix.Number.numToStr({
-	groupDelimiter: ",",
-	groupSize: 3,
-	decimalDelimiter: ".",
-	decimalSize: 0,
-});
-const MY_URL = "/api/v1/DiskPools";
+const DISKPOOL_URL = "/api/v1/DiskPools";
 const DISKPOOL_ADD_WINDOW = "diskpool_add_window";
 const DISKPOOL_DELETE_WINDOW = "diskpool_delete_window";
 const DISKPOOL_DELETE_BUTTON = "diskpool_delete_button";
+const DISKPOOL_TO_DISK_WINDOW = "diskpool_to_disk_window";
+const DISKPOOL_TO_DISK_BUTTON = "diskpool_to_disk_button";
 const DISKPOOL_TABLE = "diskpool";
+const SUB_DISK_TABLE = "sub_disk";
+
+var Disks = [];
 
 export default class DiskPoolView extends JetView {
 	config() {
@@ -36,7 +35,6 @@ export default class DiskPoolView extends JetView {
 			rows: [
 				{
 					view: "toolbar",
-					css: "webix_dark",
 					paddingX: 20,
 					elements: [{ view: "label", label: "Diskpools", height: 0 }],
 					height: 50,
@@ -44,6 +42,8 @@ export default class DiskPoolView extends JetView {
 				},
 				{
 					height: 35,
+					type: "clean",
+					css: "default_layout",
 					cols: [
 						{
 							view: "icon",
@@ -63,7 +63,27 @@ export default class DiskPoolView extends JetView {
 							borderless: true,
 							popup: DISKPOOL_DELETE_WINDOW,
 						},
+						{
+							id: DISKPOOL_TO_DISK_BUTTON,
+							disabled: true,
+							view: "icon",
+							icon: "mdi mdi-harddisk-plus",
+							tooltip: "디스크 관리",
+							autowidth: true,
+							borderless: true,
+							popup: DISKPOOL_TO_DISK_WINDOW,
+						},
 						{ view: "spacer" },
+						{
+							view: "icon",
+							icon: "mdi mdi-close",
+							tooltip: "선택취소",
+							autowidth: true,
+							borderless: true,
+							click: function () {
+								$$(DISKPOOL_TABLE).callEvent("onUnselect");
+							},
+						},
 						{
 							view: "icon",
 							icon: "mdi mdi-reload",
@@ -119,7 +139,7 @@ export default class DiskPoolView extends JetView {
 					url: function () {
 						return webix
 							.ajax()
-							.get(MY_URL)
+							.get(DISKPOOL_URL)
 							.then(
 								function (data) {
 									var response = data.json();
@@ -147,16 +167,21 @@ export default class DiskPoolView extends JetView {
 								}
 							);
 					},
+					ready: function () {
+						webix.extend(this, webix.ProgressBar);
+					},
 					on: {
 						onAfterSelect: (id) => {
 							const diskpool = $$(DISKPOOL_TABLE).getItem(id);
 							this.app.callEvent("diskpool:select", [diskpool]);
 							$$(DISKPOOL_DELETE_BUTTON).enable();
+							$$(DISKPOOL_TO_DISK_BUTTON).enable();
 						},
-						onItemDblClick: (id, e, node) => {
-							$$(DISKPOOL_TABLE).unselect(id);
-							this.app.callEvent("diskpool:unselect");
+						onUnselect: () => {
+							$$(DISKPOOL_TABLE).unselectAll();
 							$$(DISKPOOL_DELETE_BUTTON).disable();
+							$$(DISKPOOL_TO_DISK_BUTTON).disable();
+							this.app.callEvent("diskpool:unselect");
 						}
 					},
 				},
@@ -171,45 +196,50 @@ export default class DiskPoolView extends JetView {
 				head: "Add",
 				width: 350,
 				body: {
-					view: "form",
-					borderless: true,
-					elementsConfig: {
-						labelWidth: 100,
-					},
-					elements: [
-						{ view: "text", label: "Name", name: "Name" },
-						{ view: "richselect", label: "DiskPool Type", name: "DiskPoolType", options: getDiskPoolType(), value: "STANDARD" },
-						{ view: "richselect", label: "Tolerance", name: "ReplicationType", options: getDiskPoolReplicationType(), value: "OnePlusZero" },
-						{ view: "textarea", label: "Description", name: "Description", height: 200, labelPosition: "top" },
+					rows: [
+						{ view: "label", label: "디스크풀 추가", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
-							cols: [
+							view: "form",
+							borderless: true,
+							elementsConfig: {
+								labelWidth: 100,
+							},
+							elements: [
+								{ view: "text", label: "Name", name: "Name" },
+								{ view: "richselect", label: "DiskPool Type", name: "DiskPoolType", options: getDiskPoolType(), value: "STANDARD" },
+								{ view: "richselect", label: "Tolerance", name: "ReplicationType", options: getDiskPoolReplicationType(), value: "OnePlusZero" },
+								{ view: "textarea", label: "Description", name: "Description", height: 200, labelPosition: "top" },
 								{
-									view: "button",
-									css: "webix_secondary",
-									value: "취소",
-									click: function () {
-										this.getTopParentView().hide();
-									},
-								},
-								{
-									view: "button",
-									css: "webix_primary",
-									value: "추가",
-									hotkey: "enter",
-									click: function () {
-										if (this.getParentView().getParentView().validate()) {
-											addDiskPool(this.getFormView().getValues());
-										} else webix.alert({ type: "error", text: "Form data is invalid" });
-									},
+									cols: [
+										{
+											view: "button",
+											css: "webix_secondary",
+											value: "취소",
+											click: function () {
+												this.getTopParentView().hide();
+											},
+										},
+										{
+											view: "button",
+											css: "webix_primary",
+											value: "추가",
+											hotkey: "enter",
+											click: function () {
+												if (this.getParentView().getParentView().validate()) {
+													addDiskPool(this.getFormView().getValues());
+												} else webix.alert({ type: "error", text: "Form data is invalid" });
+											},
+										},
+									],
 								},
 							],
-						},
-					],
-					rules: {
-						Name: webix.rules.isNotEmpty,
-						DiskPoolType: webix.rules.isNotEmpty,
-						ReplicationType: webix.rules.isNotEmpty,
-					},
+							rules: {
+								Name: webix.rules.isNotEmpty,
+								DiskPoolType: webix.rules.isNotEmpty,
+								ReplicationType: webix.rules.isNotEmpty,
+							},
+						}]
 				},
 			});
 		if ($$(DISKPOOL_DELETE_WINDOW) == null)
@@ -220,6 +250,8 @@ export default class DiskPoolView extends JetView {
 				width: 250,
 				body: {
 					rows: [
+						{ view: "label", label: "디스크풀 삭제", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -245,6 +277,113 @@ export default class DiskPoolView extends JetView {
 					],
 				},
 			});
+		if ($$(DISKPOOL_TO_DISK_WINDOW) == null)
+			webix.ui({
+				id: DISKPOOL_TO_DISK_WINDOW,
+				view: "popup",
+				head: "Disks",
+				width: 550,
+				height: 500,
+				body: {
+					rows: [
+						{ view: "label", label: "디스크 관리", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
+						{
+							view: "datatable",
+							id: SUB_DISK_TABLE,
+							sort: "multi",
+							tooltip: true,
+							scroll: "y",
+							resizeColumn: true,
+							checkboxRefresh: true,
+							css: "webix_header_border",
+							columns: [
+								{ id: "Id", header: "Id", hidden: true },
+								{ id: "Check", header: { content: "masterCheckbox" }, template: "{common.checkbox()}", tooltip: false, width: 40 },
+								{ id: "DiskPoolId", header: "DiskPoolId", hidden: true },
+								{ id: "ServerName", header: "Server Name", width: 130 },
+								{ id: "Name", header: "Disk Name", fillspace: true, width: 130 },
+								{ id: "Path", header: "Path", width: 150 },
+							],
+							ready: function () {
+								// apply sorting
+								this.sort([
+									{ by: "Check", dir: "desc", as: "int" },
+									{ by: "Name", dir: "asc", as: "string" },
+								]);
+								webix.extend(this, webix.ProgressBar);
+							},
+							on: {
+								onCheck: () => {
+									$$(SUB_DISK_TABLE).sort([
+										{ by: "Check", dir: "desc", as: "int" },
+										{ by: "Name", dir: "asc", as: "string" },
+									]);
+								}
+							}
+						},
+						{ height: 10 },
+						{
+							cols: [
+								{
+									view: "button",
+									css: "webix_secondary",
+									value: "취소",
+									click: function () {
+										this.getTopParentView().hide();
+									},
+								},
+								{
+									view: "button",
+									css: "webix_primary",
+									value: "변경",
+									click: function () {
+										DiskPoolUpdateDisks();
+									},
+								},
+							],
+						},
+					],
+				},
+				on: {
+					onShow: () => {
+						var diskPoolId = $$(DISKPOOL_TABLE).getSelectedItem();
+						if (diskPoolId != null) {
+
+							return webix
+								.ajax()
+								.get(`/api/v1/DiskPools/${diskPoolId.Id}/AvailableDisks`)
+								.then(
+									function (data) {
+										var response = data.json();
+										if (response.Result == "Error") {
+											webix.message({ text: response.Message, type: "error", expire: 5000 });
+											return null;
+										} else {
+											Disks = [];
+											response.Data.Items.forEach((item) => {
+												Disks.push({
+													Id: item.Id,
+													Check: item.DiskPoolId == diskPoolId.Id ? true : false,
+													Name: item.Name,
+													ServerName: item.ServerName,
+													Path: item.Path,
+												});
+											});
+											$$(SUB_DISK_TABLE).parse(Disks);
+										}
+									},
+									function (error) {
+										var response = JSON.parse(error.response);
+										webix.message({ text: response.Message, type: "error", expire: 5000 });
+										moveLogin("/#!/main/ksanusers");
+										return null;
+									}
+								);
+						}
+					},
+				}
+			});
 	}
 }
 
@@ -257,7 +396,7 @@ function addDiskPool(form) {
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(MY_URL, JSON.stringify(form))
+		.post(DISKPOOL_URL, JSON.stringify(form))
 		.then(
 			function (data) {
 				var response = data.json();
@@ -280,13 +419,11 @@ function deleteDiskPool() {
 		webix.alert({ type: "error", text: "디스크풀을 선택해야 합니다." });
 		return;
 	}
-	var DeleteUrl = MY_URL + "/" + item.Id;
-
 	showProgressIcon(DISKPOOL_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(DeleteUrl)
+		.del(`${DISKPOOL_URL}/${item.Id}`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -299,3 +436,33 @@ function deleteDiskPool() {
 			}
 		);
 }
+
+
+/**
+ * 선택된 디스크풀에서 디스크를 할당하거나 제거한다.
+ */
+function DiskPoolUpdateDisks() {
+	var DiskPool = $$(DISKPOOL_TABLE).getSelectedItem();
+	var checkDisks = [];
+	Disks.forEach(item => {
+		if (item.Check == true) checkDisks.push(item.Id);
+	})
+	console.log(checkDisks);
+	showProgressIcon(SUB_DISK_TABLE);
+	webix
+		.ajax()
+		.headers({ "Content-Type": "application/json" })
+		.put(`${DISKPOOL_URL}/Disks/${DiskPool.Id}`, JSON.stringify({ Disks: checkDisks }))
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				else window.location.reload(true);
+			},
+			function (error) {
+				var response = JSON.parse(error.response);
+				webix.message({ text: response.Message, type: "error", expire: 5000 });
+			}
+		);
+}
+

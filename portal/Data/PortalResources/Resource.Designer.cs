@@ -4030,6 +4030,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Maintenance과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKS_READ_WRITE_MODE_MAINTENANCE {
+            get {
+                return ResourceManager.GetString("UL_DISKS_READ_WRITE_MODE_MAINTENANCE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Read Only과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string UL_DISKS_READ_WRITE_MODE_READ_ONLY {

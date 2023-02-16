@@ -216,10 +216,21 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="Request">디스크 요청 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPut("Disks/{Id}")]
+		[HttpPost("Disks/{Id}")]
 		public async Task<ActionResult> AddDisks([FromRoute] string Id, [FromBody] RequestDisks Request)
 		{
 			return Json(await m_dataProvider.AddDisks(Id, Request));
+		}
+		
+		/// <summary>디스크 풀에 디스크를 할당한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("Disks/{Id}")]
+		public async Task<ActionResult> UpdateDisks([FromRoute] string Id, [FromBody] RequestDisks Request)
+		{
+			return Json(await m_dataProvider.UpdateDisks(Id, Request));
 		}
 		
 		/// <summary>디스크 풀에 디스크를 제거한다.</summary>

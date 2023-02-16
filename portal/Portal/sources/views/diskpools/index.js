@@ -13,16 +13,20 @@ import { JetView } from "webix-jet";
 export default class TopView extends JetView {
 	config() {
 		return {
-			type: "space",
 			rows: [
 				{
 					view: "toolbar",
 					css: "webix_dark",
 					paddingX: 20,
-					elements: [{ view: "label", label: "Storage", height: 0 }],
+					elements: [{ view: "label", label: "Storage" }],
 					height: 50,
 					borderless: true,
-				}, { cols: [{ $subview: "diskpools.diskpools" }, {width: 20}, { $subview: "diskpools.disks" }, { $subview: true, popup: true }] }],
+				},
+				{
+					type: "space",
+					cols: [{ $subview: "diskpools.diskpools" }, { $subview: "diskpools.disks" }, { $subview: true, popup: true }]
+				}
+			],
 		};
 	}
 }

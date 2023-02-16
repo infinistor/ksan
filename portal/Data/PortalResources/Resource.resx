@@ -1921,4 +1921,8 @@
     <value>EC</value>
     <comment>ErasureCode</comment>
   </data>
+  <data name="UL_DISKS_READ_WRITE_MODE_MAINTENANCE" xml:space="preserve">
+    <value>Maintenance</value>
+    <comment>관리</comment>
+  </data>
 </root>
