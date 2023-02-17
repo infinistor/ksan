@@ -80,7 +80,7 @@ public class ObjMultipart{
         return id;
     }
     
-    public String createMultipartUpload(String bucket, String objkey, String acl, String meta, String diskId){
+    public String createMultipartUpload(Metadata mt){
         String id;
         while (true){
             id = getNewUploadId();
@@ -88,7 +88,7 @@ public class ObjMultipart{
                 return null;
             
             try {
-                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0, diskId);
+                dbm.insertMultipartUpload(mt, id, 0);
                 return id;
             } catch (SQLException ex) {
                 Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
@@ -96,9 +96,9 @@ public class ObjMultipart{
         }
     }
 
-    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size, String diskId){
+    public int startSingleUpload(Metadata mt, String uploadId, int partNo){
         try {
-            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size, diskId);
+            return dbm.insertMultipartUpload(mt, uploadId, partNo);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
         }

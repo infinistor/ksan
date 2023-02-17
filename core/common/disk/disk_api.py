@@ -249,7 +249,7 @@ def ChangeDiskMode(Ip, Port, ApiKey, RwMode, DiskId=None, Name=None, logger=None
     else:
         return ResInvalidCode, ResInvalidMsg + ErrMsgDiskNameMissing, None
 
-    if RwMode not in [DiskModeRw, DiskModeRo]:
+    if RwMode not in [DiskModeRw, DiskModeRo, DiskModeMaintenance]:
         return ResInvalidCode, ResInvalidMsg, None
     Url = '/api/v1/Disks/%s/RwMode/%s' % \
           (TargetDisk, RwMode)
@@ -574,10 +574,16 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
         else:
-            if options.Mode.lower() not in ['ro', 'readonly', 'rw', 'readwrite']:
+            if options.Mode.lower() in ['ro', 'readonly']:
+                DiskMode = DiskModeRo
+            elif options.Mode.lower() in ['rw', 'readwrite']:
+                DiskMode = DiskModeRw
+            elif options.Mode.lower() in ['ma', 'maintenance']:
+                DiskMode = DiskModeMaintenance
+            else:
                 Parser.print_help()
                 sys.exit(-1)
-            DiskMode = DiskModeRo if options.Mode in ['ro', 'readonly'] else DiskModeRw
+
             Res, Errmsg, Ret = ChangeDiskMode(PortalIp, PortalPort,PortalApiKey, DiskMode,
                                               Name=options.DiskName, logger=logger)
             if Res == ResOk:

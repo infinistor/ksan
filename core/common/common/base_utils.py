@@ -210,8 +210,12 @@ def DisplayState(State, WhiteSpace=10):
 def DisplayDiskMode(Mode):
     if Mode == DiskModeRw:
         return DiskModeRwShort
-    else:
+    elif Mode == DiskModeRo:
         return DiskModeRoShort
+    elif Mode == DiskModeMaintenance:
+        return DiskModeMaintenanceShort
+    else:
+        return 'InvalidMode'
 
 
 

@@ -877,17 +877,23 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
+    public  synchronized int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException{
         pstInsertMultiPart.clearParameters();
-        pstInsertMultiPart.setString(1, bucket);
-        pstInsertMultiPart.setString(2, objkey);
+        pstInsertMultiPart.setString(1, mt.getBucket());
+        pstInsertMultiPart.setString(2, mt.getPath());
         pstInsertMultiPart.setString(3, uploadid);
         pstInsertMultiPart.setInt(4, partNo);
-        pstInsertMultiPart.setString(5, acl);
-        pstInsertMultiPart.setString(6, meta);
-        pstInsertMultiPart.setString(7, etag);
-        pstInsertMultiPart.setLong(8, size);
-        pstInsertMultiPart.setString(9, pdiskid);
+        pstInsertMultiPart.setString(5, mt.getAcl());
+        pstInsertMultiPart.setString(6, mt.getMeta());
+        pstInsertMultiPart.setString(7, mt.getEtag());
+        pstInsertMultiPart.setLong(8, mt.getSize());
+        pstInsertMultiPart.setString(9, mt.getPrimaryDisk().getId());
+        try {
+            pstInsertMultiPart.setString(10, mt.getReplicaDisk().getId());
+        } catch (ResourceNotFoundException ex) {
+            pstInsertMultiPart.setString(10, "");
+        }
+        pstInsertMultiPart.setString(11, "");
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -1025,7 +1031,8 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
+            part.setPrimaryDiskId(rs.getString(5));
+            part.setReplicaDiskId(rs.getString(6));
             listPart.put(part.getPartNumber(), part);
         }
 
@@ -1058,7 +1065,8 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
+            part.setPrimaryDiskId(rs.getString(5));
+            part.setReplicaDiskId(rs.getString(6));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
 

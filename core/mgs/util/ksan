@@ -60,6 +60,7 @@ class KsanOptionParser(OptionParser):
           --StorageClass                                                           : user-defined storage class for s3-compatible
           --Host                                                                   : server ip or hostname 
           --DiskPath                                                               : osd disk's mount path 
+          --Mode                                                                   : disk mode [ro|readonly|rw|readwrite|ma|maintenance]
           
           --BucketName                                                             : specify the name of the bucket 
           --KeyName                                                                : specify the object key
@@ -273,13 +274,13 @@ class KsanDiskUtilOptParser(OptionParser):
               list                                  : show disk info 
               start                                 : start disk 
               stop                                  : stop disk 
-              set                                   : set disk read-only/read-write mode
+              set                                   : set disk read-only/read-write/maintenance mode
 
         [options]
               --ServerName                          : server name
               --DiskName                            : disk name 
               --DiskPath                            : disk mount path 
-              --Mode                                : disk mode [ro|readonly|rw|readwrite]
+              --Mode                                : disk mode [ro|readonly|rw|readwrite|ma|maintenance]
               --v                                   : show info in detail 
               --vv                                  : show info in more detail
               --Continue                            : display info in every n seconds
@@ -304,6 +305,7 @@ class KsanDiskUtilOptParser(OptionParser):
               5. set disk mode 
                 # ./ksan disk set --DiskName disk1 --Mode ro 
                 # ./ksan disk set --DiskName disk2 --Mode rw
+                # ./ksan disk set --DiskName disk2 --Mode ma
 
 
                 """

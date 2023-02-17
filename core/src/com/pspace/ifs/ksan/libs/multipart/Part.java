@@ -17,7 +17,8 @@ public class Part {
 	private long partSize;
 	private String partETag;
 	private Date lastModified;
-	private String diskID;
+	private String PrimaryDiskId;
+	private String ReplicaDiskId;
 	
 	public int getPartNumber() {
 		return partNumber;
@@ -43,10 +44,16 @@ public class Part {
 	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
 	}
-	public String getDiskID() {
-		return diskID;
+	public String getPrimaryDiskID() {
+		return PrimaryDiskId;
 	}
-	public void setDiskID(String diskID) {
-		this.diskID = diskID;
+	public void setPrimaryDiskId(String diskId) {
+		this.PrimaryDiskId = diskId;
+	}
+	public String getReplicaDiskId() {
+		return ReplicaDiskId;
+	}
+	public void setReplicaDiskId(String diskId) {
+		this.ReplicaDiskId = diskId;
 	}
 }

@@ -251,6 +251,8 @@ public class GetFromPortal {
             
             if (mode.equalsIgnoreCase("ReadWrite"))
                 dsk.setMode(DiskMode.READWRITE);
+            else if (mode.equalsIgnoreCase("Maintenance"))
+                dsk.setMode(DiskMode.MAINTENANCE);
             else
                 dsk.setMode(DiskMode.READONLY);
             //logger.debug("DISKS {}", dsk.toString());
