@@ -349,8 +349,8 @@ export default class DiskPoolView extends JetView {
 					onShow: () => {
 						var diskPoolId = $$(DISKPOOL_TABLE).getSelectedItem();
 						if (diskPoolId != null) {
-
-							return webix
+							$$(SUB_DISK_TABLE).clearAll();
+							webix
 								.ajax()
 								.get(`/api/v1/DiskPools/${diskPoolId.Id}/AvailableDisks`)
 								.then(
@@ -358,7 +358,6 @@ export default class DiskPoolView extends JetView {
 										var response = data.json();
 										if (response.Result == "Error") {
 											webix.message({ text: response.Message, type: "error", expire: 5000 });
-											return null;
 										} else {
 											Disks = [];
 											response.Data.Items.forEach((item) => {
@@ -371,6 +370,10 @@ export default class DiskPoolView extends JetView {
 												});
 											});
 											$$(SUB_DISK_TABLE).parse(Disks);
+											$$(SUB_DISK_TABLE).sort([
+												{ by: "Check", dir: "desc", as: "int" },
+												{ by: "Name", dir: "asc", as: "string" },
+											]);
 										}
 									},
 									function (error) {
