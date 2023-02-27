@@ -284,7 +284,7 @@ public class SERVER {
 
                 return dsk;
             }
-            logger.error("There is no disk the server!"); 
+            logger.debug("There is no disk the server!"); 
             throw new ResourceNotFoundException("There is no disk the server!");
         } finally {
             lock.unlock();
