@@ -291,6 +291,25 @@ public class SERVER {
         }
     }
     
+    public boolean possibleToAlloc(){
+        DISK dsk;
+        
+        for(String diskid : diskMap.keySet()){
+            dsk = diskMap.get(diskid);
+            if (dsk != null){
+                if (dsk.getStatus() != DiskStatus.GOOD){
+                    continue;
+                }
+                
+                if (dsk.getMode() != DiskMode.READWRITE){
+                    continue;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public ServerStatus getStatus(){
         return this.status;
     }

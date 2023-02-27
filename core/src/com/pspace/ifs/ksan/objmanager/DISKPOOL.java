@@ -175,6 +175,10 @@ public class DISKPOOL {
                      continue;
                  }
                  
+                 if (srv.possibleToAlloc() == false){ // to check disk avaliablity 
+                    svrCounter++;
+                    continue; 
+                 }
                  return srv;
             }
             logger.error("There is no server in the system!");
