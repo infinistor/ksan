@@ -556,6 +556,10 @@ public class MongoDataRepository implements DataRepository{
         index.append(DELETEMARKER, 1);
         //index.append(OBJKEY, 1);
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+        
+        Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
+        database.getCollection(bt.getName()).createIndex(objkeyIndex);
+        
         // wild index for listobjects
         Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
