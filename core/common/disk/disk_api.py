@@ -24,7 +24,7 @@ from const.disk import AddDiskObject, UpdateDiskSizeObject
 from common.base_utils import *
 from portal_api.apis import *
 
-ParsingDiskInode = re.compile("([\d\w_\-/]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d])\%")
+ParsingDiskInode = re.compile("([\d\w_\-/]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)\%")
 
 
 class Disk(AddDiskObject):
