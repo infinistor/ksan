@@ -556,6 +556,10 @@ public class MongoDataRepository implements DataRepository{
         index.append(DELETEMARKER, 1);
         //index.append(OBJKEY, 1);
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+        
+        Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
+        database.getCollection(bt.getName()).createIndex(objkeyIndex);
+        
         // wild index for listobjects
         Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
@@ -696,7 +700,7 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
+    public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException{
         MongoCollection<Document> multip;
         Document doc;
         
@@ -704,17 +708,22 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return -1;
         
-        doc = new Document(OBJKEY, objkey);
-        doc.append(BUCKETNAME, bucket);
+        doc = new Document(OBJKEY, mt.getPath());
+        doc.append(BUCKETNAME, mt.getBucket());
         doc.append(UPLOADID, uploadid);
         doc.append(PARTNO, partNo);
         doc.append(COMPLETED, false);
         doc.append(CHANGETIME, getCurrentDateTime());
-        doc.append(ACL, acl);
-        doc.append(META, meta);
-        doc.append(ETAG, etag);
-        doc.append(SIZE, size);
-        doc.append(PDISKID, pdiskid);
+        doc.append(ACL, mt.getAcl());
+        doc.append(META, mt.getMeta());
+        doc.append(ETAG, mt.getEtag());
+        doc.append(SIZE, mt.getSize());
+        doc.append(PDISKID, mt.getPrimaryDisk().getId());
+        try {
+            doc.append(RDISKID, mt.getReplicaDisk().getId());
+        } catch (ResourceNotFoundException ex) {
+            doc.append(RDISKID, "");
+        }
         doc.append(PARTREF, "");
         
         multip.insertOne(doc);
@@ -884,7 +893,8 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(doc.getString(PDISKID));
+            part.setPrimaryDiskId(doc.getString(PDISKID));
+            part.setReplicaDiskId(doc.getString(RDISKID));
             listPart.put(part.getPartNumber(), part);
         }
         
@@ -924,7 +934,8 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(doc.getString(PDISKID));
+            part.setPrimaryDiskId(doc.getString(PDISKID));
+            part.setReplicaDiskId(doc.getString(RDISKID));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
         

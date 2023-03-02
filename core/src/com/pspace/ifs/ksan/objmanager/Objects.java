@@ -44,7 +44,7 @@ public class Objects {
         this.obmCache = obmCache;
         this.bucketMGT = bucketMGT;
     }
-       
+           
     private Metadata _open(String bucketName, String key, String versionId)
             throws ResourceNotFoundException{
         Metadata mt;
