@@ -1262,7 +1262,7 @@ public class MongoDataRepository implements DataRepository{
         //BasicDBObject sortBy1 = null;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
-        Bson orderBySort;
+        //Bson orderBySort;
         
         //Bson orderBySort = orderBy(descending(OBJKEY), ascending(LASTMODIFIED));
         if (queryString.contains(OBJID)){ // for utlity list 
@@ -1285,16 +1285,19 @@ public class MongoDataRepository implements DataRepository{
             //sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        if (sortList.size() > 1){
+        /*if (sortList.size() > 1){
             Object obj = String.format("%s,%s", sortList.get(0), sortList.get(1));
             orderBySort = (Bson) obj; //orderBy(sortList);
         } else if (sortList.size() == 1)
             orderBySort = sortList.get(0);
         else
-            orderBySort = ascending(OBJID);
+            orderBySort = ascending(OBJID);*/
         //"{OBJKEY : 1}, {LASTMODIFIED : -1}"
         
-        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(orderBySort).skip((int)offset);
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortList.get(0)).skip((int)offset);
+        if (!queryString.contains(LASTVERSION))
+            oit.sort(new BasicDBObject(LASTMODIFIED, -1 ));
+        
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
