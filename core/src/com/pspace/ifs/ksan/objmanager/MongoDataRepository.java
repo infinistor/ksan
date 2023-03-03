@@ -1265,17 +1265,20 @@ public class MongoDataRepository implements DataRepository{
         
         //Bson orderBySort = orderBy(descending(OBJKEY), ascending(LASTMODIFIED));
         if (queryString.contains(OBJID)){ // for utlity list 
-            sortList.add(ascending(OBJID));
+            sortList.add(new BasicDBObject(OBJID, 1));
+            //sortList.add(ascending(OBJID));
             //sortBy = new BasicDBObject(OBJID, 1); 
             //sortBy.add(new BasicDBObject(OBJID, 1 ));
         } else{
-            sortList.add(ascending(OBJKEY));
+            sortList.add(new BasicDBObject(OBJKEY, 1 ));
+            //sortList.add(ascending(OBJKEY));
             //sortBy = new BasicDBObject(OBJKEY, 1 );
             //sortBy.add(new BasicDBObject(OBJKEY, 1 ));
         }
             
         if (!queryString.contains(LASTVERSION)){
-            sortList.add(descending(LASTMODIFIED));
+            sortList.add(new BasicDBObject(LASTMODIFIED, -1 ));
+            //sortList.add(descending(LASTMODIFIED));
             //sortBy.append(LASTMODIFIED, -1);
             //sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
             //sortBy.add(new BasicDBObject("_id", -1));
