@@ -19,6 +19,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Aggregates.skip;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 
@@ -1284,12 +1285,14 @@ public class MongoDataRepository implements DataRepository{
             //sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        if (sortList.size() > 1)
-            orderBySort = orderBy(sortList);
-        else if (sortList.size() == 1)
+        if (sortList.size() > 1){
+            Object obj = String.format("%s,%s", sortList.get(0), sortList.get(1));
+            orderBySort = (Bson) obj; //orderBy(sortList);
+        } else if (sortList.size() == 1)
             orderBySort = sortList.get(0);
         else
             orderBySort = ascending(OBJID);
+        //"{OBJKEY : 1}, {LASTMODIFIED : -1}"
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(orderBySort).skip((int)offset);
         Iterator it = oit.iterator();
