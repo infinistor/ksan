@@ -1251,9 +1251,11 @@ public class MongoDataRepository implements DataRepository{
         int def_replicaCount = 0;
         int replicaCount;
         MongoCollection<Document> objects;
+        FindIterable<Document> oit;
         objects = database.getCollection(bucketName);
        // List<BasicDBObject> sortBy = new ArrayList();
         BasicDBObject sortBy;
+        BasicDBObject sortBy1 = null;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
         
@@ -1266,12 +1268,17 @@ public class MongoDataRepository implements DataRepository{
         }
             
         if (!queryString.contains(LASTVERSION)){
-            sortBy.append(LASTMODIFIED, -1);
+            sortBy1= new BasicDBObject(LASTMODIFIED, -1 );
+            //sortBy.append(LASTMODIFIED, -1);
             //sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
             //sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort((Bson) sortBy).skip((int)offset);
+        if (sortBy1 == null)
+            oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
+        else
+            oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).sort(sortBy1).skip((int)offset);
+        
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
