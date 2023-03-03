@@ -560,6 +560,9 @@ public class MongoDataRepository implements DataRepository{
         Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
         database.getCollection(bt.getName()).createIndex(objkeyIndex);
         
+        Document lastModfiedIndex = new Document(LASTMODIFIED, -1); // for listobjectversion sorting
+        database.getCollection(bt.getName()).createIndex(lastModfiedIndex);
+        
         // wild index for listobjects
         Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
@@ -1248,22 +1251,22 @@ public class MongoDataRepository implements DataRepository{
         int replicaCount;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        BasicDBObject sortBy ;
+        List<BasicDBObject> sortBy = new ArrayList();
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
         
         if (queryString.contains(OBJID)){ // for utlity list 
-            sortBy = new BasicDBObject(OBJID, 1 );
+            sortBy.add(new BasicDBObject(OBJID, 1 ));
         } else{
-            sortBy = new BasicDBObject(OBJKEY, 1 );
+            sortBy.add(new BasicDBObject(OBJKEY, 1 ));
         }
             
         if (!queryString.contains(LASTVERSION)){
-            sortBy.append(LASTMODIFIED, -1);
-            sortBy.append("_id", -1);
+            sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
+            sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort((BasicDBObject)sortBy).skip((int)offset);
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
