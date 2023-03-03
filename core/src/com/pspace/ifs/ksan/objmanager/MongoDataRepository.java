@@ -38,6 +38,9 @@ import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
+import static com.mongodb.client.model.Sorts.orderBy;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import java.text.ParseException;
@@ -1251,34 +1254,41 @@ public class MongoDataRepository implements DataRepository{
         int def_replicaCount = 0;
         int replicaCount;
         MongoCollection<Document> objects;
-        FindIterable<Document> oit;
         objects = database.getCollection(bucketName);
+        List<Bson> sortList= new ArrayList();
        // List<BasicDBObject> sortBy = new ArrayList();
         BasicDBObject sortBy;
-        BasicDBObject sortBy1 = null;
+        //BasicDBObject sortBy1 = null;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
+        Bson orderBySort;
         
+        //Bson orderBySort = orderBy(descending(OBJKEY), ascending(LASTMODIFIED));
         if (queryString.contains(OBJID)){ // for utlity list 
-            sortBy = new BasicDBObject(OBJID, 1); 
+            sortList.add(ascending(OBJID));
+            //sortBy = new BasicDBObject(OBJID, 1); 
             //sortBy.add(new BasicDBObject(OBJID, 1 ));
         } else{
-            sortBy = new BasicDBObject(OBJKEY, 1 );
+            sortList.add(ascending(OBJKEY));
+            //sortBy = new BasicDBObject(OBJKEY, 1 );
             //sortBy.add(new BasicDBObject(OBJKEY, 1 ));
         }
             
         if (!queryString.contains(LASTVERSION)){
-            sortBy1= new BasicDBObject(LASTMODIFIED, -1 );
+            sortList.add(descending(LASTMODIFIED));
             //sortBy.append(LASTMODIFIED, -1);
             //sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
             //sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        if (sortBy1 == null)
-            oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
+        if (sortList.size() > 1)
+            orderBySort = orderBy(sortList);
+        else if (sortList.size() == 1)
+            orderBySort = sortList.get(0);
         else
-            oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).sort(sortBy1).skip((int)offset);
+            orderBySort = ascending(OBJID);
         
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(orderBySort).skip((int)offset);
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
