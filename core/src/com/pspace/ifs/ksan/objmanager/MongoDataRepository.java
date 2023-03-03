@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import org.bson.conversions.Bson;
 
 
 /**
@@ -1251,22 +1252,26 @@ public class MongoDataRepository implements DataRepository{
         int replicaCount;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        List<BasicDBObject> sortBy = new ArrayList();
+       // List<BasicDBObject> sortBy = new ArrayList();
+        BasicDBObject sortBy;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
         
         if (queryString.contains(OBJID)){ // for utlity list 
-            sortBy.add(new BasicDBObject(OBJID, 1 ));
+            sortBy = new BasicDBObject(OBJID, 1); 
+            //sortBy.add(new BasicDBObject(OBJID, 1 ));
         } else{
-            sortBy.add(new BasicDBObject(OBJKEY, 1 ));
+            sortBy = new BasicDBObject(OBJKEY, 1 );
+            //sortBy.add(new BasicDBObject(OBJKEY, 1 ));
         }
             
         if (!queryString.contains(LASTVERSION)){
-            sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
-            sortBy.add(new BasicDBObject("_id", -1));
+            sortBy.append(LASTMODIFIED, -1);
+            //sortBy.add(new BasicDBObject(LASTMODIFIED, -1));
+            //sortBy.add(new BasicDBObject("_id", -1));
         }
         
-        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort((BasicDBObject)sortBy).skip((int)offset);
+        FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort((Bson) sortBy).skip((int)offset);
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
