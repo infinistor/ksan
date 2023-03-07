@@ -554,11 +554,14 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(LASTVERSION, 1);
         index.append(DELETEMARKER, 1);
-        //index.append(OBJKEY, 1);
+        
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
         
         Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
         database.getCollection(bt.getName()).createIndex(objkeyIndex);
+        
+        Document versionIdIndex = new Document(VERSIONID, 1); // for listobjectversion sorting
+        database.getCollection(bt.getName()).createIndex(versionIdIndex);
         
         Document lastModfiedIndex = new Document(LASTMODIFIED, -1); // for listobjectversion sorting
         database.getCollection(bt.getName()).createIndex(lastModfiedIndex);
