@@ -23,6 +23,9 @@ export function getDiskMode(obj) {
 		case "ReadWrite":
 			Name = "RW";
 			break;
+		case "Maintenance":
+			Name = "MA";
+			break;
 	}
 	return Name;
 }
