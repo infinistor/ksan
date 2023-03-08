@@ -414,6 +414,8 @@ public class ListObject{
         mongoQuery = makeMongoQuery();
         if (mongoQuery != null){
             logger.debug(" >>mongo query : {}", mongoQuery.toString());
+            if (listType.equalsIgnoreCase("listObjectVersion")) 
+                logger.error(" >>mongo query : {}", mongoQuery.toString());
             return;
         }
         
