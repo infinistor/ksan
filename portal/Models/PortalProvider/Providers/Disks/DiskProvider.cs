@@ -507,14 +507,6 @@ namespace PortalProvider.Providers.DiskGuids
 							SendMq("*.servers.disks.state", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State });
 							SendMq("*.servers.disks.rwmode", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, RwMode = (EnumDiskRwMode)Exist.RwMode });
 						}
-
-						// 디스크 상태가 변경된 경우
-						Exist.State = (EnumDbDiskState)Request.State;
-						if (m_dbContext.HasChanges())
-						{
-							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-							SendMq("*.servers.disks.state", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State });
-						}
 					}
 					catch (Exception ex)
 					{
