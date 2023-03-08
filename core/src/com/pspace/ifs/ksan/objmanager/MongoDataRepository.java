@@ -554,8 +554,18 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(LASTVERSION, 1);
         index.append(DELETEMARKER, 1);
-        //index.append(OBJKEY, 1);
+        
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+        
+        Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
+        database.getCollection(bt.getName()).createIndex(objkeyIndex);
+        
+        Document versionIdIndex = new Document(VERSIONID, 1); // for listobjectversion sorting
+        database.getCollection(bt.getName()).createIndex(versionIdIndex);
+        
+        Document lastModfiedIndex = new Document(LASTMODIFIED, -1); // for listobjectversion sorting
+        database.getCollection(bt.getName()).createIndex(lastModfiedIndex);
+        
         // wild index for listobjects
         Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
@@ -1244,22 +1254,18 @@ public class MongoDataRepository implements DataRepository{
         int replicaCount;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        BasicDBObject sortBy ;
+        BasicDBObject sortBy;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
         
-        if (queryString.contains(OBJID)){ // for utlity list 
-            sortBy = new BasicDBObject(OBJID, 1 );
-        } else{
-            sortBy = new BasicDBObject(OBJKEY, 1 );
-        }
-            
+        sortBy = new BasicDBObject(OBJKEY, 1 );
+        
         if (!queryString.contains(LASTVERSION)){
-            sortBy.append(LASTMODIFIED, -1);
-            sortBy.append("_id", -1);
+            //sortBy.append(LASTMODIFIED, -1);
         }
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
+        
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){

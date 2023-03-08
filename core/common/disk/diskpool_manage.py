@@ -67,7 +67,7 @@ def SetDefaultDiskPool(ip, port, ApiKey, DiskPoolId=None, DiskPoolName=None, log
     Url = '/api/v1/DiskPools/Default/%s' % TargetDiskPool
     ReturnType = ResponseHeaderModule
     Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
-    Res, Errmsg, Ret = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
+    Res, Errmsg, Ret = Conn.put(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
 @catch_exceptions()
@@ -106,7 +106,7 @@ def AddDisk2DiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DiskPoo
     ReturnType = ResponseHeaderModule
     body = jsonpickle.encode(pool, make_refs=False)
     Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
-    Res, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ReturnType)
+    Res, Errmsg, Data = Conn.post(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Data
 
 @catch_exceptions()

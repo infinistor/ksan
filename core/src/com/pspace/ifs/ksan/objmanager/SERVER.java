@@ -284,11 +284,30 @@ public class SERVER {
 
                 return dsk;
             }
-            logger.error("There is no disk the server!"); 
+            logger.debug("There is no disk the server!"); 
             throw new ResourceNotFoundException("There is no disk the server!");
         } finally {
             lock.unlock();
         }
+    }
+    
+    public boolean possibleToAlloc(){
+        DISK dsk;
+        
+        for(String diskid : diskMap.keySet()){
+            dsk = diskMap.get(diskid);
+            if (dsk != null){
+                if (dsk.getStatus() != DiskStatus.GOOD){
+                    continue;
+                }
+                
+                if (dsk.getMode() != DiskMode.READWRITE){
+                    continue;
+                }
+                return true;
+            }
+        }
+        return false;
     }
     
     public ServerStatus getStatus(){
