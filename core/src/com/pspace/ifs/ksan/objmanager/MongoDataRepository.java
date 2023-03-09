@@ -563,8 +563,9 @@ public class MongoDataRepository implements DataRepository{
         Document versionIdIndex = new Document(VERSIONID, 1); // for listobjectversion sorting
         database.getCollection(bt.getName()).createIndex(versionIdIndex);
         
-        Document lastModfiedIndex = new Document(LASTMODIFIED, -1); // for listobjectversion sorting
-        database.getCollection(bt.getName()).createIndex(lastModfiedIndex);
+        Document listVersionSortIndex = new Document(OBJKEY, 1); // for listobjectversion sorting
+        listVersionSortIndex.append(VERSIONID, -1);
+        database.getCollection(bt.getName()).createIndex(listVersionSortIndex);
         
         // wild index for listobjects
         Document wildIndex = new Document(OBJKEY + ".$**", 1);
@@ -1261,7 +1262,7 @@ public class MongoDataRepository implements DataRepository{
         sortBy = new BasicDBObject(OBJKEY, 1 );
         
         if (!queryString.contains(LASTVERSION)){
-            //sortBy.append(LASTMODIFIED, -1);
+            sortBy.append(VERSIONID, -1);
         }
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
