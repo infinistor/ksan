@@ -349,6 +349,7 @@ public class ListObject{
         if (dbm instanceof MongoDataRepository){
            String prefixStr;
            BasicDBObject andObjQuery;
+           BasicDBObject objQuery;
            List<BasicDBObject> and = new ArrayList();
            
            if (!listType.equalsIgnoreCase("listObjectVersion")){
@@ -366,15 +367,23 @@ public class ListObject{
            }
            
            if (listType.equalsIgnoreCase("listObjectVersion")){
-                if (bMarker && !bVersionIdMarker)
+               
+                if (bMarker && !bVersionIdMarker){
+                    //objQuery = new BasicDBObject("objKey", marker);
                     and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
+                }
 
                 if (bVersionIdMarker){
-                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
+                    objQuery = new BasicDBObject("objKey", marker);
+                    /*and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
                     if (!versionIdMarker.equalsIgnoreCase("null"))
                         and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", versionIdMarker)));
                     else
-                        and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", "")));
+                        and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", "")));*/
+                    if (!versionIdMarker.equalsIgnoreCase("null"))
+                        objQuery.append("versionid", new BasicDBObject("$lt", versionIdMarker));
+                    and.add(objQuery);
+                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));
                 }
            }
            else{
@@ -401,6 +410,8 @@ public class ListObject{
  
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
+           else if (listType.equalsIgnoreCase("listObjectVersion"))
+                andObjQuery = new BasicDBObject("$or", and.toArray());
            else
                andObjQuery = new BasicDBObject("$and", and.toArray());
            
