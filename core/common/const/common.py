@@ -79,6 +79,9 @@ MonservicedNetwork = 'monserviced.networks'
 ##### DISK  #####
 """
 DiskIdFileName = '/DiskId'
+DiskObjDirectory = '/obj'
+DiskTempDirectory = '/temp'
+DiskTrashDirectory = '/trash'
 
 ### disk stat ###
 DiskStatOnline = 'Online'

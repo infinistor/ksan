@@ -96,6 +96,12 @@ def WriteDiskId(Path, DiskId):
         return False, ResDiskAlreadyExists
     with open(Path + DiskIdFileName, 'w') as f:
         f.write(DiskId)
+    if not os.path.exists(Path + DiskObjDirectory):
+        os.mkdir(Path + DiskObjDirectory)
+    if not os.path.exists(Path + DiskTempDirectory):
+        os.mkdir(Path + DiskTempDirectory)
+    if not os.path.exists(Path + DiskTrashDirectory):
+        os.mkdir(Path + DiskTrashDirectory)
 
     return True, ''
 
