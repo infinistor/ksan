@@ -84,11 +84,22 @@ class Disk(AddDiskObject):
                 return False, 'fail to write disk %s' % str(e)
 
 
-def CheckDiskMount(Path):
+def CheckDiskMount(Path, DiskId=None):
     if os.path.exists(Path):
-        return True
+        if DiskId is not None:
+            DiskIdPath = '%s%s' % (Path, DiskIdFileName)
+            if os.path.exists(DiskIdPath):
+                with open(DiskIdPath, 'r') as f:
+                    if f.read() == DiskId:
+                        return True, ''
+                    else:
+                        return False, '%s is invalid DiskId' % DiskIdPath
+            else:
+                return False, '%s is not found' % DiskIdPath
+        else:
+            return True, ''
     else:
-        return False
+        return False, 'Disk mount path(%s) is not found' % Path
 
 
 def WriteDiskId(Path, DiskId):
@@ -500,9 +511,13 @@ def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
         Body = json.loads(Body)
         body = DictToObject(Body)
         if ServerId == body.ServerId:
-            ret = CheckDiskMount(body.Path)
+            if hasattr(body, 'DiskId'):
+                DiskId = body.DiskId
+            else:
+                DiskId = None
+            ret, errlog = CheckDiskMount(body.Path, DiskId=DiskId)
             if ret is False:
-                ResponseReturn = MqReturn(ret, Code=1, Messages='No such disk is found')
+                ResponseReturn = MqReturn(ret, Code=1, Messages=errlog)
             Response.IsProcessed = True
         logger.debug(ResponseReturn)
         return ResponseReturn
