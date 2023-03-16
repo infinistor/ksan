@@ -374,15 +374,21 @@ public class ListObject{
                 }
 
                 if (bVersionIdMarker){
-                    objQuery = new BasicDBObject("objKey", marker);
+                    
                     /*and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
                     if (!versionIdMarker.equalsIgnoreCase("null"))
                         and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", versionIdMarker)));
                     else
                         and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", "")));*/
-                    if (!versionIdMarker.equalsIgnoreCase("null"))
+                    if (!versionIdMarker.equalsIgnoreCase("null")){
+                        objQuery = new BasicDBObject("objKey", marker);
                         objQuery.append("versionid", new BasicDBObject("$lt", versionIdMarker));
-                    and.add(objQuery);
+                        and.add(objQuery);
+                    } 
+                    else{
+                        and.add(new BasicDBObject("versionid", versionIdMarker));
+                    }
+                    
                     and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));
                 }
            }
@@ -410,9 +416,12 @@ public class ListObject{
  
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
-           else if (listType.equalsIgnoreCase("listObjectVersion"))
-                andObjQuery = new BasicDBObject("$or", and.toArray());
-           else
+           else if (listType.equalsIgnoreCase("listObjectVersion")){
+               if (!versionIdMarker.equalsIgnoreCase("null"))
+                    andObjQuery = new BasicDBObject("$or", and.toArray());
+               else
+                    andObjQuery = new BasicDBObject("$and", and.toArray());  
+           } else
                andObjQuery = new BasicDBObject("$and", and.toArray());
            
            //System.out.println( "andObjQuery >>" + andObjQuery);
