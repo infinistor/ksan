@@ -79,6 +79,9 @@ MonservicedNetwork = 'monserviced.networks'
 ##### DISK  #####
 """
 DiskIdFileName = '/DiskId'
+DiskObjDirectory = '/obj'
+DiskTempDirectory = '/temp'
+DiskTrashDirectory = '/trash'
 
 ### disk stat ###
 DiskStatOnline = 'Online'
@@ -479,7 +482,7 @@ EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.stat
 """
 
 
-EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added",
+EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added", "*.servers.disks.state",
                        "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
                        "*.servers.interfaces.vlans.added",
                        "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",

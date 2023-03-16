@@ -49,21 +49,57 @@ class Disk(AddDiskObject):
             return ResNotFoundCode, ResNotFoundMsg
 
     @catch_exceptions()
-    def GetUsage(self):
-        if not os.path.exists(self.Path):
-            return ResNotFoundCode, ResNotFoundMsg
-        disk_stat = psutil.disk_usage(self.Path)
-        self.TotalSize = disk_stat.total
-        self.UsedSize = disk_stat.used
-        self.ReservedSize = disk_stat.total - disk_stat.used - disk_stat.free
-        return ResOk, ''
+    def GetUsage(self, CurrentDiskState):
+        #if CurrentDiskState == DiskDisable: # keep disable until util set good
+        #    return ResNotFoundCode, ResNotFoundMsg
+
+        RetryCnt = 3
+        while True:
+            RetryCnt -= 1
+            if not os.path.exists(self.Path + '/DiskId'):
+                if RetryCnt > 0:
+                    time.sleep(IntervalShort)
+                    continue
+                else:
+                    return ResNotFoundCode, ResNotFoundMsg
+
+            disk_stat = psutil.disk_usage(self.Path)
+            self.TotalSize = disk_stat.total
+            self.UsedSize = disk_stat.used
+            self.ReservedSize = disk_stat.total - disk_stat.used - disk_stat.free
+            return ResOk, ''
+
+    def CheckDiskReadWrite(self):
+        RetryCnt = 3
+        while True:
+            try:
+                RetryCnt -= 1
+                with open(self.Path + '/trash/ksanAgentTestFile', 'w') as f:
+                    f.write('ksanAgentTestData1234567890')
+                return True, ''
+            except Exception as e:
+                if RetryCnt > 0:
+                    time.sleep(IntervalShort)
+                    continue
+                return False, 'fail to write disk %s' % str(e)
 
 
-def CheckDiskMount(Path):
+def CheckDiskMount(Path, DiskId=None):
     if os.path.exists(Path):
-        return True
+        if DiskId is not None:
+            DiskIdPath = '%s%s' % (Path, DiskIdFileName)
+            if os.path.exists(DiskIdPath):
+                with open(DiskIdPath, 'r') as f:
+                    if f.read() == DiskId:
+                        return True, ''
+                    else:
+                        return False, '%s is invalid DiskId' % DiskIdPath
+            else:
+                return False, '%s is not found' % DiskIdPath
+        else:
+            return True, ''
     else:
-        return False
+        return False, 'Disk mount path(%s) is not found' % Path
 
 
 def WriteDiskId(Path, DiskId):
@@ -71,6 +107,12 @@ def WriteDiskId(Path, DiskId):
         return False, ResDiskAlreadyExists
     with open(Path + DiskIdFileName, 'w') as f:
         f.write(DiskId)
+    if not os.path.exists(Path + DiskObjDirectory):
+        os.mkdir(Path + DiskObjDirectory)
+    if not os.path.exists(Path + DiskTempDirectory):
+        os.mkdir(Path + DiskTempDirectory)
+    if not os.path.exists(Path + DiskTrashDirectory):
+        os.mkdir(Path + DiskTrashDirectory)
 
     return True, ''
 
@@ -181,11 +223,12 @@ def RemoveDiskInfo(ip, port, ApiKey, DiskId=None, Name=None, logger=None):
 
 
 @catch_exceptions()
-def update_disk_state(Ip, Port, ServerId, DiskId, State, logger=None):
+def update_disk_state(Ip, Port, ApiKey, DiskId, State, logger=None):
 
-    Url = '/api/v1/Disks/%s/%s/State/%s' % (ServerId, DiskId, State)
-    Conn = RestApi(Ip, Port, Url, logger=logger)
-    Ret, Errmsg, Data = Conn.put()
+    Url = '/api/v1/Disks/%s/State/%s' % (DiskId, State)
+    body = dict()
+    Conn = RestApi(Ip, Port, Url, authkey=ApiKey, params=body, logger=logger)
+    Ret, Errmsg, Data = Conn.put(ItemsHeader=False, ReturnType=ResPonseHeader)
     if Ret == ResOk:
         Header, Itemheader, Data = Conn.parsing_result(Data)
         return Ret, Errmsg, Header
@@ -468,9 +511,13 @@ def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
         Body = json.loads(Body)
         body = DictToObject(Body)
         if ServerId == body.ServerId:
-            ret = CheckDiskMount(body.Path)
+            if hasattr(body, 'DiskId'):
+                DiskId = body.DiskId
+            else:
+                DiskId = None
+            ret, errlog = CheckDiskMount(body.Path, DiskId=DiskId)
             if ret is False:
-                ResponseReturn = MqReturn(ret, Code=1, Messages='No such disk is found')
+                ResponseReturn = MqReturn(ret, Code=1, Messages=errlog)
             Response.IsProcessed = True
         logger.debug(ResponseReturn)
         return ResponseReturn
@@ -486,13 +533,13 @@ def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
             Response.IsProcessed = True
         logger.debug(ResponseReturn)
         return ResponseReturn
-    elif RoutingKey.endswith((RoutKeyDiskAdded, RoutKeyDiskDel, RoutKeyDiskUpdated)):
+    elif RoutingKey.endswith((RoutKeyDiskAdded, RoutKeyDiskDel, RoutKeyDiskUpdated, RoutKeyDiskState)):
         Body = Body.decode('utf-8')
         Body = json.loads(Body)
         body = DictToObject(Body)
         GlobalFlag['DiskUpdated'] = Updated
         logger.debug("disk updated %s" % body.Id)
-        logging.log(logging.INFO, "Disk Info is Added")
+        logging.log(logging.INFO, "Disk Info is changed")
         ResponseReturn = MqReturn(ResultSuccess)
         Response.IsProcessed = True
         logger.debug(ResponseReturn)
