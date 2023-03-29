@@ -170,6 +170,13 @@ public class ObjManagerUtil {
         return dAlloc.allocDisk(mt);
     }
     
+    public DISK allocReplicaDisk(String bucketName, String diskPoolName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
+        if (mt == null)
+             throw new ResourceNotFoundException("null metadata are provided!");
+        
+        return dAlloc.allocDisk(diskPoolName, mt);
+    }
+    
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){
         
         Bucket bt = obmCache.getBucketFromCache(bucketName);
