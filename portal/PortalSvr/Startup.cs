@@ -45,10 +45,6 @@ using MTLib.Core;
 using MTLib.EntityFramework;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using PortalProvider.Providers.DB;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Newtonsoft.Json;
-using System.Linq;
-using System.Net.Mime;
 
 namespace PortalSvr
 {
