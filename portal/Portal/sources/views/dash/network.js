@@ -21,7 +21,7 @@ export default class NetworkView extends JetView {
 	config() {
 		return {
 			type: "abslayout",
-			minWidth: 600,
+			minWidth: 540,
 			height: 300,
 			borderless: true,
 			rows: [

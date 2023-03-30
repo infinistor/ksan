@@ -27,7 +27,7 @@ export default class DiskView extends JetView {
 	config() {
 		return {
 			type: "abslayout",
-			minWidth: 600,
+			minWidth: 540,
 			height: 300,
 			rows: [
 				{
@@ -70,7 +70,7 @@ export default class DiskView extends JetView {
 					view: "list",
 					borderless: true,
 					id: MY_TABLE,
-					minWidth: 600,
+					minWidth: 540,
 					height: 260,
 					css: "my_list",
 					type: {
@@ -112,10 +112,9 @@ export default class DiskView extends JetView {
 									}
 								},
 								function (error) {
-									var response = JSON.parse(error.response);
-									webix.message({ text: response.Message, type: "error", expire: 5000 });
+									// var response = JSON.parse(error.response);
+									// webix.message({ text: response.Message, type: "error", expire: 5000 });
 									moveLogin();
-									return null;
 								}
 							);
 					},

@@ -25,7 +25,7 @@ export default class OverviewView extends JetView {
 	config() {
 		return {
 			type: "abslayout",
-			minWidth: 600,
+			minWidth: 540,
 			height: 300,
 			rows: [
 				{ id: MY_STATUS, view: "label" },
@@ -132,7 +132,7 @@ function loadServices() {
 					$$(KSAN_LOG).setValue(getStatus("ksanLogManager", response.Data.Items));
 					$$(KSAN_REPLICATION).setValue(getStatus("ksanReplicationManager", response.Data.Items));
 					if (global_status == true) $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker healthy'>Healthy</span>");
-					else $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker unhealthy'>Unhealthy</span>");
+					else $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker check'>Need to Check</span>");
 
 					return usage;
 				}
@@ -172,6 +172,7 @@ function getStatus(service_type, items) {
 
 	if (offlineCount == 0 && timeoutCount == 0 && unknownCount == 0) result += " <span class='service_status healthy'>(Healthy)</span>";
 	else {
+		global_status = false;
 		result += "<span class='service_status unhealthy'>";
 		var prefix = "(";
 		if (offlineCount > 0) { result += `${prefix}${offlineCount} Offline`; prefix = ", "; }

@@ -23,14 +23,14 @@ export default class DiskpoolView extends JetView {
 	config() {
 		return {
 			type: "abslayout",
-			minWidth: 600,
+			minWidth: 540,
 			height: 300,
 			rows: [
 				{ id: MY_STATUS, view: "label" },
 				{
 					view: "list",
 					borderless: true,
-					minWidth: 600,
+					minWidth: 540,
 					xCount: 1,
 					id: MY_TABLE,
 					scroll: "auto",
@@ -38,8 +38,7 @@ export default class DiskpoolView extends JetView {
 					type: {
 						height: 85,
 						template: (obj) => {
-							const totalUnits = obj.TotalSize;
-							const takenUnits = totalUnits > 0 ? Math.floor((obj.UsedSize / totalUnits) * 100) : 0;
+							const takenUnits = obj.TotalSize > 0 ? Math.floor((obj.UsedSize / obj.TotalSize) * 100) : 0;
 							const x = 50;
 							const y = 40;
 							const r = 25;
@@ -92,10 +91,9 @@ export default class DiskpoolView extends JetView {
 									}
 								},
 								function (error) {
-									var response = JSON.parse(error.response);
-									webix.message({ text: response.Message, type: "error", expire: 5000 });
+									// var response = JSON.parse(error.response);
+									// webix.message({ text: response.Message, type: "error", expire: 5000 });
 									moveLogin();
-									return null;
 								}
 							);
 					},
