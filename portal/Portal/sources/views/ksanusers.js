@@ -9,6 +9,7 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 import { JetView } from "webix-jet";
+import { loadUserAvailableDiskPools } from "../models/load/loadUserAvailableDiskPools";
 import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { loadDiskPools } from "../models/load/loadDiskPools";
 import { moveLogin } from "../models/utils/moveLogin";
@@ -16,6 +17,12 @@ import { moveLogin } from "../models/utils/moveLogin";
 const USER_URL = "/api/v1/KsanUsers";
 const USER_ADD_WINDOW = "ksan_user_add_window";
 const USER_DELETE_WINDOW = "ksan_user_delete_window";
+const USER_DELETE_BUTTON = "ksan_user_delete_button";
+const USER_DISKPOOL_WINDOW = "ksan_user_diskpool_window";
+const DISKPOOL_EDIT_TABLE = "diskpool_edit_table";
+const DISKPOOL_EDIT_WINDOW = "diskpool_edit_window";
+const DISKPOOL_REMOVE_BUTTON = "diskpool_remove_button";
+const USER_DISKPOOL_BUTTON = "ksan_user_diskpool_button";
 const USER_TABLE = "ksan_user";
 const NUMBER_FORMAT = webix.Number.numToStr({
 	groupDelimiter: ",",
@@ -24,6 +31,7 @@ const NUMBER_FORMAT = webix.Number.numToStr({
 	decimalSize: 0,
 });
 
+var selectedUser = null;
 export default class KsanUserView extends JetView {
 	config() {
 		return {
@@ -48,12 +56,24 @@ export default class KsanUserView extends JetView {
 							popup: USER_ADD_WINDOW,
 						},
 						{
+							id: USER_DELETE_BUTTON,
 							view: "icon",
 							icon: "mdi mdi-delete",
 							tooltip: "삭제",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: USER_DELETE_WINDOW,
+						},
+						{
+							id: USER_DISKPOOL_BUTTON,
+							view: "icon",
+							icon: "mdi mdi-harddisk",
+							tooltip: "스토리지 클래스 관리",
+							disabled: true,
+							autowidth: true,
+							borderless: true,
+							popup: USER_DISKPOOL_WINDOW,
 						},
 						{ view: "spacer" },
 						{
@@ -73,12 +93,10 @@ export default class KsanUserView extends JetView {
 					id: USER_TABLE,
 					sort: "multi",
 					select: "row",
-					multiselect: true,
 					resizeColumn: true,
 					checkboxRefresh: true,
 					columns: [
 						{ id: "Id", header: "Id", hidden: true },
-						{ id: "Check", header: { content: "masterCheckbox" }, checkValue: 'on', uncheckValue: 'off', template: "{common.checkbox()}", width: 40 },
 						{ id: "Name", header: "User Name", fillspace: true, minWidth: 130, sort: "string" },
 						{ id: "AccessKey", header: "Access Key", width: 200, sort: "string" },
 						{ id: "SecretKey", header: "Secret Key", width: 350, sort: "string" },
@@ -109,7 +127,13 @@ export default class KsanUserView extends JetView {
 						this.markSorting("Name", "asc", true);
 						webix.extend(this, webix.ProgressBar);
 					},
-				},
+					on: {
+						onSelectChange: function () {
+							$$(USER_DELETE_BUTTON).enable();
+							$$(USER_DISKPOOL_BUTTON).enable();
+						},
+					}
+				}
 			],
 		};
 	}
@@ -118,12 +142,12 @@ export default class KsanUserView extends JetView {
 			webix.ui({
 				id: USER_ADD_WINDOW,
 				view: "popup",
-				head: "Add",
+				head: "사용자 추가",
 				width: 350,
 				body: {
 					rows: [
-						{ view: "label", label: "유저 추가", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", label: "사용자 추가", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -136,14 +160,8 @@ export default class KsanUserView extends JetView {
 								{
 									view: "richselect",
 									label: "Disk Pool",
-									name: "DiskPoolId",
-									options: {
-										body: {
-											url: function () {
-												return loadDiskPools();
-											},
-										},
-									},
+									name: "StandardDiskPoolId",
+									options: loadDiskPools(),
 								},
 								{
 									cols: [
@@ -179,12 +197,12 @@ export default class KsanUserView extends JetView {
 			webix.ui({
 				id: USER_DELETE_WINDOW,
 				view: "popup",
-				head: "Delete",
+				head: "사용자 삭제",
 				width: 250,
 				body: {
 					rows: [
-						{ view: "label", label: "유저 삭제", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", label: "사용자 삭제", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -210,12 +228,149 @@ export default class KsanUserView extends JetView {
 					],
 				},
 			});
+		if ($$(USER_DISKPOOL_WINDOW) == null)
+			webix.ui({
+				view: "popup",
+				id: USER_DISKPOOL_WINDOW,
+				height: 400,
+				width: 400,
+				body:
+				{
+					rows:
+						[
+							{
+								view: "toolbar",
+								cols: [
+									{},
+									{ view: "label", label: "Define User’s StorageClass", width: 245 },
+									{
+										view: "icon", icon: "mid wxi-plus-circle",
+										click: function () {
+											$$(DISKPOOL_EDIT_TABLE).add({ UserId: selectedUser, StorageClass: "Undefined", isAdded: true });
+										}
+									}
+								]
+							},
+							{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
+							{
+								view: "datatable",
+								editable: true,
+								scroll: "y",
+								id: DISKPOOL_EDIT_TABLE,
+								form: DISKPOOL_EDIT_WINDOW,
+								columns: [
+									{ id: "StorageClass", header: "StorageClass", fillspace: true, minWidth: 130 },
+									{ id: "DiskPoolId", header: "DiskPoolName", template: "#DiskPoolName#", width: 200 },
+									{
+										id: DISKPOOL_REMOVE_BUTTON, header: "", width: 40,
+										template: "<span class='webix_icon wxi-minus-circle'></span>",
+									}
+								],
+								on:
+								{
+									//선택전 필터링 하기위한 이벤트
+									onBeforeEditStart: function (cell) {
+										// 선택된 아이템을 가져온다.
+										var item = this.getItem(cell);
+
+										// 삭제 버튼을 눌렀을때 삭제처리
+										if (cell.column == DISKPOOL_REMOVE_BUTTON) {
+											console.log("delete item");
+											console.log(item);
+											item.isDeleted = true;
+											$$(DISKPOOL_EDIT_TABLE).updateItem(item.id, item);
+											$$(DISKPOOL_EDIT_TABLE).filter(function (obj) { return obj.isDeleted != true; });
+											return false;
+										}
+										// 선택된 아이템에 맞게 디스크풀 목록을 가져온다.
+										var list = $$(DISKPOOL_EDIT_WINDOW).getChildViews()[1].getPopup().getList();
+										list.clearAll();
+										list.parse(loadUserAvailableDiskPools(item.UserId, item.DiskPoolId));
+									},
+								}
+							},
+							{
+								cols: [
+									{
+										view: "button",
+										css: "webix_secondary",
+										value: "취소",
+										click: function () {
+											this.getTopParentView().hide();
+										},
+									},
+									{
+										view: "button",
+										css: "webix_primary",
+										value: "저장",
+										hotkey: "enter",
+										click: function () {
+											changeUserStorageClass();
+										},
+									},
+								],
+							},
+						]
+				},
+				on: {
+					onBeforeShow() {
+						const myTable = $$(DISKPOOL_EDIT_TABLE);
+						myTable.clearAll();
+						myTable.load(function () {
+							var item = $$(USER_TABLE).getSelectedItem();
+							selectedUser = item.Id;
+							return webix
+								.ajax()
+								.get(`/api/v1/KsanUsers/StorageClass/${item.Id}`)
+								.then(
+									function (data) {
+										var response = data.json();
+										if (response.Result == "Error") {
+											webix.message({ text: response.Message, type: "error", expire: 5000 });
+											return null;
+										} else {
+											return response.Data.Items;
+										}
+									},
+									function (error) {
+										var response = JSON.parse(error.response);
+										webix.message({ text: response.Message, type: "error", expire: 5000 });
+										return null;
+									}
+								);
+						});
+					},
+				}
+			});
+
+		if ($$(DISKPOOL_EDIT_WINDOW) == null)
+			webix.ui({
+				view: "popup",
+				body: {
+					view: "form",
+					id: DISKPOOL_EDIT_WINDOW,
+					elements: [
+						{ view: "text", name: "StorageClass" },
+						{ view: "richselect", name: "DiskPoolId", options: loadDiskPools() },
+						{
+							view: "button", label: "Save", type: "form", click: function (id) {
+								var form = $$(id).getFormView();
+								var item = form.getValues();
+								item.DiskPoolName = $$(DISKPOOL_EDIT_WINDOW).getChildViews()[1].getPopup().getList().getSelectedItem().value;
+								item.isChanged = true;
+								$$(DISKPOOL_EDIT_TABLE).updateItem(item.id, item);
+								this.getTopParentView().hide();
+							}
+						}
+					]
+				},
+			});
 	}
 }
 
 /**
- * 유저를 등록한다.
- * @param form json:{ServerId:"Server Id", DiskPoolId:"Disk Pool Id", Name:"Name", State:"State", RwMode:"RwMode", Description:"Description"}
+ * 사용자를 등록한다.
+ * @param {ServerId:"Server Id", DiskPoolId:"Disk Pool Id", Name:"Name", State:"State", RwMode:"RwMode", Description:"Description"} form
  */
 function addKsanUser(form) {
 	showProgressIcon(USER_TABLE);
@@ -237,11 +392,11 @@ function addKsanUser(form) {
 }
 
 /**
- * 유저 목록에서 선택한 유저를 삭제한다.
+ * 사용자 목록에서 선택한 사용자를 삭제한다.
  */
 function deleteKsanUsers() {
 	var items = $$(USER_TABLE).getSelectedItem();
-	if (items == null) webix.message({ text: "유저를 선택해야 합니다.", type: "error", expire: 5000 });
+	if (items == null) webix.message({ text: "사용자를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
@@ -252,12 +407,116 @@ function deleteKsanUsers() {
 		if (deleteKsanUser(items.Id)) window.location.reload(true);
 	}
 }
+
+/**
+ * 사용자를 삭제한다.
+ * @param {Guid} id 삭제할 사용자의 Id
+ * @returns 
+ */
 function deleteKsanUser(id) {
 	showProgressIcon(USER_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
 		.del(`${USER_URL}/${id}`)
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
+			},
+			function (error) {
+				var response = JSON.parse(error.response);
+				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return false;
+			}
+		);
+}
+
+/**
+ * 사용자의 스토리지 클래스를 변경한다.
+ */
+function changeUserStorageClass() {
+	var items = $$(DISKPOOL_EDIT_TABLE).serialize(true);
+	console.log(items);
+	var result = false;
+
+	items.forEach(function (item) {
+		if (item.isDeleted) {
+			if (deleteUserStorageClass(item)) result = true;
+		}
+		else if (item.isAdded && item.isChanged) {
+			if (addUserStorageClass(item)) result = true;
+		}
+		else if (item.isChanged) {
+			if (updateUserStorageClass(item)) result = true;
+		}
+	});
+
+	if (result) window.location.reload(true);
+}
+
+/**
+ * 사용자의 스토리지 클래스를 추가한다.
+ * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item
+ * @returns 추가 결과
+ */
+function addUserStorageClass(item) {
+	showProgressIcon(USER_TABLE);
+	return webix
+		.ajax()
+		.headers({ "Content-Type": "application/json" })
+		.post(`${USER_URL}/StorageClass`, JSON.stringify(item))
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
+			},
+			function (error) {
+				var response = JSON.parse(error.response);
+				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return false;
+			}
+		);
+}
+
+/**
+ * 사용자의 스토리지 클래스를 변경한다.
+ * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item
+ * @returns 추가 결과
+ */
+function updateUserStorageClass(item) {
+	showProgressIcon(USER_TABLE);
+	return webix
+		.ajax()
+		.headers({ "Content-Type": "application/json" })
+		.put(`${USER_URL}/StorageClass/${item.Id}`, JSON.stringify(item))
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
+			},
+			function (error) {
+				var response = JSON.parse(error.response);
+				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return false;
+			}
+		);
+}
+
+/**
+ * 사용자의 스토리지 클래스를 삭제한다.
+ * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item 
+ * @returns 삭제 결과
+ */
+function deleteUserStorageClass(item) {
+	showProgressIcon(USER_TABLE);
+	return webix
+		.ajax()
+		.headers({ "Content-Type": "application/json" })
+		.del(`${USER_URL}/StorageClass/${item.Id}`)
 		.then(
 			function (data) {
 				var response = data.json();
