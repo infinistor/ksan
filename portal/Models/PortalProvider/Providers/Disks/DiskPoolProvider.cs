@@ -935,7 +935,6 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_POOL_DOES_NOT_EXIST);
 
-
 				// 추가될 디스크 GUID 목록
 				var AddDiskGuids = new List<Guid>();
 
@@ -954,11 +953,13 @@ namespace PortalProvider.Providers.DiskGuids
 					if (Disk == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
 
+					// 디스크풀에 할당되지 않은 디스크일 경우
+					if (Disk.DiskPoolId == null)
+						AddDiskGuids.Add(Disk.Id);
+
 					// 다른 디스크풀에 할당되어 있을 경우
 					if (Disk.DiskPoolId != Exist.Id)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
-
-					AddDiskGuids.Add(Disk.Id);
 				}
 
 				// 삭제될 디스크 목록
