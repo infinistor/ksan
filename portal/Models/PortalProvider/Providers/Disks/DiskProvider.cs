@@ -381,6 +381,17 @@ namespace PortalProvider.Providers.DiskGuids
 				if (Exist == null)
 					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_DISK_DOES_NOT_EXIST);
 
+				// 기존 디스크 상태가 Good이 아닐때 Good로 변경하는 경우
+				if (Exist.State != EnumDbDiskState.Good && State == EnumDiskState.Good)
+				{
+					// 디스크가 마운트 되어 있는지 확인 요청
+					ResponseData Response = SendRpcMq($"*.servers.{Exist.ServerId}.disks.check_mount", new { ServerId = Exist.ServerId, DiskId = Exist.Id, Exist.Path }, 10);
+
+					// 실패인 경우
+					if (Response.Result != EnumResponseResult.Success)
+						return new ResponseData(EnumResponseResult.Error, Response.Code, Response.Message);
+				}
+
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
@@ -397,7 +408,6 @@ namespace PortalProvider.Providers.DiskGuids
 						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
-
 
 						// 디스크 상태 수정 전송
 						var Message = new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State };
