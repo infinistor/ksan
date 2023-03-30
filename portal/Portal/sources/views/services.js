@@ -60,6 +60,7 @@ export default class ServiceView extends JetView {
 							view: "icon",
 							icon: "mdi mdi-delete",
 							tooltip: "삭제",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: SERVICE_DELETE_WINDOW,
@@ -68,6 +69,7 @@ export default class ServiceView extends JetView {
 							view: "icon",
 							icon: "mdi mdi-play",
 							tooltip: "시작",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: SERVICE_START_WINDOW,
@@ -75,7 +77,8 @@ export default class ServiceView extends JetView {
 						{
 							view: "icon",
 							icon: "mdi mdi-stop",
-							tooltip: "중단",
+							tooltip: "중지",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: SERVICE_STOP_WINDOW,
@@ -84,6 +87,7 @@ export default class ServiceView extends JetView {
 							view: "icon",
 							icon: "mdi mdi-replay",
 							tooltip: "재시작",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: SERVICE_RESTART_WINDOW,
@@ -188,6 +192,10 @@ export default class ServiceView extends JetView {
 					on: {
 						onSelectChange: function () {
 							unchecked();
+							$$(SERVICE_DELETE_WINDOW).enable();
+							$$(SERVICE_START_WINDOW).enable();
+							$$(SERVICE_STOP_WINDOW).enable();
+							$$(SERVICE_RESTART_WINDOW).enable();
 							var items = this.getSelectedItem();
 							if (items != null) {
 								if (Array.isArray(items)) {
@@ -215,7 +223,7 @@ export default class ServiceView extends JetView {
 			webix.ui({
 				id: SERVICE_ADD_WINDOW,
 				view: "popup",
-				head: "Add",
+				head: "서비스 추가",
 				width: 350,
 				body: {
 					rows: [
@@ -280,12 +288,12 @@ export default class ServiceView extends JetView {
 			webix.ui({
 				id: SERVICE_DELETE_WINDOW,
 				view: "popup",
-				head: "Delete",
+				head: "서비스 삭제",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 삭제", align: "center" },
-						{ view: "label", css:"popup_title_line" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -315,12 +323,12 @@ export default class ServiceView extends JetView {
 			webix.ui({
 				id: SERVICE_START_WINDOW,
 				view: "popup",
-				head: "Start",
+				head: "서비스 시작",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 시작", align: "center" },
-						{ view: "label", css:"popup_title_line" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -350,13 +358,13 @@ export default class ServiceView extends JetView {
 			webix.ui({
 				id: SERVICE_STOP_WINDOW,
 				view: "popup",
-				head: "Stop",
+				head: "서비스 중지",
 				width: 250,
 				body: {
 					rows: [
-						{ view: "label", label: "서비스 실행", align: "center" },
-						{ view: "label", css:"popup_title_line" },
-						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
+						{ view: "label", label: "서비스 중지", align: "center" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", label: "정말 중지하시겠습니까?", align: "center" },
 						{
 							cols: [
 								{
@@ -370,7 +378,7 @@ export default class ServiceView extends JetView {
 								{
 									view: "button",
 									css: "webix_primary",
-									value: "실행",
+									value: "중지",
 									hotkey: "enter",
 									click: function () {
 										stopServices();
@@ -385,12 +393,12 @@ export default class ServiceView extends JetView {
 			webix.ui({
 				id: SERVICE_RESTART_WINDOW,
 				view: "popup",
-				head: "Restart",
+				head: "서비스 재시작",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 재시작", align: "center" },
-						{ view: "label", css:"popup_title_line" },
+						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [

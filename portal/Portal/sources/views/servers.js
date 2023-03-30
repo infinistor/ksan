@@ -54,6 +54,7 @@ export default class ServerView extends JetView {
 							view: "icon",
 							icon: "mdi mdi-delete",
 							tooltip: "삭제",
+							disabled: true,
 							autowidth: true,
 							borderless: true,
 							popup: SERVER_DELETE_WINDOW,
@@ -158,6 +159,7 @@ export default class ServerView extends JetView {
 					on: {
 						onSelectChange: function () {
 							unchecked();
+							$$(SERVER_DELETE_WINDOW).enable();
 							var items = this.getSelectedItem();
 							if (items != null) {
 								if (Array.isArray(items)) {
@@ -185,7 +187,7 @@ export default class ServerView extends JetView {
 			webix.ui({
 				id: SERVER_ADD_WINDOW,
 				view: "popup",
-				head: "Add",
+				head: "서버 추가",
 				width: 380,
 				body: {
 					rows: [
