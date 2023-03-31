@@ -129,7 +129,7 @@ namespace PortalProvider.Providers.Accounts
 				await m_dbContext.KsanUsers.AddAsync(NewUser);
 
 				// 기본 스토리지 클래스 등록
-				var StorageClass = new UserDiskPool { UserId = NewUser.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
+				var StorageClass = new UserDiskPool { Id = Guid.NewGuid(), UserId = NewUser.Id, DiskPoolId = Exist.Id, StorageClass = Resource.UL_DISKPOOL_DEFAULT_STANDARD_DISKPOOL_NAME };
 				await m_dbContext.UserDiskPools.AddAsync(StorageClass);
 				await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 
@@ -760,7 +760,7 @@ namespace PortalProvider.Providers.Accounts
 
 						// 사용자에 스토리지 클래스 추가
 						m_dbContext.UserDiskPools.Add(new UserDiskPool { Id = Guid.NewGuid(), UserId = User.Id, DiskPoolId = DiskPool.Id, StorageClass = Request.StorageClass });
-						
+
 						if (m_dbContext.HasChanges())
 						{
 							await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
