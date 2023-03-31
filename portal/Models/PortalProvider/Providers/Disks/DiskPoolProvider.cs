@@ -110,8 +110,8 @@ namespace PortalProvider.Providers.DiskGuids
 							var NewEC = new DiskPoolEC()
 							{
 								DiskPoolId = newData.Id,
-								K = 6,
-								M = 2
+								K = Request.K,
+								M = Request.M
 							};
 							newData.EC = NewEC;
 
@@ -926,10 +926,10 @@ namespace PortalProvider.Providers.DiskGuids
 
 				// Id로 조회할경우
 				if (Guid.TryParse(Id, out Guid DiskPoolGuid))
-					Exist = await m_dbContext.DiskPools.Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).FirstAsync();
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Id == DiskPoolGuid).Include(i => i.Disks).FirstAsync();
 				// 이름으로 조회할 경우
 				else
-					Exist = await m_dbContext.DiskPools.Where(i => i.Name == Id).Include(i => i.Disks).FirstAsync();
+					Exist = await m_dbContext.DiskPools.AsNoTracking().Where(i => i.Name == Id).Include(i => i.Disks).FirstAsync();
 
 				// 해당 정보가 존재하지 않는 경우
 				if (Exist == null)
@@ -953,12 +953,11 @@ namespace PortalProvider.Providers.DiskGuids
 					if (Disk == null)
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_DISK_POOLS_INVALID_DISK_ID);
 
-					// 디스크풀에 할당되지 않은 디스크일 경우
-					if (Disk.DiskPoolId == null)
-						AddDiskGuids.Add(Disk.Id);
+					// 디스크풀에 할당되지 않은 디스크이거나 현재 디스크풀에 할당된 디스크일 경우
+					if (Disk.DiskPoolId == null || Disk.DiskPoolId == Exist.Id) AddDiskGuids.Add(Disk.Id);
 
 					// 다른 디스크풀에 할당되어 있을 경우
-					if (Disk.DiskPoolId != Exist.Id)
+					else
 						return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__DUPLICATED_DATA, Resource.EM_DISK_POOLS_NOT_AVAILABLE_DISK_ID_USED);
 				}
 
