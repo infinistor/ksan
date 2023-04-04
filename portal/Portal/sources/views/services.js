@@ -19,17 +19,15 @@ import { getStatusToColor } from "../models/utils/getStatusToColorTable";
 const SERVICE_URL = "/api/v1/Services";
 const SERVICE_ADD_WINDOW = "service_add_window";
 const SERVICE_DELETE_WINDOW = "service_delete_window";
+const SERVICE_DELETE_BUTTON = "service_delete_button";
 const SERVICE_START_WINDOW = "service_start_window";
+const SERVICE_START_BUTTON = "service_start_button";
 const SERVICE_STOP_WINDOW = "service_stop_window";
+const SERVICE_STOP_BUTTON = "service_stop_button";
 const SERVICE_RESTART_WINDOW = "service_restart_window";
+const SERVICE_RESTART_BUTTON = "service_restart_button";
 const SERVICE_CONTENT_MENU = "service_content_menu";
 const SERVICE_TABLE = "service";
-const NUMBER_FORMAT = webix.Number.numToStr({
-	groupDelimiter: ",",
-	groupSize: 3,
-	decimalDelimiter: ".",
-	decimalSize: 0,
-});
 
 var MyList = [];
 
@@ -63,6 +61,7 @@ export default class ServiceView extends JetView {
 							disabled: true,
 							autowidth: true,
 							borderless: true,
+							id: SERVICE_DELETE_BUTTON,
 							popup: SERVICE_DELETE_WINDOW,
 						},
 						{
@@ -72,6 +71,7 @@ export default class ServiceView extends JetView {
 							disabled: true,
 							autowidth: true,
 							borderless: true,
+							id: SERVICE_START_BUTTON,
 							popup: SERVICE_START_WINDOW,
 						},
 						{
@@ -81,6 +81,7 @@ export default class ServiceView extends JetView {
 							disabled: true,
 							autowidth: true,
 							borderless: true,
+							id: SERVICE_STOP_BUTTON,
 							popup: SERVICE_STOP_WINDOW,
 						},
 						{
@@ -90,6 +91,7 @@ export default class ServiceView extends JetView {
 							disabled: true,
 							autowidth: true,
 							borderless: true,
+							id: SERVICE_RESTART_BUTTON,
 							popup: SERVICE_RESTART_WINDOW,
 						},
 						{ view: "spacer" },
@@ -192,10 +194,10 @@ export default class ServiceView extends JetView {
 					on: {
 						onSelectChange: function () {
 							unchecked();
-							$$(SERVICE_DELETE_WINDOW).enable();
-							$$(SERVICE_START_WINDOW).enable();
-							$$(SERVICE_STOP_WINDOW).enable();
-							$$(SERVICE_RESTART_WINDOW).enable();
+							$$(SERVICE_DELETE_BUTTON).enable();
+							$$(SERVICE_START_BUTTON).enable();
+							$$(SERVICE_STOP_BUTTON).enable();
+							$$(SERVICE_RESTART_BUTTON).enable();
 							var items = this.getSelectedItem();
 							if (items != null) {
 								if (Array.isArray(items)) {
@@ -228,7 +230,7 @@ export default class ServiceView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 추가", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -236,7 +238,6 @@ export default class ServiceView extends JetView {
 								labelWidth: 100,
 							},
 							elements: [
-								// { view: "text", label: "GroupId", name: "GroupId" },
 								{ view: "text", label: "Name", name: "Name" },
 								{
 									view: "richselect",
@@ -283,6 +284,11 @@ export default class ServiceView extends JetView {
 							},
 						}]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 		if ($$(SERVICE_DELETE_WINDOW) == null)
 			webix.ui({
@@ -293,7 +299,7 @@ export default class ServiceView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 삭제", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -328,7 +334,7 @@ export default class ServiceView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 시작", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -363,7 +369,7 @@ export default class ServiceView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 중지", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 중지하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -398,7 +404,7 @@ export default class ServiceView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서비스 재시작", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 실행하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -510,11 +516,11 @@ function deleteServices() {
 	} else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
-			if (deleteService(item.Id)) result = true;
+			if (deleteService(item)) result = true;
 		});
 		if (result) window.location.reload(true);
 	} else {
-		if (deleteService(items.Id)) window.location.reload(true);
+		if (deleteService(items)) window.location.reload(true);
 	}
 }
 
@@ -522,12 +528,14 @@ function deleteServices() {
  * 특정 서비스를 삭제한다.
  * @returns 성공 / 실패 여부
  */
-function deleteService(id) {
+function deleteService(item) {
+	if (checkAgentService(item)) return false;
+
 	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(`${SERVICE_URL}/${id}`)
+		.del(`${SERVICE_URL}/${item.Id}`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -554,11 +562,11 @@ function startServices() {
 	} else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
-			if (startService(item.Id)) result = true;
+			if (startService(item)) result = true;
 		});
 		if (result) window.location.reload(true);
 	} else {
-		if (startService(items.Id)) window.location.reload(true);
+		if (startService(items)) window.location.reload(true);
 	}
 }
 
@@ -566,12 +574,14 @@ function startServices() {
  * 특정 서비스를 시작한다.
  * @returns 성공 / 실패 여부
  */
-function startService(id) {
+function startService(item) {
+	if (checkAgentService(item)) return false;
+
 	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(`${SERVICE_URL}/${id}/Start`)
+		.post(`${SERVICE_URL}/${item.Id}/Start`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -598,11 +608,11 @@ function stopServices() {
 	} else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
-			if (stopService(item.Id)) result = true;
+			if (stopService(item)) result = true;
 		});
 		if (result) window.location.reload(true);
 	} else {
-		if (stopService(items.Id)) window.location.reload(true);
+		if (stopService(items)) window.location.reload(true);
 	}
 }
 
@@ -610,12 +620,14 @@ function stopServices() {
  * 특정 서비스를 중지한다.
  * @returns 성공 / 실패 여부
  */
-function stopService(Id) {
+function stopService(item) {
+	if (checkAgentService(item)) return false;
+
 	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(`${SERVICE_URL}/${id}/Stop`)
+		.post(`${SERVICE_URL}/${item.Id}/Stop`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -641,11 +653,11 @@ function restartServices() {
 	} else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
-			if (restartService(item.Id)) result = true;
+			if (restartService(item)) result = true;
 		});
 		if (result) window.location.reload(true);
 	} else {
-		if (restartService(items.Id)) window.location.reload(true);
+		if (restartService(items)) window.location.reload(true);
 	}
 }
 
@@ -653,12 +665,12 @@ function restartServices() {
  * 특정 서비스를 재시작한다.
  * @returns 성공 / 실패 여부
  */
-function restartService(Id) {
+function restartService(item) {
 	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.post(`${SERVICE_URL}/${id}/Restart`)
+		.post(`${SERVICE_URL}/${item.Id}/Restart`)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -673,4 +685,17 @@ function restartService(Id) {
 				return false;
 			}
 		);
+}
+
+
+/**
+ * Agent 서비스는 재시작만 가능하도록 한다.
+ * @param {Service} item 서비스 정보
+ * @returns {boolean} Agent 서비스 여부
+ */
+function checkAgentService(item) {
+	if (item.ServiceType == "ksanAgent") {
+		webix.message({ type: "debug", text: "Agent 서비스는 재시작만 가능합니다." });
+		return true;
+	} else return false;
 }
