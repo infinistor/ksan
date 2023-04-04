@@ -136,7 +136,7 @@ export default class DiskPoolView extends JetView {
 									<span> ${obj.Name} </span>
 									${getStatusToColor(obj)} ${obj.DefaultDiskPool ? "<span class='default_marker'>Default</span>" : ""}
 									<br>
-									<span style="display: inline-block; width:140px;">
+									<span style="display: inline-block; width:150px;">
 										<span style="color:#1395F5;"> ${sizeToString(obj.UsedSize)} / </span>
 										<span> ${sizeToString(obj.UsedSize + obj.FreeSize)} </span>
 									</span>
@@ -175,7 +175,7 @@ export default class DiskPoolView extends JetView {
 								function (error) {
 									// var response = JSON.parse(error.response);
 									// webix.message({ text: response.Message, type: "error", expire: 5000 });
-									moveLogin();
+									moveLogin("/#!/main/diskpools");
 									// return null;
 								}
 							);
@@ -214,7 +214,7 @@ export default class DiskPoolView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "디스크풀 추가", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -224,7 +224,31 @@ export default class DiskPoolView extends JetView {
 							elements: [
 								{ view: "text", label: "Name", name: "Name" },
 								{ view: "richselect", label: "DiskPool Type", name: "DiskPoolType", options: getDiskPoolType(), value: "STANDARD" },
-								{ view: "richselect", label: "Tolerance", name: "ReplicationType", options: getDiskPoolReplicationType(), value: "OnePlusZero" },
+								{
+									view: "richselect",
+									label: "Tolerance",
+									name: "ReplicationType",
+									options: getDiskPoolReplicationType(),
+									value: "OnePlusZero",
+									on: {
+										onChange: function (newValue) {
+											if (newValue == "ErasureCode")
+												this.getParentView().getChildViews()[3].enable();
+											else this.getParentView().getChildViews()[3].disable();
+										}
+									}
+								},
+								{
+									view: "fieldset",
+									label: "Erasure Code",
+									disabled: true,
+									body: {
+										cols: [
+											{ view: "text", label: "K", name: "K", value: 6 }, { width: 10 },
+											{ view: "text", label: "M", name: "M", value: 2 }
+										]
+									}
+								},
 								{ view: "textarea", label: "Description", name: "Description", height: 200, labelPosition: "top" },
 								{
 									cols: [
@@ -257,6 +281,11 @@ export default class DiskPoolView extends JetView {
 							},
 						}]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 		if ($$(DISKPOOL_DELETE_WINDOW) == null)
 			webix.ui({
@@ -267,7 +296,7 @@ export default class DiskPoolView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "디스크풀 삭제", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -302,7 +331,7 @@ export default class DiskPoolView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "기본 디스크풀로 설정", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "기본 디스크풀로 설정하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -338,7 +367,7 @@ export default class DiskPoolView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 관리", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "datatable",
 							id: SUB_DISK_TABLE,
@@ -364,14 +393,14 @@ export default class DiskPoolView extends JetView {
 								]);
 								webix.extend(this, webix.ProgressBar);
 							},
-							on: {
-								onCheck: () => {
-									$$(SUB_DISK_TABLE).sort([
-										{ by: "Check", dir: "desc", as: "int" },
-										{ by: "Name", dir: "asc", as: "string" },
-									]);
-								}
-							}
+							// on: {
+							// 	onCheck: () => {
+							// 		$$(SUB_DISK_TABLE).sort([
+							// 			{ by: "Check", dir: "desc", as: "int" },
+							// 			{ by: "Name", dir: "asc", as: "string" },
+							// 		]);
+							// 	}
+							// }
 						},
 						{ height: 10 },
 						{
