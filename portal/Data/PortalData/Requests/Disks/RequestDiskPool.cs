@@ -37,5 +37,11 @@ namespace PortalData.Requests.Disks
 		
 		/// <summary> 복제 타입 </summary>
 		public EnumDiskPoolReplicaType ReplicationType { get; set; } = EnumDiskPoolReplicaType.OnePlusOne;
+
+		/// <summary> EC M 값 </summary>
+		public int M { get; set; } = 2;
+		
+		/// <summary> EC K 값 </summary>
+		public int K { get; set; } = 6;
 	}
 }
