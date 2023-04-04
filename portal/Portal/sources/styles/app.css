@@ -45,6 +45,9 @@
 .status_marker.unhealthy {
 	background: #e63031;
 }
+.status_marker.check {
+	background: #ff7f00;
+}
 
 .status_icon {
 	background-color: #2ccd70;
@@ -55,7 +58,7 @@
 }
 .overview_title {
 	text-indent: 35px;
-	font-size: 15px;
+	font-size: 16px;
 }
 .region_name {
 	padding-left: 15px;
@@ -92,7 +95,7 @@
 }
 .main_category_title {
 	padding-left: 30px;
-	font-size: 20px;
+	font-size: 16px;
 }
 .main_chart_rate {
 	display: inline-block;
@@ -115,12 +118,12 @@
 	top: 10px;
 }
 .main_unit_value {
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: bold;
 	color: #1395f5;
 }
 .main_unit_value_normal {
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: bold;
 }
 /* diskpools */
@@ -149,6 +152,14 @@
 }
 .my_list .webix_list_item {
 	border-bottom: 0px;
+}
+.default_marker {
+	font-size: 12px;
+	font-weight: 500;
+	color: #ffffff;
+	padding: 2px 6px;
+	border-radius: 100px;
+	background: #1395f5;
 }
 /* disk */
 .disk_list {
