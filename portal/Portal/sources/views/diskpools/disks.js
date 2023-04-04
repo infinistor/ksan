@@ -330,6 +330,11 @@ export default class DiskView extends JetView {
 						},
 					]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 
 		if ($$(DISKS_DELETE_WINDOW) == null)
@@ -501,7 +506,7 @@ function set() {
 			function (error) {
 				var response = JSON.parse(error.response);
 				webix.message({ text: response.Message, type: "error", expire: 5000 });
-				moveLogin("/#!/main/disks");
+				moveLogin("/#!/main/diskpools");
 			}
 		);
 }
