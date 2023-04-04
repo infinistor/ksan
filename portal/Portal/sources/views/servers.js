@@ -17,6 +17,7 @@ import { getStatusToColor } from "../models/utils/getStatusToColorTable";
 const SERVER_URL = "/api/v1/Servers";
 const SERVER_ADD_WINDOW = "server_add_window";
 const SERVER_DELETE_WINDOW = "server_delete_window";
+const SERVER_DELETE_BUTTON = "server_delete_button";
 const SERVER_TABLE = "server";
 const NUMBER_FORMAT = webix.Number.numToStr({
 	groupDelimiter: ",",
@@ -57,6 +58,7 @@ export default class ServerView extends JetView {
 							disabled: true,
 							autowidth: true,
 							borderless: true,
+							id: SERVER_DELETE_BUTTON,
 							popup: SERVER_DELETE_WINDOW,
 						},
 						{ view: "spacer" },
@@ -159,7 +161,7 @@ export default class ServerView extends JetView {
 					on: {
 						onSelectChange: function () {
 							unchecked();
-							$$(SERVER_DELETE_WINDOW).enable();
+							$$(SERVER_DELETE_BUTTON).enable();
 							var items = this.getSelectedItem();
 							if (items != null) {
 								if (Array.isArray(items)) {
@@ -192,7 +194,7 @@ export default class ServerView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서버 추가", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -227,6 +229,11 @@ export default class ServerView extends JetView {
 							},
 						}]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 		if ($$(SERVER_DELETE_WINDOW) == null)
 			webix.ui({
@@ -236,7 +243,7 @@ export default class ServerView extends JetView {
 				body: {
 					rows: [
 						{ view: "label", label: "서버 삭제", align: "center" },
-						{ view: "label", css:"popup_title_line" },
+						{ view: "label", css: "popup_title_line" },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -283,8 +290,8 @@ function set() {
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				// var response = JSON.parse(error.response);
+				// webix.message({ text: response.Message, type: "error", expire: 5000 });
 				moveLogin("/#!/main/servers");
 				return null;
 			}
