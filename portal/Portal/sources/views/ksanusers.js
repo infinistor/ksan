@@ -13,6 +13,7 @@ import { loadUserAvailableDiskPools } from "../models/load/loadUserAvailableDisk
 import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { loadDiskPools } from "../models/load/loadDiskPools";
 import { moveLogin } from "../models/utils/moveLogin";
+import { getEnumStorageClass } from "../models/enum/enum-storage-class";
 
 const USER_URL = "/api/v1/KsanUsers";
 const USER_ADD_WINDOW = "ksan_user_add_window";
@@ -24,12 +25,6 @@ const DISKPOOL_EDIT_WINDOW = "diskpool_edit_window";
 const DISKPOOL_REMOVE_BUTTON = "diskpool_remove_button";
 const USER_DISKPOOL_BUTTON = "ksan_user_diskpool_button";
 const USER_TABLE = "ksan_user";
-const NUMBER_FORMAT = webix.Number.numToStr({
-	groupDelimiter: ",",
-	groupSize: 3,
-	decimalDelimiter: ".",
-	decimalSize: 0,
-});
 
 var selectedUser = null;
 export default class KsanUserView extends JetView {
@@ -111,14 +106,14 @@ export default class KsanUserView extends JetView {
 									var response = data.json();
 									if (response.Result == "Error") {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return null;
+										return "";
 									} else return response.Data.Items;
 								},
 								function (error) {
-									var response = JSON.parse(error.response);
-									webix.message({ text: response.Message, type: "error", expire: 5000 });
+									// var response = JSON.parse(error.response);
+									// webix.message({ text: response.Message, type: "error", expire: 5000 });
 									moveLogin("/#!/main/ksanusers");
-									return null;
+									return "";
 								}
 							);
 					},
@@ -152,16 +147,22 @@ export default class KsanUserView extends JetView {
 							view: "form",
 							borderless: true,
 							elementsConfig: {
-								labelWidth: 100,
+								labelWidth: 150,
 							},
 							elements: [
 								{ view: "text", label: "Name", name: "Name" },
 								{ view: "text", label: "Email", name: "Email" },
 								{
 									view: "richselect",
-									label: "Disk Pool",
+									label: "Default DiskPool",
 									name: "StandardDiskPoolId",
-									options: loadDiskPools(),
+									options: {
+										body: {
+											url: function () {
+												return loadDiskPools();
+											},
+										},
+									},
 								},
 								{
 									cols: [
@@ -192,6 +193,11 @@ export default class KsanUserView extends JetView {
 							},
 						}]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 		if ($$(USER_DELETE_WINDOW) == null)
 			webix.ui({
@@ -327,7 +333,7 @@ export default class KsanUserView extends JetView {
 										var response = data.json();
 										if (response.Result == "Error") {
 											webix.message({ text: response.Message, type: "error", expire: 5000 });
-											return null;
+											return "";
 										} else {
 											return response.Data.Items;
 										}
@@ -335,7 +341,7 @@ export default class KsanUserView extends JetView {
 									function (error) {
 										var response = JSON.parse(error.response);
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return null;
+										return "";
 									}
 								);
 						});
@@ -350,13 +356,20 @@ export default class KsanUserView extends JetView {
 					view: "form",
 					id: DISKPOOL_EDIT_WINDOW,
 					elements: [
-						{ view: "text", name: "StorageClass" },
+						{ view: "text", name: "StorageClass", suggest: getEnumStorageClass() },
 						{ view: "richselect", name: "DiskPoolId", options: loadDiskPools() },
 						{
 							view: "button", label: "Save", type: "form", click: function (id) {
 								var form = $$(id).getFormView();
 								var item = form.getValues();
-								item.DiskPoolName = $$(DISKPOOL_EDIT_WINDOW).getChildViews()[1].getPopup().getList().getSelectedItem().value;
+								var SelectedDiskPool = $$(DISKPOOL_EDIT_WINDOW).getChildViews()[1].getPopup().getList().getSelectedItem();
+								if (SelectedDiskPool != null) {
+									item.DiskPoolName = SelectedDiskPool.value;
+								}
+								if (item.StorageClass == "Undefined") {
+									webix.message({ text: "StorageClass is undefined", type: "error", expire: 5000 });
+									return;
+								}
 								item.isChanged = true;
 								$$(DISKPOOL_EDIT_TABLE).updateItem(item.id, item);
 								this.getTopParentView().hide();
