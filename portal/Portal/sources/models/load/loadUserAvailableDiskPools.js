@@ -25,7 +25,7 @@ export function loadUserAvailableDiskPools(userId, diskPoolId) {
 				var response = data.json();
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return null;
+					return "";
 				} else {
 					var DiskPools = [];
 					response.Data.Items.forEach((item) => {
@@ -36,9 +36,8 @@ export function loadUserAvailableDiskPools(userId, diskPoolId) {
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
-
-				return null;
+				if (response.code != "EC003") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return "";
 			}
 		);
 }

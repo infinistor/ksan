@@ -144,7 +144,7 @@ function loadDiskUsages() {
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
 					stopTimer();
-					return null;
+					return "";
 				} else {
 					var usage = { DateTime: Date.now(), Write: 0.0, Read: 0.0 };
 					response.Data.Items.forEach((item) => {
@@ -159,10 +159,10 @@ function loadDiskUsages() {
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				// var response = JSON.parse(error.response);
+				// webix.message({ text: response.Message, type: "error", expire: 5000 });
 				stopTimer();
-				return null;
+				return "";
 			}
 		);
 }

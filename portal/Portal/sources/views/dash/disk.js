@@ -100,7 +100,7 @@ export default class DiskView extends JetView {
 									var response = data.json();
 									if (response.Result == "Error") {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return null;
+										return "";
 									} else {
 										var status = true;
 										response.Data.Items.forEach(item => {
