@@ -19,7 +19,7 @@ export default class StorageView extends JetView {
 	config() {
 		return {
 			type: "abslayout",
-			minWidth: 600,
+			minWidth: 540,
 			height: 300,
 			borderless: true,
 			rows: [
@@ -33,7 +33,7 @@ export default class StorageView extends JetView {
 						{
 							view: "dataview",
 							height: 300,
-							minWidth: 600,
+							minWidth: 540,
 							borderless: true,
 							scroll: false,
 							prerender: true,
@@ -41,7 +41,7 @@ export default class StorageView extends JetView {
 								width: 1200,
 								height: 300,
 								template: (obj) => {
-									const takenUnits = Math.floor((obj.UsedSize / obj.TotalSize) * 100);
+									const takenUnits = obj.TotalSize > 0 ? Math.floor((obj.UsedSize / obj.TotalSize) * 100) : 0;
 									const curve = drawCurve(120, 120, 90, takenUnits);
 									return `
 							<div>
@@ -91,10 +91,10 @@ export default class StorageView extends JetView {
 											}
 										},
 										function (error) {
-											var response = JSON.parse(error.response);
-											webix.message({ text: response.Message, type: "error", expire: 5000 });
+											// var response = JSON.parse(error.response);
+											// webix.message({ text: response.Message, type: "error", expire: 5000 });
 											moveLogin();
-											return null;
+											// return null;
 										}
 									);
 							},

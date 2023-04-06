@@ -10,13 +10,16 @@
 */
 
 /**
- * 서버 목록을 가져온다.
- * @returns Servers. json:{id:"Server Id", value:"Server Name"}
+ * 디스크풀 목록을 가져온다.
+ * @returns DiskPools. json:{id:"DiskPool Id", value:"Server Name"}
  */
-export function loadServers() {
+export function loadUserAvailableDiskPools(userId, diskPoolId) {
+	var url = "";
+	if (diskPoolId == undefined) url = `/api/v1/KsanUsers/StorageClass/${userId}/Available`;
+	else url = `/api/v1/KsanUsers/StorageClass/${userId}/Available/${diskPoolId}`;
 	return webix
 		.ajax()
-		.get("/api/v1/Servers")
+		.get(url)
 		.then(
 			function (data) {
 				var response = data.json();
@@ -24,11 +27,11 @@ export function loadServers() {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
 					return "";
 				} else {
-					var ServerList = [];
+					var DiskPools = [];
 					response.Data.Items.forEach((item) => {
-						ServerList.push({ id: item.Id, value: item.Name });
+						DiskPools.push({ id: item.Id, value: item.Name });
 					});
-					return ServerList;
+					return DiskPools;
 				}
 			},
 			function (error) {
