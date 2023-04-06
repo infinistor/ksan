@@ -301,10 +301,9 @@ public class SERVER {
                     continue;
                 }
                 
-                if (dsk.getMode() != DiskMode.READWRITE){
-                    continue;
+                if (dsk.getMode() == DiskMode.READWRITE){
+                    return true;
                 }
-                return true;
             }
         }
         return false;
