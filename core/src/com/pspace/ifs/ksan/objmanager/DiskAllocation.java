@@ -115,6 +115,17 @@ public class DiskAllocation {
        return dskPool;
     }
     
+    private DISKPOOL getDiskPoolWithName(String dskPoolName) throws ResourceNotFoundException{
+       DISKPOOL dskPool; 
+       try  {
+           dskPool = obmCache.getDiskPoolFromCacheWithName(dskPoolName);
+       } catch(ResourceNotFoundException ex){
+           obmCache.reloadDiskPoolList();
+           dskPool = obmCache.getDiskPoolFromCacheWithName(dskPoolName);
+       }
+       return dskPool;
+    }
+    
     public int allocDisk(Metadata md, String dskPoolId, int replicaCount, int algorithm) 
              throws IOException, AllServiceOfflineException{
          DISK primaryDisk;
@@ -186,6 +197,22 @@ public class DiskAllocation {
            System.out.format("[allocDisk] Bucket : %s objId : %s primary : %s/%s newDisk : %s /%s\n", mt.getBucket(), mt.getObjId(), mt.getPrimaryDisk().getDiskPoolId(), mt.getPrimaryDisk().getPath(), replicaDisk.getDiskPoolId(), replicaDisk.getPath());
         */        
 return replicaDisk;
+    }
+    
+    // allocate only replica disk with diskpool
+    public DISK allocDisk(String dskPoolName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
+        DISK replicaDisk;
+        DISKPOOL dskPool;
+        
+        dskPool = this.getDiskPoolWithName(dskPoolName);
+        if (dskPool == null) {
+            logger.error("[allocDisk]There is no diskpool with the name "+ dskPoolName +"!");
+            throw new ResourceNotFoundException("[allocDisk]There is no diskpool with the name "+ dskPoolName +"!");
+        }
+        
+        replicaDisk = this.allocReplicaDisk(dskPool, mt);
+        replicaDisk.setDiskPoolId(dskPool.getId());
+        return replicaDisk;
     }
     
     public boolean isReplicationAllowedInDisk(DISK primary, DISK replica, String replicaDiskId, boolean allowdToUseLocalDisk){

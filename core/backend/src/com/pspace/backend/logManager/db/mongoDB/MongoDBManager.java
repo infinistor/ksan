@@ -43,18 +43,23 @@ public class MongoDBManager implements IDBManager {
 	MongoDatabase db;
 	DBConfig config;
 
-	public MongoDBManager(DBConfig Config) {
-		this.config = Config;
+	public MongoDBManager(DBConfig config) {
+		this.config = config;
 	}
 
 	public void connect() throws Exception {
-		var credential = MongoCredential.createCredential(config.User, config.DatabaseName,
-				config.Password.toCharArray());
-		var serverAddress = new ServerAddress(config.Host, config.Port);
-		mongo = MongoClients.create(MongoClientSettings.builder()
-						.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(serverAddress)))
-						.credential(credential)
-						.build());
+		if (config.Host.startsWith("mongodb://")) {
+			var credential = MongoCredential.createCredential(config.User, config.DatabaseName,
+					config.Password.toCharArray());
+			var serverAddress = new ServerAddress(config.Host, config.Port);
+			mongo = MongoClients.create(MongoClientSettings.builder()
+					.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(serverAddress)))
+					.credential(credential)
+					.build());
+		} else {
+			mongo = MongoClients.create(config.Host);
+
+		}
 		db = mongo.getDatabase(config.DatabaseName);
 	}
 
@@ -79,6 +84,7 @@ public class MongoDBManager implements IDBManager {
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return Insert(LifecycleLogQuery.DB_TABLE_NAME, LifecycleLogQuery.getInsertDocument(data));
 	}
+
 	public boolean insertRestoreLog(RestoreLogData data) {
 		return Insert(RestoreLogQuery.DB_TABLE_NAME, RestoreLogQuery.getInsertDocument(data));
 	}

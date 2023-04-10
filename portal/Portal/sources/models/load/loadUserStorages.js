@@ -8,23 +8,29 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-namespace PortalData.Responses.Ksan
-{
-	/// <summary> 유저 디스크풀 응답 클래스 </summary>
-	public class ResponseStorageClass
-	{
-		/// <summary> 아이디</summary>
-		public string Id { get; set; }
-		/// <summary> 유저 아이디</summary>
-		public string UserId { get; set; }
 
-		/// <summary> 디스크풀 이름</summary>
-		public string DiskPoolName { get; set; }
-
-		/// <summary> 디스크풀 아이디</summary>
-		public string DiskPoolId { get; set; }
-
-		/// <summary> 스토리지 클래스 </summary>
-		public string StorageClass { get; set; }
-	}
+/**
+ * 서버 목록을 가져온다.
+ * @returns Servers. json:{id:"Server Id", value:"Server Name"}
+ */
+export function loadUserStorages(userId) {
+	return webix
+		.ajax()
+		.get(`/api/v1/KsanUsers/StorageClass/${userId}`)
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") {
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+					return "";
+				} else {
+					return response.Data.Items;
+				}
+			},
+			function (error) {
+				var response = JSON.parse(error.response);
+				if (response.code != "EC003") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				return "";
+			}
+		);
 }

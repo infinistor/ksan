@@ -19,6 +19,7 @@ import { getDiskModeToValue } from "../../models/enum/enum-disk-mode";
 import { moveLogin } from "../../models/utils/moveLogin";
 
 const DISKS_URL = "/api/v1/Disks";
+const DISKS_TITLE = "disk_title";
 const DISKS_ADD_WINDOW = "disk_add_window";
 const DISKS_DELETE_WINDOW = "disk_delete_window";
 const DISKS_START_WINDOW = "disk_start_window";
@@ -39,13 +40,13 @@ export default class DiskView extends JetView {
 				{
 					view: "toolbar",
 					paddingX: 20,
-					elements: [{ view: "label", label: "Disks", height: 0 }],
+					elements: [{ view: "label", id: DISKS_TITLE, label: "All Disks", height: 0 }],
 					height: 50,
 					borderless: true,
 				},
 				{
 					height: 35,
-					type:"clean",
+					type: "clean",
 					css: "default_layout",
 					cols: [
 						{
@@ -143,6 +144,9 @@ export default class DiskView extends JetView {
 									case "ReadWrite":
 										Name = "Read/Write";
 										break;
+									case "Maintenance":
+										Name = "Maintenance";
+										break;
 								}
 								return Name;
 							},
@@ -238,25 +242,28 @@ export default class DiskView extends JetView {
 	}
 	init() {
 		const table = this.$$(DISKS_TABLE);
+		const disks = this.$$(DISKS_TITLE);
 		this.on(this.app, "diskpool:select", (diskpool) => {
 			table.filter(function (obj) {
 				return obj.DiskPoolId === diskpool.Id;
 			});
+			disks.setValue(diskpool.Name);
 		});
 		this.on(this.app, "diskpool:unselect", () => {
 			table.filter("");
+			disks.setValue("All Disks");
 		});
 
 		if ($$(DISKS_ADD_WINDOW) == null)
 			webix.ui({
 				id: DISKS_ADD_WINDOW,
 				view: "popup",
-				head: "Add",
+				head: "디스크 추가",
 				width: 350,
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 추가", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -323,18 +330,23 @@ export default class DiskView extends JetView {
 						},
 					]
 				},
+				on: {
+					onShow: function () {
+						this.getBody().getChildViews()[2].clear();
+					}
+				}
 			});
 
 		if ($$(DISKS_DELETE_WINDOW) == null)
 			webix.ui({
 				id: DISKS_DELETE_WINDOW,
 				view: "popup",
-				head: "Delete",
+				head: "디스크 삭제",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 삭제", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -365,12 +377,12 @@ export default class DiskView extends JetView {
 			webix.ui({
 				id: DISKS_START_WINDOW,
 				view: "popup",
-				head: "Start",
+				head: "디스크 시작",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 시작", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 시작하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -401,12 +413,12 @@ export default class DiskView extends JetView {
 			webix.ui({
 				id: DISKS_STOP_WINDOW,
 				view: "popup",
-				head: "Stop",
+				head: "디스크 정지",
 				width: 250,
 				body: {
 					rows: [
 						{ view: "label", label: "디스크 정지", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 정지하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -436,12 +448,12 @@ export default class DiskView extends JetView {
 			webix.ui({
 				id: DISKS_RW_WINDOW,
 				view: "popup",
-				head: "RW Mode",
+				head: "Disk Mode 변경",
 				width: 350,
 				body: {
 					rows: [
-						{ view: "label", label: "RW Mode 변경", align: "center" },
-						{ view: "label", template:"<div class='popup_title_line' />", height:2 },
+						{ view: "label", label: "Disk Mode 변경", align: "center" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{
 							view: "form",
 							borderless: true,
@@ -494,7 +506,7 @@ function set() {
 			function (error) {
 				var response = JSON.parse(error.response);
 				webix.message({ text: response.Message, type: "error", expire: 5000 });
-				moveLogin("/#!/main/disks");
+				moveLogin("/#!/main/diskpools");
 			}
 		);
 }

@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -68,6 +69,24 @@ public class ObjManagerCache {
         return dskPool;
     }
     
+    private DISKPOOL getDiskPoolWithName(String diskPoolName){
+        DISKPOOL dskPool;
+        for(String diskPoolId : diskPoolMap.keySet()){
+            dskPool = diskPoolMap.get(diskPoolId);
+            if (dskPool == null)
+                continue;
+            
+            if (dskPool.getName() == null)
+                continue;
+            
+            if (dskPool.getName().equals(diskPoolName)){
+                return dskPool;
+            }   
+        }
+        
+        return null;
+    }
+    
     private DISKPOOL getDiskPoolfromMetadata(Metadata mt, String default_diskPoolId, boolean fromPrimary) throws ResourceNotFoundException{
         String diskPoolId;
         
@@ -94,6 +113,15 @@ public class ObjManagerCache {
         if (dskPool == null) {
             //here is no diskpool with id : " + diskPoolId +"!");
             throw new ResourceNotFoundException("There is no diskpool wih id : " + diskPoolId + " !");
+        }
+        return dskPool;
+    }
+    
+    public DISKPOOL getDiskPoolFromCacheWithName(String diskPoolName) throws ResourceNotFoundException{
+        DISKPOOL dskPool;
+        dskPool = this.getDiskPoolWithName(diskPoolName);
+        if (dskPool == null) {
+            throw new ResourceNotFoundException("There is no diskpool wih name : " + diskPoolName + " !");
         }
         return dskPool;
     }

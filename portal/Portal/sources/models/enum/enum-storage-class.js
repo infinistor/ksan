@@ -8,23 +8,16 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-namespace PortalData.Responses.Ksan
-{
-	/// <summary> 유저 디스크풀 응답 클래스 </summary>
-	public class ResponseStorageClass
-	{
-		/// <summary> 아이디</summary>
-		public string Id { get; set; }
-		/// <summary> 유저 아이디</summary>
-		public string UserId { get; set; }
 
-		/// <summary> 디스크풀 이름</summary>
-		public string DiskPoolName { get; set; }
+const EnumStorageClass = [
+	{ id: 1, value: "GLACIER" },
+	{ id: 2, value: "DEEP_ARCHIVE" },
+	{ id: 3, value: "INTELLIGENT_TIERING" },
+	{ id: 4, value: "STANDARD" },
+	{ id: 5, value: "STANDARD_IA" },
+	{ id: 6, value: "ONEZONE_IA" },
+]
 
-		/// <summary> 디스크풀 아이디</summary>
-		public string DiskPoolId { get; set; }
-
-		/// <summary> 스토리지 클래스 </summary>
-		public string StorageClass { get; set; }
-	}
+export function getEnumStorageClass() {
+	return EnumStorageClass;
 }

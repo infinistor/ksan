@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListIndexesIterable;
 import org.bson.Document; 
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
@@ -202,14 +203,29 @@ public class MongoDataRepository implements DataRepository{
         database = mongo.getDatabase(dbname);
     }
     
+    private boolean indexExist(MongoCollection<Document> coll, Document indexdoc){ 
+        if (coll == null)
+            return false;
+        
+        ListIndexesIterable<Document> indx = coll.listIndexes();
+        Iterator it = indx.iterator();
+        while((it.hasNext())){
+            if (it.next().equals(indexdoc))
+                return true;
+        }
+        return false;
+    }
+    
     private void createBucketsHolder(){
         Document index;
         
         index = new Document(BUCKETNAME, 1);
         buckets = database.getCollection(BUCKETSCOLLECTION);
-        if (buckets == null){
-            database.createCollection(BUCKETSCOLLECTION);
-            buckets = database.getCollection(BUCKETSCOLLECTION);
+        if (indexExist(buckets, index) == false){
+            if (buckets == null) {
+                database.createCollection(BUCKETSCOLLECTION);
+                buckets = database.getCollection(BUCKETSCOLLECTION);
+            }
             buckets.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -221,9 +237,11 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(UPLOADID, 1);
         MongoCollection<Document> lifeCycle = database.getCollection(collectionName);
-        if (lifeCycle == null){
-            database.createCollection(collectionName);
-            lifeCycle = database.getCollection(collectionName);
+        if (indexExist(lifeCycle, index) == false){
+            if (lifeCycle == null){
+                database.createCollection(collectionName);
+                lifeCycle = database.getCollection(collectionName);
+            }
             lifeCycle.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -236,11 +254,13 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(TAG_KEY, 1);
         MongoCollection<Document> objTag = database.getCollection(collectionName);
+        if (indexExist(objTag, (Document)Indexes.ascending(OBJID, VERSIONID, TAG_KEY))== false){
         if (objTag == null){
             database.createCollection(collectionName);
             objTag = database.getCollection(collectionName);
             objTag.createIndex(index, new IndexOptions().unique(true));
         }
+         }
     }
     
     private MongoCollection<Document> getObjTagIndexCollection(String bucketName){
@@ -250,7 +270,7 @@ public class MongoDataRepository implements DataRepository{
         objTag = this.database.getCollection(collectionName);
         if (objTag == null){
             database.createCollection(collectionName);
-            objTag = database.getCollection(collectionName);
+            objTag = database.getCollection(collectionName); 
             objTag.createIndex(Indexes.ascending(OBJID, VERSIONID, TAG_KEY), new IndexOptions().unique(true));
         }
         
@@ -266,7 +286,7 @@ public class MongoDataRepository implements DataRepository{
             lifeCycle = database.getCollection(collectionName);
             lifeCycle.createIndex(Indexes.ascending(OBJID, VERSIONID, UPLOADID), new IndexOptions().unique(true));
         }
-        
+              
         return lifeCycle;
     }
     
@@ -276,10 +296,10 @@ public class MongoDataRepository implements DataRepository{
         multip = this.database.getCollection(MULTIPARTUPLOAD);
         if (multip == null){
             database.createCollection(MULTIPARTUPLOAD);
-            multip = database.getCollection(MULTIPARTUPLOAD);
+            multip = database.getCollection(MULTIPARTUPLOAD); 
             multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
-        
+            
         return multip;
     }
     
@@ -290,9 +310,11 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         //index.append(BUCKETNAME, 1);
         MongoCollection<Document> restoreObj = database.getCollection(OBJRESTORE_TABLE);
-        if (restoreObj == null){
-            database.createCollection(OBJRESTORE_TABLE);
-            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+        if (indexExist(restoreObj, index) == false){
+            if (restoreObj == null){
+                database.createCollection(OBJRESTORE_TABLE);
+                restoreObj = database.getCollection(OBJRESTORE_TABLE);    
+            }
             restoreObj.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -659,7 +681,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
         //FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
-        FindIterable fit = buckets.find(eq(BUCKETID, new Metadata(bucketName, "/").getBucketId()));
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         Document doc =(Document)fit.first();
         return parseBucket(bucketName, doc);
     }
@@ -769,7 +791,33 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
- 
+        MongoCollection<Document> multip;
+        String key;
+        String uploadid;
+        long partNo;
+        int counter = 0;
+        Date lastModified;
+        boolean isTrancated =false;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return;
+        
+        FindIterable fit = multip.find((BasicDBObject)query);
+        Iterator it = fit.iterator();
+        
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            key =          doc.getString(OBJKEY) ;
+            uploadid=      doc.getString(UPLOADID);
+            partNo =       doc.getInteger(PARTNO);
+            lastModified = (Date)doc.getDate(CREATETIME);
+
+            if (++counter == maxKeys)
+                isTrancated = !it.hasNext();
+            
+            callback.call(key, uploadid, lastModified == null ? "" : lastModified.toString(), partNo, "", "", "", isTrancated);
+        }
     }
     
     private int updateVersionDelete(String bucketName, String objId){

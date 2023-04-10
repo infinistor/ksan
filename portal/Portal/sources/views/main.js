@@ -40,7 +40,7 @@ export default class TopView extends JetView {
 						{
 							localId: "side:menu",
 							view: "sidebar",
-							width: 200,
+							width: 135,
 							data: [
 								{ id: "dash", value: "Dashboard", icon: "mdi mdi-view-dashboard" },
 								{ id: "servers", value: "Servers", icon: "mdi mdi-server-network" },

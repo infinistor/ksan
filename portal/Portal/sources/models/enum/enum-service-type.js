@@ -22,9 +22,9 @@ const ServiceType = [
 	"ksanOSD",
 	"ksanGW",
 	// "ksanRecovery",
-	// "ksanLifecycleManager",
-	// "ksanReplicationManager",
-	// "ksanLogManager",
+	"ksanLifecycleManager",
+	"ksanReplicationManager",
+	"ksanLogManager",
 ];
 
 export function getServiceType() {

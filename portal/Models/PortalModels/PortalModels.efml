@@ -1515,26 +1515,27 @@
 		<Documentation>
 			<Summary>유저 디스크풀 목록</Summary>
 		</Documentation>
-		<composite-id>
-			<key-property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="67b2f29b-0d4d-4cb4-b15d-364b4be07a32">
-				<Documentation>
-					<Summary>유저 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-			<key-property name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="97480699-57c9-4e5c-a6fa-73451591af0e">
-				<Documentation>
-					<Summary>디스크풀 아이디</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-			<key-property name="StorageClass" type="String" p1:ValidateRequired="true" p1:Guid="b358d8c1-23f7-4db6-b864-d43fed21fbb6">
-				<Documentation>
-					<Summary>스토리지 클래스 이름</Summary>
-				</Documentation>
-				<column name="" />
-			</key-property>
-		</composite-id>
+		<id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="2736d98c-1efa-446a-9bd6-8e0a3538c3f0">
+			<column name="" />
+		</id>
+		<property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="67b2f29b-0d4d-4cb4-b15d-364b4be07a32">
+			<Documentation>
+				<Summary>유저 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="97480699-57c9-4e5c-a6fa-73451591af0e">
+			<Documentation>
+				<Summary>디스크풀 아이디</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
+		<property name="StorageClass" type="String" p1:ValidateRequired="true" p1:Guid="b358d8c1-23f7-4db6-b864-d43fed21fbb6">
+			<Documentation>
+				<Summary>스토리지 클래스 이름</Summary>
+			</Documentation>
+			<column name="" />
+		</property>
 	</class>
 	<class name="DiskUsage" entity-set="DiskUsages" p1:Guid="5d3c2840-402e-4de2-8940-12a619474ce1">
 		<Documentation>

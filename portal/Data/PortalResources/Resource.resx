@@ -911,7 +911,7 @@
   </data>
   <data name="SM_COMMON_ALLOWED_CONNECTION_IP_REMOVED" xml:space="preserve">
     <value>The connection permission IP '{0}' is deleted.</value>
-    <comment>접속 허용 아이피  '{0}'가 삭제 되었습니다.</comment>
+    <comment>접속 허용 아이피 '{0}'가 삭제 되었습니다.</comment>
   </data>
   <data name="SM_COMMON_USER_SUCCESS_CHANGE_PASSWORD" xml:space="preserve">
     <value>Password has been changed.</value>

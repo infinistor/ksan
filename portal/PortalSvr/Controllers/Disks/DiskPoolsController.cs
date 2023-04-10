@@ -160,7 +160,7 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpPost("Default/{Id}")]
+		[HttpPut("Default/{Id}")]
 		public async Task<ActionResult> SetDefault([FromRoute] string Id)
 		{
 			return Json(await m_dataProvider.SetDefault(Id));
