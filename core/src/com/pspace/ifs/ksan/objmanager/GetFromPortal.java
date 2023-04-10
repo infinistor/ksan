@@ -64,12 +64,12 @@ public class GetFromPortal {
     private final String PORTAAPIKEY = "PortalApiKey";
     private final String SERVERID = "ServerId";
     
-    private final String DBREPOSITORY = "objM.db_repository";
-    private final String DBHOST = "objM.db_host";
-    private final String DBPORT = "objM.db_port";
-    private final String DBNAME = "objM.db_name";
-    private final String DBUSER = "objM.db_user"; 
-    private final String DBPASSWORD = "objM.db_password";  
+    private final String DBREPOSITORY = "db_repository";
+    private final String DBHOST = "db_host";
+    private final String DBPORT = "db_port";
+    private final String DBNAME = "db_name";
+    private final String DBUSER = "db_user"; 
+    private final String DBPASSWORD = "db_password";  
        
     private final String MQHOST="MQHost";//"objM.mq_host";
     private final String MQUSER="MQUser";
@@ -77,7 +77,7 @@ public class GetFromPortal {
     private final String MQPASSWORD="MQPassword";
     private final String MQPORT="MQPort";
     
-    private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
+    private final String KSANGWCONFIAPI = "/api/v1/Config/KsanObjManager";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
     private final String GETDISKLISTAPI = "/api/v1/Disks";
     private final String GETSERVERTAPI = "/api/v1/Servers/";
