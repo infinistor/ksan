@@ -22,6 +22,7 @@ from common.utils import *
 from const.disk import AddDiskObject, UpdateDiskSizeObject
 #from common.httpapi import RestApi
 from common.base_utils import *
+from common.utils import *
 from portal_api.apis import *
 
 ParsingDiskInode = re.compile("([\d\w_\-/]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)[\s]+([\d]+)\%")
@@ -90,10 +91,15 @@ def CheckDiskMount(Path, DiskId=None):
             DiskIdPath = '%s%s' % (Path, DiskIdFileName)
             if os.path.exists(DiskIdPath):
                 with open(DiskIdPath, 'r') as f:
-                    if f.read() == DiskId:
-                        return True, ''
+                    DiskIdString = f.read()
+                    ret, Id = IdFinder(DiskIdString)
+                    if ret is False:
+                        return False, 'Invalid DiskId(%s)' % DiskIdString
                     else:
-                        return False, '%s is invalid DiskId' % DiskIdPath
+                        if  Id == DiskId:
+                            return True, ''
+                        else:
+                            return False, '%s is invalid DiskId' % DiskIdPath
             else:
                 return False, '%s is not found' % DiskIdPath
         else:

@@ -88,13 +88,6 @@ ObjManagerDefaultMqExchangeName = 'ksan.system'
 ObjManagerDefaultMqOsdExchangeName = 'OSDExchange'
 
 S3DefaultConfigInfo = [
-    #{'key': 'gw.db_repository', 'value': S3DefaultDbRepository, 'type': str, 'question': 'Insert ksanGW DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
-    #{'key': 'gw.db_host', 'value': S3DefaultDbHost, 'type': str, 'question': 'Insert ksanGW DB host'},
-    #{'key': 'gw.db_name', 'value': S3DefaultDatabase, 'type': str, 'question': 'Insert ksanGW DB name'},
-    #{'key': 'gw.db_port', 'value': S3DefaultDbPort, 'type': int, 'question': 'Insert ksanGW DB port'},
-    #{'key': 'gw.db_user', 'value': S3DefaultDbUser, 'type': str, 'question': 'Insert ksanGW DB user'},
-    #{'key': 'gw.db_password', 'value': S3DefaultDbPassword, 'type': str, 'question': 'Insert ksanGW DB password'},
-    #{'key': 'gw.db_pool_size', 'value': S3DefaultDbPoolSize, 'type': int, 'question': 'Insert ksanGW DB pool size'},
     {'key': 'gw.authorization', 'value': S3DefaultGwAuthrization, 'type': str, 'question': 'Insert authorization'},
     {'key': 'gw.endpoint', 'value': S3DefaultGwEndpoint, 'type': 'url', 'question': 'Insert endpoint url'},
     {'key': 'gw.secure_endpoint', 'value': S3DefaultGwSecureEndpoint, 'type': 'url',
@@ -118,15 +111,15 @@ S3DefaultConfigInfo = [
     {'key': 'gw.performance_mode', 'value': S3DefaultGwPerformanceMode, 'type': str,
      'question': 'Insert performance mode'},
     {'key': 'gw.cache_diskpath', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path', 'value_command': 'disable: NULL, '},
-    {'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert cache file size'},
-    {'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
-     'question': 'Insert object DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
+    #{'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert cache file size'},
+    #{'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
+    # 'question': 'Insert object DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
     #{'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert object DB host', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
-    {'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert object DB host'},
-    {'key': 'objM.db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert object DB name'},
-    {'key': 'objM.db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert object DB port'},
-    {'key': 'objM.db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert object DB user'},
-    {'key': 'objM.db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert object DB password'}
+    #{'key': 'objM.db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert object DB host'},
+    #{'key': 'objM.db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert object DB name'},
+    #{'key': 'objM.db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert object DB port'},
+    #{'key': 'objM.db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert object DB user'},
+    #{'key': 'objM.db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert object DB password'}
     #{'key': 'objM.mq_host', 'value': ObjManagerDefaultMqHost, 'type': str, 'question': 'Insert MQ host', 'Activate': False},
     #{'key': 'objM.mq_queue_name', 'value': ObjManagerDefaultMqName, 'type': str, 'question': 'Insert MQ name', 'Activate': False},
     #{'key': 'objM.mq_exchange_name', 'value': ObjManagerDefaultMqExchangeName, 'type': str, 'question': 'Insert MQ exchange name', 'Activate': False},
@@ -140,14 +133,14 @@ S3DefaultConfigInfo = [
     # 'question': 'Insert MQ ksanOSD Exchange Name'}
 ]
 
-
-
-
-
-
-
-
-
+ObjManagerDefaultConfigInfo = [
+    {'key': 'db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str, 'question': 'Insert object DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
+    {'key': 'db_host', 'value': ObjManagerDefaultDbHost, 'type': str, 'question': 'Insert object DB host'},
+    {'key': 'db_port', 'value': ObjManagerDefaultDbPort, 'type': int, 'question': 'Insert object DB port'},
+    {'key': 'db_name', 'value': ObjManagerDefaultDatabase, 'type': str, 'question': 'Insert object DB name'},
+    {'key': 'db_user', 'value': ObjManagerDefaultDbUser, 'type': str, 'question': 'Insert object DB user'},
+    {'key': 'db_password', 'value': ObjManagerDefaultDbPassword, 'type': str, 'question': 'Insert object DB password'}
+]
 
 MongoDbDefaultShard1Port = 20001
 MongoDbDefaultShard2Port = 20002
@@ -187,7 +180,6 @@ LifecycleDefaultConfigInfo = [{'key': 'objM.db_repository', 'value': lifecycleDe
                   {'key': 'ksan.region', 'value': lifecycleDefaultRegion, 'type': str, 'question': 'Insert region'},
                   {'key': 'lifecycle.schedule', 'value': lifecycleDefaultRuntime, 'type': str, 'question': 'Insert runtime'},
                   {'key': 'lifecycle.check_interval', 'value': lifecycleDefaultCheckInterval, 'type': int, 'question': 'Insert check interval'}]
-
 
 ReplicationDefaultUploadThreadCount = 20
 ReplicationDefaultMultipartSize = 5242880
@@ -1178,6 +1170,16 @@ def GetServiceCurrentConfigInfo(PortalIp, PortalPort, PortalApiKey, ServiceType,
                 except Exception as err:
                     pass
         ConfigInfo = MongoDbConfigInfo
+    elif ServiceType == TypeServiceObjManager:
+        if Data:
+            CurrentConf = json.loads(Data.Config)
+            for info in ObjManagerDefaultConfigInfo:
+                try:
+                    ConfKey = info['key']
+                    info['value'] = CurrentConf[ConfKey]
+                except Exception as err:
+                    pass
+        ConfigInfo = ObjManagerDefaultConfigInfo
 
     elif ServiceType in [TypeServiceLifecycle, TypeServiceReplication, TypeServiceLogManager]:
         if Data:
