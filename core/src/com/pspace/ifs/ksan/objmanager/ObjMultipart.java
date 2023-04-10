@@ -44,10 +44,10 @@ public class ObjMultipart{
     
     class ListMultipartCallBack implements DBCallBack{
         @Override
-        public void call(String key, String uploadid, String unused1, long partNo, 
+        public void call(String key, String uploadid, String lastModified, long partNo, 
                     String unused2, String unused3, String unused4, boolean isTrancated) {
             ListResult lr = new ListResult();
-            lr.set(bucket, key, uploadid, (int)partNo);
+            lr.set(bucket, key, uploadid, (int)partNo, lastModified);
             if (isTrancated)
                 lr.setTruncated();
             if (list.size() >= defaultMaxUpkoads)
@@ -149,7 +149,7 @@ public class ObjMultipart{
     }
     
     private Object makeMysqlQuery(String delimiter, String prefix, String keyMarker, String uploadIdMarker){
-        String sql = "SELECT objKey, uploadid, partNo FROM MULTIPARTS WHERE bucket= '"+ bucket + "' AND partNo=0 AND completed=false";
+        String sql = "SELECT objKey, uploadid, partNo, changeTime FROM MULTIPARTS WHERE bucket= '"+ bucket + "' AND partNo=0 AND completed=false";
         
         if (!prefix.isEmpty())
            sql = sql + " AND objKey LIKE '"+ prefix + "%'";
@@ -181,7 +181,7 @@ public class ObjMultipart{
         
         DBCallBack cb = new ListMultipartCallBack(); 
         //System.out.println("sql : " + sql);
-        //dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
+        dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
         return this.list;
     }
 

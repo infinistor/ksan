@@ -893,7 +893,7 @@ public class MysqlDataRepository implements DataRepository{
         } catch (ResourceNotFoundException ex) {
             pstInsertMultiPart.setString(10, "");
         }
-        pstInsertMultiPart.setString(11, "");
+        pstInsertMultiPart.setString(12, ""); // for partRef
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -937,6 +937,7 @@ public class MysqlDataRepository implements DataRepository{
         String uploadid;
         long partNo;
         int counter = 0;
+        Date lastModified;
         boolean isTrancated =false;
         
         PreparedStatement stmt = this.con.prepareStatement(query.toString());
@@ -946,9 +947,12 @@ public class MysqlDataRepository implements DataRepository{
             key =          rs.getString(1) ;
             uploadid=      rs.getString(2);
             partNo =       rs.getInt(3);
+            lastModified = (Date)rs.getObject(4);
+
             if (++counter == maxKeys)
                 isTrancated = !rs.isLast();
-            callback.call(key, uploadid, "", partNo, "", "", "", isTrancated);
+            
+            callback.call(key, uploadid, lastModified == null ? "" : lastModified.toString(), partNo, "", "", "", isTrancated);
         }
     }
         

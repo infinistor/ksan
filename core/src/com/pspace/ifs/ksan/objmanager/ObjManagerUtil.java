@@ -136,6 +136,16 @@ public class ObjManagerUtil {
         }
     }
     
+    public List<Metadata> listObjectsVersion(String bucketName, String diskid, String lastObjId, String lastVersionid, long numObjects){
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, diskid, lastObjId, (int)numObjects);
+            lo.updateOffset(diskid, lastObjId, lastVersionid);
+            return lo.getUnformatedList();
+        } catch (SQLException ex) {
+            return new ArrayList();
+        }
+    }
+    
     public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
         try {
             ListObject lo = new ListObject(dbm, bucketName, "", lastObjId, (int)numObjects);

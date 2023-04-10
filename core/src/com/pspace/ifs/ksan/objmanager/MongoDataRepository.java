@@ -791,7 +791,33 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
- 
+        MongoCollection<Document> multip;
+        String key;
+        String uploadid;
+        long partNo;
+        int counter = 0;
+        Date lastModified;
+        boolean isTrancated =false;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return;
+        
+        FindIterable fit = multip.find((BasicDBObject)query);
+        Iterator it = fit.iterator();
+        
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            key =          doc.getString(OBJKEY) ;
+            uploadid=      doc.getString(UPLOADID);
+            partNo =       doc.getInteger(PARTNO);
+            lastModified = (Date)doc.getDate(CREATETIME);
+
+            if (++counter == maxKeys)
+                isTrancated = !it.hasNext();
+            
+            callback.call(key, uploadid, lastModified == null ? "" : lastModified.toString(), partNo, "", "", "", isTrancated);
+        }
     }
     
     private int updateVersionDelete(String bucketName, String objId){
