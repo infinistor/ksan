@@ -16,6 +16,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
 //import org.json.simple.JSONArray;
@@ -490,8 +491,16 @@ public class DiskMonitor {
     private void updateReplicaCount(JsonOutput jo){
         logger.error("diskpoolId :{} replicaCount : {}", jo.dpoolid, jo.replicaCount);
         if (jo.replicaCount == 1 || jo.replicaCount == 2){
-            DISKPOOL dskPool1 = new DISKPOOL(jo.dpoolid, jo.diskPoolName); 
-            dskPool1.setDefaultReplicaCount(jo.replicaCount);
+            DISKPOOL dskPool1; 
+            try {
+                dskPool1 = obmCache.getDiskPoolFromCache(jo.dpoolid);
+                dskPool1.setDefaultReplicaCount(jo.replicaCount);
+                logger.error("diskpoolId :{} replicaCount : {}  dskPool1 : {}", jo.dpoolid, jo.replicaCount, dskPool1.getDefaultReplicaCount());
+            } catch (ResourceNotFoundException ex) {
+                dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);
+                dskPool1.setDefaultReplicaCount(jo.replicaCount);
+               logger.error("diskpoolId :{} replicaCount : {}  dskPool1 : {}", jo.dpoolid, jo.replicaCount, dskPool1.getDefaultReplicaCount()); 
+            }
         }
     }
     
