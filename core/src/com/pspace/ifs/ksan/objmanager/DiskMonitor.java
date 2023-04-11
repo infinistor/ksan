@@ -202,13 +202,11 @@ public class DiskMonitor {
                 ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }  
         else if (routingKey.contains("servers.diskpools.")){
-            logger.error("1 routingKey :  {} diskpoolId :{} replicaCount : {}", routingKey, jo.id, jo.replicaCount);
             if (routingKey.contains(".added"))
                 ret =addRemoveDiskPool(KEYS.ADD.label, jo, body);
             else if (routingKey.contains(".removed"))
                 ret =addRemoveDiskPool(KEYS.REMOVE.label, jo, body);
             else if (routingKey.contains(".updated")){
-                logger.error(" 2 routingKey :  {} diskpoolId :{} replicaCount : {}", routingKey, jo.id, jo.replicaCount);
                 ret= updateDiskPool(dskPool, jo,  body);
             } else 
                 ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
@@ -489,17 +487,14 @@ public class DiskMonitor {
     }
     
     private void updateReplicaCount(JsonOutput jo){
-        logger.error("diskpoolId :{} replicaCount : {}", jo.dpoolid, jo.replicaCount);
         if (jo.replicaCount == 1 || jo.replicaCount == 2){
             DISKPOOL dskPool1; 
             try {
                 dskPool1 = obmCache.getDiskPoolFromCache(jo.dpoolid);
                 dskPool1.setDefaultReplicaCount(jo.replicaCount);
-                logger.error("diskpoolId :{} replicaCount : {}  dskPool1 : {}", jo.dpoolid, jo.replicaCount, dskPool1.getDefaultReplicaCount());
             } catch (ResourceNotFoundException ex) {
                 dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);
-                dskPool1.setDefaultReplicaCount(jo.replicaCount);
-               logger.error("diskpoolId :{} replicaCount : {}  dskPool1 : {}", jo.dpoolid, jo.replicaCount, dskPool1.getDefaultReplicaCount()); 
+                dskPool1.setDefaultReplicaCount(jo.replicaCount); 
             }
         }
     }
