@@ -445,7 +445,16 @@ public class GetFromPortal {
           
         objc.dbRepository = (String)jsonConfig.get(DBREPOSITORY);
         objc.dbHost = (String)jsonConfig.get(DBHOST);
-        objc.dbPort = Long.valueOf(jsonConfig.get(DBPORT).toString());
+        Object portObj = jsonConfig.get(DBPORT);
+        objc.dbPort = 0;
+        if (portObj != null){
+            String portStr = portObj.toString();
+            if (!portStr.isEmpty())
+                objc.dbPort = Long.valueOf(portObj.toString());
+        }
+        else{
+            System.out.println(">>DB port : " + portObj);
+        }
         objc.dbName = (String)jsonConfig.get(DBNAME);
         objc.dbUsername = (String)jsonConfig.get(DBUSER);
         objc.dbPassword = (String)jsonConfig.get(DBPASSWORD);
