@@ -131,7 +131,7 @@ def RemoveDisk2DiskPool(Ip, Port, ApiKey, DiskPoolId=None,DelDiskIds=None, DiskP
 
 
 @catch_exceptions()
-def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskIds=None, DiskPoolName=None, Description='', logger=None):
+def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, ReplicationType=None, AddDiskIds=None, DelDiskIds=None, DiskPoolName=None, Description='', logger=None):
     if DiskPoolId is not None:
         TargetDiskPool = DiskPoolId
     elif DiskPoolName is not None:
@@ -172,6 +172,12 @@ def UpdateDiskPool(Ip, Port, ApiKey, DiskPoolId=None, AddDiskIds=None, DelDiskId
 
     if DiskPoolName is not None:
         PoolDetail.Name = DiskPoolName
+
+    if ReplicationType is not None:
+        if PoolDetail.ReplicationType == DiskPoolReplicaEC or ReplicationType == DiskPoolReplicaEC:
+            return ResInvalidCode, 'Changing DiskPoolType to %s is not supporeted' % DiskPoolReplicaEC, None
+        else:
+            PoolDetail.ReplicationType = ReplicationType
 
     if Description is not '':
         PoolDetail.Description = Description
@@ -468,9 +474,9 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
             print('Error : Unsupported DiskPool Type. Valid DiskPool type is %s' % ','.join(ValidDiskPoolType))
             sys.exit(-1)
 
-        if options.RepType == 'disable':
+        if options.RepType.lower() == 'disable':
             ReplicationType = DiskPoolReplica1
-        elif options.RepType == 'replication':
+        elif options.RepType.lower() == 'replication':
             ReplicationType = DiskPoolReplica2
         else:
             Ec = ECValueParser.search(options.RepType)
@@ -559,7 +565,7 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
         else:
             print(Errmsg)
 
-    elif Action.lower() in ['update']:
+    elif Action.lower() in ['update', 'modify']:
         AddDiskIds = None
         DelDiskIds = None
         if Action.lower() == 'add2disk':
@@ -577,9 +583,18 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
                 Parser.print_help()
                 sys.exit(-1)
             DelDiskIds = options.DiskName.split()
+        elif Action.lower() == 'modify':
+
+            if options.RepType.lower() == 'disable':
+                ReplicationType = DiskPoolReplica1
+            elif options.RepType.lower() == 'replication':
+                ReplicationType = DiskPoolReplica2
+            else:
+                print('Invalid DiskPoolType. Only disable or replication type is supported')
+                sys.exit(-1)
 
         Res, Errmsg, Ret = UpdateDiskPool(PortalIp, PortalPort, PortalApiKey, AddDiskIds=AddDiskIds, DelDiskIds=DelDiskIds,
-                                           DiskPoolName=options.DiskpoolName, logger=logger)
+                                           DiskPoolName=options.DiskpoolName, ReplicationType=ReplicationType, logger=logger)
         if Res == ResOk:
             print(Ret.Result, Ret.Message)
         else:

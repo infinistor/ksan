@@ -232,7 +232,7 @@ class KsanConfigUtilOptParser(OptionParser):
               set                                   : apply config 
               get                                   : show the current applied config 
         [options]
-              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanObjManager|
                                                       ksanLifecycleManager|ksanReplicationManager|ksanLogManager]
               --ConfVerId                           : specific config version id
                                                       'last' value scpecifies the latest config version id 
@@ -335,6 +335,7 @@ class KsanDiskpoolUtilOptParser(OptionParser):
               remove2disk                           : remove disk from diskpool
               set                                   : set diskpool default diskpool
               get                                   : get diskpool default diskpool
+              modify                                : modify diskpool's tolerance. ec is not supported
 
         [options]
               --DiskPoolName                        : diskpool name 
@@ -364,10 +365,11 @@ class KsanDiskpoolUtilOptParser(OptionParser):
                 # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
                 
               5. set/get diskpool default diskpool 
-                # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1
+                # ./ksan diskpool set --:DefaultDiskPool --DiskPoolName diskpool1
                 # ./ksan diskpool get --DefaultDiskPool
                 
-
+              6. modify diskpool's tolerance
+                # ./ksan diskpool modify --DiskPoolName diskpool1 --Tolerance replication
                 """
         self.AddOption()
     def AddOption(self):

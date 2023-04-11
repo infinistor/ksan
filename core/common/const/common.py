@@ -83,6 +83,11 @@ DiskObjDirectory = '/obj'
 DiskTempDirectory = '/temp'
 DiskTrashDirectory = '/trash'
 
+"""
+##### DISKPOOL #####
+"""
+
+
 ### disk stat ###
 DiskStatOnline = 'Online'
 DiskStatOffline = 'Offline'
@@ -134,6 +139,8 @@ KsanPortalBridgeName = 'ksanPortalBridge'
 KsanAgentName = 'ksanAgent'
 KsanGWName = 'ksanGW'
 KsanOSDName = 'ksanOSD'
+KsanObjManagerName = 'ksanObjManager'
+KsanObjManager = 'ksanObjManager'
 KsanLifecycleManagerName = 'ksanLifecycleManager'
 KsanReplicationManagerName = 'ksanReplicationManager'
 KsanLogManagerName = 'ksanLogManager'
@@ -169,6 +176,7 @@ KsanServerRegister = 'ksanServerRegister'
 ### service type ###
 TypeServiceOSD = KsanOSDName
 TypeServiceGW = KsanGWName
+TypeServiceObjManager = KsanObjManagerName
 TypeServiceMongoDB = 'MongoDB'
 TypeServiceMariaDB = 'MariaDB'
 TypeServiceS3Backend = 'S3Backend'
@@ -265,6 +273,9 @@ ServiceTypeConversion[KsanReplicationManagerName.lower()] = TypeServiceReplicati
 ServiceTypeConversion[KsanLogManagerName.lower()] = TypeServiceLogManager
 #ServiceTypeConversion['rabbitmq'] = TypeServiceRabbitMq
 #ServiceTypeConversion['haproxy'] = TypeServiceHaproxy
+ServiceTypeConversion[KsanObjManager.lower()] = TypeServiceObjManager
+
+
 
 
 

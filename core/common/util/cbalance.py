@@ -35,25 +35,39 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
 
     if Action.lower() == 'cbalance':
         isValid = True
-        if not options.BucketName:
+        if not (options.BucketName or options.SrcDiskName or options.EmptyDisk):
             #print('Bucket Name is required')
             isValid = False
-        elif not (options.Key or options.ObjId):
-            #print('Key or ObjectId is required')
-            isValid = False
-        elif not (options.DstDiskName or options.VersionId or options.SrcDiskName):
-            #print('Key or ObjectId is required')
-            isValid = False
+        else:
+            if options.BucketName:
+                if not(options.Key or options.ObjId):
+                    isValid = False
+                if not(options.DstDiskName or options.SrcDiskName):
+                    isValid = False
+
+            elif options.SrcDiskName:
+                if not(options.DstDiskName or options.Size):
+                    isValid = False
+            elif options.EmptyDisk:
+                if not(options.SrcDiskName):
+                    isValid = False
+            else:
+                isValid = False
+
         if isValid is False:
             Parser.print_help()
             sys.exit(-1)
 
         CbalanceCmd = 'java -jar %s/%s.jar ' % (KsanUtilDirPath, TypeServiceCbalance)
-        CbalanceCmd += '--BucketName %s' % options.BucketName
+
+        if options.BucketName:
+            CbalanceCmd += '--BucketName %s' % options.BucketName
+        if options.EmptyDisk:
+            CbalanceCmd += ' --EmptyDisk '
 
         if options.Key:
             CbalanceCmd += ' --Key %s' % options.Key
-        else:
+        if options.ObjId:
             CbalanceCmd += ' --ObjId %s' % options.ObjId
         if options.VersionId:
             CbalanceCmd += ' --VersionId %s' % options.VersionId
@@ -61,6 +75,8 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
             CbalanceCmd += ' --DstDiskName %s' % options.DstDiskName
         if options.SrcDiskName:
             CbalanceCmd += ' --SrcDiskName %s' % options.SrcDiskName
+        if options.Size:
+            CbalanceCmd += ' --Size %s' % options.Size
 
         out, err = shcall(CbalanceCmd)
         print(out, err)
