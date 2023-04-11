@@ -201,13 +201,15 @@ public class DiskMonitor {
                 ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }  
         else if (routingKey.contains("servers.diskpools.")){
+            logger.error("1 routingKey :  {} diskpoolId :{} replicaCount : {}", routingKey, jo.id, jo.replicaCount);
             if (routingKey.contains(".added"))
                 ret =addRemoveDiskPool(KEYS.ADD.label, jo, body);
             else if (routingKey.contains(".removed"))
                 ret =addRemoveDiskPool(KEYS.REMOVE.label, jo, body);
-            else if (routingKey.contains(".updated"))
+            else if (routingKey.contains(".updated")){
+                logger.error(" 2 routingKey :  {} diskpoolId :{} replicaCount : {}", routingKey, jo.id, jo.replicaCount);
                 ret= updateDiskPool(dskPool, jo,  body);
-            else 
+            } else 
                 ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }
         else if (routingKey.contains("servers.volumes.")){
@@ -302,6 +304,7 @@ public class DiskMonitor {
                 res.replicaCount = 2;
             else
                 res.replicaCount = 1;
+            logger.error("diskpoolId : {} src_replicaCount :{} replicaCount : {}", res.dpoolid, status, res.replicaCount);
         }
         
         return res;
@@ -485,8 +488,9 @@ public class DiskMonitor {
     }
     
     private void updateReplicaCount(JsonOutput jo){
+        logger.error("diskpoolId :{} replicaCount : {}", jo.dpoolid, jo.replicaCount);
         if (jo.replicaCount == 1 || jo.replicaCount == 2){
-            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName); 
+            DISKPOOL dskPool1 = new DISKPOOL(jo.dpoolid, jo.diskPoolName); 
             dskPool1.setDefaultReplicaCount(jo.replicaCount);
         }
     }
