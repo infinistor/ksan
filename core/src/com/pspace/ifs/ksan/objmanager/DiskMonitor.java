@@ -484,6 +484,13 @@ public class DiskMonitor {
         return res;
     }
     
+    private void updateReplicaCount(JsonOutput jo){
+        if (jo.replicaCount == 1 || jo.replicaCount == 2){
+            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName); 
+            dskPool1.setDefaultReplicaCount(jo.replicaCount);
+        }
+    }
+    
     private MQResponse updateDiskPool(DISKPOOL dskPool, JsonOutput jo, String msg) {
         MQResponse res;
         JSONObject dsk;
@@ -547,12 +554,14 @@ public class DiskMonitor {
                         svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
                         if (svr == null){
                             logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                            updateReplicaCount(jo);
                             return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
                         }
                         dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                         dskPool1.addServer(svr);
                     } catch (ResourceNotFoundException ex2) {
                         logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                        updateReplicaCount(jo);
                         return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
                     }
                 }
@@ -560,7 +569,7 @@ public class DiskMonitor {
                         diskId, serverId, dskPoolId, mpath); 
             }
         }
-        
+        updateReplicaCount(jo);
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         return res;
     }
