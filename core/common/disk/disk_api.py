@@ -415,7 +415,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
         DiskDataLine = '%s' % ('-' * 228)
         title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
                'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8), 'Read'.ljust(8), 'Write'.ljust(8),
-                    'RwMode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20), 'UsedInode'.ljust(20),
+                    'Mode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20), 'UsedInode'.ljust(20),
             'ReservedInode'.ljust(20) , 'DiskPoolName'.ljust(15), 'DiskId'.ljust(38))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
 
     elif Detail == DetailInfo:
@@ -423,7 +423,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
         DiskDataLine = '%s' % ('-' * 189)
         title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
                 'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8), 'Read'.ljust(8), 'Write'.ljust(8),
-            'RwMode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20),
+            'Mode'.ljust(6), 'Status'.ljust(7), 'TotalInode'.ljust(20),
             'UsedInode'.ljust(20), 'ReservedInode'.ljust(20), 'DiskPoolName'.ljust(15))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
     else:
         DiskTitleLine = '%s' % ('=' * 110)
@@ -431,7 +431,7 @@ def ShowDiskInfo(DiskList, ServerId=None, DiskId=None, Detail=None, Continue=Non
         title = "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % ('ServerName'.ljust(15), 'DiskName'.ljust(15), 'Path'.ljust(15),
                 'TotalSize'.ljust(9), 'UsedSize'.ljust(8), 'FreeSize'.ljust(8),
                 'Read'.ljust(8), 'Write'.ljust(8),
-                    'RwMode'.ljust(6), 'Status'.ljust(7))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
+                    'Mode'.ljust(6), 'Status'.ljust(7))  # 'ModeDate'.ljust(20), 'ModId'.ljust(20), 'ModName'.ljust(20), 'Id'.ljust(30))
     #else:
     #    DiskTitleLine = '%s' % ('=' * 64)
     #    DiskDataLine = '%s' % ('-' * 64)

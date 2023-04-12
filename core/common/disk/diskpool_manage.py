@@ -312,7 +312,7 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
         print(TopTitleLine)
 
         DiskTitle = "%s|%s|%s|%s|%s|%s|" % (' ' * 27, 'ServerName'.ljust(19), '' 'DiskName'.ljust(20),
-                                                           'DiskPath'.ljust(20), 'RwMode'.ljust(6), 'Status'.ljust(7))
+                                                           'DiskPath'.ljust(20), 'Mode'.ljust(6), 'Status'.ljust(7))
 
         DiskTitleLine = "%s%s" % (" " * 27, "-" * 78)
 
@@ -332,7 +332,7 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
             DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 27, 'ServerName'.ljust(16), '' 'DiskName'.ljust(20),
                                                             'DiskPath'.ljust(20), 'TotalSize'.ljust(9),
                                                             'UsedSize'.ljust(8),
-                                                            'Read'.ljust(8), 'Write'.ljust(8), 'RwMode'.ljust(6),
+                                                            'Read'.ljust(8), 'Write'.ljust(8), 'Mode'.ljust(6),
                                                             'Status'.ljust(7), 'DiskId'.ljust(37))
 
             DiskTitleLine = "%s%s" % (" " * 27, "-" * 150)
@@ -349,7 +349,7 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
             DiskTitle = "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|" % (' ' * 27, 'ServerName'.ljust(16), '' 'DiskName'.ljust(20),
                                                            'DiskPath'.ljust(20), 'TotalSize'.ljust(9),
                                                            'UsedSize'.ljust(8),
-                                                           'Read'.ljust(8), 'Write'.ljust(8), 'RwMode'.ljust(6),
+                                                           'Read'.ljust(8), 'Write'.ljust(8), 'Mode'.ljust(6),
                                                            'Status'.ljust(7))
             DiskTitleLine = "%s%s" % (" " * 27, "-" * 112)
 
@@ -438,7 +438,7 @@ def GetReplicationDspType(StringType, EC=None):
     if StringType == 'OnePlusOne':
         return 'Replication(1+1)'
     elif StringType == 'OnePlusZero':
-        return 'Disable'
+        return 'Disable(1+0)'
     elif StringType == 'OnePlusTwo':
         return '1+2'
     elif StringType == 'ErasureCode':

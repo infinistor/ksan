@@ -39,7 +39,11 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
             #print('Bucket Name is required')
             isValid = False
         else:
-            if options.BucketName:
+            if options.EmptyDisk:
+                if not(options.SrcDiskName):
+                    isValid = False
+
+            elif options.BucketName:
                 if not(options.Key or options.ObjId):
                     isValid = False
                 if not(options.DstDiskName or options.SrcDiskName):
@@ -47,9 +51,6 @@ def CbalanceUtilHandler(Conf, Action, Parser, logger):
 
             elif options.SrcDiskName:
                 if not(options.DstDiskName or options.Size):
-                    isValid = False
-            elif options.EmptyDisk:
-                if not(options.SrcDiskName):
                     isValid = False
             else:
                 isValid = False
