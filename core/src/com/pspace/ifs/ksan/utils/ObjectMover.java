@@ -243,7 +243,7 @@ public class ObjectMover {
     
     private DISK getDistDisk(String desDiskId) throws ResourceNotFoundException{
         DISK desDisk = obmu.getDISK(desDiskId);
-        if (desDisk.getMode() == DiskMode.READWRITE) {
+        if (desDisk.getMode() != DiskMode.READWRITE) {
             throw new ResourceNotFoundException("Unable to move object to non readwrite diskid " + desDiskId + "!");
         }
         return desDisk;

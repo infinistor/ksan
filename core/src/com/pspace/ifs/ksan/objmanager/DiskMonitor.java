@@ -16,6 +16,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
 //import org.json.simple.JSONArray;
@@ -205,9 +206,9 @@ public class DiskMonitor {
                 ret =addRemoveDiskPool(KEYS.ADD.label, jo, body);
             else if (routingKey.contains(".removed"))
                 ret =addRemoveDiskPool(KEYS.REMOVE.label, jo, body);
-            else if (routingKey.contains(".updated"))
+            else if (routingKey.contains(".updated")){
                 ret= updateDiskPool(dskPool, jo,  body);
-            else 
+            } else 
                 ret = new MQResponse(MQResponseType.WARNING, MQResponseCode.MQ_INVALID_REQUEST, "ObjManager not supported the request!", 0);
         }
         else if (routingKey.contains("servers.volumes.")){
@@ -302,6 +303,7 @@ public class DiskMonitor {
                 res.replicaCount = 2;
             else
                 res.replicaCount = 1;
+            logger.error("diskpoolId : {} src_replicaCount :{} replicaCount : {}", res.dpoolid, status, res.replicaCount);
         }
         
         return res;
@@ -484,6 +486,19 @@ public class DiskMonitor {
         return res;
     }
     
+    private void updateReplicaCount(JsonOutput jo){
+        if (jo.replicaCount == 1 || jo.replicaCount == 2){
+            DISKPOOL dskPool1; 
+            try {
+                dskPool1 = obmCache.getDiskPoolFromCache(jo.dpoolid);
+                dskPool1.setDefaultReplicaCount(jo.replicaCount);
+            } catch (ResourceNotFoundException ex) {
+                dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName);
+                dskPool1.setDefaultReplicaCount(jo.replicaCount); 
+            }
+        }
+    }
+    
     private MQResponse updateDiskPool(DISKPOOL dskPool, JsonOutput jo, String msg) {
         MQResponse res;
         JSONObject dsk;
@@ -547,12 +562,14 @@ public class DiskMonitor {
                         svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
                         if (svr == null){
                             logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                            updateReplicaCount(jo);
                             return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
                         }
                         dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
                         dskPool1.addServer(svr);
                     } catch (ResourceNotFoundException ex2) {
                         logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+                        updateReplicaCount(jo);
                         return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
                     }
                 }
@@ -560,7 +577,7 @@ public class DiskMonitor {
                         diskId, serverId, dskPoolId, mpath); 
             }
         }
-        
+        updateReplicaCount(jo);
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         return res;
     }
