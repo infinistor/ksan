@@ -38,6 +38,7 @@ import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
 import com.pspace.backend.libs.Ksan.Data.ResponseRegion;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class PortalManager {
 	static final Logger logger = LoggerFactory.getLogger(PortalManager.class);
@@ -58,8 +59,71 @@ public class PortalManager {
 	}
 
 	/**
+	 * 현재 시스템의 Region 정보를 가져온다.
+	 * @return Region 정보
+	 */
+	public S3RegionData getLocalRegion(){
+		try (var Client = getClient();) {
+
+			var get = getRequest(getLocalRegionURL());
+			var Response = Client.execute(get);
+			if (Response.getStatusLine().getStatusCode() == 200) {
+				ResponseHandler<String> handler = new BasicResponseHandler();
+				var Body = handler.handleResponse(Response);
+				logger.debug("Body : {}", Body);
+
+				var Mapper = new ObjectMapper();
+				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				});
+
+				if (!Result.Code.isEmpty()) {
+					logger.error("{}, {}", Result.Code, Result.Message);
+					return null;
+				}
+
+				return Mapper.readValue(Result.Data.Config, S3RegionData.class);
+			}
+
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * ObjectManager 설정 정보를 가져온다.
+	 * @return ObjectManager 설정 정보
+	 */
+	public ObjManagerConfig getObjManagerConfig(){
+		try (var Client = getClient();) {
+
+			var get = getRequest(getObjManagerConfigURL());
+			var Response = Client.execute(get);
+			if (Response.getStatusLine().getStatusCode() == 200) {
+				ResponseHandler<String> handler = new BasicResponseHandler();
+				var Body = handler.handleResponse(Response);
+				logger.debug("Body : {}", Body);
+
+				var Mapper = new ObjectMapper();
+				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				});
+
+				if (!Result.Code.isEmpty()) {
+					logger.error("{}, {}", Result.Code, Result.Message);
+					return null;
+				}
+
+				return Mapper.readValue(Result.Data.Config, ObjManagerConfig.class);
+			}
+
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return null;
+	}
+
+	/**
 	 * Replication 설정 정보를 가져온다.
-	 * 
 	 * @return Replication 설정 정보
 	 */
 	public ReplicationManagerConfig getReplicationManagerConfig() {
@@ -92,7 +156,6 @@ public class PortalManager {
 
 	/**
 	 * LogManager 설정 정보를 가져온다.
-	 * 
 	 * @return LogManager 설정 정보
 	 */
 	public LogManagerConfig getLogManagerConfig() {
@@ -125,7 +188,6 @@ public class PortalManager {
 
 	/**
 	 * LifecycleManager 설정 정보를 가져온다.
-	 * 
 	 * @return LifecycleManager 설정 정보
 	 */
 	public LifecycleManagerConfig getLifecycleManagerConfig() {
@@ -190,7 +252,6 @@ public class PortalManager {
 
 	/**
 	 * URL을 바탕으로 리전정보를 조회한다.
-	 * 
 	 * @param Address 찾을 리전 주소
 	 * @return 리전 정보
 	 */
@@ -220,6 +281,10 @@ public class PortalManager {
 	// 	return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
 	// }
 
+	private String getObjManagerConfigURL() {
+		return String.format("%s/api/v1/Config/KsanObjManager", getURL());
+	}
+
 	private String getLifecycleManagerConfigURL() {
 		return String.format("%s/api/v1/Config/KsanLifecycleManager", getURL());
 	}
@@ -232,6 +297,9 @@ public class PortalManager {
 		return String.format("%s/api/v1/Config/KsanLogManager", getURL());
 	}
 
+	private String getLocalRegionURL() {
+		return String.format("%s/api/v1/Regions/Default", getURL());
+	}
 	private String getRegionsURL() {
 		return String.format("%s/api/v1/Regions", getURL());
 	}
