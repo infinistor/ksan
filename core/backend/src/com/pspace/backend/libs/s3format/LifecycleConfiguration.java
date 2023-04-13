@@ -23,11 +23,27 @@ public final class LifecycleConfiguration {
 	public Collection<Rule> rules;
 
 	public static final class Rule {
-		@JacksonXmlProperty(localName = "ID")
-		public String id;
+		@JacksonXmlProperty(localName = "AbortIncompleteMultipartUpload")
+		public AbortIncompleteMultipartUpload abortIncompleteMultipartUpload;
 
-		@JacksonXmlProperty(localName = "Status")
-		public String status;
+		public static final class AbortIncompleteMultipartUpload {
+			@JacksonXmlProperty(localName = "DaysAfterInitiation")
+			public String DaysAfterInitiation;
+		}
+
+		@JacksonXmlProperty(localName = "Expiration")
+		public Expiration expiration;
+
+		public static final class Expiration {
+			@JacksonXmlProperty(localName = "Date")
+			public String date;
+
+			@JacksonXmlProperty(localName = "Days")
+			public String days;
+
+			@JacksonXmlProperty(localName = "ExpiredObjectDeleteMarker")
+			public String ExpiredObjectDeleteMarker;
+		}
 
 		@JacksonXmlProperty(localName = "Filter")
 		public Filter filter;
@@ -37,6 +53,13 @@ public final class LifecycleConfiguration {
 			public And and;
 
 			public static final class And {
+
+				@JacksonXmlProperty(localName = "ObjectSizeGreaterThan")
+				public String objectSizeGreaterThan;
+
+				@JacksonXmlProperty(localName = "ObjectSizeLessThan")
+				public String objectSizeLessThan;
+
 				@JacksonXmlProperty(localName = "Prefix")
 				public String prefix;
 
@@ -74,6 +97,39 @@ public final class LifecycleConfiguration {
 			}
 		}
 
+		@JacksonXmlProperty(localName = "ID")
+		public String id;
+		@JacksonXmlProperty(localName = "NoncurrentVersionExpiration")
+		public NoncurrentVersionExpiration versionExpiration;
+
+		public static final class NoncurrentVersionExpiration {
+			@JacksonXmlProperty(localName = "NewerNoncurrentVersions")
+			public String NewerNoncurrentVersions;
+
+			@JacksonXmlProperty(localName = "NoncurrentDays")
+			public String NoncurrentDays;
+		}
+
+		@JacksonXmlProperty(localName = "NoncurrentVersionTransition")
+		public NoncurrentVersionTransition versionTransition;
+
+		public static final class NoncurrentVersionTransition {
+			@JacksonXmlProperty(localName = "NewerNoncurrentVersions")
+			public int NewerNoncurrentVersions;
+
+			@JacksonXmlProperty(localName = "NoncurrentDays")
+			public String NoncurrentDays;
+
+			@JacksonXmlProperty(localName = "StorageClass")
+			public String StorageClass;
+		}
+
+		@JacksonXmlProperty(localName = "Prefix")
+		public String prefix;
+
+		@JacksonXmlProperty(localName = "Status")
+		public String status;
+
 		@JacksonXmlProperty(localName = "Transition")
 		public Transition transition;
 
@@ -88,52 +144,6 @@ public final class LifecycleConfiguration {
 			public String StorageClass;
 		}
 
-		@JacksonXmlProperty(localName = "Expiration")
-		public Expiration expiration;
-
-		public static final class Expiration {
-			@JacksonXmlProperty(localName = "Days")
-			public String days;
-
-			@JacksonXmlProperty(localName = "Date")
-			public String date;
-
-			@JacksonXmlProperty(localName = "ExpiredObjectDeleteMarker")
-			public String ExpiredObjectDeleteMarker;
-		}
-
-		@JacksonXmlProperty(localName = "NoncurrentVersionExpiration")
-		public NoncurrentVersionExpiration versionexpiration;
-
-		public static final class NoncurrentVersionExpiration {
-			@JacksonXmlProperty(localName = "NoncurrentDays")
-			public String NoncurrentDays;
-		}
-
-		@JacksonXmlProperty(localName = "NoncurrentVersionTransition")
-		public NoncurrentVersionTransition versiontransition;
-
-		public static final class NoncurrentVersionTransition {
-			@JacksonXmlProperty(localName = "NoncurrentDays")
-			public String NoncurrentDays;
-
-			@JacksonXmlProperty(localName = "StorageClass")
-			public String StorageClass;
-		}
-
-		@JacksonXmlProperty(localName = "AbortIncompleteMultipartUpload")
-		public AbortIncompleteMultipartUpload abortIncompleteMultipartUpload;
-
-		public static final class AbortIncompleteMultipartUpload {
-			@JacksonXmlProperty(localName = "DaysAfterInitiation")
-			public String DaysAfterInitiation;
-
-			@JacksonXmlProperty(localName = "StorageClass")
-			public String StorageClass;
-		}
-
-		@JacksonXmlProperty(localName = "Prefix")
-		public String prefix;
 	}
 }
 // CHECKSTYLE:ON

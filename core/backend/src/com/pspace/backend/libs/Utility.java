@@ -92,7 +92,7 @@ public class Utility {
 		}
 	}
 
-	public static boolean S3AliveCheck(String URL) {
+	public static boolean checkAlive(String URL) {
 		try {
 			HttpClient Client = HttpClientBuilder.create().build();
 			HttpGet getRequest = new HttpGet(URL);
