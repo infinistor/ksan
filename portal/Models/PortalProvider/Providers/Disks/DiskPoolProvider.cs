@@ -82,6 +82,14 @@ namespace PortalProvider.Providers.DiskGuids
 				// 기본 디스크풀이 존재하는지 확인한다.
 				var Exist = await GetDefault();
 
+				// EC일 경우 K, M 값이 유효한지 확인한다.
+				if (Request.ReplicationType == EnumDiskPoolReplicaType.ErasureCode)
+				{
+					// K, M 값이 유효하지 않은 경우
+					if (Request.K < 1 || Request.M < 1)
+						return new ResponseData<ResponseDiskPoolWithDisks>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON__INVALID_INFORMATION);
+				}
+
 				using (var Transaction = await m_dbContext.Database.BeginTransactionAsync())
 				{
 					try
