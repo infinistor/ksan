@@ -1,186 +1,179 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <EntityDeveloper Version="7.0.0.0">
-	<ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="False" TargetFramework="Net50" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
-		<Connection SaveConnection="False" Provider="MySqlConnector" />
-		<Generation>
-			<GeneratedFiles>
-				<File Name="PortalModels.PortalModel.cs" />
-				<File Name="PortalModels.NetworkInterface.cs" />
-				<File Name="PortalModels.NetworkInterfaceVlan.cs" />
-				<File Name="PortalModels.Service.cs" />
-				<File Name="PortalModels.ServiceNetworkInterfaceVlan.cs" />
-				<File Name="PortalModels.Server.cs" />
-				<File Name="PortalModels.ServiceGroup.cs" />
-				<File Name="PortalModels.ApiKey.cs" />
-				<File Name="PortalModels.Config.cs" />
-				<File Name="PortalModels.SystemLog.cs" />
-				<File Name="PortalModels.AllowedConnectionIp.cs" />
-				<File Name="PortalModels.UserLoginHistory.cs" />
-				<File Name="PortalModels.UserClaim.cs" />
-				<File Name="PortalModels.Role.cs" />
-				<File Name="PortalModels.RoleClaim.cs" />
-				<File Name="PortalModels.ClaimName.cs" />
-				<File Name="PortalModels.UserRole.cs" />
-				<File Name="PortalModels.User.cs" />
-				<File Name="PortalModels.UserActionLog.cs" />
-				<File Name="PortalModels.Disk.cs" />
-				<File Name="PortalModels.DiskPool.cs" />
-				<File Name="PortalModels.ServerUsage.cs" />
-				<File Name="PortalModels.NetworkInterfaceUsage.cs" />
-				<File Name="PortalModels.ServiceUsage.cs" />
-				<File Name="PortalModels.ServiceConfig.cs" />
-				<File Name="PortalModels.KsanUser.cs" />
-				<File Name="PortalModels.UserDiskPool.cs" />
-				<File Name="PortalModels.DiskUsage.cs" />
-				<File Name="PortalModels.Region.cs" />
-				<File Name="PortalModels.ServiceEventLog.cs" />
-				<File Name="PortalModels.S3Logging.cs" />
-				<File Name="PortalModels.DiskPoolEC.cs" />
-				<File Name="PortalModels.EnumDbNetworkLinkState.cs" />
-				<File Name="PortalModels.EnumDbYesNo.cs" />
-				<File Name="PortalModels.EnumDbOnOff.cs" />
-				<File Name="PortalModels.EnumDbHaAction.cs" />
-				<File Name="PortalModels.EnumDbServiceType.cs" />
-				<File Name="PortalModels.EnumDbServiceGroupMode.cs" />
-				<File Name="PortalModels.EnumDbLogLevel.cs" />
-				<File Name="PortalModels.EnumDbServerState.cs" />
-				<File Name="PortalModels.EnumDbServiceState.cs" />
-				<File Name="PortalModels.EnumDbDiskRwMode.cs" />
-				<File Name="PortalModels.EnumDbDiskState.cs" />
-				<File Name="PortalModels.EnumDbDiskPoolType.cs" />
-				<File Name="PortalModels.EnumDbDiskPoolReplicaType.cs" />
-				<File Name="PortalModels.EnumDbServiceEventType.cs" />
-			</GeneratedFiles>
-		</Generation>
-		<DatabaseFirstNamingRules>
-			<EntitySet PluralizationName="Pluralize" />
-			<Class UseSchemaAsPrefix="False" PluralizeCollectionNavigationPropertyName="True" AddConstraintColumnsToNavigationPropertyName="False" RemoveUnderscores="True" AddUnderscores="False" RemoveInvalidCharacters="True" CodeCase="FirstLetterUppercase" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Singularize" />
-			<Property RemoveUnderscores="True" AddUnderscores="False" RemoveInvalidCharacters="True" CodeCase="FirstLetterUppercase" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Unchanged" />
-		</DatabaseFirstNamingRules>
-		<ModelFirst StorageSynchronizationEnabled="False" TargetProviderName="Devart.Data.MySql">
-			<TargetServer Server="MySQL" ServerVersion="5.5" />
-			<ModelFirstNamingRules>
-				<Table RemoveUnderscores="False" AddUnderscores="True" RemoveInvalidCharacters="True" CodeCase="Upper" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Pluralize" />
-				<Column RemoveUnderscores="False" AddUnderscores="True" RemoveInvalidCharacters="True" CodeCase="Upper" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Unchanged" />
-			</ModelFirstNamingRules>
-		</ModelFirst>
-		<Diagrams>
-			<Diagram Name="PortalModelDiagram" DefaultDiagram="True" />
-		</Diagrams>
-		<Templates>
-			<Template Name="EFCoreTemplate" Enabled="True" File="..\..\..\..\..\template\EFCoreTemplate.tmpl">
-				<ed:Property Name="ValidationFramework" Type="EntityDeveloper.TemplateEngine.ValidationFramework, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<ValidationFramework>None</ValidationFramework>
-				</ed:Property>
-				<ed:Property Name="ValidationErrorMessages" Type="EntityDeveloper.TemplateEngine.ValidationErrorMessages, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<ValidationErrorMessages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
-				</ed:Property>
-				<ed:Property Name="ContextOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-						<Project />
-						<ProjectFolder />
-						<DestinationFolder />
-					</OutputInfo>
-				</ed:Property>
-				<ed:Property Name="EntitiesOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-						<Project />
-						<ProjectFolder />
-						<DestinationFolder />
-					</OutputInfo>
-				</ed:Property>
-				<ed:Property Name="EnumOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-						<Project />
-						<ProjectFolder />
-						<DestinationFolder />
-					</OutputInfo>
-				</ed:Property>
-				<ed:Property Name="FilePerClass" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>true</boolean>
-				</ed:Property>
-				<ed:Property Name="GeneratePartialClass" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="ModelNameAsFilesPrefix" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>true</boolean>
-				</ed:Property>
-				<ed:Property Name="HeaderTimestampVersionControlTag" Type="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<string d6p1:nil="true"
-						xmlns:d6p1="http://www.w3.org/2001/XMLSchema-instance" />
-				</ed:Property>
-				<ed:Property Name="PropertyChangeNotifiers" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="PropertyChangePartialMethods" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="ImplementEquals" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="ImplementCloneable" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="GenerateDummyComments" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="GenerateGeneratedCodeAttributes" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="IncludeEnvironmentVariables" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="JsonFileBasePath" Type="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<string d6p1:nil="true"
-						xmlns:d6p1="http://www.w3.org/2001/XMLSchema-instance" />
-				</ed:Property>
-				<ed:Property Name="PrimitiveDefaultValueGeneration" Type="EntityDeveloper.DefaultValueBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<DefaultValueBehavior>Literal</DefaultValueBehavior>
-				</ed:Property>
-				<ed:Property Name="CollectionPropertyType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionPropertyType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<EFCoreCollectionPropertyType>Default</EFCoreCollectionPropertyType>
-				</ed:Property>
-				<ed:Property Name="CollectionInitializationType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionInitializationType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<EFCoreCollectionInitializationType>Default</EFCoreCollectionInitializationType>
-				</ed:Property>
-				<ed:Property Name="NullableReferenceTypes" Type="EntityDeveloper.ReferenceTypeNullability, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<ReferenceTypeNullability>Default</ReferenceTypeNullability>
-				</ed:Property>
-				<ed:Property Name="SelfContainedEntityConfiguration" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="EntitiesConfigurationOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-						<Project />
-						<ProjectFolder />
-						<DestinationFolder />
-					</OutputInfo>
-				</ed:Property>
-				<ed:Property Name="SerializationLibrary" Type="EntityDeveloper.SerializationLibrary, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<SerializationLibrary>None</SerializationLibrary>
-				</ed:Property>
-				<ed:Property Name="SerializeOriginalColumnNames" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="SerializeNullValues" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>true</boolean>
-				</ed:Property>
-				<ed:Property Name="SerializeNavigationProperties" Type="EntityDeveloper.NavigationPropertySerializationBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
-					<NavigationPropertySerializationBehavior>All</NavigationPropertySerializationBehavior>
-				</ed:Property>
-				<ed:Property Name="GenerateSerializableAttributes" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-				<ed:Property Name="GenerateDataContracts" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-					<boolean>false</boolean>
-				</ed:Property>
-			</Template>
-		</Templates>
-		<AttributeAssemblies />
-	</ModelSettings>
+  <ModelSettings xmlns:ed="http://devart.com/schemas/EntityDeveloper/1.0" AppConnectionStringName="PortalDatabase" ConnectionStringInAppConfig="False" TargetFramework="Net50" DetectTPTInheritance="True" DefaultUnicode="True" EntityFrameworkCoreVersion="Version5" DetectFunctionBasedColumnDefault="True">
+    <Connection SaveConnection="False" Provider="MySqlConnector" />
+    <Generation>
+      <GeneratedFiles>
+        <File Name="PortalModels.PortalModel.cs" />
+        <File Name="PortalModels.NetworkInterface.cs" />
+        <File Name="PortalModels.NetworkInterfaceVlan.cs" />
+        <File Name="PortalModels.Service.cs" />
+        <File Name="PortalModels.ServiceNetworkInterfaceVlan.cs" />
+        <File Name="PortalModels.Server.cs" />
+        <File Name="PortalModels.ServiceGroup.cs" />
+        <File Name="PortalModels.ApiKey.cs" />
+        <File Name="PortalModels.Config.cs" />
+        <File Name="PortalModels.SystemLog.cs" />
+        <File Name="PortalModels.AllowedConnectionIp.cs" />
+        <File Name="PortalModels.UserLoginHistory.cs" />
+        <File Name="PortalModels.UserClaim.cs" />
+        <File Name="PortalModels.Role.cs" />
+        <File Name="PortalModels.RoleClaim.cs" />
+        <File Name="PortalModels.ClaimName.cs" />
+        <File Name="PortalModels.UserRole.cs" />
+        <File Name="PortalModels.User.cs" />
+        <File Name="PortalModels.UserActionLog.cs" />
+        <File Name="PortalModels.Disk.cs" />
+        <File Name="PortalModels.DiskPool.cs" />
+        <File Name="PortalModels.ServerUsage.cs" />
+        <File Name="PortalModels.NetworkInterfaceUsage.cs" />
+        <File Name="PortalModels.ServiceUsage.cs" />
+        <File Name="PortalModels.ServiceConfig.cs" />
+        <File Name="PortalModels.KsanUser.cs" />
+        <File Name="PortalModels.UserDiskPool.cs" />
+        <File Name="PortalModels.DiskUsage.cs" />
+        <File Name="PortalModels.Region.cs" />
+        <File Name="PortalModels.ServiceEventLog.cs" />
+        <File Name="PortalModels.S3Logging.cs" />
+        <File Name="PortalModels.DiskPoolEC.cs" />
+        <File Name="PortalModels.EnumDbNetworkLinkState.cs" />
+        <File Name="PortalModels.EnumDbYesNo.cs" />
+        <File Name="PortalModels.EnumDbOnOff.cs" />
+        <File Name="PortalModels.EnumDbHaAction.cs" />
+        <File Name="PortalModels.EnumDbServiceType.cs" />
+        <File Name="PortalModels.EnumDbServiceGroupMode.cs" />
+        <File Name="PortalModels.EnumDbLogLevel.cs" />
+        <File Name="PortalModels.EnumDbServerState.cs" />
+        <File Name="PortalModels.EnumDbServiceState.cs" />
+        <File Name="PortalModels.EnumDbDiskRwMode.cs" />
+        <File Name="PortalModels.EnumDbDiskState.cs" />
+        <File Name="PortalModels.EnumDbDiskPoolType.cs" />
+        <File Name="PortalModels.EnumDbDiskPoolReplicaType.cs" />
+        <File Name="PortalModels.EnumDbServiceEventType.cs" />
+      </GeneratedFiles>
+    </Generation>
+    <DatabaseFirstNamingRules>
+      <EntitySet PluralizationName="Pluralize" />
+      <Class UseSchemaAsPrefix="False" PluralizeCollectionNavigationPropertyName="True" AddConstraintColumnsToNavigationPropertyName="False" RemoveUnderscores="True" AddUnderscores="False" RemoveInvalidCharacters="True" CodeCase="FirstLetterUppercase" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Singularize" />
+      <Property RemoveUnderscores="True" AddUnderscores="False" RemoveInvalidCharacters="True" CodeCase="FirstLetterUppercase" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Unchanged" />
+    </DatabaseFirstNamingRules>
+    <ModelFirst StorageSynchronizationEnabled="False" TargetProviderName="Devart.Data.MySql">
+      <TargetServer Server="MySQL" ServerVersion="5.5" />
+      <ModelFirstNamingRules>
+        <Table RemoveUnderscores="False" AddUnderscores="True" RemoveInvalidCharacters="True" CodeCase="Upper" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Pluralize" />
+        <Column RemoveUnderscores="False" AddUnderscores="True" RemoveInvalidCharacters="True" CodeCase="Upper" AddPrefix="" AddSuffix="" RemovePrefixes="" RemoveSuffixes="" PluralizationName="Unchanged" />
+      </ModelFirstNamingRules>
+    </ModelFirst>
+    <Diagrams>
+      <Diagram Name="PortalModelDiagram" DefaultDiagram="True" />
+    </Diagrams>
+    <Templates>
+      <Template Name="EFCoreTemplate" Enabled="True" File="..\..\..\..\..\template\EFCoreTemplate.tmpl">
+        <ed:Property Name="ValidationFramework" Type="EntityDeveloper.TemplateEngine.ValidationFramework, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <ValidationFramework>None</ValidationFramework>
+        </ed:Property>
+        <ed:Property Name="ValidationErrorMessages" Type="EntityDeveloper.TemplateEngine.ValidationErrorMessages, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <ValidationErrorMessages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </ed:Property>
+        <ed:Property Name="ContextOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <Project />
+            <ProjectFolder />
+            <DestinationFolder />
+          </OutputInfo>
+        </ed:Property>
+        <ed:Property Name="EntitiesOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <Project />
+            <ProjectFolder />
+            <DestinationFolder />
+          </OutputInfo>
+        </ed:Property>
+        <ed:Property Name="EnumOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <Project />
+            <ProjectFolder />
+            <DestinationFolder />
+          </OutputInfo>
+        </ed:Property>
+        <ed:Property Name="FilePerClass" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>true</boolean>
+        </ed:Property>
+        <ed:Property Name="GeneratePartialClass" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="ModelNameAsFilesPrefix" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>true</boolean>
+        </ed:Property>
+        <ed:Property Name="HeaderTimestampVersionControlTag" Type="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <string d6p1:nil="true" xmlns:d6p1="http://www.w3.org/2001/XMLSchema-instance" />
+        </ed:Property>
+        <ed:Property Name="PropertyChangeNotifiers" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="PropertyChangePartialMethods" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="ImplementEquals" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="ImplementCloneable" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="GenerateDummyComments" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="GenerateGeneratedCodeAttributes" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="IncludeEnvironmentVariables" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="JsonFileBasePath" Type="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <string d6p1:nil="true" xmlns:d6p1="http://www.w3.org/2001/XMLSchema-instance" />
+        </ed:Property>
+        <ed:Property Name="PrimitiveDefaultValueGeneration" Type="EntityDeveloper.DefaultValueBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <DefaultValueBehavior>Literal</DefaultValueBehavior>
+        </ed:Property>
+        <ed:Property Name="CollectionPropertyType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionPropertyType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <EFCoreCollectionPropertyType>Default</EFCoreCollectionPropertyType>
+        </ed:Property>
+        <ed:Property Name="CollectionInitializationType" Type="EntityDeveloper.EntityFrameworkCore.EFCoreCollectionInitializationType, EntityDeveloper.Orm.EntityFrameworkCore, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <EFCoreCollectionInitializationType>Default</EFCoreCollectionInitializationType>
+        </ed:Property>
+        <ed:Property Name="NullableReferenceTypes" Type="EntityDeveloper.ReferenceTypeNullability, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <ReferenceTypeNullability>Default</ReferenceTypeNullability>
+        </ed:Property>
+        <ed:Property Name="SelfContainedEntityConfiguration" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="EntitiesConfigurationOutput" Type="EntityDeveloper.TemplateEngine.OutputInfo, EntityDeveloper.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <OutputInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <Project />
+            <ProjectFolder />
+            <DestinationFolder />
+          </OutputInfo>
+        </ed:Property>
+        <ed:Property Name="SerializationLibrary" Type="EntityDeveloper.SerializationLibrary, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <SerializationLibrary>None</SerializationLibrary>
+        </ed:Property>
+        <ed:Property Name="SerializeOriginalColumnNames" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="SerializeNullValues" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>true</boolean>
+        </ed:Property>
+        <ed:Property Name="SerializeNavigationProperties" Type="EntityDeveloper.NavigationPropertySerializationBehavior, EntityDeveloper.Orm.Common, Version=7.0.0.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
+          <NavigationPropertySerializationBehavior>All</NavigationPropertySerializationBehavior>
+        </ed:Property>
+        <ed:Property Name="GenerateSerializableAttributes" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+        <ed:Property Name="GenerateDataContracts" Type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <boolean>false</boolean>
+        </ed:Property>
+      </Template>
+    </Templates>
+    <AttributeAssemblies />
+  </ModelSettings>
 </EntityDeveloper>

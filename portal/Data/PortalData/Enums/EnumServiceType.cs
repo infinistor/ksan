@@ -19,14 +19,8 @@ namespace PortalData.Enums
 	{
 		/// <summary>Unknown</summary>
 		Unknown = -1,
-		/// <summary>RabbitMQ</summary>
-		RabbitMQ,
-		/// <summary>MariaDB</summary>
-		MariaDB,
-		/// <summary>MongoDB</summary>
-		MongoDB,
-		/// <summary>HA Proxy</summary>
-		Haproxy,
+		/// <summary>Object Manager</summary>
+		ksanObjManager,
 		/// <summary>ApiPortal</summary>
 		ksanApiPortal,
 		/// <summary>Portal</summary>
