@@ -549,7 +549,7 @@ class KsanCbalanceUtilOptParser(OptionParser):
         self.add_option("--KeyName", "--keyname", "--Keyname", dest="Key", help='specify the object key')
         self.add_option("--VersionId", "--Versionid", "--versionid", dest="VersionId", help='specify the object version Id if you wish particular version of an object')
         self.add_option("--DstDiskName", "--Dstdiskname", "--dstdiskname", dest="DstDiskName", help='specify the destination diskName')
-        self.add_option("--EmptyDisk", "--Emptydisk", "--emptydisk", dest="EmptyDisk", help='set to enable empty disk operation')
+        self.add_option("--EmptyDisk", "--Emptydisk", "--emptydisk", dest="EmptyDisk", action='store_true', help='set to enable empty disk operation')
         self.add_option("--ObjId", "--objid", "--Objid", dest="ObjId", help='specify the object Id instead of object key')
         self.add_option("--OkLocalMove", "--oklocalmove", "--OkLocalmove", dest="OkLocalMove", help='allow to move to local an other disk(default:false)')
         self.add_option("--Size", "--size", dest="Size", help='specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units')
