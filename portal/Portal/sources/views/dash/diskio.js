@@ -135,7 +135,7 @@ function stopTimer() {
  * @returns 디스크 사용량 정보
  */
 function loadDiskUsages() {
-	return webix
+	webix
 		.ajax()
 		.get("/api/v1/Disks?SearchStates=Good")
 		.then(
@@ -144,7 +144,6 @@ function loadDiskUsages() {
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
 					stopTimer();
-					return "";
 				} else {
 					var usage = { DateTime: Date.now(), Write: 0.0, Read: 0.0 };
 					response.Data.Items.forEach((item) => {
@@ -155,14 +154,14 @@ function loadDiskUsages() {
 					$$(MY_READ).add(usage);
 					$$(MY_WRITE_TITLE).setValue(sizeToHtml(usage.Write, "Write"));
 					$$(MY_READ_TITLE).setValue(sizeToHtml(usage.Read, "Read"));
-					return usage;
 				}
 			},
 			function (error) {
-				// var response = JSON.parse(error.response);
-				// webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 				stopTimer();
-				return "";
 			}
 		);
 }

@@ -14,10 +14,9 @@ export default class TopView extends JetView {
 	config() {
 		return {
 			view: "scrollview",
+			css : {"background-color": "#EBEDF0 !important"},
 			body: {
-				
-				margin: 10,
-				type: "wide",
+				type: "space",
 				view: "flexlayout",
 				cols: [{ $subview: "dash.overview" }, { $subview: "dash.storage" }, { $subview: "dash.diskpool" }, { $subview: "dash.disk" }, { $subview: "dash.network" }, { $subview: "dash.diskio" }],
 			},

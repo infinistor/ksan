@@ -12,6 +12,7 @@ import { JetView } from "webix-jet";
 import { sizeToString } from "../../models/utils/sizeToString";
 import { getDiskStateToColor } from "../../models/utils/getDiskStateToColor";
 import { getDiskMode } from "../../models/utils/getDiskMode";
+import { moveLogin } from "../../models/utils/moveLogin";
 
 const MY_URL = "/api/v1/Disks";
 const MY_TABLE = "disk_summary";
@@ -100,7 +101,7 @@ export default class DiskView extends JetView {
 									var response = data.json();
 									if (response.Result == "Error") {
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return "";
+										return [];
 									} else {
 										var status = true;
 										response.Data.Items.forEach(item => {
@@ -112,9 +113,12 @@ export default class DiskView extends JetView {
 									}
 								},
 								function (error) {
-									// var response = JSON.parse(error.response);
-									// webix.message({ text: response.Message, type: "error", expire: 5000 });
+									if (error.status != 401) {
+										var response = JSON.parse(error.response);
+										webix.message({ text: response.Message, type: "error", expire: 5000 });
+									}
 									moveLogin();
+									return [];
 								}
 							);
 					},
@@ -122,7 +126,7 @@ export default class DiskView extends JetView {
 			],
 		};
 	}
-	init() { }
+	init() {}
 }
 
 function SortToUsedRate(a, b) {

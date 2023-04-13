@@ -79,7 +79,7 @@ export default class StorageView extends JetView {
 											var response = data.json();
 											if (response.Result == "Error") {
 												webix.message({ text: response.Message, type: "error", expire: 5000 });
-												return null;
+												return [];
 											} else {
 												var TotalSize = 0;
 												var UsedSize = 0;
@@ -91,10 +91,12 @@ export default class StorageView extends JetView {
 											}
 										},
 										function (error) {
-											// var response = JSON.parse(error.response);
-											// webix.message({ text: response.Message, type: "error", expire: 5000 });
+											if (error.status != 401) {
+												var response = JSON.parse(error.response);
+												webix.message({ text: response.Message, type: "error", expire: 5000 });
+											}
 											moveLogin();
-											// return null;
+											return [];
 										}
 									);
 							},
