@@ -159,6 +159,10 @@ public class DISKPOOL {
                 }
 
                 if (startIndex == currentServerIdx) {
+                    if (srv.getStatus() == ServerStatus.ONLINE && srv.possibleToAlloc() == true){ // to check last entry
+                        return srv;
+                    }
+                    
                     if (serverMap.size() > 1){
                       logger.error("All OSD server are offline!");
                       throw new AllServiceOfflineException("All OSD server are offline!");
