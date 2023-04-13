@@ -38,57 +38,37 @@ public abstract class BaseReplicator implements MQCallback {
 	protected AgentConfig ksanConfig;
 	protected PortalManager portal;
 	protected ReplicationManagerConfig config;
+	protected S3RegionData sourceRegion;
 
 	public BaseReplicator(Logger logger) {
 		this.logger = logger;
 		this.ksanConfig = AgentConfig.getInstance();
 		this.portal = PortalManager.getInstance();
 		setConfig();
-		setRegion(config.region);
 	}
 
 	public void setConfig() {
 		this.config = portal.getReplicationManagerConfig();
-	}
-
-	private boolean setRegion(String regionName) {
-		try {
-			var sourceRegion = portal.getRegion(regionName);
-			if (sourceRegion == null) {
-				logger.error("Region is not exists");
-				return false;
-			}
-
-			sourceClient = CreateClient(sourceRegion);
-			if (sourceClient == null) {
-				logger.error("Source Client is NULL!");
-				return false;
-			}
-
-			return true;
-		} catch (Exception e) {
-			logger.error("", e);
-			return false;
-		}
+		this.sourceRegion = portal.getLocalRegion();
+		this.sourceClient = createClient(sourceRegion);
 	}
 
 	/******************************************
 	 * Utility
 	 *************************************************/
 
-	protected boolean RegionCheck(String RegionName) {
-		if (StringUtils.isBlank(RegionName))
-			RegionName = config.region;
+	protected boolean checkRegion(String regionName) {
+		if (StringUtils.isBlank(regionName) || sourceRegion.Name == regionName) return true;
 
-		var Region = portal.getRegion(RegionName);
+		var Region = portal.getRegion(regionName);
 		if (Region == null) {
-			logger.error("Region Name({}) is not exists!", RegionName);
+			logger.error("Region Name({}) is not exists!", regionName);
 			return false;
 		}
-		return Utility.S3AliveCheck(Region.getHttpURL());
+		return Utility.checkAlive(Region.getHttpURL());
 	}
 
-	protected AmazonS3 CreateClient(S3RegionData Region) {
+	protected AmazonS3 createClient(S3RegionData Region) {
 		BasicAWSCredentials credentials = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
 		logger.debug("Client : {}, {}", Region.AccessKey, Region.SecretKey);
 

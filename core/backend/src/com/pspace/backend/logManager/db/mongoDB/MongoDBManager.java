@@ -48,7 +48,7 @@ public class MongoDBManager implements IDBManager {
 	}
 
 	public void connect() throws Exception {
-		if (config.Host.startsWith("mongodb://")) {
+		if (!config.Host.startsWith("mongodb://")) {
 			var credential = MongoCredential.createCredential(config.User, config.DatabaseName,
 					config.Password.toCharArray());
 			var serverAddress = new ServerAddress(config.Host, config.Port);

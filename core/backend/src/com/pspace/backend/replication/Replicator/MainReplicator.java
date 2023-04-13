@@ -33,9 +33,9 @@ public class MainReplicator {
 		this.agent = AgentConfig.getInstance();
 	}
 
-	public boolean Start(int ThreadCount) {
+	public boolean start(int threadCount) {
 		try {
-			for (int index = 0; index < ThreadCount; index++) {
+			for (int index = 0; index < threadCount; index++) {
 				// Filter Receiver 생성
 				filterReceivers.add(new MQReceiver(
 						agent.MQHost,
@@ -49,8 +49,6 @@ public class MainReplicator {
 						Constants.MQ_BINDING_GW_LOG,
 						new ReplicationFilter()));
 
-				var eventCallback = new EventReplicator();
-
 				// Event Receiver 생성
 				var eventReceiver = new MQReceiver(
 						agent.MQHost,
@@ -62,7 +60,7 @@ public class MainReplicator {
 						false,
 						"",
 						Constants.MQ_BINDING_REPLICATION_EVENT,
-						eventCallback);
+						new EventReplicator());
 				eventReceivers.add(eventReceiver);
 			}
 			return true;
