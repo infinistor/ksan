@@ -496,26 +496,17 @@ namespace PortalProvider.Providers.DiskGuids
 						await Transaction.CommitAsync();
 						Result.Result = EnumResponseResult.Success;
 
-						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작고 ReadWrite모드일 경우 디스크의 상태를 Weak로 변경
-						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize < Threshold.Data.ThresholdDiskWeak && Exist.RwMode == EnumDbDiskRwMode.ReadWrite)
-						{
-							Exist.State = EnumDbDiskState.Weak;
-							Exist.RwMode = EnumDbDiskRwMode.ReadOnly;
-						}
+						// 디스크가 Good이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskWeak 사이즈 보다 작을 경우 디스크의 상태를 Weak로 변경
+						if (Exist.State == EnumDbDiskState.Good && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize < Threshold.Data.ThresholdDiskWeak) Exist.State = EnumDbDiskState.Weak;
 
-						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 크고 ReadOnly모드일 경우 디스크의 상태를 Good로 변경
-						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize > Threshold.Data.ThresholdDiskGood && Exist.RwMode == EnumDbDiskRwMode.ReadOnly)
-						{
-							Exist.State = EnumDbDiskState.Good;
-							Exist.RwMode = EnumDbDiskRwMode.ReadWrite;
-						}
+						// 디스크가 Weak이고 TotalSize가 0이 아니며, 남은 용량이 ThresholdDiskGood 사이즈 보다 클 경우 디스크의 상태를 Good로 변경
+						if (Exist.State == EnumDbDiskState.Weak && Exist.TotalSize > 0 && Exist.TotalSize - Exist.UsedSize > Threshold.Data.ThresholdDiskGood) Exist.State = EnumDbDiskState.Good;
 
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
 							SendMq("*.servers.disks.state", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, State = (EnumDiskState)Exist.State });
-							SendMq("*.servers.disks.rwmode", new { Exist.Id, Exist.ServerId, Exist.DiskPoolId, Exist.Name, RwMode = (EnumDiskRwMode)Exist.RwMode });
 						}
 					}
 					catch (Exception ex)
