@@ -19,7 +19,7 @@ namespace PortalData.Requests.Ksan
 	public class RequestStorageClass : CommonRequestData
 	{
 		/// <summary> 유저 아이디</summary>	
-		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_USERID", ErrorMessageResourceType = typeof(Resource))]
+		[Required(ErrorMessageResourceName = "EM_COMMON_ACCOUNT_INVALID_USER_ID", ErrorMessageResourceType = typeof(Resource))]
 		public string UserId { get; set; }
 
 		/// <summary> 디스크풀 아이디</summary>

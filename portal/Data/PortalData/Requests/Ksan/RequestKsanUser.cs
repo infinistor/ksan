@@ -10,6 +10,8 @@
 */
 using MTLib.CommonData;
 using MTLib.Core;
+using PortalData.ValidationAttributes;
+using PortalResources;
 
 namespace PortalData.Requests.Ksan
 {
@@ -17,6 +19,7 @@ namespace PortalData.Requests.Ksan
 	public class RequestKsanUser : CommonRequestData
 	{
 		/// <summary>Ksan 사용자명</summary>
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;
