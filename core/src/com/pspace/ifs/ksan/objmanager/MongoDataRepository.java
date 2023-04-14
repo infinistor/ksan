@@ -254,7 +254,7 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(TAG_KEY, 1);
         MongoCollection<Document> objTag = database.getCollection(collectionName);
-        if (indexExist(objTag, (Document)Indexes.ascending(OBJID, VERSIONID, TAG_KEY))== false){
+        if (indexExist(objTag, index)== false){
         if (objTag == null){
             database.createCollection(collectionName);
             objTag = database.getCollection(collectionName);
