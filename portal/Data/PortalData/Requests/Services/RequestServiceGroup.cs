@@ -14,6 +14,7 @@ using PortalData.Enums;
 using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
+using PortalData.ValidationAttributes;
 
 namespace PortalData.Requests.Services
 {
@@ -21,7 +22,7 @@ namespace PortalData.Requests.Services
 	public class RequestServiceGroup : CommonRequestData
 	{
 		/// <summary>서비스 그룹명</summary>
-		[Required(ErrorMessageResourceName = "EM_SERVICE_GROUPS_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;

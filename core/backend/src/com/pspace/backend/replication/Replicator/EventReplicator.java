@@ -58,7 +58,7 @@ public class EventReplicator extends BaseReplicator {
 
 			try {
 				// 목적지 s3의 동작 여부 확인
-				if (!RegionCheck(event.TargetRegion)) {
+				if (!checkRegion(event.TargetRegion)) {
 					// 동작하지 않을 경우 실패처리
 					var data = new ReplicationLogData(event, Constants.EM_S3_NOT_WORKING);
 					mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG);

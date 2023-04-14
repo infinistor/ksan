@@ -9,11 +9,11 @@
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
 import { JetView } from "webix-jet";
-import { loadUserAvailableDiskPools } from "../models/load/loadUserAvailableDiskPools";
-import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { loadDiskPools } from "../models/load/loadDiskPools";
-import { moveLogin } from "../models/utils/moveLogin";
+import { showProgressIcon } from "../models/utils/showProgressIcon";
 import { getEnumStorageClass } from "../models/enum/enum-storage-class";
+import { loadUserAvailableDiskPools } from "../models/load/loadUserAvailableDiskPools";
+import { moveLogin } from "../models/utils/moveLogin";
 
 const USER_URL = "/api/v1/KsanUsers";
 const USER_ADD_WINDOW = "ksan_user_add_window";
@@ -70,17 +70,15 @@ export default class KsanUserView extends JetView {
 							borderless: true,
 							popup: USER_DISKPOOL_WINDOW,
 						},
-						{ view: "spacer" },
 						{
 							view: "icon",
-							icon: "mdi mdi-reload",
+							icon: "mdi mdi-table-refresh",
 							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
-							click: function () {
-								window.location.reload(true);
-							},
+							click: function () { reload(); },
 						},
+						{},
 					],
 				},
 				{
@@ -97,26 +95,6 @@ export default class KsanUserView extends JetView {
 						{ id: "SecretKey", header: "Secret Key", width: 350, sort: "string" },
 						{ id: "Email", header: "Email", width: 150, sort: "string" },
 					],
-					url: function () {
-						return webix
-							.ajax()
-							.get(USER_URL)
-							.then(
-								function (data) {
-									var response = data.json();
-									if (response.Result == "Error") {
-										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return "";
-									} else return response.Data.Items;
-								},
-								function (error) {
-									// var response = JSON.parse(error.response);
-									// webix.message({ text: response.Message, type: "error", expire: 5000 });
-									moveLogin("/#!/main/ksanusers");
-									return "";
-								}
-							);
-					},
 					ready: function () {
 						this.sort([{ by: "Name", dir: "asc" }]);
 						this.markSorting("Name", "asc", true);
@@ -133,6 +111,7 @@ export default class KsanUserView extends JetView {
 		};
 	}
 	init() {
+		load();
 		if ($$(USER_ADD_WINDOW) == null)
 			webix.ui({
 				id: USER_ADD_WINDOW,
@@ -147,22 +126,16 @@ export default class KsanUserView extends JetView {
 							view: "form",
 							borderless: true,
 							elementsConfig: {
-								labelWidth: 150,
+								labelWidth: 120,
 							},
 							elements: [
-								{ view: "text", label: "Name", name: "Name" },
+								{ view: "text", label: "Name", name: "Name", required: true, invalidMessage: "대/소문자, 숫자, 특수문자(-, _)만 가능합니다." },
 								{ view: "text", label: "Email", name: "Email" },
 								{
 									view: "richselect",
 									label: "Default DiskPool",
 									name: "StandardDiskPoolId",
-									options: {
-										body: {
-											url: function () {
-												return loadDiskPools();
-											},
-										},
-									},
+									options: { body: { url: function () { return loadDiskPools(); }, }, },
 								},
 								{
 									cols: [
@@ -182,20 +155,24 @@ export default class KsanUserView extends JetView {
 											click: function () {
 												if (this.getParentView().getParentView().validate()) {
 													addKsanUser(this.getFormView().getValues());
-												} else webix.alert({ type: "error", text: "Form data is invalid" });
+													this.getTopParentView().hide();
+												}
 											},
 										},
 									],
 								},
 							],
 							rules: {
-								Name: webix.rules.isNotEmpty,
+								Name: function (value) { return /([A-Za-z0-9-_]){1,}$/.test(value); },
 							},
 						}]
 				},
 				on: {
 					onShow: function () {
 						this.getBody().getChildViews()[2].clear();
+						var DiskPools = this.getBody().getChildViews()[2].getChildViews()[2].getPopup().getList();
+						DiskPools.clearAll();
+						DiskPools.parse(loadDiskPools());
 					}
 				}
 			});
@@ -227,6 +204,7 @@ export default class KsanUserView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										deleteKsanUsers();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -281,11 +259,13 @@ export default class KsanUserView extends JetView {
 
 										// 삭제 버튼을 눌렀을때 삭제처리
 										if (cell.column == DISKPOOL_REMOVE_BUTTON) {
-											console.log("delete item");
-											console.log(item);
-											item.isDeleted = true;
-											$$(DISKPOOL_EDIT_TABLE).updateItem(item.id, item);
-											$$(DISKPOOL_EDIT_TABLE).filter(function (obj) { return obj.isDeleted != true; });
+											if (item.StorageClass == "Undefined")
+												$$(DISKPOOL_EDIT_TABLE).remove(item.id);
+											else {
+												item.isDeleted = true;
+												$$(DISKPOOL_EDIT_TABLE).updateItem(item.id, item);
+												$$(DISKPOOL_EDIT_TABLE).filter(function (obj) { return obj.isDeleted != true; });
+											}
 											return false;
 										}
 										// 선택된 아이템에 맞게 디스크풀 목록을 가져온다.
@@ -312,6 +292,7 @@ export default class KsanUserView extends JetView {
 										hotkey: "enter",
 										click: function () {
 											changeUserStorageClass();
+											this.getTopParentView().hide();
 										},
 									},
 								],
@@ -333,7 +314,7 @@ export default class KsanUserView extends JetView {
 										var response = data.json();
 										if (response.Result == "Error") {
 											webix.message({ text: response.Message, type: "error", expire: 5000 });
-											return "";
+											return [];
 										} else {
 											return response.Data.Items;
 										}
@@ -341,23 +322,25 @@ export default class KsanUserView extends JetView {
 									function (error) {
 										var response = JSON.parse(error.response);
 										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return "";
+										return [];
 									}
 								);
 						});
 					},
 				}
 			});
-
 		if ($$(DISKPOOL_EDIT_WINDOW) == null)
 			webix.ui({
 				view: "popup",
 				body: {
 					view: "form",
 					id: DISKPOOL_EDIT_WINDOW,
+					elementsConfig: {
+						labelWidth: 120,
+					},
 					elements: [
-						{ view: "text", name: "StorageClass", suggest: getEnumStorageClass() },
-						{ view: "richselect", name: "DiskPoolId", options: loadDiskPools() },
+						{ view: "text", name: "StorageClass", label: "StorageClass", required: true, invalidMessage: "대/소문자, 숫자, 특수문자(-, _)만 가능합니다.", suggest: getEnumStorageClass() },
+						{ view: "richselect", name: "DiskPoolId", label: "DiskPool", required: true, options: loadDiskPools() },
 						{
 							view: "button", label: "Save", type: "form", click: function (id) {
 								var form = $$(id).getFormView();
@@ -375,10 +358,53 @@ export default class KsanUserView extends JetView {
 								this.getTopParentView().hide();
 							}
 						}
-					]
+					],
+					rules: {
+						StorageClass: function (value) { return /([A-Za-z0-9-_]){1,}$/.test(value); },
+					}
 				},
+				on: {
+					onShow() {
+						var StorageClass = $$(DISKPOOL_EDIT_WINDOW).getChildViews()[0].getValue();
+						if (StorageClass == "Undefined") $$(DISKPOOL_EDIT_WINDOW).getChildViews()[0].setValue("");
+					}
+				}
 			});
 	}
+}
+
+/**
+ * 사용자 목록을 가져온다.
+ */
+function load() {
+	webix
+		.ajax()
+		.get(USER_URL)
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") {
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				} else {
+					$$(USER_TABLE).unselect();
+					$$(USER_TABLE).clearAll();
+					$$(USER_TABLE).parse(response.Data.Items);
+				};
+			},
+			function (error) {
+				moveLogin("/#!/main/ksanusers");
+			}
+		);
+}
+
+/**
+ * 사용자 목록을 새로고침한다.
+ */
+function reload(message) {
+	if (message != null) webix.message({ text: message, type: "success", expire: 5000 });
+	const DELAY = 1000;
+	showProgressIcon(USER_TABLE, DELAY);
+	setTimeout(function () { load(); }, DELAY);
 }
 
 /**
@@ -386,7 +412,6 @@ export default class KsanUserView extends JetView {
  * @param {ServerId:"Server Id", DiskPoolId:"Disk Pool Id", Name:"Name", State:"State", RwMode:"RwMode", Description:"Description"} form
  */
 function addKsanUser(form) {
-	showProgressIcon(USER_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -395,7 +420,7 @@ function addKsanUser(form) {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("새로운 사용자를 추가했습니다.");
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
@@ -409,25 +434,22 @@ function addKsanUser(form) {
  */
 function deleteKsanUsers() {
 	var items = $$(USER_TABLE).getSelectedItem();
-	if (items == null) webix.message({ text: "사용자를 선택해야 합니다.", type: "error", expire: 5000 });
+	if (items == null) webix.message({ text: "사용자를 선택해야 합니다.", type: "success", expire: 5000 });
 	else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
 			if (deleteKsanUser(item.Id)) result = true;
 		});
-		if (result) window.location.reload(true);
-	} else {
-		if (deleteKsanUser(items.Id)) window.location.reload(true);
-	}
+		if (result) reload("선택한 사용자들을 삭제했습니다.");
+	} else if (deleteKsanUser(items.Id)) reload("선택한 사용자를 삭제했습니다.");
 }
 
 /**
  * 사용자를 삭제한다.
  * @param {Guid} id 삭제할 사용자의 Id
- * @returns 
+ * @returns {Boolean} 삭제 결과
  */
 function deleteKsanUser(id) {
-	showProgressIcon(USER_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -466,16 +488,15 @@ function changeUserStorageClass() {
 		}
 	});
 
-	if (result) window.location.reload(true);
+	if (result) reload("사용자의 스토리지 클래스를 변경했습니다.");
 }
 
 /**
  * 사용자의 스토리지 클래스를 추가한다.
- * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item
- * @returns 추가 결과
+ * @param { "UserId": "string", "DiskPoolId": "string", "StorageClass": "string" } item
+ * @returns {boolean} 추가 결과
  */
 function addUserStorageClass(item) {
-	showProgressIcon(USER_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -496,11 +517,10 @@ function addUserStorageClass(item) {
 
 /**
  * 사용자의 스토리지 클래스를 변경한다.
- * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item
- * @returns 추가 결과
+ * @param { "UserId": "string", "DiskPoolId": "string", "StorageClass": "string" } item
+ * @returns 변경 결과
  */
 function updateUserStorageClass(item) {
-	showProgressIcon(USER_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -521,11 +541,10 @@ function updateUserStorageClass(item) {
 
 /**
  * 사용자의 스토리지 클래스를 삭제한다.
- * @param {  "UserId": "string", "DiskPoolId": "string", "StorageClass": "string"} item 
+ * @param { "UserId": "string", "DiskPoolId": "string", "StorageClass": "string" } item
  * @returns 삭제 결과
  */
 function deleteUserStorageClass(item) {
-	showProgressIcon(USER_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })

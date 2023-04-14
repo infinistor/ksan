@@ -94,34 +94,62 @@ namespace PortalSvr.Controllers.Config
 		}
 		#endregion
 
-		#region RabbitMQ
-		/// <summary>RabbitMQ 설정을 가져온다.</summary>
+		#region ksanObjManager
+		/// <summary>KsanObjManager 설정 목록을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("RabbitMQ")]
-		public async Task<ActionResult> GetConfigForRabbitMQ()
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/KsanObjManager")]
+		public async Task<ActionResult> GetConfigListForKsanObjManager()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.RabbitMQ));
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.ksanObjManager));
 		}
-		#endregion
-		#region MariaDB
-		/// <summary>MariaDB 설정을 가져온다.</summary>
+
+		/// <summary>KsanObjManager 설정을 가져온다.</summary>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("MariaDB")]
-		public async Task<ActionResult> GetConfigForMariaDB()
+		[HttpGet("KsanObjManager")]
+		public async Task<ActionResult> GetConfigForKsanObjManager()
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.MariaDB));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanObjManager));
 		}
-		#endregion
-		#region MongoDB
-		/// <summary>MongoDB 설정을 가져온다.</summary>
+		/// <summary>특정 버전의 KsanObjManager 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
-		[HttpGet("MongoDB")]
-		public async Task<ActionResult> GetConfigForMongoDB()
+		[HttpGet("KsanObjManager/{Version}")]
+		public async Task<ActionResult> GetConfigForKsanObjManager([FromRoute] int Version)
 		{
-			return Json(await m_dataProvider.GetConfig(EnumServiceType.MongoDB));
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.ksanObjManager, Version));
+		}
+
+		/// <summary>KsanObjManager 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPost("KsanObjManager")]
+		public async Task<ActionResult> SetConfigForKsanObjManager([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.ksanObjManager, Config = Config }));
+		}
+
+		/// <summary>KsanObjManager 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseUpdateConfig>))]
+		[HttpPut("KsanObjManager/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForKsanObjManager([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.ksanObjManager, Version));
+		}
+
+		/// <summary>KsanObjManager 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("KsanObjManager/{Version}")]
+		public async Task<ActionResult> RemoveConfigForKsanObjManager([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanObjManager, Version));
 		}
 		#endregion
 		#region KsanOSD

@@ -10,6 +10,7 @@
 */
 package com.pspace.backend.logManager.db.table.Lifecycle;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,7 @@ public class LifecycleLogQuery {
 
 	public static Document getInsertDocument(LifecycleLogData data) {
 		var param = new Document();
+		param.put(DB_IN_DATE, LocalDateTime.now());
 		param.put(DB_BUCKETNAME, data.bucketName);
 		param.put(DB_OBJECTNAME, data.objectName);
 		param.put(DB_VERSIONID, data.versionId);

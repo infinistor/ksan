@@ -10,50 +10,47 @@
 */
 package com.pspace.backend.libs.Config;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
-public class LogManagerConfig implements IConfig {
+public class LogManagerConfig {
 
-	@JsonProperty("ksan.region")
-	public String Region;
-
-	@JsonProperty("logM.db_repository")
+	@JsonProperty("db_repository")
 	public String dbType;
 
-	@JsonProperty("logM.db_host")
+	@JsonProperty("db_host")
 	public String dbHost;
 
-	@JsonProperty("logM.db_port")
+	@JsonProperty("db_port")
 	public int dbPort;
 
-	@JsonProperty("logM.db_name")
+	@JsonProperty("db_name")
 	public String dbName;
 
-	@JsonProperty("logM.db_user")
+	@JsonProperty("db_user")
 	public String dbUser;
 
-	@JsonProperty("logM.db_password")
+	@JsonProperty("db_password")
 	public String dbPassword;
 
-	@JsonProperty("logM.db_pool_size")
+	@JsonProperty("db_pool_size")
 	public int dbPoolSize;
 
-	@JsonProperty("logM.db_expires")
+	@JsonProperty("db_expires")
 	public int dbExpires;
 
-	@JsonProperty("logM.check_interval")
+	@JsonProperty("check_interval")
 	public int checkInterval;
 
-	@JsonProperty("logM.meter_minute")
+	@JsonProperty("meter_minute")
 	public int meterMinute;
 
-	@JsonProperty("logM.assert_hour")
+	@JsonProperty("assert_hour")
 	public int assertHour;
+	
+	@JsonProperty("thread_count")
+	public int threadCount;
 
 	@Override
 	public String toString() {
@@ -63,18 +60,6 @@ public class LogManagerConfig implements IConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
-	}
-
-	public ObjManagerConfig getObjManagerConfig() throws IOException {
-		var config = new ObjManagerConfig();
-		config.dbRepository = dbType;
-		config.dbHost = dbHost;
-		config.dbPort = dbPort;
-		config.dbName = dbName;
-		config.dbUsername = dbUser;
-		config.dbPassword = dbPassword;
-
-		return config;
 	}
 
 	public DBConfig getDBConfig() {

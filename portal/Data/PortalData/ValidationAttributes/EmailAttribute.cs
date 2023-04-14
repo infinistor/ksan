@@ -8,37 +8,32 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
+using System;
 using System.ComponentModel.DataAnnotations;
-using PortalResources;
-using MTLib.CommonData;
 using MTLib.Core;
-using PortalData.ValidationAttributes;
 
-namespace PortalData.Requests.Services
+namespace PortalData.ValidationAttributes
 {
-	/// <summary>특정 이름의 서비스 그룹 존재여부 확인 요청 클래스</summary>
-	public class RequestIsServiceGroupNameExist : CommonRequestData
+	/// <summary>해당 문자열이 올바른 이름인지에 대한 유효성 검사 속성 클래스</summary>
+	[AttributeUsage(AttributeTargets.Property)]
+	public class EmailAttribute : ValidationAttribute
 	{
-		/// <summary>서버명</summary>
-		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
-		public string Name
+		/// <summary>유효한지 여부 검사</summary>
+		/// <param name="value">검사할 값</param>
+		/// <returns>유효한지 여부</returns>
+		public override bool IsValid(object value)
 		{
-			get => m_name;
-			set => m_name = value.IsEmpty() ? "" : value.Trim();
-		}
-		private string m_name;
+			bool Result = false;
 
-		/// <summary>생성자</summary>
-		public RequestIsServiceGroupNameExist()
-		{
+			// 값이 문자열인 경우
+			if (value != null && value is string)
+			{
+				var item = (string)value;
+				if (!item.IsEmpty())
+					Result = true;
+			}
 
-		}
-
-		/// <summary>생성자</summary>
-		/// <param name="name">초기화할 이름</param>
-		public RequestIsServiceGroupNameExist(string name)
-		{
-			this.Name = name;
+			return Result;
 		}
 	}
 }

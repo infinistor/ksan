@@ -746,7 +746,6 @@ namespace PortalModels
 			modelBuilder.Entity<UserDiskPool>().Property(x => x.DiskPoolId).HasColumnName(@"DISK_POOL_ID").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<UserDiskPool>().Property(x => x.StorageClass).HasColumnName(@"STORAGE_CLASS").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<UserDiskPool>().HasKey(@"Id");
-			// modelBuilder.Entity<UserDiskPool>().HasIndex( @"UserId", @"DiskPoolId", @"StorageClass").IsUnique(true);
 		}
 
 		partial void CustomizeUserDiskPoolMapping(ModelBuilder modelBuilder);

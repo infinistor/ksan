@@ -20,6 +20,7 @@ namespace PortalData.Requests.Region
 	public class RequestRegion : CommonRequestData
 	{
 		/// <summary> 리전명 </summary>
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;

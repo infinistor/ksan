@@ -10,41 +10,20 @@
 */
 package com.pspace.backend.libs.Config;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class LifecycleManagerConfig {
-
-	@JsonProperty("objM.db_repository")
-	public String dbType;
-
-	@JsonProperty("objM.db_host")
-	public String dbHost;
-
-	@JsonProperty("objM.db_port")
-	public int dbPort;
-
-	@JsonProperty("objM.db_name")
-	public String dbName;
-
-	@JsonProperty("objM.db_user")
-	public String dbUser;
-
-	@JsonProperty("objM.db_password")
-	public String dbPassword;
-
-	@JsonProperty("ksan.region")
-	public String region;
 	
-	@JsonProperty("lifecycle.schedule")
+	@JsonProperty("schedule")
 	public String schedule;
 
-	@JsonProperty("lifecycle.check_interval")
+	@JsonProperty("check_interval")
 	public long checkInterval;
+
+	@JsonProperty("thread_count")
+	public int threadCount;
 
 	@Override
 	public String toString() {
@@ -54,17 +33,5 @@ public class LifecycleManagerConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
-	}
-	
-	public ObjManagerConfig getObjManagerConfig() throws IOException {
-		var item = new ObjManagerConfig();
-		item.dbRepository = dbType;
-		item.dbHost = dbHost;
-		item.dbPort = dbPort;
-		item.dbName = dbName;
-		item.dbUsername = dbUser;
-		item.dbPassword = dbPassword;
-
-		return item;
 	}
 }

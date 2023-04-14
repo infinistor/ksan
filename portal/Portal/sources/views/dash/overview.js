@@ -88,24 +88,20 @@ export default class OverviewView extends JetView {
  * @returns 기본 리전 정보
  */
 function loadMainRegion() {
-	return webix
+	webix
 		.ajax()
 		.get("/api/v1/Regions/Default")
 		.then(
 			function (data) {
 				var response = data.json();
-				if (response.Result == "Error") {
-					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return null;
-				} else {
-					$$(REGION_NAME).setValue(`<span class='region_name'>${response.Data.Name}</span>`);
-					return usage;
-				}
+				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				else $$(REGION_NAME).setValue(`<span class='region_name'>${response.Data.Name}</span>`);
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
-				return null;
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }
@@ -115,32 +111,31 @@ function loadMainRegion() {
  * @returns 서비스 정보
  */
 function loadServices() {
-	return webix
+	webix
 		.ajax()
 		.get("/api/v1/Services")
 		.then(
 			function (data) {
 				var response = data.json();
-				if (response.Result == "Error") {
-					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return null;
-				} else {
+				
+				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				else {
 					$$(KSAN_AGENT).setValue(getStatus("ksanAgent", response.Data.Items));
 					$$(KSAN_GW).setValue(getStatus("ksanGW", response.Data.Items));
 					$$(KSAN_OSD).setValue(getStatus("ksanOSD", response.Data.Items));
 					$$(KSAN_LIFECYCLE).setValue(getStatus("ksanLifecycleManager", response.Data.Items));
 					$$(KSAN_LOG).setValue(getStatus("ksanLogManager", response.Data.Items));
 					$$(KSAN_REPLICATION).setValue(getStatus("ksanReplicationManager", response.Data.Items));
+
 					if (global_status == true) $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker healthy'>Healthy</span>");
 					else $$(MY_STATUS).setValue("<span class='card_title'>System Overview</span> <span class='status_marker check'>Need to Check</span>");
-
-					return usage;
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
-				return null;
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }

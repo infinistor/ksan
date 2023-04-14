@@ -72,7 +72,7 @@ public class Main {
 		// ObjManager 초기화
 		var ObjManager = ObjManagerHelper.getInstance();
 		try {
-			ObjManager.init(config.getObjManagerConfig());
+			ObjManager.init(portal.getObjManagerConfig());
 		} catch (Exception e) {
 			logger.error("", e);
 			return;
@@ -80,7 +80,7 @@ public class Main {
 
 		// Replication Initialization
 		var Replicator = new MainReplicator();
-		if (!Replicator.Start(config.threadCount)) {
+		if (!Replicator.start(config.threadCount)) {
 			logger.error("MainReplicator is not started!");
 			return;
 		}

@@ -22,7 +22,7 @@ export function loadDiskPools() {
 				var response = data.json();
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return "";
+					return [];
 				} else {
 					var DiskPools = [];
 					response.Data.Items.forEach((item) => {
@@ -32,10 +32,12 @@ export function loadDiskPools() {
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				if (response.code != "EC003") webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 
-				return "";
+				return [];
 			}
 		);
 }
