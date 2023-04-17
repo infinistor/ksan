@@ -72,6 +72,7 @@ public final class OSDConstants {
     public static final String POINT = ".";
     public static final String SPACE = " ";
     public static final String COLON = ":";
+    public static final String DASH = "-";
     public static final String MD5 = "MD5";
     public static final String EMPTY_STRING = "";
     public static final String STR_NULL = "null";
@@ -140,7 +141,9 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_GET_START = "get start ...";
     public static final String LOG_OSD_SERVER_GET_INFO = "path : {}, objId : {}, versionId : {}, source range : {}";
     public static final String LOG_OSD_SERVER_GET_END = "get end ... read total : {}";
-    public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}";
+    public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}, length={}";
+
+    public static final String LOG_OSD_SERVER_GET_MULTIPART_START = "get multipart start ...";
     
     public static final String LOG_OSD_SERVER_PUT_START = "put start ...";
     public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}, mode : {}";
@@ -153,9 +156,9 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_DELETE_SUCCESS_INFO = "delete - success : path={}, objId={}, versionId={}";
 
     public static final String LOG_OSD_SERVER_DELETE_PART_START = "delete part start ...";
-    public static final String LOG_OSD_SERVER_DELETE_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_DELETE_PART_INFO = "path : {}, objId : {}, uploadId : {}, partNo : {}";
     public static final String LOG_OSD_SERVER_DELETE_PART_END = "delete part end ...";
-    public static final String LOG_OSD_SERVER_DELETE_PART_SUCCESS_INFO = "delete - success : path={}, objId={}, partNo={}";
+    public static final String LOG_OSD_SERVER_DELETE_PART_SUCCESS_INFO = "delete - success : path={}, objId={}, uploadId = {}, partNo={}";
 
     public static final String LOG_OSD_SERVER_DELETE_REPLICA_START = "delete replica start ...";
     public static final String LOG_OSD_SERVER_DELETE_REPLICA_PATH = "path : {}";
@@ -167,12 +170,12 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_COPY_SUCCESS_INFO = "copy - success : srcPath={}, srcObjId={}, srcVersionId={}, destPath={}, destObjId={}, destVersionId={}";
 
     public static final String LOG_OSD_SERVER_GET_PART_START = "getPart start ...";
-    public static final String LOG_OSD_SERVER_GET_PART_INFO = "path : {}, objId : {}, partNo : {}";
+    public static final String LOG_OSD_SERVER_GET_PART_INFO = "path : {}, range : {}";
     public static final String LOG_OSD_SERVER_GET_PART_END = "getPart end ... read total : {}";
-    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "getPart - success : path={}, objId={}, partNo={}";
+    public static final String LOG_OSD_SERVER_GET_PART_SUCCESS_INFO = "getPart - success : path={}, range={}";
 
     public static final String LOG_OSD_SERVER_PART_START = "part start ...";
-    public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, partNo : {}, length : {}, key : {}";
+    public static final String LOG_OSD_SERVER_PART_INFO = "path : {}, objId : {}, uploadId : {}, partNo : {}, length : {}, key : {}";
     public static final String LOG_OSD_SERVER_PART_END = "part end ...";
     public static final String LOG_OSD_SERVER_PART_SUCCESS_INFO = "part - success : path={}, objId={}, partNo={}, length={}";
 

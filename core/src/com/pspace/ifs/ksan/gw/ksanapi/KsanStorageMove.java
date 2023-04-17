@@ -21,7 +21,9 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.google.common.base.Strings;
 import org.slf4j.LoggerFactory;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 
 import com.pspace.ifs.ksan.gw.identity.S3User;
@@ -90,8 +92,10 @@ public class KsanStorageMove extends S3Request {
 
         logger.info("replica count : {}, primary disk id : {}", restoreObjMeta.getReplicaCount(), restoreObjMeta.getPrimaryDisk().getId());
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
-        objectOperation.storageMove(restoreObjMeta);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, versionId, null);
+        // objectOperation.storageMove(restoreObjMeta);
+        IObjectManager objectManager = new VFSObjectManager();
+        objectManager.storageMove(s3Parameter, objMeta, restoreObjMeta);
 
         try {
             restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), s3Metadata.toString(), objMeta.getAcl(), objMeta.getSize());

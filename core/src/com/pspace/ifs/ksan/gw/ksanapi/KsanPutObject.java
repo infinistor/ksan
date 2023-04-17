@@ -40,7 +40,9 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -77,6 +79,7 @@ public class KsanPutObject extends S3Request {
         s3Parameter.setUser(user);
 
 		S3Metadata s3Metadata = new S3Metadata();
+		s3Metadata.setName(object);
 
 		String cacheControl = s3RequestData.getCacheControl();
 		String contentDisposition = s3RequestData.getContentDisposition();
@@ -320,8 +323,10 @@ public class KsanPutObject extends S3Request {
 			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
 		s3Parameter.setVersionId(repVersionId);
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
-		S3Object s3Object = objectOperation.putObject();
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
+		// S3Object s3Object = objectOperation.putObject();
+		IObjectManager objectManager = new VFSObjectManager();
+		S3Object s3Object = objectManager.putObject(s3Parameter, objMeta, encryption);
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());

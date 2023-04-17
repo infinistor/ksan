@@ -35,7 +35,9 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -332,8 +334,10 @@ public class PostObject extends S3Request {
 			}
 		}
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
-		S3Object s3Object = objectOperation.putObject();
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
+		// S3Object s3Object = objectOperation.putObject();
+		IObjectManager objectManager = new VFSObjectManager();
+		S3Object s3Object = objectManager.putObject(s3Parameter, objMeta, encryption);
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());

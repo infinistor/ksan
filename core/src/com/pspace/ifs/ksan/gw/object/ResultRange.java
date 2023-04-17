@@ -50,6 +50,7 @@ public class ResultRange {
             contentLengthHeaders.add(String.format(GWConstants.RANGE_CHECK_FORMET, range.getOffset(), range.getOffset() + range.getLength() - 1, contentsLength));
         }
     }
+
     public List<String> getContentLengthHeaders() {
         return contentLengthHeaders;
     }
@@ -89,6 +90,4 @@ public class ResultRange {
     public void setStreamSize(long streamSize) {
         this.streamSize = streamSize;
     }
-
-    
 }

@@ -12,17 +12,23 @@ package com.pspace.ifs.ksan.libs.data;
 
 public class ECPart {
     private String serverIP;
+    private String diskId;
     private String diskPath;
     private boolean isProcessed;
 
-    public ECPart(String serverIP, String diskPath, boolean isProcessed) {
+    public ECPart(String serverIP, String diskId, String diskPath, boolean isProcessed) {
         this.serverIP = serverIP;
+        this.diskId = diskId;
         this.diskPath = diskPath;
         this.isProcessed = isProcessed;
     }
 
     public String getServerIP() {
         return serverIP;
+    }
+
+    public String getDiskId() {
+        return diskId;
     }
 
     public String getDiskPath() {

@@ -25,6 +25,11 @@ public class Server {
     private String status;  // "Unknown", "Timeout", "Offline", "Online"
     private List<Disk> diskList;
 
+    public static final String STATUS_UNKNOWN = "Unknown";
+    public static final String STATUS_TIMEOUT = "Timeout";
+    public static final String STATUS_OFFLINE = "Offline";
+    public static final String STATUS_ONLINE = "Online";
+
     public Server() {
         id = "";
         ip = "";

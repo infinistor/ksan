@@ -36,9 +36,11 @@ import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
@@ -196,6 +198,7 @@ public class CopyObject extends S3Request {
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug(GWConstants.LOG_COPY_OBJECT_ENCRYPTION, bucketEncryption);
+		
 		// check encryption
 		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
 		encryption.build();
@@ -393,8 +396,10 @@ public class CopyObject extends S3Request {
 
 		s3Parameter.setVersionId(versionId);
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
-		S3Object s3Object = objectOperation.copyObject(srcMeta, srcEncryption);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
+		// S3Object s3Object = objectOperation.copyObject(srcMeta, srcEncryption);
+		IObjectManager objectManager = new VFSObjectManager();
+		S3Object s3Object = objectManager.copyObject(s3Parameter, srcMeta, srcEncryption, objMeta, encryption);
 
         s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());

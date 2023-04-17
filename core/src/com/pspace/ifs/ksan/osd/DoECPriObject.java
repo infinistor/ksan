@@ -33,7 +33,7 @@ import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 import com.pspace.ifs.ksan.libs.data.ECPart;
 
 import org.slf4j.Logger;
@@ -173,7 +173,7 @@ public class DoECPriObject implements Runnable {
             for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
                 for (Server server : pool.getServerList()) {
                     for (Disk disk : server.getDiskList()) {
-                        ECPart sendECPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ECPart sendECPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
                         sendList.add(sendECPart);
                     }
                 }

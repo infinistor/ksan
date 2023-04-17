@@ -37,6 +37,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
+import com.pspace.ifs.ksan.libs.KsanUtils;
 
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class CreateMultipartUpload extends S3Request {
 			checkGrantBucket(false, GWConstants.GRANT_WRITE);
 		}
 
-		String xml = makeAcl(null, false);
+		String aclXml = makeAcl(null, false);
 		
 		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
@@ -156,10 +157,18 @@ public class CreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
+			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
+			objMeta.setMeta(metaJson);
+			objMeta.setAcl(aclXml);
+			uploadId = objMultipart.createMultipartUpload(objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+
+		if (!KsanUtils.makeMultipartDirectory(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), uploadId)) {
+			logger.error("create multipart directory failed. bucket : {}, object : {}, objId : {}, uploadId : {}", bucket, object, objMeta.getObjId(), uploadId);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, s3Parameter);
 		}
 
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -181,5 +190,6 @@ public class CreateMultipartUpload extends S3Request {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
+		logger.debug("CreateMultipartUpload ... uploadId:{}", uploadId);
 	}
 }

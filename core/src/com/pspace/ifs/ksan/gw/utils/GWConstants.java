@@ -37,6 +37,8 @@ public final class GWConstants {
 
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
+	public static final String MQUEUE_NAME_OBJMANAGER_CONFIG = "ksan-objmanager-configure-";
+	public static final String MQUEUE_NAME_OBJMANAGER_CONFIG_ROUTING_KEY = "*.services.objmanager.config.*";
 	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
 	public static final String MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY = "*.servers.disks.added";
 	public static final String MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY = "*.servers.disks.updated";
@@ -64,6 +66,7 @@ public final class GWConstants {
 	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String PORTAL_REST_API_KSAN_REGIONS = "/api/v1/Regions";
 	public static final String PORTAL_REST_API_KSAN_EVENT = "/api/v1/Services/Event";
+	public static final String PORTAL_REST_API_CONFIG_OBJMANAGER = "/api/v1/Config/KsanObjManager";
 
 	public static final String PORTAL_REST_API_KSAN_EVENT_ID = "Id";
 	public static final String PORTAL_REST_API_KSAN_EVENT_TYPE = "EventType";
@@ -143,6 +146,7 @@ public final class GWConstants {
 	public static final String DEFAULT_MAX_KEYS = "1000";
 	   
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
+	public static final String PARTCOPY_MD5 = "00000000000000000000000000000000";
 	
 	public static final String MARIADB = "MariaDB";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
@@ -1387,7 +1391,7 @@ public final class GWConstants {
 	// OSDClientManager
 	public static final String LOG_OSDCLIENT_MANAGER_DISKPOOL_INFO = "disk pool id : {}, name = {}";
 	public static final String LOG_OSDCLIENT_MANAGER_SERVER_SIZE = "server size : {}";
-	public static final String LOG_OSDCLIENT_MANAGER_CLIENT_COUNT = "client count : {}";
+	public static final String LOG_OSDCLIENT_MANAGER_CLIENT_COUNT = "osd client count : {}";
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
@@ -1492,6 +1496,7 @@ public final class GWConstants {
 
 	// GWPortal
 	public static final String GWPORTAL_RECEIVED_CONFIG_CHANGE = "receive config change ...";
+	public static final String GWPORTAL_RECEIVED_OBJMANAGER_CONFIG_CHANGE = "receive objManager config change ...";
 	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";

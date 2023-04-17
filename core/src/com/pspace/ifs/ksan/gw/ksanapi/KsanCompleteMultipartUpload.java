@@ -43,7 +43,9 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -192,15 +194,17 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			final AtomicReference<S3Object> s3Object = new AtomicReference<>();
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
-			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, s3ObjectEncryption);
-			
-			SortedMap<Integer, Part> constListPart = listPart;
+			// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, s3ObjectEncryption);
+			IObjectManager objectManager = new VFSObjectManager();
 
+			SortedMap<Integer, Part> constListPart = listPart;
+			Metadata constObjMeta = objMeta;
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
 					try {
-						s3Object.set(objectOperation.completeMultipart(constListPart));
+						// s3Object.set(objectOperation.completeMultipart(constListPart));
+						s3Object.set(objectManager.completeMultipart(s3Parameter, constObjMeta, s3ObjectEncryption, constListPart));
 					} catch (Exception e) {
 						S3Excp.set(e);
 					}
@@ -222,6 +226,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 				xmlStreamWriter.writeCharacters(GWConstants.NEWLINE);
+				xmlStreamWriter.flush();
 			}
 
 			if( S3Excp.get() != null) {
@@ -247,6 +252,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			hasher.putBytes(raw);
 			String digest = hasher.hash().toString() + GWConstants.DASH + listPart.size();
 			s3Object.get().setEtag(digest);
+
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_MD5, s3Object.get().getEtag());
 				
 			writeSimpleElement(xmlStreamWriter, GWConstants.ETAG, GWConstants.DOUBLE_QUOTE + s3Object.get().getEtag() + GWConstants.DOUBLE_QUOTE);
@@ -277,11 +283,8 @@ public class KsanCompleteMultipartUpload extends S3Request {
 				logger.error(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_FAILED, bucket, object);
 			}
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_INFO, bucket, object, s3Object.get().getFileSize(), s3Object.get().getEtag(), acl, repVersionId);
-			objMultipart.abortMultipartUpload(uploadId);
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} catch (XMLStreamException e) {
+			// objMultipart.abortMultipartUpload(uploadId);
+		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

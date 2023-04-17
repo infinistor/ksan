@@ -34,7 +34,7 @@ import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.DiskManager;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
@@ -115,7 +115,7 @@ class MoveObjectCallback implements MQCallback {
 				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
 					for (Server server : pool.getServerList()) {
 						for (Disk disk : server.getDiskList()) {
-							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
 							ecList.add(ecPart);
 						}
 					}
@@ -256,7 +256,7 @@ class MoveObjectCallback implements MQCallback {
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		}
 		logger.info("success move file : {}", fullPath);
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -305,7 +305,7 @@ class DeleteObjectCallback implements MQCallback {
             for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
                 for (Server server : pool.getServerList()) {
                     for (Disk disk : server.getDiskList()) {
-                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
                         ecList.add(ecPart);
                     }
                 }
@@ -336,7 +336,7 @@ class DeleteObjectCallback implements MQCallback {
             }
 
 			logger.info("success delete object : {}", ecFile.getAbsolutePath());
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         }
 
 		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
@@ -345,7 +345,7 @@ class DeleteObjectCallback implements MQCallback {
 		if (file.exists()) {
 			if (file.delete()) {
 				logger.info("success delete object : {}", fullPath);
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 			} else {
 				logger.info("failed delete object : {}", fullPath);
 				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
@@ -415,7 +415,7 @@ class GetAttrObjectCallBack implements MQCallback {
 				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
 					for (Server server : pool.getServerList()) {
 						for (Disk disk : server.getDiskList()) {
-							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
 							ecList.add(ecPart);
 						}
 					}
@@ -518,7 +518,7 @@ class GetAttrObjectCallBack implements MQCallback {
 				ETag = base16().lowerCase().encode(digest);
 				message = "{\"BucketName\":\"" + bucketName + "\",\"ObjId\":\"" + objId + "\",\"VersionId\":\"" + versionId + "\",\"MD5\":\"" + ETag + "\",\"Size\":" + size + "}";
 				logger.info("send message: {}", message);
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, message, 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, message, 0);
 			} catch(Exception e) {
 				logger.error(e.getMessage());
 				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
@@ -591,7 +591,7 @@ class CopyObjectCallback implements MQCallback {
 				for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
 					for (Server server : pool.getServerList()) {
 						for (Disk disk : server.getDiskList()) {
-							ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+							ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
 							ecList.add(ecPart);
 						}
 					}
@@ -730,7 +730,7 @@ class CopyObjectCallback implements MQCallback {
 		}
 
 		logger.info("success copy file : {}", fullPath);
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
