@@ -179,6 +179,7 @@ public class VFSObjectManager implements IObjectManager {
         if (!isAvailablePrimary && !isAvailableReplica) {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
+        logger.debug("isAvailablePrimary : {}, isAvailableReplica : {}", isAvailablePrimary, isAvailableReplica);
 
         // check encryption
         String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
@@ -261,6 +262,7 @@ public class VFSObjectManager implements IObjectManager {
 
             // check replica
             if (isAvailableReplica) {
+                logger.debug("replica osd ip : {}", replicaDISK.getOsdIp());
                 if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
                     String objPath = null;
                     String tempPath = null;
@@ -287,7 +289,7 @@ public class VFSObjectManager implements IObjectManager {
                 } else {
                     // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
                     if (osdClientReplica == null) {
-                        osdClientReplica = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     } else {
                         isBorrowOsdReplica = true;
                     }
@@ -635,7 +637,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
 
                     if (osdClientReplica == null) {
-                        osdClientReplica = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     } else {
                         isBorrowOsdReplica = true;
                     }
@@ -954,7 +956,7 @@ public class VFSObjectManager implements IObjectManager {
                     // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
                     logger.debug("osd client replica : {}", replicaDISK.getOsdIp());
                     if (osdClientReplica == null) {
-                        osdClientReplica = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     } else {
                         isBorrowOsdReplica = true;
                     }
@@ -1313,7 +1315,7 @@ public class VFSObjectManager implements IObjectManager {
                     } catch (Exception e) {
                         osdClientReplica = null;
                     }
-                    logger.debug("upload part copy osd : {}", meta.getPrimaryDisk().getOsdIp());
+                    logger.debug("upload part copy osd : {}",replicaDISK.getOsdIp());
                     if (osdClientReplica == null) {
                         osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     } else {
