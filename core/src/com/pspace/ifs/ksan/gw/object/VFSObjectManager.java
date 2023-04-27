@@ -2277,7 +2277,7 @@ public class VFSObjectManager implements IObjectManager {
         return actualSize;
     }
 
-    private long getObjectOSD(S3Parameter param, Metadata meta, DISK disk, String key, String sourceRange) throws GWException {
+    private long getObjectOSD(S3Parameter param, Metadata meta, DISK disk, String sourceRange, String key) throws GWException {
         long actualSize = 0L;
         OSDClient client = null;
         boolean isBorrowOsd = false;

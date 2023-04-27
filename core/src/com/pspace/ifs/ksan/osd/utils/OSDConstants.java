@@ -139,7 +139,7 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_FAILED_FILE_RENAME = "failed file rename {} -> {}";
     
     public static final String LOG_OSD_SERVER_GET_START = "get start ...";
-    public static final String LOG_OSD_SERVER_GET_INFO = "path : {}, objId : {}, versionId : {}, source range : {}";
+    public static final String LOG_OSD_SERVER_GET_INFO = "path : {}, objId : {}, versionId : {}, source range : {}, key : {}";
     public static final String LOG_OSD_SERVER_GET_END = "get end ... read total : {}";
     public static final String LOG_OSD_SERVER_GET_SUCCESS_INFO = "get - success : path={}, objId={}, versionId={}, source range={}, length={}";
 

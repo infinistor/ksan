@@ -163,6 +163,7 @@ public class OSDServer {
                     socket.getInputStream().read(buffer, 0, length);
                     String indicator = new String(buffer, 0, OsdData.INDICATOR_SIZE);
                     String header = new String(buffer, 0, length);
+                    logger.debug("read header : {}", header);
                     String[] headers = header.split(OsdData.DELIMITER, -1);
                     
                     switch (indicator) {
@@ -261,7 +262,7 @@ public class OSDServer {
             long readTotal = 0L;
             CtrCryptoInputStream encryptIS = null;
             
-            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_INFO, path, objId, versionId, sourceRange);
+            logger.debug(OSDConstants.LOG_OSD_SERVER_GET_INFO, path, objId, versionId, sourceRange, key);
     
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = new File(KsanUtils.makeObjPath(path, objId, versionId));
