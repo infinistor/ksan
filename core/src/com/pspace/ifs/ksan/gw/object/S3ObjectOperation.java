@@ -12,10 +12,14 @@ package com.pspace.ifs.ksan.gw.object;
 
 import static com.google.common.io.BaseEncoding.base16;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,6 +35,7 @@ import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -56,13 +61,14 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.DiskManager;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
 import com.pspace.ifs.ksan.libs.data.ECPart;
+import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
@@ -138,6 +144,76 @@ public class S3ObjectOperation {
             }
         }
 
+        // check multipart
+        String uploadId = s3Meta.getUploadId();
+        if (!Strings.isNullOrEmpty(uploadId)) {
+            byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
+            File file = new File(KsanUtils.makeObjMultipartPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId(), uploadId));
+            
+            if (file.exists()) {
+                try (BufferedReader br = new BufferedReader(new FileReader(file));
+                     OutputStream os = s3Parameter.getResponse().getOutputStream()) {
+                    String line = null;
+                    String objDiskId = null;
+                    String objPath = null;
+                    long objSize = 0L;
+                    long objOffset = 0L;
+                    long objLast = 0L;
+                    long objLength = 0L;
+                    long remaingLength = 0L;
+                    int readBytes = 0;
+                    int readLength = 0;
+                    boolean isRange = false;
+                    while ((line = br.readLine()) != null) {
+                        String[] infos = line.split(GWConstants.COLON);
+                        objDiskId = infos[0];
+                        objPath = infos[1];
+                        objSize = Long.parseLong(infos[2]);
+                        if (infos.length > 3) {
+                            String[] objRanges = infos[3].split(GWConstants.DASH);
+                            objOffset = Long.parseLong(objRanges[0]);
+                            objLast = Long.parseLong(objRanges[1]);
+                            objLength = objLast - objOffset + 1;
+                            isRange = true;
+                        } else {
+                            objLength = objSize;
+                            isRange = false;
+                        }
+                        remaingLength = objLength;
+                        File partFile = new File(objPath);
+                        try (FileInputStream fis = new FileInputStream(partFile)) {
+                            if (isRange) {
+                                fis.skip(objOffset);
+                            }
+                            while (remaingLength > 0) {
+                                readBytes = 0;
+                                if (remaingLength < GWConstants.MAXBUFSIZE) {
+                                    readBytes = (int)remaingLength;
+                                } else {
+                                    readBytes = GWConstants.MAXBUFSIZE;
+                                }
+        
+                                readLength = fis.read(buffer, 0, readBytes);
+                                
+                                actualSize += readLength;
+                                os.write(buffer, 0, readLength);
+                                remaingLength -= readLength;
+                            }
+                        } catch (Exception e1) {
+                            PrintStack.logging(logger, e1);
+                            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                        }
+                    }
+                } catch (Exception e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                }
+
+                s3Parameter.addResponseSize(actualSize);
+                return;
+            }
+        }
+
         // check EC exists
         File ecFile = new File(KsanUtils.makeECPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
         logger.debug("ecfile : {}", ecFile.getAbsolutePath());
@@ -146,7 +222,7 @@ public class S3ObjectOperation {
             for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
                 for (Server server : pool.getServerList()) {
                     for (Disk disk : server.getDiskList()) {
-                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
                         ecList.add(ecPart);
                     }
                 }
@@ -1728,7 +1804,7 @@ public class S3ObjectOperation {
             for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
                 for (Server server : pool.getServerList()) {
                     for (Disk disk : server.getDiskList()) {
-                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
                         ecList.add(ecPart);
                     }
                 }
@@ -1757,6 +1833,47 @@ public class S3ObjectOperation {
                     }
                 }
             }
+        }
+
+        // delete multipart
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
+        if (!Strings.isNullOrEmpty(s3Metadata.getUploadId())) {
+            try {
+                File multipartFile = null;
+                if (GWConfig.getInstance().isCacheDiskpath()) {
+                    multipartFile = new File(GWConfig.getInstance().getCacheDiskpath() + KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                } else {
+                    multipartFile = new File(KsanUtils.makeObjPathForOpen(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+                }
+
+                if (multipartFile.exists()) {
+                    // Thread thread = new Thread() {
+                    //     @Override
+                    //     public void run() {
+                    //         BufferedReader srcBR = new BufferedReader(new FileReader(multipartFile));
+                    //         String line = null;
+                    //         while ((line = srcBR.readLine()) != null) {
+                    //             String[] infos = line.split(GWConstants.COLON);
+                    //             String[] uploadInfos = infos[1].split(GWConstants.UNDERSCORE);
+                    //             File partFile = new File(infos[1]);
+                    //             File trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
+                    //             if (partFile.exists()) {
+                    //                 logger.error("{} is deleted.", partFile.getAbsolutePath());
+                    //                 partFile.delete();
+                    //             }
+                    //         }
+                    //     }
+                    // };
+                    // thread.start();
+                } else {
+                    logger.error("{} is not exist.", multipartFile.getAbsolutePath());
+                    throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                }
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+            }
+            return true;
         }
 
         try {
@@ -1835,8 +1952,7 @@ public class S3ObjectOperation {
         S3Object s3Object = null;
 
         if (s3Encryption.isEncryptionEnabled()) {
-            // s3Object = uploadPartEncription(path, length, is);
-            s3Object = uploadPartNormal(path, length, s3Parameter.getInputStream());
+            s3Object = uploadPartEncryption(path, length, s3Parameter.getInputStream());
         } else {
             s3Object = uploadPartNormal(path, length, s3Parameter.getInputStream());
         }
@@ -1868,9 +1984,9 @@ public class S3ObjectOperation {
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     }
                     fosPrimary = new FileOutputStream(filePrimary, false);
                 } else {
@@ -1881,21 +1997,20 @@ public class S3ObjectOperation {
                     // }
                     clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
-                    clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           GWConstants.EMPTY_STRING);
+                    // clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
+                    //                        objMeta.getObjId(), 
+                    //                        s3Parameter.getPartNumber(), 
+                    //                        length,
+                    //                        GWConstants.EMPTY_STRING);
                 }
                 
                 if (objMeta.isReplicaExist()) {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber())));
                         } else {
-                            fileReplica = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                            fileReplica = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                         }
-                        com.google.common.io.Files.createParentDirs(fileReplica);
                         fosReplica = new FileOutputStream(fileReplica, false);
                     } else {
                         // clientReplica = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
@@ -1905,11 +2020,11 @@ public class S3ObjectOperation {
                         // }
                         clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                         logger.info("osd - {},{}", clientReplica.getSocket().getRemoteSocketAddress().toString(), clientReplica.getSocket().getLocalPort());
-                        clientReplica.partInit(objMeta.getReplicaDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           GWConstants.EMPTY_STRING);
+                        // clientReplica.partInit(objMeta.getReplicaDisk().getPath(), 
+                        //                    objMeta.getObjId(), 
+                        //                    s3Parameter.getPartNumber(), 
+                        //                    length,
+                        //                    GWConstants.EMPTY_STRING);
                     }
                 }
     
@@ -1955,9 +2070,9 @@ public class S3ObjectOperation {
             } else {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     }
                     fosPrimary = new FileOutputStream(filePrimary, false);
                 } else {
@@ -1968,11 +2083,11 @@ public class S3ObjectOperation {
                     // }
                     clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
-                    clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           GWConstants.EMPTY_STRING);
+                    // clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
+                    //                        objMeta.getObjId(), 
+                    //                        s3Parameter.getPartNumber(), 
+                    //                        length,
+                    //                        GWConstants.EMPTY_STRING);
                 }
 
                 while ((readLength = is.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
@@ -2040,11 +2155,10 @@ public class S3ObjectOperation {
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     }
-                    com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
                     encryptPrimary = GWUtils.initCtrEncrypt(fosPrimary, s3Encryption.getCustomerKey());
                 } else {
@@ -2055,21 +2169,20 @@ public class S3ObjectOperation {
                     // }
                     clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
-                    clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           s3Encryption.getCustomerKey());
+                    // clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
+                    //                        objMeta.getObjId(), 
+                    //                        s3Parameter.getPartNumber(), 
+                    //                        length,
+                    //                        s3Encryption.getCustomerKey());
                 }
                 
                 if (objMeta.isReplicaExist()) {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                            fileReplica = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                         } else {
-                            fileReplica = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                            fileReplica = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                         }
-                        com.google.common.io.Files.createParentDirs(fileReplica);
                         fosReplica = new FileOutputStream(fileReplica, false);
                         encryptReplica = GWUtils.initCtrEncrypt(fosReplica, s3Encryption.getCustomerKey());
                     } else {
@@ -2080,11 +2193,11 @@ public class S3ObjectOperation {
                         // }
                         clientReplica = new OSDClient(objMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                         logger.info("osd - {},{}", clientReplica.getSocket().getRemoteSocketAddress().toString(), clientReplica.getSocket().getLocalPort());
-                        clientReplica.partInit(objMeta.getReplicaDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           s3Encryption.getCustomerKey());
+                        // clientReplica.partInit(objMeta.getReplicaDisk().getPath(), 
+                        //                    objMeta.getObjId(), 
+                        //                    s3Parameter.getPartNumber(), 
+                        //                    length,
+                        //                    s3Encryption.getCustomerKey());
                     }
                 }
     
@@ -2130,11 +2243,10 @@ public class S3ObjectOperation {
             } else {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                        filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                        filePrimary = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
                     }
-                    com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
                     encryptPrimary = GWUtils.initCtrEncrypt(fosPrimary, s3Encryption.getCustomerKey());
                 } else {
@@ -2145,11 +2257,11 @@ public class S3ObjectOperation {
                     // }
                     clientPrimary = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     logger.info("osd - {},{}", clientPrimary.getSocket().getRemoteSocketAddress().toString(), clientPrimary.getSocket().getLocalPort());
-                    clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
-                                           objMeta.getObjId(), 
-                                           s3Parameter.getPartNumber(), 
-                                           length,
-                                           s3Encryption.getCustomerKey());
+                    // clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
+                    //                        objMeta.getObjId(), 
+                    //                        s3Parameter.getPartNumber(), 
+                    //                        length,
+                    //                        s3Encryption.getCustomerKey());
                 }
 
                 while ((readLength = is.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
@@ -2203,14 +2315,14 @@ public class S3ObjectOperation {
         if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
             // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
             OSDClient client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-            client.deletePart(path, objMeta.getObjId(), s3Parameter.getPartNumber());
+            // client.deletePart(path, objMeta.getObjId(), s3Parameter.getPartNumber());
             // OSDClientManager.getInstance().returnOSDClient(client);
         } else {
             File tmpFile = null;
             if (GWConfig.getInstance().isCacheDiskpath()) {
-                tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
+                tmpFile = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
             } else {
-                tmpFile = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+                tmpFile = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
             }
 
             if (tmpFile.exists()) {
@@ -2220,6 +2332,58 @@ public class S3ObjectOperation {
             }            
         }
     }
+
+    // private boolean checkPartRef(ObjMultipart objMultipart, String uploadId, int partNumber) {
+    //     try {
+    //         String reference = objMultipart.getPartRef(uploadId, partNumber);
+    //         logger.error("{},{} reference : {}", uploadId, partNumber, reference);
+    //         if (!Strings.isNullOrEmpty(reference)) {
+    //             String[] infos = reference.split(GWConstants.COLON);
+    //             if (infos.length == 1) {
+    //                 if (infos[0].equals(objMeta.getObjId() + versionId)) {
+    //                     return true;
+    //                 }
+    //             } else if (infos.length >= 2) {
+    //                 int index = 0;
+    //                 String newReference = null;
+    //                 while (index < infos.length) {
+    //                     if (infos[index].equals(objMeta.getObjId() + versionId)) {
+    //                         index++;
+    //                         continue;
+    //                     } else {
+    //                         if (newReference == null) {
+    //                             newReference = infos[index];
+    //                         } else {
+    //                             newReference += GWConstants.COLON + infos[index];
+    //                         }
+    //                     }
+    //                     index++;
+    //                 }
+    //                 objMultipart.putPartRef(uploadId, partNumber, newReference);
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         PrintStack.logging(logger, e);
+    //     }
+    //     return false;
+    // }
+
+    // private void setPartRef(ObjMultipart objMultipart, String uploadId, int partNumber) {
+    //     try {
+    //         String reference = objMultipart.getPartRef(uploadId, partNumber);
+    //         if (Strings.isNullOrEmpty(reference)) {
+    //             reference = objMeta.getObjId() + versionId;
+    //             objMultipart.putPartRef(uploadId, partNumber, reference);
+    //         } else {
+    //             if (!reference.contains(objMeta.getObjId() + versionId)) {
+    //                 reference += GWConstants.COLON + objMeta.getObjId() + versionId;
+    //                 objMultipart.putPartRef(uploadId, partNumber, reference);
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         PrintStack.logging(logger, e);
+    //     }
+    // }
 
     public S3Object completeMultipart(SortedMap<Integer, Part> listPart) throws Exception {
         S3Object s3Object = new S3Object();
@@ -2239,6 +2403,70 @@ public class S3ObjectOperation {
 
         String path = objMeta.getPrimaryDisk().getPath();
 
+        // if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+            file = new File(KsanUtils.makeObjPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            // file = new File(KsanUtils.makeObjMultipartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId, s3Parameter.getUploadId()));
+            tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+            trashFile = new File(KsanUtils.makeTrashPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), versionId));
+        // }
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmpFile))) {
+            StringBuilder sb = new StringBuilder();
+            for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
+                Map.Entry<Integer, Part> entry = it.next();
+                totalLength += entry.getValue().getPartSize();
+                // String partPath = DiskManager.getInstance().getLocalPath(entry.getValue().getDiskID());
+                String partPath = DiskManager.getInstance().getLocalPath(entry.getValue().getPrimaryDiskId());
+                if (entry.getValue().getPartETag().equals(GWConstants.DIRECTORY_MD5)) {
+                    // partCopy
+                    logger.debug("partCopy...");
+                    File copyPartFile = new File(KsanUtils.makePartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                    try (BufferedReader br = new BufferedReader(new FileReader(copyPartFile))) {
+                        String line = null;
+                        while ((line = br.readLine()) != null) {
+                            // // check reference
+                            // String[] infos = line.split(GWConstants.COLON);
+                            // String[] uploadInfos = infos[1].split(GWConstants.UNDERSCORE);
+                            // setPartRef(objMultipart, uploadInfos[1], Integer.parseInt(uploadInfos[2]));
+                            line += System.lineSeparator();
+                            bw.write(line);
+                        }
+                    } catch(Exception e) {
+                        PrintStack.logging(logger, e);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                    }
+                } else {
+                    sb.setLength(0);
+                    // sb.append(entry.getValue().getDiskID());
+                    sb.append(entry.getValue().getPrimaryDiskId());
+                    sb.append(GWConstants.COLON);
+                    sb.append(KsanUtils.makePartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                    sb.append(GWConstants.COLON);
+                    sb.append(entry.getValue().getPartSize());
+                    sb.append(GWConstants.COLON);
+                    sb.append(System.lineSeparator());
+                    bw.write(sb.toString());
+                    // // check reference
+                    // setPartRef(objMultipart, s3Parameter.getUploadId(), entry.getValue().getPartNumber());
+                }
+            }
+        } catch(Exception e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        }
+
+        s3Object.setLastModified(new Date());
+        s3Object.setFileSize(totalLength);
+        s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+
+        if (file.exists()) {
+            File tempFile = new File(file.getAbsolutePath());
+            retryRenameTo(tempFile, trashFile);
+        }
+        retryRenameTo(tmpFile, file);
+        
+
+        /*
         if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
             logger.info(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
             String partInfos = GWConstants.EMPTY_STRING;
@@ -2288,9 +2516,9 @@ public class S3ObjectOperation {
                             logger.debug("part : {}, diskID : {}, part path : {}", entry.getKey(), entry.getValue().getDiskID(), partPath);
                             File partFile = null;
                             if (GWConfig.getInstance().isCacheDiskpath()) {
-                                partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()))));
+                                partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber()))));
                             } else {
-                                partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
+                                partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                             }
     
                             totalLength += partFile.length();
@@ -2334,9 +2562,9 @@ public class S3ObjectOperation {
                             logger.debug("part : {}, diskID : {}, part path : {}", entry.getKey(), entry.getValue().getDiskID(), partPath);
                             File partFile = null;
                             if (GWConfig.getInstance().isCacheDiskpath()) {
-                                partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()))));
+                                partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber()))));
                             } else {
-                                partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
+                                partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                             }
                             totalLength += partFile.length();
                             logger.debug("totalLength: {}", totalLength);
@@ -2441,9 +2669,9 @@ public class S3ObjectOperation {
                                 logger.debug("part : {}, diskID : {}, part path : {}", entry.getKey(), entry.getValue().getDiskID(), partPath);
                                 File partFile = null;
                                 if (GWConfig.getInstance().isCacheDiskpath()) {
-                                    partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()))));
+                                    partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber()))));
                                 } else {
-                                    partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
+                                    partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                                 }
         
                                 totalLength += partFile.length();
@@ -2487,9 +2715,9 @@ public class S3ObjectOperation {
                                 logger.debug("part : {}, diskID : {}, part path : {}", entry.getKey(), entry.getValue().getDiskID(), partPath);
                                 File partFile = null;
                                 if (GWConfig.getInstance().isCacheDiskpath()) {
-                                    partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()))));
+                                    partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber()))));
                                 } else {
-                                    partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
+                                    partFile = new File(KsanUtils.makeTempPartPath(partPath, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                                 }
                                 totalLength += partFile.length();
                                 logger.debug("totalLength: {}", totalLength);
@@ -2544,7 +2772,7 @@ public class S3ObjectOperation {
                     s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
                 }
             }
-        }
+        } */
         
         // delete part file
         // abortMultipart(listPart);
@@ -2558,23 +2786,26 @@ public class S3ObjectOperation {
             String path = null;
             for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<Integer, Part> entry = it.next();
-                logger.info("key : {}, diskId : {}", entry.getKey(), entry.getValue().getDiskID());
-                path = DiskManager.getInstance().getLocalPath(entry.getValue().getDiskID());
+                // logger.info("key : {}, diskId : {}", entry.getKey(), entry.getValue().getDiskID());
+                // path = DiskManager.getInstance().getLocalPath(entry.getValue().getDiskID());
+                logger.info("key : {}, diskId : {}", entry.getKey(), entry.getValue().getPrimaryDiskId());
+                path = DiskManager.getInstance().getLocalPath(entry.getValue().getPrimaryDiskId());
 
                 if (!Strings.isNullOrEmpty(path)) {
                     // part is in local disk
                     File partFile = null;
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        partFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()))));
+                        partFile = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + path, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                     } else {
-                        partFile = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber())));
+                        partFile = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
                     }
                     partFile.delete();
                 } else {
-                    String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
+                    // String host = DiskManager.getInstance().getOSDIP(entry.getValue().getDiskID());
+                    String host = DiskManager.getInstance().getOSDIP(entry.getValue().getPrimaryDiskId());
                     OSDClient client = new OSDClient(host, (int)GWConfig.getInstance().getOsdPort());
                     // OSDClient client = OSDClientManager.getInstance().getOSDClient(host);
-                    client.deletePart(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()));
+                    // client.deletePart(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), String.valueOf(entry.getValue().getPartNumber()));
                     // OSDClientManager.getInstance().returnOSDClient(client);
                 }
             }
@@ -2586,125 +2817,258 @@ public class S3ObjectOperation {
 
     public S3Object uploadPartCopy(String path, Metadata srcObjMeta, S3Range s3Range, S3Encryption srcEncryption) throws ResourceNotFoundException, Exception {
         S3Object s3Object = new S3Object();
-        MessageDigest md5er = MessageDigest.getInstance(GWConstants.MD5);
-        boolean isTgtEncript = s3Encryption.isEncryptionEnabled();
         OSDClient client = null;
         String srcKey = srcEncryption.getCustomerKey();
         long actualSize = 0L;
         CtrCryptoOutputStream encryptOS = null;
         OutputStream outputStream = null;
 
+        long offset = 0L;
+        long last = 0L;
+        
         String copySourceRange = GWConstants.EMPTY_STRING;
         if (s3Range != null && s3Range.getListRange().size() > 0) {
             for (S3Range.Range range : s3Range.getListRange()) {
+                offset = range.getOffset();
+                last = range.getLast();
                 if (Strings.isNullOrEmpty(copySourceRange)) {
-                    copySourceRange = String.valueOf(range.getOffset()) + GWConstants.COMMA + String.valueOf(range.getLength());
+                    copySourceRange = String.valueOf(offset) + GWConstants.COMMA + String.valueOf(last);
                 } else {
-                    copySourceRange += GWConstants.SLASH + String.valueOf(range.getOffset()) + GWConstants.COMMA + String.valueOf(range.getLength());
+                    copySourceRange += GWConstants.SLASH + String.valueOf(offset) + GWConstants.COMMA + String.valueOf(last);
                 }
             }
-        }
-
-        logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE, copySourceRange);
-        
-        if (!GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
-            logger.info(GWConstants.LOG_CANNOT_FIND_LOCAL_PATH, objMeta.getPrimaryDisk().getId());
-            client = new OSDClient(objMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-            OsdData data = client.partCopy(srcObjMeta.getPrimaryDisk().getId(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), String.valueOf(srcObjMeta.getSize()), copySourceRange, path, objMeta.getObjId(), s3Parameter.getPartNumber());
-
-            s3Object.setEtag(data.getETag());
-            s3Object.setLastModified(new Date());
-            s3Object.setFileSize(data.getFileSize());
-            s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
-            // return s3Object;
+            logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_COPY_SOURCE_RANGE, copySourceRange);
+            actualSize = last - offset + 1;
+            logger.debug("size : {}, offset : {}, last : {}", actualSize, offset, last);
         } else {
-            File tmpFile = null;
-            if (GWConfig.getInstance().isCacheDiskpath()) {
-                tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber())));
-            } else {
-                tmpFile = new File(KsanUtils.makeTempPartPath(path, objMeta.getObjId(), s3Parameter.getPartNumber()));
+            actualSize = srcObjMeta.getSize();
+        }
+        
+        File srcFile = null;
+        File tmpFile = null;
+        boolean isSrcMultipart = false;
+        BufferedWriter bw = null;
+
+        try {
+            // srcFile check
+            S3Metadata s3Metadata = S3Metadata.getS3Metadata(srcObjMeta.getMeta());
+            logger.debug("src has uploadId:{}", s3Metadata.getUploadId());
+
+            if (!Strings.isNullOrEmpty(s3Metadata.getUploadId())) {
+                isSrcMultipart = true;
             }
-            com.google.common.io.Files.createParentDirs(tmpFile);
-            // tmp src object - get src object data
-            // File tmpFile = new File(KsanUtils.makeTempCopyPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
-            // com.google.common.io.Files.createParentDirs(tmpFile);
-            
-            try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                if (srcObjMeta.getReplicaCount() > 1) {
-                    if (GWUtils.getLocalIP().equals(srcObjMeta.getPrimaryDisk().getOsdIp())) {
-                        actualSize = getObjectLocal(fos, srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, md5er, srcKey);
-                    } else if (GWUtils.getLocalIP().equals(srcObjMeta.getReplicaDisk().getOsdIp())) {
-                        actualSize = getObjectLocal(fos, srcObjMeta.getReplicaDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, md5er, srcKey);
+
+            if (GWConfig.getInstance().isCacheDiskpath()) {
+                srcFile = new File(GWConfig.getInstance().getCacheDiskpath() + KsanUtils.makeObjPathForOpen(srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId()));
+                tmpFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber())));
+            } else {
+                srcFile = new File(KsanUtils.makeObjPathForOpen(srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId()));
+                tmpFile = new File(KsanUtils.makePartPath(path, objMeta.getObjId(), s3Parameter.getUploadId(), s3Parameter.getPartNumber()));
+            }
+
+            bw = new BufferedWriter(new FileWriter(tmpFile));
+
+            if (isSrcMultipart) {
+                BufferedReader srcBR = new BufferedReader(new FileReader(srcFile));
+                String line = null;
+                long accOffset = 0L;
+                long partLength = 0L;
+                Long objOffset = 0L;
+                Long objLast = 0L;
+                long newOffset = 0L;
+                long newLast = 0L;
+                boolean isPartRange = false;
+                StringBuilder sb = new StringBuilder();
+
+                while ((line = srcBR.readLine()) != null) {
+                    objOffset = 0L;
+                    objLast = 0L;
+                    String[] infos = line.split(GWConstants.COLON);
+                    String objDiskId = infos[0];
+                    String objPath = infos[1];
+                    Long objSize = Long.parseLong(infos[2]);
+                    if (infos.length > 3) {
+                        String[] objRanges = infos[3].split(GWConstants.DASH);
+                        objOffset = Long.parseLong(objRanges[0]);
+                        objLast = Long.parseLong(objRanges[1]);
+                        partLength = objLast - objOffset + 1;
+                        isPartRange = true;
                     } else {
-                        try {
-                            client = new OSDClient(srcObjMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                            // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
-                            client.getInitWithMD5(srcObjMeta.getPrimaryDisk().getPath(), 
-                                        srcObjMeta.getObjId(), 
-                                        srcObjMeta.getVersionId(), 
-                                        srcObjMeta.getSize(), 
-                                        copySourceRange, 
-                                        fos,
-                                        md5er,
-                                        srcKey);
-                            actualSize = client.getWithMD5();
-                            // OSDClientManager.getInstance().returnOSDClient(client);
-                        } catch (Exception e) {
-                            client = new OSDClient(srcObjMeta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                            // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getReplicaDisk().getOsdIp());
-                            client.getInitWithMD5(srcObjMeta.getReplicaDisk().getPath(), 
-                                        srcObjMeta.getObjId(), 
-                                        srcObjMeta.getVersionId(), 
-                                        srcObjMeta.getSize(), 
-                                        copySourceRange, 
-                                        fos,
-                                        md5er,
-                                        srcKey);
-                            actualSize = client.getWithMD5();
-                            // OSDClientManager.getInstance().returnOSDClient(client);
+                        partLength = objSize;
+                        isPartRange = false;
+                    }
+
+                    if (accOffset < offset) {
+                        if (accOffset + partLength <= offset) {
+                            accOffset += partLength;
+                            continue;
                         }
                     }
-                } else {
-                    if (GWUtils.getLocalIP().equals(srcObjMeta.getPrimaryDisk().getOsdIp())) {
-                        actualSize = getObjectLocal(fos, srcObjMeta.getPrimaryDisk().getPath(), srcObjMeta.getObjId(), srcObjMeta.getVersionId(), copySourceRange, srcKey);
+                    
+                    newOffset = offset - accOffset;
+                    
+                    if (accOffset + partLength < last) {
+                        if (newOffset > 0 && newOffset < partLength) {
+                            sb.setLength(0);
+                            sb.append(objDiskId);
+                            sb.append(GWConstants.COLON);
+                            sb.append(objPath);
+                            sb.append(GWConstants.COLON);
+                            sb.append(objSize);
+                            sb.append(GWConstants.COLON);
+                            sb.append(newOffset);
+                            sb.append(GWConstants.DASH);
+                            if (isPartRange) {
+                                sb.append(objLast); // this part Range
+                            } else {
+                                sb.append(objSize - 1);
+                            }
+                            sb.append(System.lineSeparator());
+                            bw.write(sb.toString());
+                        } else {
+                            line += System.lineSeparator();
+                            bw.write(line);
+                        }
+                    } else if ((accOffset + partLength - 1) == last) {
+                        line += System.lineSeparator();
+                        bw.write(line);
+                        break;
                     } else {
-                        client = new OSDClient(srcObjMeta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                        // client = OSDClientManager.getInstance().getOSDClient(srcObjMeta.getPrimaryDisk().getOsdIp());
-                        client.getInitWithMD5(srcObjMeta.getPrimaryDisk().getPath(), 
-                                    srcObjMeta.getObjId(), 
-                                    srcObjMeta.getVersionId(), 
-                                    srcObjMeta.getSize(), 
-                                    copySourceRange, 
-                                    fos,
-                                    md5er,
-                                    srcKey);
-                        actualSize = client.getWithMD5();
-                        // OSDClientManager.getInstance().returnOSDClient(client);
+                        newLast = last - accOffset;
+                        if (newLast - objOffset + 1 == objSize) {
+                            line += System.lineSeparator();
+                            bw.write(line);
+                        } else {
+                            sb.setLength(0);
+                        
+                            sb.append(objDiskId);
+                            sb.append(GWConstants.COLON);
+                            sb.append(objPath);
+                            sb.append(GWConstants.COLON);
+                            sb.append(objSize);
+                            sb.append(GWConstants.COLON);
+                            sb.append(objOffset);   // this part Range
+                            sb.append(GWConstants.DASH);
+                            sb.append(newLast);
+                            sb.append(System.lineSeparator());
+                            bw.write(sb.toString());
+                        }
+                        break;
+                    }
+                    accOffset += partLength;
+                }
+                srcBR.close();
+                s3Object.setEtag(GWConstants.DIRECTORY_MD5);
+            } else {
+                // copy range and make part
+                FileInputStream is = new FileInputStream(srcFile);
+			    FileOutputStream os = new FileOutputStream(tmpFile);
+                CtrCryptoInputStream enfin = null;
+                MessageDigest md5er = null;
+                byte[] byteArray = new byte[GWConstants.MAXBUFSIZE];
+			    int readLength = 0;
+                int readByte = GWConstants.BUFSIZE;
+
+                try {
+                    if (actualSize < 100 * GWConstants.MEGABYTES) {
+                        md5er = MessageDigest.getInstance(GWConstants.MD5);
+                    } else {
+                        md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    PrintStack.logging(logger, e);
+                    is.close();
+                    os.close();
+                    throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+                }
+
+                // check range
+                if (last == 0) {
+                    // whole file
+                    if (srcEncryption.isEncryptionEnabled()) {
+                        // enfin = GWUtils.initCtrEncrypt(is, s3Encryption.getCustomerKey());
+                        // while ((readLength = enfin.read(byteArray, 0, GWConstants.MAXBUFSIZE)) != -1) {
+                        //     os.write(byteArray, 0, readLength);
+                        //     md5er.update(byteArray, 0, readLength);
+                        // }
+                        // enfin.close();
+                        // os.flush();
+                        // os.close();
+                    } else {
+                        while ((readLength = is.read(byteArray, 0, GWConstants.MAXBUFSIZE))!= -1) {
+                            os.write(byteArray, 0, readLength);
+                            md5er.update(byteArray, 0, readLength);
+                        }
+                        is.close();
+                        os.flush();
+                        os.close();
+                    }
+                } else {
+                    if (srcEncryption.isEncryptionEnabled()) {
+                        // enfin = GWUtils.initCtrEncrypt(is, s3Encryption.getCustomerKey());
+                        // enfin.skip(offset);
+                        // long remainLength = actualSize;
+                        // while (remainLength > 0) {
+                        //     if (remainLength > GWConstants.BUFSIZE) {
+                        //         readByte = GWConstants.BUFSIZE;
+                        //     } else {
+                        //         readByte = (int)remainLength;
+                        //     }
+
+                        //     if ((readLength = enfin.read(byteArray, 0, readByte)) == -1) {
+                        //         os.write(byteArray, 0, readLength);
+                        //         md5er.update(byteArray, 0, readLength);
+                        //     } else {
+                        //         break;
+                        //     }
+
+                        //     remainLength -= readLength;
+                        // }
+                        // enfin.close();
+                        // os.flush();
+                        // os.close();
+                    } else {
+                        is.skip(offset);
+                        long remainLength = actualSize;
+                        while (remainLength > 0) {
+                            if (remainLength > GWConstants.BUFSIZE) {
+                                readByte = GWConstants.BUFSIZE;
+                            } else {
+                                readByte = (int)remainLength;
+                            }
+
+                            if ((readLength = is.read(byteArray, 0, readByte)) == -1) {
+                                os.write(byteArray, 0, readLength);
+                                md5er.update(byteArray, 0, readLength);
+                            } else {
+                                break;
+                            }
+
+                            remainLength -= readLength;
+                        }
+                        is.close();
+                        os.flush();
+                        os.close();
                     }
                 }
+
+                byte[] digest = md5er.digest();
+                String eTag = base16().lowerCase().encode(digest);
+                
+                s3Object.setEtag(eTag);
             }
-    
-            logger.debug("Total read : {}", actualSize);
-    
-            byte[] digest = md5er.digest();
-            String eTag = base16().lowerCase().encode(digest);
-            md5er.reset();
-    
-            s3Object.setEtag(eTag);
-            s3Object.setLastModified(new Date());
-            s3Object.setFileSize(actualSize);
-            s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+            bw.close();
+        } catch(FileNotFoundException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        } catch(IOException e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
         }
-        
-        // long totalLength = 0L;
-        // tmpFile = new File(KsanUtils.makeTempCopyPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
-        // try (FileInputStream is = new FileInputStream(tmpFile)) {
-        //     s3Object = uploadPartNormal(path, tmpFile.length(), is);
-        // } catch (IOException e) {
-        //     PrintStack.logging(logger, e);
-        //     throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-        // }
-        // tmpFile.delete();
+
+        s3Object.setLastModified(new Date());
+        s3Object.setFileSize(actualSize);
+        s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
 
         return s3Object;
     }
@@ -2725,7 +3089,7 @@ public class S3ObjectOperation {
             }
 
             // tmp src object - get src object data
-            File tmpFile = new File(KsanUtils.makeTempCopyPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
+            File tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
             com.google.common.io.Files.createParentDirs(tmpFile);
             try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
                 if (srcObjMeta.getReplicaCount() > 1) {
@@ -2787,7 +3151,7 @@ public class S3ObjectOperation {
                 throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
             }
 
-            tmpFile = new File(KsanUtils.makeTempCopyPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
+            tmpFile = new File(KsanUtils.makeTempPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), objMeta.getVersionId()));
             s3Meta.setContentLength(tmpFile.length());
             logger.info("tmpfile path : {}", tmpFile.getAbsolutePath());
             
@@ -2856,4 +3220,5 @@ public class S3ObjectOperation {
             logger.error(GWConstants.LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
         }
     }
+
 }

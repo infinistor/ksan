@@ -118,6 +118,7 @@ public enum GWErrorCode {
     X_AMZ_CONTENT_S_H_A_256_MISMATCH(HttpServletResponse.SC_BAD_REQUEST,
             "The provided 'x-amz-content-sha256' header does not match what" +
             " was computed."),
+    INTERNAL_SERVER_DISK_ERROR(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "S3 disk is not available"),
     INTERNAL_SERVER_DB_ERROR(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "S3 database error has occurred"),
     INTERNAL_SERVER_ERROR(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "S3 server internal server error has occurred");
 

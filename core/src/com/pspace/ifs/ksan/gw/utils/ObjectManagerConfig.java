@@ -36,16 +36,16 @@ public class ObjectManagerConfig {
     private String mqOsdExchangeName;
 
     private static final String VERSION = "version";
-    private static final String DB_REPOSITORY = "objM.db_repository";
-    private static final String DB_HOST = "objM.db_host";
-    private static final String DB_NAME = "objM.db_name";
-    private static final String DB_PORT = "objM.db_port";
-    private static final String DB_USER = "objM.db_user";
-    private static final String DB_PASSWORD = "objM.db_password";
-    private static final String MQ_HOST = "objM.mq_host";
-    private static final String MQ_QUEUE_NAME = "objM.mq_queue_name";
-    private static final String MQ_EXCHANGE_NAME = "objM.mq_exchange_name";
-    private static final String MQ_OSD_EXCHANGE_NAME = "objM.mq_osd_exchange_name";
+    private static final String DB_REPOSITORY = "db_repository";
+    private static final String DB_HOST = "db_host";
+    private static final String DB_NAME = "db_name";
+    private static final String DB_PORT = "db_port";
+    private static final String DB_USER = "db_user";
+    private static final String DB_PASSWORD = "db_password";
+    private static final String MQ_HOST = "mq_host";
+    private static final String MQ_QUEUE_NAME = "mq_queue_name";
+    private static final String MQ_EXCHANGE_NAME = "mq_exchange_name";
+    private static final String MQ_OSD_EXCHANGE_NAME = "mq_osd_exchange_name";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(ObjectManagerConfig.class);

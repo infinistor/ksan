@@ -63,13 +63,13 @@ public class GetBlob extends AzuRequest {
         String range = azuParameter.getRequest().getHeader(AzuConstants.X_MS_RANGE);
         logger.debug("range : {}", range);
 
-		AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
-		try {
-			azuObjectOperation.getObject(range);
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		}
+		// AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
+		// try {
+		// 	azuObjectOperation.getObject(range);
+		// } catch (Exception e) {
+		// 	PrintStack.logging(logger, e);
+		// 	throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
+		// }
 
         azuParameter.getResponse().setCharacterEncoding(AzuConstants.CHARSET_UTF_8);
         azuParameter.getResponse().setContentLength(s3Metadata.getContentLength().intValue());

@@ -39,7 +39,9 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -62,6 +64,7 @@ public class CompleteMultipartUpload extends S3Request {
 	@Override
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_START);
+		long beforeTime = System.currentTimeMillis();
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -132,6 +135,10 @@ public class CompleteMultipartUpload extends S3Request {
 		for (Iterator<Map.Entry<Integer, Part>> it = xmlListPart.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<Integer, Part> entry = it.next();
 			String eTag = entry.getValue().getPartETag().replace(GWConstants.DOUBLE_QUOTE, "");
+			// if (eTag.equals(GWConstants.PARTCOPY_MD5)) {
+			// 	logger.debug("this part is part copy");
+			// 	continue;
+			// }
 			if (listPart.containsKey(entry.getKey())) {
 				Part part = listPart.get(entry.getKey());
 				if (eTag.compareTo(part.getPartETag()) == 0 ) {
@@ -164,6 +171,7 @@ public class CompleteMultipartUpload extends S3Request {
 		String acl = multipart.getAcl();
 
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
+		s3Metadata.setUploadId(uploadId);
 		
 		// check encryption
 		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
@@ -209,15 +217,16 @@ public class CompleteMultipartUpload extends S3Request {
 			final AtomicReference<S3Object> s3Object = new AtomicReference<>();
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
-			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
-			
+			// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
+			IObjectManager objManager = new VFSObjectManager();
 			SortedMap<Integer, Part> constListPart = listPart;
-
+			Metadata constObjMeta = objMeta;
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
 					try {
-						s3Object.set(objectOperation.completeMultipart(constListPart));
+						// s3Object.set(objectOperation.completeMultipart(constListPart));
+						s3Object.set(objManager.completeMultipart(s3Parameter, constObjMeta, s3ObjectEncryption, constListPart));
 					} catch (Exception e) {
 						S3Excp.set(e);
 					}
@@ -239,6 +248,7 @@ public class CompleteMultipartUpload extends S3Request {
 					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 				xmlStreamWriter.writeCharacters(GWConstants.NEWLINE);
+				xmlStreamWriter.flush();
 			}
 
 			if( S3Excp.get() != null) {
@@ -255,6 +265,7 @@ public class CompleteMultipartUpload extends S3Request {
 			StringBuilder sb = new StringBuilder();
 			for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
 				Map.Entry<Integer, Part> entry = it.next();
+				logger.debug("etag : {}", entry.getValue().getPartETag());
 				sb.append(entry.getValue().getPartETag());
 			}
 			
@@ -295,11 +306,10 @@ public class CompleteMultipartUpload extends S3Request {
 				logger.error(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_FAILED, bucket, object);
 			}
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_INFO, bucket, object, s3Object.get().getFileSize(), s3Object.get().getEtag(), acl, versionId);
-			objMultipart.abortMultipartUpload(uploadId);
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} catch (XMLStreamException e) {
+			// objMultipart.abortMultipartUpload(uploadId);
+			long afterTime = System.currentTimeMillis();
+			logger.debug("CompleteMultipartUpload ... uploadId:{}, worktime : {} ms", uploadId, (afterTime - beforeTime));
+		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.libs;
+package com.pspace.ifs.ksan.libs.osd;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OSDClient {
+	private boolean isUsed;
 	private String host;
 	private Socket socket;
 	private Logger logger;
@@ -32,6 +33,7 @@ public class OSDClient {
 	private MessageDigest md5er;
 
 	public OSDClient(String ipAddress, int port) throws UnknownHostException, IOException {
+		isUsed = false;
 		logger = LoggerFactory.getLogger(OSDClient.class);
 		host = ipAddress;
 		socket = new Socket(ipAddress, port);
@@ -40,8 +42,20 @@ public class OSDClient {
         logger.debug(Constants.LOG_OSDCLIENT_SOCKET_INFO, socket.toString());
 	}
 
+	public boolean isUsed() {
+		return isUsed;
+	}
+
+	public void setUsed(boolean isUsed) {
+		this.isUsed = isUsed;
+	}
+
 	public Socket getSocket() {
 		return socket;
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
 	}
 	
 	public void disconnect() throws IOException {
@@ -105,7 +119,11 @@ public class OSDClient {
 		// byPassOut.close();
 		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
 		return readTotal;
-	} 
+	}
+
+	public int get(byte[] b, int off, int len) throws IOException {
+		return socket.getInputStream().read(b, off, len);
+	}
 
 	public long getWithMD5() throws IOException {
 		byte[] buffer = new byte[Constants.MAXBUFSIZE];
@@ -127,16 +145,27 @@ public class OSDClient {
 		return readTotal;
 	}
 
-	public void getPartInit(String path, String objId, String partNo, long fileSize, OutputStream out/*, MessageDigest md5er*/) throws IOException {
+	// public void getPartInit(String path, String objId, String partNo, long fileSize, String range, OutputStream out) throws IOException {
+	// 	String header = OsdData.GET_PART 
+	// 					+ OsdData.DELIMITER + path 
+	// 					+ OsdData.DELIMITER + objId 
+	// 					+ OsdData.DELIMITER + partNo
+	// 					+ OsdData.DELIMITER + range;
+	// 	logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
+	// 	sendHeader(header);
+	// 	this.fileSize = fileSize;
+	// 	byPassOut = out;
+	// 	// this.md5er = md5er;
+	// }
+
+	public void getPartInit(String path, long size, String range, OutputStream out) throws IOException {
 		String header = OsdData.GET_PART 
 						+ OsdData.DELIMITER + path 
-						+ OsdData.DELIMITER + objId 
-						+ OsdData.DELIMITER + partNo;
+						+ OsdData.DELIMITER + range;
 		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
-		this.fileSize = fileSize;
+		this.fileSize = size;
 		byPassOut = out;
-		// this.md5er = md5er;
 	}
 
 	public long getPart() throws IOException {
@@ -148,16 +177,18 @@ public class OSDClient {
 		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
 			readTotal += readLength;
 			byPassOut.write(buffer, 0, readLength);
-			// md5er.update(buffer, 0, readLength);
 			if (readTotal >= fileSize) {
 				break;
 			}
 		}
 		byPassOut.flush();
-		// byPassOut.close();
 		logger.debug(Constants.LOG_OSDCLIENT_READ, readTotal);
 
 		return readTotal;
+	}
+
+	public int getPart(byte[] b, int off, int len) throws IOException {
+		return socket.getInputStream().read(b, off, len);
 	}
 
 	public void putInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID, String key, String mode) throws IOException {
@@ -180,7 +211,6 @@ public class OSDClient {
 
 	public void putFlush() throws IOException {
 		socket.getOutputStream().flush();
-		// socket.getOutputStream().close();
 	}
 
 	public void delete(String path, String objId, String versionId) throws IOException {
@@ -220,10 +250,11 @@ public class OSDClient {
 		sendHeader(header);
 	}
 
-	public void partInit(String path, String objId, String partNo, long length, String key) throws IOException {
+	public void partInit(String path, String objId, String uploadId, String partNo, long length, String key) throws IOException {
 		String header = OsdData.PART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + uploadId 
 						+ OsdData.DELIMITER + partNo 
 						+ OsdData.DELIMITER + String.valueOf(length)
 						+ OsdData.DELIMITER + key;
@@ -235,10 +266,11 @@ public class OSDClient {
 		socket.getOutputStream().write(buffer, offset, length);
 	}
 
-	public void deletePart(String path, String objId, String partNo) throws IOException {
+	public void deletePart(String path, String objId, String uploadId, String partNo) throws IOException {
 		String header = OsdData.DELETE_PART 
 						+ OsdData.DELIMITER + path 
 						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + uploadId 
 						+ OsdData.DELIMITER + partNo;
 		logger.debug(Constants.LOG_OSDCLIENT_DELETE_PART_HEADER, header);
 		sendHeader(header);
@@ -258,6 +290,37 @@ public class OSDClient {
 		sendHeader(header);
 
 		return receiveData();
+	}
+
+	public void getMultipartInit(String path, String objId, String versionId, long fileSize, String sourceRange, OutputStream out, String key) throws IOException {
+		String header = OsdData.GET_MULTIPART 
+						+ OsdData.DELIMITER + path 
+						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + versionId 
+						+ OsdData.DELIMITER + sourceRange
+						+ OsdData.DELIMITER + key;
+		logger.debug(Constants.LOG_OSDCLIENT_GET_MULTIPART_HEADER, header);
+		sendHeader(header);
+		this.fileSize = fileSize;
+		byPassOut = out;
+	}
+
+	public long getMultipart() throws IOException {
+		byte[] buffer = new byte[Constants.MAXBUFSIZE];
+		int readByte = Constants.MAXBUFSIZE;
+		int readLength = 0;
+		long readTotal = 0L;
+		logger.debug("fileSize: {}", fileSize);
+		while ((readLength = socket.getInputStream().read(buffer, 0, readByte)) != -1) {
+			readTotal += readLength;
+			byPassOut.write(buffer, 0, readLength);
+			if (readTotal >= fileSize) {
+				break;
+			}
+		}
+		byPassOut.flush();
+		logger.info(Constants.LOG_OSDCLIENT_READ, readTotal);
+		return readTotal;
 	}
 
 	public OsdData completeMultipart(String path, String objId, String versionId, String key, String replication, String replicaDiskID, String partNos) throws IOException {
@@ -330,6 +393,7 @@ public class OSDClient {
         byte[] lengthBuffer = strLength.getBytes(Constants.CHARSET_UTF_8);
 
 		byte length = (byte)lengthBuffer.length;
+		logger.debug("socket : {} send header size : {}", socket.getRemoteSocketAddress().toString(), buffer.length);
 		socket.getOutputStream().write(length);
         socket.getOutputStream().write(lengthBuffer, 0, length);
 		
@@ -392,7 +456,7 @@ public class OSDClient {
 
 	public boolean isValid() {
 		if (this.socket != null) {
-			return this.socket.isClosed();
+			return !this.socket.isClosed() && socket.isConnected();
 		}
 		return false;
 	}

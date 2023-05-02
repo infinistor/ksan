@@ -416,7 +416,8 @@ public class S3Signing {
 		}
 
 		if (!GWUtils.constantTimeEquals(expectedSignature, authHeader.signature)) {
-			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature );
+			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature);
+			logger.error("authorization:{}, requestURI:{}", s3Parameter.getAuthorization(), s3Parameter.getRequestURI());
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		

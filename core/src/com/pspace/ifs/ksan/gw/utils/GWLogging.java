@@ -39,20 +39,14 @@ public class GWLogging {
 
     private GWLogging() {
         try {
-            // mqSender = new MQSender(AgentConfig.getInstance().getMQHost(), 
-            //     Integer.parseInt(AgentConfig.getInstance().getMQPort()), 
-            //     AgentConfig.getInstance().getMQUser(), 
-            //     AgentConfig.getInstance().getMQPassword(),
-            //     GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
-            //     GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
-            //     GWConstants.MQUEUE_NAME_GW_LOG_ADD);
             MQS = new MessageQueueSender(AgentConfig.getInstance().getMQHost(),
                 Integer.parseInt(AgentConfig.getInstance().getMQPort()),
                 AgentConfig.getInstance().getMQUser(),
                 AgentConfig.getInstance().getMQPassword(),
                 GWConstants.MQUEUE_LOG_EXCHANGE_NAME,
                 GWConstants.MESSAGE_QUEUE_OPTION_DIRECT,
-                GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+                GWConstants.MQUEUE_NAME_GW_LOG_ADD,
+                20);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
@@ -207,7 +201,6 @@ public class GWLogging {
         logger.debug("log - {}", object.toString());
         try {
             MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
-            // mqSender.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }

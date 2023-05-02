@@ -149,7 +149,8 @@ public class KsanCreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
+			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
+			uploadId = objMultipart.createMultipartUpload(objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

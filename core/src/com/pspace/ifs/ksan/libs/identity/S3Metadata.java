@@ -633,7 +633,7 @@ public class S3Metadata {
 	}
 
 	public static S3Metadata getS3Metadata(String json) {
-		if (json == null) {
+		if (json == null || json.length() == 0) {
 			return null;
 		}
 		S3Metadata s3Metadata = new S3Metadata();

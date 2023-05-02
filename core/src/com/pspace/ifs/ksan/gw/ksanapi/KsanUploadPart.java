@@ -27,7 +27,9 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.DiskManager;
@@ -132,21 +134,25 @@ public class KsanUploadPart extends S3Request {
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		IObjectManager objectManager = new VFSObjectManager();
 		Metadata part = null;
 		S3Object s3Object = null;
 		try {
 			part = objMultipart.getObjectWithUploadIdPartNo(uploadId, partNumber);
 			if (part != null) {
-				objectOperation.deletePart(part.getPrimaryDisk().getId());
+				// objectOperation.deletePart(part.getPrimaryDisk().getId());
+				objectManager.deletePart(s3Parameter, objMeta);
 			}
-			s3Object = objectOperation.uploadPart(path, length);
+			// s3Object = objectOperation.uploadPart(path, length);
+			s3Object = objectManager.uploadPart(s3Parameter, objMeta, s3ObjectEncryption);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
-		objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
+		// objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
+		objMultipart.startSingleUpload(objMeta, uploadId, partNumber);
 		objMultipart.finishSingleUpload(uploadId, partNumber);
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());

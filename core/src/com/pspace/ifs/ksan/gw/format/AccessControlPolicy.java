@@ -65,7 +65,7 @@ public class AccessControlPolicy {
             } else {
                 isProcessed = true;
             }
-            logger.debug("token : {}", token);
+            
             switch (token) {
             case GWConstants.JSON_AB_OWNER:
                 if (stk.nextToken().equals(GWConstants.ID)) {

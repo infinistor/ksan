@@ -29,7 +29,9 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.ResultRange;
 import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -149,9 +151,12 @@ public class GetObject extends S3Request {
 
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, resultRange.getContentLengthHeaders(), resultRange.getStreamSize()); 
 		
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
+		IObjectManager objectManager = new VFSObjectManager();
+
 		try {
-			objectOperation.getObject(resultRange.getS3Range());
+			// objectOperation.getObject(resultRange.getS3Range());
+			objectManager.getObject(s3Parameter, objMeta, s3ObjectEncryption, resultRange.getS3Range());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

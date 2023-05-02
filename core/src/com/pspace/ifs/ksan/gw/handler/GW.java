@@ -16,7 +16,8 @@ import static java.util.Objects.requireNonNull;
 import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
-import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
+// import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
+import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -45,6 +46,7 @@ public class GW {
 
 	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
+		GWPortal.getInstance().getObjManagerConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getS3Regions();
 		GWPortal.getInstance().getDiskPoolsDetails();
@@ -166,6 +168,6 @@ public class GW {
 
 	public void stop() throws Exception {
 		server.stop();
-		OSDClientManager.getInstance().shutDown();
+		// OSDClientManager.getInstance().close();
 	}
 }

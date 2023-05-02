@@ -43,16 +43,16 @@ public class OSDConfig {
     private int trashCheckInterval;
 
     private static final String VERSION = "version";
-    private static final String POOL_SIZE = "osd.pool_size";
-    private static final String PORT = "osd.port";
-    private static final String EC_CHECK_INTERVAL = "osd.ec_check_interval"; //"osd.ec_schedule_milliseconds";
-    private static final String EC_WAIT_TIME = "osd.ec_wait_time"; //"osd.ec_apply_milliseconds";
-    private static final String EC_MIN_FILE_SIZE = "osd.ec_min_size"; //"osd.ec_file_size";
-    private static final String CACHE_DISKPATH = "osd.cache_diskpath";
-    private static final String CACHE_CHECK_INTERVAL = "osd.cache_check_interval"; //"osd.cache_schedule_milliseconds";
+    private static final String POOL_SIZE = "pool_size";
+    private static final String PORT = "port";
+    private static final String EC_CHECK_INTERVAL = "ec_check_interval"; //"osd.ec_schedule_milliseconds";
+    private static final String EC_WAIT_TIME = "ec_wait_time"; //"osd.ec_apply_milliseconds";
+    private static final String EC_MIN_FILE_SIZE = "ec_min_size"; //"osd.ec_file_size";
+    private static final String CACHE_DISKPATH = "cache_diskpath";
+    private static final String CACHE_CHECK_INTERVAL = "cache_check_interval"; //"osd.cache_schedule_milliseconds";
     // private static final String CACHE_FILE_SIZE = "osd.cache_file_size";
-    private static final String CACHE_EXPIRE = "osd.cache_expire"; //"osd.cache_limit_milliseconds";
-    private static final String TRASH_CHECK_INTERVAL = "osd.trash_check_interval"; //"osd.trash_schedule_milliseconds";
+    private static final String CACHE_EXPIRE = "cache_expire"; //"osd.cache_limit_milliseconds";
+    private static final String TRASH_CHECK_INTERVAL = "trash_check_interval"; //"osd.trash_schedule_milliseconds";
     private static final String EQUAL = "=";
 
     private static final Logger logger = LoggerFactory.getLogger(OSDConfig.class);
@@ -229,14 +229,14 @@ public class OSDConfig {
 
         logger.debug("pool size : {}", getPoolSize());
         logger.debug("port : {}", getPort());
-        logger.debug("trash schedule minutes : {}", getTrashCheckInterval());
-        logger.debug("ec schedule minutes : {}", getECCheckInterval());
-        logger.debug("ec apply minutes : {}", getECWaitTime());
+        logger.debug("trash schedule ms : {}", getTrashCheckInterval());
+        logger.debug("ec schedule ms : {}", getECCheckInterval());
+        logger.debug("ec apply ms : {}", getECWaitTime());
         logger.debug("ec file size : {}", getECMinSize());
         logger.debug("cache disk : {}", getCacheDiskpath());
-        logger.debug("cache schedule minutes : {}", getCacheCheckInterval());
+        logger.debug("cache schedule ms : {}", getCacheCheckInterval());
         // logger.debug("cache file size : {}", getCacheFileSize());
-        logger.debug("cache limit minutes : {}", getCacheExpire());
+        logger.debug("cache limit ms : {}", getCacheExpire());
     }
 
     public void saveConfigFile() throws IOException {

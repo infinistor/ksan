@@ -78,6 +78,7 @@ public class Constants {
 	public static final String LOG_OSDCLIENT_PART_COPY_HEADER = "partCopy header : {}";
 	public static final String LOG_OSDCLIENT_COMPLETE_MULTIPART_HEADER = "completeMultipart header : {}";
 	public static final String LOG_OSDCLIENT_ABORT_MULTIPART_HEADER = "abortMultipart header : {}";
+	public static final String LOG_OSDCLIENT_GET_MULTIPART_HEADER = "get multipart header : {}";
 	public static final String LOG_OSDCLIENT_UNKNOWN_RESULT = "Unknown result : {}";
 	public static final String LOG_OSDCLIENT_ACTIVATE_SOCKET = "activate socket...";
 	public static final String LOG_OSDCLIENT_DESACTIVATE_SOCKET = "desactivate socket...";

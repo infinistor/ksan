@@ -26,6 +26,7 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
 import com.pspace.ifs.ksan.gw.format.Tagging;
@@ -38,7 +39,9 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
@@ -92,6 +95,12 @@ public class PutObject extends S3Request {
 		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = s3RequestData.getServerSideEncryption();
 		String storageClass = s3RequestData.getStorageClass();
+
+		if (!Strings.isNullOrEmpty(customerAlgorithm) && Strings.isNullOrEmpty(customerKey)) {
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+		} else if (Strings.isNullOrEmpty(customerAlgorithm) && !Strings.isNullOrEmpty(customerKey)) {
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+		}
 
 		if (Strings.isNullOrEmpty(storageClass)) {
 			storageClass = GWConstants.AWS_TIER_STANTARD;
@@ -328,6 +337,7 @@ public class PutObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
+		objMeta.setSize(contentLength);
 
 		if (isExist && !effectPolicy) {
 			if (objectAccessControlPolicy != null) {
@@ -336,8 +346,10 @@ public class PutObject extends S3Request {
 		}
 
 		s3Parameter.setVersionId(versionId);
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
-		S3Object s3Object = objectOperation.putObject();
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
+		// S3Object s3Object = objectOperation.putObject();
+		IObjectManager objectManager = new VFSObjectManager();
+		S3Object s3Object = objectManager.putObject(s3Parameter, objMeta, encryption);
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());

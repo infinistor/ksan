@@ -8,14 +8,14 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.ifs.ksan.gw.object.osdclient;
+package com.pspace.ifs.ksan.libs.osd;
 
 import com.pspace.ifs.ksan.libs.osd.OSDClient;
-import org.apache.commons.pool2.PooledObject;
-import org.apache.commons.pool2.PooledObjectFactory;
-import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
-public class OSDClientFactory implements PooledObjectFactory <OSDClient> {
+public class OSDClientFactory extends org.apache.commons.pool2.BasePooledObjectFactory<OSDClient> {
     private final String host;
     private final int port;
 
@@ -24,38 +24,23 @@ public class OSDClientFactory implements PooledObjectFactory <OSDClient> {
         this.port = port;
     }
 
-    private OSDClient create() throws Exception {
-        OSDClient client = new OSDClient(host, port);
-        return client;
-    }
-
-    private PooledObject<OSDClient> wrap(OSDClient client) throws Exception {
-        return new DefaultPooledObject<>(client);
+    @Override
+    public OSDClient create() throws Exception {
+        return new OSDClient(host, port);
     }
 
     @Override
-    public void activateObject(PooledObject<OSDClient> p) throws Exception {
-        p.getObject().activate();
+    public org.apache.commons.pool2.PooledObject<OSDClient> wrap(OSDClient obj) {
+        return new org.apache.commons.pool2.impl.DefaultPooledObject<OSDClient>(obj);
     }
 
     @Override
-    public void destroyObject(PooledObject<OSDClient> p) throws Exception {
+    public void destroyObject(org.apache.commons.pool2.PooledObject<OSDClient> p) throws Exception {
         p.getObject().close();
     }
 
     @Override
-    public PooledObject<OSDClient> makeObject() throws Exception {
-        return wrap(create());
-    }
-
-    @Override
-    public void passivateObject(PooledObject<OSDClient> p) throws Exception {
-        p.getObject().desactivate();
-    }
-
-    @Override
-    public boolean validateObject(PooledObject<OSDClient> p) {
+    public boolean validateObject(org.apache.commons.pool2.PooledObject<OSDClient> p) {
         return p.getObject().isValid();
     }
-    
 }

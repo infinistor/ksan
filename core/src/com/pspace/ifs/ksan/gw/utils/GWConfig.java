@@ -67,21 +67,21 @@ public class GWConfig {
     private boolean isLogging;
 
     private static final String VERSION = "version";
-    private static final String AUTHORIZATION = "gw.authorization";
-    private static final String ENDPOINT = "gw.endpoint";
-    private static final String SECURE_ENDPOINT = "gw.secure_endpoint";
-    private static final String KEYSTORE_PATH = "gw.keystore_path";
-    private static final String KEYSTORE_PASSWORD = "gw.keystore_password";
-    private static final String MAX_FILE_SIZE = "gw.max_file_size";
-    private static final String MAX_LIST_SIZE = "gw.max_list_size";
-    private static final String MAX_TIMESKEW = "gw.max_timeskew";
+    private static final String AUTHORIZATION = "authorization";
+    private static final String ENDPOINT = "endpoint";
+    private static final String SECURE_ENDPOINT = "secure_endpoint";
+    private static final String KEYSTORE_PATH = "keystore_path";
+    private static final String KEYSTORE_PASSWORD = "keystore_password";
+    private static final String MAX_FILE_SIZE = "max_file_size";
+    private static final String MAX_LIST_SIZE = "max_list_size";
+    private static final String MAX_TIMESKEW = "max_timeskew";
     // private static final String REPLICATION = "gw.replication";
-    private static final String OSD_PORT = "gw.osd_port";
-    private static final String JETTY_MAX_THREADS = "gw.jetty_max_threads";
-    private static final String JETTY_MAX_IDLE_TIMEOUT = "gw.jetty_max_idle_timeout";
-    private static final String OSD_CLIENT_COUNT = "gw.osd_client_count";
-    private static final String OBJMANAGER_COUNT = "gw.objmanager_count";
-    private static final String PERFORMANCE_MODE = "gw.performance_mode";
+    private static final String OSD_PORT = "osd_port";
+    private static final String JETTY_MAX_THREADS = "jetty_max_threads";
+    private static final String JETTY_MAX_IDLE_TIMEOUT = "jetty_max_idle_timeout";
+    private static final String OSD_CLIENT_COUNT = "osd_client_count";
+    private static final String OBJMANAGER_COUNT = "objmanager_count";
+    private static final String PERFORMANCE_MODE = "performance_mode";
     // private static final String DB_REPOSITORY = "gw.db_repository";
     // private static final String DB_HOST = "gw.db_host";
     // private static final String DB_NAME = "gw.db_name";
@@ -89,9 +89,9 @@ public class GWConfig {
     // private static final String DB_USER = "gw.db_user";
     // private static final String DB_PASSWORD = "gw.db_password";
     // private static final String DB_POOL_SIZE = "gw.db_pool_size";
-    private static final String CACHE_PATH = "gw.cache_diskpath";
+    private static final String CACHE_PATH = "cache_diskpath";
     // private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
-    private static final String EVENT_LOG = "gw.logging";
+    private static final String EVENT_LOG = "logging";
 
     private static final String EQUAL = "=";
     private static final String ON = "on";
