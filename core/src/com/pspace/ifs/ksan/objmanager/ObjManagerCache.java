@@ -23,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Set;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -240,6 +239,7 @@ public class ObjManagerCache {
         if (dskPool != null){
             dsk = dskPool.getDisk(diskid);
             dsk.setDiskPoolId(dskPool.getId());
+            dsk.setHostName(dskPool.getServerById(dsk.getOSDServerId()).getServerUniqName());
             return dsk;
         }
         logger.error("There is no disk in the the server with diskid : {} at disk pool id : {}!", diskid, dskPoolId);
@@ -253,8 +253,9 @@ public class ObjManagerCache {
         
         dskPool = getDiskPoolFromCacheWithDiskId(diskid);
         if (dskPool != null){
-            dsk = dskPool.getDisk( diskid);
+            dsk = dskPool.getDisk(diskid);
             dsk.setDiskPoolId(dskPool.getId());
+            dsk.setHostName(dskPool.getServerById(dsk.getOSDServerId()).getServerUniqName());
             return dsk;
         }
         logger.error("[getDiskWithId] There is no disk in the the server with diskid : {}!", diskid);

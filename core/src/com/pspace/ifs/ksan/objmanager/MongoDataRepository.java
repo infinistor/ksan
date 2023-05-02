@@ -368,6 +368,8 @@ public class MongoDataRepository implements DataRepository{
     public int insertObject(Metadata md) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
         Document doc;
+        int replicaCount;
+        
         objects = this.database.getCollection(md.getBucket());
         doc = new Document(OBJKEY, md.getPath());
         doc.append(BUCKETNAME, md.getBucket());
@@ -383,6 +385,10 @@ public class MongoDataRepository implements DataRepository{
         doc.append(DELETEMARKER, md.getDeleteMarker());
         doc.append(LASTVERSION, true);
         doc.append(PDISKID, md.getPrimaryDisk().getId());
+        replicaCount = md.getReplicaCount();
+        if (replicaCount > 2 || replicaCount < 1)
+            replicaCount = obmCache.getDiskPoolFromCache(md.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount(); 
+        doc.append(REPLICACOUNT, replicaCount);
         if (md.isReplicaExist())
             doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
@@ -419,6 +425,7 @@ public class MongoDataRepository implements DataRepository{
         MongoCollection<Document> objects;
         FindIterable fit;
         Metadata mt;
+        int replicaCount;
         
         objects = database.getCollection(bucketName);
         if (versionId.isEmpty())
@@ -445,7 +452,11 @@ public class MongoDataRepository implements DataRepository{
         String deleteMarker = doc.getString(DELETEMARKER);
         boolean lastversion = doc.getBoolean(LASTVERSION);
         String pdiskId      = doc.getString(PDISKID);
-        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();  
+        if (doc.containsKey(REPLICACOUNT))
+            replicaCount    = doc.getInteger(REPLICACOUNT);
+        else
+           replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount(); 
         String rdiskId      = doc.getString(RDISKID);
         DISK rdsk;
         if (rdiskId == null)
@@ -455,7 +466,6 @@ public class MongoDataRepository implements DataRepository{
         else
             rdsk = obmCache.getDiskWithId(rdiskId);
         
-        int replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
@@ -1128,7 +1138,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           return -1;
         
-        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.set(key, value));
+        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.inc(key, value));
         return 0;
     }
     
@@ -1410,7 +1420,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     private void updateBucketObjectCount(String bucketName, long fileCount){
-        updateBucketObjectSpaceCount(bucketName, USEDSPACE, fileCount);
+        updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
     }
     
     @Override
