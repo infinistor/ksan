@@ -28,6 +28,7 @@ import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.ProxyConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -94,6 +95,9 @@ public class GW {
 		HttpConfiguration httpConfig = new HttpConfiguration();
 		// Configure the HTTP support, for example:
 		httpConfig.setSendServerVersion(false);
+		SecureRequestCustomizer src = new SecureRequestCustomizer();
+		src.setSniHostCheck(false);
+		httpConfig.addCustomizer(src);
 
 		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfig);
 		HttpCompliance customHttpCompliance = HttpCompliance.from(GWConstants.LOG_GW_RFC7230);
