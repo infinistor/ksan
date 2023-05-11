@@ -180,7 +180,7 @@ public class VFSObjectManager implements IObjectManager {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
         logger.debug("isAvailablePrimary : {}, isAvailableReplica : {}", isAvailablePrimary, isAvailableReplica);
-
+        logger.debug("objId : {}, versionId : {}, size : {}", meta.getObjId(), meta.getVersionId(), meta.getSize());
         // check encryption
         String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
 
@@ -225,14 +225,14 @@ public class VFSObjectManager implements IObjectManager {
                     String trashPath = null;
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
-                        tempPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
-                        trashPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         isCachePrimary = true;
                     } else {
-                        objPath = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
-                        tempPath = KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        objPath = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                     }
                     // check unmount disk path
                     if (objPath == null || tempPath == null || trashPath == null) {
@@ -251,7 +251,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         length,
                         Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
                         replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -269,14 +269,14 @@ public class VFSObjectManager implements IObjectManager {
                     String trashPath = null;
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
-                        tempPath = KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
+                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         isCacheReplica = true;
                     } else {
-                        objPath = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
-                        tempPath = KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
+                        objPath = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                     }
                     // check unmount disk path
                     if (objPath == null || tempPath == null || trashPath == null) {
@@ -295,7 +295,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     osdClientReplica.putInit(replicaDISK.getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         length,
                         Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA,
                         Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -380,7 +380,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     retryRenameTo(fileTempPrimary, filePrimary);
                     if (isCachePrimary) {
-                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                     }
                 }
@@ -404,7 +404,7 @@ public class VFSObjectManager implements IObjectManager {
                     KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                     retryRenameTo(fileTempReplica, fileReplica);
                     if (isCacheReplica) {
-                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                     }
                 }
@@ -415,7 +415,7 @@ public class VFSObjectManager implements IObjectManager {
             s3Object.setEtag(eTag);
             s3Object.setFileSize(totalReads);
             s3Object.setLastModified(new Date());
-            s3Object.setVersionId(meta.getVersionId());
+            s3Object.setVersionId(param.getVersionId());
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
@@ -582,14 +582,14 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTempPrimary = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                        filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTempPrimary = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
                         isCachePrimary = true;
                     } else {
-                        filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTempPrimary = new File(KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                        filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTempPrimary = new File(KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
                     }
                     fosPrimary = new FileOutputStream(fileTempPrimary, false);
                 } else {
@@ -606,7 +606,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         srcMeta.getSize(),
                         Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
                         replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -619,14 +619,14 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTempReplica = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
+                        fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTempReplica = new File(KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
                         isCacheReplica = true;
                     } else {
-                        fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTempReplica = new File(KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
+                        fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTempReplica = new File(KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
                     }
                     fosReplica = new FileOutputStream(fileTempReplica, false);
                 } else {
@@ -643,7 +643,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     osdClientReplica.putInit(replicaDISK.getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         srcMeta.getSize(),
                         Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA,
                         Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -801,7 +801,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     retryRenameTo(fileTempPrimary, filePrimary);
                     if (isCachePrimary) {
-                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                     }
                 }
@@ -834,7 +834,7 @@ public class VFSObjectManager implements IObjectManager {
                     KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                     retryRenameTo(fileTempReplica, fileReplica);
                     if (isCacheReplica) {
-                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                     }
                 }
@@ -859,7 +859,157 @@ public class VFSObjectManager implements IObjectManager {
 
     @Override
     public boolean deleteObject(S3Parameter param, Metadata meta) throws GWException {
-        return false;
+        OSDClient client = null;
+
+        File ecFile = new File(KsanUtils.makeECPathForOpen(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+        if (ecFile.exists()) {
+            logger.debug("ec exist : {}", ecFile.getAbsolutePath());
+            List<ECPart> ecList = new ArrayList<ECPart>();
+            for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
+                for (Server server : pool.getServerList()) {
+                    for (Disk disk : server.getDiskList()) {
+                        ECPart ecPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
+                        ecList.add(ecPart);
+                    }
+                }
+            }
+
+            for (ECPart ecPart : ecList) {
+                String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), meta.getObjId(), meta.getVersionId());
+                if (ecPart.getServerIP().equals(GWUtils.getLocalIP())) {
+                    File file = new File(getPath);
+                    if (file.exists()) {
+                        if (file.delete()) {
+                            logger.debug("delete ec part : {}", getPath);
+                        } else {
+                            logger.debug("fail to delete ec part : {}", getPath);
+                        }
+                    } else {
+                        logger.debug("ec part does not exist.", getPath);
+                    }
+                } else {
+                    try {
+                        OSDClient ecClient = new OSDClient(ecPart.getServerIP(), (int)GWConfig.getInstance().getOsdPort());
+                        logger.debug("delete ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+                        ecClient.deleteECPart(getPath);
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                    }
+                }
+            }
+        }
+
+        // delete multipart
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(meta.getMeta());
+        if (!Strings.isNullOrEmpty(s3Metadata.getUploadId())) {
+            try {
+                File multipartFile = null;
+                if (GWConfig.getInstance().isCacheDiskpath()) {
+                    multipartFile = new File(GWConfig.getInstance().getCacheDiskpath() + KsanUtils.makeObjPathForOpen(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                } else {
+                    multipartFile = new File(KsanUtils.makeObjPathForOpen(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                }
+
+                if (multipartFile.exists()) {
+                    // Thread thread = new Thread() {
+                    //     @Override
+                    //     public void run() {
+                    //         BufferedReader srcBR = new BufferedReader(new FileReader(multipartFile));
+                    //         String line = null;
+                    //         while ((line = srcBR.readLine()) != null) {
+                    //             String[] infos = line.split(GWConstants.COLON);
+                    //             String[] uploadInfos = infos[1].split(GWConstants.UNDERSCORE);
+                    //             File partFile = new File(infos[1]);
+                    //             File trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
+                    //             if (partFile.exists()) {
+                    //                 logger.error("{} is deleted.", partFile.getAbsolutePath());
+                    //                 partFile.delete();
+                    //             }
+                    //         }
+                    //     }
+                    // };
+                    // thread.start();
+                } else {
+                    logger.error("{} is not exist.", multipartFile.getAbsolutePath());
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            }
+            return true;
+        }
+
+        try {
+            if (meta.getReplicaCount() > 1) {
+                if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+                    deleteObjectLocal(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                } else {
+                    client = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    client.delete(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                    // OSDClientManager.getInstance().returnOSDClient(client);
+                    // client = null;
+                } 
+                
+                if (meta.isReplicaExist()) {
+                    if (GWUtils.getLocalIP().equals(meta.getReplicaDisk().getOsdIp())) {
+                        deleteObjectLocal(meta.getReplicaDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                    } else {
+                        client = new OSDClient(meta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // client = OSDClientManager.getInstance().getOSDClient(objMeta.getReplicaDisk().getOsdIp());
+                        client.delete(meta.getReplicaDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        // OSDClientManager.getInstance().returnOSDClient(client);
+                        // client = null;
+                    }
+                }
+                
+            } else {
+                if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+                    deleteObjectLocal(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                } else {
+                    client = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    // client = OSDClientManager.getInstance().getOSDClient(objMeta.getPrimaryDisk().getOsdIp());
+                    client.delete(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                    // OSDClientManager.getInstance().returnOSDClient(client);
+                    // client = null;
+                }
+            }
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        } finally {
+            if (client != null) {
+                try {
+                    // OSDClientManager.getInstance().returnOSDClient(client);
+                } catch (Exception e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            }
+        }
+        logger.info(GWConstants.LOG_S3OBJECT_OPERATION_DELETE, meta.getBucket(), meta.getPath(), meta.getVersionId());
+        return true;
+    }
+
+    private void deleteObjectLocal(String path, String objId, String versionId) throws IOException, GWException {
+        File file = null;
+        File trashFile = null;
+        if (GWConfig.getInstance().isCacheDiskpath()) {
+            file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPathForOpen(path, objId, versionId)));
+            trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(path, objId, versionId)));
+        } else {
+            file = new File(KsanUtils.makeObjPathForOpen(path, objId, versionId));
+            trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
+        }
+
+        if (file.exists()) {
+            retryRenameTo(file, trashFile);
+            if (GWConfig.getInstance().isCacheDiskpath()) {
+                File link = new File(KsanUtils.makeObjPathForOpen(path, objId, versionId));
+                link.delete();
+            }
+        }
     }
 
     @Override
@@ -1655,13 +1805,13 @@ public class VFSObjectManager implements IObjectManager {
         boolean isCachePrimary = false;
         boolean isCacheReplica = false;
         try {
-            File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), meta.getVersionId()) + ".primary");
+            File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
             File tempReplica = null;
             BufferedWriter bwPrimary = new BufferedWriter(new FileWriter(tempPrimary));
             BufferedWriter bwReplica = null;
 
             if (meta.isReplicaExist()) {
-                tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), meta.getVersionId()) + ".replica");
+                tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
                 bwReplica = new BufferedWriter(new FileWriter(tempReplica));
             }
             
@@ -1819,12 +1969,12 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                        filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
                         isCachePrimary = true;
                     } else {
-                        filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId()));
+                        filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
                     }
                     // rename
                     if (filePrimary.exists()) {
@@ -1836,7 +1986,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     retryRenameTo(tempPrimary, filePrimary);
                     if (isCachePrimary) {
-                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                     }
                 } else {
@@ -1854,7 +2004,7 @@ public class VFSObjectManager implements IObjectManager {
                     logger.debug("temp file length : {}", tempPrimary.length());
                     osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         tempPrimary.length(),
                         Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
                         replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -1878,12 +2028,12 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
+                        fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
                         isCacheReplica = true;
                     } else {
-                        fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId()));
+                        fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
                     }
                     // rename
                     if (fileReplica.exists()) {
@@ -1895,7 +2045,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     retryRenameTo(tempReplica, fileReplica);
                     if (isCacheReplica) {
-                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), meta.getVersionId());
+                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                     }
                 } else {
@@ -1913,7 +2063,7 @@ public class VFSObjectManager implements IObjectManager {
                     logger.debug("temp file length : {}", tempReplica.length());
                     osdClientReplica.putInit(replicaDISK.getPath(),
                         meta.getObjId(),
-                        meta.getVersionId(),
+                        param.getVersionId(),
                         tempReplica.length(),
                         Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
                         Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
@@ -2296,7 +2446,7 @@ public class VFSObjectManager implements IObjectManager {
 
             client.getInit(disk.getPath(),
                 meta.getObjId(),
-                meta.getVersionId(),
+                param.getVersionId(),
                 meta.getSize(),
                 sourceRange,
                 param.getResponse().getOutputStream(),
