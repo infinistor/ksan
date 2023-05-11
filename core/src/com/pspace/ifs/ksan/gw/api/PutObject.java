@@ -346,6 +346,7 @@ public class PutObject extends S3Request {
 		}
 
 		s3Parameter.setVersionId(versionId);
+		logger.info("versionId : {}", versionId);
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		// S3Object s3Object = objectOperation.putObject();
 		IObjectManager objectManager = new VFSObjectManager();

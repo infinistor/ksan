@@ -333,7 +333,7 @@ public class PostObject extends S3Request {
 				objMeta = createLocal(diskpoolId, bucket, object, versionId);
 			}
 		}
-
+		objMeta.setSize(contentLength);
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, encryption);
 		// S3Object s3Object = objectOperation.putObject();
 		IObjectManager objectManager = new VFSObjectManager();

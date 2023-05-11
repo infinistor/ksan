@@ -317,6 +317,7 @@ public class S3Signing {
 		if (expiresString != null) { // v2 query
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
+			logger.debug("nowSeconds({}), expires({})", nowSeconds, expires);
 			if (nowSeconds >= expires) {
 				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
