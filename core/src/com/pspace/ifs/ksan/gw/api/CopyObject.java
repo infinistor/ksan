@@ -38,10 +38,9 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
-import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -86,15 +85,21 @@ public class CopyObject extends S3Request {
 		String contentLengthString = s3RequestData.getContentLength();
 		String metadataDirective = s3RequestData.getMetadataDirective();
 		String serversideEncryption = s3RequestData.getServerSideEncryption();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		String copySource = s3RequestData.getCopySource();
 		String copySourceIfMatch = s3RequestData.getCopySourceIfMatch();
 		String copySourceIfNoneMatch = s3RequestData.getCopySourceIfNoneMatch();
 		String copySourceIfModifiedSince = s3RequestData.getCopySourceIfModifiedSince();
 		String copySourceIfUnmodifiedSince = s3RequestData.getCopySourceIfUnmodifiedSince();
-		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String copySourceCustomerAlgorithm = s3RequestData.getCopySourceServerSideEncryptionCustomerAlgorithm();
+		String copySourceCustomerKey = s3RequestData.getCopySourceServerSideEncryptionCustomerKey();
+		String copySourceCustomerKeyMD5 = s3RequestData.getCopySourceServerSideEncryptionCustomerKeyMD5();
+
 		Map<String, String> userMetadata = s3RequestData.getUserMetadata();
+		String serverSideEncryptionAwsKmsKeyId = s3RequestData.getServerSideEncryptionAwsKmsKeyId();
+		String serverSideEncryptionBucketKeyEnabled = s3RequestData.getServerSideEncryptionBucketKeyEnabled();
 		String storageClass = s3RequestData.getStorageClass();
 
 		if (Strings.isNullOrEmpty(storageClass)) {
@@ -171,14 +176,13 @@ public class CopyObject extends S3Request {
 			checkGrantObject(false, GWConstants.GRANT_READ);
 		}
 		
-
 		// get metadata
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
 
 		// check source customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
-			if (!Strings.isNullOrEmpty(customerKey)) {
-				if (!s3Metadata.getCustomerKey().equals(customerKey)) {
+			if (!Strings.isNullOrEmpty(copySourceCustomerKey)) {
+				if (!s3Metadata.getCustomerKey().equals(copySourceCustomerKey)) {
 					logger.warn(GWConstants.LOG_COPY_OBJECT_SOURCE_CUSTOMER_KEY_NO_MATCH);
 					throw new GWException(GWErrorCode.KEY_DOES_NOT_MATCH, s3Parameter);
 				}
@@ -188,30 +192,39 @@ public class CopyObject extends S3Request {
 			}
 		}
 
-		S3ObjectEncryption srcEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		S3Encryption srcEncryption;
+		if (!Strings.isNullOrEmpty(copySourceCustomerAlgorithm)) {
+			srcEncryption = new S3Encryption(copySourceCustomerAlgorithm, copySourceCustomerKey, copySourceCustomerKeyMD5, s3Parameter);
+		} else {
+			srcEncryption = new S3Encryption("get", s3Metadata, s3Parameter);
+		}
 		srcEncryption.build();
-
-		// check 
-		s3Metadata.setCustomerKey(customerKey);
-		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
-		s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug(GWConstants.LOG_COPY_OBJECT_ENCRYPTION, bucketEncryption);
 		
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, serversideEncryption, customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
-		encryption.build();
-		if (encryption.isEncryptionEnabled()) {
-			s3Metadata.setServersideEncryption(GWConstants.AES256);
+		S3Encryption encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			logger.debug("customer algorithm : {}, customer key : {}, customer key md5 : {}", customerAlgorithm, customerKey, customerKeyMD5);
+			encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
 		} else {
-			s3Metadata.setServersideEncryption(null);
+			logger.debug("bucket encryption : {}, serverside encryption : {}, serverside encryption aws kms key id : {}, serverside encryption bucket key enabled : {}", bucketEncryption, serversideEncryption, serverSideEncryptionAwsKmsKeyId, serverSideEncryptionBucketKeyEnabled);
+			encryption = new S3Encryption(bucketEncryption, serversideEncryption, serverSideEncryptionAwsKmsKeyId, serverSideEncryptionBucketKeyEnabled, s3Parameter);
 		}
+		encryption.build();
+		logger.debug("is encryption enabled : {}, key : {}", encryption.isEnabledEncryption(), encryption.getEncryptionKey());
+
+		// if (encryption.isEncryptionEnabled()) {
+		// 	s3Metadata.setServerSideEncryption(GWConstants.AES256);
+		// } else {
+		// 	s3Metadata.setServerSideEncryption(null);
+		// }
 
         // check match
 		if (!Strings.isNullOrEmpty(copySourceIfMatch)) {
 			if (!GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(GWUtils.maybeQuoteETag(copySourceIfMatch))) {
-				logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfMatch);
+				logger.info(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfMatch);
 				logger.info(GWErrorCode.PRECONDITION_FAILED.getMessage());
 				throw new GWException(GWErrorCode.PRECONDITION_FAILED, s3Parameter);
 			}
@@ -219,7 +232,7 @@ public class CopyObject extends S3Request {
 
 		if (!Strings.isNullOrEmpty(copySourceIfNoneMatch)) {
 			if (GWUtils.maybeQuoteETag(s3Metadata.getETag()).equals(GWUtils.maybeQuoteETag(copySourceIfNoneMatch))) {
-				logger.debug(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfNoneMatch);
+				logger.info(GWConstants.LOG_SOURCE_ETAG_MATCH, s3Metadata.getETag(), copySourceIfNoneMatch);
 				logger.info(GWErrorCode.PRECONDITION_FAILED.getMessage());
 				throw new GWException(GWErrorCode.DOES_NOT_MATCH, String.format(GWConstants.LOG_ETAG_IS_MISMATCH), s3Parameter);
 			}
@@ -276,7 +289,7 @@ public class CopyObject extends S3Request {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
-				s3Metadata.setServersideEncryption(serversideEncryption);
+				s3Metadata.setServerSideEncryption(serversideEncryption);
 			}
 		}
         if (!Strings.isNullOrEmpty(cacheControl) && bReplaceMetadata) {
@@ -401,12 +414,66 @@ public class CopyObject extends S3Request {
 		IObjectManager objectManager = new VFSObjectManager();
 		S3Object s3Object = objectManager.copyObject(s3Parameter, srcMeta, srcEncryption, objMeta, encryption);
 
-        s3Metadata.setETag(s3Object.getEtag());
+        if (object.endsWith(GWConstants.SLASH)) {
+			s3Metadata.setETag(GWConstants.DIRECTORY_MD5);
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_X_DIRECTORY);
+			}
+		} else {
+			s3Metadata.setETag(s3Object.getEtag());
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_BINARY);
+			}
+		}
 		s3Metadata.setContentLength(s3Object.getFileSize());
 		s3Metadata.setTier(storageClass);
 		s3Metadata.setLastModified(s3Object.getLastModified());
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+			s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
+		} else {
+			s3Metadata.setCustomerAlgorithm(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+			s3Metadata.setCustomerKey(encryption.getCustomerKey());
+		} else {
+			s3Metadata.setCustomerKey(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+			s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+		} else {
+			s3Metadata.setCustomerKeyMD5(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+			s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+		} else {
+			s3Metadata.setServerSideEncryption(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+			s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+		} else {
+			s3Metadata.setKmsKeyId(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+			s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+		} else {
+			s3Metadata.setKmsKeyPath(null);
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+			s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
+		} else {
+			s3Metadata.setKmsKeyIndex(null);
+		}
+		
+		
 
 		jsonmeta = s3Metadata.toString();
 

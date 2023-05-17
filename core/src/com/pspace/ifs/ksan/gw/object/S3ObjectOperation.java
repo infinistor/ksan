@@ -45,6 +45,7 @@ import java.util.ArrayList;
 
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.libs.Constants;
@@ -859,7 +860,7 @@ public class S3ObjectOperation {
     public S3Object putObject() throws GWException {
         S3Object s3Object = null;
 
-        if (s3Encryption.isEncryptionEnabled()) {
+        if (s3Encryption.isEnabledEncryption()) {
             s3Object = putObjectEncryption(s3Meta.getContentLength(), s3Parameter.getInputStream());
         } else {
             s3Object = putObjectNormal(s3Meta.getContentLength(), s3Parameter.getInputStream());
@@ -1951,7 +1952,7 @@ public class S3ObjectOperation {
     public S3Object uploadPart(String path, long length) throws GWException {
         S3Object s3Object = null;
 
-        if (s3Encryption.isEncryptionEnabled()) {
+        if (s3Encryption.isEnabledEncryption()) {
             s3Object = uploadPartEncryption(path, length, s3Parameter.getInputStream());
         } else {
             s3Object = uploadPartNormal(path, length, s3Parameter.getInputStream());
@@ -2505,7 +2506,7 @@ public class S3ObjectOperation {
             com.google.common.io.Files.createParentDirs(tmpFile);
     
             try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
-                if (s3Encryption.isEncryptionEnabled()) {
+                if (s3Encryption.isEnabledEncryption()) {
                     encryptOS = GWUtils.initCtrEncrypt(tmpOut, s3Encryption.getCustomerKey());
                     // for each part object
                     for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
@@ -2658,7 +2659,7 @@ public class S3ObjectOperation {
                 com.google.common.io.Files.createParentDirs(tmpFile);
         
                 try (FileOutputStream tmpOut = new FileOutputStream(tmpFile)) {
-                    if (s3Encryption.isEncryptionEnabled()) {
+                    if (s3Encryption.isEnabledEncryption()) {
                         encryptOS = GWUtils.initCtrEncrypt(tmpOut, s3Encryption.getCustomerKey());
                         // for each part object
                         for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
@@ -2985,7 +2986,7 @@ public class S3ObjectOperation {
                 // check range
                 if (last == 0) {
                     // whole file
-                    if (srcEncryption.isEncryptionEnabled()) {
+                    if (srcEncryption.isEnabledEncryption()) {
                         // enfin = GWUtils.initCtrEncrypt(is, s3Encryption.getCustomerKey());
                         // while ((readLength = enfin.read(byteArray, 0, GWConstants.MAXBUFSIZE)) != -1) {
                         //     os.write(byteArray, 0, readLength);
@@ -3004,7 +3005,7 @@ public class S3ObjectOperation {
                         os.close();
                     }
                 } else {
-                    if (srcEncryption.isEncryptionEnabled()) {
+                    if (srcEncryption.isEnabledEncryption()) {
                         // enfin = GWUtils.initCtrEncrypt(is, s3Encryption.getCustomerKey());
                         // enfin.skip(offset);
                         // long remainLength = actualSize;
@@ -3156,7 +3157,7 @@ public class S3ObjectOperation {
             logger.info("tmpfile path : {}", tmpFile.getAbsolutePath());
             
             try (FileInputStream fis = new FileInputStream(tmpFile);) {
-                if (s3Encryption.isEncryptionEnabled()) {
+                if (s3Encryption.isEnabledEncryption()) {
                     s3Object = putObjectEncryption(s3Meta.getContentLength(), fis);
                 } else {
                     s3Object = putObjectNormal(s3Meta.getContentLength(), fis);

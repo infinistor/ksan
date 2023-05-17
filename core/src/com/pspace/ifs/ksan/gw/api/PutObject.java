@@ -24,6 +24,7 @@ import com.google.common.base.Strings;
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
 import com.google.common.net.HttpHeaders;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
@@ -42,7 +43,7 @@ import com.pspace.ifs.ksan.gw.object.S3Object;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
-import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -93,7 +94,9 @@ public class PutObject extends S3Request {
 		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
 		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
-		String serversideEncryption = s3RequestData.getServerSideEncryption();
+		String serverSideEncryption = s3RequestData.getServerSideEncryption();
+		String serverSideEncryptionAwsKmsKeyId = s3RequestData.getServerSideEncryptionAwsKmsKeyId();
+		String serverSideEncryptionBucketKeyEnabled = s3RequestData.getServerSideEncryptionBucketKeyEnabled();
 		String storageClass = s3RequestData.getStorageClass();
 
 		if (!Strings.isNullOrEmpty(customerAlgorithm) && Strings.isNullOrEmpty(customerKey)) {
@@ -111,12 +114,12 @@ public class PutObject extends S3Request {
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
-		if (!Strings.isNullOrEmpty(serversideEncryption)) {
-			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
+		if (!Strings.isNullOrEmpty(serverSideEncryption)) {
+			if (!GWConstants.AES256.equalsIgnoreCase(serverSideEncryption)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
-				s3Metadata.setServersideEncryption(serversideEncryption);
+				s3Metadata.setServerSideEncryption(serverSideEncryption);
 			}
 		}
 		
@@ -186,8 +189,14 @@ public class PutObject extends S3Request {
 
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
+		
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
+		S3Encryption encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		} else {
+			encryption = new S3Encryption(bucketEncryption, serverSideEncryption, serverSideEncryptionAwsKmsKeyId, serverSideEncryptionBucketKeyEnabled, s3Parameter);
+		} 
 		encryption.build();
 
 		// Tagging information
@@ -359,8 +368,45 @@ public class PutObject extends S3Request {
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
 		s3Metadata.setTaggingCount(taggingCount);
-		if(encryption.isEnableSSEServer()) {
-			s3Metadata.setServersideEncryption(GWConstants.AES256);
+
+		if (object.endsWith(GWConstants.SLASH)) {
+			s3Metadata.setETag(GWConstants.DIRECTORY_MD5);
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_X_DIRECTORY);
+			}
+		} else {
+			s3Metadata.setETag(s3Object.getEtag());
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_BINARY);
+			}
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+			s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+			s3Metadata.setCustomerKey(encryption.getCustomerKey());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+			s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+			s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+			s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+			s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+			s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
 		}
 
 		s3Parameter.setFileSize(s3Object.getFileSize());

@@ -516,6 +516,7 @@ public final class GWConstants {
 	public static final String CONTENT_LANGUAGE = "Content-Language";
 	public static final String CONTENT_TYPE = "Content-Type";
 	public static final String CONTENT_TYPE_X_DIRECTORY = "application/x-directory";
+	public static final String CONTENT_TYPE_BINARY = "binary/octet-stream";
 	
 	public static final String EXPIRES = "Expires";	
 	public static final String VERSION_ID = "versionId";

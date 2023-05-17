@@ -25,6 +25,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.data.DataPostObject;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.PostPolicy;
@@ -38,7 +39,7 @@ import com.pspace.ifs.ksan.gw.object.S3Object;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
-import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -212,6 +213,8 @@ public class PostObject extends S3Request {
 		String customerKey = dataPostObject.getServerSideEncryptionCustomerKey();
 		String customerKeyMD5 = dataPostObject.getServerSideEncryptionCustomerKeyMD5();
 		String serversideEncryption = dataPostObject.getServerSideEncryption();
+		String serverSideEncryptionAwsKmsKeyId = dataPostObject.getServerSideEncryptionAwsKmsKeyId();
+		String serverSideEncryptionBucketKeyEnabled = dataPostObject.getServerSideEncryptionBucketKeyEnabled();
 		String storageClass = dataPostObject.getStorageClass();
 
 		if (Strings.isNullOrEmpty(storageClass)) {
@@ -232,7 +235,7 @@ public class PostObject extends S3Request {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
-				s3Metadata.setServersideEncryption(serversideEncryption);
+				s3Metadata.setServerSideEncryption(serversideEncryption);
 			}
 		}
 
@@ -251,20 +254,27 @@ public class PostObject extends S3Request {
 		if (!Strings.isNullOrEmpty(contentType)) {
 			s3Metadata.setContentType(contentType);
 		}
-		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
-			s3Metadata.setCustomerAlgorithm(customerAlgorithm);
-		}
-		if (!Strings.isNullOrEmpty(customerKey)) {
-			s3Metadata.setCustomerKey(customerKey);
-		}
-		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
-			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
-		}
+		// if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+		// 	s3Metadata.setCustomerAlgorithm(customerAlgorithm);
+		// }
+		// if (!Strings.isNullOrEmpty(customerKey)) {
+		// 	s3Metadata.setCustomerKey(customerKey);
+		// }
+		// if (!Strings.isNullOrEmpty(customerKeyMD5)) {
+		// 	s3Metadata.setCustomerKeyMD5(customerKeyMD5);
+		// }
 
 		String aclXml = makeAcl(null, dataPostObject);
 
 		String bucketEncryption = getBucketInfo().getEncryption();
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
+		
+		// check encryption
+		S3Encryption encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		} else {
+			encryption = new S3Encryption(bucketEncryption, serversideEncryption, serverSideEncryptionAwsKmsKeyId, serverSideEncryptionBucketKeyEnabled, s3Parameter);
+		}
 		encryption.build();
 
 		// Tagging information
@@ -346,8 +356,33 @@ public class PostObject extends S3Request {
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
 		s3Metadata.setTaggingCount(taggingCount);
-		if(encryption.isEnableSSEServer()) {
-			s3Metadata.setServersideEncryption(GWConstants.AES256);
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+			s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+			s3Metadata.setCustomerKey(encryption.getCustomerKey());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+			s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+			s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+			s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+			s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+			s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
 		}
 
 		s3Parameter.setFileSize(s3Object.getFileSize());

@@ -26,7 +26,7 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
@@ -75,9 +75,9 @@ public class KsanUploadPart extends S3Request {
 
 		String contentLength = s3RequestData.getContentLength();
 		String contentMD5String = s3RequestData.getContentMD5();
-		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		// String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		// String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		// String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		
 		if (Strings.isNullOrEmpty(contentLength)) {
 			logger.error(GWConstants.LENGTH_REQUIRED);
@@ -102,20 +102,20 @@ public class KsanUploadPart extends S3Request {
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		
 		// check SSE
-		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
-			if (!GWConstants.AES256.equalsIgnoreCase(customerAlgorithm)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
-			} else {
-				s3Metadata.setServersideEncryption(customerAlgorithm);
-			}
-		}
-		if (!Strings.isNullOrEmpty(customerKey)) {
-			s3Metadata.setCustomerKey(customerKey);
-		}
-		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
-			s3Metadata.setCustomerKeyMD5(customerKeyMD5);
-		}
+		// if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+		// 	if (!GWConstants.AES256.equalsIgnoreCase(customerAlgorithm)) {
+		// 		logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
+		// 		throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
+		// 	} else {
+		// 		s3Metadata.setServerSideEncryption(customerAlgorithm);
+		// 	}
+		// }
+		// if (!Strings.isNullOrEmpty(customerKey)) {
+		// 	s3Metadata.setCustomerKey(customerKey);
+		// }
+		// if (!Strings.isNullOrEmpty(customerKeyMD5)) {
+		// 	s3Metadata.setCustomerKeyMD5(customerKeyMD5);
+		// }
 		if (!Strings.isNullOrEmpty(contentMD5String)) {
 			s3Metadata.setContentMD5(contentMD5String);
 		}
@@ -125,8 +125,8 @@ public class KsanUploadPart extends S3Request {
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		// S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		// s3ObjectEncryption.build();
 
 		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
 		if (path == null) {
@@ -145,7 +145,7 @@ public class KsanUploadPart extends S3Request {
 				objectManager.deletePart(s3Parameter, objMeta);
 			}
 			// s3Object = objectOperation.uploadPart(path, length);
-			s3Object = objectManager.uploadPart(s3Parameter, objMeta, s3ObjectEncryption);
+			s3Object = objectManager.uploadPart(s3Parameter, objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

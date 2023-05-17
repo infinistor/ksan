@@ -13,11 +13,11 @@ package com.pspace.ifs.ksan.gw.object;
 import java.util.SortedMap;
 
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3Encryption;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 
 import org.slf4j.Logger;
@@ -51,14 +51,14 @@ public class RocksObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object uploadPart(S3Parameter param, Metadata meta, S3Encryption en) throws GWException {
+    public S3Object uploadPart(S3Parameter param, Metadata meta) throws GWException {
         // 
         return null;
     }
 
     @Override
     public S3Object uploadPartCopy(S3Parameter param, Metadata srcObjMeta, S3Encryption srcEn, S3Range range,
-            Metadata meta, S3Encryption en) throws GWException {
+            Metadata meta) throws GWException {
         // 
         return null;
     }

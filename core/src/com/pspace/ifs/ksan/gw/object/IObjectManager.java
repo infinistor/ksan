@@ -13,11 +13,11 @@ package com.pspace.ifs.ksan.gw.object;
 import java.util.SortedMap;
 
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3Encryption;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 
 public interface IObjectManager {
@@ -26,9 +26,9 @@ public interface IObjectManager {
     S3Object copyObject(S3Parameter param, Metadata srcObjMeta, S3Encryption srcEn, Metadata meta, S3Encryption en) throws GWException;
     boolean deleteObject(S3Parameter param, Metadata meta) throws GWException;
 
-    S3Object uploadPart(S3Parameter param, Metadata meta, S3Encryption en) throws GWException;
+    S3Object uploadPart(S3Parameter param, Metadata meta) throws GWException;
     boolean deletePart(S3Parameter param, Metadata meta) throws GWException;
-    S3Object uploadPartCopy(S3Parameter param, Metadata srcObjMeta, S3Encryption srcEn, S3Range range, Metadata meta, S3Encryption en) throws GWException;
+    S3Object uploadPartCopy(S3Parameter param, Metadata srcObjMeta, S3Encryption srcEn, S3Range range, Metadata meta) throws GWException;
     S3Object completeMultipart(S3Parameter param, Metadata meta, S3Encryption en, SortedMap<Integer, Part> listPart) throws GWException;
     void abortMultipart(S3Parameter param, Metadata meta, SortedMap<Integer, Part> listPart) throws GWException;
 

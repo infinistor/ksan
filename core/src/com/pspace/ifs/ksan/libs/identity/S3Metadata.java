@@ -61,6 +61,12 @@ public class S3Metadata {
 	private String lockExpires;
 	private String legalHold;
 
+	// aws kms
+	private String kmsKeyId;
+	private String kmsKeyIndex;
+	private String kmsKeyPath;
+	private String bucketKeyEnabled;
+
 	public S3Metadata() {
 		userMetadata = new HashMap<String, String>();
 	}
@@ -152,11 +158,11 @@ public class S3Metadata {
 		this.customerKeyMD5 = customerKeyMD5;
 	}
 
-	public String getServersideEncryption() {
+	public String getServerSideEncryption() {
 		return serverSideEncryption;
 	}
 
-	public void setServersideEncryption(String serversideEncryption) {
+	public void setServerSideEncryption(String serversideEncryption) {
 		this.serverSideEncryption = serversideEncryption;
 	}
 
@@ -320,6 +326,38 @@ public class S3Metadata {
 		return this.lockExpires;
 	}
 
+	public String getKmsKeyId() {
+		return kmsKeyId;
+	}
+
+	public void setKmsKeyId(String kmsKeyId) {
+		this.kmsKeyId = kmsKeyId;
+	}
+
+	public String getKmsKeyIndex() {
+		return kmsKeyIndex;
+	}
+
+	public void setKmsKeyIndex(String kmsKeyIndex) {
+		this.kmsKeyIndex = kmsKeyIndex;
+	}
+
+	public String getKmsKeyPath() {
+		return kmsKeyPath;
+	}
+
+	public void setKmsKeyPath(String ksmKeyPath) {
+		this.kmsKeyPath = ksmKeyPath;
+	}
+
+	public String getBucketKeyEnabled() {
+		return bucketKeyEnabled;
+	}
+
+	public void setBucketKeyEnabled(String bucketKeyEnabled) {
+		this.bucketKeyEnabled = bucketKeyEnabled;
+	}
+
 	private static final String USER_METADATA_PREFIX = "x-amz-meta-";
 	private static final String LEFT_BRACE = "{";
 	private static final String RIGHT_BRACE = "}";
@@ -391,6 +429,14 @@ public class S3Metadata {
 	private static final String JSON_LOCK_EXPIRES = "\"lckE\":";
 	private static final String LEGAL_HOLD = "lH";
 	private static final String JSON_LEGAL_HOLD = "\"lH\":";
+	private static final String KMS_MASTER_KEY_ID = "kmi";
+	private static final String JSON_KMS_MASTER_KEY_ID = "\"kmi\":";
+	private static final String KMS_KEY_INDEX = "kki";
+	private static final String JSON_KMS_KEY_INDEX = "\"kki\":";
+	private static final String KMS_KEY_PATH = "kkp";
+	private static final String JSON_KMS_KEY_PATH = "\"kkp\":";
+	private static final String BUCKET_KEY_ENABLED = "bke";
+	private static final String JSON_BUCKET_KEY_ENABLED = "\"bke\":";
 	private static final String EMPTY_STRING = "";
 
 	@Override
@@ -628,6 +674,34 @@ public class S3Metadata {
 			sb.append(legalHold);
 			sb.append(QUOTAION);
 		}
+		if (kmsKeyId != null) {
+			sb.append(COMMA);
+			sb.append(JSON_KMS_MASTER_KEY_ID);
+			sb.append(QUOTAION);
+			sb.append(kmsKeyId);
+			sb.append(QUOTAION);
+		}
+		if (kmsKeyIndex != null) {
+			sb.append(COMMA);
+			sb.append(JSON_KMS_KEY_INDEX);
+			sb.append(QUOTAION);
+			sb.append(kmsKeyIndex);
+			sb.append(QUOTAION);
+		}
+		if (kmsKeyPath != null) {
+			sb.append(COMMA);
+			sb.append(JSON_KMS_KEY_PATH);
+			sb.append(QUOTAION);
+			sb.append(kmsKeyPath);
+			sb.append(QUOTAION);
+		}
+		if (bucketKeyEnabled != null) {
+			sb.append(COMMA);
+			sb.append(JSON_BUCKET_KEY_ENABLED);
+			sb.append(QUOTAION);
+			sb.append(bucketKeyEnabled);
+			sb.append(QUOTAION);
+		}
 
 		return sb.append(RIGHT_BRACE).toString();
 	}
@@ -766,7 +840,7 @@ public class S3Metadata {
 			endIndex = json.indexOf(QUOTAION, startIndex + 1);
 			data = json.substring(startIndex + 1, endIndex);
 			logger.debug("Server side encryption : {}", data);
-			s3Metadata.setServersideEncryption(data);
+			s3Metadata.setServerSideEncryption(data);
 		}
 
 		// delete marker
@@ -967,6 +1041,46 @@ public class S3Metadata {
 			data = json.substring(startIndex + 1, endIndex);
 			logger.debug("legal hold : {}", data);
 			s3Metadata.setLegalHold(data);
+		}
+
+		// kms master key id
+		startIndex = json.indexOf(JSON_KMS_MASTER_KEY_ID, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_KMS_MASTER_KEY_ID.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("kms master key id : {}", data);
+			s3Metadata.setKmsKeyId(data);
+		}
+
+		// kms key index
+		startIndex = json.indexOf(JSON_KMS_KEY_INDEX, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_KMS_KEY_INDEX.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("kms master key index : {}", data);
+			s3Metadata.setKmsKeyIndex(data);
+		}
+
+		// kms key path
+		startIndex = json.indexOf(JSON_KMS_KEY_PATH, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_KMS_KEY_PATH.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("kms master key path : {}", data);
+			s3Metadata.setKmsKeyPath(data);
+		}
+
+		// bucket key enabled
+		startIndex = json.indexOf(JSON_BUCKET_KEY_ENABLED, endIndex);
+		if (startIndex > 0) {
+			startIndex += JSON_BUCKET_KEY_ENABLED.length();
+			endIndex = json.indexOf(QUOTAION, startIndex + 1);
+			data = json.substring(startIndex + 1, endIndex);
+			logger.debug("bucket key enabled : {}", data);
+			s3Metadata.setBucketKeyEnabled(data);
 		}
 
 		return s3Metadata;

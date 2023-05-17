@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.object;
 
 import static com.google.common.io.BaseEncoding.base16;
 
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -22,8 +23,6 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.object.S3Encryption;
-
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.multipart.Part;
@@ -92,7 +91,7 @@ public class VFSObjectManager implements IObjectManager {
     private static final Logger logger = LoggerFactory.getLogger(VFSObjectManager.class);
 
     @Override
-    public void getObject(S3Parameter param, Metadata meta, S3Encryption en, S3Range s3Range) throws GWException {
+    public void getObject(S3Parameter param, Metadata meta, S3Encryption encryption, S3Range s3Range) throws GWException {
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForRead(meta.getPrimaryDisk().getId());
         boolean isAvailableReplica = false;
@@ -110,7 +109,7 @@ public class VFSObjectManager implements IObjectManager {
         }
 
         // check encryption
-        String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
+        String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
         // check range
         String sourceRange = null;
@@ -163,7 +162,7 @@ public class VFSObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object putObject(S3Parameter param, Metadata meta, S3Encryption en) throws GWException {
+    public S3Object putObject(S3Parameter param, Metadata meta, S3Encryption encryption) throws GWException {
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForWrite(meta.getPrimaryDisk().getId());
         boolean isAvailableReplica = false;
@@ -182,7 +181,7 @@ public class VFSObjectManager implements IObjectManager {
         logger.debug("isAvailablePrimary : {}, isAvailableReplica : {}", isAvailablePrimary, isAvailableReplica);
         logger.debug("objId : {}, versionId : {}, size : {}", meta.getObjId(), meta.getVersionId(), meta.getSize());
         // check encryption
-        String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
+        String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
         long length = meta.getSize();
         S3Object s3Object = new S3Object();
@@ -455,8 +454,8 @@ public class VFSObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object copyObject(S3Parameter param, Metadata srcMeta, S3Encryption srcEn, Metadata meta,
-            S3Encryption en) throws GWException {
+    public S3Object copyObject(S3Parameter param, Metadata srcMeta, S3Encryption srcEncryption, Metadata meta,
+            S3Encryption encryption) throws GWException {
         // check src disk
         boolean isAvailableSrcPrimary = srcMeta.isPrimaryExist() && isAvailableDiskForRead(srcMeta.getPrimaryDisk().getId());
         boolean isAvailableSrcReplica = false;
@@ -473,6 +472,7 @@ public class VFSObjectManager implements IObjectManager {
             logger.error("src object disk is not available.");
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
+        logger.info("isAvailableSrcPrimary : {}, isAvailableSrcReplica : {}", isAvailableSrcPrimary, isAvailableSrcReplica);
         
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForWrite(meta.getPrimaryDisk().getId());
@@ -490,9 +490,17 @@ public class VFSObjectManager implements IObjectManager {
             logger.error("object disk is not available.");
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
+        logger.debug("isAvailablePrimary : {}, isAvailableReplica : {}", isAvailablePrimary, isAvailableReplica);
 
-        String srcKey = srcEn.isEncryptionEnabled() ? srcEn.getCustomerKey() : GWConstants.EMPTY_STRING;
-        String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
+        // check multipart
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
+        String uploadId = s3Metadata.getUploadId();
+        boolean isSrcMultipart = !Strings.isNullOrEmpty(uploadId);
+
+        S3Object s3Object = new S3Object();
+        String srcKey = srcEncryption.isEnabledEncryption() ? srcEncryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
+        String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
+        logger.info("srcKey : {}, key : {}", srcKey, key);
         boolean isBorrowSrcOsd = false;
         OSDClient srcClient = null;
         boolean isBorrowOsdPrimary = false;
@@ -576,7 +584,7 @@ public class VFSObjectManager implements IObjectManager {
             boolean isCachePrimary = false;
             boolean isCacheReplica = false;
 
-            localPath = GWConstants.EMPTY_STRING;
+            // localPath = GWConstants.EMPTY_STRING;
             // check primary
             if (isAvailablePrimary) {
                 if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
@@ -664,7 +672,7 @@ public class VFSObjectManager implements IObjectManager {
             long totalReads = 0L;
 
             // copy contents
-            if (!srcEn.isEncryptionEnabled() && !en.isEncryptionEnabled()) {
+            if (!srcEncryption.isEnabledEncryption() && !encryption.isEnabledEncryption()) {
                 while ((readLength = is.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
                     totalReads += readLength;
                     if (isAvailablePrimary) {
@@ -683,7 +691,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     md5er.update(buffer, 0, readLength);
                 }
-            } else if (srcEn.isEncryptionEnabled() && en.isEncryptionEnabled()) {
+            } else if (srcEncryption.isEnabledEncryption() && encryption.isEnabledEncryption()) {
                 if (fosPrimary != null) {
                     ctrPrimary = GWUtils.initCtrEncrypt(fosPrimary, key);
                 }
@@ -708,7 +716,7 @@ public class VFSObjectManager implements IObjectManager {
                     }
                     md5er.update(buffer, 0, readLength);
                 }
-            } else if (!srcEn.isEncryptionEnabled() && en.isEncryptionEnabled()) {
+            } else if (!srcEncryption.isEnabledEncryption() && encryption.isEnabledEncryption()) {
                 if (fosPrimary != null) {
                     ctrPrimary = GWUtils.initCtrEncrypt(fosPrimary, key);
                 }
@@ -734,7 +742,7 @@ public class VFSObjectManager implements IObjectManager {
                     md5er.update(buffer, 0, readLength);
                 }
             } else {
-                // srcEn.isEncryptionEnabled() && !en.isEncryptionEnabled()
+                // srcEncryption.isEnabledEncryption() && !encryption.isEnabledEncryption()
                 while ((readLength = encryptIS.read(buffer, 0, GWConstants.BUFSIZE))!= -1) {
                     totalReads += readLength;
                     if (isAvailablePrimary) {
@@ -756,19 +764,16 @@ public class VFSObjectManager implements IObjectManager {
             }
 
             //
-            if (isBorrowSrcOsd) {
-                try {
-                    // OSDClientManager.getInstance().releaseOSDClient(srcClient);
-                } catch (Exception e) {
-                    logger.error("release OSDClient error", e);
+            if (is != null) {
+                if (srcEncryption.isEnabledEncryption() && encryptIS != null) {
+                    encryptIS.close();
+                } else {
+                    is.close();
                 }
             } else {
-                srcClient.close();
-            }
-            if (srcEn.isEncryptionEnabled() && encryptIS != null) {
-                encryptIS.close();
-            } else if (is != null) {
-                is.close();
+                if (srcClient != null) {
+                    srcClient.close();
+                }
             }
 
             if (isAvailablePrimary) {
@@ -843,6 +848,19 @@ public class VFSObjectManager implements IObjectManager {
             byte[] digest = md5er.digest();
             String eTag = base16().lowerCase().encode(digest);
 
+            if (isSrcMultipart) {
+                s3Object.setEtag(srcMeta.getEtag());
+                s3Object.setFileSize(srcMeta.getSize());
+                s3Object.setLastModified(new Date());
+                s3Object.setVersionId(param.getVersionId());
+                s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+            } else {
+                s3Object.setEtag(eTag);
+                s3Object.setFileSize(totalReads);
+                s3Object.setLastModified(new Date());
+                s3Object.setVersionId(param.getVersionId());
+                s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+            }
         } catch (FileNotFoundException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
@@ -852,9 +870,12 @@ public class VFSObjectManager implements IObjectManager {
         } catch (NoSuchAlgorithmException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
         }
         
-        return null;
+        return s3Object;
     }
 
     @Override
@@ -1013,7 +1034,7 @@ public class VFSObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object uploadPart(S3Parameter param, Metadata meta, S3Encryption en) throws GWException {
+    public S3Object uploadPart(S3Parameter param, Metadata meta) throws GWException {
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForWrite(meta.getPrimaryDisk().getId());
         boolean isAvailableReplica = false;
@@ -1030,10 +1051,6 @@ public class VFSObjectManager implements IObjectManager {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
 
-        // check encryption
-        // String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
-        String key = GWConstants.EMPTY_STRING;
-
         long length = meta.getSize();
         S3Object s3Object = new S3Object();
         
@@ -1042,8 +1059,8 @@ public class VFSObjectManager implements IObjectManager {
         File fileReplica = null;
         FileOutputStream fosPrimary = null;
         FileOutputStream fosReplica = null;
-        CtrCryptoOutputStream ctrPrimary = null;
-        CtrCryptoOutputStream ctrReplica = null;
+        // CtrCryptoOutputStream ctrPrimary = null;
+        // CtrCryptoOutputStream ctrReplica = null;
         OSDClient osdClientPrimary = null;
         OSDClient osdClientReplica = null;
         boolean isCachePrimary = false;
@@ -1087,7 +1104,7 @@ public class VFSObjectManager implements IObjectManager {
                         param.getUploadId(),
                         String.valueOf(param.getPartNumber()),
                         length,
-                        key);
+                        "");
                 }
             }
 
@@ -1115,62 +1132,29 @@ public class VFSObjectManager implements IObjectManager {
                         param.getUploadId(),
                         String.valueOf(param.getPartNumber()),
                         length,
-                        key);
+                        "");
                 }
             }
 
-            // check encryption
-            if (!Strings.isNullOrEmpty(key)) {
-                if (fosPrimary != null) {
-                    ctrPrimary = GWUtils.initCtrEncrypt(fosPrimary, key);
-                }
-                if (fosReplica != null) {
-                    ctrReplica = GWUtils.initCtrEncrypt(fosReplica, key);
-                }
-
-                while ((readLength = is.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
-                    totalReads += readLength;
-                    if (isAvailablePrimary) {
-                        if (filePrimary == null) {
-                            osdClientPrimary.put(buffer, 0, readLength);
-                        } else {
-                            ctrPrimary.write(buffer, 0, readLength);
-                        }
-                    }
-                    if (isAvailableReplica) {
-                        if (fileReplica == null) {
-                            osdClientReplica.put(buffer, 0, readLength);
-                        } else {
-                            ctrReplica.write(buffer, 0, readLength);
-                        }
-                    }
-                    md5er.update(buffer, 0, readLength);
-                    if (totalReads >= length) {
-                        break;
+            while ((readLength = is.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
+                totalReads += readLength;
+                if (isAvailablePrimary) {
+                    if (filePrimary == null) {
+                        osdClientPrimary.put(buffer, 0, readLength);
+                    } else {
+                        fosPrimary.write(buffer, 0, readLength);
                     }
                 }
-            } else {
-                // no encryption
-                while ((readLength = is.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
-                    totalReads += readLength;
-                    if (isAvailablePrimary) {
-                        if (filePrimary == null) {
-                            osdClientPrimary.put(buffer, 0, readLength);
-                        } else {
-                            fosPrimary.write(buffer, 0, readLength);
-                        }
+                if (isAvailableReplica) {
+                    if (fileReplica == null) {
+                        osdClientReplica.put(buffer, 0, readLength);
+                    } else {
+                        fosReplica.write(buffer, 0, readLength);
                     }
-                    if (isAvailableReplica) {
-                        if (fileReplica == null) {
-                            osdClientReplica.put(buffer, 0, readLength);
-                        } else {
-                            fosReplica.write(buffer, 0, readLength);
-                        }
-                    }
-                    md5er.update(buffer, 0, readLength);
-                    if (totalReads >= length) {
-                        break;
-                    }
+                }
+                md5er.update(buffer, 0, readLength);
+                if (totalReads >= length) {
+                    break;
                 }
             }
 
@@ -1178,13 +1162,8 @@ public class VFSObjectManager implements IObjectManager {
                 if (filePrimary == null) {
                     osdClientPrimary.putFlush();
                 } else {
-                    if (!Strings.isNullOrEmpty(key)) {
-                        ctrPrimary.flush();
-                        ctrPrimary.close();
-                    } else {
-                        fosPrimary.flush();
-                        fosPrimary.close();
-                    }
+                    fosPrimary.flush();
+                    fosPrimary.close();
 
                     if (meta.isReplicaExist()) {
                         KsanUtils.setAttributeFileReplication(filePrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
@@ -1200,13 +1179,8 @@ public class VFSObjectManager implements IObjectManager {
                 if (fileReplica == null) {
                     osdClientReplica.putFlush();
                 } else {
-                    if (!Strings.isNullOrEmpty(key)) {
-                        ctrReplica.flush();
-                        ctrReplica.close();
-                    } else {
-                        fosReplica.flush();
-                        fosReplica.close();
-                    }
+                    fosReplica.flush();
+                    fosReplica.close();
 
                     KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                     if (isCacheReplica) {
@@ -1260,8 +1234,8 @@ public class VFSObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object uploadPartCopy(S3Parameter param, Metadata srcMeta, S3Encryption srcEn, S3Range s3Range,
-            Metadata meta, S3Encryption en) throws GWException {
+    public S3Object uploadPartCopy(S3Parameter param, Metadata srcMeta, S3Encryption srcEncryption, S3Range s3Range,
+            Metadata meta) throws GWException {
         // check src disk
         boolean isAvailableSrcPrimary = srcMeta.isPrimaryExist() && isAvailableDiskForRead(srcMeta.getPrimaryDisk().getId());
         boolean isAvailableSrcReplica = false;
@@ -1338,7 +1312,7 @@ public class VFSObjectManager implements IObjectManager {
             InputStream is = null;
             CtrCryptoInputStream encryptIS = null;
             String localPath = GWConstants.EMPTY_STRING;
-            String srcKey = srcEn.isEncryptionEnabled() ? srcEn.getCustomerKey() : GWConstants.EMPTY_STRING;
+            String srcKey = srcEncryption.isEnabledEncryption() ? srcEncryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
             if (isAvailableSrcPrimary && (localPath = DiskManager.getInstance().getLocalPath(srcMeta.getPrimaryDisk().getId())) != null) {
                 srcFile = new File(KsanUtils.makeObjPathForOpen(localPath, srcMeta.getObjId(), srcMeta.getVersionId()));
@@ -1404,12 +1378,10 @@ public class VFSObjectManager implements IObjectManager {
             FileOutputStream fosReplica = null;
             OutputStream osPrimary = null;
             OutputStream osReplica = null;
-            CtrCryptoOutputStream ctrPrimary = null;
-            CtrCryptoOutputStream ctrReplica = null;
             boolean isCachePrimary = false;
             boolean isCacheReplica = false;
 
-            // String key = en.isEncryptionEnabled()? en.getCustomerKey() : GWConstants.EMPTY;
+            // String key = encryption.isEnabledEncryption()? encryption.getEncryptionKey() : GWConstants.EMPTY;
             String key = GWConstants.EMPTY_STRING;
             
             // check primary
@@ -1623,9 +1595,9 @@ public class VFSObjectManager implements IObjectManager {
                 // if (length < 100 * GWConstants.MEGABYTES) {
                     md5er = MessageDigest.getInstance(GWConstants.MD5);
                 // } else {
-                //     md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
+                    // md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
                 // }
-
+                
                 long remainLength = length;
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     if (hasRange) {
@@ -1638,7 +1610,7 @@ public class VFSObjectManager implements IObjectManager {
                         } else {
                             readByte = (int)remainLength;
                         }
-                        if ((readLength = encryptIS.read(buffer, 0, readByte)) == -1) {
+                        if ((readLength = encryptIS.read(buffer, 0, readByte)) != -1) {
                             if (isAvailablePrimary) {
                                 osPrimary.write(buffer, 0, readByte);
                             }
@@ -1765,7 +1737,7 @@ public class VFSObjectManager implements IObjectManager {
     }
 
     @Override
-    public S3Object completeMultipart(S3Parameter param, Metadata meta, S3Encryption en,
+    public S3Object completeMultipart(S3Parameter param, Metadata meta, S3Encryption encryption,
             SortedMap<Integer, Part> listPart) throws GWException {       
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForWrite(meta.getPrimaryDisk().getId());
@@ -1958,7 +1930,7 @@ public class VFSObjectManager implements IObjectManager {
             }
                 
             // rename or osd put
-            // String key = en.isEncryptionEnabled() ? en.getCustomerKey() : GWConstants.EMPTY_STRING;
+            // String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
             String key = GWConstants.EMPTY_STRING;
             File filePrimary = null;
             File fileReplica = null;
@@ -2355,11 +2327,15 @@ public class VFSObjectManager implements IObjectManager {
                         } else {
                             readBytes = GWConstants.MAXBUFSIZE;
                         }
-                        readLength = fis.read(buffer, 0, readBytes);
-                        actualSize += readLength;
-                        outputStream.write(buffer, 0, readLength);
-                        remaingLength -= readLength;
+                        if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                            actualSize += readLength;
+                            outputStream.write(buffer, 0, readLength);
+                            remaingLength -= readLength;
+                        } else {
+                            break;
+                        }
                     }
+
                 }
             } else {
                 String[] ranges = sourceRange.split(GWConstants.SLASH);
@@ -2402,10 +2378,13 @@ public class VFSObjectManager implements IObjectManager {
                             } else {
                                 readBytes = GWConstants.MAXBUFSIZE;
                             }
-                            readLength = fis.read(buffer, 0, readBytes);
-                            actualSize += readLength;
-                            outputStream.write(buffer, 0, readLength);
-                            remaingLength -= readLength;
+                            if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                actualSize += readLength;
+                                outputStream.write(buffer, 0, readLength);
+                                remaingLength -= readLength;
+                            } else {
+                                break;
+                            }
                         }
                     }
                 }
@@ -2591,11 +2570,13 @@ public class VFSObjectManager implements IObjectManager {
                                         } else {
                                             readBytes = GWConstants.MAXBUFSIZE;
                                         }
-                                        readLength = fis.read(buffer, 0, readBytes);
-                                        
-                                        actualSize += readLength;
-                                        os.write(buffer, 0, readLength);
-                                        remaingLength -= readLength;
+                                        if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                            actualSize += readLength;
+                                            os.write(buffer, 0, readLength);
+                                            remaingLength -= readLength;
+                                        } else {
+                                            break;
+                                        }
                                     }
                                 } catch (Exception e1) {
                                     PrintStack.logging(logger, e1);
@@ -2663,10 +2644,12 @@ public class VFSObjectManager implements IObjectManager {
                         if (DiskManager.getInstance().getLocalPath(objDiskId) != null) {
                             // get local
                             File partFile = new File(objPath);
+                            logger.info("partFile : {}, file size : {}, remaingLength : {}", partFile.getAbsolutePath(), partFile.length(), remaingLength);
                             try (FileInputStream fis = new FileInputStream(partFile)) {
                                 if (isRange) {
                                     fis.skip(objOffset);
                                 }
+
                                 while (remaingLength > 0) {
                                     readBytes = 0;
                                     if (remaingLength < GWConstants.MAXBUFSIZE) {
@@ -2674,11 +2657,13 @@ public class VFSObjectManager implements IObjectManager {
                                     } else {
                                         readBytes = GWConstants.MAXBUFSIZE;
                                     }
-                                    readLength = fis.read(buffer, 0, readBytes);
-                                    
-                                    actualSize += readLength;
-                                    os.write(buffer, 0, readLength);
-                                    remaingLength -= readLength;
+                                    if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                        actualSize += readLength;
+                                        os.write(buffer, 0, readLength);
+                                        remaingLength -= readLength;
+                                    } else {
+                                        break;
+                                    }
                                 }
                             } catch (Exception e1) {
                                 PrintStack.logging(logger, e1);

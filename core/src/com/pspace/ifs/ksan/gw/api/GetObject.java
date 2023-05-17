@@ -28,7 +28,8 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.ResultRange;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
@@ -62,6 +63,9 @@ public class GetObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		String versionId = s3RequestData.getVersionId();
 		String range = s3RequestData.getRange();
 		String ifMatch = s3RequestData.getIfMatch();
@@ -144,8 +148,13 @@ public class GetObject extends S3Request {
 		}
 
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		S3Encryption s3Encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			s3Encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		} else {
+			s3Encryption = new S3Encryption("get", s3Metadata, s3Parameter);
+		}
+		s3Encryption.build();
 
 		ResultRange resultRange = new ResultRange(range, s3Metadata, s3Parameter);
 
@@ -156,7 +165,7 @@ public class GetObject extends S3Request {
 
 		try {
 			// objectOperation.getObject(resultRange.getS3Range());
-			objectManager.getObject(s3Parameter, objMeta, s3ObjectEncryption, resultRange.getS3Range());
+			objectManager.getObject(s3Parameter, objMeta, s3Encryption, resultRange.getS3Range());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -230,8 +239,8 @@ public class GetObject extends S3Request {
 				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, metadata.getCustomerKeyMD5());
 			}
 			
-			if (!Strings.isNullOrEmpty(metadata.getServersideEncryption())) {
-				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
+			if (!Strings.isNullOrEmpty(metadata.getServerSideEncryption())) {
+				response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServerSideEncryption());
 			}
 
 			if (!Strings.isNullOrEmpty(metadata.getLockMode())) {

@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.ksanapi;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
+import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.CompleteMultipartUploadRequest;
@@ -42,7 +44,7 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
 import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
@@ -168,8 +170,8 @@ public class KsanCompleteMultipartUpload extends S3Request {
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		S3Encryption encryption = new S3Encryption("upload", s3Metadata, s3Parameter);
+		encryption.build();
 		
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
@@ -204,7 +206,7 @@ public class KsanCompleteMultipartUpload extends S3Request {
 				public void run() {
 					try {
 						// s3Object.set(objectOperation.completeMultipart(constListPart));
-						s3Object.set(objectManager.completeMultipart(s3Parameter, constObjMeta, s3ObjectEncryption, constListPart));
+						s3Object.set(objectManager.completeMultipart(s3Parameter, constObjMeta, encryption, constListPart));
 					} catch (Exception e) {
 						S3Excp.set(e);
 					}
@@ -266,7 +268,35 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 			s3Metadata.setDeleteMarker(s3Object.get().getDeleteMarker());
 			s3Metadata.setVersionId(s3Object.get().getVersionId());
-		
+			
+			if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+				s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+				s3Metadata.setCustomerKey(encryption.getCustomerKey());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+				s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+				s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+				s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+				s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+				s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
+			}
+
 			int result = 0;
 			try {
 				if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
