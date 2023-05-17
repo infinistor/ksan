@@ -1294,8 +1294,8 @@ public class VFSObjectManager implements IObjectManager {
         // check src object is multipart and objId is same
         boolean isMultipart = false;
         S3Metadata srcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
-        if (srcMeta != null && !Strings.isNullOrEmpty(srcMetadata.getUploadId()) && srcMeta.getObjId().equals(meta.getObjId())) {
-            logger.debug("src object is multipart and objId is same.");
+        if (srcMeta != null && !Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
+            logger.debug("src object is multipart ...");
             isMultipart = true;
         }
 
@@ -1316,6 +1316,7 @@ public class VFSObjectManager implements IObjectManager {
 
             if (isAvailableSrcPrimary && (localPath = DiskManager.getInstance().getLocalPath(srcMeta.getPrimaryDisk().getId())) != null) {
                 srcFile = new File(KsanUtils.makeObjPathForOpen(localPath, srcMeta.getObjId(), srcMeta.getVersionId()));
+                logger.debug("srcFile : {}", srcFile.getAbsolutePath());
                 is = new FileInputStream(srcFile);
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     encryptIS = GWUtils.initCtrDecrypt(is, srcKey);
@@ -1456,11 +1457,12 @@ public class VFSObjectManager implements IObjectManager {
             // src object is multipart
             if (isMultipart) {
                 BufferedReader br = null;
-                if (!Strings.isNullOrEmpty(srcKey)) {
-                    br = new BufferedReader(new InputStreamReader(encryptIS));
-                } else {
-                    br = new BufferedReader(new InputStreamReader(is));
-                }
+                br = new BufferedReader(new InputStreamReader(is));
+                // if (!Strings.isNullOrEmpty(srcKey)) {
+                //     br = new BufferedReader(new InputStreamReader(encryptIS));
+                // } else {
+                //     br = new BufferedReader(new InputStreamReader(is));
+                // }
                 
                 String line = null;
                 long accOffset = 0L;
@@ -1597,7 +1599,6 @@ public class VFSObjectManager implements IObjectManager {
                 // } else {
                     // md5er = MessageDigest.getInstance(GWConstants.MD5, new OpenSSL4JProvider());
                 // }
-                
                 long remainLength = length;
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     if (hasRange) {
@@ -1613,9 +1614,11 @@ public class VFSObjectManager implements IObjectManager {
                         if ((readLength = encryptIS.read(buffer, 0, readByte)) != -1) {
                             if (isAvailablePrimary) {
                                 osPrimary.write(buffer, 0, readByte);
+                                osPrimary.flush();
                             }
                             if (isAvailableReplica) {
                                 osReplica.write(buffer, 0, readByte);
+                                osReplica.flush();
                             }
                             md5er.update(buffer, 0, readLength);
                         } else {
@@ -1635,12 +1638,15 @@ public class VFSObjectManager implements IObjectManager {
                         } else {
                             readByte = (int)remainLength;
                         }
-                        if ((readLength = is.read(buffer, 0, readByte)) == -1) {
+                        if ((readLength = is.read(buffer, 0, readByte)) != -1) {
+
                             if (isAvailablePrimary) {
                                 osPrimary.write(buffer, 0, readByte);
+                                osPrimary.flush();
                             }
                             if (isAvailableReplica) {
                                 osReplica.write(buffer, 0, readByte);
+                                osReplica.flush();
                             }
                             md5er.update(buffer, 0, readLength);
                         } else {
@@ -1935,7 +1941,7 @@ public class VFSObjectManager implements IObjectManager {
             File filePrimary = null;
             File fileReplica = null;
             File fileTrashPrimary = null;
-            File fileTrashReplica = null;;
+            File fileTrashReplica = null;
 
             if (isAvailablePrimary) {
                 if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
@@ -2130,7 +2136,7 @@ public class VFSObjectManager implements IObjectManager {
         String localPath = null;
 
         try {
-            for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<Integer, Part> entry = it.next();
                 primaryDiskId = entry.getValue().getPrimaryDiskId();
                 replicaDiskId = entry.getValue().getReplicaDiskId();
@@ -2781,16 +2787,112 @@ public class VFSObjectManager implements IObjectManager {
 
     @Override
     public boolean deletePart(S3Parameter param, Metadata meta) throws GWException {
+        // check disk
+        boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForWrite(meta.getPrimaryDisk().getId());
+        boolean isAvailableReplica = false;
+        DISK replicaDISK = null;
+        if (meta.isReplicaExist()) {
+            try {
+                replicaDISK = meta.getReplicaDisk();
+                isAvailableReplica = isAvailableDiskForWrite(replicaDISK.getId());
+            } catch (ResourceNotFoundException e) {
+                logger.error("Replica is null");
+            }
+        }
+        if (!isAvailablePrimary && !isAvailableReplica) {
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
+        }
+
+        File filePrimary = null;
+        File fileReplica = null;
+        File fileTrashPrimary = null;
+        File fileTrashReplica = null;
+
+        if (isAvailableReplica) {
+            // if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+            //     // check Cache
+            //     if (GWConfig.getInstance().isCacheDiskpath()) {
+            //         filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+            //         isCachePrimary = true;
+            //     } else {
+            //         filePrimary = new File(KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+            //     }
+            //     fosPrimary = new FileOutputStream(filePrimary, false);
+            // } else {
+            //     // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
+            //     logger.debug("osd client primary : {}", meta.getPrimaryDisk().getOsdIp());
+            //     if (osdClientPrimary == null) {
+            //         osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            //     } else {
+            //         isBorrowOsdPrimary = true;
+            //     }
+            //     clientPartPrimary.deletePart(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
+            //     if (isBorrowOsdPrimary) {
+            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
+            //     } else {
+            //         clientPartPrimary.close();
+            //     }
+            // }
+
+            // if ((localPath = DiskManager.getInstance().getLocalPath(primaryDiskId)) != null) {
+            //     partFilePrimary = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+            //     partFileTrashPrimary = new File(KsanUtils.makeTrashPath(localPath, meta.getObjId(), param.getUploadId()));
+            //     if (!partFilePrimary.exists()) {
+            //         retryRenameTo(partFilePrimary, partFileTrashPrimary);
+            //     }
+            // } else {
+            //     // clientPartPrimary = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId));
+            //     if (clientPartPrimary == null) {
+            //         clientPartPrimary = new OSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId), (int)GWConfig.getInstance().getOsdPort());
+            //     } else {
+            //         isBorrowOsdPartPrimary = true;
+            //     }
+            //     clientPartPrimary.deletePart(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
+            //     if (isBorrowOsdPartPrimary) {
+            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
+            //     } else {
+            //         clientPartPrimary.close();
+            //     }
+            // }
+        }
+        if (isAvailableReplica) {
+
+        }
+
         return true;
     }
 
     @Override
     public void restoreObject(S3Parameter param, Metadata meta, Metadata restoreMeta) throws GWException {
+        try {
+            File srcFile = new File(KsanUtils.makeObjPathForOpen(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            File destFile = new File(KsanUtils.makeObjPath(restoreMeta.getPrimaryDisk().getPath(), restoreMeta.getObjId(), param.getVersionId()));
 
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+
+            retryRenameTo(srcFile, destFile);
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        }
     }
 
     @Override
     public void storageMove(S3Parameter param, Metadata meta, Metadata restoreMeta) throws GWException {
+        try {
+            File srcFile = new File(KsanUtils.makeObjPathForOpen(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            File destFile = new File(KsanUtils.makeObjPath(restoreMeta.getPrimaryDisk().getPath(), restoreMeta.getObjId(), param.getVersionId()));
 
+            if (destFile.exists()) {
+                destFile.delete();
+            }
+
+            retryRenameTo(srcFile, destFile);
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        }
     }
 }
