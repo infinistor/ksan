@@ -38,7 +38,7 @@ export default class DiskPoolView extends JetView {
 				{
 					view: "toolbar",
 					paddingX: 20,
-					elements: [{ view: "label", label: "Diskpools", height: 0 }],
+					elements: [{ view: "label", label: "DiskPools", height: 0 }],
 					height: 50,
 					borderless: true,
 				},
@@ -85,7 +85,6 @@ export default class DiskPoolView extends JetView {
 							borderless: true,
 							popup: DISKPOOL_TO_DEFAULT_WINDOW,
 						},
-						{ view: "spacer" },
 						{
 							view: "icon",
 							icon: "mdi mdi-close",
@@ -98,14 +97,15 @@ export default class DiskPoolView extends JetView {
 						},
 						{
 							view: "icon",
-							icon: "mdi mdi-reload",
+							icon: "mdi mdi-table-refresh",
 							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
 							click: function () {
-								window.location.reload(true);
+								reload();
 							},
 						},
+						{}
 					],
 				},
 				{
@@ -149,37 +149,6 @@ export default class DiskPoolView extends JetView {
 					tooltip: {
 						template: (obj) => `Total Size : ${sizeToString(obj.TotalSize)}<br>Used Size : ${sizeToString(obj.UsedSize)}<br>Tolerance : ${getReplicationType(obj)}<br>DiskPool Type : ${obj.DiskPoolType}`,
 					},
-					url: function () {
-						return webix
-							.ajax()
-							.get(DISKPOOL_URL)
-							.then(
-								function (data) {
-									var response = data.json();
-									if (response.Result == "Error") {
-										webix.message({ text: response.Message, type: "error", expire: 5000 });
-										return null;
-									} else {
-										response.Data.Items.forEach((item) => {
-											var status = true;
-											if (item.Disks != null && item.Disks.length > 0) {
-												item.Disks.forEach((disk) => {
-													if (disk.State != "Good") status = false;
-												});
-											}
-											item.State = "Online";
-										});
-										return response.Data.Items;
-									}
-								},
-								function (error) {
-									// var response = JSON.parse(error.response);
-									// webix.message({ text: response.Message, type: "error", expire: 5000 });
-									moveLogin("/#!/main/diskpools");
-									// return null;
-								}
-							);
-					},
 					ready: function () {
 						webix.extend(this, webix.ProgressBar);
 					},
@@ -198,13 +167,18 @@ export default class DiskPoolView extends JetView {
 							$$(DISKPOOL_TO_DISK_BUTTON).disable();
 							$$(DISKPOOL_TO_DEFAULT_BUTTON).disable();
 							this.app.callEvent("diskpool:unselect");
+						},
+						onDataUpdate: () => {
+							this.app.callEvent("diskpool:updated");
 						}
+
 					},
 				},
 			],
 		};
 	}
 	init() {
+		load();
 		if ($$(DISKPOOL_ADD_WINDOW) == null)
 			webix.ui({
 				id: DISKPOOL_ADD_WINDOW,
@@ -219,35 +193,39 @@ export default class DiskPoolView extends JetView {
 							view: "form",
 							borderless: true,
 							elementsConfig: {
-								labelWidth: 100,
+								labelWidth: 120,
 							},
 							elements: [
-								{ view: "text", label: "Name", name: "Name" },
-								{ view: "richselect", label: "DiskPool Type", name: "DiskPoolType", options: getDiskPoolType(), value: "STANDARD" },
+								{ view: "text", label: "Name", name: "Name", required: true, invalidMessage: "대/소문자, 숫자, 특수문자(-, _)만 가능합니다." },
+								{ view: "richselect", label: "DiskPool Type", name: "DiskPoolType", required: true, options: getDiskPoolType(), value: "STANDARD" },
 								{
 									view: "richselect",
 									label: "Tolerance",
 									name: "ReplicationType",
 									options: getDiskPoolReplicationType(),
 									value: "OnePlusZero",
+									required: true,
 									on: {
 										onChange: function (newValue) {
-											if (newValue == "ErasureCode")
-												this.getParentView().getChildViews()[3].enable();
-											else this.getParentView().getChildViews()[3].disable();
+											if (newValue == "ErasureCode") {
+												this.getParentView().getChildViews()[3].show();
+												this.getParentView().getChildViews()[3].getChildViews()[1].setValue(6);
+												this.getParentView().getChildViews()[3].getChildViews()[3].setValue(2);
+											}
+											else {
+												this.getParentView().getChildViews()[3].hide();
+											}
 										}
 									}
 								},
 								{
-									view: "fieldset",
-									label: "Erasure Code",
-									disabled: true,
-									body: {
-										cols: [
-											{ view: "text", label: "K", name: "K", value: 6 }, { width: 10 },
-											{ view: "text", label: "M", name: "M", value: 2 }
-										]
-									}
+									hidden: true,
+									cols: [
+										{ width: 120 },
+										{ view: "text", labelWidth: 45, type: "number", label: "K", name: "K", step: 1, min: 1 },
+										{ width: 10 },
+										{ view: "text", labelWidth: 45, type: "number", label: "M", name: "M", step: 1, min: 1 }
+									]
 								},
 								{ view: "textarea", label: "Description", name: "Description", height: 200, labelPosition: "top" },
 								{
@@ -268,14 +246,15 @@ export default class DiskPoolView extends JetView {
 											click: function () {
 												if (this.getParentView().getParentView().validate()) {
 													addDiskPool(this.getFormView().getValues());
-												} else webix.alert({ type: "error", text: "Form data is invalid" });
+													this.getTopParentView().hide();
+												}
 											},
 										},
 									],
 								},
 							],
 							rules: {
-								Name: webix.rules.isNotEmpty,
+								Name: function (value) { return /([A-Za-z0-9-_]){1,}$/.test(value); },
 								DiskPoolType: webix.rules.isNotEmpty,
 								ReplicationType: webix.rules.isNotEmpty,
 							},
@@ -315,6 +294,7 @@ export default class DiskPoolView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										deleteDiskPool();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -350,6 +330,7 @@ export default class DiskPoolView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										setDefaultDiskPool();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -393,14 +374,6 @@ export default class DiskPoolView extends JetView {
 								]);
 								webix.extend(this, webix.ProgressBar);
 							},
-							// on: {
-							// 	onCheck: () => {
-							// 		$$(SUB_DISK_TABLE).sort([
-							// 			{ by: "Check", dir: "desc", as: "int" },
-							// 			{ by: "Name", dir: "asc", as: "string" },
-							// 		]);
-							// 	}
-							// }
 						},
 						{ height: 10 },
 						{
@@ -419,6 +392,7 @@ export default class DiskPoolView extends JetView {
 									value: "변경",
 									click: function () {
 										DiskPoolUpdateDisks();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -457,10 +431,7 @@ export default class DiskPoolView extends JetView {
 										}
 									},
 									function (error) {
-										var response = JSON.parse(error.response);
-										webix.message({ text: response.Message, type: "error", expire: 5000 });
 										moveLogin("/#!/main/ksanusers");
-										return null;
 									}
 								);
 						}
@@ -471,11 +442,62 @@ export default class DiskPoolView extends JetView {
 }
 
 /**
+ * 디스크풀 목록을 가져온다.
+ */
+function load() {
+	webix
+		.ajax()
+		.get(DISKPOOL_URL)
+		.then(
+			function (data) {
+				var response = data.json();
+				if (response.Result == "Error") {
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				} else {
+					response.Data.Items.forEach((item) => {
+						var status = true;
+						if (item.Disks != null && item.Disks.length > 0) {
+							item.Disks.forEach((disk) => {
+								if (disk.State != "Good") status = false;
+							});
+						}
+						if (status == false) item.State = "Offline";
+						else item.State = "Online";
+					});
+
+					$$(DISKPOOL_TABLE).callEvent("onUnselect");
+					$$(DISKPOOL_TABLE).clearAll();
+					$$(DISKPOOL_TABLE).parse(response.Data.Items);
+				}
+			},
+			function (error) {
+				console.log(error);
+				moveLogin("/#!/main/diskpools");
+			}
+		);
+}
+
+/**
+ * 디스크풀 목록을 새로고침한다.
+ */
+function reload(message, updated = false) {
+	if (updated == true) $$(DISKPOOL_TABLE).callEvent("onDataUpdate");
+
+	webix.message({ text: message, type: "success", expire: 5000 });
+	const DELAY = 1000;
+	showProgressIcon(DISKPOOL_TABLE, DELAY);
+	setTimeout(function () { load(); }, DELAY);
+}
+
+/**
  * 디스크풀을 등록한다.
  * @param form json:{Name:"Name", DiskPoolType:"DiskPool Type", ReplicationType:"Replication Type", Description:"Description"}
  */
 function addDiskPool(form) {
-	showProgressIcon(DISKPOOL_TABLE);
+	if (form.ReplicationType != "ErasureCode") {
+		delete form["K"];
+		delete form["M"];
+	}
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -484,11 +506,13 @@ function addDiskPool(form) {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("새로운 디스크풀을 추가했습니다.");
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }
@@ -499,10 +523,9 @@ function addDiskPool(form) {
 function deleteDiskPool() {
 	var item = $$(DISKPOOL_TABLE).getSelectedItem();
 	if (item == null) {
-		webix.alert({ type: "error", text: "디스크풀을 선택해야 합니다." });
+		webix.message({ text: "디스크풀을 선택해야 합니다.", type: "error", expire: 5000 });
 		return;
 	}
-	showProgressIcon(DISKPOOL_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -511,11 +534,13 @@ function deleteDiskPool() {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("선택한 디스크풀을 삭제했습니다.", true);
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }
@@ -525,10 +550,9 @@ function deleteDiskPool() {
 function setDefaultDiskPool() {
 	var item = $$(DISKPOOL_TABLE).getSelectedItem();
 	if (item == null) {
-		webix.alert({ type: "error", text: "디스크풀을 선택해야 합니다." });
+		webix.message({ text: "디스크풀을 선택해야 합니다.", type: "error", expire: 5000 });
 		return;
 	}
-	showProgressIcon(DISKPOOL_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -537,11 +561,13 @@ function setDefaultDiskPool() {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("기본 디스크풀을 변경했습니다.");
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }
@@ -555,9 +581,8 @@ function DiskPoolUpdateDisks() {
 	var checkDisks = [];
 	Disks.forEach(item => {
 		if (item.Check == true) checkDisks.push(item.Id);
-	})
-	console.log(checkDisks);
-	showProgressIcon(SUB_DISK_TABLE);
+	});
+
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -566,12 +591,13 @@ function DiskPoolUpdateDisks() {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("할당된 디스크들을 변경했습니다.", true);
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
 			}
 		);
 }
-

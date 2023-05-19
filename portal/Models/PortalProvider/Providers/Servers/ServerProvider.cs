@@ -825,9 +825,9 @@ namespace PortalProvider.Providers.Servers
 				{
 					foreach (var Disk in Exist.Disks)
 					{
-						Guid.TryParse(Disk.DiskPoolId, out Guid DiskpoolGuid);
+						Guid.TryParse(Disk.DiskPoolId, out Guid DiskPoolGuid);
 						string diskName = await m_dbContext.DiskPools.AsNoTracking()
-							.Where(i => i.Id == DiskpoolGuid)
+							.Where(i => i.Id == DiskPoolGuid)
 							.Select(i => i.Name)
 							.FirstOrDefaultAsync();
 						Disk.DiskPoolName = diskName;

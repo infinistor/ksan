@@ -61,17 +61,15 @@ export default class ServerView extends JetView {
 							id: SERVER_DELETE_BUTTON,
 							popup: SERVER_DELETE_WINDOW,
 						},
-						{ view: "spacer" },
 						{
 							view: "icon",
-							icon: "mdi mdi-reload",
+							icon: "mdi mdi-table-refresh",
 							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
-							click: function () {
-								window.location.reload(true);
-							},
+							click: function () { reload(); },
 						},
+						{},
 					],
 				},
 				{
@@ -185,6 +183,7 @@ export default class ServerView extends JetView {
 		};
 	}
 	init() {
+		load();
 		if ($$(SERVER_ADD_WINDOW) == null)
 			webix.ui({
 				id: SERVER_ADD_WINDOW,
@@ -199,7 +198,7 @@ export default class ServerView extends JetView {
 							view: "form",
 							borderless: true,
 							elements: [
-								{ view: "text", label: "Host", name: "ServerIp" },
+								{ view: "text", label: "Host", name: "ServerIp", required: true, },
 								{
 									cols: [
 										{
@@ -218,7 +217,8 @@ export default class ServerView extends JetView {
 											click: function () {
 												if (this.getParentView().getParentView().validate()) {
 													addServer(this.getFormView().getValues());
-												} else webix.alert({ type: "error", text: "Form data is invalid" });
+													this.getTopParentView().hide();
+												}
 											},
 										},
 									],
@@ -238,12 +238,13 @@ export default class ServerView extends JetView {
 		if ($$(SERVER_DELETE_WINDOW) == null)
 			webix.ui({
 				id: SERVER_DELETE_WINDOW,
+				view: "popup",
 				head: "Delete",
 				width: 280,
 				body: {
 					rows: [
 						{ view: "label", label: "서버 삭제", align: "center" },
-						{ view: "label", css: "popup_title_line" },
+						{ view: "label", template: "<div class='popup_title_line' />", height: 2 },
 						{ view: "label", label: "정말 삭제하시겠습니까?", align: "center" },
 						{
 							cols: [
@@ -262,6 +263,7 @@ export default class ServerView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										deleteServers();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -269,10 +271,13 @@ export default class ServerView extends JetView {
 					],
 				},
 			});
-		set();
 	}
 }
-function set() {
+
+/**
+ * 서버 목록을 가져온다.
+ */
+function load() {
 	webix
 		.ajax()
 		.get(SERVER_URL + "/Details")
@@ -286,17 +291,30 @@ function set() {
 						if (item.NetworkInterfaces != null && item.NetworkInterfaces.length > 0) item.Ip = item.NetworkInterfaces[0].IpAddress;
 						else item.Ip = "";
 					});
+					$$(SERVER_TABLE).unselectAll();
+					$$(SERVER_TABLE).clearAll();
 					$$(SERVER_TABLE).parse(MyList);
 				}
 			},
 			function (error) {
-				// var response = JSON.parse(error.response);
-				// webix.message({ text: response.Message, type: "error", expire: 5000 });
 				moveLogin("/#!/main/servers");
-				return null;
 			}
 		);
 }
+
+/**
+ * 서버 목록을 새로고침한다.
+ */
+function reload(message) {
+	if (message != null) webix.message({ text: message, type: "success", expire: 5000 });
+	const DELAY = 1000;
+	showProgressIcon(SERVER_TABLE, DELAY);
+	setTimeout(function () { load(); }, DELAY);
+}
+
+/**
+ * 선택한 서버들을 선택해제한다.
+ */
 function unchecked() {
 	MyList.forEach(function (item) {
 		item.Check = false;
@@ -305,10 +323,9 @@ function unchecked() {
 
 /**
  * 서버 Host 주소 값을 받아 해당 주소의 서버를 등록한다.
- * @param form json data : {"ServerIp":"string"}
+ * @param {"ServerIp":"string"} form 서버 Host 주소
  */
 function addServer(form) {
-	showProgressIcon(SERVER_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -317,7 +334,7 @@ function addServer(form) {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("서버를 추가했습니다.");
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
@@ -331,28 +348,31 @@ function addServer(form) {
  */
 function deleteServers() {
 	var items = $$(SERVER_TABLE).getSelectedItem();
-	if (items == null) webix.message({ text: "서버를 선택해야 합니다.", type: "error", expire: 5000 });
+	if (items == null) webix.alert({ text: "서버를 선택해야 합니다.", type: "error", expire: 5000 });
 	else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
-			if (deleteServer(item.Id)) result = true;
+			if (deleteServer(item)) result = true;
 		});
-		if (result) window.location.reload(true);
+		if (result) reload("선택한 서버들을 삭제했습니다.");
+
 	} else {
-		if (deleteServer(items.Id)) window.location.reload(true);
+		if (deleteServer(items)) reload("선택한 서버를 삭제했습니다.");
 	}
 }
-
-function deleteServer() {
-
-	showProgressIcon(SERVER_TABLE);
-	webix
+/**
+ * 특정 서버를 삭제한다.
+ * @return {boolean} 삭제 결과
+ */
+function deleteServer(item) {
+	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
-		.del(`${SERVER_URL}/${id}`)
+		.del(`${SERVER_URL}/${item.Id}`)
 		.then(
 			function (data) {
 				var response = data.json();
+				console.log(response);
 				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
 				else return true;
 			},

@@ -31,7 +31,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SERVER {
     private String id;
     private long ipaddr;
-    private String name;
+    private String name; // the IP address of the machine
+    private String serverUniqName; // the uniqe give name to host machine 
     private ServerStatus status; // ONLINE or OFFLINE
     private int rack;
     private boolean isLocal;
@@ -46,6 +47,7 @@ public class SERVER {
         this.name = name; //IP address in string
         this.status = ServerStatus.ONLINE;
         currentDiskIdx = 0;
+        serverUniqName = "";
         diskMap = new HashMap();
         this.isLocal=this.isLocalIpaddres();
         logger = LoggerFactory.getLogger(SERVER.class);
@@ -222,6 +224,10 @@ public class SERVER {
         this.status = status;
     }
     
+    public void setServerUniqName(String serverUniqName){
+        this.serverUniqName = serverUniqName;
+    }
+    
     public boolean isLocalServer(){
         return this.isLocal;
     }
@@ -335,6 +341,10 @@ public class SERVER {
     }
     public int getNumDisk(){
         return diskMap.size();
+    }
+    
+    public String getServerUniqName(){
+        return this.serverUniqName;
     }
     
     public String displayDiksList(){

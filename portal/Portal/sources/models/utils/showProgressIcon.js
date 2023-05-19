@@ -10,17 +10,12 @@
 */
 
 /**
- * 프로그래스 아이콘을 일정시간동안 표출한다.
+ * 프로그래스 아이콘을 표출한다.
  * @param {any} window webix window 객체
  */
-export function showProgressIcon(window) {
-	const delay = 5000;
-	$$(window).disable();
+export function showProgressIcon(window, delay) {
 	$$(window).showProgress({
 		delay: delay,
 		hide: true,
 	});
-	setTimeout(function () {
-		$$(window).enable();
-	}, delay);
 }

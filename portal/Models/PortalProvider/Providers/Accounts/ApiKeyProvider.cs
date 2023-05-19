@@ -364,7 +364,7 @@ namespace PortalProvider.Providers.Accounts
 			{
 				// API 키 정보를 가져온다.
 				var Exist = await m_dbContext.ApiKeys.AsNoTracking()
-					.Where(i => i.KeyName == Resource.INTERNALSERVICE_API_KEY)
+					.Where(i => i.KeyName == Resource.INTERNAL_SERVICE_API_KEY)
 					.FirstOrDefaultAsync<ApiKey, ResponseApiKey>();
 
 				// 해당 데이터가 존재하는 경우

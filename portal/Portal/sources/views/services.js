@@ -86,7 +86,7 @@ export default class ServiceView extends JetView {
 						},
 						{
 							view: "icon",
-							icon: "mdi mdi-replay",
+							icon: "mdi mdi-restart",
 							tooltip: "재시작",
 							disabled: true,
 							autowidth: true,
@@ -94,17 +94,15 @@ export default class ServiceView extends JetView {
 							id: SERVICE_RESTART_BUTTON,
 							popup: SERVICE_RESTART_WINDOW,
 						},
-						{ view: "spacer" },
 						{
 							view: "icon",
-							icon: "mdi mdi-reload",
+							icon: "mdi mdi-table-refresh",
 							tooltip: "새로고침",
 							autowidth: true,
 							borderless: true,
-							click: function () {
-								window.location.reload(true);
-							},
+							click: function () { reload(); },
 						},
+						{},
 					],
 				},
 				{
@@ -221,6 +219,8 @@ export default class ServiceView extends JetView {
 		};
 	}
 	init() {
+		load();
+
 		if ($$(SERVICE_ADD_WINDOW) == null)
 			webix.ui({
 				id: SERVICE_ADD_WINDOW,
@@ -238,20 +238,15 @@ export default class ServiceView extends JetView {
 								labelWidth: 100,
 							},
 							elements: [
-								{ view: "text", label: "Name", name: "Name" },
+								{ view: "text", label: "Name", name: "Name", required: true, invalidMessage: "대/소문자, 숫자, 특수문자(-, _)만 가능합니다." },
 								{
 									view: "richselect",
 									label: "Server",
 									name: "ServerId",
-									options: {
-										body: {
-											url: function () {
-												return loadServers();
-											},
-										},
-									},
+									required: true,
+									options: loadServers(),
 								},
-								{ view: "richselect", label: "Service Type", name: "ServiceType", options: getServiceType() },
+								{ view: "richselect", label: "Service Type", name: "ServiceType", required: true, options: getServiceType() },
 								{ view: "textarea", height: 200, label: "Description", labelPosition: "top", name: "Description" },
 								{
 									cols: [
@@ -271,14 +266,15 @@ export default class ServiceView extends JetView {
 											click: function () {
 												if (this.getParentView().getParentView().validate()) {
 													addService(this.getFormView().getValues());
-												} else webix.message({ type: "error", expire: 5000, text: "Form data is invalid" });
+													this.getTopParentView().hide();
+												}
 											},
 										},
 									],
 								},
 							],
 							rules: {
-								Name: webix.rules.isNotEmpty,
+								Name: function (value) { return /([A-Za-z0-9-_]){1,}$/.test(value); },
 								ServerId: webix.rules.isNotEmpty,
 								ServiceType: webix.rules.isNotEmpty,
 							},
@@ -287,6 +283,9 @@ export default class ServiceView extends JetView {
 				on: {
 					onShow: function () {
 						this.getBody().getChildViews()[2].clear();
+						var list = this.getBody().getChildViews()[2].getChildViews()[1].getPopup().getList();
+						list.clearAll();
+						list.parse(loadServers());
 					}
 				}
 			});
@@ -318,6 +317,7 @@ export default class ServiceView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										deleteServices();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -353,6 +353,7 @@ export default class ServiceView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										startServices();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -388,6 +389,7 @@ export default class ServiceView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										stopServices();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -423,6 +425,7 @@ export default class ServiceView extends JetView {
 									hotkey: "enter",
 									click: function () {
 										restartServices();
+										this.getTopParentView().hide();
 									},
 								},
 							],
@@ -451,10 +454,13 @@ export default class ServiceView extends JetView {
 					},
 				},
 			});
-		set();
 	}
 }
-function set() {
+
+/**
+ * 서비스 목록을 가져온다.
+ */
+function load() {
 	webix
 		.ajax()
 		.get(SERVICE_URL)
@@ -467,16 +473,30 @@ function set() {
 					MyList.forEach(function (item) {
 						item.ServerName = item.Server.Name;
 					});
+					$$(SERVICE_TABLE).unselectAll();
+					$$(SERVICE_TABLE).clearAll();
 					$$(SERVICE_TABLE).parse(MyList);
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				webix.message({ text: response.Message, type: "error", expire: 5000 });
 				moveLogin("/#!/main/services");
 			}
 		);
 }
+
+/**
+ * 서비스 목록을 새로고침한다.
+ */
+function reload(message) {
+	if (message != null) webix.message({ text: message, type: "success", expire: 5000 });
+	const DELAY = 1000;
+	showProgressIcon(SERVICE_TABLE, DELAY);
+	setTimeout(function () { load(); }, DELAY);
+}
+
+/**
+ * 서비스 목록의 모든 체크를 해제한다.
+ */
 function unchecked() {
 	MyList.forEach(function (item) {
 		item.Check = false;
@@ -485,10 +505,9 @@ function unchecked() {
 
 /**
  * 서비스를 등록한다.
- * @param form json:{GroupId:"Group Id", Name:"Name", ServerId:"Server Id", ServiceType:"Service Type", HaAction:"Ha Action", State:"State", Description:"Description"}
+ * @param {GroupId:"Group Id", Name:"Name", ServerId:"Server Id", ServiceType:"Service Type", HaAction:"Ha Action", State:"State", Description:"Description"} form 서비스 정보
  */
 function addService(form) {
-	showProgressIcon(SERVICE_TABLE);
 	webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -497,7 +516,7 @@ function addService(form) {
 			function (data) {
 				var response = data.json();
 				if (response.Result == "Error") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				else window.location.reload(true);
+				else reload("서비스 등록에 성공했습니다.");
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
@@ -518,20 +537,17 @@ function deleteServices() {
 		items.forEach(function (item) {
 			if (deleteService(item)) result = true;
 		});
-		if (result) window.location.reload(true);
-	} else {
-		if (deleteService(items)) window.location.reload(true);
-	}
+		if (result) reload("선택한 서비스들을 삭제했습니다.");
+	} else if (deleteService(items)) reload("선택한 서비스를 삭제했습니다.");
 }
 
 /**
  * 특정 서비스를 삭제한다.
- * @returns 성공 / 실패 여부
+ * @returns 삭제 결과
  */
 function deleteService(item) {
 	if (checkAgentService(item)) return false;
 
-	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -539,10 +555,8 @@ function deleteService(item) {
 		.then(
 			function (data) {
 				var response = data.json();
-				if (response.Result == "Error") {
-					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return false;
-				} else return true;
+				if (response.Result == "Error") { webix.message({ text: response.Message, type: "error", expire: 5000 }); return false; }
+				else return true;
 			},
 			function (error) {
 				var response = JSON.parse(error.response);
@@ -564,20 +578,17 @@ function startServices() {
 		items.forEach(function (item) {
 			if (startService(item)) result = true;
 		});
-		if (result) window.location.reload(true);
-	} else {
-		if (startService(items)) window.location.reload(true);
-	}
+		if (result) reload("선택한 서비스를 시작했습니다.");
+	} else if (startService(items)) reload("선택한 서비스들을 시작했습니다.");
 }
 
 /**
  * 특정 서비스를 시작한다.
- * @returns 성공 / 실패 여부
+ * @returns 시작 결과
  */
 function startService(item) {
 	if (checkAgentService(item)) return false;
 
-	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -610,20 +621,17 @@ function stopServices() {
 		items.forEach(function (item) {
 			if (stopService(item)) result = true;
 		});
-		if (result) window.location.reload(true);
-	} else {
-		if (stopService(items)) window.location.reload(true);
-	}
+		if (result) reload("선택한 서비스들을 중지했습니다.");
+	} else if (stopService(items)) reload("선택한 서비스를 중지했습니다.");
 }
 
 /**
  * 특정 서비스를 중지한다.
- * @returns 성공 / 실패 여부
+ * @returns 중지 결과
  */
 function stopService(item) {
 	if (checkAgentService(item)) return false;
 
-	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -648,25 +656,21 @@ function stopService(item) {
  */
 function restartServices() {
 	var items = $$(SERVICE_TABLE).getSelectedItem();
-	if (items == null) {
-		webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
-	} else if (Array.isArray(items)) {
+	if (items == null) webix.alert({ type: "error", text: "서비스를 선택해야 합니다." });
+	else if (Array.isArray(items)) {
 		var result = false;
 		items.forEach(function (item) {
 			if (restartService(item)) result = true;
 		});
-		if (result) window.location.reload(true);
-	} else {
-		if (restartService(items)) window.location.reload(true);
-	}
+		if (result) reload("선택한 서비스들을 재시작했습니다.");
+	} else if (restartService(items)) reload("선택한 서비스를 재시작했습니다.");
 }
 
 /**
  * 특정 서비스를 재시작한다.
- * @returns 성공 / 실패 여부
+ * @returns 재시작 결과
  */
 function restartService(item) {
-	showProgressIcon(SERVICE_TABLE);
 	return webix
 		.ajax()
 		.headers({ "Content-Type": "application/json" })
@@ -686,7 +690,6 @@ function restartService(item) {
 			}
 		);
 }
-
 
 /**
  * Agent 서비스는 재시작만 가능하도록 한다.

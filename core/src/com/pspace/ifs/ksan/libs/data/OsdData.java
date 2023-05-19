@@ -27,6 +27,7 @@ public class OsdData {
     public static final String GET_EC_PART = "GC";
     public static final String PUT_EC_PART = "PE";
     public static final String DELETE_EC_PART = "DE";
+    public static final String GET_MULTIPART = "GM";
     public static final String DELIMITER = ":";
 
     public static final int INDICATOR_SIZE = 2;
@@ -52,20 +53,23 @@ public class OsdData {
     public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
     public static final int PUT_KEY_INDEX = 7;
     public static final int PUT_MODE_INDEX = 8;
-    public static final int PARTNO_INDEX = 3;
     public static final int COMPLETE_MULTIPART_KEY_INDEX = 4;
     public static final int COMPLETE_MULTIPART_REPLICATION_INDEX = 5;
     public static final int COMPLETE_MULTIPART_REPLICA_DISKID_INDEX = 6;
     public static final int COMPLETE_MULTIPART_PARTNOS_INDEX = 7;
     public static final int ABORT_MULTIPART_PARTNOS = 3;
-    public static final int PART_NO_INDEX = 3;
-    public static final int PARTNOS_INDEX = 3;
-    public static final int PARTKEY_INDEX = 5;
+    public static final int UPLOAD_KEY_INDEX = 3;
+    public static final int PART_NO_INDEX = 4;
+    public static final int PART_RANGE_INDEX = 2;
+    public static final int PART_LENGTH_INDEX = 5;
+    public static final int PART_KEY_INDEX = 6;
     public static final int PART_COPY_OFFSET_INDEX = 7;
     public static final int PART_COPY_LENGTH_INDEX = 8;
     public static final int COPY_REPLICATION_INDED = 7;
     public static final int COPY_REPLICA_DISK_ID_INDEX = 8;
     public static final int PUT_EC_LENGTH_INDEX = 2;
+    public static final int PART_DELETE_UPLOADID_INDEX = 3;
+    public static final int PART_DELETE_PARTNUMBER_INDEX = 4;
 
     private String ETag;
     private long fileSize;

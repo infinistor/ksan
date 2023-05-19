@@ -21,7 +21,7 @@ namespace PortalData.Requests.Networks
 	public class RequestNetworkInterface : CommonRequestData
 	{
 		/// <summary>인터페이스명</summary>
-		[Required(ErrorMessageResourceName = "EM_NETWORKS_NETWORK_INTERFACE_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;

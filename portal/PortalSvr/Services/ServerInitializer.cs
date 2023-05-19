@@ -206,8 +206,8 @@ namespace PortalSvr.Services
 					var User = await m_userProvider.GetUser(UserName);
 					if (User == null || User.Result != EnumResponseResult.Success)
 					{
-						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESSKEY, out string AccessKey);
-						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRETKEY, out string SecretKey);
+						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_ACCESS_KEY, out string AccessKey);
+						EnvironmentInitializer.GetEnvValue(Resource.ENV_DEFAULT_USER_SECRET_KEY, out string SecretKey);
 
 						// 액세스키, 시크릿키를 설정하지 않았을 경우 기본유저 생성 하지 않음
 						if (AccessKey == null || SecretKey == null || AccessKey.IsEmpty() || SecretKey.IsEmpty())

@@ -10,6 +10,7 @@
 */
 import { JetView, plugins } from "webix-jet";
 import { moveLogin } from "../models/utils/moveLogin";
+import { logout } from "../models/utils/logout";
 
 export default class TopView extends JetView {
 	config() {
@@ -29,7 +30,7 @@ export default class TopView extends JetView {
 							view: "icon",
 							icon: "mdi mdi-logout",
 							click: function () {
-								webix.storage.cookie.clear();
+								logout();
 								moveLogin();
 							},
 						},
@@ -43,8 +44,8 @@ export default class TopView extends JetView {
 							width: 135,
 							data: [
 								{ id: "dash", value: "Dashboard", icon: "mdi mdi-view-dashboard" },
-								{ id: "servers", value: "Servers", icon: "mdi mdi-server-network" },
-								{ id: "services", value: "Services", icon: "mdi mdi-puzzle" },
+								{ id: "servers", value: "Servers", icon: "mdi mdi-server" },
+								{ id: "services", value: "Services", icon: "mdi mdi-nas" },
 								{ id: "diskpools", value: "Storage", icon: "mdi mdi-harddisk" },
 								{ id: "ksanusers", value: "Users", icon: "mdi mdi-account-box" },
 							],

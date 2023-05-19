@@ -12,35 +12,64 @@ package com.pspace.ifs.ksan.gw.mq;
 
 import java.time.Duration;
 
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Connection;
 
 public class ChannelPool {
-    private final static Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
+    private final static Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private GenericObjectPool<Channel> internalPool;
     
 
-    public ChannelPool(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey) {
-        this(new ChannelFactory(host, port, username, password, exchangeName, exchangeOption, routingKey));
-    }
+    public ChannelPool(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey, int poolSize) {
+        GenericObjectPoolConfig<Channel> config = new GenericObjectPoolConfig<Channel>();
 
-    public ChannelPool(ChannelFactory factory) {
-        if (this.internalPool != null) {
-            try {
-                closeInternalPool();
-            } catch (Exception e) {
-                PrintStack.logging(logger, e);
-            }
-        }
+        config.setMaxTotal(poolSize);
+        config.setMaxIdle(poolSize);
+        config.setBlockWhenExhausted(true);
+        config.setTestOnBorrow(true);
+        config.setMaxWait(Duration.ofSeconds(-1));
 
-        this.internalPool = new GenericObjectPool<Channel>(factory);
-        this.internalPool.setMaxTotal(10);
-        this.internalPool.setBlockWhenExhausted(true);
-        this.internalPool.setMaxWait(Duration.ofSeconds(30));
+        internalPool = new GenericObjectPool<Channel>(
+                new BasePooledObjectFactory<Channel>() {
+
+                    @Override
+                    public Channel create() throws Exception {
+                        ConnectionFactory factory = new ConnectionFactory();
+                        factory.setHost(host);
+                        factory.setUsername(username);
+                        factory.setPassword(password);
+                        factory.setPort(port);
+                        factory.setAutomaticRecoveryEnabled(true);
+                        factory.setNetworkRecoveryInterval(10000);
+                        factory.setConnectionTimeout(10000);
+                        Connection connection = factory.newConnection();
+                        Channel channel = connection.createChannel();
+                        channel.basicQos(0);
+                        return channel;
+                    }
+
+                    @Override
+                    public PooledObject<Channel> wrap(Channel obj) {
+                        return new DefaultPooledObject<Channel>(obj);
+                    }
+
+                    @Override
+                    public boolean validateObject(PooledObject<Channel> p) {
+                        boolean test = p.getObject().isOpen();
+                        return test;
+                    }
+
+                }, config);
     }
 
     private void closeInternalPool() {
@@ -71,6 +100,10 @@ public class ChannelPool {
         }
 
         return null;
+    }
+
+    public void close() {
+        closeInternalPool();
     }
 }
 

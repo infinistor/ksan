@@ -23,7 +23,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 public class ObjManagers {
     private static final Logger logger = LoggerFactory.getLogger(ObjManagers.class);
     private ObjManagerConfig config;
-    private ObjManager[] arrayObjManager = new ObjManager[(int)GWConfig.getInstance().getObjManagerCount()];
+    private ObjManager[] arrayObjManager;
     private int index;
     private int counts;
 

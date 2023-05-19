@@ -22,15 +22,18 @@ export function loadUserStorages(userId) {
 				var response = data.json();
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return "";
+					return [];
 				} else {
 					return response.Data.Items;
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				if (response.code != "EC003") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				return "";
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
+
+				return [];
 			}
 		);
 }

@@ -67,7 +67,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 사용자명 유효하지 않을 경우
-				if (Request.Name.IsEmpty() || !IdChecker.IsMatch(Request.Name))
+				if (!Request.IsValid())
 					return new ResponseData<ResponseKsanUser>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_INFORMATION, Resource.EM_COMMON_ACCOUNT_REQUIRE_NAME);
 
 				// 이름 중복 검사
@@ -225,7 +225,7 @@ namespace PortalProvider.Providers.Accounts
 			try
 			{
 				// 유효하지 않은 경우
-				if (Request.IsValid())
+				if (!Request.IsValid())
 					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
 
 				KsanUser Exist = null;
@@ -978,7 +978,7 @@ namespace PortalProvider.Providers.Accounts
 		}
 
 		/************************************************************************************************************/
-		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z가-힣]{1,}$");
+		protected static readonly Regex IdChecker = new Regex(@"^[0-9a-zA-Z-_]{1,}$");
 		protected static readonly Regex EmailChecker = new Regex(@"^([0-9a-zA-Z]+)@([0-9a-zA-Z]+)(\.[0-9a-zA-Z]+){1,}$");
 		protected static readonly int ACCESS_KEY_LENGTH = 20;
 		protected static readonly int SECRET_KEY_LENGTH = 40;

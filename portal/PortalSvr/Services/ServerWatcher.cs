@@ -58,7 +58,7 @@ namespace PortalSvr.Services
 		public Task StartAsync(System.Threading.CancellationToken cancellationToken)
 		{
 
-			m_logger.LogInformation("Server Whtaher Start");
+			m_logger.LogInformation("Server Watcher Start");
 			m_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 			return Task.CompletedTask;
 		}
@@ -66,7 +66,7 @@ namespace PortalSvr.Services
 		/// <summary> 서버 감시 정지 </summary>
 		public Task StopAsync(System.Threading.CancellationToken cancellationToken)
 		{
-			m_logger.LogInformation("Server Whtaher Stop");
+			m_logger.LogInformation("Server Watcher Stop");
 			m_timer.Change(Timeout.Infinite, 0);
 			return Task.CompletedTask;
 		}

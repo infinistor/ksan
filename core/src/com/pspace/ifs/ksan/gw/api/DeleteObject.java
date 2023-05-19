@@ -23,12 +23,15 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import org.slf4j.LoggerFactory;
 
@@ -97,18 +100,20 @@ public class DeleteObject extends S3Request {
 			return;
 		}
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, null);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, null);
+		IObjectManager objectManager = new VFSObjectManager();
 
 		isLastVersion = objMeta.getLastVersion();
 		deleteMarker = objMeta.getDeleteMarker();
 
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_INFO, versionId, isLastVersion, deleteMarker);
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING, versioningStatus);
-		
+
 		if (Strings.isNullOrEmpty(versioningStatus)) {
 			logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_DISABLED);
             remove(bucket, object);
-			objectOperation.deleteObject();
+			// objectOperation.deleteObject();
+			objectManager.deleteObject(s3Parameter, objMeta);
 		} else {
 			if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED)) { // Bucket Versioning Enabled
 				logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_ENABLED);
@@ -125,7 +130,8 @@ public class DeleteObject extends S3Request {
 					if (isLastVersion) {
 						remove(bucket, object, versionId);
 						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE)) {
-							objectOperation.deleteObject();
+							// objectOperation.deleteObject();
+							objectManager.deleteObject(s3Parameter, objMeta);
 						} else if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
 							// marker를 지울 때에도 x-amz-delete-marker : true 추가
 							s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
@@ -137,7 +143,8 @@ public class DeleteObject extends S3Request {
 						}
 
 						remove(bucket, object, versionId);
-						objectOperation.deleteObject();
+						// objectOperation.deleteObject();
+						objectManager.deleteObject(s3Parameter, objMeta);
 					}
 				}
 			} else if (versioningStatus.equalsIgnoreCase(GWConstants.VERSIONING_SUSPENDED)) { // Bucket Versioning Suspended 
@@ -158,12 +165,14 @@ public class DeleteObject extends S3Request {
 						}
 					} else {
 						remove(bucket, object, objMeta.getVersionId());
-						objectOperation.deleteObject();
+						// objectOperation.deleteObject();
+						objectManager.deleteObject(s3Parameter, objMeta);
 						logger.info("delete object - bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 					}
 				} else {	// request with versionId
 					remove(bucket, object, versionId);
-					objectOperation.deleteObject();
+					// objectOperation.deleteObject();
+					objectManager.deleteObject(s3Parameter, objMeta);
 				}
 			} else {
 				logger.error(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_WRONG, versioningStatus);

@@ -134,7 +134,7 @@ function stopTimer() {
  * @returns 네트워크 사용량 정보
  */
 function loadNetWorkUsages() {
-	return webix
+	webix
 		.ajax()
 		.get("/api/v1/Logs/LastNetworkUsages")
 		.then(
@@ -143,7 +143,6 @@ function loadNetWorkUsages() {
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
 					stopTimer();
-					return "";
 				} else {
 					var usage = { DateTime: Date.now(), Rx: 0.0, Tx: 0.0 };
 					response.Data.Items.forEach((item) => {
@@ -154,14 +153,10 @@ function loadNetWorkUsages() {
 					$$(MY_TX).add(usage);
 					$$(MY_RX_TITLE).setValue(sizeToHtml(usage.Rx, "Rx"));
 					$$(MY_TX_TITLE).setValue(sizeToHtml(usage.Tx, "Tx"));
-					return usage;
 				}
 			},
 			function (error) {
-				// var response = JSON.parse(error.response);
-				// webix.message({ text: response.Message, type: "error", expire: 5000 });
 				stopTimer();
-				return "";
 			}
 		);
 }

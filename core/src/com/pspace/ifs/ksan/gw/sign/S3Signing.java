@@ -317,6 +317,7 @@ public class S3Signing {
 		if (expiresString != null) { // v2 query
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
+			logger.debug("nowSeconds({}), expires({})", nowSeconds, expires);
 			if (nowSeconds >= expires) {
 				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -416,7 +417,8 @@ public class S3Signing {
 		}
 
 		if (!GWUtils.constantTimeEquals(expectedSignature, authHeader.signature)) {
-			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature );
+			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature);
+			logger.error("authorization:{}, requestURI:{}", s3Parameter.getAuthorization(), s3Parameter.getRequestURI());
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		

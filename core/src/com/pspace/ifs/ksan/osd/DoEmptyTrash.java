@@ -61,7 +61,7 @@ public class DoEmptyTrash implements Runnable {
     private void empty(String dirPath) {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
-
+        
         for (int i = 0; i < files.length; i++) {
             logger.info("delete : {}", files[i].getAbsolutePath());
             files[i].delete();

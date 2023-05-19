@@ -22,10 +22,7 @@ namespace PortalModels
 	public enum EnumDbServiceType : int
 	{
 		Unknown = -1,
-		RabbitMQ = 0,
-		MariaDB,
-		MongoDB,
-		Haproxy,
+		ksanObjManager = 0,
 		ksanApiPortal,
 		ksanPortal,
 		ksanPortalBridge,

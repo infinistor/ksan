@@ -13,6 +13,7 @@ using PortalData.Enums;
 using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
+using PortalData.ValidationAttributes;
 
 namespace PortalData.Requests.Servers
 {
@@ -20,7 +21,7 @@ namespace PortalData.Requests.Servers
 	public class RequestServer : CommonRequestData
 	{
 		/// <summary>서버명</summary>
-		[Required(ErrorMessageResourceName = "EM_SERVERS_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;

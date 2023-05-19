@@ -22,19 +22,22 @@ export function loadServers() {
 				var response = data.json();
 				if (response.Result == "Error") {
 					webix.message({ text: response.Message, type: "error", expire: 5000 });
-					return "";
+					return [];
 				} else {
-					var ServerList = [];
+					var Servers = [];
 					response.Data.Items.forEach((item) => {
-						ServerList.push({ id: item.Id, value: item.Name });
+						Servers.push({ id: item.Id, value: item.Name });
 					});
-					return ServerList;
+					return Servers;
 				}
 			},
 			function (error) {
-				var response = JSON.parse(error.response);
-				if (response.code != "EC003") webix.message({ text: response.Message, type: "error", expire: 5000 });
-				return "";
+				if (error.status != 401) {
+					var response = JSON.parse(error.response);
+					webix.message({ text: response.Message, type: "error", expire: 5000 });
+				}
+
+				return [];
 			}
 		);
 }

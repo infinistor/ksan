@@ -30,9 +30,12 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -76,9 +79,9 @@ public class UploadPartCopy extends S3Request {
 		String copySourceIfNoneMatch = s3RequestData.getCopySourceIfNoneMatch();;
 		String copySourceIfModifiedSince = s3RequestData.getCopySourceIfModifiedSince();
 		String copySourceIfUnmodifiedSince = s3RequestData.getCopySourceIfUnmodifiedSince();
-		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		// String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		// String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		// String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
 		String copySourceCustomerAlgorithm = s3RequestData.getCopySourceServerSideEncryptionCustomerAlgorithm();
 		String copySourceCustomerKey = s3RequestData.getCopySourceServerSideEncryptionCustomerKey();
 		String copySourceCustomerKeyMD5 = s3RequestData.getCopySourceServerSideEncryptionCustomerKeyMD5(); 
@@ -140,6 +143,7 @@ public class UploadPartCopy extends S3Request {
 			srcVersionId = srcMeta.getVersionId();
 		}
 
+		s3Parameter.setUploadId(uploadId);
 		s3Parameter.setSrcVersionId(srcVersionId);
 		s3Parameter.setSrcPath(srcObjectName);
 		s3Parameter.setPartNumber(partNumber);
@@ -151,8 +155,13 @@ public class UploadPartCopy extends S3Request {
 		// get metadata
 		S3Metadata s3SrcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
 
-		S3ObjectEncryption s3SrcObjectEncryption = new S3ObjectEncryption(s3Parameter, s3SrcMetadata);
-		s3SrcObjectEncryption.build();
+		S3Encryption s3SrcEncryption;
+		if (!Strings.isNullOrEmpty(copySourceCustomerAlgorithm)) {
+			s3SrcEncryption = new S3Encryption(copySourceCustomerAlgorithm, copySourceCustomerKey, copySourceCustomerKeyMD5, s3Parameter);
+		} else {
+			s3SrcEncryption = new S3Encryption("get", s3SrcMetadata, s3Parameter);
+		}
+		s3SrcEncryption.build();
 
 		// Check match
 		if (!Strings.isNullOrEmpty(copySourceIfMatch)) {
@@ -189,7 +198,7 @@ public class UploadPartCopy extends S3Request {
 			}
 		}
 		
-		//Check copy source Range
+		// Check copy source Range
 		S3Range s3Range = new S3Range(s3Parameter);
 		if (!Strings.isNullOrEmpty(copySourceRange)) {
 			logger.info(GWConstants.LOG_UPLOAD_PART_COPY_SOURCE_RANGE, copySourceRange, s3SrcMetadata.getContentLength());
@@ -214,16 +223,16 @@ public class UploadPartCopy extends S3Request {
 		// get metadata
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 
-		if (!Strings.isNullOrEmpty(customerKey)) {
-			if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
-				logger.error("different customer key : {}/{}", customerKey, s3Metadata.getCustomerKey());
-				new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
-			}
-		}
+		// if (!Strings.isNullOrEmpty(customerKey)) {
+		// 	if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
+		// 		logger.error("different customer key : {}/{}", customerKey, s3Metadata.getCustomerKey());
+		// 		new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+		// 	}
+		// }
 
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		// S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
+		// s3ObjectEncryption.build();
 
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
@@ -232,17 +241,21 @@ public class UploadPartCopy extends S3Request {
 		}
 		
 		S3Object s3Object = null;
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		IObjectManager objectManager = new VFSObjectManager();
 		try {
-			s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range, s3SrcObjectEncryption);
+			// s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range, s3SrcObjectEncryption);
+			s3Object = objectManager.uploadPartCopy(s3Parameter, srcMeta, s3SrcEncryption, s3Range, objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-
-		objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
+		objMeta.setSize(s3Object.getFileSize());
+		objMeta.setEtag(s3Object.getEtag());
+		// objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
+		objMultipart.startSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
 		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
-		
+
 		s3Parameter.setFileSize(s3Object.getFileSize());
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -262,7 +275,7 @@ public class UploadPartCopy extends S3Request {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-		
+		logger.info("End UploadPartCopy ... uploadId:{}, partNumber:{}, size:{}", uploadId, partNumber, s3Object.getFileSize());
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}
 }
