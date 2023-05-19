@@ -355,15 +355,18 @@ def ShowDiskPoolInfoNew(DiskPoolList, Detail=SimpleInfo, SysinfoDsp=False):
 
     for pool in DiskPoolList:
         if SysinfoDsp is True:
-            _pool = "|%s|%s|%s|%s|" % (pool.Name.ljust(26), pool.Id.ljust(38),
+            _pool = "|%s|%s|%s|%s|" % ((pool.Name + (' (default)' if pool.DefaultDiskPool is True else '')).ljust(26)
+                                       , pool.Id.ljust(38),
                                           str(pool.DiskPoolType).ljust(18),
                                           GetReplicationDspType(str(pool.ReplicationType), EC=pool.EC).ljust(18))
         else:
             if Detail == DetailInfo:
-                _pool = "|%s|%s|%s|%s|%s|" % (pool.Name.ljust(26), pool.Id.ljust(38),
+                _pool = "|%s|%s|%s|%s|%s|" % ((pool.Name + (' (default)' if pool.DefaultDiskPool is True else '')).ljust(26)
+                                              , pool.Id.ljust(38),
                     str(pool.DiskPoolType).ljust(18), GetReplicationDspType(str(pool.ReplicationType), EC=pool.EC).ljust(18),' '* 71)
             else:
-                _pool = "|%s|%s|%s|%s|%s|" % (pool.Name.ljust(26), pool.Id.ljust(38),
+                _pool = "|%s|%s|%s|%s|%s|" % ((pool.Name + (' (default)' if pool.DefaultDiskPool is True else '')).ljust(26)
+                                              , pool.Id.ljust(38),
                                           str(pool.DiskPoolType).ljust(18), GetReplicationDspType(str(pool.ReplicationType), EC=pool.EC).ljust(18),
                                           " " * 33)
 
