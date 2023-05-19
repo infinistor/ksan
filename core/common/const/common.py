@@ -398,7 +398,7 @@ Parsing['User'] = UserObjectModule
 '''
 #### USER ####
 '''
-ValidStorageClassList = ['standard_ia', 'onezone_ia', 'intelligent_tiering', 'glacier', 'reduced_redundancy', 'deep_archive', 'outposts', 'glacier_ir']
+ValidStorageClassList = ['standard', 'standard_ia', 'onezone_ia', 'intelligent_tiering', 'glacier', 'reduced_redundancy', 'deep_archive', 'outposts', 'glacier_ir']
 
 class AgentConf(BaseModel):
     LocalIp: str
