@@ -96,7 +96,7 @@ public class HeadObject extends S3Request implements S3AddResponse {
 			}
 		}
 
-		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
+		// s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
