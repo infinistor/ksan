@@ -1760,8 +1760,8 @@
     <value>Archive</value>
     <comment>보관</comment>
   </data>
-  <data name="UL_DISKPOOL_CLASS_TYPE_STANDARD" xml:space="preserve">
-    <value>Standard</value>
+  <data name="UL_DISKPOOL_CLASS_TYPE_NORMAL" xml:space="preserve">
+    <value>Normal</value>
     <comment>기본</comment>
   </data>
   <data name="EM_CONFIGS_ALREADY_LAST_VERSION" xml:space="preserve">
@@ -1928,5 +1928,9 @@
   <data name="EM_COMMON_INVALID_NAME" xml:space="preserve">
     <value>Case/case numbers only</value>
     <comment>대/소문자, 숫자, 특수문자(-, _)만 가능합니다.</comment>
+  </data>
+  <data name="UL_DISKPOOL_CLASS_TYPE_PERFORMANCE" xml:space="preserve">
+    <value>Performance</value>
+    <comment>고성능</comment>
   </data>
 </root>

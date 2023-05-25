@@ -3913,11 +3913,20 @@ namespace PortalResources {
         }
         
         /// <summary>
-        ///   Standard과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   Normal과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string UL_DISKPOOL_CLASS_TYPE_STANDARD {
+        public static string UL_DISKPOOL_CLASS_TYPE_NORMAL {
             get {
-                return ResourceManager.GetString("UL_DISKPOOL_CLASS_TYPE_STANDARD", resourceCulture);
+                return ResourceManager.GetString("UL_DISKPOOL_CLASS_TYPE_NORMAL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Performance과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKPOOL_CLASS_TYPE_PERFORMANCE {
+            get {
+                return ResourceManager.GetString("UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", resourceCulture);
             }
         }
         

@@ -108,6 +108,7 @@
       </Documentation>
       <Member Name="STANDARD" Value="1" p1:Guid="6c61d516-1a0a-487c-abc8-cd439a62d870" />
       <Member Name="ARCHIVE" p1:Guid="99f31c1a-52b5-4e1e-a5d0-a4d9fa42dad2" />
+      <Member Name="PERFORMANCE" p1:Guid="82fe74c0-2b6f-4091-b043-e5a33d1a525e" />
     </EnumType>
     <EnumType Name="EnumDbDiskPoolReplicaType" class="EnumDbDiskPoolReplicaType" p1:Guid="5ce1a070-1280-4e36-ab20-8b324ed70db5">
       <Documentation>
@@ -2204,7 +2205,7 @@
       </end2>
     </association>
     <association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-      <end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+      <end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
         <property name="Id" />
       </end1>
       <end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">

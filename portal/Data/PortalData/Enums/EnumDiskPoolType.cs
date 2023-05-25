@@ -19,11 +19,15 @@ namespace PortalData.Enums
 	[JsonConverter(typeof(StringEnumConverter))]
 	public enum EnumDiskPoolType
 	{
-		/// <summary> 1+0 </summary>
+		/// <summary> 기본 </summary>
 		[Display(Name = "UL_DISKPOOL_CLASS_TYPE_STANDARD", Description = "UL_DISKPOOL_CLASS_TYPE_STANDARD", GroupName = "UL_DISKPOOL_CLASS_TYPE", ShortName = "UL_DISKPOOL_CLASS_TYPE_STANDARD", Prompt = "UL_DISKPOOL_CLASS_TYPE_STANDARD", ResourceType = typeof(Resource))]
 		STANDARD = 1,
-		/// <summary> 1+1 </summary>
+		/// <summary> 보관 </summary>
 		[Display(Name = "UL_DISKPOOL_CLASS_TYPE_ARCHIVE", Description = "UL_DISKPOOL_CLASS_TYPE_ARCHIVE", GroupName = "UL_DISKPOOL_CLASS_TYPE", ShortName = "UL_DISKPOOL_CLASS_TYPE_ARCHIVE", Prompt = "UL_DISKPOOL_CLASS_TYPE_ARCHIVE", ResourceType = typeof(Resource))]
 		ARCHIVE,
+		/// <summary> 성능 </summary>
+		[Display(Name = "UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", Description = "UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", GroupName = "UL_DISKPOOL_CLASS_TYPE", ShortName = "UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", Prompt = "UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", ResourceType = typeof(Resource))]
+		PERFORMANCE,
+
 	}
 }
