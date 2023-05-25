@@ -1760,8 +1760,8 @@
     <value>Archive</value>
     <comment>보관</comment>
   </data>
-  <data name="UL_DISKPOOL_CLASS_TYPE_NORMAL" xml:space="preserve">
-    <value>Normal</value>
+  <data name="UL_DISKPOOL_CLASS_TYPE_STANDARD" xml:space="preserve">
+    <value>Standard</value>
     <comment>기본</comment>
   </data>
   <data name="EM_CONFIGS_ALREADY_LAST_VERSION" xml:space="preserve">
