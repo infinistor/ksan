@@ -10,6 +10,7 @@
 */
 import { JetView } from "webix-jet";
 import { sizeToString } from "../../models/utils/sizeToString";
+import { sizeToHtml} from "../../models/utils/sizeToHtml";
 
 const MY_WRITE_TITLE = "disk_write_title";
 const MY_READ_TITLE = "disk_read_title";
@@ -164,32 +165,4 @@ function loadDiskUsages() {
 				stopTimer();
 			}
 		);
-}
-
-/**
- * 입력된 byte를 보기쉬운 용량 단위로 변환하여 반환한다.
- * @param {long} bytes 변환할 용량
- * @param {String} type 타입
- * @returns 용량 + 단위
- */
-export function sizeToHtml(bytes, type) {
-	const thresh = 1000;
-	const dp = 1;
-
-	if (Math.abs(bytes) < thresh) {
-		if (type == "Write") return `<span class='io_in'>${bytes}</span><span class='io_in_unit'>B/s</span>`;
-		else return `<span class='io_out'>${bytes}</span><span class='io_out_unit'>B/s</span>`;
-	}
-
-	const units = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-	let u = -1;
-	const r = 10 ** dp;
-
-	do {
-		bytes /= thresh;
-		++u;
-	} while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
-
-	if (type == "Write") return `<span class='io_in'>${bytes.toFixed(dp)}</span><span class='io_in_unit'>${units[u]}/s</span>`;
-	else return `<span class='io_out'>${bytes.toFixed(dp)}</span><span class='io_out_unit'>${units[u]}/s</span>`;
 }
