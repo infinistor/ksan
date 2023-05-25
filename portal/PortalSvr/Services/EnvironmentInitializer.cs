@@ -224,7 +224,6 @@ namespace PortalSvr.Services
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
-				KsanGW[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
 			}
