@@ -10,7 +10,7 @@
 */
 
 /* 디스크 타입 목록 */
-const DiskPoolType = ["STANDARD", "ARCHIVE"];
+const DiskPoolType = ["STANDARD", "ARCHIVE", "PERFORMANCE"];
 
 export function getDiskPoolType() {
 	return DiskPoolType;
