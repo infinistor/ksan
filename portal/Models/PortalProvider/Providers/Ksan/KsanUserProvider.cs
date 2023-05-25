@@ -803,6 +803,71 @@ namespace PortalProvider.Providers.Accounts
 			return Result;
 		}
 
+
+		/// <summary> 사용자의 스토리지 클래스 정보를 변경한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
+		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
+		public async Task<ResponseData> UpdateStorageClass(string UserName, string DiskpoolName, string StorageClass, RequestStorageClass Request)
+		{
+			var Result = new ResponseData();
+			try
+			{
+				// 리퀘스트가 유효하지 않을 경우
+				if (!Request.IsValid() || UserName.IsEmpty() || StorageClass.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Request.GetErrorCode(), Request.GetErrorMessage());
+
+				// 사용자 계정을 가져온다.
+				KsanUser User = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(UserName, out Guid UserGuid))
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == UserGuid);
+				// 이름으로 조회할 경우
+				else
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == UserName);
+
+				// 해당 계정을 찾을 수 없는 경우
+				if (User == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
+
+
+				// 디스크풀을 가져온다.
+				DiskPool Diskpool = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(DiskpoolName, out Guid DiskpoolGuid))
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskpoolGuid);
+				// 이름으로 조회할 경우
+				else
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == DiskpoolName);
+
+				// 해당 디스크풀을 찾을 수 없는 경우
+				if (Diskpool == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 사용자의 스토리지 클래스 조회
+				var Exist = await m_dbContext.UserDiskPools.FirstOrDefaultAsync(i => i.UserId == User.Id && i.DiskPoolId == Diskpool.Id && i.StorageClass == StorageClass);
+
+				// 해당 스토리지 클래스를 찾을 수 없는 경우
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__NOT_FOUND);
+
+				return await UpdateStorageClass(Exist.Id.ToString(), Request);
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
+		}
+
 		/// <summary> 사용자의 스토리지 클래스 정보를 삭제한다.</summary>
 		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
 		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
@@ -817,6 +882,77 @@ namespace PortalProvider.Providers.Accounts
 
 				// 사용자의 스토리지 클래스 조회
 				var Exist = await m_dbContext.UserDiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == StorageClassGuId);
+
+				// 스토리지 클래스가 존재할 경우에만 삭제
+				if (Exist == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__FAIL_TO_DELETE, Resource.EC_COMMON__NOT_FOUND);
+
+				// 스토리지 클래스 삭제
+				m_dbContext.UserDiskPools.Remove(Exist);
+				await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+
+				Result.Result = EnumResponseResult.Success;
+				Result.Code = Resource.SC_COMMON__SUCCESS;
+				Result.Message = Resource.SM_COMMON__UPDATED;
+
+				//Ksan 사용자 변경 알림
+				SendMq("*.services.gw.user.updated", await GetUser(Exist.UserId));
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
+		}
+
+		/// <summary> 사용자의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
+		public async Task<ResponseData> RemoveStorageClass(string UserName, string DiskpoolName, string StorageClass)
+		{
+			var Result = new ResponseData();
+			try
+			{
+				// 리퀘스트가 유효하지 않을 경우
+				if (UserName.IsEmpty() || DiskpoolName.IsEmpty() || StorageClass.IsEmpty())
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 사용자 계정을 가져온다.
+				KsanUser User = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(UserName, out Guid UserGuid))
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == UserGuid);
+				// 이름으로 조회할 경우
+				else
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == UserName);
+
+				// 해당 계정을 찾을 수 없는 경우
+				if (User == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
+
+				// 디스크풀을 가져온다.
+				DiskPool Diskpool = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(DiskpoolName, out Guid DiskpoolGuid))
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskpoolGuid);
+				// 이름으로 조회할 경우
+				else
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == DiskpoolName);
+
+				// 해당 디스크풀을 찾을 수 없는 경우
+				if (Diskpool == null)
+					return new ResponseData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 사용자의 스토리지 클래스 조회
+				var Exist = await m_dbContext.UserDiskPools.FirstOrDefaultAsync(i => i.UserId == User.Id && i.DiskPoolId == Diskpool.Id && i.StorageClass == StorageClass);
 
 				// 스토리지 클래스가 존재할 경우에만 삭제
 				if (Exist == null)
@@ -919,6 +1055,67 @@ namespace PortalProvider.Providers.Accounts
 			{
 				NNException.Log(ex);
 
+				Result.Code = Resource.EC_COMMON__EXCEPTION;
+				Result.Message = Resource.EM_COMMON__EXCEPTION;
+			}
+			return Result;
+		}
+
+
+		/// <summary>특정 스토리지 클래스을 조회한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns>스토리지 클래스 목록 결과</returns>
+		public async Task<ResponseData<ResponseStorageClass>> GetStorageClass(string UserName, string DiskpoolName, string StorageClass)
+		{
+			var Result = new ResponseData<ResponseStorageClass>();
+			try
+			{
+				// 리퀘스트가 유효하지 않을 경우
+				if (UserName.IsEmpty() || DiskpoolName.IsEmpty() || StorageClass.IsEmpty())
+					return new ResponseData<ResponseStorageClass>(EnumResponseResult.Error, Resource.EC_COMMON__INVALID_REQUEST, Resource.EM_COMMON__INVALID_REQUEST);
+
+				// 사용자 계정을 가져온다.
+				KsanUser User = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(UserName, out Guid UserGuid))
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Id == UserGuid);
+				// 이름으로 조회할 경우
+				else
+					User = await m_dbContext.KsanUsers.AsNoTracking().FirstOrDefaultAsync(i => i.Name == UserName);
+
+				// 해당 계정을 찾을 수 없는 경우
+				if (User == null)
+					return new ResponseData<ResponseStorageClass>(EnumResponseResult.Error, Resource.EC_COMMON_ACCOUNT_NOT_FOUND, Resource.EM_COMMON_ACCOUNT_NOT_FOUND);
+
+				// 디스크풀을 가져온다.
+				DiskPool Diskpool = null;
+
+				// 아이디로 조회할 경우
+				if (Guid.TryParse(DiskpoolName, out Guid DiskpoolGuid))
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Id == DiskpoolGuid);
+				// 이름으로 조회할 경우
+				else
+					Diskpool = await m_dbContext.DiskPools.AsNoTracking().FirstOrDefaultAsync(i => i.Name == DiskpoolName);
+
+				// 해당 디스크풀을 찾을 수 없는 경우
+				if (Diskpool == null)
+					return new ResponseData<ResponseStorageClass>(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 사용자의 스토리지 클래스 조회
+				Result.Data = await m_dbContext.UserDiskPools.AsNoTracking().Where(i => i.UserId == User.Id && i.DiskPoolId == Diskpool.Id && i.StorageClass == StorageClass).FirstOrDefaultAsync<dynamic, ResponseStorageClass>();
+
+				Result.Result = EnumResponseResult.Success;
+				Result.Code = Resource.SC_COMMON__SUCCESS;
+				Result.Message = Resource.SM_COMMON__UPDATED;
+			}
+			catch (Exception ex)
+			{
+				NNException.Log(ex);
+
+				Result.Result = EnumResponseResult.Error;
 				Result.Code = Resource.EC_COMMON__EXCEPTION;
 				Result.Message = Resource.EM_COMMON__EXCEPTION;
 			}

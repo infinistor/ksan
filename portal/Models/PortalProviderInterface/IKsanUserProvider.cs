@@ -80,17 +80,31 @@ namespace PortalProviderInterface
 		/// <returns>스토리지 클래스 추가 결과</returns>
 		Task<ResponseData> AddStorageClass(RequestStorageClass Request);
 
-
 		/// <summary> 사용자의 스토리지 클래스 정보를 변경한다.</summary>
 		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
 		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
 		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
 		Task<ResponseData> UpdateStorageClass(string StorageClassId, RequestStorageClass Request);
 
+		/// <summary> 사용자의 스토리지 클래스 정보를 변경한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
+		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
+		Task<ResponseData> UpdateStorageClass(string UserName, string DiskpoolName, string StorageClass, RequestStorageClass Request);
+
 		/// <summary> 사용자의 스토리지 클래스 정보를 삭제한다.</summary>
 		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
 		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
 		Task<ResponseData> RemoveStorageClass(string StorageClassId);
+
+		/// <summary> 사용자의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns> 사용자 스토리지 클래스 삭제 결과 </returns>
+		Task<ResponseData> RemoveStorageClass(string UserName, string DiskpoolName, string StorageClass);
 
 		/// <summary>사용자의 스토리지 클래스 목록을 조회한다.</summary>
 		/// <param name="UserId">Ksan 사용자 식별자</param>
@@ -101,6 +115,13 @@ namespace PortalProviderInterface
 		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
 		/// <returns>스토리지 클래스 목록 결과</returns>
 		Task<ResponseData<ResponseStorageClass>> GetStorageClass(string StorageClassId);
+
+		/// <summary>특정 스토리지 클래스을 조회한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns>스토리지 클래스 목록 결과</returns>
+		Task<ResponseData<ResponseStorageClass>> GetStorageClass(string UserName, string DiskpoolName, string StorageClass);
 
 		/// <summary>사용자에게 할당가능한 스토리지 클래스 목록을 조회한다.</summary>
 		/// <param name="UserId">Ksan 사용자 식별자</param>
