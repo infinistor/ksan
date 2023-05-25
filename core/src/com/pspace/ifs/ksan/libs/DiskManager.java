@@ -46,6 +46,15 @@ public class DiskManager {
     public static final String FILE_DISK_STATUS = "\" status=\"";
     public static final String FILE_DISK_END = "\" />\n";
 
+    public static final String DISK_MODE_READONLY = "ReadOnly";
+    public static final String DISK_MODE_READWRITE = "ReadWrite";
+    public static final String DISK_MODE_MAINTENANCE = "Maintenance";
+    public static final String DISK_STATUS_STOP = "Stop";
+    public static final String DISK_STATUS_WEAK = "Weak";
+    public static final String DISK_STATUS_GOOD = "Good";
+    public static final String DISK_STATUS_BAD = "Bad";
+    public static final String DISK_STATUS_DISABLE = "Disable";
+
     private static final Logger logger = LoggerFactory.getLogger(DiskManager.class);
     private List<DiskPool> diskPoolList;
     private String localHost;
@@ -94,6 +103,15 @@ public class DiskManager {
         return null;
     }
 
+    public String getLocalDiskId() {
+        Set<String> keys = localDiskInfoMap.keySet();
+        if (keys.size() > 0) {
+            String key = keys.iterator().next();
+            return key;
+        }
+        return null;
+    }
+
     public String getPath(String diskID) {
         for (DiskPool pool : diskPoolList) {
             for (Server server : pool.getServerList()) {
@@ -128,6 +146,7 @@ public class DiskManager {
 
     public void clearDiskPoolList() {
         diskPoolList.clear();
+        localDiskInfoMap.clear();
     }
 
     public List<DiskPool> getDiskPoolList() {
@@ -195,5 +214,33 @@ public class DiskManager {
         } catch (IOException e) {
             throw new IOException(e);
         }
+    }
+
+    public boolean isAvailableDiskForRead(String diskID) {
+        for (DiskPool pool : diskPoolList) {
+            for (Server server : pool.getServerList()) {
+                for (Disk disk : server.getDiskList()) {
+                    if (diskID.equals(disk.getId()) && !disk.getMode().equals(DISK_MODE_MAINTENANCE) && disk.getStatus().equals(DISK_STATUS_GOOD)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isAvailableDiskForWrite(String diskID) {
+        for (DiskPool pool : diskPoolList) {
+            for (Server server : pool.getServerList()) {
+                for (Disk disk : server.getDiskList()) {
+                    if (diskID.equals(disk.getId()) && disk.getMode().equals(DISK_MODE_READWRITE) && disk.getStatus().equals(DISK_STATUS_GOOD)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

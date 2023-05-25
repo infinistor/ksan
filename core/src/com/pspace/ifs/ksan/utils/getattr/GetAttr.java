@@ -29,8 +29,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.simple.parser.ParseException;
 
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.CmdLineParser;
@@ -160,7 +164,7 @@ public class GetAttr {
         System.err.println();
     }
      
-    void displayMeta(Metadata mt) throws IOException{
+    void displayMeta(ObjManagerUtil obmu, Metadata mt) throws IOException{
         String RESET  = "\u001B[0m";
         String GREEN  = "\u001B[32m";
         String RED    = "\u001B[31m";
@@ -169,8 +173,10 @@ public class GetAttr {
         
         String dskMsg;
         String osdMsg;
+        String pdiskName;
+        String rdiskName;
         String replicaOSDIP;
-        
+             
         if (jsonFormated){
             if (outputInFile.isEmpty())
                 System.out.println(mt);
@@ -178,27 +184,51 @@ public class GetAttr {
                 logToAFile(mt.toString());
             return;
         }
+        
+        try {
+            pdiskName = obmu.getObjManagerConfig().getPortalHandel().getDiskName(mt.getPrimaryDisk().getId());
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | ParseException ex) {
+            pdiskName = mt.getPrimaryDisk().getId();
+        }
+        
+        try {
+            rdiskName = obmu.getObjManagerConfig().getPortalHandel().getDiskName(mt.getReplicaDisk().getId());
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | ParseException ex) {
+            try{
+                rdiskName = mt.getReplicaDisk().getId();
+            } catch (ResourceNotFoundException ex1){
+                rdiskName = "";
+            }
+        } catch (ResourceNotFoundException ex) {
+            rdiskName = "";
+        }
+        
         try {
             DISK dsk= mt.getReplicaDisk();
             replicaOSDIP= dsk.getOsdIp();
-            dskMsg = String.format("PrimaryDisk>  diskId : %-37s Name : %s HostIP : %s diskPath : %s (%s%s%s)\n ReplicaDisk>  diskId : %-37s  Name : %s  HostIP : %s  diskPath : %s (%s%s%s)",
-                    mt.getPrimaryDisk().getId(), 
+            
+            dskMsg = String.format("PrimaryDisk> HostName : %s HostIP : %s DiskName : %s DiskPath : %s (%s%s%s)\n ReplicaDisk> HostName : %s HostIP : %s DiskName : %s DiskPath : %s (%s%s%s)",
+                    mt.getPrimaryDisk().getHostName(), 
                     mt.getPrimaryDisk().getOsdIp(),
-                    mt.getPrimaryDisk().getHostName(),
+                    pdiskName,
                     mt.getPrimaryDisk().getPath(), GREEN,
                     mt.getPrimaryDisk().getStatus(), RESET,
-                    mt.getReplicaDisk().getId(), 
+                    dsk.getHostName(), 
                     replicaOSDIP,
-                    dsk.getHostName(),
+                    rdiskName,
                     mt.getReplicaDisk().getPath(), GREEN,
                     mt.getReplicaDisk().getStatus(), RESET);
         } catch (ResourceNotFoundException ex) {
-            dskMsg = String.format("PrimaryDisk>  diskId : %-37s Name : %s HostIP : %s diskPath : %s (%s%s%s)\n",
-                    mt.getPrimaryDisk().getId(), 
-                    mt.getPrimaryDisk().getOsdIp(),
+            String replicaNotAvl = "";
+            if (mt.getReplicaCount() == 2 )
+                replicaNotAvl = "ReplicaDisk>  not exist! \n";
+            
+            dskMsg = String.format("PrimaryDisk> HostName : %s HostIP : %s DiskName : %s DiskPath : %s (%s%s%s)\n %s",
                     mt.getPrimaryDisk().getHostName(),
+                    mt.getPrimaryDisk().getOsdIp(),
+                    pdiskName, 
                     mt.getPrimaryDisk().getPath(), GREEN,
-                    mt.getPrimaryDisk().getStatus(), RESET);
+                    mt.getPrimaryDisk().getStatus(), RESET, replicaNotAvl);
                     replicaOSDIP = "";
         }
         
@@ -214,8 +244,8 @@ public class GetAttr {
         
         String output = "";
         if (outputInFile.isEmpty()){
-            output= String.format("ObjectKey  : %s \n objId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica : %d "
-                   + " \n Etag       : %s  \n tag        : %s  \n lastModifedTime : %d \n %s \n %s"
+            output= String.format(" ObjectKey  : %s \n ObjId      : %s \n VersionId  : %s \n Size       : %d  \n NumReplica : %d "
+                   + " \n Etag       : %s  \n Tag        : %s  \n LastModifedTime : %d \n %s \n %s"
                    , mt.getPath(), mt.getObjId(), mt.getVersionId(), mt.getSize(), mt.getReplicaCount(), 
                    mt.getEtag(), mt.getTag(), mt.getLastModified(), dskMsg, osdMsg);
             System.out.print(output);
@@ -256,7 +286,7 @@ public class GetAttr {
             
             getOSDObjectAttr(mt);
             
-            displayMeta(mt);
+            displayMeta(obmu, mt);
         } catch (ResourceNotFoundException ex) {
             displayNothing();
         } catch (Exception ex) {

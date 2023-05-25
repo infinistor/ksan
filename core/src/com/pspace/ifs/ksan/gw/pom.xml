@@ -86,30 +86,31 @@
 			<version>5.9.0</version>
 		</dependency>
 		<dependency>
+      		<groupId>org.apache.commons</groupId>
+      		<artifactId>commons-pool2</artifactId>
+      		<version>2.11.1</version>
+    	</dependency>
+		<dependency>
       		<groupId>com.google.guava</groupId>
        		<artifactId>guava</artifactId>
        		<version>30.1-jre</version>
     	</dependency>
 		<dependency>
       		<groupId>com.google.code.findbugs</groupId>
-      		<artifactId>annotations</artifactId>
-      		<version>3.0.1</version>
+      		<artifactId>jsr305</artifactId>
+      		<version>3.0.2</version>
     	</dependency>
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
-			<version>1.4</version>
+			<version>1.5</version>
 		</dependency>
 		<dependency>
       		<groupId>org.apache.commons</groupId>
       		<artifactId>commons-dbcp2</artifactId>
       		<version>2.9.0</version>
     	</dependency>
-		<dependency>
-      		<groupId>org.apache.commons</groupId>
-      		<artifactId>commons-pool2</artifactId>
-      		<version>2.11.1</version>
-    	</dependency>
+		
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
@@ -162,6 +163,18 @@
       		<artifactId>openssl4j</artifactId>
       		<version>0.2.0</version>
     	</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.10.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20230227</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

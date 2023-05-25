@@ -57,7 +57,7 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import com.pspace.ifs.ksan.libs.DiskManager;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 
@@ -86,7 +86,7 @@ public class AzuObjectOperation {
             this.versionId = versionId;
         }
     }
-
+/*
     public void getObject(String range) throws Exception {       
         OSDClient client = null;
         String sourceRange = AzuConstants.EMPTY_STRING;
@@ -681,9 +681,9 @@ public class AzuObjectOperation {
             if (objMeta.getReplicaCount() > 1) {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId)));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                        filePrimary = new File(KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId));
                     }
                     com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
@@ -705,9 +705,9 @@ public class AzuObjectOperation {
                 if (objMeta.isReplicaExist()) {
                     if (GWUtils.getLocalIP().equals(objMeta.getReplicaDisk().getOsdIp())) {
                         if (GWConfig.getInstance().isCacheDiskpath()) {
-                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId)));
+                            fileReplica = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId, blockId)));
                         } else {
-                            fileReplica = new File(KsanUtils.makeTempPartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId));
+                            fileReplica = new File(KsanUtils.makePartPath(objMeta.getReplicaDisk().getPath(), objMeta.getObjId(), blockId, blockId));
                         }
                         com.google.common.io.Files.createParentDirs(fileReplica);
                         fosReplica = new FileOutputStream(fileReplica, false);
@@ -769,9 +769,9 @@ public class AzuObjectOperation {
             } else {
                 if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                        filePrimary = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId)));
                     } else {
-                        filePrimary = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                        filePrimary = new File(KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId));
                     }
                     com.google.common.io.Files.createParentDirs(filePrimary);
                     fosPrimary = new FileOutputStream(filePrimary, false);
@@ -863,9 +863,9 @@ public class AzuObjectOperation {
 
             for (String blockId: blockList) {
                 if (GWConfig.getInstance().isCacheDiskpath()) {
-                    block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId)));
+                    block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId)));
                 } else {
-                    block = new File(KsanUtils.makeTempPartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId));
+                    block = new File(KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId));
                 }
 
                 FileInputStream fis = new FileInputStream(block);
@@ -926,5 +926,5 @@ public class AzuObjectOperation {
             }
             logger.error(GWConstants.LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
         }
-    }
+    } */
 }

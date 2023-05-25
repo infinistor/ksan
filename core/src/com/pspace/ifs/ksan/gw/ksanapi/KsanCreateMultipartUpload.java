@@ -24,10 +24,14 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
+import com.pspace.ifs.ksan.gw.format.Tagging;
+import com.pspace.ifs.ksan.gw.format.Tagging.TagSet;
+import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
@@ -61,7 +65,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 		GWUtils.checkCors(s3Parameter);
 		
-		String xml = makeAcl(null, false);
+		String aclXml = makeAcl(null, false);
 		
 		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
@@ -85,7 +89,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 		S3Metadata s3Metadata = new S3Metadata();
 		s3Metadata.setOwnerId(getBucketInfo().getUserId());
 		s3Metadata.setOwnerName(getBucketInfo().getUserName());
-		s3Metadata.setServersideEncryption(serverSideEncryption);
+		s3Metadata.setServerSideEncryption(serverSideEncryption);
 		s3Metadata.setCustomerAlgorithm(customerAlgorithm);
 		s3Metadata.setCustomerKey(customerKey);
 		s3Metadata.setCustomerKeyMD5(customerKeyMD5);
@@ -97,6 +101,8 @@ public class KsanCreateMultipartUpload extends S3Request {
 		String contentLanguage = s3RequestData.getContentLanguage();
 		String contentType = s3RequestData.getContentType();
 		String serversideEncryption = s3RequestData.getServerSideEncryption();
+		String serverSideEncryptionAwsKmsKeyId = s3RequestData.getServerSideEncryptionAwsKmsKeyId();
+		String serverSideEncryptionBucketKeyEnabled = s3RequestData.getServerSideEncryptionBucketKeyEnabled();
 
 		s3Metadata.setOwnerId(s3Parameter.getUser().getUserId());
 		s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
@@ -107,7 +113,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
-				s3Metadata.setServersideEncryption(serversideEncryption);
+				s3Metadata.setServerSideEncryption(serversideEncryption);
 			}
 		}
 		
@@ -135,6 +141,79 @@ public class KsanCreateMultipartUpload extends S3Request {
 		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
 			 s3Metadata.setCustomerKeyMD5(customerKeyMD5);
 		}
+		if (!Strings.isNullOrEmpty(serverSideEncryptionAwsKmsKeyId)) {
+			s3Metadata.setKmsKeyId(serverSideEncryptionAwsKmsKeyId);
+		}
+		if (!Strings.isNullOrEmpty(serverSideEncryptionBucketKeyEnabled)) {
+			s3Metadata.setBucketKeyEnabled(serverSideEncryptionBucketKeyEnabled);
+		}
+
+		// Tagging information
+		String taggingCount = GWConstants.TAGGING_INIT;
+		String taggingxml = "";
+		Tagging tagging = new Tagging();
+		tagging.tagset = new TagSet();
+		
+		if (!Strings.isNullOrEmpty(s3RequestData.getTagging())) {
+			String strtaggingInfo = s3RequestData.getTagging();
+			String[] strtagset = strtaggingInfo.split(GWConstants.AMPERSAND);
+			int starttag = 0;
+			for (String strtag : strtagset) {
+
+				if(starttag == 0)
+					tagging.tagset.tags = new ArrayList<Tag>();
+
+				starttag+=1;
+
+				Tag tag = new Tag();
+				String[] keyvalue = strtag.split(GWConstants.EQUAL);
+				if(keyvalue.length == GWConstants.TAG_KEY_SIZE) {
+					tag.key = keyvalue[GWConstants.TAG_KEY_INDEX];
+					tag.value = keyvalue[GWConstants.TAG_VALUE_INDEX];
+				} else {
+					tag.key = keyvalue[GWConstants.TAG_KEY_INDEX];
+					tag.value = "";
+				}
+
+				tagging.tagset.tags.add(tag);
+			}
+
+			try {
+				taggingxml = new XmlMapper().writeValueAsString(tagging);
+			} catch (JsonProcessingException e) {
+				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+
+			if (tagging != null) {
+
+				if (tagging.tagset != null && tagging.tagset.tags != null) {
+					for (Tag t : tagging.tagset.tags) {
+
+						// key, value 길이 체크
+						if (t.key.length() > GWConstants.TAG_KEY_MAX) {
+							logger.error(GWConstants.LOG_PUT_OBJECT_TAGGING_KEY_LENGTH, t.key.length());
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
+						}
+
+						if (t.value.length() > GWConstants.TAG_VALUE_MAX) {
+							logger.error(GWConstants.LOG_PUT_OBJECT_TAGGING_VALUE_LENGTH, t.value.length());
+							throw new GWException(GWErrorCode.INVALID_TAG, s3Parameter);
+						}
+					}
+				}
+
+				if ( tagging.tagset != null && tagging.tagset.tags != null ) {
+					if(tagging.tagset.tags.size() > GWConstants.TAG_MAX_SIZE) {
+						logger.error(GWConstants.LOG_PUT_OBJECT_TAGGING_SIZE, tagging.tagset.tags.size());
+						throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);	
+					}
+
+					taggingCount = String.valueOf(tagging.tagset.tags.size());
+				}
+			}
+		}
+		s3Metadata.setTaggingCount(taggingCount);
+		String metaJson = s3Metadata.toString();
 
 		Metadata objMeta = null;
 		try {
@@ -149,7 +228,10 @@ public class KsanCreateMultipartUpload extends S3Request {
 		String uploadId = null;
 		try {
 			ObjMultipart objMultipart = getInstanceObjMultipart(bucket);
-			uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
+			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
+			objMeta.setMeta(metaJson);
+			objMeta.setAcl(aclXml);
+			uploadId = objMultipart.createMultipartUpload(objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

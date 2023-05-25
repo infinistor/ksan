@@ -188,7 +188,7 @@ public class FSCK {
         } else{
             primary = getAttr(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getPrimaryDisk().getId(), mt.getPrimaryDisk().getPath(), mt.getPrimaryDisk().getOSDServerId());
             //System.out.println(" objId >> " + mt.getObjId() +" primary  >> "+ primary);
-            if (!primary.errorCode.contains("MQ_SUCESS")){
+            if (!primary.errorCode.contains("MQ_SUCCESS")){
                 objm.log("[NOTFOUND] ObjId >>" +  mt.getObjId() +" Versiond: "+ mt.getVersionId() +" primary md5 >> "+ primary.md5 + " size >" + primary.size + " errocode >>" + primary.errorCode + "\n");
                 primaryProblem.numNotFound++;
                 primaryProblem.totalFailed++;

@@ -44,7 +44,7 @@ public class Part {
 	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
 	}
-	public String getPrimaryDiskID() {
+	public String getPrimaryDiskId() {
 		return PrimaryDiskId;
 	}
 	public void setPrimaryDiskId(String diskId) {

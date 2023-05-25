@@ -61,6 +61,54 @@ public class S3Parameter {
     private boolean isAdmin;
     private String taggingInfo;
 
+    private String identity;
+    private String proxyHost;
+
+    // KMS Parameter
+	private String kmsType;
+	private String kmsEndpoint;
+
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public String getIdentity() {
+        return identity;
+    }
+
+    public void setIdentity(String identity) {
+        this.identity = identity;
+    }
+
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public String getKmsType() {
+        return kmsType;
+    }
+
+    public void setKmsType(String kmsType) {
+        this.kmsType = kmsType;
+    }
+
+    public String getKmsEndpoint() {
+        return kmsEndpoint;
+    }
+
+    public void setKmsEndpoint(String kmsEndpoint) {
+        this.kmsEndpoint = kmsEndpoint;
+    }
+
     public S3Parameter() {
         request = null;
         response = null;
@@ -88,6 +136,10 @@ public class S3Parameter {
         uri = "";
         isAdmin = false;
         taggingInfo = "";
+        identity = "";
+        proxyHost = "";
+	    kmsType = "";
+	    kmsEndpoint = "";
     }
 
     public HttpServletRequest getRequest() {

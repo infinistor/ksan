@@ -96,7 +96,7 @@ public class HeadObject extends S3Request implements S3AddResponse {
 			}
 		}
 
-		s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
+		// s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
@@ -163,8 +163,8 @@ public class HeadObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, metadata.getCustomerKeyMD5());
 		}
 		
-		if (!Strings.isNullOrEmpty(metadata.getServersideEncryption())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
+		if (!Strings.isNullOrEmpty(metadata.getServerSideEncryption())) {
+			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServerSideEncryption());
 		}
 
 		if (!Strings.isNullOrEmpty(metadata.getLockMode())) {

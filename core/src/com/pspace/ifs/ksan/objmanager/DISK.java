@@ -15,6 +15,7 @@ import org.json.simple.JSONObject;
 public class DISK{
     private String path;
     private String diskid;
+    private String diskName;
     private double totalSpace;
     private double usedSpace;
     private double reservedSpace;
@@ -32,6 +33,7 @@ public class DISK{
         hostname = "";
         this.path = "";
         this.diskid = "";
+        diskName = "";
         this.role = 0;
         this.totalSpace = 0;
         this.usedSpace = 0;
@@ -86,6 +88,10 @@ public class DISK{
         return hostname;
     }
     
+    public String getDiskName(){
+        return diskName;
+    }
+    
     public void setOSDServerId(String osdServerId){
         this.osdServerId = osdServerId;
     }
@@ -132,6 +138,11 @@ public class DISK{
     public void setHostName(String hostname){
         this.hostname = hostname;
     }
+    
+    public void setDiskName(String diskName){
+        this.diskName = diskName;
+    }
+    
     @Override
     public String toString(){
          JSONObject jsonStr = new JSONObject();

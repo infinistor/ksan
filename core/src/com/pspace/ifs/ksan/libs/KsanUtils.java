@@ -146,9 +146,79 @@ public class KsanUtils {
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
         sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static boolean makeMultipartDirectory(String path, String objId, String uploadId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        sb.append(Constants.SLASH);
+        sb.append(uploadId);
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String makePartPath(String path, String objId, String uploadId, String partNumber) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(Constants.SLASH);
+        sb.append(uploadId);
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
             objDir.mkdir();
@@ -157,7 +227,9 @@ public class KsanUtils {
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);
-        sb.append(versionId);
+        sb.append(uploadId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(partNumber);
 
         return sb.toString();
     }
@@ -175,6 +247,25 @@ public class KsanUtils {
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);
         sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static String makeObjMultipartPathForOpen(String path, String objId, String versionId, String uploadId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uploadId);
 
         return sb.toString();
     }
@@ -198,19 +289,6 @@ public class KsanUtils {
         return sb.toString();
     }
 
-    public static String makeTempPartPath(String path, String objId, String partNo) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(path);
-        sb.append(Constants.SLASH);
-        sb.append(Constants.TEMP_DIR);
-        sb.append(Constants.SLASH);
-        sb.append(objId);
-        sb.append(Constants.UNDERSCORE);
-        sb.append(partNo);
-
-        return sb.toString();
-    }
-
     public static String makeTrashPath(String path, String objId, String versionId) {
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
@@ -226,6 +304,20 @@ public class KsanUtils {
         sb.append(uuid);
         sb.append(Constants.UNDERSCORE);
         sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static String makeTrashPath(String path, String name) {
+        String uuid = UUID.randomUUID().toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TRASH_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(name);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uuid);
 
         return sb.toString();
     }
@@ -278,22 +370,6 @@ public class KsanUtils {
     }
 
     public static String makeTempCompleteMultipartPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = Constants.VERSIONING_DISABLE_TAIL;
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(path);
-        sb.append(Constants.SLASH);
-        sb.append(Constants.TEMP_DIR);
-        sb.append(Constants.SLASH);
-        sb.append(objId);
-        sb.append(Constants.UNDERSCORE);
-        sb.append(versionId);
-
-        return sb.toString();
-    }
-
-    public static String makeTempCopyPath(String path, String objId, String versionId) {
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
@@ -396,215 +472,6 @@ public class KsanUtils {
         } else {
             return false;
         }
-    }
-
-    public static long getECObject(String diskId, String path, String objId, String versionId, OutputStream os, String sourceRange, String key, int osdPort) {
-        long actualSize = 0L;
-        File ecFile = new File(KsanUtils.makeECPathForOpen(path, objId, versionId));
-        if (!ecFile.exists()) {
-            return actualSize;
-        }
-
-        if (ecFile.exists()) {
-            List<ECPart> ecList = new ArrayList<ECPart>();
-            for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
-                for (Server server : pool.getServerList()) {
-                    for (Disk disk : server.getDiskList()) {
-                        ECPart ecPart = new ECPart(server.getIp(), disk.getPath(), false);
-                        ecList.add(ecPart);
-                    }
-                }
-            }
-            int numberOfCodingChunks = DiskManager.getInstance().getECM(diskId);
-            int numberOfDataChunks = DiskManager.getInstance().getECK(diskId);
-
-            int getECPartCount = 0;
-            StringBuilder sb = new StringBuilder();
-            for (ECPart ecPart : ecList) {
-                sb.setLength(0);
-                sb.append(ecFile.getAbsolutePath());
-                sb.append(Constants.POINT);
-                sb.append(Integer.toString(getECPartCount));
-                String newECPartPath = sb.toString();
-                File newECPartFile = new File(newECPartPath);
-
-                if (ecPart.getServerIP().equals(getLocalIP())) {
-                    // if local disk, move file
-                    File sourceECPartFile = new File(KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId));
-                    if (sourceECPartFile.exists()) {
-                        try {
-                            FileUtils.copyFile(sourceECPartFile, newECPartFile);
-                        } catch (IOException e) {
-                            PrintStack.logging(logger, e);
-                        }
-                        ecPart.setProcessed(true);
-                    }
-                } else {
-                    try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
-                        String getPath = KsanUtils.makeECPathForOpen(ecPart.getDiskPath(), objId, versionId);
-                        OSDClient ecClient = new OSDClient(ecPart.getServerIP(), osdPort);
-                        ecClient.getECPartInit(getPath, fos);
-                        ecClient.getECPart();
-                        ecPart.setProcessed(true);
-                    } catch (IOException e) {
-                        PrintStack.logging(logger, e);
-                    }
-                }
-                getECPartCount++;
-            }
-            // zunfec
-            String ecAllFilePath = KsanUtils.makeECPathForOpen(path, objId, versionId);
-            String command = Constants.ZUNFEC + ecAllFilePath;
-            getECPartCount = 0;
-            for (ECPart ecPart : ecList) {
-                sb.setLength(0);
-                sb.append(ecFile.getAbsolutePath());
-                sb.append(Constants.POINT);
-                sb.append(Integer.toString(getECPartCount));
-                String ecPartPath = sb.toString();
-                if (ecPart.isProcessed()) {
-                    command += Constants.SPACE + ecPartPath;
-                    getECPartCount++;
-                }
-            }
-
-            try {
-                Process p = Runtime.getRuntime().exec(command);
-                int exitCode = p.waitFor();
-                p.destroy();
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage());
-                return -1;
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                return -1;
-            }
-
-            // delete junk file
-            String ecDir = KsanUtils.makeECDirectoryPath(path, objId);
-            File dir = new File(ecDir);
-            File[] ecFiles = dir.listFiles();
-            for (int i = 0; i < ecFiles.length; i++) {
-                if (ecFiles[i].getName().startsWith(Constants.POINT)) {
-                    if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-                        ecFiles[i].delete();
-                    }
-                }
-            }
-
-            File ecAllFile = new File(ecAllFilePath);
-            if (ecAllFile.exists()) {
-                logger.info("zunfec result : {}, {}", ecAllFile.getAbsolutePath(), ecAllFile.length());
-                byte[] buffer = new byte[Constants.MAXBUFSIZE];
-                CtrCryptoInputStream encryptIS = null;
-
-                try (FileInputStream fis = new FileInputStream(ecAllFile)) {
-                    long remaingLength = 0L;
-                    int readLength = 0;
-                    int readBytes;
-
-                    if (Strings.isNullOrEmpty(sourceRange)) {
-                        if (!Strings.isNullOrEmpty(key)) {
-                            encryptIS = initCtrDecrypt(fis, key);
-                            while ((readLength = encryptIS.read(buffer, 0, Constants.MAXBUFSIZE)) != -1) {
-                                actualSize += readLength;
-                                os.write(buffer, 0, readLength);
-                                logger.debug("read length : {}", readLength);
-                            }
-                        } else {
-                            remaingLength = ecAllFile.length();
-                            while (remaingLength > 0) {
-                                readBytes = 0;
-                                if (remaingLength < Constants.MAXBUFSIZE) {
-                                    readBytes = (int)remaingLength;
-                                } else {
-                                    readBytes = Constants.MAXBUFSIZE;
-                                }
-            
-                                if (remaingLength >= Constants.MAXBUFSIZE) {
-                                        readLength = Constants.MAXBUFSIZE;
-                                } else {
-                                    readLength = (int)remaingLength;
-                                }
-                                readLength = fis.read(buffer, 0, readBytes);
-                                actualSize += readLength;
-                                os.write(buffer, 0, readLength);
-                                remaingLength -= readLength;
-                            }
-                        }
-                    } else {
-                        String[] ranges = sourceRange.split(Constants.SLASH);
-                        for (String range : ranges) {
-                            String[] rangeParts = range.split(Constants.COMMA);
-                            long offset = Longs.tryParse(rangeParts[0]);
-                            long length = Longs.tryParse(rangeParts[1]);
-
-                            remaingLength = length;
-                            
-                            if (!Strings.isNullOrEmpty(key)) {
-                                long skipOffset = 0;
-                                encryptIS = initCtrDecrypt(fis, key);
-
-                                if (offset > 0) {
-                                    long skip = encryptIS.skip(offset);
-                                    logger.debug("skip : {}", skip);
-                                }
-                                while (remaingLength > 0) {
-                                    readBytes = 0;
-                                    if (remaingLength < Constants.MAXBUFSIZE) {
-                                        readBytes = (int)remaingLength;
-                                    } else {
-                                        readBytes = Constants.MAXBUFSIZE;
-                                    }
-
-                                    if ((readLength = encryptIS.read(buffer, 0, readBytes)) != -1) {
-                                        skipOffset += readLength;
-                                        actualSize += readLength;
-                                        os.write(buffer, 0, readLength);
-                                        remaingLength -= readLength;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            } else {
-                                if (offset > 0) {
-                                    fis.skip(offset);
-                                }
-                                while (remaingLength > 0) {
-                                    readBytes = 0;
-                                    if (remaingLength < Constants.MAXBUFSIZE) {
-                                        readBytes = (int)remaingLength;
-                                    } else {
-                                        readBytes = Constants.MAXBUFSIZE;
-                                    }
-            
-                                    readLength = fis.read(buffer, 0, readBytes);
-                                    
-                                    actualSize += readLength;
-                                    os.write(buffer, 0, readLength);
-                                    remaingLength -= readLength;
-                                }
-                            }
-                        }
-                    }
-                    os.flush();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    return -1;
-                }
-
-                if (encryptIS != null) {
-                    try {
-                        encryptIS.close();
-                    } catch (IOException e) {
-                        PrintStack.logging(logger, e);
-                        return -1;
-                    }
-                }
-            }
-        }
-
-        return actualSize;
     }
 
     public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {

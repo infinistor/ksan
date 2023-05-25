@@ -96,23 +96,23 @@ public class PutBlockList extends AzuRequest {
         s3Metadata.setOwnerId(azuParameter.getUser().getUserId());
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
 
-        AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, s3Metadata, azuParameter, versionId);
-        S3Object s3Object = azuObjectOperation.completeBlockList(blockList.latests);
+        // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, s3Metadata, azuParameter, versionId);
+        // S3Object s3Object = azuObjectOperation.completeBlockList(blockList.latests);
 
-        s3Metadata.setETag(s3Object.getEtag());
-        s3Metadata.setContentLength(s3Object.getFileSize());
+        // s3Metadata.setETag(s3Object.getEtag());
+        // s3Metadata.setContentLength(s3Object.getFileSize());
         s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
-        s3Metadata.setLastModified(s3Object.getLastModified());
-        s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
+        // s3Metadata.setLastModified(s3Object.getLastModified());
+        // s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
         s3Metadata.setVersionId(versionId);
 
-        logger.info("MD5 check, receive : {}, result : {}", azuRequestData.getBlobContentMD5(), s3Object.getEtag());
+        // logger.info("MD5 check, receive : {}, result : {}", azuRequestData.getBlobContentMD5(), s3Object.getEtag());
 
         String jsonmeta = s3Metadata.toString();
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {
-            objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
+            // objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
             objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
             int result = insertObject(containerName, blobName, objMeta);
         } catch (AzuException e) {

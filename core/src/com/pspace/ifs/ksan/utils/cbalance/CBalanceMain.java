@@ -219,6 +219,9 @@ public class CBalanceMain {
                         ret = cb.moveSingleObject(bucketName, objId, versionId, SrcDiskId, DstDiskId);
                     else if (!SrcDiskId.isEmpty())
                         ret = cb.moveSingleObject(bucketName, objId, versionId, SrcDiskId);
+                    else if (!DstDiskId.isEmpty()){
+                        ret = cb.moveSingleObjectWithOnlyDist(bucketName, objId, versionId, DstDiskId);
+                    } 
                     else
                         ret = cb.moveSingleObject(bucketName, objId, versionId);
                     
@@ -230,9 +233,13 @@ public class CBalanceMain {
                 else if (!key.isEmpty()){
                     if (!DstDiskId.isEmpty() && !SrcDiskId.isEmpty()){
                         ret = cb.moveSingleObjectWithKey(bucketName, key, versionId, SrcDiskId, DstDiskId);
-                    } else if (!SrcDiskId.isEmpty())
+                    } 
+                    else if (!SrcDiskId.isEmpty())
                         ret = cb.moveSingleObjectWithKey(bucketName, key, versionId, SrcDiskId);
-                    else{
+                    else if (!DstDiskId.isEmpty()){
+                        ret = cb.moveSingleObjectWithKeyWithOnlyDist(bucketName, key, versionId, DstDiskId);
+                    }
+                    else {
                         ret = cb.moveSingleObjectWithKey(bucketName, key, versionId);
                     }
                 

@@ -235,7 +235,8 @@ public class GetFromPortal {
             DISK dsk = new DISK();
             dsk.setId(diskId);
             dsk.setPath(path);
-            dsk.setHostName(diskName);
+            dsk.setHostName(svr.getServerUniqName());
+            dsk.setDiskName(diskName);
             dsk.setSpace(totalSize, usedSize, reserverdSize);
             dsk.setInode(totalInode, usedInode);
             dsk.setOSDIP(svr.ipaddrToString(svr.getIpAddress()));
@@ -269,11 +270,12 @@ public class GetFromPortal {
             JSONArray netInterfaces = (JSONArray)server.get("NetworkInterfaces");
             JSONObject netInterface = (JSONObject)netInterfaces.get(0);
             String osdIP = (String)netInterface.get("IpAddress");
-            //String osdName = (String)server.get("Name");
+            String osdUniqName = (String)server.get("Name");
             String status = (String)server.get("State");
             String  serverId = (String)server.get("Id");
             rack = 0;
             if (server.containsKey("Rack")){
+                logger.debug(">>>ServeruniqName >> {}", osdUniqName);
                 logger.debug(">>>Server >> {}", server);
                 Object rackStr = server.get("Rack");
                 if (rackStr != null)
@@ -292,6 +294,7 @@ public class GetFromPortal {
                 svr.setStatus(ServerStatus.UNKNOWN);
             
             svr = parseDiskResponse(svr, disks, dskp.getId());
+            svr.setServerUniqName(osdUniqName);
             dskp.addServer(svr);
             //logger.debug("SERVERS {}", svr.toString());
         }
@@ -363,7 +366,10 @@ public class GetFromPortal {
         JSONObject netInterface = (JSONObject)jsonServer.get(0);
         String osdIpAddress = (String)netInterface.get("IpAddress");
         String serverId = (String)netInterface.get("ServerId");
+        String serverUniqName = (String)jsonData.get("Name");
+       logger.error("<++++++++++++++++++Network++++> {}", jsonData.toString());
         SERVER svr = new SERVER(serverId, ipaddrToLong(osdIpAddress), osdIpAddress);
+        svr.setServerUniqName(serverUniqName);
         
         JSONArray jsonDisks = (JSONArray)jsonData.get(DISKS_TAG);
         if (jsonDisks.isEmpty())
@@ -503,6 +509,33 @@ public class GetFromPortal {
             idx++;
         } while(true);
    
+    }
+    
+    public String getDiskName(String diskId) throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException, ParseException{
+        int idx = 0;
+        JSONObject diskObj;
+        
+        String content = get(GETDISKLISTAPI);
+        if (content == null)
+            return "";
+        
+        if (content.isEmpty())
+            return "";
+        
+        do{
+            diskObj = parseGetSingleItem(content, idx);
+            if (diskObj == null)
+                return "";
+
+            if (diskObj.isEmpty())
+                return "";
+            
+            String diskN = (String)diskObj.get("Id");
+            if (diskN.equalsIgnoreCase(diskId)){
+                return (String)diskObj.get("Name");
+            }
+            idx++;
+        } while(true);
     }
     
     public SERVER loadOSDserver(String serverId, String dskPoolId){
