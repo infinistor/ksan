@@ -139,6 +139,20 @@ namespace PortalSvr.Controllers.Accounts
 		{
 			return Json(await m_dataProvider.UpdateStorageClass(StorageClassId, Request));
 		}
+
+		/// <summary>사용자의 스토리지 클래스 정보를 변경한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.update")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("StorageClass/{UserName}/{DiskpoolName}/{StorageClass}")]
+		public async Task<ActionResult> UpdateStorageClass([FromRoute] string UserName, [FromRoute] string DiskpoolName, [FromRoute] string StorageClass, [FromBody] RequestStorageClass Request)
+		{
+			return Json(await m_dataProvider.UpdateStorageClass(UserName, DiskpoolName, StorageClass, Request));
+		}
 		
 		/// <summary>사용자의 스토리지 클래스 정보를 삭제한다.</summary>
 		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
@@ -149,6 +163,19 @@ namespace PortalSvr.Controllers.Accounts
 		public async Task<ActionResult> RemoveStorageClass([FromRoute] string StorageClassId)
 		{
 			return Json(await m_dataProvider.RemoveStorageClass(StorageClassId));
+		}
+
+		/// <summary>사용자의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.delete")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("StorageClass/{UserName}/{DiskpoolName}/{StorageClass}")]
+		public async Task<ActionResult> RemoveStorageClass([FromRoute] string UserName, [FromRoute] string DiskpoolName, [FromRoute] string StorageClass)
+		{
+			return Json(await m_dataProvider.RemoveStorageClass(UserName, DiskpoolName, StorageClass));
 		}
 
 		/// <summary>사용자의 스토리지 클래스 목록을 조회한다.</summary>
