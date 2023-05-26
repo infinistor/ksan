@@ -70,3 +70,9 @@ ksan/core/src/com/pspace/ifs/ksan/osd/ksanOSD_log_conf.xml // log 설정 파일
  
 * ksanOSD.jar를 실행합니다. (/usr/local/ksan/sbin)
 <kbd>java -jar -Dlogback.configurationFile=/usr/local/ksan/etc/ksanOSD_log_conf.xml ksanOSD.jar &</kbd>
+
+## 알려진 이슈 및 향후 개선사항
+* EC 관련 'zunfec' hang 이 발생되는 버그 수정
+* EC 관련 decode 관련 최적화
+* OSD Disk의 쓰기 실패에 대한 예외처리 보완
+* OSD 서비스 정상/비정상 종료에 대한 예외처리 보완
