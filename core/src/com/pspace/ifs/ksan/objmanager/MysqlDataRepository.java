@@ -80,6 +80,8 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstGetUploads;
     private PreparedStatement pstIsUpload;
     private PreparedStatement pstIsUploadPartNo;
+    private PreparedStatement pstGetPartRef;
+    private PreparedStatement pstSetPartRef;
     
     // for utility
     private PreparedStatement pstCreateUJob;
@@ -140,7 +142,9 @@ public class MysqlDataRepository implements DataRepository{
             pstGetUploads = con.prepareStatement(DataRepositoryQuery.getUploadsQuery);
             pstIsUpload = con.prepareStatement(DataRepositoryQuery.isUploadQuery);
             pstIsUploadPartNo = con.prepareStatement(DataRepositoryQuery.isUploadPartNoQuery);
-
+            pstGetPartRef = con.prepareStatement(DataRepositoryQuery.getPartRefQuery);
+            pstSetPartRef = con.prepareStatement(DataRepositoryQuery.updatePartRefQuery);
+            
            // for utility
             //String Id, String status, long TotalNumObject, boolean checkOnly, String utilName
             pstCreateUJob = con.prepareStatement(DataRepositoryQuery.createUJobQuery);
@@ -873,17 +877,23 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     @Override
-    public  synchronized int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
+    public  synchronized int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException{
         pstInsertMultiPart.clearParameters();
-        pstInsertMultiPart.setString(1, bucket);
-        pstInsertMultiPart.setString(2, objkey);
+        pstInsertMultiPart.setString(1, mt.getBucket());
+        pstInsertMultiPart.setString(2, mt.getPath());
         pstInsertMultiPart.setString(3, uploadid);
         pstInsertMultiPart.setInt(4, partNo);
-        pstInsertMultiPart.setString(5, acl);
-        pstInsertMultiPart.setString(6, meta);
-        pstInsertMultiPart.setString(7, etag);
-        pstInsertMultiPart.setLong(8, size);
-        pstInsertMultiPart.setString(9, pdiskid);
+        pstInsertMultiPart.setString(5, mt.getAcl());
+        pstInsertMultiPart.setString(6, mt.getMeta());
+        pstInsertMultiPart.setString(7, mt.getEtag());
+        pstInsertMultiPart.setLong(8, mt.getSize());
+        pstInsertMultiPart.setString(9, mt.getPrimaryDisk().getId());
+        try {
+            pstInsertMultiPart.setString(10, mt.getReplicaDisk().getId());
+        } catch (ResourceNotFoundException ex) {
+            pstInsertMultiPart.setString(10, "");
+        }
+        pstInsertMultiPart.setString(12, ""); // for partRef
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -927,6 +937,7 @@ public class MysqlDataRepository implements DataRepository{
         String uploadid;
         long partNo;
         int counter = 0;
+        Date lastModified;
         boolean isTrancated =false;
         
         PreparedStatement stmt = this.con.prepareStatement(query.toString());
@@ -936,9 +947,12 @@ public class MysqlDataRepository implements DataRepository{
             key =          rs.getString(1) ;
             uploadid=      rs.getString(2);
             partNo =       rs.getInt(3);
+            lastModified = (Date)rs.getObject(4);
+
             if (++counter == maxKeys)
                 isTrancated = !rs.isLast();
-            callback.call(key, uploadid, "", partNo, "", "", "", isTrancated);
+            
+            callback.call(key, uploadid, lastModified == null ? "" : lastModified.toString(), partNo, "", "", "", isTrancated);
         }
     }
         
@@ -1021,7 +1035,8 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
+            part.setPrimaryDiskId(rs.getString(5));
+            part.setReplicaDiskId(rs.getString(6));
             listPart.put(part.getPartNumber(), part);
         }
 
@@ -1054,7 +1069,8 @@ public class MysqlDataRepository implements DataRepository{
             part.setPartETag(rs.getString(2));
             part.setPartSize(rs.getLong(3));
             part.setPartNumber(rs.getInt(4));
-            part.setDiskID(rs.getString(5));
+            part.setPrimaryDiskId(rs.getString(5));
+            part.setReplicaDiskId(rs.getString(6));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
 
@@ -1088,6 +1104,32 @@ public class MysqlDataRepository implements DataRepository{
         }
         return resultUploads;
     }
+    
+    @Override
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException {
+        String partRef = " ";
+        pstGetPartRef.clearParameters();
+        pstGetPartRef.setString(1, uploadId);
+        pstGetPartRef.setInt(2, partNo);
+        ResultSet rs = pstGetPartRef.executeQuery();
+
+        while (rs.next()) {
+            partRef = rs.getString(1);
+          
+        }
+        return partRef;
+    }
+    
+    @Override
+    public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException {
+        pstSetPartRef.clearParameters();
+        pstSetPartRef.setString(1, uploadId);
+        pstSetPartRef.setInt(2, partNo);
+        pstSetPartRef.setString(3, partRef);
+        pstSetPartRef.execute();
+        return 0;
+    }
+    
 /***********************************************END*****************************************************************************/
 
 

@@ -19,11 +19,12 @@ import java.util.List;
 
 import org.slf4j.Logger;
 
+import com.pspace.ifs.ksan.gw.data.azure.AzuRequestData;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -36,59 +37,39 @@ import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 
 public abstract class AzuRequest {
     protected AzuParameter azuParameter;
+	protected AzuRequestData azuRequestData;
     protected ObjManager objManager;
     protected Bucket container;
     protected Logger logger;
 
     public AzuRequest(AzuParameter parameter) {
         this.azuParameter = parameter;
+		azuRequestData = new AzuRequestData(parameter);
+		objManager = ObjManagers.getInstance().getObjManager();
     }
 
     public abstract void process() throws AzuException;
 
-    public void setObjManager() throws Exception {
-		objManager = ObjManagerHelper.getInstance().getObjManager();
-	}
-
-	public void releaseObjManager() throws Exception {
-		ObjManagerHelper.getInstance().returnObjManager(objManager);
-	}
-
     protected boolean isExistContainer(String containerName) throws AzuException {
 		boolean result = false;
 		try {
-			setObjManager();
 			result = objManager.isBucketExist(containerName);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
+
 		return result;
 	}
 
     protected void initContainerInfo(String containerName) throws AzuException {
 		try {
-			setObjManager();
 			container = objManager.getBucket(containerName);
 		} catch (ResourceNotFoundException e) {
 			throw new AzuException(AzuErrorCode.NO_SUCH_CONTAINER, azuParameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		if (container == null) {
@@ -100,7 +81,6 @@ public abstract class AzuRequest {
     protected int createContainer(Bucket container) throws AzuException {
 		int result = 0;
 		try {
-			setObjManager();
             result = objManager.createBucket(container);
         } catch (ResourceAlreadyExistException e) {
 			PrintStack.logging(logger, e);
@@ -111,13 +91,6 @@ public abstract class AzuRequest {
         } catch (Exception e) {
 			PrintStack.logging(logger, e);
             throw new AzuException(AzuErrorCode.INTERNAL_SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		if (result != 0) {
@@ -130,45 +103,20 @@ public abstract class AzuRequest {
     protected void deleteContainer(String container) throws AzuException {
 		boolean result = false;
 		try {
-            setObjManager();
             objManager.removeBucket(container);
-			// result = objManager.isBucketDelete(container);
-			// if (result) {
-			// 	objManager.removeBucket(container);
-			// }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        } finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
-		}
-
-		// if (!result) {
-		// 	logger.info(GWConstants.LOG_REQUEST_BUCKET_IS_NOT_EMPTY);
-        //     throw new AzuException(AzuErrorCode.BUCKET_NOT_EMPTY, azuParameter);
-		// }
+        }
 	}
 
     protected List<S3BucketSimpleInfo> listContainerSimpleInfo(String userName, String userId) throws AzuException {
 		List<S3BucketSimpleInfo> bucketList = null;
 		try {
-			setObjManager();
 			bucketList = objManager.listBucketSimpleInfo(userName, userId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 		
 		return bucketList;
@@ -177,20 +125,12 @@ public abstract class AzuRequest {
     protected Metadata open(String containerName, String blobName) throws AzuException {
 		Metadata meta = null;
 		try {
-			setObjManager();
 			meta = objManager.open(containerName, blobName, "null");
 		} catch (ResourceNotFoundException e) {
 			throw new AzuException(AzuErrorCode.NO_SUCH_KEY, azuParameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		return meta;
@@ -199,18 +139,10 @@ public abstract class AzuRequest {
     protected Metadata createLocal(String diskpoolId, String containerName, String blobName, String versionId) throws AzuException {
 		Metadata meta = null;
 		try {
-			setObjManager();
 			meta = objManager.createLocal(diskpoolId, containerName, blobName, versionId);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		return meta;
@@ -219,18 +151,10 @@ public abstract class AzuRequest {
     protected int insertObject(String containerName, String blobName, Metadata data) throws AzuException {
 		int result = 0;
 		try {
-			setObjManager();
 			result = objManager.close(containerName, blobName, data);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		return result;
@@ -239,18 +163,10 @@ public abstract class AzuRequest {
     protected ObjectListParameter listObject(String bucket, S3ObjectList s3ObjectList) throws AzuException {
 		ObjectListParameter objectListParameter = null;
 		try {
-			setObjManager();
 			objectListParameter = objManager.listObject(bucket, s3ObjectList);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 
 		return objectListParameter;
@@ -258,18 +174,10 @@ public abstract class AzuRequest {
 
     protected void remove(String bucket, String object) throws AzuException {
 		try {
-			setObjManager();
 			objManager.remove(bucket, object);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		} finally {
-			try {
-				releaseObjManager();
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-			}
 		}
 	}
 

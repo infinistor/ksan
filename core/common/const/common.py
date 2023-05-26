@@ -79,6 +79,14 @@ MonservicedNetwork = 'monserviced.networks'
 ##### DISK  #####
 """
 DiskIdFileName = '/DiskId'
+DiskObjDirectory = '/obj'
+DiskTempDirectory = '/temp'
+DiskTrashDirectory = '/trash'
+
+"""
+##### DISKPOOL #####
+"""
+
 
 ### disk stat ###
 DiskStatOnline = 'Online'
@@ -87,6 +95,8 @@ DiskModeRw = 'ReadWrite'
 DiskModeRwShort = 'RW'
 DiskModeRo = 'ReadOnly'
 DiskModeRoShort = 'RO'
+DiskModeMaintenance = 'Maintenance'
+DiskModeMaintenanceShort = 'MA'
 DiskHaActionInit = 'Initializing'
 DiskStop = 'Stop'
 DiskStart = 'Good'
@@ -102,11 +112,11 @@ ECValueParser = re.compile("ec\(([\d]+):([\d]+)\)")
 
 
 ### diskpool type ###
-DiskPoolClassStandard = 'STANDARD'
+DiskPoolClassNormal = 'NORMAL'
 DiskPoolClassArchive = 'ARCHIVE'
 DiskPoolClassPerformance = 'PERFORMANCE'
 
-ValidDiskPoolType = [DiskPoolClassStandard, DiskPoolClassArchive, DiskPoolClassPerformance]
+ValidDiskPoolType = [DiskPoolClassNormal, DiskPoolClassArchive, DiskPoolClassPerformance]
 
 
 """
@@ -129,6 +139,8 @@ KsanPortalBridgeName = 'ksanPortalBridge'
 KsanAgentName = 'ksanAgent'
 KsanGWName = 'ksanGW'
 KsanOSDName = 'ksanOSD'
+KsanObjManagerName = 'ksanObjManager'
+KsanObjManager = 'ksanObjManager'
 KsanLifecycleManagerName = 'ksanLifecycleManager'
 KsanReplicationManagerName = 'ksanReplicationManager'
 KsanLogManagerName = 'ksanLogManager'
@@ -164,6 +176,7 @@ KsanServerRegister = 'ksanServerRegister'
 ### service type ###
 TypeServiceOSD = KsanOSDName
 TypeServiceGW = KsanGWName
+TypeServiceObjManager = KsanObjManagerName
 TypeServiceMongoDB = 'MongoDB'
 TypeServiceMariaDB = 'MariaDB'
 TypeServiceS3Backend = 'S3Backend'
@@ -260,6 +273,9 @@ ServiceTypeConversion[KsanReplicationManagerName.lower()] = TypeServiceReplicati
 ServiceTypeConversion[KsanLogManagerName.lower()] = TypeServiceLogManager
 #ServiceTypeConversion['rabbitmq'] = TypeServiceRabbitMq
 #ServiceTypeConversion['haproxy'] = TypeServiceHaproxy
+ServiceTypeConversion[KsanObjManager.lower()] = TypeServiceObjManager
+
+
 
 
 
@@ -477,7 +493,7 @@ EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.stat
 """
 
 
-EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added",
+EdgeRoutingKeyList = [ "*.servers.updated", "*.servers.removed", "*.servers.added", "*.servers.disks.state",
                        "*.servers.interfaces.added", "*.servers.interfaces.updated", "*.servers.interfaces.removed",
                        "*.servers.interfaces.vlans.added",
                        "*.servers.interfaces.vlans.updated", "*.servers.interfaces.vlans.removed",

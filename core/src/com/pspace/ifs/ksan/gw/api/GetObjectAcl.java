@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -49,9 +48,7 @@ public class GetObjectAcl extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
-        dataGetObjectAcl.extract();
-        String versionId = dataGetObjectAcl.getVersionId();
+        String versionId = s3RequestData.getVersionId();
         s3Parameter.setVersionId(versionId);
 
         Metadata objMeta = null;
@@ -64,16 +61,16 @@ public class GetObjectAcl extends S3Request {
         s3Parameter.setTaggingInfo(objMeta.getTag());
         
         if (Strings.isNullOrEmpty(versionId)) {
-            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_ACL, s3Parameter, dataGetObjectAcl)) {
-                checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_ACL, s3Parameter)) {
+                checkGrantObject(true, GWConstants.GRANT_READ_ACP);
             }
         } else {
-            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_ACL, s3Parameter, dataGetObjectAcl)) {
-                checkGrantObjectOwner(s3Parameter.isPublicAccess(), objMeta, s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+            if (!checkPolicyBucket(GWConstants.ACTION_GET_OBJECT_VERSION_ACL, s3Parameter)) {
+                checkGrantObject(true, GWConstants.GRANT_READ_ACP);
             }
         }
 
-        String aclInfo = objMeta.getAcl();
+        String aclInfo = objectAccessControlPolicy.toXml();
 
         if (!aclInfo.contains(GWConstants.XML_VERSION)) {
             aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;

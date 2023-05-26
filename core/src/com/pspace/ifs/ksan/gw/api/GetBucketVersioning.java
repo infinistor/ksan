@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetBucketVersioning;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -45,11 +44,8 @@ public class GetBucketVersioning extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataGetBucketVersioning dataGetBucketVersioning = new DataGetBucketVersioning(s3Parameter);
-		dataGetBucketVersioning.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_VERSIONING, s3Parameter, dataGetBucketVersioning)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_VERSIONING, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 		
 		String versioningStatus = getBucketInfo().getVersioning();

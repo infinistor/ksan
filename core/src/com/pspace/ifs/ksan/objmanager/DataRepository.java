@@ -72,7 +72,7 @@ public interface DataRepository {
     public void updateBucketObjTagIndexing(Bucket bt) throws SQLException;
     
     // for multipart upload
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException;
+    public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException;
     public int updateMultipartUpload(String bucket, String uploadid, int partNo, boolean iscompleted) throws SQLException;
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException;
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException;
@@ -83,6 +83,8 @@ public interface DataRepository {
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException;
     public boolean isUploadId(String uploadid) throws SQLException;
     public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException;
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException;
+    public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException;
     
     // for utility 
     public List<Object> utilJobMgt(String operation, List<Object> in);

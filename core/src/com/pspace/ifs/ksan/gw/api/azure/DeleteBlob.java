@@ -21,6 +21,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.gw.object.S3Object;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.AzuObjectOperation;
 
 import java.io.File;
@@ -47,8 +48,8 @@ public class DeleteBlob extends AzuRequest {
 		try {
 			objMeta = open(containerName, blobName);
             remove(azuParameter.getContainerName(), azuParameter.getBlobName());
-            AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
-			azuObjectOperation.deleteObject();
+            // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
+			// azuObjectOperation.deleteObject();
 		} catch (AzuException e) {
             PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.NO_SUCH_KEY, azuParameter);

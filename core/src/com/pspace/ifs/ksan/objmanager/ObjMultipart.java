@@ -44,10 +44,10 @@ public class ObjMultipart{
     
     class ListMultipartCallBack implements DBCallBack{
         @Override
-        public void call(String key, String uploadid, String unused1, long partNo, 
+        public void call(String key, String uploadid, String lastModified, long partNo, 
                     String unused2, String unused3, String unused4, boolean isTrancated) {
             ListResult lr = new ListResult();
-            lr.set(bucket, key, uploadid, (int)partNo);
+            lr.set(bucket, key, uploadid, (int)partNo, lastModified);
             if (isTrancated)
                 lr.setTruncated();
             if (list.size() >= defaultMaxUpkoads)
@@ -80,7 +80,7 @@ public class ObjMultipart{
         return id;
     }
     
-    public String createMultipartUpload(String bucket, String objkey, String acl, String meta, String diskId){
+    public String createMultipartUpload(Metadata mt){
         String id;
         while (true){
             id = getNewUploadId();
@@ -88,7 +88,7 @@ public class ObjMultipart{
                 return null;
             
             try {
-                dbm.insertMultipartUpload(bucket, objkey, id, 0, acl, meta, "", 0, diskId);
+                dbm.insertMultipartUpload(mt, id, 0);
                 return id;
             } catch (SQLException ex) {
                 Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
@@ -96,9 +96,9 @@ public class ObjMultipart{
         }
     }
 
-    public int startSingleUpload(String objkey, String uploadId, int partNo, String acl, String meta, String etag, long size, String diskId){
+    public int startSingleUpload(Metadata mt, String uploadId, int partNo){
         try {
-            return dbm.insertMultipartUpload(bucket, objkey, uploadId, partNo, acl, meta, etag, size, diskId);
+            return dbm.insertMultipartUpload(mt, uploadId, partNo);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -149,7 +149,7 @@ public class ObjMultipart{
     }
     
     private Object makeMysqlQuery(String delimiter, String prefix, String keyMarker, String uploadIdMarker){
-        String sql = "SELECT objKey, uploadid, partNo FROM MULTIPARTS WHERE bucket= '"+ bucket + "' AND partNo=0 AND completed=false";
+        String sql = "SELECT objKey, uploadid, partNo, changeTime FROM MULTIPARTS WHERE bucket= '"+ bucket + "' AND partNo=0 AND completed=false";
         
         if (!prefix.isEmpty())
            sql = sql + " AND objKey LIKE '"+ prefix + "%'";
@@ -181,7 +181,7 @@ public class ObjMultipart{
         
         DBCallBack cb = new ListMultipartCallBack(); 
         //System.out.println("sql : " + sql);
-        //dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
+        dbm.selectMultipartUpload(bucket, sql, maxUploads, cb);      
         return this.list;
     }
 
@@ -222,5 +222,13 @@ public class ObjMultipart{
         } catch (ResourceNotFoundException ex) {
             return null;
         }
+    }
+    
+    public int putPartRef(String uploadId, int partNo, String ref) throws SQLException, ResourceNotFoundException{
+        return dbm.setPartRef(uploadId, partNo, ref);
+    }
+    
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException{
+        return dbm.getPartRef(uploadId, partNo);
     }
 }

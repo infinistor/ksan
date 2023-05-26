@@ -58,7 +58,7 @@ class ConfigUpdateCallback implements MQCallback{
 
 		OSDPortal.getInstance().getConfig();
 		
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -76,7 +76,7 @@ class DiskpoolsUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }

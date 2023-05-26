@@ -127,10 +127,10 @@ public class DISKPOOL {
                 logger.debug(" >>currentServerIdx: {} keySize {}", currentServerIdx, keys.size());
                 currentServerIdx = 0;
             }
-            }finally{
-                lock.unlock();
-            }
-           
+        }finally{
+            lock.unlock();
+        }
+        
         return serverid;
      }
      
@@ -151,31 +151,39 @@ public class DISKPOOL {
             while((srv = serverMap.get(getNextServerId())) != null){
                 if (svrCounter > serverMap.size()){
                     break;
+                } 
+                if (srv == null && retried == false){ // to rotate one more time
+                    retried = true; 
+                    svrCounter++;
+                    continue;
                 }
-                 if (srv == null && retried == false){ // to rotate one more time
-                     retried = true; 
-                     svrCounter++;
-                     continue;
-                 }
 
-                 if (startIndex == currentServerIdx) {
-                     if (serverMap.size() > 1){
-                       logger.error("All OSD server are offline!");
-                       throw new AllServiceOfflineException("All OSD server are offline!");
-                     }
-                     else if ( svrCounter > 0){
-                       logger.error("There is no enough OSD server for all replica!");
-                       throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
-                     }  
-                 }
+                if (startIndex == currentServerIdx) {
+                    if (srv.getStatus() == ServerStatus.ONLINE && srv.possibleToAlloc() == true){ // to check last entry
+                        return srv;
+                    }
+                    
+                    if (serverMap.size() > 1){
+                      logger.error("All OSD server are offline!");
+                      throw new AllServiceOfflineException("All OSD server are offline!");
+                    }
+                    else if ( svrCounter > 0){
+                      logger.error("There is no enough OSD server for all replica!");
+                      throw new ResourceNotFoundException("There is no enough OSD server for all replica!"); 
+                    }  
+                }
                  
-                 logger.debug("ServerId : {} OSDIP : {} currentServerIdx : {} startIndex {} ", srv.getId(), srv.getName(), currentServerIdx, startIndex);
-                 if (srv.getStatus() != ServerStatus.ONLINE){
-                     svrCounter++;
-                     continue;
-                 }
-                 
-                 return srv;
+                logger.debug("ServerId : {} OSDIP : {} currentServerIdx : {} startIndex {} ", srv.getId(), srv.getName(), currentServerIdx, startIndex);
+                if (srv.getStatus() != ServerStatus.ONLINE){
+                    svrCounter++;
+                    continue;
+                }
+
+                if (srv.possibleToAlloc() == false){ // to check disk avaliablity
+                   svrCounter++;
+                   continue; 
+                }
+                return srv;
             }
             logger.error("There is no server in the system!");
             throw new ResourceNotFoundException("There is no server in the system!"); 

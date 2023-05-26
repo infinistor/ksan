@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketTagging;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.Tagging;
@@ -46,14 +45,11 @@ public class PutBucketTagging extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketTagging dataPutBucketTagging = new DataPutBucketTagging(s3Parameter);
-		dataPutBucketTagging.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter, dataPutBucketTagging)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_TAGGING, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 		
-		String taggingXml = dataPutBucketTagging.getTaggingXml();
+		String taggingXml = s3RequestData.getTaggingXml();
         logger.debug(GWConstants.LOG_PUT_BUCKET_TAGGING, taggingXml);
 		try {
 			Tagging tagging = new XmlMapper().readValue(taggingXml, Tagging.class);

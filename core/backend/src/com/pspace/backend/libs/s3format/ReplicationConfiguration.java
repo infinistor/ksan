@@ -16,7 +16,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /** Represent an Amazon ReplicationConfiguration. */
-// CHECKSTYLE:OFF
 public final class ReplicationConfiguration {
 	@JacksonXmlProperty(localName = "Role")
 	public String role;
@@ -178,4 +177,3 @@ public final class ReplicationConfiguration {
 		public String status;
 	}
 }
-// CHECKSTYLE:ON

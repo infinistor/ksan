@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.utils;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.HashMap;
 
 import org.apache.commons.crypto.stream.CtrCryptoInputStream;
 import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
@@ -54,7 +57,6 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
-import com.pspace.ifs.ksan.gw.format.AccessControlPolicyJson;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration;
 import com.pspace.ifs.ksan.gw.format.Policy;
 import com.pspace.ifs.ksan.gw.format.PublicAccessBlockConfiguration;
@@ -89,93 +91,6 @@ public class GWUtils {
 		if (override != null) {
 			response.addHeader(headerName, override);
 		}
-	}
-	
-	public static void addMetadataToResponse(HttpServletRequest request, HttpServletResponse response, S3Metadata s3Metadata, List<String> ContentLength_Headers, Long streamsize) {
-		
-		// addResponseHeaderWithOverride(request, response,
-		// 		HttpHeaders.CACHE_CONTROL, GWConstants.RESPONSE_CACHE_CONTROL,
-		// 		s3Metadata.getCacheControl());
-		// addResponseHeaderWithOverride(request, response,
-		// 		HttpHeaders.CONTENT_ENCODING, GWConstants.RESPONSE_CONTENT_ENCODING,
-		// 		s3Metadata.getContentEncoding()); 
-		// addResponseHeaderWithOverride(request, response,
-		// 		HttpHeaders.CONTENT_LANGUAGE, GWConstants.RESPONSE_CONTENT_LANGUAGE, 
-		// 		s3Metadata.getContentLanguage());
-		// addResponseHeaderWithOverride(request, response,
-		// 		HttpHeaders.CONTENT_DISPOSITION, GWConstants.RESPONSE_CONTENT_DISPOSITION,
-		// 		s3Metadata.getContentDisposition());
-		
-		// // TODO: handles only a single range due to jclouds limitations
-		// Collection<String> contentRanges = ContentLength_Headers;
-		// if (ContentLength_Headers != null && !contentRanges.isEmpty()) {
-		// 	for (String contents : ContentLength_Headers) {
-		// 		response.addHeader(HttpHeaders.CONTENT_RANGE, contents);
-		// 	}
-			
-		// 	response.addHeader(HttpHeaders.ACCEPT_RANGES, GWConstants.BYTES);
-		// 	response.addHeader(HttpHeaders.CONTENT_LENGTH, streamsize.toString());
-		// } else {
-		// 	response.addHeader(HttpHeaders.CONTENT_LENGTH, s3Metadata.getContentLength().toString());
-		// }
-				
-		// String overrideContentType = request.getParameter(GWConstants.RESPONSE_CONTENT_TYPE);
-		// response.setContentType(overrideContentType != null ? overrideContentType : s3Metadata.getContentType());
-		
-		// if (s3Metadata.getCustomerAlgorithm() != null ) {
-		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM, s3Metadata.getCustomerAlgorithm());
-		// }
-		
-		// if (s3Metadata.getCustomerKey() != null ) {
-		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY, s3Metadata.getCustomerKey());
-		// }
-		
-		// if (s3Metadata.getCustomerKeyMD5() != null ) {
-		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, s3Metadata.getCustomerKeyMD5());
-		// }
-		
-		// if (s3Metadata.getServersideEncryption() != null ) {
-		// 	response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, s3Metadata.getServersideEncryption());
-		// }
-		
-		// if (s3Metadata.getLockMode() != null) {
-		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_MODE, s3Metadata.getLockMode());
-		// }
-
-		// if (s3Metadata.getLockExpires() != null) {
-		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, s3Metadata.getLockExpires());
-		// }
-
-		// if (s3Metadata.getLegalHold() != null) {
-		// 	response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, s3Metadata.getLegalHold());
-		// }
-
-		// if (s3Metadata.getUserMetadataMap() != null ) {
-		// 	for (Map.Entry<String, String> entry : s3Metadata.getUserMetadataMap().entrySet()) {
-		// 		response.addHeader(entry.getKey(), entry.getValue());
-		// 		logger.info(GWConstants.LOG_UTILS_USER_META_DATA, entry.getKey(), entry.getValue());
-		// 	}
-		// }
-
-		response.addHeader(HttpHeaders.ETAG, maybeQuoteETag(s3Metadata.getETag()));
-		
-		// String overrideExpires = request.getParameter(GWConstants.RESPONSE_EXPIRES);
-		// if (overrideExpires != null) {
-		// 	response.addHeader(HttpHeaders.EXPIRES, overrideExpires);
-		// } else {
-		// 	Date expires = s3Metadata.getExpires();
-		// 	if (expires != null) {
-		// 		response.addDateHeader(HttpHeaders.EXPIRES, expires.getTime());
-		// 	}
-		// }
-		
-		// response.addDateHeader(HttpHeaders.LAST_MODIFIED, s3Metadata.getLastModified().getTime());
-		
-		// if (s3Metadata.getTaggingCount() != null) {
-		// 	response.addHeader(GWConstants.X_AMZ_TAGGING_COUNT, s3Metadata.getTaggingCount());
-		// }
-		
-		// response.addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
 	}
 
 	/** Parse ISO 8601 timestamp into seconds since 1970. */
@@ -281,15 +196,6 @@ public class GWUtils {
 			return blobName;
 		}
 	}
-	
-	// public static GWDB getDBInstance() {
-	// 	if (GWConfig.getInstance().getDbRepository().equalsIgnoreCase(GWConstants.MARIADB)) {
-	// 		return MariaDB.getInstance();
-	// 	} else {
-	// 		logger.error(GWConstants.LOG_UTILS_UNDEFINED_DB);
-	// 		return null;
-	// 	}
-	// }
 
 	public static boolean likematch(String first, String second) {
 		// If we reach at the end of both strings,
@@ -628,627 +534,6 @@ public class GWUtils {
 		return effect;
 	}
 
-	public static String makeOriginalXml(String xml, S3Parameter s3Parameter) throws GWException {
-		logger.debug(GWConstants.LOG_UTILS_SOURCE_ACL, xml);
-		if (Strings.isNullOrEmpty(xml)) {
-			return "";
-		}
-
-		ObjectMapper objectMapper = new ObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		
-		AccessControlPolicyJson actualObj;
-		try {
-			actualObj = objectMapper.readValue(xml, AccessControlPolicyJson.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		AccessControlPolicy accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.owner = new AccessControlPolicy.Owner();
-		if(actualObj.ow != null) {
-			if(!Strings.isNullOrEmpty(actualObj.ow.id)) {
-				accessControlPolicy.owner.id = actualObj.ow.id;
-			}
-
-			if(!Strings.isNullOrEmpty(actualObj.ow.dN)) {
-				accessControlPolicy.owner.displayName = actualObj.ow.dN;
-			}
-		}
-
-		if(actualObj.acs != null) {
-			accessControlPolicy.aclList = new AccessControlPolicy.AccessControlList();
-			if( actualObj.acs.gt != null) {
-				accessControlPolicy.aclList.grants = new ArrayList<AccessControlPolicy.AccessControlList.Grant>();
-				for(AccessControlPolicyJson.ACS.Gt gt :  actualObj.acs.gt) {
-					AccessControlPolicy.AccessControlList.Grant grant = new AccessControlPolicy.AccessControlList.Grant();
-					if(!Strings.isNullOrEmpty(gt.perm)) {
-						if(gt.perm.equals(GWConstants.GRANT_AB_FC)) {
-							grant.permission = GWConstants.GRANT_FULL_CONTROL;
-						} else if (gt.perm.equals(GWConstants.GRANT_AB_W)) {
-							grant.permission = GWConstants.GRANT_WRITE;
-						} else if (gt.perm.equals(GWConstants.GRANT_AB_R)) {
-							grant.permission = GWConstants.GRANT_READ;
-						} else if (gt.perm.equals(GWConstants.GRANT_AB_RA)) {
-							grant.permission = GWConstants.GRANT_READ_ACP;
-						} else if (gt.perm.equals(GWConstants.GRANT_AB_WA)) {
-							grant.permission = GWConstants.GRANT_WRITE_ACP;
-						}
-					}
-					
-					if(gt.gte != null) {
-						AccessControlPolicy.AccessControlList.Grant.Grantee grantee = new AccessControlPolicy.AccessControlList.Grant.Grantee();
-						if(!Strings.isNullOrEmpty(gt.gte.id)) {
-							grantee.id = gt.gte.id;
-						}
-
-						if(!Strings.isNullOrEmpty(gt.gte.ddN)) {
-							grantee.displayName = gt.gte.ddN;
-						}
-
-						if(!Strings.isNullOrEmpty(gt.gte.eA)) {
-							grantee.emailAddress = gt.gte.eA;
-						}
-
-						if(!Strings.isNullOrEmpty(gt.gte.type)) {
-							if(gt.gte.type.equals(GWConstants.GRANT_AB_CU)) {
-								grantee.type = GWConstants.CANONICAL_USER;
-							} else if (gt.gte.type.equals(GWConstants.GRANT_AB_G)) {
-								grantee.type = GWConstants.GROUP;
-							}
-						}
-
-						if(!Strings.isNullOrEmpty(gt.gte.uri)) {
-							if(gt.gte.uri.equals(GWConstants.GRANT_AB_PU)) {
-								grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-							} else if(gt.gte.uri.equals(GWConstants.GRANT_AB_AU)) {
-								grantee.uri = GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS;
-							}
-						}
-
-						grant.grantee = grantee;
-					}
-
-					accessControlPolicy.aclList.grants.add(grant);
-				}
-			}
-		}
-
-		String aclXml = "";
-		XmlMapper xmlMapper = new XmlMapper();
-		try {
-			xmlMapper.setSerializationInclusion(Include.NON_EMPTY);
-			aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		aclXml = aclXml.replace(GWConstants.ACCESS_CONTROL_POLICY, GWConstants.ACCESS_CONTROL_POLICY_XMLNS); 
-
-		if(!aclXml.contains(GWConstants.XML_VERSION)) {
-			aclXml = GWConstants.XML_VERSION_FULL_STANDALONE + aclXml;
-		}
-
-		return aclXml;
-	}
-	
-	protected static void readAclHeader(String grantstr, String permission, AccessControlPolicy policy) {
-		String[] ids = grantstr.split(GWConstants.COMMA);
-		for (String readid : ids) {
-			String[] idkeyvalue = readid.split(GWConstants.EQUAL);
-			Grant rg = new Grant();
-			rg.grantee = new Grantee();
-
-			if (idkeyvalue[0].trim().compareTo(GWConstants.ID) == 0) {
-				rg.grantee.type = GWConstants.CANONICAL_USER;
-				rg.grantee.id = idkeyvalue[1].replaceAll(GWConstants.DOUBLE_QUOTE, "");
-			}
-
-			if (idkeyvalue[0].trim().compareTo(GWConstants.URI) == 0) {
-				rg.grantee.type = GWConstants.GROUP;
-				rg.grantee.uri = idkeyvalue[1].replaceAll(GWConstants.DOUBLE_QUOTE, "");
-			}
-
-			if (idkeyvalue[0].trim().compareTo(GWConstants.EMAIL_ADDRESS) == 0) {
-				rg.grantee.type = GWConstants.CANONICAL_USER;
-				rg.grantee.emailAddress = idkeyvalue[1].replaceAll(GWConstants.DOUBLE_QUOTE, "");
-			}
-
-			rg.permission = permission;
-			policy.aclList.grants.add(rg);
-		}
-	}
-
-	public static String makeAclXml(AccessControlPolicy accessControlPolicy, 
-								    AccessControlPolicy preAccessControlPolicy,
-									boolean hasKeyWord,
-									String getAclXml,
-									String cannedAcl,
-									Bucket bucketInfo,
-									String userId, 
-									String userName,
-									String getGrantRead, 
-									String getGrantWrite, 
-									String getGrantFullControl, 
-									String getGrantReadAcp, 
-									String getGrantWriteAcp, 
-									S3Parameter s3Parameter,
-									boolean isAcl) throws GWException {
-		
-		PublicAccessBlockConfiguration pabc = null;
-		if (bucketInfo != null && !Strings.isNullOrEmpty(bucketInfo.getAccess())) {
-			try {
-				pabc = new XmlMapper().readValue(bucketInfo.getAccess(), PublicAccessBlockConfiguration.class);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		}
-
-		logger.info(GWConstants.LOG_UTILS_HAS_KEYWORD_ACL, hasKeyWord);
-		logger.info(GWConstants.LOG_UTILS_CANNED_ACL, cannedAcl);
-		logger.info(GWConstants.LOG_UTILS_ACL_XML, getAclXml);
-		logger.info("isAcl : {}", isAcl);
-
-		if (preAccessControlPolicy != null && preAccessControlPolicy.owner != null) {
-			accessControlPolicy.owner.id = preAccessControlPolicy.owner.id;
-			accessControlPolicy.owner.displayName = preAccessControlPolicy.owner.displayName;
-		} else {
-			accessControlPolicy.owner.id = userId;
-			accessControlPolicy.owner.displayName = userName;
-		}
-
-		String aclXml = null;
-		if (!hasKeyWord) {
-			aclXml = getAclXml;
-		}
-		if (Strings.isNullOrEmpty(cannedAcl)) {
-			if (Strings.isNullOrEmpty(aclXml)) {
-				if (Strings.isNullOrEmpty(getGrantRead)
-						&& Strings.isNullOrEmpty(getGrantWrite)
-						&& Strings.isNullOrEmpty(getGrantReadAcp)
-						&& Strings.isNullOrEmpty(getGrantWriteAcp)
-						&& Strings.isNullOrEmpty(getGrantFullControl)) {
-					Grant priUser = new Grant();
-					priUser.grantee = new Grantee();
-					priUser.grantee.type = GWConstants.CANONICAL_USER;
-					priUser.grantee.id = accessControlPolicy.owner.id;
-					priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-					priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-					accessControlPolicy.aclList.grants.add(priUser);
-				}
-			}
-		} else {
-			if (GWConstants.CANNED_ACLS_PRIVATE.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant pubReadUser = new Grant();
-				pubReadUser.grantee = new Grantee();
-				pubReadUser.grantee.type = GWConstants.GROUP;
-				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(pubReadUser);
-			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ_WRITE.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant pubReadUser = new Grant();
-				pubReadUser.grantee = new Grantee();
-				pubReadUser.grantee.type = GWConstants.GROUP;
-				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(pubReadUser);
-
-				Grant pubWriteUser = new Grant();
-				pubWriteUser.grantee = new Grantee();
-				pubWriteUser.grantee.type = GWConstants.GROUP;
-				pubWriteUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubWriteUser.permission = GWConstants.GRANT_WRITE;
-				accessControlPolicy.aclList.grants.add(pubWriteUser);
-			} else if (GWConstants.CANNED_ACLS_AUTHENTICATED_READ.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant authReadUser = new Grant();
-				authReadUser.grantee = new Grantee();
-				authReadUser.grantee.type = GWConstants.GROUP;
-				authReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS;
-				authReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(authReadUser);
-			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_READ.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant bucketOwnerReadUser = new Grant();
-				bucketOwnerReadUser.grantee = new Grantee();
-				bucketOwnerReadUser.grantee.type = GWConstants.CANONICAL_USER;
-				bucketOwnerReadUser.grantee.id = bucketInfo.getUserId();
-				bucketOwnerReadUser.grantee.displayName = bucketInfo.getUserName();
-				bucketOwnerReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(bucketOwnerReadUser);
-			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_FULL_CONTROL.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant bucketOwnerFullUser = new Grant();
-				bucketOwnerFullUser.grantee = new Grantee();
-				bucketOwnerFullUser.grantee.type = GWConstants.CANONICAL_USER;
-				bucketOwnerFullUser.grantee.id = bucketInfo.getUserId();
-				bucketOwnerFullUser.grantee.displayName = bucketInfo.getUserName();
-				bucketOwnerFullUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(bucketOwnerFullUser);
-			} else if (GWConstants.CANNED_ACLS.contains(cannedAcl)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_ACCESS_CANNED_ACL, cannedAcl);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
-			} else {
-				logger.error(HttpServletResponse.SC_BAD_REQUEST + GWConstants.LOG_ACCESS_PROCESS_FAILED);
-				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
-			}
-		}
-
-		String getAclHeader = null;
-		if (!Strings.isNullOrEmpty(getGrantRead)) {
-			getAclHeader = getGrantRead;
-			readAclHeader(getGrantRead, GWConstants.GRANT_READ, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantWrite)) {
-			getAclHeader = getGrantWrite;
-			readAclHeader(getGrantWrite, GWConstants.GRANT_WRITE, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantReadAcp)) {
-			getAclHeader = getGrantReadAcp;
-			readAclHeader(getGrantReadAcp, GWConstants.GRANT_READ_ACP, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantWriteAcp)) {
-			getAclHeader = getGrantWriteAcp;
-			readAclHeader(getGrantWriteAcp, GWConstants.GRANT_WRITE_ACP, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantFullControl)) {
-			getAclHeader = getGrantFullControl;
-			readAclHeader(getGrantFullControl, GWConstants.GRANT_FULL_CONTROL, accessControlPolicy);
-		}
-
-		if (Strings.isNullOrEmpty(aclXml)) {
-			XmlMapper xmlMapper = new XmlMapper();
-			try {
-				aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		} else {
-			logger.info("aclXml : {}", aclXml);
-		}
-
-		// check user
-		try {
-			XmlMapper xmlMapper = new XmlMapper();
-			AccessControlPolicy checkAcl = xmlMapper.readValue(aclXml, AccessControlPolicy.class);
-			if (checkAcl.owner == null) {
-				if (isAcl) {
-					throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
-				}
-				checkAcl.owner = new Owner();
-				checkAcl.owner.id = s3Parameter.getUser().getUserId();
-				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
-			} else if (Strings.isNullOrEmpty(checkAcl.owner.id)) {
-				if (isAcl) {
-					throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
-				}
-				checkAcl.owner.id = s3Parameter.getUser().getUserId();
-				checkAcl.owner.displayName = s3Parameter.getUser().getUserName();
-			}
-			aclXml = checkAcl.toString();
-			logger.info("acl : {}", aclXml);
-			if (checkAcl.aclList.grants != null) {
-				if (checkAcl.aclList.grants.size() == 0) {
-					if (isAcl) {
-						throw new GWException(GWErrorCode.MALFORMED_ACL, s3Parameter);
-					}
-				}
-				for (Grant user : checkAcl.aclList.grants) {
-					if (!Strings.isNullOrEmpty(user.grantee.displayName)
-							&& (getAclXml != null || getAclHeader != null)
-							&& S3UserManager.getInstance().getUserByName(user.grantee.displayName) == null) {
-						logger.info(user.grantee.displayName);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
-
-					if (!Strings.isNullOrEmpty(user.grantee.id) 
-							&& (getAclXml != null || getAclHeader != null)
-							&& S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
-						logger.info(user.grantee.id);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
-				}
-			}
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		return aclXml;
-	}
-
-	public static String makeAdmAclXml(AccessControlPolicy accessControlPolicy, 
-								    AccessControlPolicy preAccessControlPolicy,
-									boolean hasKeyWord,
-									String getAclXml,
-									String cannedAcl,
-									Bucket bucketInfo,
-									String userId, 
-									String userName,
-									String getGrantRead, 
-									String getGrantWrite, 
-									String getGrantFullControl, 
-									String getGrantReadAcp, 
-									String getGrantWriteAcp, 
-									S3Parameter s3Parameter) throws GWException {
-		
-		PublicAccessBlockConfiguration pabc = null;
-		if (bucketInfo != null && !Strings.isNullOrEmpty(bucketInfo.getAccess())) {
-			try {
-				pabc = new XmlMapper().readValue(bucketInfo.getAccess(), PublicAccessBlockConfiguration.class);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		}
-		logger.info(GWConstants.LOG_UTILS_CANNED_ACL, cannedAcl);
-		logger.info(GWConstants.LOG_UTILS_ACL_XML, getAclXml);
-
-		if (preAccessControlPolicy != null && preAccessControlPolicy.owner != null) {
-			accessControlPolicy.owner.id = preAccessControlPolicy.owner.id;
-			accessControlPolicy.owner.displayName = preAccessControlPolicy.owner.displayName;
-		} else {
-			accessControlPolicy.owner.id = userId;
-			accessControlPolicy.owner.displayName = userName;
-		}
-
-		String aclXml = null;
-		if (!hasKeyWord) {
-			aclXml = getAclXml;
-		}
-		if (Strings.isNullOrEmpty(cannedAcl)) {
-			if (Strings.isNullOrEmpty(aclXml)) {
-				if (Strings.isNullOrEmpty(getGrantRead)
-						&& Strings.isNullOrEmpty(getGrantWrite)
-						&& Strings.isNullOrEmpty(getGrantReadAcp)
-						&& Strings.isNullOrEmpty(getGrantWriteAcp)
-						&& Strings.isNullOrEmpty(getGrantFullControl)) {
-					Grant priUser = new Grant();
-					priUser.grantee = new Grantee();
-					priUser.grantee.type = GWConstants.CANONICAL_USER;
-					priUser.grantee.id = accessControlPolicy.owner.id;
-					priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-					priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-					accessControlPolicy.aclList.grants.add(priUser);
-				}
-			}
-		} else {
-			if (GWConstants.CANNED_ACLS_PRIVATE.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant pubReadUser = new Grant();
-				pubReadUser.grantee = new Grantee();
-				pubReadUser.grantee.type = GWConstants.GROUP;
-				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(pubReadUser);
-			} else if (GWConstants.CANNED_ACLS_PUBLIC_READ_WRITE.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant pubReadUser = new Grant();
-				pubReadUser.grantee = new Grantee();
-				pubReadUser.grantee.type = GWConstants.GROUP;
-				pubReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(pubReadUser);
-
-				Grant pubWriteUser = new Grant();
-				pubWriteUser.grantee = new Grantee();
-				pubWriteUser.grantee.type = GWConstants.GROUP;
-				pubWriteUser.grantee.uri = GWConstants.AWS_GRANT_URI_ALL_USERS;
-				pubWriteUser.permission = GWConstants.GRANT_WRITE;
-				accessControlPolicy.aclList.grants.add(pubWriteUser);
-			} else if (GWConstants.CANNED_ACLS_AUTHENTICATED_READ.equalsIgnoreCase(cannedAcl)) {
-				if (pabc != null && GWConstants.STRING_TRUE.equalsIgnoreCase(pabc.BlockPublicAcls)) {
-					logger.info(GWConstants.LOG_ACCESS_DENIED_PUBLIC_ACLS);
-					throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
-				}
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant authReadUser = new Grant();
-				authReadUser.grantee = new Grantee();
-				authReadUser.grantee.type = GWConstants.GROUP;
-				authReadUser.grantee.uri = GWConstants.AWS_GRANT_URI_AUTHENTICATED_USERS;
-				authReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(authReadUser);
-			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_READ.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant bucketOwnerReadUser = new Grant();
-				bucketOwnerReadUser.grantee = new Grantee();
-				bucketOwnerReadUser.grantee.type = GWConstants.CANONICAL_USER;
-				bucketOwnerReadUser.grantee.id = bucketInfo.getUserId();
-				bucketOwnerReadUser.grantee.displayName = bucketInfo.getUserName();
-				bucketOwnerReadUser.permission = GWConstants.GRANT_READ;
-				accessControlPolicy.aclList.grants.add(bucketOwnerReadUser);
-			} else if (GWConstants.CANNED_ACLS_BUCKET_OWNER_FULL_CONTROL.equalsIgnoreCase(cannedAcl)) {
-				Grant priUser = new Grant();
-				priUser.grantee = new Grantee();
-				priUser.grantee.type = GWConstants.CANONICAL_USER;
-				priUser.grantee.id = accessControlPolicy.owner.id;
-				priUser.grantee.displayName = accessControlPolicy.owner.displayName;
-				priUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(priUser);
-
-				Grant bucketOwnerFullUser = new Grant();
-				bucketOwnerFullUser.grantee = new Grantee();
-				bucketOwnerFullUser.grantee.type = GWConstants.CANONICAL_USER;
-				bucketOwnerFullUser.grantee.id = bucketInfo.getUserId();
-				bucketOwnerFullUser.grantee.displayName = bucketInfo.getUserName();
-				bucketOwnerFullUser.permission = GWConstants.GRANT_FULL_CONTROL;
-				accessControlPolicy.aclList.grants.add(bucketOwnerFullUser);
-			} else if (GWConstants.CANNED_ACLS.contains(cannedAcl)) {
-				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.LOG_ACCESS_CANNED_ACL, cannedAcl);
-				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
-			} else {
-				logger.error(HttpServletResponse.SC_BAD_REQUEST + GWConstants.LOG_ACCESS_PROCESS_FAILED);
-				throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
-			}
-		}
-
-		if (!Strings.isNullOrEmpty(getGrantRead)) {
-			readAclHeader(getGrantRead, GWConstants.GRANT_READ, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantWrite)) {
-			readAclHeader(getGrantWrite, GWConstants.GRANT_WRITE, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantReadAcp)) {
-			readAclHeader(getGrantReadAcp, GWConstants.GRANT_READ_ACP, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantWriteAcp)) {
-			readAclHeader(getGrantWriteAcp, GWConstants.GRANT_WRITE_ACP, accessControlPolicy);
-		}
-		if (!Strings.isNullOrEmpty(getGrantFullControl)) {
-			readAclHeader(getGrantFullControl, GWConstants.GRANT_FULL_CONTROL, accessControlPolicy);
-		}
-
-		if (Strings.isNullOrEmpty(aclXml)) {
-			XmlMapper xmlMapper = new XmlMapper();
-			try {
-				aclXml = xmlMapper.writeValueAsString(accessControlPolicy).replaceAll(GWConstants.WSTXNS, GWConstants.XSI);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-			}
-		}
-
-		// check user
-		try {
-			XmlMapper xmlMapper = new XmlMapper();
-			AccessControlPolicy checkAcl = xmlMapper.readValue(aclXml, AccessControlPolicy.class);
-			aclXml = checkAcl.toString();
-			if (checkAcl.aclList.grants != null) {
-				for (Grant user : checkAcl.aclList.grants) {
-					if (!Strings.isNullOrEmpty(user.grantee.displayName)
-							// && GWUtils.getDBInstance().getIdentityByName(user.grantee.displayName, s3Parameter) == null) {
-							&& S3UserManager.getInstance().getUserByName(user.grantee.displayName) == null) {
-						logger.info(user.grantee.displayName);
-						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					}
-
-					// KSAN은 userId가 숫자로만 될 필요가 없음
-					// if (!Strings.isNullOrEmpty(user.grantee.id) && !user.grantee.id.matches(GWConstants.BACKSLASH_D_PLUS)) {
-					// 	logger.info(user.grantee.id);
-					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					// }
-
-					// if (!Strings.isNullOrEmpty(user.grantee.id) && GWUtils.getDBInstance().getIdentityByID(user.grantee.id, s3Parameter) == null) {
-					// if (!Strings.isNullOrEmpty(user.grantee.id) && S3UserManager.getInstance().getUserById(user.grantee.id) == null) {
-					// 	logger.info(user.grantee.id);
-					// 	throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-					// }
-				}
-			}
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
-		return aclXml;
-	}
-
 	public static String getLocalIP() {
 		if (!Strings.isNullOrEmpty(localIP)) {
 			return localIP;
@@ -1267,21 +552,30 @@ public class GWUtils {
 	public static void initCache(String cacheDisk) {
 		if (!Strings.isNullOrEmpty(cacheDisk)) {
 			logger.debug(GWConstants.LOG_UTILS_INIT_CACHE);
+			int length = 0;
 			for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
 				for (Server server : diskpool.getServerList()) {
 					if (GWUtils.getLocalIP().equals(server.getIp())) {
 						for (Disk disk : server.getDiskList()) {
-							File file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+							StringBuilder sb = new StringBuilder();
+							sb.append(cacheDisk);
+							sb.append(disk.getPath());
+							sb.append(Constants.SLASH); 
+							length = sb.length();
+							sb.append(Constants.OBJ_DIR);
+
+							File file = new File(sb.toString());
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+							// makeSubDirs(sb.toString());
+
+							StringBuilder sbTemp = sb.delete(length, sb.length());
+							sbTemp.append(Constants.TEMP_DIR);
+							file = new File(sbTemp.toString());
 							file.mkdirs();
-							file = new File(cacheDisk + disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-							file.mkdirs();
-							file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
+
+							sbTemp = sb.delete(length, sb.length());
+							sbTemp.append(Constants.TRASH_DIR);
+							file = new File(sbTemp.toString());
 							file.mkdirs();
 						}
 					}
@@ -1290,7 +584,90 @@ public class GWUtils {
 		}
 	}
 
-	public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
+	public static void initDisk() {
+		for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
+			for (Server server : diskpool.getServerList()) {
+				if (GWUtils.getLocalIP().equals(server.getIp())) {
+					for (Disk disk : server.getDiskList()) {
+						File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						file.mkdirs();
+						// makeSubDirs(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+						file.mkdirs();
+						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
+						file.mkdirs();
+					}
+				}
+			}
+		}
+	}
+
+	public static void initEC() {
+		HashMap<String, String> localDiskInfoMap = DiskManager.getInstance().getLocalDiskInfo();
+
+		if (localDiskInfoMap!= null) {
+			localDiskInfoMap.forEach((diskId, diskPath) -> {
+				int numberOfCodingChunks = DiskManager.getInstance().getECM(diskId);
+				int numberOfDataChunks = DiskManager.getInstance().getECK(diskId);
+				if (numberOfCodingChunks > 0 && numberOfDataChunks > 0) {
+					// check EC
+					StringBuilder sb = new StringBuilder();
+					sb.append(diskPath);
+					sb.append(Constants.SLASH);
+					sb.append(Constants.EC_DIR);
+					File file = new File(sb.toString());
+					file.mkdirs();
+					// makeSubDirs(sb.toString());
+				}
+			});
+		}
+    }
+
+	private static void makeSubDirs(String path) {
+		byte[] data = new byte[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+		
+		byte[] subPath = new byte[6];
+		subPath[0] = '/';
+		subPath[3] = '/';
+
+		File file = null;
+		for (int i = 0; i < 36; i++) {
+			for (int j = 0; j < 36; j++) {
+				for (int k = 0; k < 36; k++) {
+					for (int l = 0; l < 36; l++) {
+						subPath[1] = data[i];
+						subPath[2] = data[j];
+						subPath[4] = data[k];
+						subPath[5] = data[l];
+
+						file = new File(path + new String(subPath));
+						file.mkdirs();
+					}
+				}
+			}
+		}
+	}
+
+	// public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
+	// 	byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+	// 	byte[] key = new byte[32];
+	// 	logger.info(customerKey);
+	// 	for (int i = 0; i < 32; i++) {
+	// 		if (i < customerKey.getBytes().length)
+	// 			key[i] = customerKey.getBytes()[i];
+	// 		else
+	// 			key[i] = 0;
+	// 	}
+
+	// 	Properties property = new Properties();
+	// 	property.setProperty(GWConstants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(GWConstants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+	// 	CtrCryptoOutputStream cipherOut = new CtrCryptoOutputStream(property, out, key, iv);
+
+	// 	return cipherOut;
+	// }
+
+	public static CtrCryptoOutputStream initCtrEncrypt(OutputStream out, String customerKey) throws IOException {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
 
 		byte[] key = new byte[32];
@@ -1309,7 +686,7 @@ public class GWUtils {
 		return cipherOut;
 	}
 	
-	public static CtrCryptoInputStream initCtrDecrypt(FileInputStream in, String customerKey) throws IOException {
+	public static CtrCryptoInputStream initCtrDecrypt(InputStream in, String customerKey) throws IOException {
 		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
 
 		byte[] key = new byte[32];

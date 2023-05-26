@@ -264,7 +264,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// Config 변경 알림
-						SendMq($"*.services.{ServiceType.ToString().ToLower()}.config.updated", NewData);
+						SendMq($"*.services.{ServiceType.ToString().Substring(4).ToLower()}.config.updated", NewData);
 					}
 					catch (Exception ex)
 					{

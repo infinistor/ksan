@@ -42,6 +42,23 @@ def GetDiskReadWrite(DiskStatInfo, CurrentDiskIo):
     return ReadPerSec, WritePerSec
 
 
+def ReportDiskDisableState(Conf, DiskId, logger):
+    DiskState = DiskDisable
+    RetryCnt = 10
+    while True:
+        RetryCnt -= 1
+        ret, errmsg, data = update_disk_state(Conf.PortalHost, int(Conf.PortalPort), Conf.PortalApiKey, DiskId, DiskState, logger=logger)
+        if ret != ResOk:
+            if (RetryCnt < 0):
+                logger.error('fail to update disk state %s %s' % (DiskState, errmsg))
+                break
+            else:
+                time.sleep(IntervalShort)
+        else:
+            logger.log(logging.INFO, 'update disk state %s %s' % (data.Result, DiskState))
+            break
+
+
 def ReportDiskIo(Conf, DiskStatInfo, GlobalFlag, logger):
     """
     Get Disk IO per seconds
@@ -69,8 +86,10 @@ def ReportDiskIo(Conf, DiskStatInfo, GlobalFlag, logger):
                 if disk['ServerId'] != conf.ServerId:
                     continue
                 Id = disk['Id']
+                Path = disk['Path']
                 ServerId = disk['ServerId']
                 State = disk['State']
+                PrevState = disk['PrevState']
                 TotalInode = disk['TotalInode']
                 UsedInode = disk['UsedInode']
                 ReservedInode = disk['ReservedInode']
@@ -79,6 +98,16 @@ def ReportDiskIo(Conf, DiskStatInfo, GlobalFlag, logger):
                 ReservedSize = disk['ReservedSize']
                 ReadPerSec = disk['ReadPerSec']
                 WritePerSec = disk['WritePerSec']
+
+                logger.debug('DiskId %s DiskPath:%s\'s state(current/prev):%s/%s' % (Id, Path, State, PrevState))
+                if State == DiskDisable:
+                    if PrevState == DiskDisable: # send disable state in first time
+                        logger.error('disk is disabled DiskId %s DiskPath:%s' % (Id, Path))
+                    else:
+                        disk['PrevState'] = DiskDisable
+                        ReportDiskDisableState(conf, Id, logger)
+                else:
+                    disk['PrevState'] = State
 
                 DiskStat = DiskDetailMqBroadcast()
                 DiskStat.Set(Id, ServerId, State, TotalInode, ReservedInode,
@@ -105,30 +134,33 @@ def UpdateDiskPartitionInfo(DiskList):
     DiskStatInfo = list()
     for disk in DiskList:
         DiskPath = '%s/' % disk.Path
+        TmpDiskInfo = dict()
+        TmpDiskInfo['Path'] = disk.Path
+        TmpDiskInfo['Id'] = disk.Id
+        TmpDiskInfo['ServerId'] = disk.ServerId
+        TmpDiskInfo['Read'] = 0
+        TmpDiskInfo['Write'] = 0
+        TmpDiskInfo['ReadPerSec'] = 0
+        TmpDiskInfo['WritePerSec'] = 0
+        TmpDiskInfo['State'] = disk.State
+        TmpDiskInfo['PrevState'] = disk.State
+        TmpDiskInfo['TotalInode'] = disk.TotalInode
+        TmpDiskInfo['UsedInode'] = disk.UsedInode
+        TmpDiskInfo['ReservedInode'] = disk.ReservedInode
+        TmpDiskInfo['TotalSize'] = disk.TotalSize
+        TmpDiskInfo['UsedSize'] = disk.UsedSize
+        TmpDiskInfo['ReservedSize'] = disk.ReservedSize
+        TmpDiskInfo['Device'] = ''
+        TmpDiskInfo['LapTime'] = time.time()
+
         for part in psutil.disk_partitions():
-            TmpDiskInfo = dict()
             PartitionMountPath = '%s/' % part.mountpoint
             if DiskPath.startswith(PartitionMountPath):
                 Device = re.sub('/dev/', '', part.device)
-                TmpDiskInfo['Path'] = disk.Path
                 TmpDiskInfo['Device'] = Device
-                TmpDiskInfo['Id'] = disk.Id
-                TmpDiskInfo['ServerId'] = disk.ServerId
-                TmpDiskInfo['State'] = disk.State
-                TmpDiskInfo['Read'] = 0
-                TmpDiskInfo['Write'] = 0
-                TmpDiskInfo['ReadPerSec'] = 0
-                TmpDiskInfo['WritePerSec'] = 0
                 TmpDiskInfo['LapTime'] = time.time()
-                TmpDiskInfo['TotalInode'] = disk.TotalInode
-                TmpDiskInfo['UsedInode'] = disk.UsedInode
-                TmpDiskInfo['ReservedInode'] = disk.ReservedInode
-                TmpDiskInfo['TotalSize'] = disk.TotalSize
-                TmpDiskInfo['UsedSize'] = disk.UsedSize
-                TmpDiskInfo['ReservedSize'] = disk.ReservedSize
 
-                DiskStatInfo.append(TmpDiskInfo)
-
+        DiskStatInfo.append(TmpDiskInfo)
     return DiskStatInfo
 
 def GetDiskIoFromProc(DiskStatInfo, logger):
@@ -201,7 +233,7 @@ def DiskUsageMonitoring(Conf, DiskStatInfo, GlobalFlag, logger):
                         logging.log(logging.INFO,'Disk Info is Updated')
                         break
 
-                    DiskIo = psutil.disk_io_counters(perdisk=True)
+                    #DiskIo = psutil.disk_io_counters(perdisk=True)
                     for disk in DiskStatInfo['list']:
                         if disk['ServerId'] != conf.ServerId:
                             continue
@@ -209,28 +241,37 @@ def DiskUsageMonitoring(Conf, DiskStatInfo, GlobalFlag, logger):
                         #ServerId = disk['ServerId']
                         #State = disk['State']
                         Usage = Disk(disk['Path'])
-                        Usage.GetUsage()
-                        Usage.GetInode()
-                        disk['TotalSize'] = Usage.TotalSize
-                        disk['UsedSize'] = Usage.UsedSize
-                        disk['ReservedSize'] = Usage.ReservedSize
-                        disk['TotalInode'] = Usage.TotalInode
-                        disk['UsedInode'] = Usage.UsedInode
-                        disk['ReservedInode'] = Usage.ReservedInode
+                        ret, errlog = Usage.GetUsage(disk['State'])
+                        if ret == ResOk:
+                            Usage.GetInode()
+                            disk['TotalSize'] = Usage.TotalSize
+                            disk['UsedSize'] = Usage.UsedSize
+                            disk['ReservedSize'] = Usage.ReservedSize
+                            disk['TotalInode'] = Usage.TotalInode
+                            disk['UsedInode'] = Usage.UsedInode
+                            disk['ReservedInode'] = Usage.ReservedInode
 
+                            #ReadPerSec, WritePerSec = GetDiskReadWrite(disk, DiskIo)
+                            ReadPerSec, WritePerSec = GetDiskIoFromProc(disk, logger)
+                            disk['ReadPerSec'] = ReadPerSec
+                            disk['WritePerSec'] = WritePerSec
 
-                        #ReadPerSec, WritePerSec = GetDiskReadWrite(disk, DiskIo)
-                        ReadPerSec, WritePerSec = GetDiskIoFromProc(disk, logger)
-                        disk['ReadPerSec'] = ReadPerSec
-                        disk['WritePerSec'] = WritePerSec
+                            if ReadPerSec == 0 and WritePerSec == 0:
+                                ret, errlog = Usage.CheckDiskReadWrite()
+                                if ret is False:
+                                    logger.error('fail to write data to Disk(%s) %s' % (errlog, disk['Path']))
+                                    disk['State'] = DiskDisable
 
-                        #DiskStat = DiskDetailMqBroadcast()
-                        #DiskStat.Set(Id, ServerId, State, Usage.TotalInode, Usage.ReservedInode,
-                        #             Usage.UsedInode, Usage.TotalSize, Usage.ReservedSize, Usage.UsedSize, ReadPerSec, WritePerSec)
-                        #Mqsend = jsonpickle.encode(DiskStat, make_refs=False, unpicklable=False)
-                        #logger.debug(Mqsend)
-                        #Mqsend = json.loads(Mqsend)
-                        #MqDiskUpdated.Sender(Mqsend)
+                        else:
+                            disk['State'] = DiskDisable
+                            disk['TotalSize'] = 0
+                            disk['UsedSize'] = 0
+                            disk['ReservedSize'] = 0
+                            disk['TotalInode'] = 0
+                            disk['UsedInode'] = 0
+                            disk['ReservedInode'] = 0
+                            logger.error('fail to get Disk Info with DiskId:%s(Path:%s) %s' % (disk['Id'], disk['Path'], errlog))
+
 
                     time.sleep(DiskMonitorInterval)
             else:

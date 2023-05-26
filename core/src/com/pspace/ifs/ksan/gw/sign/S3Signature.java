@@ -433,8 +433,6 @@ final public class S3Signature {
             }
         }
 
-        // logger.info("method({}), uri({}), signedHeaders({}), digest({})", method,
-        // uri, signedHeaders, digest);
         String canonicalRequest = "";
         if (digest == null) {
             canonicalRequest = Joiner.on(GWConstants.NEWLINE).join(

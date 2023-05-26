@@ -12,8 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutPublicAccessBlock;
-import com.pspace.ifs.ksan.gw.data.DataRestoreObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -44,10 +42,8 @@ public class RestoreObject extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-        DataRestoreObject dataRestoreObject = new DataRestoreObject(s3Parameter);
-        dataRestoreObject.extract();
-        String versionId = dataRestoreObject.getVersionId();
-        String restoreXml = dataRestoreObject.getRetoreXml();
+        String versionId = s3RequestData.getVersionId();
+        String restoreXml = s3RequestData.getRetoreXml();
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = GWConstants.VERSIONING_DISABLE_TAIL;
         }
@@ -62,12 +58,12 @@ public class RestoreObject extends S3Request {
 
 		s3Parameter.setTaggingInfo(objMeta.getTag());
 		if (Strings.isNullOrEmpty(versionId)) {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter, dataRestoreObject)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_TAGGING, s3Parameter)) {
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		} else {
-			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter, dataRestoreObject)) {
-				checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE);
+			if (!checkPolicyBucket(GWConstants.ACTION_PUT_OBJECT_VERSION_TAGGING, s3Parameter)) {
+				checkGrantBucket(false, GWConstants.GRANT_WRITE);
 			}
 		}
 

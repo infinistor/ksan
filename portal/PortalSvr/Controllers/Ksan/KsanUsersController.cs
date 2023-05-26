@@ -23,6 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MTLib.AspNetCore;
 using Swashbuckle.AspNetCore.Annotations;
+using PortalData.Responses.Disks;
 
 namespace PortalSvr.Controllers.Accounts
 {
@@ -116,8 +117,8 @@ namespace PortalSvr.Controllers.Accounts
 			return Json(await m_dataProvider.Remove(Id));
 		}
 		
-		/// <summary>유저의 스토리지 클래스 정보를 추가한다.</summary>
-		/// <param name="Request">유저 스토리지 클래스 추가 객체</param>
+		/// <summary>사용자의 스토리지 클래스 정보를 추가한다.</summary>
+		/// <param name="Request">사용자 스토리지 클래스 추가 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
 		// [ClaimRequirement("Permission", "common.account.users.add")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
@@ -126,16 +127,89 @@ namespace PortalSvr.Controllers.Accounts
 		{
 			return Json(await m_dataProvider.AddStorageClass(Request));
 		}
-		
-		/// <summary>유저의 스토리지 클래스 정보를 추가한다.</summary>
-		/// <param name="Request">유저 스토리지 클래스 추가 객체</param>
+
+		/// <summary>사용자의 스토리지 클래스 정보를 변경한다.</summary>
+		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
+		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
 		/// <returns>결과 JSON 문자열</returns>
-		// [ClaimRequirement("Permission", "common.account.users.add")]
+		// [ClaimRequirement("Permission", "common.account.users.update")]
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
-		[HttpDelete("StorageClass")]
-		public async Task<ActionResult> RemoveStorageClass([FromBody] RequestStorageClass Request)
+		[HttpPut("StorageClass/{StorageClassId}")]
+		public async Task<ActionResult> UpdateStorageClass([FromRoute] string StorageClassId, [FromBody] RequestStorageClass Request)
 		{
-			return Json(await m_dataProvider.RemoveStorageClass(Request));
+			return Json(await m_dataProvider.UpdateStorageClass(StorageClassId, Request));
+		}
+
+		/// <summary>사용자의 스토리지 클래스 정보를 변경한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <param name="Request">사용자 스토리지 클래스 변경 객체</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.update")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("StorageClass/{UserName}/{DiskpoolName}/{StorageClass}")]
+		public async Task<ActionResult> UpdateStorageClass([FromRoute] string UserName, [FromRoute] string DiskpoolName, [FromRoute] string StorageClass, [FromBody] RequestStorageClass Request)
+		{
+			return Json(await m_dataProvider.UpdateStorageClass(UserName, DiskpoolName, StorageClass, Request));
+		}
+		
+		/// <summary>사용자의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="StorageClassId"> 사용자 스토리지 클래스 아이디</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.delete")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("StorageClass/{StorageClassId}")]
+		public async Task<ActionResult> RemoveStorageClass([FromRoute] string StorageClassId)
+		{
+			return Json(await m_dataProvider.RemoveStorageClass(StorageClassId));
+		}
+
+		/// <summary>사용자의 스토리지 클래스 정보를 삭제한다.</summary>
+		/// <param name="UserName"> 사용자 이름</param>
+		/// <param name="DiskpoolName"> 디스크풀 이름</param>
+		/// <param name="StorageClass"> 사용자 스토리지 클래스</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.delete")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("StorageClass/{UserName}/{DiskpoolName}/{StorageClass}")]
+		public async Task<ActionResult> RemoveStorageClass([FromRoute] string UserName, [FromRoute] string DiskpoolName, [FromRoute] string StorageClass)
+		{
+			return Json(await m_dataProvider.RemoveStorageClass(UserName, DiskpoolName, StorageClass));
+		}
+
+		/// <summary>사용자의 스토리지 클래스 목록을 조회한다.</summary>
+		/// <param name="UserId">Ksan 사용자 식별자</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.get")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseStorageClass>))]
+		[HttpGet("StorageClass/{UserId}")]
+		public async Task<ActionResult> GetUserStorageClass([FromRoute] string UserId)
+		{
+			return Json(await m_dataProvider.GetUserStorageClass(UserId));
+		}
+
+		/// <summary>사용자에게 할당가능한 스토리지 클래스 목록을 조회한다.</summary>
+		/// <param name="UserId">Ksan 사용자 식별자</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.get")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDiskPool>))]
+		[HttpGet("StorageClass/{UserId}/Available")]
+		public async Task<ActionResult> GetAvailableStorageClass([FromRoute] string UserId)
+		{
+			return Json(await m_dataProvider.GetAvailableStorageClass(UserId));
+		}
+
+		/// <summary>사용자에게 할당가능한 스토리지 클래스 목록을 조회한다.</summary>
+		/// <param name="UserId">Ksan 사용자 식별자</param>
+		/// <param name="DiskPoolId"> 디스크풀 식별자</param>
+		/// <returns>결과 JSON 문자열</returns>
+		// [ClaimRequirement("Permission", "common.account.users.get")]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDiskPool>))]
+		[HttpGet("StorageClass/{UserId}/Available/{DiskPoolId}")]
+		public async Task<ActionResult> GetAvailableStorageClass([FromRoute] string UserId, [FromRoute] string DiskPoolId)
+		{
+			return Json(await m_dataProvider.GetAvailableStorageClass(UserId, DiskPoolId));
 		}
 	}
 }

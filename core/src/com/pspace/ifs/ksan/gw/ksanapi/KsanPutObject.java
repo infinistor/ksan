@@ -25,7 +25,6 @@ import com.google.common.base.Strings;
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataPutObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -41,8 +40,10 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
-import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
@@ -76,27 +77,27 @@ public class KsanPutObject extends S3Request {
             throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
         }
         s3Parameter.setUser(user);
-		
-		DataPutObject dataPutObject = new DataPutObject(s3Parameter);
-		dataPutObject.extract();
 
 		S3Metadata s3Metadata = new S3Metadata();
+		s3Metadata.setName(object);
 
-		String cacheControl = dataPutObject.getCacheControl();
-		String contentDisposition = dataPutObject.getContentDisposition();
-		String contentEncoding = dataPutObject.getContentEncoding();
-		String contentLanguage = dataPutObject.getContentLanguage();
-		String contentType = dataPutObject.getContentType();
-		String contentLengthString = dataPutObject.getContentLength();
-		String decodedContentLengthString = dataPutObject.getDecodedContentLength();
-		String contentMD5String = dataPutObject.getContentMD5();
-		String customerAlgorithm = dataPutObject.getServerSideEncryptionCustomerAlgorithm();
-		String customerKey = dataPutObject.getServerSideEncryptionCustomerKey();
-		String customerKeyMD5 = dataPutObject.getServerSideEncryptionCustomerKeyMD5();
-		String serversideEncryption = dataPutObject.getServerSideEncryption();
-		String storageClass = dataPutObject.getStorageClass();
-		String replication = dataPutObject.getReplication();
-		String repVersionId = dataPutObject.getVersionId();
+		String cacheControl = s3RequestData.getCacheControl();
+		String contentDisposition = s3RequestData.getContentDisposition();
+		String contentEncoding = s3RequestData.getContentEncoding();
+		String contentLanguage = s3RequestData.getContentLanguage();
+		String contentType = s3RequestData.getContentType();
+		String contentLengthString = s3RequestData.getContentLength();
+		String decodedContentLengthString = s3RequestData.getDecodedContentLength();
+		String contentMD5String = s3RequestData.getContentMD5();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String serverSideEncryption = s3RequestData.getServerSideEncryption();
+		String serverSideEncryptionAwsKmsKeyId = s3RequestData.getServerSideEncryptionAwsKmsKeyId();
+		String serverSideEncryptionBucketKeyEnabled = s3RequestData.getServerSideEncryptionBucketKeyEnabled();
+		String storageClass = s3RequestData.getStorageClass();
+		String replication = s3RequestData.getReplication();
+		String repVersionId = s3RequestData.getVersionId();
 
 		String versioningStatus = getBucketVersioning(bucket);
 		if (!Strings.isNullOrEmpty(replication)) {
@@ -114,14 +115,14 @@ public class KsanPutObject extends S3Request {
 
 		s3Metadata.setOwnerId(getBucketInfo().getUserId());
 		s3Metadata.setOwnerName(getBucketInfo().getUserName());
-		s3Metadata.setUserMetadataMap(dataPutObject.getUserMetadata());
+		s3Metadata.setUserMetadata(s3RequestData.getUserMetadata());
 		
-		if (!Strings.isNullOrEmpty(serversideEncryption)) {
-			if (!GWConstants.AES256.equalsIgnoreCase(serversideEncryption)) {
+		if (!Strings.isNullOrEmpty(serverSideEncryption)) {
+			if (!GWConstants.AES256.equalsIgnoreCase(serverSideEncryption)) {
 				logger.error(GWErrorCode.NOT_IMPLEMENTED.getMessage() + GWConstants.SERVER_SIDE_OPTION);
 				throw new GWException(GWErrorCode.NOT_IMPLEMENTED, s3Parameter);
 			} else {
-				s3Metadata.setServersideEncryption(serversideEncryption);
+				s3Metadata.setServerSideEncryption(serverSideEncryption);
 			}
 		}
 		
@@ -140,15 +141,15 @@ public class KsanPutObject extends S3Request {
 		if (!Strings.isNullOrEmpty(contentType)) {
 			s3Metadata.setContentType(contentType);
 		}
-		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
-			s3Metadata.setCustomerAlgorithm(customerAlgorithm);
-		}
-		if (!Strings.isNullOrEmpty(customerKey)) {
-			s3Metadata.setCustomerKey(customerKey);
-		}
-		if (!Strings.isNullOrEmpty(customerKeyMD5)) {
-			 s3Metadata.setCustomerKeyMD5(customerKeyMD5);
-		}
+		// if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+		// 	s3Metadata.setCustomerAlgorithm(customerAlgorithm);
+		// }
+		// if (!Strings.isNullOrEmpty(customerKey)) {
+		// 	s3Metadata.setCustomerKey(customerKey);
+		// }
+		// if (!Strings.isNullOrEmpty(customerKeyMD5)) {
+		// 	 s3Metadata.setCustomerKeyMD5(customerKeyMD5);
+		// }
 
 		if (!Strings.isNullOrEmpty(decodedContentLengthString)) {
 			contentLengthString = decodedContentLengthString;
@@ -183,32 +184,19 @@ public class KsanPutObject extends S3Request {
 			}
 		}
 
-		accessControlPolicy = new AccessControlPolicy();
-		accessControlPolicy.aclList = new AccessControlList();
-		accessControlPolicy.aclList.grants = new ArrayList<Grant>();
-		accessControlPolicy.owner = new Owner();
-		accessControlPolicy.owner.id = s3Parameter.getUser().getUserId();
-		accessControlPolicy.owner.displayName = s3Parameter.getUser().getUserName();
+		String aclXml = makeAcl(null, false);
 
-		String aclXml = GWUtils.makeAdmAclXml(accessControlPolicy, 
-										null, 
-										dataPutObject.hasAclKeyword(), 
-										null, 
-										dataPutObject.getAcl(),
-										getBucketInfo(),
-										getBucketInfo().getUserId(), // s3Parameter.getUser().getUserId(),
-										getBucketInfo().getUserName(), // s3Parameter.getUser().getUserName(),
-										dataPutObject.getGrantRead(),
-										dataPutObject.getGrantWrite(), 
-										dataPutObject.getGrantFullControl(), 
-										dataPutObject.getGrantReadAcp(), 
-										dataPutObject.getGrantWriteAcp(),
-										s3Parameter);
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();
 		logger.debug("bucket encryption : {}", bucketEncryption);
+		
 		// check encryption
-		S3ServerSideEncryption encryption = new S3ServerSideEncryption(bucketEncryption, s3Metadata, s3Parameter);
+		S3Encryption encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		} else {
+			encryption = new S3Encryption(bucketEncryption, serverSideEncryption, serverSideEncryptionAwsKmsKeyId, serverSideEncryptionBucketKeyEnabled, s3Parameter);
+		} 
 		encryption.build();
 
 		// Tagging information
@@ -217,8 +205,8 @@ public class KsanPutObject extends S3Request {
 		Tagging tagging = new Tagging();
 		tagging.tagset = new TagSet();
 		
-		if (!Strings.isNullOrEmpty(dataPutObject.getTagging())) {
-			String strtaggingInfo = dataPutObject.getTagging();
+		if (!Strings.isNullOrEmpty(s3RequestData.getTagging())) {
+			String strtaggingInfo = s3RequestData.getTagging();
 			String[] strtagset = strtaggingInfo.split(GWConstants.AMPERSAND);
 			int starttag = 0;
 			for (String strtag : strtagset) {
@@ -276,7 +264,7 @@ public class KsanPutObject extends S3Request {
 			}
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockMode())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockMode())) {
 			try {
 				logger.debug(GWConstants.LOG_OBJECT_LOCK, getBucketInfo().getObjectLock());
 				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
@@ -289,17 +277,17 @@ public class KsanPutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			if (!dataPutObject.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !dataPutObject.getObjectLockMode().equals(GWConstants.COMPLIANCE) ) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, dataPutObject.getObjectLockMode());
+			if (!s3RequestData.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !s3RequestData.getObjectLockMode().equals(GWConstants.COMPLIANCE) ) {
+				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, s3RequestData.getObjectLockMode());
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 
-			s3Metadata.setLockMode(dataPutObject.getObjectLockMode());
+			s3Metadata.setLockMode(s3RequestData.getObjectLockMode());
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockRetainUntilDate())) {
-			if (!dataPutObject.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !dataPutObject.getObjectLockMode().equals(GWConstants.COMPLIANCE)) {
-				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, dataPutObject.getObjectLockMode());
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockRetainUntilDate())) {
+			if (!s3RequestData.getObjectLockMode().equals(GWConstants.GOVERNANCE) && !s3RequestData.getObjectLockMode().equals(GWConstants.COMPLIANCE)) {
+				logger.error(GWConstants.LOG_PUT_OBJECT_LOCK_MODE, s3RequestData.getObjectLockMode());
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 
@@ -314,10 +302,10 @@ public class KsanPutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			s3Metadata.setLockExpires(dataPutObject.getObjectLockRetainUntilDate());
+			s3Metadata.setLockExpires(s3RequestData.getObjectLockRetainUntilDate());
 		}
 
-		if (!Strings.isNullOrEmpty(dataPutObject.getObjectLockLegalHold())) {
+		if (!Strings.isNullOrEmpty(s3RequestData.getObjectLockLegalHold())) {
 			try {
 				ObjectLockConfiguration oc = new XmlMapper().readValue(getBucketInfo().getObjectLock(), ObjectLockConfiguration.class);
 				if (!oc.objectLockEnabled.equals(GWConstants.STATUS_ENABLED) ) {
@@ -329,7 +317,7 @@ public class KsanPutObject extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			s3Metadata.setLegalHold(dataPutObject.getObjectLockLegalHold());
+			s3Metadata.setLegalHold(s3RequestData.getObjectLockLegalHold());
 		}
 
 		Metadata objMeta = null;
@@ -343,8 +331,10 @@ public class KsanPutObject extends S3Request {
 			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
 		s3Parameter.setVersionId(repVersionId);
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
-		S3Object s3Object = objectOperation.putObject();
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
+		// S3Object s3Object = objectOperation.putObject();
+		IObjectManager objectManager = new VFSObjectManager();
+		S3Object s3Object = objectManager.putObject(s3Parameter, objMeta, encryption);
 
 		s3Metadata.setETag(s3Object.getEtag());
 		s3Metadata.setContentLength(s3Object.getFileSize());
@@ -353,25 +343,52 @@ public class KsanPutObject extends S3Request {
 		s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
 		s3Metadata.setVersionId(s3Object.getVersionId());
 		s3Metadata.setTaggingCount(taggingCount);
-		if(encryption.isEnableSSEServer()) {
-			s3Metadata.setServersideEncryption(GWConstants.AES256);
+		
+		if (object.endsWith(GWConstants.SLASH)) {
+			s3Metadata.setETag(GWConstants.DIRECTORY_MD5);
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_X_DIRECTORY);
+			}
+		} else {
+			s3Metadata.setETag(s3Object.getEtag());
+			if (Strings.isNullOrEmpty(s3Metadata.getContentType())) {
+				s3Metadata.setContentType(GWConstants.CONTENT_TYPE_BINARY);
+			}
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+			s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+			s3Metadata.setCustomerKey(encryption.getCustomerKey());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+			s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+			s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+			s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+			s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+		}
+
+		if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+			s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
 		}
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 
-		ObjectMapper jsonMapper = new ObjectMapper();
-		String jsonmeta = "";
-		try {
-			// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-			jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-
 		logger.debug(GWConstants.LOG_PUT_OBJECT_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
 		try {
-			objMeta.set(s3Object.getEtag(), taggingxml, jsonmeta, aclXml, s3Object.getFileSize());
+			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(repVersionId, GWConstants.OBJECT_TYPE_FILE, true);
 			int result = insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, repVersionId);

@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketObjectLock;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -47,14 +46,11 @@ public class PutBucketObjectLock extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketObjectLock dataPutBucketObjectLock = new DataPutBucketObjectLock(s3Parameter);
-		dataPutBucketObjectLock.extract();
-
-        if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter, dataPutBucketObjectLock)) {
-            checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+        if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_OBJECT_LOCK_CONFIGURATION, s3Parameter)) {
+            checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
         }
 
-		String ObjectLockXml = dataPutBucketObjectLock.getObjectLockXml();
+		String ObjectLockXml = s3RequestData.getObjectLockXml();
 
 		if(Strings.isNullOrEmpty(getBucketInfo().getObjectLock())) {
 			throw new GWException(GWErrorCode.INVALID_BUCKET_STATE, s3Parameter);

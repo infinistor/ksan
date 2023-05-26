@@ -37,6 +37,8 @@ public final class GWConstants {
 
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
 	public static final String MQUEUE_NAME_GW_CONFIG_ROUTING_KEY = "*.services.gw.config.*";
+	public static final String MQUEUE_NAME_OBJMANAGER_CONFIG = "ksan-objmanager-configure-";
+	public static final String MQUEUE_NAME_OBJMANAGER_CONFIG_ROUTING_KEY = "*.services.objmanager.config.*";
 	public static final String MQUEUE_NAME_GW_DISK = "ksan-gw-disk-";
 	public static final String MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY = "*.servers.disks.added";
 	public static final String MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY = "*.servers.disks.updated";
@@ -52,12 +54,19 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
+	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
+
+	public static final String RESTORE_BUCKET_NAME = "BucketName";
+	public static final String RESTORE_OBJECT_NAME = "ObjectName";
+	public static final String RESTORE_VERSION_ID = "VersionId";
+	public static final String RESTORE_XML = "RestoreXml";
 
 	public static final String PORTAL_REST_API_CONFIG_GW = "/api/v1/Config/KsanGw";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_KSAN_USERS = "/api/v1/KsanUsers";
 	public static final String PORTAL_REST_API_KSAN_REGIONS = "/api/v1/Regions";
 	public static final String PORTAL_REST_API_KSAN_EVENT = "/api/v1/Services/Event";
+	public static final String PORTAL_REST_API_CONFIG_OBJMANAGER = "/api/v1/Config/KsanObjManager";
 
 	public static final String PORTAL_REST_API_KSAN_EVENT_ID = "Id";
 	public static final String PORTAL_REST_API_KSAN_EVENT_TYPE = "EventType";
@@ -137,6 +146,7 @@ public final class GWConstants {
 	public static final String DEFAULT_MAX_KEYS = "1000";
 	   
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
+	public static final String PARTCOPY_MD5 = "00000000000000000000000000000000";
 	
 	public static final String MARIADB = "MariaDB";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
@@ -176,6 +186,7 @@ public final class GWConstants {
 	public static final char CHAR_ASTERISK = '*';
 	public static final char CHAR_LEFT_BRACE = '{';
 	public static final char CHAR_RIGHT_BRACE = '}';
+
 	public static final String EMPTY_STRING = "";
 	public static final String AWS = "AWS";
 	public static final String AWS_SPACE = "AWS ";
@@ -231,7 +242,7 @@ public final class GWConstants {
 	public static final int AWS4_SERVICE_INDEX = 3;
 	
 	public static final String OBJECT_TYPE_FILE = "file";
-	public static final String OBJECT_TYPE_MARK = "mark";
+	public static final String OBJECT_TYPE_MARKER = "mark";
 	public static final String STATUS_ENABLED = "Enabled";
 	public static final String STATUS_DISABLED = "Disabled";
 	public static final String VERSIONING_ENABLED = "Enabled";
@@ -254,6 +265,7 @@ public final class GWConstants {
 	public static final String PART = "Part";
 	public static final String PARTNUMBER = "PartNumber";
 	public static final String AWS_TIER_STANTARD = "STANDARD";
+	public static final String AWS_TIER_GLACIER = "GLACIER";
 
 	public static final String CATEGORY_ROOT = "root";
 	public static final String CATEGORY_BUCKET = "bucket";
@@ -288,6 +300,7 @@ public final class GWConstants {
 	public static final String PARAMETER_TORRENT = "torrent";
 	public static final String PARAMETER_VERSION_ID = "versionId";
 	public static final String PARAMETER_RESTORE = "restore";
+	public static final String PARAMETER_STORAGE_MOVE = "storagemove";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";
@@ -502,6 +515,8 @@ public final class GWConstants {
 	public static final String CONTENT_ENCODING = "Content-Encoding";
 	public static final String CONTENT_LANGUAGE = "Content-Language";
 	public static final String CONTENT_TYPE = "Content-Type";
+	public static final String CONTENT_TYPE_X_DIRECTORY = "application/x-directory";
+	public static final String CONTENT_TYPE_BINARY = "binary/octet-stream";
 	
 	public static final String EXPIRES = "Expires";	
 	public static final String VERSION_ID = "versionId";
@@ -802,20 +817,41 @@ public final class GWConstants {
 	// object-lock
 	public static final String OBJECT_LOCK_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ObjectLockConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><ObjectLockEnabled>Enabled</ObjectLockEnabled></ObjectLockConfiguration>";
 	// acl
+	public static final String ACL_XML_OWNER_START = "<Owner>";
+	public static final String ACL_XML_OWNER_END = "</Owner>";
+	public static final String ACL_XML_OWNER_ID_START = "<ID>";
+	public static final String ACL_XML_OWNER_ID_END = "</ID>";
+	public static final String ACL_XML_OWNER_DISPLAYNAME_START = "<DisplayName>";
+	public static final String ACL_XML_OWNER_DISPLAYNAME_END = "</DisplayName>";
+	public static final String ACL_XML_ACCESS_CONTROL_LIST_START = "<AccessControlList>";
+	public static final String ACL_XML_ACCESS_CONTROL_LIST_END = "</AccessControlList>";
+	public static final String ACL_XML_GRANT_START = "<Grant>";
+	public static final String ACL_XML_GRANT_END = "</Grant>";
+	public static final String ACL_XML_GRANTEE_START = "<GRantee";
+	public static final String ACL_XML_GRANTEE_END = "</GRantee>";
+	public static final String ACL_XML_GRANTEE_ID_START = "<ID>";
+	public static final String ACL_XML_GRANTEE_ID_END = "</ID>";
+	public static final String ACL_XML_GRANTEE_DISPLAYNAME_START = "<DisplayName>";
+	public static final String ACL_XML_GRANTEE_DISPLAYNAME_END = "</DisplayName>";
+	public static final String ACL_XML_GRANTEE_URI_START = "<URI>";
+	public static final String ACL_XML_GRANTEE_URI_END = "</URI>";
+	public static final String ACL_XML_GRANT_PERMISSION_START = "<Permission>";
+	public static final String ACL_XML_GRANT_PERMISSION_END = "</Permission>";
+
 	public static final String ID = "id";
 	public static final String URI = "uri";
 	public static final String EMAIL_ADDRESS = "emailAddress";
 	public static final String AWS_GRANT_URI_ALL_USERS = "http://acs.amazonaws.com/groups/global/AllUsers";
 	public static final String AWS_GRANT_URI_AUTHENTICATED_USERS = "http://acs.amazonaws.com/groups/global/AuthenticatedUsers";
-	public static final String GRANT_AB_FC = "FC";
-	public static final String GRANT_AB_W = "W";
-	public static final String GRANT_AB_R = "R";
-	public static final String GRANT_AB_RA = "RA";
-	public static final String GRANT_AB_WA = "WA";
-	public static final String GRANT_AB_CU = "CU";
-	public static final String GRANT_AB_G = "G";
-	public static final String GRANT_AB_PU = "PU";
-	public static final String GRANT_AB_AU = "AU";
+	public static final String GRANT_AB_FULLCONTROL = "FC";
+	public static final String GRANT_AB_WRITE = "W";
+	public static final String GRANT_AB_READ = "R";
+	public static final String GRANT_AB_READ_ACP = "RA";
+	public static final String GRANT_AB_WRITE_ACP = "WA";
+	public static final String GRANT_AB_CANONICAL_USER = "CU";
+	public static final String GRANT_AB_GROUP = "G";
+	public static final String GRANT_AB_ALL_USER = "PU";
+	public static final String GRANT_AB_AUTH_USER = "AU";
 	public static final String GRANT_READ = "READ";
 	public static final String GRANT_READ_ACP = "READ_ACP";
 	public static final String GRANT_WRITE = "WRITE";
@@ -823,14 +859,14 @@ public final class GWConstants {
 	public static final String GRANT_FULL_CONTROL = "FULL_CONTROL";
 	public static final String CANONICAL_USER = "CanonicalUser";
 	public static final String GROUP = "Group";
-	public static final String JSON_AB_OW = "ow";
-	public static final String JSON_AB_ACE = "acs";
-	public static final String JSON_AB_DN = "dN";
-	public static final String JSON_AB_GT = "gt";
-	public static final String JSON_AB_GTE = "gte";
-	public static final String JSON_AB_PERM = "perm";
-	public static final String JSON_AB_TYPE = "type";
-	public static final String JSON_AB_DDN = "ddN";
+	public static final String JSON_AB_OWNER = "ow";
+	public static final String JSON_AB_ACL = "acs";
+	public static final String JSON_AB_DISPLAY_NAME = "dN";
+	public static final String JSON_AB_GRANT = "gt";
+	public static final String JSON_AB_GRANTEE = "gte";
+	public static final String JSON_AB_GRANTEE_PERM = "perm";
+	public static final String JSON_AB_GRANTEE_TYPE = "type";
+	public static final String JSON_AB_GRANTEE_DISPLAY_NAME = "ddN";
 	public static final String JSON_AB_EA = "eA";
 
 	public static final String CANNED_ACLS_PRIVATE = "private";
@@ -1277,9 +1313,14 @@ public final class GWConstants {
 
 	// RestoreObject
 	public static final String LOG_RESTORE_OBJECT_START = "RestoreObject ...";
+	public static final String LOG_ADMIN_RESTORE_OBJECT_START = "AdmRestoreObject ...";
+	public static final String LOG_ADMIN_RESTORE_OBJECT_INFO = "restore object : {}/{}, size {}, etag {}, versionId {}";
 
 	// PostObject
 	public static final String LOG_POST_OBJECT_START = "PostObject ...";
+
+	// KsanStorageMove
+	public static final String LOG_ADMIN_STORAGE_MOVE_START = "AdmStorageMove ...";
 
 	// GWUtils
 	public static final String LOG_UTILS_INIT_CACHE = "init disk for cache and dir ...";
@@ -1351,7 +1392,7 @@ public final class GWConstants {
 	// OSDClientManager
 	public static final String LOG_OSDCLIENT_MANAGER_DISKPOOL_INFO = "disk pool id : {}, name = {}";
 	public static final String LOG_OSDCLIENT_MANAGER_SERVER_SIZE = "server size : {}";
-	public static final String LOG_OSDCLIENT_MANAGER_CLIENT_COUNT = "client count : {}";
+	public static final String LOG_OSDCLIENT_MANAGER_CLIENT_COUNT = "osd client count : {}";
 	public static final String LOG_OSDCLIENT_MANAGER_OSD_SERVER_IP = "add osd server ip : {}";
 
 	// S3ObjectOperation
@@ -1456,6 +1497,7 @@ public final class GWConstants {
 
 	// GWPortal
 	public static final String GWPORTAL_RECEIVED_CONFIG_CHANGE = "receive config change ...";
+	public static final String GWPORTAL_RECEIVED_OBJMANAGER_CONFIG_CHANGE = "receive objManager config change ...";
 	public static final String GWPORTAL_RECEIVED_DISK_CHANGE = "receive disk change ...";
 	public static final String GWPORTAL_RECEIVED_DISKPOOLS_CHANGE = "receive diskpools change ...";
 	public static final String GWPORTAL_RECEIVED_USER_CHANGE = "receive s3user change ...";

@@ -29,6 +29,9 @@ namespace PortalData.Responses.Disks
 		/// <summary> 복제 타입 </summary>
 		public EnumDiskPoolReplicaType ReplicationType { get; set; }
 
+		/// <summary> 기본 디스크풀 여부 </summary>
+		public bool DefaultDiskPool { get; set; }
+
 		/// <summary> EC 설정 정보 </summary>
 		public ResponseDiskPoolEC EC { get; set; } = new ResponseDiskPoolEC();
 	}

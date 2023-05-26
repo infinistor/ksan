@@ -15,13 +15,14 @@ import java.util.SortedMap;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
-import com.pspace.ifs.ksan.gw.data.DataAbortMultipartUpload;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -48,10 +49,7 @@ public class KsanAbortMultipartUpload extends S3Request {
 		String object = s3Parameter.getObjectName();
 		GWUtils.checkCors(s3Parameter);
 
-		DataAbortMultipartUpload dataAbortMultipartUpload = new DataAbortMultipartUpload(s3Parameter);
-		dataAbortMultipartUpload.extract();
-
-		String uploadId = dataAbortMultipartUpload.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 		
 		s3Parameter.setUploadId(uploadId);
 
@@ -76,8 +74,10 @@ public class KsanAbortMultipartUpload extends S3Request {
 		// get Paths
 		Metadata objMeta = new Metadata(bucket, object);
 
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
-		objectOperation.abortMultipart(listPart);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, null, s3Parameter, null, null);
+		// objectOperation.abortMultipart(listPart);
+		IObjectManager objectManager = new VFSObjectManager();
+		objectManager.abortMultipart(s3Parameter, objMeta, listPart);
 		
 		objMultipart.abortMultipartUpload(uploadId);
 

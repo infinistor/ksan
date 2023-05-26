@@ -22,6 +22,7 @@ using MTLib.AspNetCore;
 using PortalData.Requests.Region;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
+using PortalData.Responses.Region;
 
 namespace PortalSvr.Controllers.Regions
 {
@@ -55,7 +56,7 @@ namespace PortalSvr.Controllers.Regions
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <returns>결과 JSON 문자열</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<RequestRegion>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseRegion>))]
 		[HttpGet]
 		public async Task<ActionResult> GetList(int Skip = 0, int CountPerPage = 100)
 		{
@@ -65,17 +66,26 @@ namespace PortalSvr.Controllers.Regions
 		/// <summary>리전 식별자로 특정 리전을 가져온다.</summary>
 		/// <param name="RegionName">리전 식별자</param>
 		/// <returns>리전 정보 객체</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<RequestRegion>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseRegion>))]
 		[HttpGet("{RegionName}")]
 		public async Task<ActionResult> Get([FromRoute] string RegionName)
 		{
 			return Json(await m_dataProvider.Get(RegionName));
 		}
 
+		/// <summary>현재 시스템의 리전을 가져온다.</summary>
+		/// <returns>리전 정보 객체</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseRegion>))]
+		[HttpGet("Default")]
+		public async Task<ActionResult> GetDefault()
+		{
+			return Json(await m_dataProvider.GetDefault());
+		}
+
 		/// <summary>리전을 생성한다.</summary>
 		/// <param name="Request">리전 정보</param>
 		/// <returns>리전 생성 결과</returns>
-		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<RequestRegion>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseRegion>))]
 		[HttpPost]
 		public async Task<ActionResult> Add([FromBody] RequestRegion Request)
 		{

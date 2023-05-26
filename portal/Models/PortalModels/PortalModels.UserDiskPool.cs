@@ -27,6 +27,8 @@ namespace PortalModels
 			OnCreated();
 		}
 
+		public virtual Guid Id { get; set; }
+
 		/// <summary> 유저 아이디 </summary>
 		public virtual Guid UserId { get; set; }
 
@@ -43,33 +45,6 @@ namespace PortalModels
 		#region Extensibility Method Definitions
 
 		partial void OnCreated();
-
-		public override bool Equals(object obj)
-		{
-			UserDiskPool toCompare = obj as UserDiskPool;
-			if (toCompare == null)
-			{
-				return false;
-			}
-
-			if (!Object.Equals(this.UserId, toCompare.UserId))
-				return false;
-			if (!Object.Equals(this.DiskPoolId, toCompare.DiskPoolId))
-				return false;
-			if (!Object.Equals(this.StorageClass, toCompare.StorageClass))
-				return false;
-
-			return true;
-		}
-
-		public override int GetHashCode()
-		{
-			int hashCode = 13;
-			hashCode = (hashCode * 7) + UserId.GetHashCode();
-			hashCode = (hashCode * 7) + DiskPoolId.GetHashCode();
-			hashCode = (hashCode * 7) + StorageClass.GetHashCode();
-			return hashCode;
-		}
 
 		#endregion
 	}

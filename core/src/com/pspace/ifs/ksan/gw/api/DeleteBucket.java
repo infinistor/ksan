@@ -1,4 +1,3 @@
-
 /*
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
@@ -13,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataDeleteBucket;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -39,10 +37,7 @@ public class DeleteBucket extends S3Request{
 
 		GWUtils.checkCors(s3Parameter);
 
-        DataDeleteBucket dataDeleteBucket = new DataDeleteBucket(s3Parameter);
-        dataDeleteBucket.extract();
-
-        String expectedBucketOwner = dataDeleteBucket.getExpectedBucketOwner();
+        String expectedBucketOwner = s3RequestData.getExpectedBucketOwner();
         if (!Strings.isNullOrEmpty(expectedBucketOwner)) {
             if (!isBucketOwner(expectedBucketOwner)) {
                 throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);

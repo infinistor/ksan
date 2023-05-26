@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListIndexesIterable;
 import org.bson.Document; 
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
@@ -121,6 +122,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String PARTNO ="partNo";
     private static final String COMPLETED = "completed";
     private static final String CHANGETIME = "changeTime";
+    private static final String PARTREF = "partRef";
     
     // for utility
     private static final String ID = "Id";
@@ -163,6 +165,11 @@ public class MongoDataRepository implements DataRepository{
         String credential;
         String authSRC;
         
+        if (hosts.contains("mongodb://")){
+            url = hosts;
+            return;
+        }
+        
         if (!username.isEmpty()){
             credential = String.format("%s:%s@", username, passwd);
             authSRC = String.format("/?authSource=%s", dbname);
@@ -196,14 +203,29 @@ public class MongoDataRepository implements DataRepository{
         database = mongo.getDatabase(dbname);
     }
     
+    private boolean indexExist(MongoCollection<Document> coll, Document indexdoc){ 
+        if (coll == null)
+            return false;
+        
+        ListIndexesIterable<Document> indx = coll.listIndexes();
+        Iterator it = indx.iterator();
+        while((it.hasNext())){
+            if (it.next().equals(indexdoc))
+                return true;
+        }
+        return false;
+    }
+    
     private void createBucketsHolder(){
         Document index;
         
         index = new Document(BUCKETNAME, 1);
         buckets = database.getCollection(BUCKETSCOLLECTION);
-        if (buckets == null){
-            database.createCollection(BUCKETSCOLLECTION);
-            buckets = database.getCollection(BUCKETSCOLLECTION);
+        if (indexExist(buckets, index) == false){
+            if (buckets == null) {
+                database.createCollection(BUCKETSCOLLECTION);
+                buckets = database.getCollection(BUCKETSCOLLECTION);
+            }
             buckets.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -215,9 +237,11 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(UPLOADID, 1);
         MongoCollection<Document> lifeCycle = database.getCollection(collectionName);
-        if (lifeCycle == null){
-            database.createCollection(collectionName);
-            lifeCycle = database.getCollection(collectionName);
+        if (indexExist(lifeCycle, index) == false){
+            if (lifeCycle == null){
+                database.createCollection(collectionName);
+                lifeCycle = database.getCollection(collectionName);
+            }
             lifeCycle.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -230,11 +254,13 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(TAG_KEY, 1);
         MongoCollection<Document> objTag = database.getCollection(collectionName);
+        if (indexExist(objTag, index)== false){
         if (objTag == null){
             database.createCollection(collectionName);
             objTag = database.getCollection(collectionName);
             objTag.createIndex(index, new IndexOptions().unique(true));
         }
+         }
     }
     
     private MongoCollection<Document> getObjTagIndexCollection(String bucketName){
@@ -244,7 +270,7 @@ public class MongoDataRepository implements DataRepository{
         objTag = this.database.getCollection(collectionName);
         if (objTag == null){
             database.createCollection(collectionName);
-            objTag = database.getCollection(collectionName);
+            objTag = database.getCollection(collectionName); 
             objTag.createIndex(Indexes.ascending(OBJID, VERSIONID, TAG_KEY), new IndexOptions().unique(true));
         }
         
@@ -260,7 +286,7 @@ public class MongoDataRepository implements DataRepository{
             lifeCycle = database.getCollection(collectionName);
             lifeCycle.createIndex(Indexes.ascending(OBJID, VERSIONID, UPLOADID), new IndexOptions().unique(true));
         }
-        
+              
         return lifeCycle;
     }
     
@@ -270,10 +296,10 @@ public class MongoDataRepository implements DataRepository{
         multip = this.database.getCollection(MULTIPARTUPLOAD);
         if (multip == null){
             database.createCollection(MULTIPARTUPLOAD);
-            multip = database.getCollection(MULTIPARTUPLOAD);
+            multip = database.getCollection(MULTIPARTUPLOAD); 
             multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
-        
+            
         return multip;
     }
     
@@ -284,9 +310,11 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         //index.append(BUCKETNAME, 1);
         MongoCollection<Document> restoreObj = database.getCollection(OBJRESTORE_TABLE);
-        if (restoreObj == null){
-            database.createCollection(OBJRESTORE_TABLE);
-            restoreObj = database.getCollection(OBJRESTORE_TABLE);
+        if (indexExist(restoreObj, index) == false){
+            if (restoreObj == null){
+                database.createCollection(OBJRESTORE_TABLE);
+                restoreObj = database.getCollection(OBJRESTORE_TABLE);    
+            }
             restoreObj.createIndex(index, new IndexOptions().unique(true));
         }
     }
@@ -340,6 +368,8 @@ public class MongoDataRepository implements DataRepository{
     public int insertObject(Metadata md) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
         Document doc;
+        int replicaCount;
+        
         objects = this.database.getCollection(md.getBucket());
         doc = new Document(OBJKEY, md.getPath());
         doc.append(BUCKETNAME, md.getBucket());
@@ -355,6 +385,10 @@ public class MongoDataRepository implements DataRepository{
         doc.append(DELETEMARKER, md.getDeleteMarker());
         doc.append(LASTVERSION, true);
         doc.append(PDISKID, md.getPrimaryDisk().getId());
+        replicaCount = md.getReplicaCount();
+        if (replicaCount > 2 || replicaCount < 1)
+            replicaCount = obmCache.getDiskPoolFromCache(md.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount(); 
+        doc.append(REPLICACOUNT, replicaCount);
         if (md.isReplicaExist())
             doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
@@ -391,6 +425,7 @@ public class MongoDataRepository implements DataRepository{
         MongoCollection<Document> objects;
         FindIterable fit;
         Metadata mt;
+        int replicaCount;
         
         objects = database.getCollection(bucketName);
         if (versionId.isEmpty())
@@ -417,7 +452,11 @@ public class MongoDataRepository implements DataRepository{
         String deleteMarker = doc.getString(DELETEMARKER);
         boolean lastversion = doc.getBoolean(LASTVERSION);
         String pdiskId      = doc.getString(PDISKID);
-        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();
+        DISK pdsk           = pdiskId != null ? obmCache.getDiskWithId(pdiskId) : new DISK();  
+        if (doc.containsKey(REPLICACOUNT))
+            replicaCount    = doc.getInteger(REPLICACOUNT);
+        else
+           replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount(); 
         String rdiskId      = doc.getString(RDISKID);
         DISK rdsk;
         if (rdiskId == null)
@@ -427,7 +466,6 @@ public class MongoDataRepository implements DataRepository{
         else
             rdsk = obmCache.getDiskWithId(rdiskId);
         
-        int replicaCount = obmCache.getDiskPoolFromCache(pdsk.getDiskPoolId()).getDefaultReplicaCount();
         mt = new Metadata( bucketName, key);
         mt.set(etag, tag, meta, acl, size);
         mt.setPrimaryDisk(pdsk);
@@ -548,10 +586,21 @@ public class MongoDataRepository implements DataRepository{
         index.append(VERSIONID, 1);
         index.append(LASTVERSION, 1);
         index.append(DELETEMARKER, 1);
-        //index.append(OBJKEY, 1);
+        
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
+        
+        Document objkeyIndex = new Document(OBJKEY, 1); // for listobject sorting
+        database.getCollection(bt.getName()).createIndex(objkeyIndex);
+        
+        Document versionIdIndex = new Document(VERSIONID, 1); // for listobjectversion sorting
+        database.getCollection(bt.getName()).createIndex(versionIdIndex);
+        
+        Document listVersionSortIndex = new Document(OBJKEY, 1); // for listobjectversion sorting
+        listVersionSortIndex.append(VERSIONID, -1);
+        database.getCollection(bt.getName()).createIndex(listVersionSortIndex);
+        
         // wild index for listobjects
-        Document wildIndex = new Document(OBJID + ".$**", 1);
+        Document wildIndex = new Document(OBJKEY + ".$**", 1);
         database.getCollection(bt.getName()).createIndex(wildIndex); 
          
         createObjTagHolder(bt.getName());
@@ -641,6 +690,7 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
+        //FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
         Document doc =(Document)fit.first();
         return parseBucket(bucketName, doc);
@@ -689,7 +739,7 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int insertMultipartUpload(String bucket, String objkey, String uploadid, int partNo, String acl, String meta, String etag, long size, String pdiskid) throws SQLException{
+    public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException{
         MongoCollection<Document> multip;
         Document doc;
         
@@ -697,17 +747,23 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return -1;
         
-        doc = new Document(OBJKEY, objkey);
-        doc.append(BUCKETNAME, bucket);
+        doc = new Document(OBJKEY, mt.getPath());
+        doc.append(BUCKETNAME, mt.getBucket());
         doc.append(UPLOADID, uploadid);
         doc.append(PARTNO, partNo);
         doc.append(COMPLETED, false);
         doc.append(CHANGETIME, getCurrentDateTime());
-        doc.append(ACL, acl);
-        doc.append(META, meta);
-        doc.append(ETAG, etag);
-        doc.append(SIZE, size);
-        doc.append(PDISKID, pdiskid);
+        doc.append(ACL, mt.getAcl());
+        doc.append(META, mt.getMeta());
+        doc.append(ETAG, mt.getEtag());
+        doc.append(SIZE, mt.getSize());
+        doc.append(PDISKID, mt.getPrimaryDisk().getId());
+        try {
+            doc.append(RDISKID, mt.getReplicaDisk().getId());
+        } catch (ResourceNotFoundException ex) {
+            doc.append(RDISKID, "");
+        }
+        doc.append(PARTREF, "");
         
         multip.insertOne(doc);
         return 0;
@@ -745,7 +801,33 @@ public class MongoDataRepository implements DataRepository{
     
     @Override
     public void selectMultipartUpload(String bucket, Object query, int maxKeys, DBCallBack callback) throws SQLException {
- 
+        MongoCollection<Document> multip;
+        String key;
+        String uploadid;
+        long partNo;
+        int counter = 0;
+        Date lastModified;
+        boolean isTrancated =false;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return;
+        
+        FindIterable fit = multip.find((BasicDBObject)query);
+        Iterator it = fit.iterator();
+        
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            key =          doc.getString(OBJKEY) ;
+            uploadid=      doc.getString(UPLOADID);
+            partNo =       doc.getInteger(PARTNO);
+            lastModified = (Date)doc.getDate(CREATETIME);
+
+            if (++counter == maxKeys)
+                isTrancated = !it.hasNext();
+            
+            callback.call(key, uploadid, lastModified == null ? "" : lastModified.toString(), partNo, "", "", "", isTrancated);
+        }
     }
     
     private int updateVersionDelete(String bucketName, String objId){
@@ -876,14 +958,14 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(doc.getString(PDISKID));
+            part.setPrimaryDiskId(doc.getString(PDISKID));
+            part.setReplicaDiskId(doc.getString(RDISKID));
             listPart.put(part.getPartNumber(), part);
         }
         
         return listPart;
     }
 
-    //SELECT changeTime, etag, size, partNo FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?")
     @Override
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
         MongoCollection<Document> multip;
@@ -917,14 +999,14 @@ public class MongoDataRepository implements DataRepository{
             part.setPartETag(doc.getString(ETAG));
             part.setPartSize(doc.getLong(SIZE));
             part.setPartNumber(doc.getInteger(PARTNO));
-            part.setDiskID(doc.getString(PDISKID));
+            part.setPrimaryDiskId(doc.getString(PDISKID));
+            part.setReplicaDiskId(doc.getString(RDISKID));
             resultParts.getListPart().put(part.getPartNumber(), part);
         }
         
         return resultParts;
     }
 
-    // SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? 
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
         ResultUploads resultUploads = new ResultUploads();
@@ -971,6 +1053,39 @@ public class MongoDataRepository implements DataRepository{
         FindIterable fit = multip.find(Filters.eq(UPLOADID, uploadid)); 
         Iterator it = fit.iterator();
         return it.hasNext();
+    }
+    
+    @Override
+    public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException {
+        MongoCollection<Document> multip;
+        String partRef = null;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return null;
+        
+        FindIterable fit = multip.find(Filters.and(Filters.eq(PARTNO, partNo), Filters.eq(UPLOADID, uploadId)));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            partRef=doc.getString(PARTREF);
+        }
+        
+        return partRef;
+    }
+    
+    @Override
+    public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException {
+        MongoCollection<Document> multip;
+        
+        multip = getMultiPartUploadCollection();
+        if (multip == null)
+            return -1;
+        
+        multip.updateOne(Filters.and(eq(UPLOADID, uploadId), eq(PARTNO, partNo)), Updates.set(PARTREF, partRef));
+        
+        return 0;
     }
     
     private int updateObject(String bucketName,  String objId, String versionId, String key, String value){
@@ -1023,7 +1138,7 @@ public class MongoDataRepository implements DataRepository{
         if (doc == null)
           return -1;
         
-        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.set(key, value));
+        buckets.updateOne(Filters.eq(BUCKETNAME, bucketName), Updates.inc(key, value));
         return 0;
     }
     
@@ -1198,22 +1313,18 @@ public class MongoDataRepository implements DataRepository{
         int replicaCount;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
-        BasicDBObject sortBy ;
+        BasicDBObject sortBy;
         BasicDBObject mongoQuery =(BasicDBObject)query;
         String queryString = mongoQuery.toJson();
         
-        if (queryString.contains(OBJID)){ // for utlity list 
-            sortBy = new BasicDBObject(OBJID, 1 );
-        } else{
-            sortBy = new BasicDBObject(OBJKEY, 1 );
-        }
-            
+        sortBy = new BasicDBObject(OBJKEY, 1 );
+        
         if (!queryString.contains(LASTVERSION)){
-            sortBy.append(LASTMODIFIED, -1);
-            sortBy.append("_id", -1);
+            sortBy.append(VERSIONID, -1);
         }
         
         FindIterable<Document> oit = objects.find(mongoQuery).limit(maxKeys).sort(sortBy).skip((int)offset);
+        
         Iterator it = oit.iterator();
         List<Metadata> list = new ArrayList();
         while((it.hasNext())){
@@ -1309,7 +1420,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     private void updateBucketObjectCount(String bucketName, long fileCount){
-        updateBucketObjectSpaceCount(bucketName, USEDSPACE, fileCount);
+        updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
     }
     
     @Override

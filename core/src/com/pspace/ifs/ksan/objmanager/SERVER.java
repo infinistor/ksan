@@ -31,7 +31,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SERVER {
     private String id;
     private long ipaddr;
-    private String name;
+    private String name; // the IP address of the machine
+    private String serverUniqName; // the uniqe give name to host machine 
     private ServerStatus status; // ONLINE or OFFLINE
     private int rack;
     private boolean isLocal;
@@ -46,6 +47,7 @@ public class SERVER {
         this.name = name; //IP address in string
         this.status = ServerStatus.ONLINE;
         currentDiskIdx = 0;
+        serverUniqName = "";
         diskMap = new HashMap();
         this.isLocal=this.isLocalIpaddres();
         logger = LoggerFactory.getLogger(SERVER.class);
@@ -222,6 +224,10 @@ public class SERVER {
         this.status = status;
     }
     
+    public void setServerUniqName(String serverUniqName){
+        this.serverUniqName = serverUniqName;
+    }
+    
     public boolean isLocalServer(){
         return this.isLocal;
     }
@@ -284,11 +290,29 @@ public class SERVER {
 
                 return dsk;
             }
-            logger.error("There is no disk the server!"); 
+            logger.debug("There is no disk the server!"); 
             throw new ResourceNotFoundException("There is no disk the server!");
         } finally {
             lock.unlock();
         }
+    }
+    
+    public boolean possibleToAlloc(){
+        DISK dsk;
+        
+        for(String diskid : diskMap.keySet()){
+            dsk = diskMap.get(diskid);
+            if (dsk != null){
+                if (dsk.getStatus() != DiskStatus.GOOD){
+                    continue;
+                }
+                
+                if (dsk.getMode() == DiskMode.READWRITE){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     public ServerStatus getStatus(){
@@ -317,6 +341,10 @@ public class SERVER {
     }
     public int getNumDisk(){
         return diskMap.size();
+    }
+    
+    public String getServerUniqName(){
+        return this.serverUniqName;
     }
     
     public String displayDiksList(){

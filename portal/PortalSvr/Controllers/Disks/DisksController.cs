@@ -128,8 +128,8 @@ namespace PortalSvr.Controllers.Disks
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>결과 JSON 문자열</returns>
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseDisk>))]
-		[HttpGet("")]
-		public async Task<ActionResult> Get(
+		[HttpGet]
+		public async Task<ActionResult> GetList(
 			List<EnumDiskState> SearchStates, List<EnumDiskRwMode> SearchRwModes,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,

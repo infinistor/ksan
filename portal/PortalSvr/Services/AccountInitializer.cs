@@ -64,12 +64,12 @@ namespace PortalSvr.Services
 				// 사용자가 없는 경우
 				if (await m_userProvider.UserCount() == 0)
 				{
-					// "supervisor" 계정을 생성하고, "Supervisor" 역할에 추가한다.
+					// "admin" 계정을 생성하고, "Supervisor" 역할에 추가한다.
 					await m_userProvider.Add(new RequestUserRegist()
 					{
-						LoginId = "supervisor",
-						Email = "supervisor@pspace.co.kr",
-						Name = "supervisor",
+						LoginId = "admin",
+						Email = "admin@pspace.co.kr",
+						Name = "admin",
 						Status = EnumUserStatus.Activated,
 						Roles = new List<string>() { PredefinedRoleNames.RoleNameSupervisor }
 					}, "qwe123", "qwe123");
@@ -100,7 +100,7 @@ namespace PortalSvr.Services
 							Guid.Parse(Response.Data.Id),
 							new RequestApiKeyEx()
 							{
-								KeyName = Resource.INTERNALSERVICE_API_KEY,
+								KeyName = Resource.INTERNAL_SERVICE_API_KEY,
 								ExpireDate = DateTime.MaxValue,
 								KeyValue = APIKey.IsEmpty() ? KsanUserProvider.RandomTextLong(64) : APIKey
 							}

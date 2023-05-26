@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.api;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketLifeCycle;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -40,14 +39,11 @@ public class PutBucketLifecycleConfiguration extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketLifeCycle dataPutBucketLifeCycle = new DataPutBucketLifeCycle(s3Parameter);
-		dataPutBucketLifeCycle.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_LIFECYCLE_CONFIGURATION, s3Parameter, dataPutBucketLifeCycle)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_LIFECYCLE_CONFIGURATION, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String lifecycleXml = dataPutBucketLifeCycle.getLifecycleXml();
+		String lifecycleXml = s3RequestData.getLifecycleXml();
 		logger.info(GWConstants.LOG_PUT_BUCKET_LIFECYCLE_XML, lifecycleXml);
 		updateBucketLifecycle(bucket, lifecycleXml);
 

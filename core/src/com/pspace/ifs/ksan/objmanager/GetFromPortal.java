@@ -64,12 +64,12 @@ public class GetFromPortal {
     private final String PORTAAPIKEY = "PortalApiKey";
     private final String SERVERID = "ServerId";
     
-    private final String DBREPOSITORY = "objM.db_repository";
-    private final String DBHOST = "objM.db_host";
-    private final String DBPORT = "objM.db_port";
-    private final String DBNAME = "objM.db_name";
-    private final String DBUSER = "objM.db_user"; 
-    private final String DBPASSWORD = "objM.db_password";  
+    private final String DBREPOSITORY = "db_repository";
+    private final String DBHOST = "db_host";
+    private final String DBPORT = "db_port";
+    private final String DBNAME = "db_name";
+    private final String DBUSER = "db_user"; 
+    private final String DBPASSWORD = "db_password";  
        
     private final String MQHOST="MQHost";//"objM.mq_host";
     private final String MQUSER="MQUser";
@@ -77,7 +77,7 @@ public class GetFromPortal {
     private final String MQPASSWORD="MQPassword";
     private final String MQPORT="MQPort";
     
-    private final String KSANGWCONFIAPI = "/api/v1/Config/KsanGw";
+    private final String KSANGWCONFIAPI = "/api/v1/Config/KsanObjManager";
     private final String DISKPOOLSAPI = "/api/v1/DiskPools/Details";
     private final String GETDISKLISTAPI = "/api/v1/Disks";
     private final String GETSERVERTAPI = "/api/v1/Servers/";
@@ -225,6 +225,7 @@ public class GetFromPortal {
             String path = (String)disk.get("Path");
             String status = (String)disk.get("State");
             String mode = (String)disk.get("RwMode");
+            String diskName = (String)disk.get("Name");
             double totalInode = (double)disk.get("TotalInode");
             double usedInode = (double)disk.get("UsedInode");
             //double reserverdInode = (double)disk.get("ReservedInode");
@@ -234,6 +235,8 @@ public class GetFromPortal {
             DISK dsk = new DISK();
             dsk.setId(diskId);
             dsk.setPath(path);
+            dsk.setHostName(svr.getServerUniqName());
+            dsk.setDiskName(diskName);
             dsk.setSpace(totalSize, usedSize, reserverdSize);
             dsk.setInode(totalInode, usedInode);
             dsk.setOSDIP(svr.ipaddrToString(svr.getIpAddress()));
@@ -249,6 +252,8 @@ public class GetFromPortal {
             
             if (mode.equalsIgnoreCase("ReadWrite"))
                 dsk.setMode(DiskMode.READWRITE);
+            else if (mode.equalsIgnoreCase("Maintenance"))
+                dsk.setMode(DiskMode.MAINTENANCE);
             else
                 dsk.setMode(DiskMode.READONLY);
             //logger.debug("DISKS {}", dsk.toString());
@@ -265,11 +270,12 @@ public class GetFromPortal {
             JSONArray netInterfaces = (JSONArray)server.get("NetworkInterfaces");
             JSONObject netInterface = (JSONObject)netInterfaces.get(0);
             String osdIP = (String)netInterface.get("IpAddress");
-            //String osdName = (String)server.get("Name");
+            String osdUniqName = (String)server.get("Name");
             String status = (String)server.get("State");
             String  serverId = (String)server.get("Id");
             rack = 0;
             if (server.containsKey("Rack")){
+                logger.debug(">>>ServeruniqName >> {}", osdUniqName);
                 logger.debug(">>>Server >> {}", server);
                 Object rackStr = server.get("Rack");
                 if (rackStr != null)
@@ -288,6 +294,7 @@ public class GetFromPortal {
                 svr.setStatus(ServerStatus.UNKNOWN);
             
             svr = parseDiskResponse(svr, disks, dskp.getId());
+            svr.setServerUniqName(osdUniqName);
             dskp.addServer(svr);
             //logger.debug("SERVERS {}", svr.toString());
         }
@@ -359,7 +366,10 @@ public class GetFromPortal {
         JSONObject netInterface = (JSONObject)jsonServer.get(0);
         String osdIpAddress = (String)netInterface.get("IpAddress");
         String serverId = (String)netInterface.get("ServerId");
+        String serverUniqName = (String)jsonData.get("Name");
+       logger.error("<++++++++++++++++++Network++++> {}", jsonData.toString());
         SERVER svr = new SERVER(serverId, ipaddrToLong(osdIpAddress), osdIpAddress);
+        svr.setServerUniqName(serverUniqName);
         
         JSONArray jsonDisks = (JSONArray)jsonData.get(DISKS_TAG);
         if (jsonDisks.isEmpty())
@@ -441,7 +451,16 @@ public class GetFromPortal {
           
         objc.dbRepository = (String)jsonConfig.get(DBREPOSITORY);
         objc.dbHost = (String)jsonConfig.get(DBHOST);
-        objc.dbport = Long.valueOf(jsonConfig.get(DBPORT).toString());
+        Object portObj = jsonConfig.get(DBPORT);
+        objc.dbPort = 0;
+        if (portObj != null){
+            String portStr = portObj.toString();
+            if (!portStr.isEmpty())
+                objc.dbPort = Long.valueOf(portObj.toString());
+        }
+        else{
+            System.out.println(">>DB port : " + portObj);
+        }
         objc.dbName = (String)jsonConfig.get(DBNAME);
         objc.dbUsername = (String)jsonConfig.get(DBUSER);
         objc.dbPassword = (String)jsonConfig.get(DBPASSWORD);
@@ -490,6 +509,33 @@ public class GetFromPortal {
             idx++;
         } while(true);
    
+    }
+    
+    public String getDiskName(String diskId) throws IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException, ParseException{
+        int idx = 0;
+        JSONObject diskObj;
+        
+        String content = get(GETDISKLISTAPI);
+        if (content == null)
+            return "";
+        
+        if (content.isEmpty())
+            return "";
+        
+        do{
+            diskObj = parseGetSingleItem(content, idx);
+            if (diskObj == null)
+                return "";
+
+            if (diskObj.isEmpty())
+                return "";
+            
+            String diskN = (String)diskObj.get("Id");
+            if (diskN.equalsIgnoreCase(diskId)){
+                return (String)diskObj.get("Name");
+            }
+            idx++;
+        } while(true);
     }
     
     public SERVER loadOSDserver(String serverId, String dskPoolId){

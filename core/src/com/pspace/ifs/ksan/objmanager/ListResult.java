@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import java.sql.Date;
+
 /**
  *
  * @author legesse
@@ -20,17 +22,19 @@ public class ListResult {
     private String uploadId;
     private int partNo;
     private boolean truncated;
+    private Date lastModified;
     
     public ListResult(){
         
     }
     
-    public void set(String bucket, String key, String uploadId, int partNo){
+    public void set(String bucket, String key, String uploadId, int partNo, String lastModified){
         this.bucket = bucket;
         this.key = key;
         this.uploadId = uploadId;
         this.partNo = partNo;
         this.truncated = false;
+        this.lastModified = Date.valueOf(lastModified);
     }
     
     public void setTruncated(){
@@ -55,6 +59,14 @@ public class ListResult {
     
     public boolean isTruncated(){
         return truncated;
+    }
+    
+    public Date getLastModified(){
+        return this.lastModified;
+    }
+    
+    public void setLastModified(Date lastmodified){
+        this.lastModified = lastmodified;
     }
     
     @Override

@@ -136,6 +136,16 @@ public class ObjManagerUtil {
         }
     }
     
+    public List<Metadata> listObjectsVersion(String bucketName, String diskid, String lastObjId, String lastVersionid, long numObjects){
+        try {
+            ListObject lo = new ListObject(dbm, bucketName, diskid, lastObjId, (int)numObjects);
+            lo.updateOffset(diskid, lastObjId, lastVersionid);
+            return lo.getUnformatedList();
+        } catch (SQLException ex) {
+            return new ArrayList();
+        }
+    }
+    
     public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
         try {
             ListObject lo = new ListObject(dbm, bucketName, "", lastObjId, (int)numObjects);
@@ -168,6 +178,13 @@ public class ObjManagerUtil {
              throw new ResourceNotFoundException("null metadata are provided!");
         
         return dAlloc.allocDisk(mt);
+    }
+    
+    public DISK allocReplicaDisk(String bucketName, String diskPoolName, Metadata mt) throws ResourceNotFoundException, AllServiceOfflineException{
+        if (mt == null)
+             throw new ResourceNotFoundException("null metadata are provided!");
+        
+        return dAlloc.allocDisk(diskPoolName, mt);
     }
     
     public boolean allowedToReplicate(String bucketName, DISK primary,  DISK replica, String DstDiskId, boolean allowedToMoveToLocalDisk){

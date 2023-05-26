@@ -36,13 +36,15 @@ KSAN은 오브젝트 스토리지 서비스 시장에서 가장 널리 사용되
 
 KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 따라 Microsoft Azure API 및 Google Cloud API를 순차적으로 제공할 예정입니다.
 
-현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO)를 참조해 주십시오.
+현재 KSAN에서 지원하는 AWS S3 호환 API는 이 문서([S3 Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-s3-compatible-apis-YQ4FxMK0WO))를 참조해 주십시오.
+
+현재 KSAN에서 지원하는 AZURE BLOB 호환 API는 이 문서([AZURE BLOB Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-blob-apis-2uUmS24H5E))를 참조해 주십시오.
 
 현재 KSAN에서 지원하는 AZURE BLOB 호환 API는 이 문서([AZURE BLOB Compatible API List](http://vpn.pspace.com:3000/share/d3d24a01-5795-4398-8d90-6c7078efb227/doc/ksangw-blob-apis-2uUmS24H5E))를 참조해 주십시오.
 
 ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
 
-ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다.
+ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다. Google Cloud API는 v1.4.0부터 상호호환성을 제공할 예정입니다.
 
 <br><br>
 
@@ -94,3 +96,16 @@ KSAN 시스템은 메타데이터를 관리하기 위해 MariaDB와 같은 RDBMS
 ℹ️ 이 프로젝트는 2021년도 정부(과학기술정보통신부)의 재원으로 정보통신기획평가원의 지원을 받아 수행된 연구임 (No.2021-0-00422)
 
 ℹ️ This Project was supported by Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government(MSIT) (No.2021-0-00422)
+
+---
+**Maintainers**<br>
+PSPACE, Inc.<br>
+ksan@pspace.co.kr<br>
+https://pspace.com<br>
+<br><br>
+**Contributing**<br>
+We welcome both companies and individuals to provide feedback and updates to this repository.
+<br><br>
+**Copyright**<br>
+Copyright© 2021 PSPACE, Inc. All rights reserved.
+<br><br>

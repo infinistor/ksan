@@ -19,7 +19,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListMultipartUploads;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -54,19 +53,16 @@ public class ListMultipartUploads extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataListMultipartUploads dataListMultipartUploads = new DataListMultipartUploads(s3Parameter);
-		dataListMultipartUploads.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_MULTIPART_UPLOADS, s3Parameter, dataListMultipartUploads)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_MULTIPART_UPLOADS, s3Parameter)) {
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
-		String delimiter = dataListMultipartUploads.getDelimiter();
-		String encodingType = dataListMultipartUploads.getEncodingType();
-		String prefix = dataListMultipartUploads.getPrefix();
-		String keyMarker = dataListMultipartUploads.getKeyMarker();
-		String uploadIdMarker = dataListMultipartUploads.getUploadIdMarker();
-		String maxUploads = dataListMultipartUploads.getMaxUploads();
+		String delimiter = s3RequestData.getDelimiter();
+		String encodingType = s3RequestData.getEncodingType();
+		String prefix = s3RequestData.getPrefix();
+		String keyMarker = s3RequestData.getKeyMarker();
+		String uploadIdMarker = s3RequestData.getUploadIdMarker();
+		String maxUploads = s3RequestData.getMaxUploads();
 
 		if (Strings.isNullOrEmpty(maxUploads)) {
 			maxUploads = GWConstants.DEFAULT_MAX_KEYS;

@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package Replicator;
+package com.pspace.backend.replication.Replicator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,13 +19,12 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Config.ReplicationManagerConfig;
 import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
-
-import config.ConfigManager;
 
 public abstract class BaseReplicator implements MQCallback {
 	final Logger logger;
@@ -35,67 +34,45 @@ public abstract class BaseReplicator implements MQCallback {
 		OP_DELETE_OBJECT_TAGGING
 	}
 
-	protected AmazonS3 SourceClient;
+	protected AmazonS3 sourceClient;
 	protected AgentConfig ksanConfig;
 	protected PortalManager portal;
-	protected ConfigManager config;
+	protected ReplicationManagerConfig config;
+	protected S3RegionData sourceRegion;
 
 	public BaseReplicator(Logger logger) {
 		this.logger = logger;
 		this.ksanConfig = AgentConfig.getInstance();
 		this.portal = PortalManager.getInstance();
-		this.config = ConfigManager.getInstance();
-	}
-	public BaseReplicator(Logger logger, String RegionName) {
-		this.logger = logger;
-		this.ksanConfig = AgentConfig.getInstance();
-		this.portal = PortalManager.getInstance();
-		this.config = ConfigManager.getInstance();
-		SetRegion(RegionName);
+		setConfig();
 	}
 
-	public boolean SetRegion(String RegionName) {
-		try {
-			var SourceRegion = portal.getRegion(RegionName);
-			if (SourceRegion == null) {
-				logger.error("Region is not exists");
-				return false;
-			}
-
-			SourceClient = CreateClient(SourceRegion);
-			if (SourceClient == null) {
-				logger.error("Source Client is NULL!");
-				return false;
-			}
-
-			return true;
-		} catch (Exception e) {
-			logger.error("", e);
-			return false;
-		}
+	public void setConfig() {
+		this.config = portal.getReplicationManagerConfig();
+		this.sourceRegion = portal.getLocalRegion();
+		this.sourceClient = createClient(sourceRegion);
 	}
 
 	/******************************************
 	 * Utility
 	 *************************************************/
 
-	protected boolean RegionCheck(String RegionName) {
-		if (StringUtils.isBlank(RegionName))
-			RegionName = config.getRegion();
+	protected boolean checkRegion(String regionName) {
+		if (StringUtils.isBlank(regionName) || sourceRegion.Name == regionName) return true;
 
-		var Region = portal.getRegion(RegionName);
+		var Region = portal.getRegion(regionName);
 		if (Region == null) {
-			logger.error("Region Name({}) is not exists!", RegionName);
+			logger.error("Region Name({}) is not exists!", regionName);
 			return false;
 		}
-		return Utility.S3AliveCheck(Region.getHttpURL());
+		return Utility.checkAlive(Region.getHttpURL());
 	}
 
-	protected AmazonS3 CreateClient(S3RegionData Region) {
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
+	protected AmazonS3 createClient(S3RegionData Region) {
+		BasicAWSCredentials credentials = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
 		logger.debug("Client : {}, {}", Region.AccessKey, Region.SecretKey);
 
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(Region.getHttpURL(), ""))
 				.withPathStyleAccessEnabled(true).build();
 	}
@@ -106,7 +83,7 @@ public abstract class BaseReplicator implements MQCallback {
 
 	protected AmazonS3 CreateClient(String RegionName) throws Exception {
 		if (StringUtils.isBlank(RegionName))
-			return SourceClient;
+			return sourceClient;
 
 		var Region = portal.getRegion(RegionName);
 		if (Region == null)

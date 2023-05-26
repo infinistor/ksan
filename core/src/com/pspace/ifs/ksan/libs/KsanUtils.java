@@ -12,6 +12,9 @@ package com.pspace.ifs.ksan.libs;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,8 +26,25 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Date;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+
+import com.pspace.ifs.ksan.libs.data.ECPart;
+import com.pspace.ifs.ksan.libs.disk.Disk;
+import com.pspace.ifs.ksan.libs.disk.DiskPool;
+import com.pspace.ifs.ksan.libs.disk.Server;
 
 import com.google.common.base.Strings;
+
+import com.google.common.primitives.Longs;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.crypto.stream.CtrCryptoInputStream;
+import org.apache.commons.crypto.stream.CtrCryptoOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,18 +105,26 @@ public class KsanUtils {
         }
     }
 
+    private static String makeDirectorySub(String objId) {
+        byte[] path = new byte[3];
+        byte[] byteObjId = objId.getBytes();
+        path[0] = Constants.CHAR_SLASH;
+        path[1] = byteObjId[0];
+        path[2] = byteObjId[1];
+
+        return new String(path);
+    }
+
     private static String makeDirectoryName(String objId) {
         byte[] path = new byte[6];
         byte[] byteObjId = objId.getBytes();
 
         path[0] = Constants.CHAR_SLASH;
-        int index = 1;
-        
-        path[index++] = byteObjId[0];
-        path[index++] = byteObjId[1];
-        path[index++] = Constants.CHAR_SLASH;
-        path[index++] = byteObjId[2];
-        path[index] = byteObjId[3];
+        path[1] = byteObjId[0];
+        path[2] = byteObjId[1];
+        path[3] = Constants.CHAR_SLASH;
+        path[4] = byteObjId[2];
+        path[5] = byteObjId[3];
 
         return new String(path);
     }
@@ -110,8 +138,136 @@ public class KsanUtils {
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
-        String fullPath = path + Constants.SLASH + Constants.OBJ_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        return fullPath;
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static boolean makeMultipartDirectory(String path, String objId, String uploadId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        sb.append(Constants.SLASH);
+        sb.append(uploadId);
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String makePartPath(String path, String objId, String uploadId, String partNumber) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(Constants.SLASH);
+        sb.append(uploadId);
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
+
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uploadId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(partNumber);
+
+        return sb.toString();
+    }
+
+    public static String makeObjPathForOpen(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static String makeObjMultipartPathForOpen(String path, String objId, String versionId, String uploadId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uploadId);
+
+        return sb.toString();
     }
 
     public static String makeTempPath(String path, String objId, String versionId) {
@@ -119,8 +275,18 @@ public class KsanUtils {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
         String uuid = UUID.randomUUID().toString();
-        String fullPath = path + Constants.SLASH + Constants.TEMP_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + uuid + Constants.UNDERSCORE + versionId;
-        return fullPath;
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TEMP_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uuid);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
     }
 
     public static String makeTrashPath(String path, String objId, String versionId) {
@@ -128,57 +294,125 @@ public class KsanUtils {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
         String uuid = UUID.randomUUID().toString();
-        String fullPath = path + Constants.SLASH + Constants.TRASH_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId + Constants.DASH + uuid;
-        return fullPath;
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TRASH_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uuid);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
+    }
+
+    public static String makeTrashPath(String path, String name) {
+        String uuid = UUID.randomUUID().toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TRASH_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(name);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(uuid);
+
+        return sb.toString();
     }
 
     public static String makeECPath(String path, String objId, String versionId) {
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
-        String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + Constants.POINT + objId + Constants.UNDERSCORE + versionId;
-        return fullPath;
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.EC_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
+
+        sb.append(Constants.SLASH);
+        sb.append(Constants.POINT);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
     }
 
-    public static String makeTempPartPath(String path, String objId, String partNumber) {
-        String fullPath = path + Constants.SLASH + Constants.TEMP_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + partNumber;
-        return fullPath;
+    public static String makeECPathForOpen(String path, String objId, String versionId) {
+        if (Strings.isNullOrEmpty(versionId)) {
+            versionId = Constants.VERSIONING_DISABLE_TAIL;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.EC_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
+        sb.append(Constants.SLASH);
+        sb.append(Constants.POINT);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
     }
 
     public static String makeTempCompleteMultipartPath(String path, String objId, String versionId) {
         if (Strings.isNullOrEmpty(versionId)) {
             versionId = Constants.VERSIONING_DISABLE_TAIL;
         }
-        String fullPath = path + Constants.SLASH + Constants.TEMP_COMPLETE_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        return fullPath;
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.TEMP_DIR);
+        sb.append(Constants.SLASH);
+        sb.append(objId);
+        sb.append(Constants.UNDERSCORE);
+        sb.append(versionId);
+
+        return sb.toString();
     }
 
-    public static String makeTempCopyPath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = Constants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + Constants.SLASH + Constants.TEMP_COPY_DIR + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        return fullPath;
-    }
+    public static String makeECDirectoryPath(String path, String objId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        sb.append(Constants.SLASH);
+        sb.append(Constants.EC_DIR);
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
 
-    public static String makeECDecodePath(String path, String objId, String versionId) {
-        if (Strings.isNullOrEmpty(versionId)) {
-            versionId = Constants.VERSIONING_DISABLE_TAIL;
-        }
-        String fullPath = path + Constants.SLASH + Constants.EC_DIR + makeDirectoryName(objId) + Constants.SLASH + objId + Constants.UNDERSCORE + versionId;
-        return fullPath;
+        return sb.toString();
     }
 
     public static String makeECDirectory(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName);
-        return fullPath;
-    }
+        StringBuilder sb = new StringBuilder();
+        sb.append(ecPath);
+        sb.append(makeDirectorySub(fileName.substring(0, 2)));
 
-    public static String makeECTempPath(String fileName, String ecPath) {
-        String fullPath = ecPath + makeDirectoryName(fileName) + Constants.SLASH + Constants.POINT + fileName;
-        return fullPath;
-    }
+        File objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
 
+        sb.append(makeDirectorySub(fileName.substring(2, 4)));
+        objDir = new File(sb.toString());
+        if (!objDir.exists()) {
+            objDir.mkdir();
+        }
+
+        return sb.toString();
+    }
 
     public static void setAttributeFileReplication(File file, String replica, String diskID) {
         UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
@@ -228,5 +462,65 @@ public class KsanUtils {
         String diskID = Charset.defaultCharset().decode(buf).toString();
         logger.debug("file replicaDiskID : {}", diskID);
         return diskID;
+    }
+
+    public static boolean isECObject(String path, String objId, String versionId) {
+        // check EC exists
+        File ecFile = new File(KsanUtils.makeECPathForOpen(path, objId, versionId));
+        if (ecFile.exists()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static CtrCryptoOutputStream initCtrEncrypt(FileOutputStream out, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info(customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(Constants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(Constants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoOutputStream cipherOut = new CtrCryptoOutputStream(property, out, key, iv);
+
+		return cipherOut;
+	}
+	
+	public static CtrCryptoInputStream initCtrDecrypt(FileInputStream in, String customerKey) throws IOException {
+		byte[] iv = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
+
+		byte[] key = new byte[32];
+		logger.info("init ctr decrypt key : {}", customerKey);
+		for (int i = 0; i < 32; i++) {
+			if (i < customerKey.getBytes().length)
+				key[i] = customerKey.getBytes()[i];
+			else
+				key[i] = 0;
+		}
+
+		Properties property = new Properties();
+		property.setProperty(Constants.PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE, Long.toString(Constants.COMMONS_CRYPTO_STREAM_BUFFER_SIZE));
+		CtrCryptoInputStream cipherIn = new CtrCryptoInputStream(property, in, key, iv);
+
+		return cipherIn;
+	}
+
+    public static Date getDate(String strDate) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+        Date date = null;
+        try {
+            date = simpleDateFormat.parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return date;
     }
 }

@@ -16,11 +16,7 @@ using Microsoft.Extensions.Logging;
 using MTLib.CommonData;
 using MTLib.Core;
 using Microsoft.Extensions.Configuration;
-using PortalProvider.Providers.RabbitMQ;
-using PortalProvider.Providers.DB;
-using Newtonsoft.Json;
 using System.IO;
-using System.Collections.Generic;
 
 namespace PortalSvr.Services
 {
@@ -72,40 +68,15 @@ namespace PortalSvr.Services
 		{
 			try
 			{
-				// RabbitMQ 설정이 없는 경우
-				var RabbitMQConfig = await m_configProvider.GetConfig(EnumServiceType.RabbitMQ);
-				if (RabbitMQConfig == null || RabbitMQConfig.Result == EnumResponseResult.Error)
+				// ksanObjManager 설정이 없는 경우
+				var ksanObjManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanObjManager);
+				if (ksanObjManagerConfig == null || ksanObjManagerConfig.Result == EnumResponseResult.Error)
 				{
-					// RabbitMQ 설정
-					IConfigurationSection Section = m_configuration.GetSection("AppSettings:RabbitMQ");
-					RabbitMQConfiguration Configuration = Section.Get<RabbitMQConfiguration>();
+					// ksanObjManager의 기본 설정 정보를 읽어온다.
+					string StrKsanObjManager = File.ReadAllText(EnvironmentInitializer.KSAN_OBJ_MANAGER_SETTINGS_FILE);
 
-					var Result = await m_configProvider.SetConfig(EnumServiceType.RabbitMQ, JsonConvert.SerializeObject(Configuration));
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.RabbitMQ, Result.Data.Version);
-				}
-
-				// MariaDB 설정이 없는 경우
-				var MariaDBConfig = await m_configProvider.GetConfig(EnumServiceType.MariaDB);
-				if (MariaDBConfig == null || MariaDBConfig.Result == EnumResponseResult.Error)
-				{
-					// MariaDB 설정
-					IConfigurationSection Section = m_configuration.GetSection("MariaDB");
-					MariaDBConfiguration Configuration = Section.Get<MariaDBConfiguration>();
-
-					var Result = await m_configProvider.SetConfig(EnumServiceType.MariaDB, JsonConvert.SerializeObject(Configuration));
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Result.Data.Version);
-				}
-
-				// MongoDB 설정이 없는 경우
-				var MongoDBConfig = await m_configProvider.GetConfig(EnumServiceType.MongoDB);
-				if (MongoDBConfig == null || MongoDBConfig.Result == EnumResponseResult.Error)
-				{
-					// MongoDB 설정
-					IConfigurationSection Section = m_configuration.GetSection("MongoDB");
-					MongoDBConfiguration Configuration = Section.Get<MongoDBConfiguration>();
-
-					var Result = await m_configProvider.SetConfig(EnumServiceType.MongoDB, JsonConvert.SerializeObject(Configuration));
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MongoDB, Result.Data.Version);
+					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanObjManager, StrKsanObjManager);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanObjManager, Result.Data.Version);
 				}
 
 				// KsanGW 설정이 없는 경우
@@ -161,28 +132,6 @@ namespace PortalSvr.Services
 
 					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanReplicationManager, StrKsanReplicationManager);
 					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanReplicationManager, Result.Data.Version);
-				}
-
-				// KsanLogManager 설정이 없는 경우
-				var KsanLogManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanLogManager);
-				if (KsanLogManagerConfig == null || KsanLogManagerConfig.Result == EnumResponseResult.Error)
-				{
-					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanLogManager = File.ReadAllText(EnvironmentInitializer.KSAN_LOGMANAGER_SETTINGS_FILE);
-
-					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanLogManager, StrKsanLogManager);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanLogManager, Result.Data.Version);
-				}
-
-				// KsanReplication 설정이 없는 경우
-				var KsanReplicationConfig = await m_configProvider.GetConfig(EnumServiceType.ksanReplication);
-				if (KsanReplicationConfig == null || KsanReplicationConfig.Result == EnumResponseResult.Error)
-				{
-					// Ksan Gw의 기본 설정 정보를 읽어온다.
-					string StrKsanReplication = File.ReadAllText(EnvironmentInitializer.KSAN_REPLICATION_SETTINGS_FILE);
-
-					var Result = await m_configProvider.SetConfig(EnumServiceType.ksanReplication, StrKsanReplication);
-					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.ksanReplication, Result.Data.Version);
 				}
 			}
 			catch (Exception ex)

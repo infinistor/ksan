@@ -100,7 +100,8 @@ public class S3Range {
 				}
 
 				logger.debug(GWConstants.LOG_S3RANGE_INFO, startPosition, endPosition, endPosition - startPosition + 1, fileLength);
-				Range rangeObject = new Range(startPosition, endPosition - startPosition + 1);	// offset, length
+				// Range rangeObject = new Range(startPosition, endPosition - startPosition + 1);	// offset, length
+				Range rangeObject = new Range(startPosition, endPosition);	// offset, length
 				rangeList.add(rangeObject);
 			} else {
 				logger.error(GWConstants.LOG_S3RANGE_NOT_SATISFIABLE, rangeValue);
@@ -116,14 +117,20 @@ public class S3Range {
 	public class Range {
 		private long offset;
 		private long length;
+		private long last;
 		
-		public Range(long offset, long length) {
+		public Range(long offset, long last) {
 			this.offset = offset;
-			this.length = length;
+			this.last = last;
+			this.length = last - offset + 1;
 		}
 		
 		public long getOffset() {
 			return offset;
+		}
+
+		public long getLast() {
+			return last;
 		}
 		
 		public long getLength() {

@@ -8,8 +8,9 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db.table.replication;
+package com.pspace.backend.logManager.db.table.replication;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
-
-import db.table.QueryConstants;
+import com.pspace.backend.logManager.db.table.QueryConstants;
 
 public class ReplicationLogQuery {
 	static final Logger logger = LoggerFactory.getLogger(ReplicationLogQuery.class);
@@ -30,9 +30,9 @@ public class ReplicationLogQuery {
 	public static final String DB_OPERATION = "OPERATION";
 	public static final String DB_OBJECTNAME = "OBJECT_NAME";
 	public static final String DB_VERSIONID = "VERSION_ID";
-	public static final String DB_SOURCEBUCKETNAME = "SOURCE_BUCKET_NAME";
-	public static final String DB_TARGETBUCKETNAME = "TARGET_BUCKET_NAME";
-	public static final String DB_TARGETREGION = "TARGET_REGION";
+	public static final String DB_SOURCE_BUCKET_NAME = "SOURCE_BUCKET_NAME";
+	public static final String DB_TARGET_BUCKET_NAME = "TARGET_BUCKET_NAME";
+	public static final String DB_TARGET_REGION = "TARGET_REGION";
 	public static final String DB_MESSAGE = "MESSAGE";
 
 	public static String getCreate() {
@@ -42,16 +42,16 @@ public class ReplicationLogQuery {
 				DB_OPERATION + " VARCHAR(64) NOT NULL, " +
 				DB_OBJECTNAME + " VARCHAR(2048) NOT NULL, " +
 				DB_VERSIONID + " VARCHAR(32) NOT NULL, " +
-				DB_SOURCEBUCKETNAME + " VARCHAR(256) NOT NULL, " +
-				DB_TARGETBUCKETNAME + " VARCHAR(256) NOT NULL," +
-				DB_TARGETREGION + " VARCHAR(32) NULL, " +
+				DB_SOURCE_BUCKET_NAME + " VARCHAR(256) NOT NULL, " +
+				DB_TARGET_BUCKET_NAME + " VARCHAR(256) NOT NULL," +
+				DB_TARGET_REGION + " VARCHAR(32) NULL, " +
 				DB_MESSAGE + " TEXT NULL) " +
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
 	public static String getInsert() {
 	return String.format("INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?, ?, ?)",
-	DB_TABLE_NAME, DB_OPERATION, DB_OBJECTNAME, DB_VERSIONID, DB_SOURCEBUCKETNAME, DB_TARGETBUCKETNAME, DB_TARGETREGION, DB_MESSAGE);
+	DB_TABLE_NAME, DB_OPERATION, DB_OBJECTNAME, DB_VERSIONID, DB_SOURCE_BUCKET_NAME, DB_TARGET_BUCKET_NAME, DB_TARGET_REGION, DB_MESSAGE);
 	}
 
 	public static String getExpiration(int Days) {
@@ -74,12 +74,13 @@ public class ReplicationLogQuery {
 
 	public static Document getInsertDocument(ReplicationLogData data) {
 		var param = new Document();
+		param.put(DB_IN_DATE, LocalDateTime.now());
 		param.put(DB_OPERATION, data.Operation);
 		param.put(DB_OBJECTNAME, data.ObjectName);
 		param.put(DB_VERSIONID, data.VersionId);
-		param.put(DB_SOURCEBUCKETNAME, data.SourceBucketName);
-		param.put(DB_TARGETBUCKETNAME, data.TargetBucketName);
-		param.put(DB_TARGETREGION, data.TargetRegion);
+		param.put(DB_SOURCE_BUCKET_NAME, data.SourceBucketName);
+		param.put(DB_TARGET_BUCKET_NAME, data.TargetBucketName);
+		param.put(DB_TARGET_REGION, data.TargetRegion);
 		param.put(DB_MESSAGE, data.Message);
 
 		return param;

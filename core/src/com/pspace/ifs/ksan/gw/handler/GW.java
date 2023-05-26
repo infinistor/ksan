@@ -15,9 +15,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
-import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
+// import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
+import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -28,6 +28,7 @@ import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.ProxyConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -46,6 +47,7 @@ public class GW {
 
 	public void configure() throws Exception {
 		GWPortal.getInstance().getConfig();
+		GWPortal.getInstance().getObjManagerConfig();
 		GWPortal.getInstance().getS3Users();
 		GWPortal.getInstance().getS3Regions();
 		GWPortal.getInstance().getDiskPoolsDetails();
@@ -93,13 +95,15 @@ public class GW {
 		HttpConfiguration httpConfig = new HttpConfiguration();
 		// Configure the HTTP support, for example:
 		httpConfig.setSendServerVersion(false);
+		SecureRequestCustomizer src = new SecureRequestCustomizer();
+		src.setSniHostCheck(false);
+		httpConfig.addCustomizer(src);
 
 		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfig);
 		HttpCompliance customHttpCompliance = HttpCompliance.from(GWConstants.LOG_GW_RFC7230);
 		httpConnectionFactory.getHttpConfiguration().setHttpCompliance(customHttpCompliance);
 		UriCompliance customUriCompliance = UriCompliance.from(GWConstants.LOG_GW_RFC3986);
 		httpConnectionFactory.getHttpConfiguration().setUriCompliance(customUriCompliance);
-		//httpConnectionFactory.getHttpConfiguration().setUriCompliance(UriCompliance.RFC3986);
 
 		ServerConnector connector;
 		if (GWConfig.getInstance().getEndpoint() != null) {
@@ -139,29 +143,23 @@ public class GW {
 		handler = new GWHandlerJetty();
 		server.setHandler(handler);
 
-		// GWDB s3DB = GWUtils.getDBInstance();
-		// try {
-		// 	s3DB.init(GWConfig.getInstance().getDbHost(), String.valueOf(GWConfig.getInstance().getDbPort()), GWConfig.getInstance().getDatabase(), GWConfig.getInstance().getDbUser(), GWConfig.getInstance().getDbPass(), (int)GWConfig.getInstance().getDbPoolSize());
-		// } catch (Exception e) {
-		// 	PrintStack.logging(logger, e);
-		// }
-
 		// try {
 		// 	OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
 		// } catch (Exception e) {
 		// 	PrintStack.logging(logger, e);
 		// }
 
-		try {
-			ObjManagerHelper.getInstance().init((int)GWConfig.getInstance().getObjManagerCount());
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-		}
-		// ObjManagers.getInstance().init();
+		ObjManagers.getInstance().init();
 
 		if (GWConfig.getInstance().isCacheDiskpath()) {
 			GWUtils.initCache(GWConfig.getInstance().getCacheDiskpath());
 		}
+		// long start = System.currentTimeMillis();
+		GWUtils.initDisk();
+		// long end = System.currentTimeMillis();
+		// logger.error("disk init times : {} ms", end - start);
+		
+		GWUtils.initEC();
 	}
 
 	public void start() throws Exception {
@@ -174,7 +172,6 @@ public class GW {
 
 	public void stop() throws Exception {
 		server.stop();
-		OSDClientManager.getInstance().shutDown();
-		ObjManagerHelper.getInstance().shutDown();
+		// OSDClientManager.getInstance().close();
 	}
 }

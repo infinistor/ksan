@@ -16,8 +16,8 @@ import com.pspace.backend.libs.Utility;
 
 public class LifecycleLogData extends LifecycleEventData {
 
-	public String Date;
-	public String Message;
+	public String date;
+	public String message;
 
 	public LifecycleLogData() {
 		Init();
@@ -25,25 +25,25 @@ public class LifecycleLogData extends LifecycleEventData {
 
 	public LifecycleLogData(LifecycleEventData data, String message) {
 		super(data);
-		this.Date = Utility.GetNowTime();
-		this.Message = message;
+		this.date = Utility.GetNowTime();
+		this.message = message;
 	}
 
-	public LifecycleLogData(String bucketName, String objectName, String date, String versionId, String uploadId,
-			String message) {
-		super(bucketName, objectName, versionId, uploadId);
-		this.Date = date;
-		this.Message = message;
+	public LifecycleLogData(String bucketName, String objectName, String date, String versionId, String storageClass, String uploadId, String message) {
+		super(bucketName, objectName, storageClass, versionId, uploadId);
+		this.date = date;
+		this.message = message;
 	}
 
 	@Override
 	public void Init() {
-		this.BucketName = "";
-		this.ObjectName = "";
-		this.VersionId = "";
-		this.UploadId = "";
-		this.Date = "";
-		this.Message = "";
+		this.bucketName = "";
+		this.objectName = "";
+		this.versionId = "";
+		this.storageClass = "";
+		this.uploadId = "";
+		this.date = "";
+		this.message = "";
 	}
 
 	@Override

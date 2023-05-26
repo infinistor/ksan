@@ -18,7 +18,6 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.gw.data.DataPutBucketPolicy;
 
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +39,7 @@ public class DeleteBucketPolicy extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketPolicy dataPutBucketPolicy = new DataPutBucketPolicy(s3Parameter);
-		dataPutBucketPolicy.extract();
-
-		checkPolicyBucket(GWConstants.ACTION_DELETE_BUCKET_POLICY, s3Parameter, dataPutBucketPolicy);
+		checkPolicyBucket(GWConstants.ACTION_DELETE_BUCKET_POLICY, s3Parameter);
 		
 		updateBucketPolicy(bucket, "");
 

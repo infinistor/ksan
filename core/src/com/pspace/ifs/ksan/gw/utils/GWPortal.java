@@ -17,8 +17,8 @@ import java.nio.file.Paths;
 
 import com.pspace.ifs.ksan.gw.identity.S3Region;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
-import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
+import com.pspace.ifs.ksan.libs.osd.OSDClientManager2;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
@@ -65,9 +65,21 @@ class ConfigUpdateCallback implements MQCallback{
 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
 
 		GWPortal.getInstance().getConfig();
-		// ObjManagerHelper.updateAllConfig();
 		
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+	}    
+}
+
+class ObjManagerConfigUpdateCallback implements MQCallback{
+	private static final Logger logger = LoggerFactory.getLogger(ObjManagerConfigUpdateCallback.class);
+	@Override
+	public MQResponse call(String routingKey, String body) {
+		logger.info(GWConstants.GWPORTAL_RECEIVED_OBJMANAGER_CONFIG_CHANGE);
+		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+
+		GWPortal.getInstance().getObjManagerConfig();
+		
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}    
 }
 
@@ -81,12 +93,12 @@ class DiskUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}
 }
@@ -101,12 +113,12 @@ class DiskpoolsUpdateCallback implements MQCallback{
 	
 			if (GWPortal.getInstance().isAppliedDiskpools()) {
 				GWPortal.getInstance().getDiskPoolsDetails();
-				ObjManagerHelper.updateAllDiskpools(routingKey, body);
+				ObjManagers.getInstance().notifyChangeDiskpools(routingKey, body);
 			} 
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -158,7 +170,7 @@ class UserUpdateCallBack implements MQCallback{
 			logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -181,7 +193,7 @@ class ServiceUpdateCallback implements MQCallback{
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 		} finally {
-			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		}
 	}    
 }
@@ -233,7 +245,7 @@ class RegionUpdateCallBack implements MQCallback{
 		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		// }
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }
 
@@ -289,7 +301,7 @@ public class GWPortal {
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(),
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -303,9 +315,26 @@ public class GWPortal {
 			PrintStack.logging(logger, ex);
 		}
 
+		try
+		{
+			MQCallback configureObjManagerCB = new ObjManagerConfigUpdateCallback();
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
+											   mqPort,
+											   agentConfig.getMQUser(),
+											   agentConfig.getMQPassword(),
+											   GWConstants.MQUEUE_NAME_OBJMANAGER_CONFIG + serviceId, //agentConfig.getServerId(), 
+											   GWConstants.MQUEUE_EXCHANGE_NAME, 
+											   false,
+											   "", 
+											   GWConstants.MQUEUE_NAME_OBJMANAGER_CONFIG_ROUTING_KEY, 
+											   configureObjManagerCB);
+		} catch (Exception ex){
+			PrintStack.logging(logger, ex);
+		}
+
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(),
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -321,7 +350,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(),
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -337,7 +366,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -353,7 +382,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -369,7 +398,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -385,7 +414,7 @@ public class GWPortal {
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -401,7 +430,7 @@ public class GWPortal {
 
 		try {
 			MQCallback userCB = new UserUpdateCallBack();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -417,7 +446,7 @@ public class GWPortal {
 
 		try {
 			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -433,7 +462,7 @@ public class GWPortal {
 
 		try {
 			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -449,7 +478,7 @@ public class GWPortal {
 
 		try {
 			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getPortalIp(), 
+			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
 											   mqPort,
 											   agentConfig.getMQUser(),
 											   agentConfig.getMQPassword(),
@@ -504,6 +533,40 @@ public class GWPortal {
                 GWConfig.getInstance().setConfig(jsonConfig);
 				GWConfig.getInstance().setVersion(version);
                 GWConfig.getInstance().saveConfigFile();
+				return;
+			}
+			throw new RuntimeException(new RuntimeException());
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
+		}
+    }
+
+	public void getObjManagerConfig() {
+        try {
+			HttpClient client = HttpClients
+                .custom()
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                .build();
+								
+			HttpGet getRequest = new HttpGet(GWConstants.HTTPS + agentConfig.getPortalIp() + GWConstants.COLON + agentConfig.getPortalPort() + GWConstants.PORTAL_REST_API_CONFIG_OBJMANAGER);
+			getRequest.addHeader(GWConstants.AUTHORIZATION, agentConfig.getPortalKey());
+
+			HttpResponse response = client.execute(getRequest);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				ResponseHandler<String> handler = new BasicResponseHandler();
+				String body = handler.handleResponse(response);
+                logger.info(body);
+
+                JSONParser parser = new JSONParser();
+                JSONObject jsonObject = (JSONObject)parser.parse(body);
+                JSONObject jsonData = (JSONObject)jsonObject.get(AgentConfig.DATA);
+				String version = String.valueOf(jsonData.get(AgentConfig.VERSION));
+                String config = (String)jsonData.get(AgentConfig.CONFIG);
+                logger.info(config);
+
+                JSONObject jsonConfig = (JSONObject)parser.parse(config);
 
 				ObjectManagerConfig.getInstance().setVersion(version);
                 ObjectManagerConfig.getInstance().setConfig(jsonConfig);
@@ -598,7 +661,7 @@ public class GWPortal {
 				}
 				DiskManager.getInstance().configure();
 				DiskManager.getInstance().saveFile();
-				OSDClientManager.getInstance().update((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
+				// OSDClientManager2.getInstance().update((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
 				
 				for (DiskPool diskpool : DiskManager.getInstance().getDiskPoolList()) {
 					for (Server server : diskpool.getServerList()) {

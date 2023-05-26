@@ -55,11 +55,12 @@ class KsanOptionParser(OptionParser):
                                                                                      'last' value specify the latest config version id.
           --Tolerance                                                              : diskpool's fault tolerance [disable|replication|ec(k:m)]
                                                                                      ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
-          --DiskPoolType                                                           : diskpool type[standard|archive]
+          --DiskPoolType                                                           : diskpool type[normal|archive|performance]
           --DefaultDiskPool                                                        : set user's default diskpool
           --StorageClass                                                           : user-defined storage class for s3-compatible
           --Host                                                                   : server ip or hostname 
           --DiskPath                                                               : osd disk's mount path 
+          --Mode                                                                   : disk mode [ro|readonly|rw|readwrite|ma|maintenance]
           
           --BucketName                                                             : specify the name of the bucket 
           --KeyName                                                                : specify the object key
@@ -231,7 +232,7 @@ class KsanConfigUtilOptParser(OptionParser):
               set                                   : apply config 
               get                                   : show the current applied config 
         [options]
-              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|
+              --ServiceType                         : service type [ksanAgent|ksanOSD|ksanGW|ksanObjManager|
                                                       ksanLifecycleManager|ksanReplicationManager|ksanLogManager]
               --ConfVerId                           : specific config version id
                                                       'last' value scpecifies the latest config version id 
@@ -273,13 +274,13 @@ class KsanDiskUtilOptParser(OptionParser):
               list                                  : show disk info 
               start                                 : start disk 
               stop                                  : stop disk 
-              set                                   : set disk read-only/read-write mode
+              set                                   : set disk read-only/read-write/maintenance mode
 
         [options]
               --ServerName                          : server name
               --DiskName                            : disk name 
               --DiskPath                            : disk mount path 
-              --Mode                                : disk mode [ro|readonly|rw|readwrite]
+              --Mode                                : disk mode [ro|readonly|rw|readwrite|ma|maintenance]
               --v                                   : show info in detail 
               --vv                                  : show info in more detail
               --Continue                            : display info in every n seconds
@@ -304,6 +305,7 @@ class KsanDiskUtilOptParser(OptionParser):
               5. set disk mode 
                 # ./ksan disk set --DiskName disk1 --Mode ro 
                 # ./ksan disk set --DiskName disk2 --Mode rw
+                # ./ksan disk set --DiskName disk2 --Mode ma
 
 
                 """
@@ -333,21 +335,22 @@ class KsanDiskpoolUtilOptParser(OptionParser):
               remove2disk                           : remove disk from diskpool
               set                                   : set diskpool default diskpool
               get                                   : get diskpool default diskpool
+              modify                                : modify diskpool's tolerance. ec is not supported
 
         [options]
               --DiskPoolName                        : diskpool name 
               --DiskName                            : disk name 
               --Tolerance                           : diskpool's fault tolerance [disable|replication|ec(k:m)]
                                                       ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
-              --DiskPoolType                        : diskpool type [standard|archive]
+              --DiskPoolType                        : diskpool type [normal|archive|performance]
               --DefaultDiskPool                     : system's default diskpool
               --v                                   : show info in detail 
               --Continue                            : show info in every n seconds
               
         [example]
               1. add diskpool   
-                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType standard
-                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance ec(6:2) --DiskPoolType archive
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType normal
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance 'ec(6:2)' --DiskPoolType archive
                 
               2. remove diskpool  
                 # ./ksan diskpool remove --DiskPoolName diskpool1 
@@ -362,10 +365,11 @@ class KsanDiskpoolUtilOptParser(OptionParser):
                 # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
                 
               5. set/get diskpool default diskpool 
-                # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1
+                # ./ksan diskpool set --:DefaultDiskPool --DiskPoolName diskpool1
                 # ./ksan diskpool get --DefaultDiskPool
                 
-
+              6. modify diskpool's tolerance
+                # ./ksan diskpool modify --DiskPoolName diskpool1 --Tolerance replication
                 """
         self.AddOption()
     def AddOption(self):
@@ -545,7 +549,7 @@ class KsanCbalanceUtilOptParser(OptionParser):
         self.add_option("--KeyName", "--keyname", "--Keyname", dest="Key", help='specify the object key')
         self.add_option("--VersionId", "--Versionid", "--versionid", dest="VersionId", help='specify the object version Id if you wish particular version of an object')
         self.add_option("--DstDiskName", "--Dstdiskname", "--dstdiskname", dest="DstDiskName", help='specify the destination diskName')
-        self.add_option("--EmptyDisk", "--Emptydisk", "--emptydisk", dest="EmptyDisk", help='set to enable empty disk operation')
+        self.add_option("--EmptyDisk", "--Emptydisk", "--emptydisk", dest="EmptyDisk", action='store_true', help='set to enable empty disk operation')
         self.add_option("--ObjId", "--objid", "--Objid", dest="ObjId", help='specify the object Id instead of object key')
         self.add_option("--OkLocalMove", "--oklocalmove", "--OkLocalmove", dest="OkLocalMove", help='allow to move to local an other disk(default:false)')
         self.add_option("--Size", "--size", dest="Size", help='specify the capacity to move in KB/KiB, MB/MiB, GB/GiB, TB/TiB, and PB/PiB units')

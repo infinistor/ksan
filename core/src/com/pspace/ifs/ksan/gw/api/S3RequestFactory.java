@@ -121,6 +121,8 @@ public class S3RequestFactory {
 	private final String OP_ADMIN_PUT_OBJECT = "ADMIN.PUT.OBJECT";
 	private final String OP_ADMIN_PUT_OBJECT_PART = "ADMIN.PUT.OBJECT.PART";
 	private final String OP_ADMIN_PUT_OBJECT_PART_COPY = "ADMIN.PUT.OBJECT.PART.COPY";
+	private final String OP_ADMIN_PUT_RESTORE_OBJECT = "AMDIN.POST.RESTORE.OBJECT";
+	private final String OP_ADMIN_PUT_STORAGE_MOVE = "ADMIN_POST.STORAGE.MOVE";
 
 	public S3RequestFactory() {
 		logger = LoggerFactory.getLogger(S3RequestFactory.class);
@@ -361,8 +363,18 @@ public class S3RequestFactory {
 						return new CompleteMultipartUpload(s3Parameter);
 					}
 				} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_RESTORE) != null) {
-					s3Parameter.setOperation(OP_POST_RESTOREOBJECT);
-					return new RestoreObject(s3Parameter);
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_PUT_RESTORE_OBJECT);
+						return new KsanRestoreObject(s3Parameter);
+					} else {
+						s3Parameter.setOperation(OP_POST_RESTOREOBJECT);
+						return new RestoreObject(s3Parameter);
+					}
+				} else if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_STORAGE_MOVE) != null) {
+					if (s3Parameter.isAdmin()) {
+						s3Parameter.setOperation(OP_ADMIN_PUT_STORAGE_MOVE);
+						return new KsanStorageMove(s3Parameter);
+					}
 				}
 
 				if (s3Parameter.getRequest().getHeader(HttpHeaders.CONTENT_TYPE) != null && 

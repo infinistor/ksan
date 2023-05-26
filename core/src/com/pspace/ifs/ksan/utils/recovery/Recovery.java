@@ -57,7 +57,7 @@ public class Recovery {
             try {
                 ret = fixObject(body);
                 if (ret ==  0) 
-                    return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+                    return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
             } catch(Exception ex){
                 logger.error(ex.getMessage());
                 System.out.println(ex);
@@ -67,7 +67,7 @@ public class Recovery {
         
        
         private int fixObject(String body) throws Exception{
-           OSDResponseParser rp = new OSDResponseParser(body, "MQ_SUCESS");
+           OSDResponseParser rp = new OSDResponseParser(body, "MQ_SUCCESS");
            String serverId;
            try{
                 // get object metadata
@@ -78,7 +78,7 @@ public class Recovery {
                 else
                     serverId = mt.getReplicaDisk().getOSDServerId();
                 OSDResponseParser resP = osdc.getObjectAttr(rp.bucketName, rp.objId, rp.versionId, rp.diskId, rp.diskPath, serverId);
-                if (!resP.errorCode.equals("MQ_SUCESS"))
+                if (!resP.errorCode.equals("MQ_SUCCESS"))
                     return 0; // ignore because object not exist in osd
                 
                 //OSDResponseParser resP = new OSDResponseParser(res);

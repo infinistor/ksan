@@ -13,7 +13,7 @@ package com.pspace.ifs.ksan.gw.object.osdclient;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 
 public class OSDClientPool extends GenericObjectPool<OSDClient> {
 

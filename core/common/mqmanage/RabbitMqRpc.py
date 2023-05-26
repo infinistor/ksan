@@ -17,8 +17,7 @@ import pika
 import json
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 if os.path.dirname(os.path.abspath(os.path.dirname(__file__))) not in sys.path:
-    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from Enums import EnumResponseResult
+	sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from const.mq import *
 from mqmanage import RabbitMqConfiguration
 

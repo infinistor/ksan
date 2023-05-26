@@ -44,7 +44,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchFields">검색필드 목록 (Name, Description, Path)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>디스크 풀 목록 객체</returns>
-		Task<ResponseList<ResponseDiskPool>> GetList(
+		Task<ResponseList<ResponseDiskPoolWithDisks>> GetList(
 			int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""
@@ -107,13 +107,19 @@ namespace PortalProviderInterface
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = "");
 
-		/// <summary>디스크 풀 등록</summary>
+		/// <summary>디스크풀에 디스크들을 추가한다.</summary>
 		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 요청 객체</param>
 		/// <returns>디스크 풀 등록 결과 객체</returns>
 		Task<ResponseData> AddDisks(string Id, RequestDisks Request);
 
-		/// <summary>디스크 풀 삭제</summary>
+		/// <summary>디스크풀에 할당된 디스크들을 변경한다.</summary>
+		/// <param name="Id">디스크 풀 아이디 / 이름</param>
+		/// <param name="Request">디스크 요청 객체</param>
+		/// <returns>디스크 풀 등록 결과 객체</returns>
+		Task<ResponseData> UpdateDisks(string Id, RequestDisks Request);
+
+		/// <summary>디스크풀에서 디스크를 삭제한다.</summary>
 		/// <param name="Id">디스크 풀 아이디 / 이름</param>
 		/// <param name="Request">디스크 요청 객체</param>
 		/// <returns>디스크 풀 삭제 결과 객체</returns>

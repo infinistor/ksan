@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package Replicator;
+package com.pspace.backend.replication.Replicator;
 
 import org.slf4j.LoggerFactory;
 
@@ -39,25 +39,14 @@ public class EventReplicator extends BaseReplicator {
 				Constants.MQ_BINDING_REPLICATION_LOG);
 	}
 
-	public EventReplicator(String RegionName) throws Exception {
-		super(LoggerFactory.getLogger(EventReplicator.class), RegionName);
-		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
-				Constants.MQ_KSAN_LOG_EXCHANGE,
-				Constants.MQ_EXCHANGE_OPTION_TOPIC,
-				Constants.MQ_BINDING_REPLICATION_LOG);
-	}
-
 	@Override
 	public MQResponse call(String routingKey, String body) {
 		try {
-			logger.debug("{} -> {}", routingKey, body);
 
 			if (!routingKey.equals(Constants.MQ_BINDING_REPLICATION_EVENT))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+
+			logger.debug("{} : {}", routingKey, body);
 
 			// 문자열을 ReplicationEventData 클래스로 변환
 			var Mapper = new ObjectMapper();
@@ -70,7 +59,7 @@ public class EventReplicator extends BaseReplicator {
 
 			try {
 				// 목적지 s3의 동작 여부 확인
-				if (!RegionCheck(event.TargetRegion)) {
+				if (!checkRegion(event.TargetRegion)) {
 					// 동작하지 않을 경우 실패처리
 					var data = new ReplicationLogData(event, Constants.EM_S3_NOT_WORKING);
 					mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG);
@@ -80,7 +69,7 @@ public class EventReplicator extends BaseReplicator {
 				AmazonS3 TargetClient = CreateClient(event);
 
 				// 전송 객체 생성
-				var Sender = new SendReplicator(SourceClient, TargetClient, mq, event, config.getReplicationPartSize());
+				var Sender = new SendReplicator(sourceClient, TargetClient, mq, event, config.partSize);
 
 				// 복제 시작
 				Sender.run();
@@ -95,6 +84,6 @@ public class EventReplicator extends BaseReplicator {
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 }

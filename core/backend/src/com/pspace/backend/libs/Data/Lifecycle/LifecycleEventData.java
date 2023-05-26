@@ -15,35 +15,55 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LifecycleEventData {
 
-	public String BucketName;
-	public String ObjectName;
-	public String VersionId;
-	public String UploadId;
+	public String bucketName;
+	public String objectName;
+	public String versionId;
+	public String storageClass;
+	public String uploadId;
 
 	public LifecycleEventData() {
 		Init();
 	}
 
 	public LifecycleEventData(LifecycleEventData data) {
-		this.BucketName = data.BucketName;
-		this.ObjectName = data.ObjectName;
-		this.VersionId = data.VersionId;
-		this.UploadId = data.UploadId;
+		this.bucketName = data.bucketName;
+		this.objectName = data.objectName;
+		this.versionId = data.versionId;
+		this.storageClass = data.storageClass;
+		this.uploadId = data.uploadId;
 	}
 
-	public LifecycleEventData(String bucketName, String objectName, String versionId, String uploadId) {
-		this.BucketName = bucketName;
-		this.ObjectName = objectName;
-		this.VersionId = versionId;
-		this.UploadId = uploadId;
+	public LifecycleEventData(String bucketName, String objectName) {
+		this.bucketName = bucketName;
+		this.objectName = objectName;
+		this.versionId = "";
+		this.storageClass = "";
+		this.uploadId = "";
+	}
+
+	public LifecycleEventData(String bucketName, String objectName, String versionId) {
+		this.bucketName = bucketName;
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.storageClass = "";
+		this.uploadId = "";
+	}
+
+	public LifecycleEventData(String bucketName, String objectName, String versionId, String storageClass, String uploadId) {
+		this.bucketName = bucketName;
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.storageClass = storageClass;
+		this.uploadId = uploadId;
 	}
 
 	public void Init()
 	{
-		this.BucketName = "";
-		this.ObjectName = "";
-		this.VersionId = "";
-		this.UploadId = "";
+		this.bucketName = "";
+		this.objectName = "";
+		this.versionId = "";
+		this.storageClass = "";
+		this.uploadId = "";
 	}
 
 	@Override

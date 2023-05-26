@@ -10,15 +10,19 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import org.json.simple.JSONObject;
+
 public class DISK{
     private String path;
     private String diskid;
+    private String diskName;
     private double totalSpace;
     private double usedSpace;
     private double reservedSpace;
     private double totalInode;
     private double usedInode;
     private String osdIp;
+    private String hostname;
     private String osdServerId;
     private String diskPoolId;
     private int role; // primary or replica
@@ -26,8 +30,10 @@ public class DISK{
     private DiskStatus status; // GOOD, STOPPED, BROKEN, UNKNOWN;
     
     public DISK(){
+        hostname = "";
         this.path = "";
         this.diskid = "";
+        diskName = "";
         this.role = 0;
         this.totalSpace = 0;
         this.usedSpace = 0;
@@ -78,6 +84,14 @@ public class DISK{
         return diskPoolId;
     }
     
+    public String getHostName(){
+        return hostname;
+    }
+    
+    public String getDiskName(){
+        return diskName;
+    }
+    
     public void setOSDServerId(String osdServerId){
         this.osdServerId = osdServerId;
     }
@@ -121,10 +135,28 @@ public class DISK{
         this.diskPoolId = diskPoolId;
     }
     
+    public void setHostName(String hostname){
+        this.hostname = hostname;
+    }
+    
+    public void setDiskName(String diskName){
+        this.diskName = diskName;
+    }
+    
     @Override
     public String toString(){
-        return String.format(
+         JSONObject jsonStr = new JSONObject();
+         jsonStr.put("hostname",getHostName());
+         jsonStr.put("Path", getPath());
+         jsonStr.put("OsdIP", getOsdIp());
+         jsonStr.put("diskPoolId", getDiskPoolId());
+         jsonStr.put("diskId", getId());
+         jsonStr.put("mode", getMode());
+         jsonStr.put("role", getRole());
+         jsonStr.put("status", getStatus());
+         return jsonStr.toJSONString();
+        /*return String.format(
                 "{ OsdIP : %s, diskPoolId : %s, path : %s, diskid : %s, mode : %s,  status : %s }", 
-                getOsdIp(), getDiskPoolId(), getPath(), getId(), getMode(), getStatus());
+                getOsdIp(), getDiskPoolId(), getPath(), getId(), getMode(), getStatus());*/
     }
 }

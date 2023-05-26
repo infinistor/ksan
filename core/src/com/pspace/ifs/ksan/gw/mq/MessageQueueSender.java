@@ -21,9 +21,9 @@ public class MessageQueueSender {
     ChannelPool channelPool;
     String exchangeName;
 
-    public MessageQueueSender(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey) 
+    public MessageQueueSender(String host, int port, String username, String password, String exchangeName, String exchangeOption, String routingKey, int poolSize) 
             throws Exception{
-        channelPool = new ChannelPool(host, port, username, password, exchangeName, exchangeOption, routingKey);
+        channelPool = new ChannelPool(host, port, username, password, exchangeName, exchangeOption, routingKey, poolSize);
         this.exchangeName = exchangeName;
     }
     
@@ -33,12 +33,15 @@ public class MessageQueueSender {
 
         BasicProperties props = new BasicProperties
                 .Builder()
-               .replyTo(replyQueueName)
-               .build();
-        
+                .replyTo(replyQueueName)
+                .build();
 
         channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());
         channelPool.returnChannel(channel);
         return 0;
+    }
+
+    public void close(){
+        channelPool.close();
     }
 }

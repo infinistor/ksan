@@ -162,6 +162,7 @@ public class ListObject{
         this.diskid = diskid;
         this.lastObjId = lastObjId;
         this.maxKeys = maxKeys;
+        this.versionIdMarker = null;
         listType = "utility";
         mongoQuery = null;
     }
@@ -189,7 +190,7 @@ public class ListObject{
         if (!listType.equalsIgnoreCase("utility"))
             return this.fetchList();
 
-        query1 = makeQueryWithDiskId(diskid, lastObjId);
+        query1 = makeQueryWithDiskId(diskid, lastObjId, versionIdMarker);
         if (query1 != null){
             if (dbm instanceof MongoDataRepository)
                 return dbm.getObjectList(bucketName, query1, maxKeys, 0);
@@ -209,21 +210,31 @@ public class ListObject{
         return dbm.getObjectListCount(bucketName, queryStmt);
     }
     
-    public void updateOffset(String diskid, String lastObjId){
+    public void updateOffset(String diskid, String lastObjId, String lastVersionId){
         if (!listType.equalsIgnoreCase("utility"))
             return;
         
         this.diskid = diskid;
         this.lastObjId = lastObjId;
+        this.versionIdMarker = lastVersionId;
     }
     
-    private Object makeQueryWithDiskId(String diskid, String lastObjId){
-         if (dbm instanceof MongoDataRepository){
+    private Object makeQueryWithDiskId(String diskid, String lastObjId, String lastVersionId){
+            boolean isVersionOn = true;
+            
+            if (lastVersionId == null)
+                isVersionOn = false;
+            else if (lastVersionId.equalsIgnoreCase("null") == true)
+                isVersionOn = false;
+            else if(lastVersionId.isEmpty())
+                isVersionOn = false;
+            
+            if (dbm instanceof MongoDataRepository){
              BasicDBObject orObjQuery;
-             
+               
              if (!diskid.isEmpty()){
                 BasicDBObject or[] = new BasicDBObject[2];
-                BasicDBObject and1[] = new BasicDBObject[2];
+                BasicDBObject and1[] = isVersionOn == false ? new BasicDBObject[2] : new BasicDBObject[3];
 
                 or[0] = new BasicDBObject("pdiskid", new BasicDBObject("$eq", diskid));
                 or[1] = new BasicDBObject("rdiskid", new BasicDBObject("$eq", diskid));
@@ -231,10 +242,19 @@ public class ListObject{
                 //orObjQuery  = new BasicDBObject("$or", or);
                 and1[0] =  new BasicDBObject("$or", or);
                 and1[1] = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                if (isVersionOn)
+                    and1[2] = new BasicDBObject("versionid", new BasicDBObject("$lt", lastVersionId));
                 orObjQuery  = new BasicDBObject("$and", and1);
              }
              else {
-                orObjQuery = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                if (!isVersionOn)
+                    orObjQuery = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                else{
+                   BasicDBObject and1[] = new BasicDBObject[2];
+                   and1[0] = new BasicDBObject("objId", new BasicDBObject("$gt", lastObjId));
+                   and1[1] = new BasicDBObject("versionid", new BasicDBObject("$lt", lastVersionId));
+                   orObjQuery  = new BasicDBObject("$and", and1);
+                }
                  //orObjQuery.put("bucketName", new BasicDBObject("$regex", bucketName).append("$options", "i"));
              }
              //System.out.println(" orObjQuery>>" +orObjQuery);
@@ -242,15 +262,30 @@ public class ListObject{
          }else{
             String sql; 
             if (!diskid.isEmpty()){
-                sql = "SELECT * FROM `" + bucketName + "`"
-                        + " WHERE (pdiskid like '" + diskid 
-                        + "' OR rdiskid like '" + diskid + "') AND objId > '"+ lastObjId + "' ORDER BY objId LIMIT " 
-                        + maxKeys ;
+                if (!isVersionOn){
+                    sql = "SELECT * FROM `" + bucketName + "`"
+                            + " WHERE (pdiskid like '" + diskid 
+                            + "' OR rdiskid like '" + diskid + "') AND objId > '"+ lastObjId + "' ORDER BY objId LIMIT " 
+                            + maxKeys ;
+                }
+                else {
+                    sql = "SELECT * FROM `" + bucketName + "`"
+                            + " WHERE (pdiskid like '" + diskid 
+                            + "' OR rdiskid like '" + diskid + "') AND objId > '"+ lastObjId + "' AND versionid < '"+ lastVersionId +"' ORDER BY objId LIMIT " 
+                            + maxKeys ;
+                }
             }
             else {
-                sql = "SELECT * FROM `" + bucketName + "`"
-                        + " WHERE objId > '"+ lastObjId +  "' ORDER BY objId LIMIT " 
-                        + maxKeys;
+                if (!isVersionOn){
+                    sql = "SELECT * FROM `" + bucketName + "`"
+                            + " WHERE objId > '"+ lastObjId +  "' ORDER BY objId LIMIT " 
+                            + maxKeys;
+                }
+                else{
+                    sql = "SELECT * FROM `" + bucketName + "`"
+                            + " WHERE objId > '"+ lastObjId +  "' AND versionid < '"+ lastVersionId +"' ORDER BY objId LIMIT " 
+                            + maxKeys; 
+                }
             }
             System.out.println(" SqlQuery>>" + sql);
             return sql;
@@ -259,7 +294,7 @@ public class ListObject{
     
     private Object makeQueryWithDiskIdToCount(String diskid){
         if (dbm instanceof MongoDataRepository){
-            return makeQueryWithDiskId(diskid, " ");
+            return makeQueryWithDiskId(diskid, " ", null);
         }
         
         String sql;
@@ -349,6 +384,7 @@ public class ListObject{
         if (dbm instanceof MongoDataRepository){
            String prefixStr;
            BasicDBObject andObjQuery;
+           BasicDBObject objQuery;
            List<BasicDBObject> and = new ArrayList();
            
            if (!listType.equalsIgnoreCase("listObjectVersion")){
@@ -366,15 +402,29 @@ public class ListObject{
            }
            
            if (listType.equalsIgnoreCase("listObjectVersion")){
-                if (bMarker && !bVersionIdMarker)
+               
+                if (bMarker && !bVersionIdMarker){
+                    //objQuery = new BasicDBObject("objKey", marker);
                     and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
+                }
 
                 if (bVersionIdMarker){
-                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
+                    
+                    /*and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker)));//objkey
                     if (!versionIdMarker.equalsIgnoreCase("null"))
                         and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", versionIdMarker)));
                     else
-                        and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", "")));
+                        and.add(new BasicDBObject("versionid", new BasicDBObject("$gte", "")));*/
+                    if (!versionIdMarker.equalsIgnoreCase("null")){
+                        objQuery = new BasicDBObject("objKey", marker);
+                        objQuery.append("versionid", new BasicDBObject("$lt", versionIdMarker));
+                        and.add(objQuery);
+                    } 
+                    else{
+                        and.add(new BasicDBObject("versionid", versionIdMarker));
+                    }
+                    
+                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));
                 }
            }
            else{
@@ -401,7 +451,12 @@ public class ListObject{
  
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
-           else
+           else if (listType.equalsIgnoreCase("listObjectVersion")){
+               if (!versionIdMarker.equalsIgnoreCase("null"))
+                    andObjQuery = new BasicDBObject("$or", and.toArray());
+               else
+                    andObjQuery = new BasicDBObject("$and", and.toArray());  
+           } else
                andObjQuery = new BasicDBObject("$and", and.toArray());
            
            //System.out.println( "andObjQuery >>" + andObjQuery);
@@ -414,6 +469,8 @@ public class ListObject{
         mongoQuery = makeMongoQuery();
         if (mongoQuery != null){
             logger.debug(" >>mongo query : {}", mongoQuery.toString());
+            if (listType.equalsIgnoreCase("listObjectVersion")) 
+                logger.error(" >>mongo query : {}", mongoQuery.toString());
             return;
         }
         
@@ -426,16 +483,9 @@ public class ListObject{
     }
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{
-        S3Metadata s3Metadata = new S3Metadata();
-        ObjectMapper jsonMapper = new ObjectMapper();
+        //S3Metadata s3Metadata = new S3Metadata();
+       S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
         
-        try {
-            s3Metadata = jsonMapper.readValue(mt.getMeta(), S3Metadata.class);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new Exception(e.getMessage());  
-        }
-
         s3Metadata.setName(objKey);
         if (listType.equalsIgnoreCase("listObjectVersion")){
            s3Metadata.setVersionId(mt.getVersionId());

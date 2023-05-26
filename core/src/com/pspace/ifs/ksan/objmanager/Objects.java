@@ -44,7 +44,7 @@ public class Objects {
         this.obmCache = obmCache;
         this.bucketMGT = bucketMGT;
     }
-       
+           
     private Metadata _open(String bucketName, String key, String versionId)
             throws ResourceNotFoundException{
         Metadata mt;
@@ -115,7 +115,10 @@ public class Objects {
         
         try {
             mt = _open(bucketName, key, versionId);
-            return mt; 
+            if (mt.getPrimaryDisk().getDiskPoolId().equals(diskPoolId))
+                return mt; 
+            else
+              return _create(bucketName, key, versionId, diskPoolId, algorithm);  
         } catch (ResourceNotFoundException ex) {
             mt = _create(bucketName, key, versionId, diskPoolId, algorithm); 
             return mt; 

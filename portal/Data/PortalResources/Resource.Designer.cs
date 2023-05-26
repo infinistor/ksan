@@ -954,9 +954,9 @@ namespace PortalResources {
         /// <summary>
         ///   User Id is invalid과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string EM_COMMON_ACCOUNT_INVALID_USERID {
+        public static string EM_COMMON_ACCOUNT_INVALID_USER_ID {
             get {
-                return ResourceManager.GetString("EM_COMMON_ACCOUNT_INVALID_USERID", resourceCulture);
+                return ResourceManager.GetString("EM_COMMON_ACCOUNT_INVALID_USER_ID", resourceCulture);
             }
         }
         
@@ -1227,6 +1227,15 @@ namespace PortalResources {
         public static string EM_COMMON_API_KEY_REQUIRE_KEY_NAME {
             get {
                 return ResourceManager.GetString("EM_COMMON_API_KEY_REQUIRE_KEY_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Case/case numbers only과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON_INVALID_NAME {
+            get {
+                return ResourceManager.GetString("EM_COMMON_INVALID_NAME", resourceCulture);
             }
         }
         
@@ -1926,18 +1935,18 @@ namespace PortalResources {
         /// <summary>
         ///   DEFAULT_USER_ACCESSKEY과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string ENV_DEFAULT_USER_ACCESSKEY {
+        public static string ENV_DEFAULT_USER_ACCESS_KEY {
             get {
-                return ResourceManager.GetString("ENV_DEFAULT_USER_ACCESSKEY", resourceCulture);
+                return ResourceManager.GetString("ENV_DEFAULT_USER_ACCESS_KEY", resourceCulture);
             }
         }
         
         /// <summary>
         ///   DEFAULT_USER_SECRETKEY과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string ENV_DEFAULT_USER_SECRETKEY {
+        public static string ENV_DEFAULT_USER_SECRET_KEY {
             get {
-                return ResourceManager.GetString("ENV_DEFAULT_USER_SECRETKEY", resourceCulture);
+                return ResourceManager.GetString("ENV_DEFAULT_USER_SECRET_KEY", resourceCulture);
             }
         }
         
@@ -2151,9 +2160,9 @@ namespace PortalResources {
         /// <summary>
         ///   InternalService API KEY과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
-        public static string INTERNALSERVICE_API_KEY {
+        public static string INTERNAL_SERVICE_API_KEY {
             get {
-                return ResourceManager.GetString("INTERNALSERVICE_API_KEY", resourceCulture);
+                return ResourceManager.GetString("INTERNAL_SERVICE_API_KEY", resourceCulture);
             }
         }
         
@@ -3904,6 +3913,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Performance과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKPOOL_CLASS_TYPE_PERFORMANCE {
+            get {
+                return ResourceManager.GetString("UL_DISKPOOL_CLASS_TYPE_PERFORMANCE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Standard과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string UL_DISKPOOL_CLASS_TYPE_STANDARD {
@@ -4026,6 +4044,15 @@ namespace PortalResources {
         public static string UL_DISKS_READ_WRITE_MODE {
             get {
                 return ResourceManager.GetString("UL_DISKS_READ_WRITE_MODE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Maintenance과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string UL_DISKS_READ_WRITE_MODE_MAINTENANCE {
+            get {
+                return ResourceManager.GetString("UL_DISKS_READ_WRITE_MODE_MAINTENANCE", resourceCulture);
             }
         }
         

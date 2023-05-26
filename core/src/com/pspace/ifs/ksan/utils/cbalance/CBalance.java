@@ -151,7 +151,7 @@ public class CBalance {
         long checked_object = 0;
         List<Metadata> list;
         List<Bucket> bList;
-        HashMap<String, String> lastObjectMap = new HashMap();;
+        HashMap<String, String> lastObjectMap = new HashMap();
         
         bList = getBucketList(bucketName);
         total_object = countEntry(bList,  srcDiskId); 
@@ -175,6 +175,14 @@ public class CBalance {
                     lastObjId = mt.getObjId();
                     checked_object++;
                     
+                    if (!dstDiskId.isEmpty()){
+                        if (mt.getPrimaryDisk().getId().equals(dstDiskId))
+                            continue;
+                        else if (mt.isReplicaExist()){
+                            if (mt.getReplicaDisk().getId().equals(dstDiskId))
+                                continue;
+                        }
+                    }
                     if (mt.getSize() == 0 || mt.getSize() > amountToMove)
                         continue;
                     
@@ -313,8 +321,17 @@ public class CBalance {
         return objm.moveObject1(bucket, key, versionId, srcDiskId, dstDiskId);
     }
     
+    public int moveSingleObjectWithKeyWithOnlyDist(String bucket, String key, String versionId,  String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+        //System.out.format("1 -bucket : %s key : %s versionId : %s \n", bucket, key, versionId);
+        Metadata mt = obmu.getObjectWithPath(bucket, key, versionId);
+        //System.out.format("2 -bucket : %s key : %s versionId : %s \n", bucket, key, versionId);
+        String srcDiskId = selectSourceDisk(mt, dstDiskId);
+        //System.out.format("3 -bucket : %s key : %s versionId : %s  pD : %s(%s) rD : %s(%s) srcDiskId : %s\n", bucket, key, versionId, mt.getPrimaryDisk().getDiskName(), mt.getPrimaryDisk().getId(), mt.getReplicaDisk().getDiskName(), mt.getReplicaDisk().getId(), srcDiskId);
+        return objm.moveObject1(bucket, key, versionId, srcDiskId, dstDiskId);
+    }
+    
     public int moveSingleObject(String bucket, String objId, String versionId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
-        Metadata mt = obmu.getObject(bucket, objId);
+        Metadata mt = obmu.getObject(bucket, objId, versionId);
         return objm.moveObject(bucket, objId,  versionId, mt.getPrimaryDisk().getId());
     }
     
@@ -324,5 +341,31 @@ public class CBalance {
     
     public int moveSingleObject(String bucket, String objId, String versionId, String srcDiskId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
         return objm.moveObject(bucket, objId, versionId, srcDiskId, dstDiskId);
+    }
+    
+    private String selectSourceDisk(Metadata mt, String dstDiskId) throws ResourceNotFoundException{
+        String srcDiskId;
+        
+        try {
+           srcDiskId = mt.getReplicaDisk().getId();
+           if (dstDiskId == null ? srcDiskId == null : dstDiskId.equals(srcDiskId) )
+               srcDiskId = mt.getPrimaryDisk().getId();
+           else if ( dstDiskId.equals(mt.getPrimaryDisk().getId()))
+               srcDiskId = mt.getReplicaDisk().getId();
+           else
+               srcDiskId = mt.getPrimaryDisk().getId();
+       }
+       catch (ResourceNotFoundException ex){
+           srcDiskId = mt.getPrimaryDisk().getId();
+           if (srcDiskId.equals(dstDiskId))
+               throw new ResourceNotFoundException("The source and distination are the same!");
+       }
+        return srcDiskId;
+    }
+    
+    public int moveSingleObjectWithOnlyDist(String bucket, String objId, String versionId, String dstDiskId) throws ResourceNotFoundException, AllServiceOfflineException, Exception{
+       Metadata mt = obmu.getObject(bucket, objId, versionId);
+       String srcDiskId = selectSourceDisk(mt, dstDiskId);
+       return objm.moveObject(bucket, objId, versionId, srcDiskId, dstDiskId);
     }
 }

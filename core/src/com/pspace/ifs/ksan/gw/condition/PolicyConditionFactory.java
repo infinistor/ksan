@@ -64,7 +64,7 @@ public class PolicyConditionFactory {
 			case PolicyCondition.IP_ADDRESS:
 				return new IpAddress(jsonNode);
 			case PolicyCondition.NOT_IP_ADDRESS:
-				return new IpAddress(jsonNode);
+				return new NotIpAddress(jsonNode);
 			default:
 				logger.error(PolicyCondition.LOG_UNKNOWN_CONDITION_TYPE);
 				break;

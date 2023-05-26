@@ -118,6 +118,15 @@ def isStringIp(String):
     else:
         return False
 
+def IdFinder(String):
+    IdFinder = re.compile("([\d\w]{8}-[\d\w]{4}-[\d\w]{4}-[\d\w]{4}-[\d\w]{12})")
+    IdType = IdFinder.search(String)
+    if IdType:
+        Id = IdType.groups()[0]
+        return True, Id
+    else:
+        return False, None
+
 
 def GetIpFromHostname(String):
     """

@@ -14,6 +14,7 @@ using PortalResources;
 using MTLib.CommonData;
 using MTLib.Core;
 using PortalData.Enums;
+using PortalData.ValidationAttributes;
 
 namespace PortalData.Requests.Disks
 {
@@ -21,7 +22,8 @@ namespace PortalData.Requests.Disks
 	public class RequestDiskPool : CommonRequestData
 	{
 		/// <summary>디스크 풀 이름</summary>
-		[Required(ErrorMessageResourceName = "EM_DISK_POOLS_REQUIRE_NAME", ErrorMessageResourceType = typeof(Resource))]
+
+		[Name(ErrorMessageResourceName = "EM_COMMON_INVALID_NAME", ErrorMessageResourceType = typeof(Resource))]
 		public string Name
 		{
 			get => m_name;
@@ -37,5 +39,11 @@ namespace PortalData.Requests.Disks
 		
 		/// <summary> 복제 타입 </summary>
 		public EnumDiskPoolReplicaType ReplicationType { get; set; } = EnumDiskPoolReplicaType.OnePlusOne;
+
+		/// <summary> EC M 값 </summary>
+		public int M { get; set; } = 2;
+		
+		/// <summary> EC K 값 </summary>
+		public int K { get; set; } = 6;
 	}
 }

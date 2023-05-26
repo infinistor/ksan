@@ -33,7 +33,7 @@ import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
 import com.pspace.ifs.ksan.libs.disk.Server;
-import com.pspace.ifs.ksan.libs.OSDClient;
+import com.pspace.ifs.ksan.libs.osd.OSDClient;
 import com.pspace.ifs.ksan.libs.data.ECPart;
 
 import org.slf4j.Logger;
@@ -173,7 +173,7 @@ public class DoECPriObject implements Runnable {
             for (DiskPool pool : DiskManager.getInstance().getDiskPoolList()) {
                 for (Server server : pool.getServerList()) {
                     for (Disk disk : server.getDiskList()) {
-                        ECPart sendECPart = new ECPart(server.getIp(), disk.getPath(), false);
+                        ECPart sendECPart = new ECPart(server.getIp(), disk.getId(), disk.getPath(), false);
                         sendList.add(sendECPart);
                     }
                 }
@@ -182,6 +182,10 @@ public class DoECPriObject implements Runnable {
             byte[] buffer = new byte[Constants.MAXBUFSIZE];
             for (int i = 0, j = 1; i < ends.length; i++) {
                 logger.debug("file : {}", files[i].getName());
+                if (!files[i].getName().endsWith(".fec")) {
+                    files[i].delete();
+                    continue;
+                }
                 for (ECPart sendECPart : sendList) {
                     String ecPartPath = KsanUtils.makeECDirectory(files[i].getName().substring(1), sendECPart.getDiskPath() + Constants.SLASH + Constants.EC_DIR) + Constants.SLASH + Constants.POINT + fileName;
                     if (!sendECPart.isProcessed()) {
@@ -195,7 +199,6 @@ public class DoECPriObject implements Runnable {
                             } catch (IOException e) {
                                 PrintStack.logging(logger, e);
                             }
-                            // FileUtils.copyFile(files[i], file);
                             sendECPart.setProcessed(true);
                         } else {
                             long fileLength = files[i].length();

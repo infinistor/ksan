@@ -16,42 +16,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LogManagerConfig {
 
-	@JsonProperty("ksan.region")
-	public String Region;
+	@JsonProperty("db_repository")
+	public String dbType;
 
-	@JsonProperty("logM.db_repository")
-	public String DBType;
+	@JsonProperty("db_host")
+	public String dbHost;
 
-	@JsonProperty("logM.db_host")
-	public String DBHost;
+	@JsonProperty("db_port")
+	public int dbPort;
 
-	@JsonProperty("logM.db_port")
-	public int DBPort;
+	@JsonProperty("db_name")
+	public String dbName;
 
-	@JsonProperty("logM.db_name")
-	public String DBName;
+	@JsonProperty("db_user")
+	public String dbUser;
 
-	@JsonProperty("logM.db_user")
-	public String DBUser;
+	@JsonProperty("db_password")
+	public String dbPassword;
 
-	@JsonProperty("logM.db_password")
-	public String DBPassword;
+	@JsonProperty("db_pool_size")
+	public int dbPoolSize;
 
-	@JsonProperty("logM.db_pool_size")
-	public int DBPoolSize;
+	@JsonProperty("db_expires")
+	public int dbExpires;
+
+	@JsonProperty("check_interval")
+	public int checkInterval;
+
+	@JsonProperty("meter_minute")
+	public int meterMinute;
+
+	@JsonProperty("assert_hour")
+	public int assertHour;
 	
-	@JsonProperty("logM.db_expires")
-	public int DBExpires;
-	
-	@JsonProperty("logM.check_interval")
-	public int CheckInterval;
+	@JsonProperty("thread_count")
+	public int threadCount;
 
-	@JsonProperty("logM.meter_minute")
-	public int MeterMinute;
-	
-	@JsonProperty("logM.assert_hour")
-	public int AssertHour;
-	
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
@@ -60,5 +60,19 @@ public class LogManagerConfig {
 		} catch (JsonProcessingException e) {
 			return "";
 		}
+	}
+
+	public DBConfig getDBConfig() {
+		var config = new DBConfig();
+		config.Type = dbType;
+		config.Host = dbHost;
+		config.Port = dbPort;
+		config.DatabaseName = dbName;
+		config.User = dbUser;
+		config.Password = dbPassword;
+		config.PoolSize = dbPoolSize;
+		config.Expires = dbExpires;
+
+		return config;
 	}
 }

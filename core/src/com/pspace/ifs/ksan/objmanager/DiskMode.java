@@ -15,5 +15,5 @@ package com.pspace.ifs.ksan.objmanager;
  * @author legesse
  */
 public enum DiskMode {
-     READWRITE, READONLY; 
+     READWRITE, READONLY, MAINTENANCE; 
 }

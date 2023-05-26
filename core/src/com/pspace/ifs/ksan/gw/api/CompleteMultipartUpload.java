@@ -31,7 +31,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
-import com.pspace.ifs.ksan.gw.data.DataCompleteMultipartUpload;
+import com.google.common.base.Strings;
+
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.CompleteMultipartUploadRequest;
@@ -39,8 +41,10 @@ import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -63,6 +67,7 @@ public class CompleteMultipartUpload extends S3Request {
 	@Override
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_START);
+		long beforeTime = System.currentTimeMillis();
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -75,13 +80,10 @@ public class CompleteMultipartUpload extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataCompleteMultipartUpload dataCompleteMultipartUpload = new DataCompleteMultipartUpload(s3Parameter);
-		dataCompleteMultipartUpload.extract();
-
-		String uploadId = dataCompleteMultipartUpload.getUploadId();
+		String uploadId = s3RequestData.getUploadId();
 		s3Parameter.setUploadId(uploadId);
 
-		String multipartXml = dataCompleteMultipartUpload.getMultipartXml();
+		String multipartXml = s3RequestData.getMultipartXml();
 		XmlMapper xmlMapper = new XmlMapper();
 		CompleteMultipartUploadRequest completeMultipartUpload = new CompleteMultipartUploadRequest();
 		try {
@@ -136,6 +138,10 @@ public class CompleteMultipartUpload extends S3Request {
 		for (Iterator<Map.Entry<Integer, Part>> it = xmlListPart.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<Integer, Part> entry = it.next();
 			String eTag = entry.getValue().getPartETag().replace(GWConstants.DOUBLE_QUOTE, "");
+			// if (eTag.equals(GWConstants.PARTCOPY_MD5)) {
+			// 	logger.debug("this part is part copy");
+			// 	continue;
+			// }
 			if (listPart.containsKey(entry.getKey())) {
 				Part part = listPart.get(entry.getKey());
 				if (eTag.compareTo(part.getPartETag()) == 0 ) {
@@ -166,20 +172,13 @@ public class CompleteMultipartUpload extends S3Request {
 		}
 
 		String acl = multipart.getAcl();
-		String meta = multipart.getMeta();
-		S3Metadata s3Metadata = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, meta);
-			s3Metadata = objectMapper.readValue(meta, S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
+		s3Metadata.setUploadId(uploadId);
 		
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		S3Encryption encryption = new S3Encryption("upload", s3Metadata, s3Parameter);
+		encryption.build();
 		
 		// check bucket versioning, and set versionId
 		String versioningStatus = getBucketVersioning(bucket);
@@ -221,17 +220,16 @@ public class CompleteMultipartUpload extends S3Request {
 			final AtomicReference<S3Object> s3Object = new AtomicReference<>();
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
-			S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
-			
-			ObjectMapper jsonMapper = new ObjectMapper();
-			
+			// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
+			IObjectManager objManager = new VFSObjectManager();
 			SortedMap<Integer, Part> constListPart = listPart;
-
+			Metadata constObjMeta = objMeta;
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
 					try {
-						s3Object.set(objectOperation.completeMultipart(constListPart));
+						// s3Object.set(objectOperation.completeMultipart(constListPart));
+						s3Object.set(objManager.completeMultipart(s3Parameter, constObjMeta, encryption, constListPart));
 					} catch (Exception e) {
 						S3Excp.set(e);
 					}
@@ -253,6 +251,7 @@ public class CompleteMultipartUpload extends S3Request {
 					throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 				}
 				xmlStreamWriter.writeCharacters(GWConstants.NEWLINE);
+				xmlStreamWriter.flush();
 			}
 
 			if( S3Excp.get() != null) {
@@ -269,6 +268,7 @@ public class CompleteMultipartUpload extends S3Request {
 			StringBuilder sb = new StringBuilder();
 			for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext();) {
 				Map.Entry<Integer, Part> entry = it.next();
+				logger.debug("etag : {}", entry.getValue().getPartETag());
 				sb.append(entry.getValue().getPartETag());
 			}
 			
@@ -292,15 +292,34 @@ public class CompleteMultipartUpload extends S3Request {
 			s3Metadata.setDeleteMarker(s3Object.get().getDeleteMarker());
 			s3Metadata.setVersionId(s3Object.get().getVersionId());
 			
-			String jsonmeta = "";
-			try {
-				// jsonMapper.setSerializationInclusion(Include.NON_NULL);
-				jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-			} catch (JsonProcessingException e) {
-				PrintStack.logging(logger, e);
-				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			if (!Strings.isNullOrEmpty(encryption.getCustomerAlgorithm())) {
+				s3Metadata.setCustomerAlgorithm(encryption.getCustomerAlgorithm());
 			}
-		
+			if (!Strings.isNullOrEmpty(encryption.getCustomerKey())) {
+				s3Metadata.setCustomerKey(encryption.getCustomerKey());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getCustomerKeyMD5())) {
+				s3Metadata.setCustomerKeyMD5(encryption.getCustomerKeyMD5());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getServerSideEncryption())) {
+				s3Metadata.setServerSideEncryption(encryption.getServerSideEncryption());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsMasterKeyId())) {
+				s3Metadata.setKmsKeyId(encryption.getKmsMasterKeyId());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsKeyPath())) {
+				s3Metadata.setKmsKeyPath(encryption.getKmsKeyPath());
+			}
+
+			if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
+				s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
+			}
+
+			String jsonmeta = s3Metadata.toString();
 			int result = 0;
 			try {
 				if (!GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
@@ -317,11 +336,10 @@ public class CompleteMultipartUpload extends S3Request {
 				logger.error(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_FAILED, bucket, object);
 			}
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_INFO, bucket, object, s3Object.get().getFileSize(), s3Object.get().getEtag(), acl, versionId);
-			objMultipart.abortMultipartUpload(uploadId);
-		} catch (IOException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		} catch (XMLStreamException e) {
+			// objMultipart.abortMultipartUpload(uploadId);
+			long afterTime = System.currentTimeMillis();
+			logger.debug("CompleteMultipartUpload ... uploadId:{}, worktime : {} ms", uploadId, (afterTime - beforeTime));
+		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}

@@ -19,7 +19,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataListObjectVersions;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
@@ -53,20 +52,17 @@ public class ListObjectVersions extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataListObjectVersions dataListObjectVersions = new DataListObjectVersions(s3Parameter);
-		dataListObjectVersions.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_VERSIONS, s3Parameter, dataListObjectVersions)) {
-			checkGrantBucket(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ);
+		if (!checkPolicyBucket(GWConstants.ACTION_LIST_BUCKET_VERSIONS, s3Parameter)) {
+			checkGrantBucket(false, GWConstants.GRANT_READ);
 		}
 
-		String delimiter = dataListObjectVersions.getDelimiter();
-		String encodingType = dataListObjectVersions.getEncodingType();
-		String keyMarker = dataListObjectVersions.getKeyMarker();
-		String maxKeys = dataListObjectVersions.getMaxKeys();
-		String prefix = dataListObjectVersions.getPrefix();
-		String versionIdMarker = dataListObjectVersions.getVersionIdMarker();
+		String delimiter = s3RequestData.getDelimiter();
+		String encodingType = s3RequestData.getEncodingType();
+		String keyMarker = s3RequestData.getKeyMarker();
+		String maxKeys = s3RequestData.getMaxKeys();
+		String prefix = s3RequestData.getPrefix();
+		String versionIdMarker = s3RequestData.getVersionIdMarker();
 
 		S3ObjectList s3ObjectList = new S3ObjectList();
 		s3ObjectList.setDelimiter(delimiter);
@@ -151,7 +147,7 @@ public class ListObjectVersions extends S3Request {
 			for (S3Metadata s3Metadata : objectListParameter.getObjects()) {
 				if (s3Metadata != null) {
 					if (s3Metadata.getDeleteMarker() != null) {
-						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARK) == 0) {
+						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARKER) == 0) {
 							xmlStreamWriter.writeStartElement(GWConstants.XML_DELETE_MARKER);	
 						} else {
 							xmlStreamWriter.writeStartElement(GWConstants.VERSION);
@@ -173,7 +169,7 @@ public class ListObjectVersions extends S3Request {
 						writeOwnerInfini(xmlStreamWriter, s3Metadata.getOwnerId(), s3Metadata.getOwnerName());
 						xmlStreamWriter.writeEndElement();
 
-						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARK) == 0) {
+						if (s3Metadata.getDeleteMarker().compareTo(GWConstants.OBJECT_TYPE_MARKER) == 0) {
 							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MARKER, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());
 						} else {
 							logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_INFO, s3Metadata.getName(), s3Metadata.getLastModified(), s3Metadata.getVersionId());

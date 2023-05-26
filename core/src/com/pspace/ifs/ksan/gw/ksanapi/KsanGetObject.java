@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
-import com.pspace.ifs.ksan.gw.data.DataGetObject;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -32,8 +31,10 @@ import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.ResultRange;
-import com.pspace.ifs.ksan.gw.object.S3ObjectEncryption;
-import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.encryption.S3Encryption;
+// import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;
+import com.pspace.ifs.ksan.gw.object.IObjectManager;
+import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -58,16 +59,16 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 		logger.debug(GWConstants.LOG_BUCKET_OBJECT, bucket, object);
 
 		GWUtils.checkCors(s3Parameter);
-
-		DataGetObject dataGetObject = new DataGetObject(s3Parameter);
-		dataGetObject.extract();
 		
-		String versionId = dataGetObject.getVersionId();
-		String range = dataGetObject.getRange();
-		String ifMatch = dataGetObject.getIfMatch();
-		String ifNoneMatch = dataGetObject.getIfNoneMatch();
-		String ifModifiedSince = dataGetObject.getIfModifiedSince();
-		String ifUnmodifiedSince = dataGetObject.getIfUnmodifiedSince();
+		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
+		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();
+		String customerKeyMD5 = s3RequestData.getServerSideEncryptionCustomerKeyMD5();
+		String versionId = s3RequestData.getVersionId();
+		String range = s3RequestData.getRange();
+		String ifMatch = s3RequestData.getIfMatch();
+		String ifNoneMatch = s3RequestData.getIfNoneMatch();
+		String ifModifiedSince = s3RequestData.getIfModifiedSince();
+		String ifUnmodifiedSince = s3RequestData.getIfUnmodifiedSince();
 
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
@@ -79,22 +80,12 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 
-		S3Metadata s3Metadata = null;
-		
-		// meta info
-		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			logger.debug(GWConstants.LOG_META, objMeta.getMeta());
-			s3Metadata = objectMapper.readValue(objMeta.getMeta(), S3Metadata.class);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
+		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
 		// check customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
-			if (!Strings.isNullOrEmpty(dataGetObject.getServerSideEncryptionCustomerKey())) {
-				if (!s3Metadata.getCustomerKey().equals(dataGetObject.getServerSideEncryptionCustomerKey())) {
+			if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
+				if (!s3Metadata.getCustomerKey().equals(s3RequestData.getServerSideEncryptionCustomerKey())) {
 					logger.warn(GWConstants.LOG_GET_OBJECT_CUSTOMER_KEY_NO_MATCH);
 					throw new GWException(GWErrorCode.KEY_DOES_NOT_MATCH, s3Parameter);
 				}
@@ -136,16 +127,23 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 		}
 
 		// check encryption
-		S3ObjectEncryption s3ObjectEncryption = new S3ObjectEncryption(s3Parameter, s3Metadata);
-		s3ObjectEncryption.build();
+		S3Encryption s3Encryption;
+		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
+			s3Encryption = new S3Encryption(customerAlgorithm, customerKey, customerKeyMD5, s3Parameter);
+		} else {
+			s3Encryption = new S3Encryption("get", s3Metadata, s3Parameter);
+		}
+		s3Encryption.build();
 
 		ResultRange resultRange = new ResultRange(range, s3Metadata, s3Parameter);
 
 		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, resultRange.getContentLengthHeaders(), resultRange.getStreamSize()); 
 		
-		S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
+		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3Encryption);
+		IObjectManager objectManager = new VFSObjectManager();
 		try {
-			objectOperation.getObject(resultRange.getS3Range());
+			// objectOperation.getObject(resultRange.getS3Range());
+			objectManager.getObject(s3Parameter, objMeta, s3Encryption, resultRange.getS3Range());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
@@ -216,8 +214,8 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5, metadata.getCustomerKeyMD5());
 		}
 		
-		if (!Strings.isNullOrEmpty(metadata.getServersideEncryption())) {
-			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServersideEncryption());
+		if (!Strings.isNullOrEmpty(metadata.getServerSideEncryption())) {
+			response.addHeader(GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION, metadata.getServerSideEncryption());
 		}
 
 		if (metadata.getLockMode() != null) {
@@ -232,8 +230,8 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 			response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
 		}
 
-		if (metadata.getUserMetadataMap() != null) {
-			for (Map.Entry<String, String> entry : metadata.getUserMetadataMap().entrySet()) {
+		if (metadata.getUserMetadata() != null) {
+			for (Map.Entry<String, String> entry : metadata.getUserMetadata().entrySet()) {
 				response.addHeader(entry.getKey(), entry.getValue());
 				logger.debug(GWConstants.LOG_GET_OBJECT_USER_META_DATA, entry.getKey(), entry.getValue());
 			}

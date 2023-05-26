@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package db.mariaDB;
+package com.pspace.backend.logManager.db.mariaDB;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,19 +18,20 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Config.DBConfig;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
+import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
+import com.pspace.backend.logManager.db.IDBManager;
+import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
+import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.LoggingQuery;
+import com.pspace.backend.logManager.db.table.Metering.ApiMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.IoMeteringQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationLogQuery;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
-import db.DBConfig;
-import db.IDBManager;
-import db.table.Lifecycle.LifecycleLogQuery;
-import db.table.Logging.LoggingQuery;
-import db.table.Metering.ApiMeteringQuery;
-import db.table.Metering.IoMeteringQuery;
-import db.table.replication.ReplicationLogQuery;
 
 public class MariaDBManager implements IDBManager {
 	static final Logger logger = LoggerFactory.getLogger(MariaDBManager.class);
@@ -67,8 +68,8 @@ public class MariaDBManager implements IDBManager {
 
 	////////////////////// Logging //////////////////////
 	public List<S3LogData> getLoggingEventList(String BucketName) {
-		var rmap = Select(LoggingQuery.getSelect(BucketName));
-		return LoggingQuery.getListMariaDB(rmap);
+		var map = Select(LoggingQuery.getSelect(BucketName));
+		return LoggingQuery.getList(map);
 	}
 
 	/***************************** Insert *****************************/
@@ -95,6 +96,10 @@ public class MariaDBManager implements IDBManager {
 	@Override
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return insert(LifecycleLogQuery.getInsert(), LifecycleLogQuery.getInsertDBParameters(data));
+	}
+	@Override
+	public boolean insertRestoreLog(RestoreLogData data) {
+		return insert(RestoreLogQuery.getInsert(), RestoreLogQuery.getInsertDBParameters(data));
 	}
 
 	@Override
@@ -164,7 +169,7 @@ public class MariaDBManager implements IDBManager {
 				var rs = stmt.executeQuery();) {
 			// logger.debug(stmt.toString());
 
-			var rmap = new ArrayList<HashMap<String, Object>>();
+			var result = new ArrayList<HashMap<String, Object>>();
 
 			var md = rs.getMetaData();
 			int columns = md.getColumnCount();
@@ -176,9 +181,9 @@ public class MariaDBManager implements IDBManager {
 				for (int i = 1; i <= columns; ++i) {
 					map.put(md.getColumnName(i), rs.getObject(i));
 				}
-				rmap.add(map);
+				result.add(map);
 			}
-			return rmap;
+			return result;
 
 		} catch (SQLException e) {
 			logger.error("Query Error : {}", Query, e);

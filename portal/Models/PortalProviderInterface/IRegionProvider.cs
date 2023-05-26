@@ -39,6 +39,10 @@ namespace PortalProviderInterface
 		/// <returns>리전 정보 객체</returns>
 		Task<ResponseData<ResponseRegion>> Get(string RegionName);
 
+		/// <summary>현재 시스템의 리전을 가져온다.</summary>
+		/// <returns>리전 정보 객체</returns>
+		Task<ResponseData<ResponseRegion>> GetDefault();
+
 		/// <summary>리전 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>

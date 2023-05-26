@@ -85,25 +85,29 @@ public final class DataRepositoryQuery {
                     + " changeTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time upload started',"
                     + " completed BOOLEAN DEFAULT false COMMENT 'job completed or in-progress',"
                     + " uploadid VARCHAR(80) NOT NULL COMMENT 'multi-part upload Id',"
+                    + " partRef TEXT,"
                     + " acl TEXT,"
                     + " meta TEXT,"
                     + " etag TEXT,"
                     + " size bigint(20),"
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
                     + " pdiskid VARCHAR(80) NOT NULL, "
+                    + " rdiskid VARCHAR(80) , "
                     + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
-     public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
+     public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, rdiskid, changeTime, partRef) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?)";
      public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";
      public  static String  selectMultiPartQuery = "SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ";
 
-     public  static  String  getMultiPartQuery = "SELECT bucket, objKey, changeTime, uploadid, acl, meta, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0";
-     public  static String  getPartsQuery = "SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0";
+     public  static String  getMultiPartQuery = "SELECT bucket, objKey, changeTime, uploadid, acl, meta, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0";
+     public  static String  getPartsQuery = "SELECT changeTime, etag, size, partNo, pdiskid, rdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0";
      public  static String  getPartsMaxQuery = "SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?";
      public  static String  getUploadsQuery = "SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ";
-     public  static  String  isUploadQuery = "SELECT bucket FROM MULTIPARTS WHERE uploadid=?";
+     public  static String  isUploadQuery = "SELECT bucket FROM MULTIPARTS WHERE uploadid=?";
      public  static String  isUploadPartNoQuery ="SELECT bucket, objKey, acl, meta, etag, size, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo=?";
-
+     public  static String  getPartRefQuery ="SELECT partRef FROM MULTIPARTS WHERE uploadid=? AND partNo=?";
+     public  static String  updatePartRefQuery = "UPDATE MULTIPARTS SET partRef=? WHERE uploadid=? and partNo=?";
+ 
      // for utility
      public  static String  createUJobQuery = "CREATE TABLE IF NOT EXISTS UTILJOBS(Id VARCHAR(15) NOT NULL PRIMARY KEY, "
                     + "status VARCHAR(20) NOT NULL, TotalNumObject BIGINT NOT NULL default 0, "

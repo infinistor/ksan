@@ -22,6 +22,7 @@ namespace PortalModels
 	public enum EnumDbDiskPoolType : int
 	{
 		STANDARD = 1,
-		ARCHIVE
+		ARCHIVE,
+		PERFORMANCE
 	}
 }

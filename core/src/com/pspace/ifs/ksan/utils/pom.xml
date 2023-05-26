@@ -76,7 +76,7 @@
 				</executions>
 			</plugin>  -->
                        <!-- for utility build -->
-                        <plugin>
+                        <!-- <plugin>
                             <artifactId>exec-maven-plugin</artifactId>
                             <version>3.0.0</version>
                             <groupId>org.codehaus.mojo</groupId>
@@ -93,7 +93,7 @@
                                         </configuration>
                                    </execution>
                             </executions>
-                        </plugin>
+                        </plugin> -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
                                 <version>3.1.1</version>

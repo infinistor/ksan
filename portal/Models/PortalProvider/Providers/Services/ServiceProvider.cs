@@ -177,7 +177,7 @@ namespace PortalProvider.Providers.Services
 						Result.Data = (await this.Get(NewData.Id.ToString())).Data;
 
 						// 서비스 추가 메시지 전송
-						SendMq("*.services.added", new ResponseSerivceMq().CopyValueFrom(NewData));
+						SendMq("*.services.added", new ResponseServiceMq().CopyValueFrom(NewData));
 					}
 					catch (Exception ex)
 					{
@@ -310,7 +310,7 @@ namespace PortalProvider.Providers.Services
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 						{
-							Exist.ModId = LoginUserId;
+							Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
 							Exist.ModName = LoginUserName;
 							Exist.ModDate = DateTime.Now;
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -343,7 +343,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 변경 메시지 전송
-						SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -418,7 +418,7 @@ namespace PortalProvider.Providers.Services
 						await Transaction.CommitAsync();
 
 						// 상태가 변경되었을 경우 메시지 전송
-						if (isChange) SendMq("*.services.updated", new ResponseSerivceMq().CopyValueFrom(Exist));
+						if (isChange) SendMq("*.services.updated", new ResponseServiceMq().CopyValueFrom(Exist));
 						Result.Result = EnumResponseResult.Success;
 					}
 					catch (Exception ex)
@@ -510,6 +510,10 @@ namespace PortalProvider.Providers.Services
 						Exist.CpuUsage = CpuUsage;
 						Exist.MemoryUsed = MemoryUsed;
 						Exist.ThreadCount = ThreadCount;
+						Exist.ModId = LoginUserId != Guid.Empty ? LoginUserId : null;
+						Exist.ModName = LoginUserName;
+						Exist.ModDate = DateTime.Now;
+
 						// 데이터가 변경된 경우 저장
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
@@ -736,7 +740,7 @@ namespace PortalProvider.Providers.Services
 						Result.Result = EnumResponseResult.Success;
 
 						// 서비스 삭제 메시지 전송
-						SendMq("*.services.removed", new ResponseSerivceMq().CopyValueFrom(Exist));
+						SendMq("*.services.removed", new ResponseServiceMq().CopyValueFrom(Exist));
 					}
 					catch (Exception ex)
 					{
@@ -788,7 +792,7 @@ namespace PortalProvider.Providers.Services
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref SearchFields);
 
-				if (SearchFields != null && SearchFields.Contains("servicetype"))
+				if (SearchFields != null && SearchFields.Contains("ServiceType", StringComparer.OrdinalIgnoreCase))
 					Enum.TryParse(SearchKeyword, out ServiceType);
 
 				// 목록을 가져온다.
@@ -797,10 +801,10 @@ namespace PortalProvider.Providers.Services
 						(
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 							|| (ServiceType != EnumServiceType.Unknown && i.ServiceType == (EnumDbServiceType)ServiceType)
-							|| (SearchFields.Contains("groupname") && i.ServiceGroup != null && i.ServiceGroup.Name.Contains(SearchKeyword))
-							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
-							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
-							|| (SearchFields.Contains("ipaddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
+							|| (SearchFields.Contains("GroupName") && i.ServiceGroup != null && i.ServiceGroup.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("Name") && i.Name.Contains(SearchKeyword))
+							|| (SearchFields.Contains("Description") && i.Description.Contains(SearchKeyword))
+							|| (SearchFields.Contains("IpAddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
 						) && (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
@@ -843,6 +847,7 @@ namespace PortalProvider.Providers.Services
 					.Where(i => i.Id == ServiceGuid)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
+					.Include(i => i.Server)
 					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
 				// 이름으로 조회할 경우
 				else
@@ -850,6 +855,7 @@ namespace PortalProvider.Providers.Services
 					.Where(i => i.Name == Id)
 					.Include(i => i.ServiceGroup)
 					.Include(i => i.Vlans)
+					.Include(i => i.Server)
 					.FirstOrDefaultAsync<Service, ResponseServiceWithVlans>();
 
 				// 해당 데이터가 존재하지 않는 경우

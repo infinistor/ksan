@@ -40,7 +40,7 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.identity.S3User;
-import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagerHelper;
+import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
@@ -123,7 +123,7 @@ public class S3Signing {
 		Bucket bucketInfo = null;
 		ObjManager objManager = null;
 		try {
-			objManager = ObjManagerHelper.getInstance().getObjManager();
+			objManager = ObjManagers.getInstance().getObjManager();
 			bucketInfo = objManager.getBucket(bucket);
 		} catch (ResourceNotFoundException e) {
 			logger.info("bucket({}) is not fount in the db", bucket);
@@ -132,12 +132,6 @@ public class S3Signing {
 			PrintStack.logging(logger, e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-		} finally {
-			try {
-				ObjManagerHelper.getInstance().returnObjManager(objManager);
-			} catch (Exception e) {
-				PrintStack.logging(logger, e);
-			}
 		}
 
 		if (bucketInfo == null) {
@@ -323,6 +317,7 @@ public class S3Signing {
 		if (expiresString != null) { // v2 query
 			long expires = Long.parseLong(expiresString);
 			long nowSeconds = System.currentTimeMillis() / 1000;
+			logger.debug("nowSeconds({}), expires({})", nowSeconds, expires);
 			if (nowSeconds >= expires) {
 				logger.error(GWConstants.LOG_S3SIGNING_EXPIRES, expiresString);
 				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -422,7 +417,8 @@ public class S3Signing {
 		}
 
 		if (!GWUtils.constantTimeEquals(expectedSignature, authHeader.signature)) {
-			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature );
+			logger.error(GWConstants.LOG_S3SIGNING_FAILED_VALIDATE_EXPECT_AND_AUTH_HEADER, expectedSignature, authHeader.signature);
+			logger.error("authorization:{}, requestURI:{}", s3Parameter.getAuthorization(), s3Parameter.getRequestURI());
 			throw new GWException(GWErrorCode.SIGNATURE_DOES_NOT_MATCH, s3Parameter);
 		}
 		

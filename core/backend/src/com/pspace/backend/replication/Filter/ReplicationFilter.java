@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package Filter;
+package com.pspace.backend.replication.Filter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import com.pspace.backend.libs.Data.S3.S3BucketData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.libs.Data.S3.S3ObjectData;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.Ksan.Data.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.s3format.S3Parameters;
 import com.pspace.ifs.ksan.libs.mq.*;
 
@@ -47,10 +47,10 @@ public class ReplicationFilter implements MQCallback {
 	public MQResponse call(String routingKey, String body) {
 
 		try {
-			logger.debug("{} -> {}", routingKey, body);
-
 			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+
+			logger.debug("{} : {}", routingKey, body);
 
 			// 문자열을 Log 클래스로 변환
 			var Mapper = new ObjectMapper();
@@ -65,7 +65,7 @@ public class ReplicationFilter implements MQCallback {
 
 			// 버킷 이름이 비어있을 경우 무시
 			if (s3Log.isBucketNameEmpty())
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 기본정보 정의
 			var Operation = s3Log.Operation;
@@ -73,7 +73,7 @@ public class ReplicationFilter implements MQCallback {
 
 			// 해당 작업이 에러이거나 복제 대상이 아닐경우 무시
 			if (s3Log.isError() || !S3Parameters.ReplicateOperationCheck(Operation))
-				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 버킷 정보를 가져온다.
 			var objManager = ObjManagerHelper.getInstance();
@@ -88,7 +88,7 @@ public class ReplicationFilter implements MQCallback {
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCESS, "", 0);
+		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 
 	private void ReplicationEventFiltering(S3BucketData bucketInfo, S3LogData s3Log) {

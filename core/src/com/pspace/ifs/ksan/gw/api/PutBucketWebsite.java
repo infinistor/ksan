@@ -14,7 +14,6 @@ import java.sql.SQLException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.pspace.ifs.ksan.gw.data.DataPutBucketWebsite;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -42,14 +41,11 @@ public class PutBucketWebsite extends S3Request {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
 
-		DataPutBucketWebsite dataPutBucketWebsite = new DataPutBucketWebsite(s3Parameter);
-		dataPutBucketWebsite.extract();
-
-		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_WEBSITE, s3Parameter, dataPutBucketWebsite)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_WRITE_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_PUT_BUCKET_WEBSITE, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_WRITE_ACP);
 		}
 
-		String webXml = dataPutBucketWebsite.getWebsiteXml();
+		String webXml = s3RequestData.getWebsiteXml();
 		updateBucketWeb(bucket, webXml);
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

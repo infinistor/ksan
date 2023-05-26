@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import com.pspace.ifs.ksan.gw.data.azure.DataPutBlock;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
@@ -75,14 +74,12 @@ public class PutBlock extends AzuRequest {
             PrintStack.logging(logger, e);
         }
 
-        DataPutBlock dataUploadBlock = new DataPutBlock(azuParameter);
-        dataUploadBlock.extract();
-        String blockId = dataUploadBlock.getBlockId();
+        String blockId = azuRequestData.getBlockId();
         if (Strings.isNullOrEmpty(blockId)) {
             throw new AzuException(AzuErrorCode.BAD_REQUEST, azuParameter);
         }
 
-        String contentsLength = dataUploadBlock.getContentLength();
+        String contentsLength = azuRequestData.getContentLength();
         long blockLength = Long.parseLong(contentsLength);
 
         String versionId = GWConstants.VERSIONING_DISABLE_TAIL;
@@ -106,9 +103,9 @@ public class PutBlock extends AzuRequest {
             }
         }
 
-        AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
-        S3Object s3Object = azuObjectOperation.uploadBlock(blockId, blockLength);
-        logger.info("blockId : {}, etag : {}", blockId, s3Object.getEtag());
+        // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
+        // S3Object s3Object = azuObjectOperation.uploadBlock(blockId, blockLength);
+        // logger.info("blockId : {}, etag : {}", blockId, s3Object.getEtag());
         
         azuParameter.getResponse().setStatus(HttpServletResponse.SC_CREATED);
     }

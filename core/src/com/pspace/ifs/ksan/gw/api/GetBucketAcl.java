@@ -15,7 +15,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Strings;
-import com.pspace.ifs.ksan.gw.data.DataGetObjectAcl;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
@@ -45,15 +44,12 @@ public class GetBucketAcl extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		DataGetObjectAcl dataGetObjectAcl = new DataGetObjectAcl(s3Parameter);
-		dataGetObjectAcl.extract();
 
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter, dataGetObjectAcl)) {
-			checkGrantBucketOwner(s3Parameter.isPublicAccess(), s3Parameter.getUser().getUserId(), GWConstants.GRANT_READ_ACP);
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
-		String aclInfo = getBucketInfo().getAcl();
+		String aclInfo = bucketAccessControlPolicy.toXml();
 		logger.debug(GWConstants.LOG_ACL, aclInfo);
 		if (!aclInfo.contains(GWConstants.XML_VERSION)) {
 			aclInfo = GWConstants.XML_VERSION_FULL_STANDALONE + aclInfo;
