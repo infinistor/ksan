@@ -10,6 +10,9 @@
 */
 package com.pspace.backend.lifecycle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +30,9 @@ import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+	public static List<MQReceiver> sendReceivers = new ArrayList<MQReceiver>();
+	public static List<MQReceiver> restoreReceivers = new ArrayList<MQReceiver>();
+
 	public static void main(String[] args) throws Exception {
 		logger.info("Lifecycle Manager Start!");
 
@@ -39,20 +45,20 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var ServiceId = Utility.ReadServiceId(Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
-		if (ServiceId == null) {
+		var serviceId = Utility.ReadServiceId(Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
+		if (serviceId == null) {
 			logger.error("Service Id is Empty");
 			return;
 		}
 
 		// Heartbeat
-		Thread HBThread;
-		Heartbeat HB;
+		Thread hbThread;
+		Heartbeat hb;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser,
+			hb = new Heartbeat(serviceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser,
 					ksanConfig.MQPassword);
-			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
-			HBThread.start();
+			hbThread = new Thread(() -> hb.Start(ksanConfig.ServiceMonitorInterval));
+			hbThread.start();
 		} catch (Exception e) {
 			logger.error("", e);
 			return;
@@ -71,46 +77,48 @@ public class Main {
 		logger.info(config.toString());
 
 		// Read Region to Portal
-		var region = portal.getRegion(config.region);
+		var region = portal.getLocalRegion();
 		if (region == null) {
 			logger.error("Region Read Failed!");
 			return;
 		}
 
-		// ObjManager 초기화
-		var ObjManager = ObjManagerHelper.getInstance();
+		// objManager 초기화
+		var objManager = ObjManagerHelper.getInstance();
+		var objManagerConf = portal.getObjManagerConfig();
 		try {
-			ObjManager.init(config.getObjManagerConfig());
+			objManager.init(objManagerConf);
 		} catch (Exception e) {
-			logger.error("", e);
+			logger.error(objManagerConf.toString(), e);
 			return;
 		}
 
 		// Event Receiver 생성
-		var lifecycleEventCallback = new LifecycleSender(region);
-		var lifecycleEventReceiver = new MQReceiver(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
-				Constants.MQ_QUEUE_LIFECYCLE_EVENT_ADD,
-				Constants.MQ_KSAN_LOG_EXCHANGE,
-				false,
-				"",
-				Constants.MQ_BINDING_LIFECYCLE_EVENT,
-				lifecycleEventCallback);
-		var restoreEventCallback = new RestoreSender(region);
-		var restoreEventReceiver = new MQReceiver(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
-				Constants.MQ_QUEUE_RESTORE_EVENT_ADD,
-				Constants.MQ_KSAN_LOG_EXCHANGE,
-				false,
-				"",
-				Constants.MQ_BINDING_RESTORE_EVENT,
-				restoreEventCallback);
+		for (int index = 0; index < config.threadCount; index++) {
+			sendReceivers.add(new MQReceiver(
+					ksanConfig.MQHost,
+					ksanConfig.MQPort,
+					ksanConfig.MQUser,
+					ksanConfig.MQPassword,
+					Constants.MQ_QUEUE_LIFECYCLE_EVENT_ADD,
+					Constants.MQ_KSAN_LOG_EXCHANGE,
+					false,
+					"",
+					Constants.MQ_BINDING_LIFECYCLE_EVENT,
+					new LifecycleSender(region)));
+
+			restoreReceivers.add(new MQReceiver(
+					ksanConfig.MQHost,
+					ksanConfig.MQPort,
+					ksanConfig.MQUser,
+					ksanConfig.MQPassword,
+					Constants.MQ_QUEUE_RESTORE_EVENT_ADD,
+					Constants.MQ_KSAN_LOG_EXCHANGE,
+					false,
+					"",
+					Constants.MQ_BINDING_RESTORE_EVENT,
+					new RestoreSender(region)));
+		}
 
 		var today = Utility.GetNowDay();
 		var AlreadyRun = true;
