@@ -77,7 +77,7 @@ public class Main {
 		logger.info("DB initialized");
 
 		var Logger = new MainLogger();
-		if (!Logger.Start(config.dbPoolSize)) {
+		if (!Logger.Start(config.threadCount)) {
 			logger.error("MainLogger is not started!");
 			return;
 		}
