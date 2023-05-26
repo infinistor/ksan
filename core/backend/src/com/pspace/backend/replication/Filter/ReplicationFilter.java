@@ -47,10 +47,10 @@ public class ReplicationFilter implements MQCallback {
 	public MQResponse call(String routingKey, String body) {
 
 		try {
-			logger.debug("{} -> {}", routingKey, body);
-
 			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+
+			logger.debug("{} : {}", routingKey, body);
 
 			// 문자열을 Log 클래스로 변환
 			var Mapper = new ObjectMapper();

@@ -40,13 +40,14 @@ public class RestoreSender implements MQCallback {
 	@Override
 	public MQResponse call(String routingKey, String body) {
 		try {
-			// logger.debug("{} -> {}", routingKey, body);
-
 			if (!routingKey.equals(Constants.MQ_BINDING_RESTORE_EVENT))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
+			logger.debug("{} : {}", routingKey, body);
+
 			// 문자열을 ReplicationEventData 클래스로 변환
-			var event = Mapper.readValue(body, new TypeReference<RestoreEventData>() {});
+			var event = Mapper.readValue(body, new TypeReference<RestoreEventData>() {
+			});
 			logger.info(event.toString());
 
 			// 결과값 초기화
