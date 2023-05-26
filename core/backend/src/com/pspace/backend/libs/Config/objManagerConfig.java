@@ -10,16 +10,43 @@
 */
 package com.pspace.backend.libs.Config;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
-public class ReplicationManagerConfig {
-	@JsonProperty("thread_count")
-	public int threadCount;
+public class objManagerConfig {
+	@JsonProperty("db_repository")
+	public String dbType;
 
-	@JsonProperty("multipart_size")
-	public long partSize;
+	@JsonProperty("db_host")
+	public String dbHost;
+
+	@JsonProperty("db_port")
+	public int dbPort;
+
+	@JsonProperty("db_name")
+	public String dbName;
+
+	@JsonProperty("db_user")
+	public String dbUser;
+
+	@JsonProperty("db_password")
+	public String dbPassword;
+	
+	public ObjManagerConfig getObjManagerConfig() throws IOException {
+		var item = new ObjManagerConfig();
+		item.dbRepository = dbType;
+		item.dbHost = dbHost;
+		item.dbPort = dbPort;
+		item.dbName = dbName;
+		item.dbUsername = dbUser;
+		item.dbPassword = dbPassword;
+
+		return item;
+	}
 
 	@Override
 	public String toString() {

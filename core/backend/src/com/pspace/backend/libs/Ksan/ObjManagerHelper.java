@@ -19,7 +19,6 @@ import com.pspace.ifs.ksan.objmanager.Bucket;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
-import com.pspace.ifs.ksan.objmanager.LifeCycleManagment;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
@@ -46,11 +45,11 @@ public class ObjManagerHelper {
 		return new S3BucketData(ObjManager.getBucket(bucketName));
 	}
 
-	public LifeCycleManagment getLifeCycleManagementInstance() {
-		return ObjManager.getLifeCycleManagmentInsatance();
-	}
 	public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
 		return ObjManager.listObjects(bucketName, lastObjId, numObjects);
+	}
+	public List<Metadata> listObjects(String bucketName, String KeyMarker, String nextVersionId, long numObjects){
+		return ObjManager.listObjectsVersion(bucketName, "", KeyMarker, nextVersionId, numObjects);
 	}
 
 	public S3ObjectData getObject(String bucketName, String objectName) throws ResourceNotFoundException {
