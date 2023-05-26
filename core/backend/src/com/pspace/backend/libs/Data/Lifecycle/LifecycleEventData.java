@@ -33,6 +33,22 @@ public class LifecycleEventData {
 		this.uploadId = data.uploadId;
 	}
 
+	public LifecycleEventData(String bucketName, String objectName) {
+		this.bucketName = bucketName;
+		this.objectName = objectName;
+		this.versionId = "";
+		this.storageClass = "";
+		this.uploadId = "";
+	}
+
+	public LifecycleEventData(String bucketName, String objectName, String versionId) {
+		this.bucketName = bucketName;
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.storageClass = "";
+		this.uploadId = "";
+	}
+
 	public LifecycleEventData(String bucketName, String objectName, String versionId, String storageClass, String uploadId) {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
