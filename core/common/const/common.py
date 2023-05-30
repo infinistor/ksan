@@ -112,7 +112,7 @@ ECValueParser = re.compile("ec\(([\d]+):([\d]+)\)")
 
 
 ### diskpool type ###
-DiskPoolClassNormal = 'NORMAL'
+DiskPoolClassNormal = 'STANDARD'
 DiskPoolClassArchive = 'ARCHIVE'
 DiskPoolClassPerformance = 'PERFORMANCE'
 

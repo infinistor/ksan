@@ -55,7 +55,7 @@ class KsanOptionParser(OptionParser):
                                                                                      'last' value specify the latest config version id.
           --Tolerance                                                              : diskpool's fault tolerance [disable|replication|ec(k:m)]
                                                                                      ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
-          --DiskPoolType                                                           : diskpool type[normal|archive|performance]
+          --DiskPoolType                                                           : diskpool type[standard|archive|performance]
           --DefaultDiskPool                                                        : set user's default diskpool
           --StorageClass                                                           : user-defined storage class for s3-compatible
           --Host                                                                   : server ip or hostname 
@@ -342,14 +342,14 @@ class KsanDiskpoolUtilOptParser(OptionParser):
               --DiskName                            : disk name 
               --Tolerance                           : diskpool's fault tolerance [disable|replication|ec(k:m)]
                                                       ec(k:m): Erasure Code (the number of data chunks : the number of coding chunks)
-              --DiskPoolType                        : diskpool type [normal|archive|performance]
+              --DiskPoolType                        : diskpool type [standard|archive|performance]
               --DefaultDiskPool                     : system's default diskpool
               --v                                   : show info in detail 
               --Continue                            : show info in every n seconds
               
         [example]
               1. add diskpool   
-                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType normal
+                # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance replication --DiskPoolType standard
                 # ./ksan diskpool add --DiskPoolName diskpool1 --Tolerance 'ec(6:2)' --DiskPoolType archive
                 
               2. remove diskpool  
@@ -365,7 +365,7 @@ class KsanDiskpoolUtilOptParser(OptionParser):
                 # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
                 
               5. set/get diskpool default diskpool 
-                # ./ksan diskpool set --:DefaultDiskPool --DiskPoolName diskpool1
+                # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1
                 # ./ksan diskpool get --DefaultDiskPool
                 
               6. modify diskpool's tolerance
