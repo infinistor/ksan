@@ -136,6 +136,8 @@ public final class GWConstants {
 	public static final String XML_VERSION_CONFIGURATION_STATUS_TAIL ="</Status>";
 	public static final String XML_VERSION_CONFIGURATION_TAIL = "</VersioningConfiguration>";
 	public static final String XML_CONTENT_TYPE = "application/xml";
+
+	public static final String JSON_CONTENT_TYPE = "application/json";
 	
 	public static final String DIRECTORY_SUFFIX = GWConstants.SLASH;
 	
@@ -155,6 +157,11 @@ public final class GWConstants {
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final int RETRY_COUNT = 3;
+
+	public static final String GCS_HOST = "storage.googleapis.com";
+	public static final String GCS_USER_NAME = "gcs-user";
+	public static final String GCS_BUCKET_REQUEST = "/b";
+	public static final String GCS_OBJECT_REQUEST = "/o";
 
 	public static final String METHOD_PUT = "PUT";
 	public static final String METHOD_GET = "GET";
@@ -190,6 +197,7 @@ public final class GWConstants {
 	public static final String EMPTY_STRING = "";
 	public static final String AWS = "AWS";
 	public static final String AWS_SPACE = "AWS ";
+	public static final String GOOGLE_SPACE = "GOOG1 ";
 	public static final String AWS4_HMAC = "AWS4-HMAC";
 	public static final String AWS4 = "AWS4";
 	public static final String HMAC = "Hmac";
@@ -309,6 +317,10 @@ public final class GWConstants {
 	public static final String UNDEFINED_METHOD = "undefined method : {}";
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
+
+	// GOOGLE GCS Header
+	public static final String GCS_HEADER_API_VERSION = "x-goog-api-version";
+	public static final String GCS_HEADER_PROJECT_ID = "x-goog-project-id";
 
 	// policy actions constants
 	public static final String ACTION_ALL = "s3:*";

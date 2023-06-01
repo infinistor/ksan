@@ -14,5 +14,6 @@ public enum AuthenticationType {
     AWS_V2,
     AWS_V4,
     AWS_V2_OR_V4,
+    GOOGLE,
     NONE;
 }

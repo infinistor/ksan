@@ -281,6 +281,8 @@ public class S3Signing {
 			finalAuthType = AuthenticationType.AWS_V2;
 		} else if ( authHeader.authenticationType == AuthenticationType.AWS_V4) {
 			finalAuthType = AuthenticationType.AWS_V4;
+		} else if (authHeader.authenticationType == AuthenticationType.GOOGLE) {
+			finalAuthType = AuthenticationType.GOOGLE;
 		} else {
 			logger.error(GWConstants.LOG_S3SIGNING_AUTHENTICATION_NULL, uri);
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -353,8 +355,15 @@ public class S3Signing {
 		
 		logger.info(GWConstants.LOG_S3SIGNING_URI, preuri);
 		if (authHeader.hmacAlgorithm == null) { //v2
-			expectedSignature = s3Signature.createAuthorizationSignature(
+			if (authHeader.authenticationType == AuthenticationType.AWS_V2) {
+				expectedSignature = s3Signature.createAuthorizationSignature(
 					s3Parameter.getRequest(), uriForSigning, credential, presignedUrl, haveBothDateHeader);
+			} else if (authHeader.authenticationType == AuthenticationType.GOOGLE) {
+				expectedSignature = s3Signature.createAuthorizationSignatureGoogle(s3Parameter.getRequest(), uriForSigning, credential);
+			} else {
+				logger.error(GWConstants.LOG_S3SIGNING_AUTHENTICATION_NULL, authHeader.authenticationType);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
 		} else {
 			String contentSha256 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
 			byte[] payload = null;

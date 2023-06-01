@@ -552,4 +552,57 @@ final public class S3Signature {
             throw new GWException(GWErrorCode.INVALID_ARGUMENT, e, s3Parameter);
         }
     }
+
+    public String createAuthorizationSignatureGoogle(HttpServletRequest request, String uri, String credential) {
+        StringBuilder builder = new StringBuilder();
+        
+        builder.append(request.getMethod())
+               .append(GWConstants.CHAR_NEWLINE)
+               .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_MD5)))
+               .append(GWConstants.CHAR_NEWLINE)
+               .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_TYPE)))
+               .append(GWConstants.CHAR_NEWLINE)
+               .append(request.getHeader(HttpHeaders.DATE))
+               .append(GWConstants.CHAR_NEWLINE)
+               .append(GWConstants.GCS_HEADER_API_VERSION)
+               .append(GWConstants.CHAR_COLON)
+               .append(request.getHeader(GWConstants.GCS_HEADER_API_VERSION))
+               .append(GWConstants.CHAR_NEWLINE);
+        if (!Strings.isNullOrEmpty(request.getHeader(GWConstants.GCS_HEADER_PROJECT_ID))) {
+            builder.append(GWConstants.GCS_HEADER_PROJECT_ID)
+                   .append(GWConstants.CHAR_COLON)
+                   .append(request.getHeader(GWConstants.GCS_HEADER_PROJECT_ID))
+                   .append(GWConstants.CHAR_NEWLINE);
+        }
+        builder.append(uri);
+
+        char separator = GWConstants.CHAR_QUESTION;
+        List<String> subresources = Collections.list(request.getParameterNames());
+        Collections.sort(subresources);
+        for (String subresource : subresources) {
+            if (SIGNED_SUBRESOURCES.contains(subresource)) {
+                builder.append(separator).append(subresource);
+
+                String value = request.getParameter(subresource);
+                if (!GWConstants.EMPTY_STRING.equals(value)) {
+                    builder.append(GWConstants.CHAR_EQUAL).append(value);
+                }
+                separator = GWConstants.CHAR_AMPERSAND;
+            }
+        }
+
+        String stringToSign = builder.toString();
+        logger.debug(GWConstants.LOG_S3SIGNATURE_SIGN, stringToSign);
+
+        // Sign string
+        Mac mac;
+        try {
+            mac = Mac.getInstance(GWConstants.HMAC_SHA1);
+            mac.init(new SecretKeySpec(credential.getBytes(StandardCharsets.UTF_8), GWConstants.HMAC_SHA1));
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        return BaseEncoding.base64().encode(mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8)));
+    }
 }
