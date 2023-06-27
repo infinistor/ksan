@@ -14,6 +14,7 @@ public class OsdData {
     public static final String STOP = "ST";
     public static final String GET = "GE";
     public static final String PUT = "PU";
+    public static final String PUT_RANGE = "PR";
     public static final String DELETE = "DT";
     public static final String DELETE_REPLICA = "DR";
     public static final String COPY = "CO";
@@ -49,10 +50,16 @@ public class OsdData {
     public static final int OFFSET_INDEX = 4;
     public static final int GET_LENGTH_INDEX = 5;
     public static final int PUT_LENGTH_INDEX = 4;
+    public static final int PUT_RANGE_OFFSEET_INDEX = 4;
+    public static final int PUT_RANGE_LENGTH_INDEX = 5;
     public static final int PUT_REPLICATION_INDEX = 5;
+    public static final int PUT_RANGE_REPLICATION_INDEX = 6;
     public static final int PUT_REPLICA_DISK_ID_INDEX = 6;
+    public static final int PUT_RANGE_REPLICA_DISK_ID_INDEX = 7;
     public static final int PUT_KEY_INDEX = 7;
+    public static final int PUT_RANGE_KEY_INDEX = 8;
     public static final int PUT_MODE_INDEX = 8;
+    public static final int PUT_RANGE_MODE_INDEX = 9;
     public static final int COMPLETE_MULTIPART_KEY_INDEX = 4;
     public static final int COMPLETE_MULTIPART_REPLICATION_INDEX = 5;
     public static final int COMPLETE_MULTIPART_REPLICA_DISKID_INDEX = 6;

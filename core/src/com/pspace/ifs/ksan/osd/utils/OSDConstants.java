@@ -147,6 +147,7 @@ public final class OSDConstants {
     
     public static final String LOG_OSD_SERVER_PUT_START = "put start ...";
     public static final String LOG_OSD_SERVER_PUT_INFO = "path : {}, objId : {}, versionId : {}, length : {}, replicaiton : {}, mode : {}";
+    public static final String LOG_OSD_SERVER_PUT_RANGE_INFO = "path : {}, objId : {}, versionId : {}, offset : {}, length : {}, replicaiton : {}, mode : {}";
     public static final String LOG_OSD_SERVER_PUT_END = "put end ...";
     public static final String LOG_OSD_SERVER_PUT_SUCCESS_INFO = "put - success : path={}, objId={}, versionId={}, length={}";
 

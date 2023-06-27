@@ -159,9 +159,13 @@ public final class GWConstants {
 	public static final int RETRY_COUNT = 3;
 
 	public static final String GCS_HOST = "storage.googleapis.com";
+	public static final String GCS_PATH = "/storage/v1/";
+	public static final String GCS_BUCKET_PATH = "/storage/v1/b/";
 	public static final String GCS_USER_NAME = "gcs-user";
 	public static final String GCS_BUCKET_REQUEST = "/b";
+	public static final String GCS_BUCKET_CONTAIN_REQUEST = "/b/";
 	public static final String GCS_OBJECT_REQUEST = "/o";
+	public static final String GCS_OBJECT_CONTAIN_REQUEST = "/o/";
 
 	public static final String METHOD_PUT = "PUT";
 	public static final String METHOD_GET = "GET";
@@ -1552,4 +1556,15 @@ public final class GWConstants {
 	public static final String LOG_VALUE = "value : {}";
 	public static final String LOG_T_KEY = "t.key : {}";
 	public static final String LOG_T_VALUE = "t.value : {}";
+
+	// GCS
+	public static final String LOG_GCS_CREATE_BUCKET_START = "GCS CreateBucket ...";
+	public static final String LOG_GCS_LIST_BUCKET_START = "GCS ListBucket ...";
+	public static final String LOG_GCS_DELETE_START = "GCS DeleteBucket...";
+	public static final String LOG_GCS_PUT_OBJECT_START = "GCS PutObject...";
+	public static final String LOG_GCS_DELETE_OBJECT_START = "GCS DeleteObject...";
+	public static final String LOG_GCS_HEAD_OBJECT_START = "GCS HeadObject...";
+	public static final String LOG_GCS_GET_OBJECT_START = "GCS GetObject...";
+	public static final String LOG_GCS_LIST_OBJECTS_START = "GCS ListObjects...";
+	public static final String LOG_GCS_POST_OBJECT_START = "GCS PostObject...";
 }

@@ -20,8 +20,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -173,6 +175,10 @@ public class OSDServer {
                     
                     case OsdData.PUT:
                         put(headers);
+                        break;
+
+                    case OsdData.PUT_RANGE:
+                        putRange(headers);
                         break;
                     
                     case OsdData.DELETE:
@@ -1519,6 +1525,69 @@ public class OSDServer {
 
         //     return null;
         // }
+
+        private void putRange(String[] headers) throws IOException {
+            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_START);
+            String path = headers[OsdData.PATH_INDEX];
+            String objId = headers[OsdData.OBJID_INDEX];
+            String versionId = headers[OsdData.VERSIONID_INDEX];
+            long offset = Longs.tryParse(headers[OsdData.PUT_RANGE_OFFSEET_INDEX]);
+            long length = Longs.tryParse(headers[OsdData.PUT_RANGE_LENGTH_INDEX]);
+            String replication = headers[OsdData.PUT_RANGE_REPLICATION_INDEX];
+            String replicaDiskID = headers[OsdData.PUT_RANGE_REPLICA_DISK_ID_INDEX];
+            String key = headers[OsdData.PUT_RANGE_KEY_INDEX];
+            String mode  = headers[OsdData.PUT_RANGE_MODE_INDEX];
+
+            logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_RANGE_INFO, path, objId, versionId, offset, length, replication, mode);
+
+            boolean isNoDisk = false;
+            if (mode != null) {
+                if (mode.equals(OSDConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    isNoDisk = true;
+                }
+            }
+
+            byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+
+            RandomAccessFile randomFile = null;
+            String filePath = null;
+
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
+                filePath = OSDConfig.getInstance().getCacheDiskpath() + KsanUtils.makeObjPath(path, objId, versionId);
+                File linkFile = new File(KsanUtils.makeObjPath(path, objId, versionId));
+            } else {
+                filePath = KsanUtils.makeObjPath(path, objId, versionId);
+            }
+            randomFile = new RandomAccessFile(filePath, "rw");
+            if (offset > 0) {
+                randomFile.seek(offset);
+            }
+
+            int readLength = 0;
+            long remainLength = length;
+            int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+
+            while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
+                remainLength -= readLength;
+                if (!isNoDisk) {
+                    randomFile.write(buffer, 0, readLength);
+                }
+                if (remainLength <= 0) {
+                    break;
+                }
+                readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+            }
+            randomFile.close();
+            File file = new File(filePath);
+            KsanUtils.setAttributeFileReplication(file, replication, replicaDiskID);
+            
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
+                String fullPath = KsanUtils.makeObjPath(path, objId, versionId);
+                Files.createSymbolicLink(Paths.get(fullPath), Paths.get(file.getAbsolutePath()));
+            }
+
+            logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);
+        }
 
         private void sendHeader(Socket socket, String header) throws IOException {
             // byte[] buffer = header.getBytes(Constants.CHARSET_UTF_8);

@@ -213,6 +213,21 @@ public class OSDClient {
 		socket.getOutputStream().flush();
 	}
 
+	public void putRangeInit(String path, String objId, String versionId, long offset, long length, String replication, String replicaDiskID, String key, String mode) throws IOException {
+		String header = OsdData.PUT_RANGE 
+						+ OsdData.DELIMITER + path 
+						+ OsdData.DELIMITER + objId 
+						+ OsdData.DELIMITER + versionId
+						+ OsdData.DELIMITER + String.valueOf(offset)
+						+ OsdData.DELIMITER + String.valueOf(length) 
+						+ OsdData.DELIMITER + replication 
+						+ OsdData.DELIMITER + replicaDiskID
+						+ OsdData.DELIMITER + key
+						+ OsdData.DELIMITER + mode;
+		logger.debug(Constants.LOG_OSDCLIENT_PUT_HEADER, header);
+		sendHeader(header);
+	}
+
 	public void delete(String path, String objId, String versionId) throws IOException {
 		String header = OsdData.DELETE 
 						+ OsdData.DELIMITER + path 

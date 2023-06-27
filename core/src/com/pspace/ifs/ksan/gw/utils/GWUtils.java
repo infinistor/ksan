@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -773,4 +774,17 @@ public class GWUtils {
 			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 	}
+
+	public static String calculateMD5HashBase64(String input) {
+        try {
+            MessageDigest md5Digest = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md5Digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
