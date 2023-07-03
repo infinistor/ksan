@@ -741,10 +741,12 @@ public class ListObject{
                 }
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+            //System.out.println(e.getMessage());
             throw new SQLException(e);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
+            e.printStackTrace();
             throw new SQLException(e);
         }
     }
