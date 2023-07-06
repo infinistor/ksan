@@ -66,6 +66,8 @@ public enum GWErrorCode {
             "Insufficient information. Origin request header needed."),
     INVALID_CORS_METHOD(HttpServletResponse.SC_BAD_REQUEST,
             "The specified Access-Control-Request-Method is not valid."),
+    INVALID_CONFIGURATION_ID(HttpServletResponse.SC_BAD_REQUEST,
+            "Configuration Id is not valid."),
     MALFORMED_X_M_L(HttpServletResponse.SC_BAD_REQUEST,
             "The XML you provided was not well-formed or did not validate" +
             " against our published schema."),

@@ -38,6 +38,8 @@ import com.pspace.ifs.ksan.gw.format.LoggingConfiguration;
 import com.pspace.ifs.ksan.gw.format.LoggingConfiguration.LoggingEnabled;
 import com.pspace.ifs.ksan.gw.format.LoggingConfiguration.LoggingEnabled.TargetGrants;
 import com.pspace.ifs.ksan.gw.format.ObjectLockConfiguration;
+import com.pspace.ifs.ksan.gw.format.BucketInventoryConfiguration;
+import com.pspace.ifs.ksan.gw.format.BucketInventoryConfiguration.InventoryConfiguration;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
@@ -409,6 +411,86 @@ public class S3RequestData {
 
 	public String getEncryptionXml() throws GWException {
 		return readXml();
+	}
+
+	public String getInventoryXml() throws GWException {
+		String inventoryXml = readXml();
+		XmlMapper xmlMapper = new XmlMapper();
+
+		try {
+			InventoryConfiguration ic = new XmlMapper().readValue(inventoryXml, InventoryConfiguration.class);
+
+			// InventoryConfiguration ic check
+			if (Strings.isNullOrEmpty(ic.id)) {
+				logger.error(GWErrorCode.INVALID_CONFIGURATION_ID.getMessage());
+				throw new GWException(GWErrorCode.INVALID_CONFIGURATION_ID, s3Parameter);
+			}
+
+			// InventoryConfiguration ic check valid optional filelds
+			// Size | LastModifiedDate | StorageClass | ETag | IsMultipartUploaded |
+			// ReplicationStatus | EncryptionStatus | ObjectLockRetainUntilDate |
+			// ObjectLockMode | ObjectLockLegalHoldStatus | IntelligentTieringAccessTier |
+			// BucketKeyStatus | ChecksumAlgorithm
+			if (ic.optionalFields != null) {
+				for (String field : ic.optionalFields.fields) {
+					if (!GWConstants.INVENTORY_OPTIONS.contains(field)) {
+						logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
+						throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+					}
+				}
+			}
+
+			// InventoryConfiguration ic check valid include options version
+			// Current | All
+			if (ic.includedObjectVersions != null) {
+				if (!GWConstants.INVENTORY_INCLUDE_OBJECT_VERSIONS.contains(ic.includedObjectVersions)) {
+					logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
+					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+				}
+			}
+
+			// InventoryConfiguration ic check valid InventorySchedule
+			// Daily | Weekly
+			if (ic.schedule != null) {
+				if (!GWConstants.INVENTORY_SCHEDULE.contains(ic.schedule.frequency)) {
+					logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
+					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+				}
+			}
+
+			// InventoryConfiguration ic check valid format
+			// CSV | ORC | Parquet
+			if (ic.destination != null && ic.destination.s3BucketDestination != null
+					&& ic.destination.s3BucketDestination.format != null) {
+				if (!GWConstants.INVENTORY_FORMAT.contains(ic.destination.s3BucketDestination.format)) {
+					logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
+					throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
+				}
+			}
+
+			// InventoryConfiguration ic check valid target bucket
+			// is bucket exist?
+			if (ic.destination != null && ic.destination.s3BucketDestination != null
+					&& ic.destination.s3BucketDestination.bucket != null) {
+				logger.info("rule.destination.bucket : {}", ic.destination.s3BucketDestination.bucket);
+				String[] arnPath = ic.destination.s3BucketDestination.bucket.split(":", -1);
+
+				if (arnPath.length != 6) {
+					logger.error(GWErrorCode.INVALID_REQUEST.getMessage());
+					throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+				}
+
+				if (Strings.isNullOrEmpty(arnPath[5])) {
+					logger.error(GWErrorCode.INVALID_REQUEST.getMessage());
+					throw new GWException(GWErrorCode.INVALID_REQUEST, s3Parameter);
+				}
+			}
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+
+		return inventoryXml;
 	}
 
 	public String getLifecycleXml() throws GWException {

@@ -263,10 +263,10 @@ public class DBPerformanceTest extends Thread{
             System.out.println("Error : " + ex.getMessage());
             System.out.println("<><><> idx :" + idx + " thread > " + name );
 
-        } /*catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println(" OBJMANAGER INIT Error : " + ex.getMessage());
             Logger.getLogger(DBPerformanceTest.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        }
         
         //diff = System.nanoTime() - tm;
         //System.out.format(" > name : %s time : %s jobDone : %d\n", name, getInSecond(diff), count);

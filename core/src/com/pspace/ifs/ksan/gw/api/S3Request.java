@@ -505,6 +505,16 @@ public abstract class S3Request {
         }
 	}
 
+		protected void updateBucketInventory(String bucket, String inventory) throws GWException {
+		try {
+			// update object manager inventory
+            // objManager.updateBucketInventory(bucket, inventory);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+        }
+	}
+
 	protected void updateBucketReplication(String bucket, String replica) throws GWException {
 		try {
             objManager.updateBucketReplication(bucket, replica);

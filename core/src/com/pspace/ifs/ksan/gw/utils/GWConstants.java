@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableSet;
 public final class GWConstants {
 	public static final String PID_PATH = "/var/run/ksangw.pid";
 	public static final String JVM = "jvm";
-    public static final String GET_PROCESS_ID = "getProcessId";
+	public static final String GET_PROCESS_ID = "getProcessId";
 	public static final String LOG_GW_PID = "pid : {}";
 
 	public static final String GW = "GW";
@@ -31,8 +31,8 @@ public final class GWConstants {
 	public static final String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanGW.ServiceId";
 
 	public static final String MQUEUE_NAME = "disk";
-    public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
-    public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
+	public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
 	public static final String MQUEUE_LOG_EXCHANGE_NAME = "ksan.log";
 
 	public static final String MQUEUE_NAME_GW_CONFIG = "ksan-gw-configure-";
@@ -102,13 +102,13 @@ public final class GWConstants {
 	public static final String OR = " or ";
 
 	public static final String AWS_XMLNS = "http://s3.amazonaws.com/doc/2006-03-01/";
-	
-	public static final String FAKE_INITIATOR_ID =	"arn:aws:iam::111122223333:" + "user/samsung-user-11116a31-17b5-4fb7-9df5-b288870f11xx";
+
+	public static final String FAKE_INITIATOR_ID = "arn:aws:iam::111122223333:"
+			+ "user/samsung-user-11116a31-17b5-4fb7-9df5-b288870f11xx";
 	public static final String FAKE_INITIATOR_DISPLAY_NAME = "umat-samsung-11116a31-17b5-4fb7-9df5-b288870f11xx";
 	public static final String FAKE_REQUEST_ID = "4442587FB7D0A2F9";
-	
-	public static final CharMatcher VALID_BUCKET_CHAR =
-			CharMatcher.inRange('a', 'z')
+
+	public static final CharMatcher VALID_BUCKET_CHAR = CharMatcher.inRange('a', 'z')
 			.or(CharMatcher.inRange('0', '9'))
 			.or(CharMatcher.is('-'))
 			.or(CharMatcher.is('.'));
@@ -120,8 +120,34 @@ public final class GWConstants {
 			"authenticated-read",
 			"bucket-owner-read",
 			"bucket-owner-full-control",
-			"log-delivery-write"
-			);
+			"log-delivery-write");
+	public static final Set<String> INVENTORY_OPTIONS = ImmutableSet.of(
+			"Size",
+			"LastModifiedDate",
+			"StorageClass",
+			"ETag",
+			"IsMultipartUploaded",
+			"ReplicationStatus",
+			"EncryptionStatus",
+			"ObjectLockRetainUntilDate",
+			"ObjectLockMode",
+			"ObjectLockLegalHoldStatus",
+			"IntelligentTieringAccessTier",
+			"BucketKeyStatus",
+			"ChecksumAlgorithm");
+
+	public static final Set<String> INVENTORY_INCLUDE_OBJECT_VERSIONS = ImmutableSet.of(
+			"All",
+			"Current");
+
+	public static final Set<String> INVENTORY_SCHEDULE = ImmutableSet.of(
+			"Daily",
+			"Weekly");
+
+	public static final Set<String> INVENTORY_FORMAT = ImmutableSet.of(
+			"CSV",
+			"ORC",
+			"Parquet");
 
 	public static final String INVALID_HEADER = "Invalid header";
 	public static final String INVALID_CREDENTIAL = "Invalid Credential: ";
@@ -133,23 +159,23 @@ public final class GWConstants {
 	public static final String XML_VERSION_CONFIGURATION_END = "<VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"/>";
 	public static final String XML_VERSION_CONFIGURATION = "<VersioningConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
 	public static final String XML_VERSION_CONFIGURATION_STATUS = "<Status>";
-	public static final String XML_VERSION_CONFIGURATION_STATUS_TAIL ="</Status>";
+	public static final String XML_VERSION_CONFIGURATION_STATUS_TAIL = "</Status>";
 	public static final String XML_VERSION_CONFIGURATION_TAIL = "</VersioningConfiguration>";
 	public static final String XML_CONTENT_TYPE = "application/xml";
 
 	public static final String JSON_CONTENT_TYPE = "application/json";
-	
+
 	public static final String DIRECTORY_SUFFIX = GWConstants.SLASH;
-	
+
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
 	public static final int BUFSIZE = 262144; // 256 * 1024
 	public static final long PARTS_MIN_SIZE = 5242880; // 5MB
 
 	public static final String DEFAULT_MAX_KEYS = "1000";
-	   
+
 	public static final String DIRECTORY_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
 	public static final String PARTCOPY_MD5 = "00000000000000000000000000000000";
-	
+
 	public static final String MARIADB = "MariaDB";
 	public static final String MARIADB_URL = "jdbc:mariadb://";
 	public static final String MARIADB_OPTIONS = "?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8";
@@ -173,7 +199,7 @@ public final class GWConstants {
 	public static final String METHOD_DELETE = "DELETE";
 	public static final String METHOD_HEAD = "HEAD";
 	public static final String METHOD_OPTIONS = "OPTIONS";
-	
+
 	public static final String STRING_TRUE = "TRUE";
 	public static final String STRING_FALSE = "FALSE";
 	public static final String ALLOW = "Allow";
@@ -252,7 +278,7 @@ public final class GWConstants {
 	public static final int AWS4_DATE_INDEX = 1;
 	public static final int AWS4_REGION_INDEX = 2;
 	public static final int AWS4_SERVICE_INDEX = 3;
-	
+
 	public static final String OBJECT_TYPE_FILE = "file";
 	public static final String OBJECT_TYPE_MARKER = "mark";
 	public static final String STATUS_ENABLED = "Enabled";
@@ -367,7 +393,7 @@ public final class GWConstants {
 	public static final String ACTION_LIST_BUCKET_MULTIPART_UPLOADS = "s3:ListBucketMultipartUploads";
 	public static final String ACTION_LIST_BUCKET_VERSIONS = "s3:ListBucketVersions";
 	public static final String ACTION_LIST_MULTIPART_UPLOAD_PARTS = "s3:ListMultipartUploadParts";
-	
+
 	public static final String ACTION_PUT_BUCKET_ACL = "s3:PutBucketAcl";
 	public static final String ACTION_PUT_BUCKET_CORS = "s3:PutBucketCORS";
 	public static final String ACTION_PUT_BUCKET_LOGGING = "s3:PutBucketLogging";
@@ -380,6 +406,7 @@ public final class GWConstants {
 	public static final String ACTION_PUT_ENCRYPTION_CONFIGURATION = "s3:PutEncryptionConfiguration";
 	public static final String ACTION_PUT_LIFECYCLE_CONFIGURATION = "s3:PutLifecycleConfiguration";
 	public static final String ACTION_PUT_REPLICATION_CONFIGURATION = "s3:PutReplicationConfiguration";
+	public static final String ACTION_PUT_INVENTORY_CONFIGURATION = "s3:PutInventoryConfiguration";
 
 	public static final String ACTION_PUT_OBJECT = "s3:PutObject";
 	public static final String ACTION_PUT_OBJECT_ACL = "s3:PutObjectAcl";
@@ -390,7 +417,7 @@ public final class GWConstants {
 	public static final String ACTION_PUT_OBJECT_VERSION_TAGGING = "s3:PutObjectVersionTagging";
 
 	public static final String ACTION_BYPASS_GOVERNANCE_RETENTION = "s3:BypassGovernanceRetention";
-	
+
 	// policy condition keys constatns
 	public static final String KEY_AUTH_TYPE = "s3:authType";
 	public static final String KEY_DELIMITER = "s3:delimiter";
@@ -444,7 +471,7 @@ public final class GWConstants {
 	public static final String AES256 = "AES256";
 	public static final String INFINISTOR = "INFINISTOR";
 	public static final String SIGNATURE_FIELD = "Signature=";
-    public static final String CREDENTIAL_FIELD = "Credential=";
+	public static final String CREDENTIAL_FIELD = "Credential=";
 
 	public static final String SIGNEDHEADERS_EQUAL = "SignedHeaders=";
 	public static final String AWS_ACCESS_KEY_ID = "AWSAccessKeyId";
@@ -513,7 +540,7 @@ public final class GWConstants {
 	public static final String X_IFS_REPLICATION = "x-ifs-replication";
 	public static final String X_IFS_DR = "x-ifs-dr";
 	public static final String X_IFS_LOGGING = "x-ifs-logging";
-	
+
 	public static final String IFS_HEADER_REPLICATION = "replication";
 	public static final String IFS_HEADER_DR = "dr";
 	public static final String IFS_HEADER_LOGGING = "logging";
@@ -524,7 +551,7 @@ public final class GWConstants {
 	public static final String BYTES = "bytes";
 	public static final String AUTHORIZATION = "Authorization";
 	public static final String UPLOAD_ID = "uploadId";
-	
+
 	public static final String CACHE_CONTROL = "Cache-Control";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
 	public static final String CONTENT_DISPOSITION_FORM_DATA = "Content-Disposition: form-data; name=\"";
@@ -533,8 +560,8 @@ public final class GWConstants {
 	public static final String CONTENT_TYPE = "Content-Type";
 	public static final String CONTENT_TYPE_X_DIRECTORY = "application/x-directory";
 	public static final String CONTENT_TYPE_BINARY = "binary/octet-stream";
-	
-	public static final String EXPIRES = "Expires";	
+
+	public static final String EXPIRES = "Expires";
 	public static final String VERSION_ID = "versionId";
 	public static final String PART_NUMBER = "partNumber";
 	public static final String RESPONSE_CACHE_CONTROL = "response-cache-control";
@@ -557,7 +584,7 @@ public final class GWConstants {
 	public static final String MAX_UPLOADS = "max-uploads";
 	public static final String UPLOAD_ID_MARKER = "upload-id-marker";
 	public static final String TAG = "tag";
-	
+
 	public static final String CONTINUATION_TOKEN = "continuation-token";
 	public static final String FETCH_OWNER = "fetch-owner";
 	public static final String START_AFTER = "start-after";
@@ -566,7 +593,7 @@ public final class GWConstants {
 	public static final String PART_NUMBER_MARKER = "part-number-marker";
 	public static final String CONTENT_MD5 = "Content-MD5";
 	public static final String CONTENT_LENGTH = "Content-Length";
-	
+
 	public static final String DELETE_RESULT = "DeleteResult";
 	public static final String DELETE_RESULT_DELETED = "Deleted";
 	public static final String DELETE_RESULT_KEY = "Key";
@@ -578,51 +605,48 @@ public final class GWConstants {
 	public static final String MYSQL_JDBC_DRIVER = "com.mysql.jdbc.Driver";
 
 	public static final String CREATE_DATABASE = "CREATE DATABASE IF NOT EXISTS ";
-	public static final String CREATE_TABLE_USERS = 
-				"CREATE TABLE IF NOT EXISTS `users` ("
-                + "`user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
-				+ "`user_name` varchar(128) NOT NULL,"
-				+ "`access_key` varchar(40) NOT NULL,"
-				+ "`access_secret` varchar(40) NOT NULL,"
-				+ "PRIMARY KEY (`user_id`)"
-				+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-	public static final String CREATE_TABLE_S3LOGGING = 
-				"CREATE TABLE IF NOT EXISTS `s3logging` ("
-				+ "  `log_id` bigint NOT NULL AUTO_INCREMENT,"
-				+ "  `user_name` varchar(64),"
-				+ "  `bucket_name` varchar(64),"
-				+ "  `date_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),"
-				+ "  `remote_host` varchar(256),"
-				+ "  `request_user` varchar(64),"
-				+ "  `request_id` varchar(64),"
-				+ "  `operation` varchar(64),"
-				+ "  `object_name` varbinary(2048),"
-				+ "  `request_uri` varbinary(2048),"
-				+ "  `status_code` int,"
-				+ "  `error_code` varchar(256),"
-				+ "  `response_length` bigint,"
-				+ "  `object_length` int,"
-				+ "  `total_time` bigint,"
-				+ "  `request_length` bigint,"
-				+ "  `referer` varchar(64),"
-				+ "  `user_agent` varchar(256),"
-				+ "  `version_id` varchar(64),"
-				+ "  `host_id` varchar(256),"
-				+ "  `sign` varchar(32),"
-				+ "  `ssl_group` varchar(64),"
-				+ "  `sign_type` varchar(32),"
-				+ "  `endpoint` varchar(64),"
-				+ "  `tls_version` varchar(32),"
-				+ "  PRIMARY KEY (`log_id`, `user_name`, `bucket_name`, `date_time`, `request_id`)"
-				+ "  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-	public static final String  INSERT_S3LOGGING = 
-		"insert into s3logging " +
-		"(user_name, bucket_name,     date_time,     remote_host,  request_user, " +
-		" request_id, operation,       object_name,   request_uri,  status_code, " + 
-	    " error_code, response_length, object_length, total_time,   request_length, " + 
-		" referer,    user_agent,      version_id,    host_id,      sign, " + 
-		" ssl_group,  sign_type,       endpoint,      tls_version) " +
-		" VALUES (?, ?, now(), ?, ?,    ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,      ?, ?, ?, ?);";
+	public static final String CREATE_TABLE_USERS = "CREATE TABLE IF NOT EXISTS `users` ("
+			+ "`user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,"
+			+ "`user_name` varchar(128) NOT NULL,"
+			+ "`access_key` varchar(40) NOT NULL,"
+			+ "`access_secret` varchar(40) NOT NULL,"
+			+ "PRIMARY KEY (`user_id`)"
+			+ ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String CREATE_TABLE_S3LOGGING = "CREATE TABLE IF NOT EXISTS `s3logging` ("
+			+ "  `log_id` bigint NOT NULL AUTO_INCREMENT,"
+			+ "  `user_name` varchar(64),"
+			+ "  `bucket_name` varchar(64),"
+			+ "  `date_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),"
+			+ "  `remote_host` varchar(256),"
+			+ "  `request_user` varchar(64),"
+			+ "  `request_id` varchar(64),"
+			+ "  `operation` varchar(64),"
+			+ "  `object_name` varbinary(2048),"
+			+ "  `request_uri` varbinary(2048),"
+			+ "  `status_code` int,"
+			+ "  `error_code` varchar(256),"
+			+ "  `response_length` bigint,"
+			+ "  `object_length` int,"
+			+ "  `total_time` bigint,"
+			+ "  `request_length` bigint,"
+			+ "  `referer` varchar(64),"
+			+ "  `user_agent` varchar(256),"
+			+ "  `version_id` varchar(64),"
+			+ "  `host_id` varchar(256),"
+			+ "  `sign` varchar(32),"
+			+ "  `ssl_group` varchar(64),"
+			+ "  `sign_type` varchar(32),"
+			+ "  `endpoint` varchar(64),"
+			+ "  `tls_version` varchar(32),"
+			+ "  PRIMARY KEY (`log_id`, `user_name`, `bucket_name`, `date_time`, `request_id`)"
+			+ "  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+	public static final String INSERT_S3LOGGING = "insert into s3logging " +
+			"(user_name, bucket_name,     date_time,     remote_host,  request_user, " +
+			" request_id, operation,       object_name,   request_uri,  status_code, " +
+			" error_code, response_length, object_length, total_time,   request_length, " +
+			" referer,    user_agent,      version_id,    host_id,      sign, " +
+			" ssl_group,  sign_type,       endpoint,      tls_version) " +
+			" VALUES (?, ?, now(), ?, ?,    ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,       ?, ?, ?, ?, ?,      ?, ?, ?, ?);";
 
 	public static final String SELECT_USERS = "select user_id, user_name, access_key, access_secret from dsan.users;";
 	public static final String SELECT_USERS_ACCESS_KEY = "select user_id, user_name, access_secret from dsan.users where access_key = ?;";
@@ -905,7 +929,7 @@ public final class GWConstants {
 	public static final String LOG_ACCESS_PROCESS_FAILED = ": x-amz-acl process fail";
 
 	public static final String LOG_COPY_SOURCE_IS_NULL = "x-amz-copy-source is null";
-	public static final String LOG_COPY_SOURCE_IS_NOT_IMPLEMENTED ="copy source : {}, arn:aws:s3 is not implemented";
+	public static final String LOG_COPY_SOURCE_IS_NOT_IMPLEMENTED = "copy source : {}, arn:aws:s3 is not implemented";
 	public static final String LOG_BUCKET_IS_NOT_EXIST = "bucket({}) is not exist.";
 	public static final String LOG_SOURCE_INFO = "source key : {}/{}, versionId : {}";
 	public static final String LOG_SOURCE_ETAG_MATCH = "source etag : {}, copySourceIfMatch : {}";
@@ -1061,7 +1085,7 @@ public final class GWConstants {
 	public static final String LOG_DELETE_OBJECT_FAILED_MARKER = "delete marker insert failed. bucket={}, object={}";
 
 	// DeleteObjects
-	public static final String LOG_DELETE_OBJECTS_START ="DeleteObjects ...";
+	public static final String LOG_DELETE_OBJECTS_START = "DeleteObjects ...";
 	public static final String LOG_DELETE_OBJECTS_SIZE = "delete objects size : {}";
 	public static final String LOG_DELETE_OBJECTS_QUIET_VALUE = "quiet is {}";
 	public static final String LOG_DELETE_OBJECTS_ERROR = "Error : Key={}, versionId={}, Code={}, Message={}";
@@ -1146,7 +1170,7 @@ public final class GWConstants {
 	// GetObjectAcl
 	public static final String LOG_GET_OBJECT_ACL_START = "GetObjectAcl ...";
 	public static final String LOG_ADMIN_GET_OBJECT_ACL_START = "AdmGetObjectAcl ...";
-	
+
 	// GetObjectRetention
 	public static final String LOG_GET_OBJECT_RETENTION_START = "GetObjectRetention ...";
 
@@ -1273,6 +1297,10 @@ public final class GWConstants {
 	// PutBucketVersioning
 	public static final String LOG_PUT_BUCKET_VERSIONING_START = "PutBucketVersioning ...";
 
+	// PutBucketInventory
+	public static final String LOG_PUT_BUCKET_INVENTORY_START = "PutBucketInventory ...";
+	public static final String LOG_PUT_BUCKET_INVENTORY_XML = "inventory : {}";
+
 	// PutBucketWebsite
 	public static final String LOG_PUT_BUCKET_WEBSITE_START = "PutBucketWebsite ...";
 
@@ -1292,7 +1320,7 @@ public final class GWConstants {
 	public static final String LOG_PUT_OBJECT_FAILED = "object insert failed(pubObject). bucket={}, object={}";
 	public static final String LOG_PUT_OBJECT_INFO = "pub object : {}/{}, size {}, etag {}, acl {}, versionId {}";
 	public static final String LOG_PUT_OBJECT_VERSIONID = "versionId : {}";
-	
+
 	// PutObjectAcl
 	public static final String LOG_PUT_OBJECT_ACL_START = "PutObjectAcl ...";
 	public static final String LOG_ADMIN_PUT_OBJECT_ACL_START = "AdmPutObjectAcl ...";
