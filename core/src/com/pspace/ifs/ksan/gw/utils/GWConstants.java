@@ -28,10 +28,11 @@ public final class GWConstants {
 	public static final String CONFIG_PATH = "/var/log/ksan/gw/gw_dump.conf";
 	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
-	public static final String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanGW.ServiceId";
+	public static final String SERVICEID_PATH = "/usr/local/ksan/etc/ksanGW.ServiceId";
 
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_UTILITY_EXCHANGE_NAME = "ksan.UtilityExchange";
     public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
 	public static final String MQUEUE_LOG_EXCHANGE_NAME = "ksan.log";
 
@@ -55,6 +56,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
 	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
+	public static final String MQUEUE_NAME_UTILITY_RECOVERD = "services.recoverd.report.fail_of_replication";
 
 	public static final String RESTORE_BUCKET_NAME = "BucketName";
 	public static final String RESTORE_OBJECT_NAME = "ObjectName";
@@ -80,6 +82,13 @@ public final class GWConstants {
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
 	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
+
+	public static final String RECOVERD_JSON_VERSIONID = "VersionId";
+	public static final String RECOVERD_JSON_BUCKETNAME = "bucketName";
+	public static final String RECOVERD_JSON_OSD_IP = "osdIP";
+	public static final String RECOVERD_JSON_DISK_PATH = "DiskPath";
+	public static final String RECOVERD_JSON_OBJECT_ID = "objId";
+	public static final String RECOVERD_JSON_DISK_ID = "DiskId";
 
 	public static final String PERFORMANCE_MODE_NO_OPTION = "NO_OPTION";
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
