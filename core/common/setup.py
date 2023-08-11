@@ -17,7 +17,7 @@ setup(
                 ('/var/log/ksan/rabbitmq', []), ('/var/log/ksan/agent', [])
 	],\
     packages=['portal_api','server', 'disk','common', 'configure', 'const' \
-               ,'mqmanage','network', \
+               ,'Enums','mqmanage','network', \
                'server','service','user', 'util', 'rest'],
 )
 

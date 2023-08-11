@@ -1,2 +1,0 @@
-def utils():
-    return None
