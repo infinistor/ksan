@@ -213,9 +213,17 @@ OFFLINE = 'Offline'
 
 
 ### service id path define ###
-KsanAgentServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanAgentName
-KsanOSDServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanOSDName
-KsanGWServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanGWName
+#KsanAgentServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanAgentName
+#KsanOSDServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanOSDName
+#KsanGWServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanGWName
+#KsanLifecycleServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanLifecycleManagerName
+#KsanRecoveryServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanRecovery.ServiceId'
+#KsanReplicationServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanReplicationManagerName
+#KsanLogManagerServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanLogManagerName
+
+KsanAgentServiceIdHiddenPath = '/usr/local/ksan/etc/%s.ServiceId' % KsanAgentName
+KsanOSDServiceIdHiddenPath = '/usr/local/ksan/etc/%s.ServiceId' % KsanOSDName
+KsanGWServiceIdHiddenPath = '/usr/local/ksan/etc/%s.ServiceId' % KsanGWName
 KsanLifecycleServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanLifecycleManagerName
 KsanRecoveryServiceIdHiddenPath = '/usr/local/ksan/sbin/.ksanRecovery.ServiceId'
 KsanReplicationServiceIdHiddenPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanReplicationManagerName
@@ -229,6 +237,23 @@ ServiceTypeServiceHiddenPathMap[TypeServiceLifecycle] = KsanLifecycleServiceIdHi
 ServiceTypeServiceHiddenPathMap[TypeServiceRecovery] = KsanRecoveryServiceIdHiddenPath
 ServiceTypeServiceHiddenPathMap[TypeServiceReplication] = KsanReplicationServiceIdHiddenPath
 ServiceTypeServiceHiddenPathMap[TypeServiceLogManager] = KsanLogManagerServiceIdHiddenPath
+
+KsanAgentServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanAgentName
+KsanOSDServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanOSDName
+KsanGWServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanGWName
+KsanLifecycleServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanLifecycleManagerName
+KsanRecoveryServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.ksanRecovery.ServiceId'
+KsanReplicationServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanReplicationManagerName
+KsanLogManagerServiceIdHiddenDockerPath = '/usr/local/ksan/sbin/.%s.ServiceId' % KsanLogManagerName
+
+ServiceTypeServiceHiddenDockerPathMap = dict()
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceAgent] = KsanAgentServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceOSD] = KsanOSDServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceGW] = KsanGWServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceLifecycle] = KsanLifecycleServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceRecovery] = KsanRecoveryServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceReplication] = KsanReplicationServiceIdHiddenDockerPath
+ServiceTypeServiceHiddenDockerPathMap[TypeServiceLogManager] = KsanLogManagerServiceIdHiddenDockerPath
 
 
 ### service unit ###
