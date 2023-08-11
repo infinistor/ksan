@@ -1277,22 +1277,21 @@ def isKsanServiceIdFileExists(ServiceType, ServiceId=None):
                 return False, 'fail to read system service file %s %s.' % (SystemdServiceUnitPath, str(err))
 
 
-
-        if isDockerService is False:
-            ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
-            if os.path.exists(ServiceHiddenPath):
-                if ServiceId is not None:
-                    with open(ServiceHiddenPath, 'r') as f:
-                        id = f.read()
-                        if ServiceId in id:
-                            return True, ''
-                        else:
-                            return False, 'wrong service id is in service id file'
-                else:
-                    return True, ''
-            else:
-                return False, ''
+        isValid = True
+        errlog = ''
+        ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+        if os.path.exists(ServiceHiddenPath):
+            if ServiceId is not None:
+                with open(ServiceHiddenPath, 'r') as f:
+                    id = f.read()
+                    if ServiceId not in id:
+                        isValid = False
+                        errlog += 'wrong service id is found in %s\n' % ServiceHiddenPath
         else:
+            isValid = False
+            errlog += '%s is not found\n' % ServiceHiddenPath
+
+        if isDockerService is True:
             #ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
             ServiceHiddenDockerPath = ServiceTypeServiceHiddenDockerPathMap[ServiceType]
             # copy from docker to local and check if serviceid file exists or not
@@ -1304,18 +1303,19 @@ def isKsanServiceIdFileExists(ServiceType, ServiceId=None):
                 if ServiceId is not None:
                     with open(CopiedServiceIdFile, 'r') as f:
                         id = f.read()
-                        if ServiceId in id:
-                            return True, ''
-                        else:
-                            return False, 'wrong service id is in service id file'
+                        if ServiceId not in id:
+                            isValid = False
+                            errlog += 'wrong service id is found in %s in docker\n' % CopiedServiceIdFile
                 else:
                     size = os.path.getsize(CopiedServiceIdFile)
-                    if size > 30:
-                        return True, ''
-                    else:
-                        return False, ''
+                    if size < 35: # uuid length is 36
+                        isValid = False
+                        errlog += 'service id file is invalid length in %s in docker\n' % CopiedServiceIdFile
             else:
-                return False, ''
+                isValid = False
+                errlog += '%s is not found in docker\n' % CopiedServiceIdFile
+
+        return isValid, errlog
     else:
         return True, ''
 
