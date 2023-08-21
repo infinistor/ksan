@@ -76,6 +76,7 @@ public class GCSListObjects extends GCSRequest{
             json.put("generation", s3Metadata.getVersionId());
 
             jsonArray.add(json);
+            logger.debug("object {}, {}, {}", s3Metadata.getName(), s3Metadata.getContentLength(), s3Metadata.getVersionId());
         }
         jsonObject.put("items", jsonArray);
         JSONArray emptyArray = new JSONArray();

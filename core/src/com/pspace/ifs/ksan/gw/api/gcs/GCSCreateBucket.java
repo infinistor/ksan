@@ -50,7 +50,6 @@ public class GCSCreateBucket extends GCSRequest{
 		bucket.setName(bucketName);
 		bucket.setUserId(s3Parameter.getUser().getUserId());
 		bucket.setUserName(s3Parameter.getUser().getUserName());
-		// bucket.setAcl(xml);
 		bucket.setDiskPoolId(diskpoolId);
 
 		S3Bucket s3Bucket = new S3Bucket();
