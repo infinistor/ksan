@@ -24,10 +24,11 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
-
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
@@ -78,6 +79,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Set;
 
+import org.json.simple.JSONObject;
+
 import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
 import com.google.common.base.Strings;
@@ -94,6 +97,12 @@ public class VFSObjectManager implements IObjectManager {
 
     @Override
     public void getObject(S3Parameter param, Metadata meta, S3Encryption encryption, S3Range s3Range) throws GWException {
+        // check size 0
+        if (meta.getSize() == 0) {
+            param.addResponseSize(0L);
+            return;
+        }
+
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForRead(meta.getPrimaryDisk().getId());
         boolean isAvailableReplica = false;
@@ -114,7 +123,7 @@ public class VFSObjectManager implements IObjectManager {
         String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
         // check range
-        String sourceRange = null;
+        String sourceRange = GWConstants.EMPTY_STRING;
         long fileSize = 0L;
         if (s3Range != null && s3Range.getListRange().size() > 0) {
             for (S3Range.Range range : s3Range.getListRange()) {
@@ -175,7 +184,7 @@ public class VFSObjectManager implements IObjectManager {
                 isAvailableReplica = isAvailableDiskForWrite(replicaDISK.getId());
             } catch (ResourceNotFoundException e) {
                 logger.error("Replica is null");
-            }
+            } 
         }
         if (!isAvailablePrimary && !isAvailableReplica) {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
@@ -422,6 +431,8 @@ public class VFSObjectManager implements IObjectManager {
             s3Object.setLastModified(new Date());
             s3Object.setVersionId(param.getVersionId());
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+            s3Object.setSavePrimary(isAvailablePrimary);
+            s3Object.setSaveReplica(isAvailableReplica);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);

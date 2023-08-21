@@ -38,6 +38,7 @@ import com.pspace.ifs.ksan.gw.format.Tagging.TagSet;
 import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.object.S3Object;
 // import com.pspace.ifs.ksan.gw.object.S3ObjectOperation;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
@@ -45,11 +46,13 @@ import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 // import com.pspace.ifs.ksan.gw.object.S3ServerSideEncryption;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import org.json.simple.JSONObject;
 
 import org.slf4j.LoggerFactory;
 public class PutObject extends S3Request {
@@ -422,6 +425,33 @@ public class PutObject extends S3Request {
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
+		if (objMeta.isReplicaExist()) {
+			try {
+				if (s3Object.isSavePrimary() && !s3Object.isSaveReplica()) {
+					MQSender sender = new MQSender(AgentConfig.getInstance().getMQHost(), 
+										Integer.parseInt(AgentConfig.getInstance().getMQPort()), 
+										AgentConfig.getInstance().getMQUser(), 
+										AgentConfig.getInstance().getMQPassword(), 
+										GWConstants.MQUEUE_UTILITY_EXCHANGE_NAME, 
+										GWConstants.MESSAGE_QUEUE_OPTION_DIRECT, 
+										GWConstants.MQUEUE_NAME_UTILITY_RECOVERD);
+					JSONObject eventData;
+					eventData = new JSONObject();
+		
+					eventData.put(GWConstants.RECOVERD_JSON_VERSIONID, s3Parameter.getVersionId());
+					eventData.put(GWConstants.RECOVERD_JSON_BUCKETNAME, objMeta.getBucket());
+					eventData.put(GWConstants.RECOVERD_JSON_OSD_IP, objMeta.getPrimaryDisk().getOsdIp());
+					eventData.put(GWConstants.RECOVERD_JSON_DISK_PATH, objMeta.getPrimaryDisk().getPath());
+					eventData.put(GWConstants.RECOVERD_JSON_OBJECT_ID, objMeta.getObjId());
+					eventData.put(GWConstants.RECOVERD_JSON_DISK_ID, objMeta.getPrimaryDisk().getId());
+					sender.send(eventData.toString(), GWConstants.MQUEUE_NAME_UTILITY_RECOVERD);
+					logger.debug("send recoverd message : {}", eventData.toString());
+				}
+			} catch (Exception e) {
+                logger.error("MQSender Exception : {}", e.getMessage());
+            }
+		}
+		
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
 		if (!Strings.isNullOrEmpty(customerAlgorithm)) {
 			logger.debug("customerAlgorithm : {}", customerAlgorithm);
