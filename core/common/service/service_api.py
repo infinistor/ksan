@@ -18,6 +18,7 @@ from portal_api.apis import *
 from const.service import AddServiceInfoObject, \
      UpdateServiceInfoObject, UpdateServiceUsageObject, \
     AddServiceGroupItems
+from common.utils import isSystemdServiceRunning
 from const.common import ServiceGroupItemsModule, ServiceDetailModule, ServiceItemsDetailModule
 from service.control import ServiceUnit
 
@@ -88,29 +89,29 @@ ObjManagerDefaultMqExchangeName = 'ksan.system'
 ObjManagerDefaultMqOsdExchangeName = 'OSDExchange'
 
 S3DefaultConfigInfo = [
-    {'key': 'gw.authorization', 'value': S3DefaultGwAuthrization, 'type': str, 'question': 'Insert authorization'},
-    {'key': 'gw.endpoint', 'value': S3DefaultGwEndpoint, 'type': 'url', 'question': 'Insert endpoint url'},
-    {'key': 'gw.secure_endpoint', 'value': S3DefaultGwSecureEndpoint, 'type': 'url',
+    {'key': 'authorization', 'value': S3DefaultGwAuthrization, 'type': str, 'question': 'Insert authorization'},
+    {'key': 'endpoint', 'value': S3DefaultGwEndpoint, 'type': 'url', 'question': 'Insert endpoint url'},
+    {'key': 'secure_endpoint', 'value': S3DefaultGwSecureEndpoint, 'type': 'url',
      'question': 'Insert secure endpoint url'},
-    {'key': 'gw.keystore_path', 'value': S3DefaultGwKeyStorePath, 'type': str, 'question': 'Insert keystore path'},
-    {'key': 'gw.keystore_password', 'value': S3DefaultGwtKeyStorePassword, 'type': str,
+    {'key': 'keystore_path', 'value': S3DefaultGwKeyStorePath, 'type': str, 'question': 'Insert keystore path'},
+    {'key': 'keystore_password', 'value': S3DefaultGwtKeyStorePassword, 'type': str,
      'question': 'Insert keystore password'},
-    {'key': 'gw.max_file_size', 'value': S3DefaultGwMaxFileSize, 'type': int, 'question': 'Insert max file size'},
-    {'key': 'gw.max_list_size', 'value': S3DefaultGwMaxListSize, 'type': int, 'question': 'Insert max sist size'},
-    {'key': 'gw.max_timeskew', 'value': S3DefaultGwMaxTimeSkew, 'type': int, 'question': 'Insert max time skew'},
-    {'key': 'gw.logging', 'value': S3DefaultGwLogging, 'type': str, 'question': 'Insert logging on/off', 'valid_answer_list': ['on', 'off']},
-    {'key': 'gw.osd_port', 'value': S3DefaultGwOsdPort, 'type': int, 'question': 'Insert ksanOSD port'},
-    {'key': 'gw.jetty_max_threads', 'value': S3DefaultGwJettyMaxThreads, 'type': int,
+    {'key': 'max_file_size', 'value': S3DefaultGwMaxFileSize, 'type': int, 'question': 'Insert max file size'},
+    {'key': 'max_list_size', 'value': S3DefaultGwMaxListSize, 'type': int, 'question': 'Insert max sist size'},
+    {'key': 'max_timeskew', 'value': S3DefaultGwMaxTimeSkew, 'type': int, 'question': 'Insert max time skew'},
+    {'key': 'logging', 'value': S3DefaultGwLogging, 'type': str, 'question': 'Insert logging on/off', 'valid_answer_list': ['on', 'off']},
+    {'key': 'osd_port', 'value': S3DefaultGwOsdPort, 'type': int, 'question': 'Insert ksanOSD port'},
+    {'key': 'jetty_max_threads', 'value': S3DefaultGwJettyMaxThreads, 'type': int,
      'question': 'Insert Jetty max thread count'},
-    {'key': 'gw.jetty_max_idle_timeout', 'value': S3DefaultGwJettyMaxIdleTime, 'type': int,
+    {'key': 'jetty_max_idle_timeout', 'value': S3DefaultGwJettyMaxIdleTime, 'type': int,
      'question': 'Insert Jetty max idle time'},
-    {'key': 'gw.osd_client_count', 'value': S3DefaultGwOsdClientCount, 'type': int,
+    {'key': 'osd_client_count', 'value': S3DefaultGwOsdClientCount, 'type': int,
      'question': 'Insert ksanOSD client count'},
-    {'key': 'gw.objmanager_count', 'value': S3DefaultGwObjmanagerCount, 'type': int,
+    {'key': 'objmanager_count', 'value': S3DefaultGwObjmanagerCount, 'type': int,
      'question': 'Insert ksanObjManager count'},
-    {'key': 'gw.performance_mode', 'value': S3DefaultGwPerformanceMode, 'type': str,
+    {'key': 'performance_mode', 'value': S3DefaultGwPerformanceMode, 'type': str,
      'question': 'Insert performance mode'},
-    {'key': 'gw.cache_diskpath', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path', 'value_command': 'disable: NULL, '},
+    {'key': 'cache_diskpath', 'value': S3DefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path', 'value_command': 'disable: NULL, '},
     #{'key': 'gw.cache_file_size', 'value': S3DefaultCacheFileSize, 'type': int, 'question': 'Insert cache file size'},
     #{'key': 'objM.db_repository', 'value': ObjManagerDefaultDbRepository, 'type': str,
     # 'question': 'Insert object DB repository', 'valid_answer_list': [TypeServiceMariaDB, TypeServiceMongoDB]},
@@ -886,7 +887,7 @@ def LoadServiceList(conf, ServiceList, LocalIpList, logger):
         logger.error('fail to get service list with serverId %s. %s' % (conf.ServerId, Errmsg))
         return False
 
-def IsValidServiceIdOfLocalServer(conf, logger, TargetServiceId):
+def IsValidServiceIdOfLocalServer(conf, logger, TargetServiceId=None, ServiceType=None):
     ServiceList = dict()
     LocalIpList = list()
     ServiceList['IdList'] = list()
@@ -898,16 +899,27 @@ def IsValidServiceIdOfLocalServer(conf, logger, TargetServiceId):
         if Ret is True:
             break
         if RetryCnt < 0:
-            logger.error('fail to check if the added serviced %s ' % TargetServiceId)
-            return False
+            logger.error('fail to check if the target serviced %s ' % TargetServiceId)
+            return False, None
         else:
             time.sleep(IntervalShort)
 
-    if TargetServiceId in ServiceList['IdList']:
-        return True
+    if ServiceType is not None:
+        for serviceid, info in ServiceList['Details'].items():
+            logger.debug("ServiceId:%s, ServiceType:%s" % (serviceid, info.ServiceType))
+            if info.ServiceType == ServiceType:
+                return True, serviceid
+        logger.error('the target serviceId %s is not local server\'s' % TargetServiceId)
+        return False, None
+    elif TargetServiceId is not None:
+        logger.debug("local service id list %s" % (",".join(ServiceList['IdList'])))
+        if TargetServiceId in ServiceList['IdList']:
+            return True, TargetServiceId
+        else:
+            logger.error('the target serviceId %s is not local server\'s' % TargetServiceId)
+            return False, None
     else:
-        logger.error('the added serviceId %s is not local server\'s' % TargetServiceId)
-        return False
+        return False, None
 
 @catch_exceptions()
 def ShowConfigList(ConfigList, Detail=False):
@@ -1243,7 +1255,7 @@ def UpdateGwBaseConfig(GwConfig, MqConfig, MariaDBConfig):
         except Exception as err:
             print('fail to update ksanGW Mq & MariaDB Config %s' % str(err))
 
-def isKsanServiceIdFileExists(ServiceType):
+def isKsanServiceIdFileExists(ServiceType, ServiceId=None):
     """
     check if systemd service file exists or not in local server or docker
     :param ServiceType:
@@ -1265,23 +1277,45 @@ def isKsanServiceIdFileExists(ServiceType):
                 return False, 'fail to read system service file %s %s.' % (SystemdServiceUnitPath, str(err))
 
 
+        isValid = True
+        errlog = ''
         ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
-
-        if isDockerService is False:
-            if os.path.exists(ServiceHiddenPath):
-                return True, ''
-            else:
-                return False, ''
+        if os.path.exists(ServiceHiddenPath):
+            if ServiceId is not None:
+                with open(ServiceHiddenPath, 'r') as f:
+                    id = f.read()
+                    if ServiceId not in id:
+                        isValid = False
+                        errlog += 'wrong service id is found in %s\n' % ServiceHiddenPath
         else:
+            isValid = False
+            errlog += '%s is not found\n' % ServiceHiddenPath
+
+        if isDockerService is True:
+            #ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+            ServiceHiddenDockerPath = ServiceTypeServiceHiddenDockerPathMap[ServiceType]
             # copy from docker to local and check if serviceid file exists or not
             CopiedServiceIdFile = '/tmp/.TmpServiceId%d' % int(time.time())
             ServiceContainerName = ServiceTypeDockerServiceContainerNameMap[ServiceType]
-            DockerGetServiceFileCmd = 'docker cp %s:%s %s' % (ServiceContainerName, ServiceHiddenPath, CopiedServiceIdFile)
+            DockerGetServiceFileCmd = 'docker cp %s:%s %s' % (ServiceContainerName, ServiceHiddenDockerPath, CopiedServiceIdFile)
             shcall(DockerGetServiceFileCmd)
             if os.path.exists(CopiedServiceIdFile):
-                return True, ''
+                if ServiceId is not None:
+                    with open(CopiedServiceIdFile, 'r') as f:
+                        id = f.read()
+                        if ServiceId not in id:
+                            isValid = False
+                            errlog += 'wrong service id is found in %s in docker\n' % CopiedServiceIdFile
+                else:
+                    size = os.path.getsize(CopiedServiceIdFile)
+                    if size < 35: # uuid length is 36
+                        isValid = False
+                        errlog += 'service id file is invalid length in %s in docker\n' % CopiedServiceIdFile
             else:
-                return False, ''
+                isValid = False
+                errlog += '%s is not found in docker\n' % CopiedServiceIdFile
+
+        return isValid, errlog
     else:
         return True, ''
 
@@ -1289,6 +1323,7 @@ def isKsanServiceIdFileExists(ServiceType):
 def SaveKsanServiceIdFile(ServiceType, ServiceId):
     if ServiceType in ServiceTypeServiceHiddenPathMap:
         ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+        ServiceHiddenDockerPath = ServiceTypeServiceHiddenDockerPathMap[ServiceType]
         isDockerService = False
 
         if ServiceType in ServiceTypeSystemdServiceMap:
@@ -1312,11 +1347,15 @@ def SaveKsanServiceIdFile(ServiceType, ServiceId):
             ServiceContainerName = ServiceTypeDockerServiceContainerNameMap[ServiceType]
             try:
                 SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+                CurrentServiceStatus = isSystemdServiceRunning(SystemdServiceUnitPath)
                 ServiceStopCmd = 'systemctl stop %s' % SystemdServiceUnitPath
                 shcall(ServiceStopCmd)
-                DockerCopyCmd = 'docker cp %s %s:%s' % (ServiceHiddenPath, ServiceContainerName, ServiceHiddenPath)
+                DockerCopyCmd = 'docker cp %s %s:%s' % (ServiceHiddenPath, ServiceContainerName, ServiceHiddenDockerPath)
                 shcall(DockerCopyCmd)
-                os.unlink(ServiceHiddenPath)
+                #if CurrentServiceStatus is True:
+                #    ServiceStartCmd = 'systemctl start %s' % SystemdServiceUnitPath
+                #    shcall(ServiceStartCmd)
+                #os.unlink(ServiceHiddenPath)
                 return True, ''
             except Exception as err:
                 return False, 'fail to create ServiceId file  %s:%s %s' % (ServiceContainerName, ServiceHiddenPath, str(err))
@@ -1324,6 +1363,58 @@ def SaveKsanServiceIdFile(ServiceType, ServiceId):
             return True, ''
     else:
         return False, 'service type %s is invalid' % ServiceType
+
+def DeleteKsanServiceIdFile(ServiceType):
+    if ServiceType in ServiceTypeServiceHiddenPathMap:
+        ServiceHiddenPath = ServiceTypeServiceHiddenPathMap[ServiceType]
+        ServiceHiddenDockerPath = ServiceTypeServiceHiddenDockerPathMap[ServiceType]
+        isDockerService = False
+
+        ret = True
+        errlog = ''
+        if ServiceType in ServiceTypeSystemdServiceMap:
+            SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+            try:
+                with open('/etc/systemd/system/'+ SystemdServiceUnitPath, 'r') as f:
+                    SystemdServiceContens = f.read()
+                    if 'Requires=docker.service' in SystemdServiceContens:
+                        isDockerService = True
+            except Exception as err:
+                ret = False
+                errlog += 'fail to read systemd service file %s %s' % (SystemdServiceUnitPath, str(err))
+
+        try:
+            os.unlink(ServiceHiddenPath)
+        except Exception as err:
+           ret = False
+           errlog += 'fail to delete ServiceId file  %s %s' % (ServiceHiddenPath, str(err))
+
+
+        if isDockerService is True:
+            ServiceContainerName = ServiceTypeDockerServiceContainerNameMap[ServiceType]
+            try:
+                SystemdServiceUnitPath = ServiceTypeSystemdServiceMap[ServiceType]
+                ServiceStopCmd = 'systemctl stop %s' % SystemdServiceUnitPath
+                out, err = shcall(ServiceStopCmd)
+                if err != '':
+                    ret = False
+                    errlog += 'fail to stop service %s %s' % (ServiceContainerName, err)
+
+                DockerInitServiceIdFileCmd = 'touch /tmp/EmptyServiceId ; docker cp /tmp/EmptyServiceId %s:%s' % (ServiceContainerName, ServiceHiddenDockerPath)
+                out, err = shcall(DockerInitServiceIdFileCmd)
+                if err != '':
+                    ret = False
+                    errlog += 'fail to delete service id file %s %s' % (ServiceContainerName, err)
+                #os.unlink(ServiceHiddenPath)
+                return ret, errlog
+            except Exception as err:
+                return False, 'fail to create ServiceId file  %s:%s %s' % (ServiceContainerName, ServiceHiddenPath, str(err))
+        else:
+            return True, ''
+    else:
+        return False, 'service type %s is invalid' % ServiceType
+
+
 
 @catch_exceptions()
 def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList, LocalIpList, GlobalFlag, logger):
@@ -1353,10 +1444,28 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
         #    Ret = S3.StartStop(Body)
         service = ServiceUnit(logger, ServiceType)
         if body.Control == START:
+
+            ret, ServiceId = IsValidServiceIdOfLocalServer(MonConf, logger, ServiceType=ServiceType)
+            if ret is True:
+                ret, errlog = isKsanServiceIdFileExists(ServiceType, ServiceId=ServiceId)
+                if ret is False:
+                    logger.debug('ServiceId file is not found. %s %s' % (ServiceId, errlog))
+                    ret, errlog = SaveKsanServiceIdFile(ServiceType, ServiceId)
+                    if ret is False:
+                        logger.error(errlog)
+
             Ret, ErrMsg = service.Start()
         elif body.Control == STOP:
             Ret, ErrMsg = service.Stop()
         elif body.Control == RESTART:
+            ret, ServiceId = IsValidServiceIdOfLocalServer(MonConf, logger, ServiceType=ServiceType)
+            if ret is True:
+                ret, errlog = isKsanServiceIdFileExists(ServiceType, ServiceId=ServiceId)
+                if ret is False:
+                    logger.debug('ServiceId file is not found. %s %s' % (ServiceId, errlog))
+                    ret, errlog = SaveKsanServiceIdFile(ServiceType, ServiceId)
+                    if ret is False:
+                        logger.error(errlog)
             Ret, ErrMsg = service.Restart()
         elif ServiceType.lower() == TypeServiceAgent.lower():
             Ret = True
@@ -1382,15 +1491,30 @@ def MqServiceHandler(MonConf, RoutingKey, Body, Response, ServerId, ServiceList,
         GlobalFlag['ServiceUpdated'] = Updated
 
         if RoutingKey.endswith(".added"):
-            ret, errlog = isKsanServiceIdFileExists(ServiceType)
+            ret, errlog = isKsanServiceIdFileExists(ServiceType, ServiceId=body.Id)
             if ret is False:
                 logger.debug('ServiceId file is not found. %s %s' % (body.Id, errlog))
 
-                ret = IsValidServiceIdOfLocalServer(MonConf, logger, body.Id)
+                ret, ServiceId = IsValidServiceIdOfLocalServer(MonConf, logger, TargetServiceId=body.Id)
                 if ret is True:
                     ret, errlog = SaveKsanServiceIdFile(ServiceType, body.Id)
                     if ret is False:
                         logger.error(errlog)
+            else:
+                logger.debug('ServiceId file is already exists. %s %s' % (body.Id, errlog))
+
+        elif RoutingKey.endswith(".removed"):
+            ret, errlog = isKsanServiceIdFileExists(ServiceType)
+            if ret is True:
+                logger.debug('ServiceId file is found. %s %s' % (body.Id, errlog))
+                if body.ServerId == MonConf.ServerId:
+                    #os.unlink(ServiceTypeServiceHiddenPathMap[ServiceType])
+                    ret, errlog = DeleteKsanServiceIdFile(ServiceType)
+                    if ret is False:
+                        logger.error(errlog)
+                    else:
+                        logger.debug('ServiceId file is removed. %s %s' % (body.Id, errlog))
+
 
         Response.IsProcessed = True
         logger.debug(ResponseReturn)

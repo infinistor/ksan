@@ -50,7 +50,7 @@ class Disk(AddDiskObject):
             return ResNotFoundCode, ResNotFoundMsg
 
     @catch_exceptions()
-    def GetUsage(self, CurrentDiskState):
+    def GetUsage(self, CurrentDiskState, DiskId):
         #if CurrentDiskState == DiskDisable: # keep disable until util set good
         #    return ResNotFoundCode, ResNotFoundMsg
 
@@ -63,12 +63,22 @@ class Disk(AddDiskObject):
                     continue
                 else:
                     return ResNotFoundCode, ResNotFoundMsg
+            else:
+                if RetryCnt < 0:
+                    return ResNotFoundCode, ResNotFoundMsg
 
-            disk_stat = psutil.disk_usage(self.Path)
-            self.TotalSize = disk_stat.total
-            self.UsedSize = disk_stat.used
-            self.ReservedSize = disk_stat.total - disk_stat.used - disk_stat.free
-            return ResOk, ''
+                with open(self.Path + '/DiskId') as f:
+                    id = f.read()
+                    if DiskId not in id:
+                        return ResNotFoundCode, ResNotFoundMsg
+                    else:
+                        break
+
+        disk_stat = psutil.disk_usage(self.Path)
+        self.TotalSize = disk_stat.total
+        self.UsedSize = disk_stat.used
+        self.ReservedSize = disk_stat.total - disk_stat.used - disk_stat.free
+        return ResOk, ''
 
     def CheckDiskReadWrite(self):
         RetryCnt = 3

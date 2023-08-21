@@ -264,12 +264,11 @@ def RemoveS3UserStorageClass(ip, port, ApiKey, StorageClass, UserId=None, UserNa
 
     user = S3UserStorageClassObject()
     user.Set(TargetUser, TargetDiskPool, StorageClass)
-    body = jsonpickle.encode(user, make_refs=False)
-    Url = '/api/v1/KsanUsers/StorageClass'
+    #body = jsonpickle.encode(user, make_refs=False)
+    Url = '/api/v1/KsanUsers/StorageClass/%s/%s/%s' % (TargetUser, TargetDiskPool, StorageClass)
     ReturnType = ResponseHeaderModule
 
-    Params = body
-    Conn = RestApi(ip, port, Url, authkey=ApiKey, params=Params, logger=logger)
+    Conn = RestApi(ip, port, Url, authkey=ApiKey, logger=logger)
     Res, Errmsg, Ret = Conn.delete(ItemsHeader=False, ReturnType=ReturnType)
     return Res, Errmsg, Ret
 
