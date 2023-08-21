@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import jakarta.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
@@ -18,6 +19,7 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -55,7 +57,7 @@ public class GetBucketPolicy extends S3Request {
 		try {
 			if (!Strings.isNullOrEmpty(policy)) {
 				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(policy.getBytes());
+				s3Parameter.getResponse().getOutputStream().write(policy.getBytes(Charset.forName(Constants.UTF_8)));
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
