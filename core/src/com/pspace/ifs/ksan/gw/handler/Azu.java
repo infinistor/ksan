@@ -68,9 +68,9 @@ public class Azu {
         ProxyConnectionFactory httpProxyConnectionFactory = new ProxyConnectionFactory(httpConnectionFactory.getProtocol());
         ServerConnector connector  = new ServerConnector(server, httpProxyConnectionFactory, httpConnectionFactory);
         connector.setHost("0.0.0.0");
-        connector.setPort(10000);
+        connector.setPort(AzuConstants.AZU_PORT);
         
-        connector.setIdleTimeout(60000);
+        connector.setIdleTimeout(AzuConstants.AZU_TIME_OUT);
         
         connector.setReuseAddress(true);
         server.addConnector(connector);
