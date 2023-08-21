@@ -12,6 +12,7 @@
 package com.pspace.ifs.ksan.libs;
 
 public class Constants {
+	public static final String UTF_8 = "UTF-8";
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
 
 	public static final char CHAR_SLASH = '/';
