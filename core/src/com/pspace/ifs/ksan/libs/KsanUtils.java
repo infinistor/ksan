@@ -20,6 +20,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -107,7 +108,7 @@ public class KsanUtils {
 
     private static String makeDirectorySub(String objId) {
         byte[] path = new byte[3];
-        byte[] byteObjId = objId.getBytes(Charset.forName(Constants.UTF_8));
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
         path[2] = byteObjId[1];
@@ -117,7 +118,7 @@ public class KsanUtils {
 
     private static String makeDirectoryName(String objId) {
         byte[] path = new byte[6];
-        byte[] byteObjId = objId.getBytes(Charset.forName(Constants.UTF_8));
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
 
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
@@ -480,8 +481,8 @@ public class KsanUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes(Charset.forName(Constants.UTF_8)).length)
-				key[i] = customerKey.getBytes(Charset.forName(Constants.UTF_8))[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
@@ -499,8 +500,8 @@ public class KsanUtils {
 		byte[] key = new byte[32];
 		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes(Charset.forName(Constants.UTF_8)).length)
-				key[i] = customerKey.getBytes(Charset.forName(Constants.UTF_8))[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}

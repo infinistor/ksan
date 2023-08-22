@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -20,7 +21,6 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
-import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
@@ -54,7 +54,7 @@ public class GetPublicAccessBlock extends S3Request {
 
 		try {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-			s3Parameter.getResponse().getOutputStream().write(access.getBytes(Charset.forName(Constants.UTF_8)));
+			s3Parameter.getResponse().getOutputStream().write(access.getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

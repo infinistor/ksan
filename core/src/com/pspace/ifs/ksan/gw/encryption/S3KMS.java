@@ -148,7 +148,7 @@ public class S3KMS {
                         }
                     }
                     
-                    enckey = new String(Base64.getDecoder().decode(enckey.getBytes(Charset.forName(Constants.UTF_8))), StandardCharsets.UTF_8);
+                    enckey = new String(Base64.getDecoder().decode(enckey.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
                 } else {
                     InputStream input;
 

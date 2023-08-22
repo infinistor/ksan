@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.api;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,6 @@ import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
@@ -83,7 +83,7 @@ public class PostObject extends S3Request {
         if (!Strings.isNullOrEmpty(dataPostObject.getPolicy())) {
 			Decoder decoder = Base64.getDecoder();
 			byte[] bytePostPolicy = decoder.decode(dataPostObject.getPolicy());
-			String postPolicy = new String(bytePostPolicy, Charset.forName(Constants.UTF_8));
+			String postPolicy = new String(bytePostPolicy, StandardCharsets.UTF_8);
 			ObjectMapper jsonMapper = new ObjectMapper();
 
 			PostPolicy postPolicyJson = null;

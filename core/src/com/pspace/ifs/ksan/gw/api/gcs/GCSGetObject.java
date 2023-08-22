@@ -19,7 +19,6 @@ import com.pspace.ifs.ksan.gw.object.ResultRange;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
-import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
@@ -28,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -141,7 +141,7 @@ public class GCSGetObject extends GCSRequest {
         logger.debug("json : {}", json.toString());
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(Charset.forName(Constants.UTF_8)));
+            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

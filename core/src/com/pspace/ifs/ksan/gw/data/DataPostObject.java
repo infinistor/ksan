@@ -108,7 +108,7 @@ public class DataPostObject extends S3RequestData{
 					multipartStream.readBodyData(baos);
 					if (GWUtils.isField(header, GWConstants.PARAMETER_ACL)) {
 						aclkeyword = true;
-						acl = new String(baos.toByteArray());
+						acl = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.AWS_ACCESS_KEY_ID)
 							|| GWUtils.isField(header, GWConstants.X_AMZ_CREDENTIAL)) {
 						accesskey = new String(baos.toByteArray());

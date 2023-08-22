@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.data.azure;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,6 @@ import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
-import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
@@ -94,7 +94,7 @@ public class AzuRequestData {
 		try {
 			byte[] xml = parameter.getInputStream().readAllBytes();
 			parameter.addRequestSize(xml.length);
-			ret = new String(xml, Charset.forName(Constants.UTF_8));
+			ret = new String(xml, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.INTERNAL_SERVER_ERROR, parameter);
@@ -120,7 +120,7 @@ public class AzuRequestData {
 		try {
 			byte[] json = parameter.getInputStream().readAllBytes();
 			parameter.addRequestSize(json.length);
-			ret = new String(json, Charset.forName(Constants.UTF_8));
+			ret = new String(json, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.INTERNAL_SERVER_ERROR, parameter);

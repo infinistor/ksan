@@ -278,7 +278,7 @@ public class GCSPutObject extends GCSRequest {
 
                         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
                         try {
-                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(Charset.forName(Constants.UTF_8)));
+                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -309,7 +309,7 @@ public class GCSPutObject extends GCSRequest {
     
                         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
                         try {
-                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(Charset.forName(Constants.UTF_8)));
+                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -379,7 +379,7 @@ public class GCSPutObject extends GCSRequest {
 
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(Charset.forName(Constants.UTF_8)));
+            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
