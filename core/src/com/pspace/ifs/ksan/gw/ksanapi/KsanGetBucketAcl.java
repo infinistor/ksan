@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.ksanapi;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -50,7 +51,7 @@ public class KsanGetBucketAcl extends S3Request {
         try {
 			if (!Strings.isNullOrEmpty(aclInfo)) {
 				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(aclInfo.getBytes());
+				s3Parameter.getResponse().getOutputStream().write(aclInfo.getBytes(StandardCharsets.UTF_8));
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
