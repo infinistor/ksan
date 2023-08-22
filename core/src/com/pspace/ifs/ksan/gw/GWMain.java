@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.TimeZone;
 import java.util.Locale;
 import java.io.BufferedReader;
@@ -148,7 +149,7 @@ public class GWMain {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file);
+            FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8);
 
 			Long pid = ProcessHandle.current().pid();
 
