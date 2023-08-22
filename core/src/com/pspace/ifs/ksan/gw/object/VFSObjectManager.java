@@ -59,7 +59,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1474,7 +1474,7 @@ public class VFSObjectManager implements IObjectManager {
             // src object is multipart
             if (isMultipart) {
                 BufferedReader br = null;
-                br = new BufferedReader(new InputStreamReader(is));
+                br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
                 // if (!Strings.isNullOrEmpty(srcKey)) {
                 //     br = new BufferedReader(new InputStreamReader(encryptIS));
                 // } else {
@@ -1539,20 +1539,20 @@ public class VFSObjectManager implements IObjectManager {
                             // }
                             sb.append(System.lineSeparator());
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         } else {
                             line += System.lineSeparator();
                             sb.setLength(0);
                             sb.append(line);
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         }
                     } else if ((accOffset + partLength - 1) == last) {
@@ -1560,10 +1560,10 @@ public class VFSObjectManager implements IObjectManager {
                         sb.setLength(0);
                         sb.append(line);
                         if (isAvailablePrimary) {
-                            osPrimary.write(sb.toString().getBytes());
+                            osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                         }
                         if (isAvailableReplica) {
-                            osReplica.write(sb.toString().getBytes());
+                            osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                         }
                         break;
                     } else {
@@ -1574,10 +1574,10 @@ public class VFSObjectManager implements IObjectManager {
                             sb.setLength(0);
                             sb.append(line);
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         } else {
                             sb.setLength(0);
@@ -1592,10 +1592,10 @@ public class VFSObjectManager implements IObjectManager {
                             sb.append(newLast);
                             sb.append(System.lineSeparator());
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         }
                         break;
@@ -1802,12 +1802,12 @@ public class VFSObjectManager implements IObjectManager {
         try {
             File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
             File tempReplica = null;
-            BufferedWriter bwPrimary = new BufferedWriter(new FileWriter(tempPrimary));
+            BufferedWriter bwPrimary = new BufferedWriter(new FileWriter(tempPrimary, StandardCharsets.UTF_8));
             BufferedWriter bwReplica = null;
 
             if (meta.isReplicaExist()) {
                 tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
-                bwReplica = new BufferedWriter(new FileWriter(tempReplica));
+                bwReplica = new BufferedWriter(new FileWriter(tempReplica, StandardCharsets.UTF_8));
             }
             
             // create temp file
@@ -1865,7 +1865,7 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartPrimary.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartPrimary = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary))) {
+                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary, StandardCharsets.UTF_8))) {
                             String line = null;
                             while ((line = br.readLine()) != null) {
                                 line += System.lineSeparator();
@@ -1900,7 +1900,7 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartReplica.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartReplica = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica))) {
+                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica, StandardCharsets.UTF_8))) {
                             String line = null;
                             while ((line = br.readLine()) != null) {
                                 line += System.lineSeparator();
@@ -2513,7 +2513,7 @@ public class VFSObjectManager implements IObjectManager {
         boolean isBorrowOsd = false;
         logger.debug("getMultipartLocal file : {}", file.getAbsolutePath());
         if (file.exists()) {
-            try (BufferedReader br = new BufferedReader(new FileReader(file));
+            try (BufferedReader br = new BufferedReader(new FileReader(file,StandardCharsets.UTF_8));
                 OutputStream os = param.getResponse().getOutputStream()) {
                 String line = null;
                 String objDiskId = null;
