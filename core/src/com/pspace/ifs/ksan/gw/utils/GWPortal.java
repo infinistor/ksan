@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.utils;
 
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -273,7 +274,8 @@ public class GWPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(GWConstants.SERVICEID_PATH));
+			BufferedReader reader = new BufferedReader(new FileReader(GWConstants.SERVICEID_PATH, StandardCharsets.UTF_8));
+
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();

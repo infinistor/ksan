@@ -674,8 +674,8 @@ public class GWUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
