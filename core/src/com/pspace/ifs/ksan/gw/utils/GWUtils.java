@@ -641,7 +641,7 @@ public class GWUtils {
 						subPath[4] = data[k];
 						subPath[5] = data[l];
 
-						file = new File(path + new String(subPath));
+						file = new File(path + new String(subPath, StandardCharsets.UTF_8));
 						file.mkdirs();
 					}
 				}
@@ -693,8 +693,8 @@ public class GWUtils {
 		byte[] key = new byte[32];
 		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
