@@ -247,9 +247,9 @@ public class AzuSigning {
                 return null;
             }
 
-            byte[] keyBytes = java.util.Base64.getDecoder().decode(key.getBytes());
+            byte[] keyBytes = java.util.Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8));
             mac.init(new SecretKeySpec(keyBytes, "HmacSHA256"));
-            String authKey = Base64.encodeBase64String(mac.doFinal(stringToSign.getBytes("UTF-8")));
+            String authKey = Base64.encodeBase64String(mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8)));
             return authKey;
         } catch (Exception e) {
             PrintStack.logging(logger, e);
