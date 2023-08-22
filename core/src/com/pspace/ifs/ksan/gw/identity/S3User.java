@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.identity;
 
 import com.google.common.base.Strings;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +62,7 @@ public class S3User {
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
-        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes()));
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
         userDiskPools = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < diskpools.size(); i++) {
             JSONObject item = (JSONObject)diskpools.get(i);
@@ -108,7 +110,7 @@ public class S3User {
 
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
-        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes()));
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 
     public String getAccessSecret() {
