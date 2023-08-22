@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.libs;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -196,7 +197,7 @@ public class DiskManager {
     public void saveFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(Constants.DISKPOOL_CONF_PATH));
-            FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, false);
+            FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, StandardCharsets.UTF_8);
             fileWriter.write(FILE_DISKPOOL_LIST_START);
             for (DiskPool diskPool : diskPoolList) {
                 fileWriter.write(FILE_DISKPOOL_ID + diskPool.getId() + FILE_DISKPOOL_NAME + diskPool.getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPool.getReplicationType() + FILE_DISKPOOL_NEWLINE);
