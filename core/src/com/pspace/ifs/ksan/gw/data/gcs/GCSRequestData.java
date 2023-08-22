@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.data.gcs;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 import com.google.common.base.Strings;
@@ -91,10 +92,10 @@ public class GCSRequestData {
             if (Strings.isNullOrEmpty(contentEncoding)) {
                 byte[] json = s3Parameter.getInputStream().readAllBytes();
                 s3Parameter.addRequestSize(json.length);
-                ret = new String(json);
+                ret = new String(json, StandardCharsets.UTF_8);
             } else {
                 if (contentEncoding.equals("gzip")) {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Parameter.getInputStream())));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Parameter.getInputStream()), StandardCharsets.UTF_8));
                     StringBuilder sb = new StringBuilder();
                     for (String line; (line = br.readLine())!= null;) {
                         sb.append(line);
@@ -103,7 +104,7 @@ public class GCSRequestData {
                 } else {
                     byte[] json = s3Parameter.getInputStream().readAllBytes();
                     s3Parameter.addRequestSize(json.length);
-                    ret = new String(json);
+                    ret = new String(json, StandardCharsets.UTF_8);
                 }
             }
             
