@@ -17,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import com.google.common.base.Strings;
 
@@ -558,7 +559,7 @@ public class GWConfig {
     public void saveConfigFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(GWConstants.CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, false);
+            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, StandardCharsets.UTF_8);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
             fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");
