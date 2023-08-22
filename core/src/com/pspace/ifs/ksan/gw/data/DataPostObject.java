@@ -117,7 +117,7 @@ public class DataPostObject extends S3RequestData{
 					} else if (GWUtils.isField(header, GWConstants.OBJECT_TYPE_FILE)) {
 						payload = baos.toByteArray();
 					} else if (GWUtils.isField(header, GWConstants.KEY)) {
-						key = new String(baos.toByteArray());
+						key = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.PARAMETER_POLICY)) {
 						policy = new String(baos.toByteArray());
 					} else if (GWUtils.isField(header, GWConstants.SIGNATURE) || GWUtils.isField(header, GWConstants.X_AMZ_SIGNATURE)) {
