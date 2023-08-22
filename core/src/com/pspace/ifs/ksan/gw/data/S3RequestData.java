@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.data;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,6 +31,7 @@ import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.format.LifecycleConfiguration;
@@ -619,7 +621,7 @@ public class S3RequestData {
 		try {
 			byte[] xml = s3Parameter.getInputStream().readAllBytes();
 			s3Parameter.addRequestSize(xml.length);
-			ret = new String(xml);
+			ret = new String(xml, Charset.forName(Constants.UTF_8));
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -645,7 +647,7 @@ public class S3RequestData {
 		try {
 			byte[] json = s3Parameter.getInputStream().readAllBytes();
 			s3Parameter.addRequestSize(json.length);
-			ret = new String(json);
+			ret = new String(json, Charset.forName(Constants.UTF_8));
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

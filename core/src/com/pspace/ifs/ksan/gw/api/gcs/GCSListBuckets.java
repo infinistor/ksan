@@ -16,8 +16,10 @@ import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
@@ -59,7 +61,7 @@ public class GCSListBuckets extends GCSRequest {
 
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(jsonObject.toString().getBytes());
+            s3Parameter.getResponse().getOutputStream().write(jsonObject.toString().getBytes(Charset.forName(Constants.UTF_8)));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

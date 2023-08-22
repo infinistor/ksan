@@ -272,87 +272,64 @@ public class OSDServer {
     
             byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
             File file = new File(KsanUtils.makeObjPath(path, objId, versionId));
+            logger.debug("file : {}", file.getAbsolutePath());
 
             if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
                 key = null;
             }
-            if (!Strings.isNullOrEmpty(key)) {
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    long remainLength = 0L;
-                    int readLength = 0;
-                    int readBytes;
-        
-                    encryptIS = OSDUtils.initCtrDecrypt(fis, key);
 
-                    if (Strings.isNullOrEmpty(sourceRange)) {
-                        remainLength = file.length();
-                        while ((readLength = encryptIS.read(buffer, 0, OSDConstants.BUFSIZE)) != -1) {
-                            readTotal += readLength;
-                            socket.getOutputStream().write(buffer, 0, readLength);
-                        }
-                    } else {
-                        String[] ranges = sourceRange.split(OSDConstants.SLASH);
-                        for (String range : ranges) {
-                            String[] rangeParts = range.split(OSDConstants.COMMA);
-                            long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
-                            long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
-                            logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
-        
-                            if (offset > 0) {
-                                encryptIS.skip(offset);
-                            }
-                            remainLength = length;
-                            while (remainLength > 0) {
-                                readBytes = 0;
-                                if (remainLength < OSDConstants.MAXBUFSIZE) {
-                                    readBytes = (int)remainLength;
-                                } else {
-                                    readBytes = OSDConstants.MAXBUFSIZE;
-                                }
-    
-                                readLength = encryptIS.read(buffer, 0, readBytes);
-                                
+            try {
+                if (!Strings.isNullOrEmpty(key)) {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        long remainLength = 0L;
+                        int readLength = 0;
+                        int readBytes;
+            
+                        encryptIS = OSDUtils.initCtrDecrypt(fis, key);
+
+                        if (Strings.isNullOrEmpty(sourceRange)) {
+                            remainLength = file.length();
+                            while ((readLength = encryptIS.read(buffer, 0, OSDConstants.BUFSIZE)) != -1) {
                                 readTotal += readLength;
                                 socket.getOutputStream().write(buffer, 0, readLength);
-                                remainLength -= readLength;
+                            }
+                        } else {
+                            String[] ranges = sourceRange.split(OSDConstants.SLASH);
+                            for (String range : ranges) {
+                                String[] rangeParts = range.split(OSDConstants.COMMA);
+                                long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                                long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                                logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+            
+                                if (offset > 0) {
+                                    encryptIS.skip(offset);
+                                }
+                                remainLength = length;
+                                while (remainLength > 0) {
+                                    readBytes = 0;
+                                    if (remainLength < OSDConstants.MAXBUFSIZE) {
+                                        readBytes = (int)remainLength;
+                                    } else {
+                                        readBytes = OSDConstants.MAXBUFSIZE;
+                                    }
+        
+                                    readLength = encryptIS.read(buffer, 0, readBytes);
+                                    
+                                    readTotal += readLength;
+                                    socket.getOutputStream().write(buffer, 0, readLength);
+                                    remainLength -= readLength;
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    long remainLength = 0L;
-                    int readLength = 0;
-                    int readBytes;
-        
-                    if (Strings.isNullOrEmpty(sourceRange)) {
-                        remainLength = file.length();
-                        while (remainLength > 0) {
-                            readBytes = 0;
-                            if (remainLength < OSDConstants.MAXBUFSIZE) {
-                                readBytes = (int)remainLength;
-                            } else {
-                                readBytes = OSDConstants.MAXBUFSIZE;
-                            }
-    
-                            readLength = fis.read(buffer, 0, readBytes);
-                            
-                            readTotal += readLength;
-                            socket.getOutputStream().write(buffer, 0, readLength);
-                            remainLength -= readLength;
-                        }
-                    } else {
-                        String[] ranges = sourceRange.split(OSDConstants.SLASH);
-                        for (String range : ranges) {
-                            String[] rangeParts = range.split(OSDConstants.COMMA);
-                            long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
-                            long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
-                            logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
-        
-                            if (offset > 0) {
-                                fis.skip(offset);
-                            }
-                            remainLength = length;
+                } else {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        long remainLength = 0L;
+                        int readLength = 0;
+                        int readBytes;
+            
+                        if (Strings.isNullOrEmpty(sourceRange)) {
+                            remainLength = file.length();
                             while (remainLength > 0) {
                                 readBytes = 0;
                                 if (remainLength < OSDConstants.MAXBUFSIZE) {
@@ -360,16 +337,46 @@ public class OSDServer {
                                 } else {
                                     readBytes = OSDConstants.MAXBUFSIZE;
                                 }
-    
+        
                                 readLength = fis.read(buffer, 0, readBytes);
                                 
                                 readTotal += readLength;
                                 socket.getOutputStream().write(buffer, 0, readLength);
                                 remainLength -= readLength;
                             }
+                        } else {
+                            String[] ranges = sourceRange.split(OSDConstants.SLASH);
+                            for (String range : ranges) {
+                                String[] rangeParts = range.split(OSDConstants.COMMA);
+                                long offset = Longs.tryParse(rangeParts[OSDConstants.RANGE_OFFSET_INDEX]);
+                                long length = Longs.tryParse(rangeParts[OSDConstants.RANGE_LENGTH_INDEX]);
+                                logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
+            
+                                if (offset > 0) {
+                                    fis.skip(offset);
+                                }
+                                remainLength = length;
+                                while (remainLength > 0) {
+                                    readBytes = 0;
+                                    if (remainLength < OSDConstants.MAXBUFSIZE) {
+                                        readBytes = (int)remainLength;
+                                    } else {
+                                        readBytes = OSDConstants.MAXBUFSIZE;
+                                    }
+        
+                                    readLength = fis.read(buffer, 0, readBytes);
+                                    
+                                    readTotal += readLength;
+                                    socket.getOutputStream().write(buffer, 0, readLength);
+                                    remainLength -= readLength;
+                                }
+                            }
                         }
                     }
-                }
+                }   
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+                socket.close();
             }
             
             socket.getOutputStream().flush();

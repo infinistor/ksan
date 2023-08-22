@@ -142,6 +142,7 @@ public class GWMain {
 	}
 
 	public static void writePID() {
+		
         File file = new File(GWConstants.PID_PATH);
         try {
             if (!file.exists()) {
