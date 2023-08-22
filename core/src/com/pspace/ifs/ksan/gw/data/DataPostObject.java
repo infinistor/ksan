@@ -119,45 +119,45 @@ public class DataPostObject extends S3RequestData{
 					} else if (GWUtils.isField(header, GWConstants.KEY)) {
 						key = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.PARAMETER_POLICY)) {
-						policy = new String(baos.toByteArray());
+						policy = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.SIGNATURE) || GWUtils.isField(header, GWConstants.X_AMZ_SIGNATURE)) {
-						signature = new String(baos.toByteArray());
+						signature = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_ALGORITHM)) {
-						algorithm = new String(baos.toByteArray());
+						algorithm = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.CACHE_CONTROL)) {
-						cacheControl = new String(baos.toByteArray());
+						cacheControl = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.CONTENT_DISPOSITION)) {
-						contentDisposition = new String(baos.toByteArray());
+						contentDisposition = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.CONTENT_ENCODING)) {
-						contentEncoding = new String(baos.toByteArray());
+						contentEncoding = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.EXPIRES)) {
-						expires = new String(baos.toByteArray());
+						expires = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.PARAMETER_TAGGING)) {
-						tagging = new String(baos.toByteArray());
+						tagging = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.SUCCESS_ACTION_STATUS)) {
-						successActionStatus = new String(baos.toByteArray());
+						successActionStatus = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.SUCCESS_ACTION_REDIRECT)) {
-						successActionRedirect = new String(baos.toByteArray());
+						successActionRedirect = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_STORAGE_CLASS)) {
-						storageClass = new String(baos.toByteArray());
+						storageClass = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION)) {
-						serverSideEncryption = new String(baos.toByteArray());
+						serverSideEncryption = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_AWS_KMS_KEY_ID)) {
-						serverSideEncryptionAwsKmsKeyId = new String(baos.toByteArray());
+						serverSideEncryptionAwsKmsKeyId = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CONTEXT)) {
-						serverSideEncryptionContext = new String(baos.toByteArray());
+						serverSideEncryptionContext = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_BUCKET_KEY_ENABLED)) {
-						serverSideEncryptionBucketKeyEnabled = new String(baos.toByteArray());
+						serverSideEncryptionBucketKeyEnabled = new String(baos.toByteArray(),StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_ALGORITHM)) {
-						serverSideEncryptionCustomerAlgorithm = new String(baos.toByteArray());
+						serverSideEncryptionCustomerAlgorithm = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY)) {
-						serverSideEncryptionCustomerKey = new String(baos.toByteArray());
+						serverSideEncryptionCustomerKey = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.isField(header, GWConstants.X_AMZ_SERVER_SIDE_ENCRYPTION_CUSTOMER_KEY_MD5)) {
-						serverSideEncryptionCustomerKeyMD5 = new String(baos.toByteArray());
+						serverSideEncryptionCustomerKeyMD5 = new String(baos.toByteArray(), StandardCharsets.UTF_8);
 					} else if (GWUtils.startsField(header, GWConstants.USER_METADATA_PREFIX)) {
 						String parseHeader = header.substring(GWConstants.CONTENT_DISPOSITION_FORM_DATA.length());
 						parseHeader = parseHeader.substring(0, parseHeader.lastIndexOf(GWConstants.DOUBLE_QUOTE));
-						userMetadata.put(parseHeader, new String(baos.toByteArray()));
+						userMetadata.put(parseHeader, new String(baos.toByteArray(), StandardCharsets.UTF_8));
 					}
 				} catch (IOException e) {
 					PrintStack.logging(logger, e);
