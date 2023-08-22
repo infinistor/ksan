@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -200,7 +201,7 @@ public class ObjectManagerConfig {
     public void saveConfigFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(GWConstants.OBJMANAGER_CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, false);
+            FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, StandardCharsets.UTF_8);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
             fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
