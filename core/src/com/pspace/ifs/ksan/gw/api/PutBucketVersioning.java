@@ -51,12 +51,17 @@ public class PutBucketVersioning extends S3Request {
 
 		String versionXml = s3RequestData.getVersioningXml();
 		if (!Strings.isNullOrEmpty(versionXml)) {
-			Versioning versioning = new Versioning();
+			Versioning versioning = null;
 			try {
 				versioning = new XmlMapper().readValue(versionXml, Versioning.class);
 			} catch (JsonProcessingException e) {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			}
+
+			if (versioning == null) {
+				logger.info("Versioning class is null");
+				throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 			}
 
 			if (versioning.status != null && !versioning.status.equalsIgnoreCase(GWConstants.VERSIONING_ENABLED) && !versioning.status.equalsIgnoreCase(GWConstants.VERSIONING_SUSPENDED)) {
