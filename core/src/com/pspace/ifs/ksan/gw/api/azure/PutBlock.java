@@ -94,6 +94,7 @@ public class PutBlock extends AzuRequest {
             objMeta = createLocal(diskpoolId, containerName, blobName, versionId);
             objMeta.set(AzuConstants.EMPTY_STRING, AzuConstants.EMPTY_STRING, AzuConstants.EMPTY_STRING, AzuConstants.EMPTY_STRING, 0);
             objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+            objMeta.setSize(blockLength);
             try {
                 insertObject(containerName, blobName, objMeta);
             } catch (AzuException e1) {
