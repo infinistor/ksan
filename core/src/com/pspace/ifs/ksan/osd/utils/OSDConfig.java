@@ -14,6 +14,7 @@ package com.pspace.ifs.ksan.osd.utils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -242,7 +243,7 @@ public class OSDConfig {
     public void saveConfigFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(OSDConstants.CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, false);
+            FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, StandardCharsets.UTF_8);
             fileWriter.write(VERSION + EQUAL + version + "\n");
             fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
             fileWriter.write(PORT + EQUAL + port + "\n");
