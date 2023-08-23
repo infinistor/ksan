@@ -297,7 +297,7 @@ public abstract class MessageQ{
             this.connect();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes()); 
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes(StandardCharsets.UTF_8)); 
         String res = this.getReplay(replyQueueName, timeoutInMilliSec);
         return res;
     }
