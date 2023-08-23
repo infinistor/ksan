@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.libs.mq;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -119,11 +121,7 @@ public class MQResponse {
     }
     
     public byte[] getResponseInByte(){
-        try {
-            return this.toString().getBytes("UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            return this.toString().getBytes();
-        }
+        return this.toString().getBytes(StandardCharsets.UTF_8);
     }
     
     @Override
