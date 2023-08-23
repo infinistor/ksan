@@ -122,14 +122,14 @@ public class GCSPutObject extends GCSRequest {
                     long start = Long.parseLong(range[0]);
                     long end = 0;
                     long size = 0;
-                    long totalSize = 0;
+                    // long totalSize = 0;
                     if (range[1].contains("/")) {
                         String[] rangeSize = range[1].split("/");
                         end = Long.parseLong(rangeSize[0]);
                         if (rangeSize.length == 2) {
                             if (!rangeSize[1].equals("*")) {
                                 isLast = true;
-                                totalSize = Long.parseLong(rangeSize[1]);
+                                // totalSize = Long.parseLong(rangeSize[1]);
                             }
                         }
                     } else {
@@ -358,7 +358,7 @@ public class GCSPutObject extends GCSRequest {
         }
 
         JSONObject json = new JSONObject();
-        JSONArray array = new JSONArray();
+        // JSONArray array = new JSONArray();
 
         // json.put("acl", array);
         // json.put("crc32c", "");
