@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import com.pspace.ifs.ksan.libs.Constants;
@@ -403,9 +404,9 @@ public class OSDClient {
 	}
 
 	private void sendHeader(String header) throws IOException {
-		byte[] buffer = header.getBytes(Constants.CHARSET_UTF_8);
+		byte[] buffer = header.getBytes(StandardCharsets.UTF_8);
         String strLength = Integer.toString(buffer.length);
-        byte[] lengthBuffer = strLength.getBytes(Constants.CHARSET_UTF_8);
+        byte[] lengthBuffer = strLength.getBytes(StandardCharsets.UTF_8);
 
 		byte length = (byte)lengthBuffer.length;
 		logger.debug("socket : {} send header size : {}", socket.getRemoteSocketAddress().toString(), buffer.length);
@@ -425,12 +426,12 @@ public class OSDClient {
 		}
 		byte[] lengthBuffer = new byte[length];
 		socket.getInputStream().read(lengthBuffer, 0, length);
-		String strLength = new String(lengthBuffer);
+		String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
 		length = Integer.parseInt(strLength);
 		byte[] buffer = new byte[length];
 		socket.getInputStream().read(buffer, 0, length);
-		String result = new String(buffer, 0, length);
+		String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
 		String[] ArrayResult = result.split(Constants.COLON, -1);
 
 		OsdData data = new OsdData();
