@@ -77,13 +77,10 @@ public class PutBlob extends AzuRequest {
 
         String contentsLength = azuRequestData.getContentLength();
         long blobLength = Long.parseLong(contentsLength);
-        // String contentMD5 = azuRequestData.getContentMD5();
 
         logger.debug("contentsLength : {}, {}", contentsLength, blobLength);
 
-        String versionId = GWConstants.VERSIONING_DISABLE_TAIL;
         Metadata objMeta = null;
-        // boolean isExist = false;
         S3Metadata s3Metadata = null;
         try {
             // check exist object
@@ -93,7 +90,7 @@ public class PutBlob extends AzuRequest {
             logger.info(e.getMessage());
             // reset error code
             azuParameter.setErrorCode(GWConstants.EMPTY_STRING);
-            objMeta = createLocal(diskpoolId, containerName, blobName, versionId);
+            objMeta = createLocal(diskpoolId, containerName, blobName, GWConstants.VERSIONING_DISABLE_TAIL);
             s3Metadata = new S3Metadata();
             s3Metadata.setCreationDate(new Date());
         }
@@ -103,31 +100,14 @@ public class PutBlob extends AzuRequest {
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
         s3Metadata.setContentLength(blobLength);
 
-        // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, s3Metadata, azuParameter, versionId);
-        // S3Object s3Object = azuObjectOperation.putObject();
-
-        // s3Metadata.setETag(s3Object.getEtag());
-        // s3Metadata.setContentLength(s3Object.getFileSize());
         s3Metadata.setTier(storageClass);
-        // s3Metadata.setLastModified(s3Object.getLastModified());
-        // s3Metadata.setDeleteMarker(s3Object.getDeleteMarker());
-        s3Metadata.setVersionId(versionId);
-
-        // logger.info("MD5 check, receive : {}, result : {}", contentMD5, s3Object.getEtag());
+        s3Metadata.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL);
 
         String jsonmeta = s3Metadata.toString();
-        // try {
-        //     jsonMapper.setSerializationInclusion(Include.NON_NULL);
-        //     jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-        // } catch (JsonProcessingException e) {
-        //     PrintStack.logging(logger, e);
-        //     throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-        // }
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {
-            // objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
-            objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+            objMeta.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL, GWConstants.OBJECT_TYPE_FILE, true);
             objMeta.setMeta(jsonmeta);
             insertObject(containerName, blobName, objMeta);
         } catch (AzuException e) {
