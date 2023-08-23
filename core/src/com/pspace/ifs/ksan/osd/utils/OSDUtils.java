@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
@@ -278,7 +279,7 @@ public class OSDUtils {
         int size = si.readInt();
         byte[] buffer = new byte[size];
         si.read(buffer, 0, size);
-        String result = new String(buffer, 0, size);
+        String result = new String(buffer, 0, size, StandardCharsets.UTF_8);
         String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 
         OsdData data = new OsdData();
@@ -300,8 +301,8 @@ public class OSDUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
@@ -319,8 +320,8 @@ public class OSDUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
