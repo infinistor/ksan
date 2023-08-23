@@ -54,7 +54,7 @@ public class PutBucketTagIndex extends S3Request {
         logger.info(GWConstants.LOG_PUT_BUCKET_TAG_INDEX, tagIndexXml);
 
 		if (!Strings.isNullOrEmpty(tagIndexXml)) {
-			TagIndex tagIndex = new TagIndex();
+			TagIndex tagIndex = null;
 			try {
 				tagIndex = new XmlMapper().readValue(tagIndexXml, TagIndex.class);
 			} catch (JsonProcessingException e) {
@@ -62,7 +62,7 @@ public class PutBucketTagIndex extends S3Request {
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 			}
 
-			if (tagIndex.status != null && tagIndex.status.equalsIgnoreCase(GWConstants.STATUS_ENABLED)) {
+			if (tagIndex != null && tagIndex.status != null && tagIndex.status.equalsIgnoreCase(GWConstants.STATUS_ENABLED)) {
 				updateBucketTagIndex(bucket, true);
 			} else if (tagIndex.status != null && tagIndex.status.equalsIgnoreCase(GWConstants.STATUS_DISABLED)) {
 				updateBucketTagIndex(bucket, false);
