@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 class ConfigUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(ConfigUpdateCallback.class);
@@ -104,7 +105,7 @@ public class OSDPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH));
+			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH, StandardCharsets.UTF_8));
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();
