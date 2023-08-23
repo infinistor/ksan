@@ -66,7 +66,7 @@ public class KsanUtils {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file);
+            FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8);
 			Long pid = ProcessHandle.current().pid();
 
             fw.write(String.valueOf(pid));
@@ -113,7 +113,7 @@ public class KsanUtils {
         path[1] = byteObjId[0];
         path[2] = byteObjId[1];
 
-        return new String(path);
+        return new String(path, StandardCharsets.UTF_8);
     }
 
     private static String makeDirectoryName(String objId) {
@@ -127,7 +127,7 @@ public class KsanUtils {
         path[4] = byteObjId[2];
         path[5] = byteObjId[3];
 
-        return new String(path);
+        return new String(path, StandardCharsets.UTF_8);
     }
 
     public static String makePath(String path, String fileName) {
