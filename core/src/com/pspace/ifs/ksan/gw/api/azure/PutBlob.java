@@ -77,7 +77,7 @@ public class PutBlob extends AzuRequest {
 
         String contentsLength = azuRequestData.getContentLength();
         long blobLength = Long.parseLong(contentsLength);
-        String contentMD5 = azuRequestData.getContentMD5();
+        // String contentMD5 = azuRequestData.getContentMD5();
 
         logger.debug("contentsLength : {}, {}", contentsLength, blobLength);
 
@@ -128,7 +128,8 @@ public class PutBlob extends AzuRequest {
         try {
             // objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
             objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
-            int result = insertObject(containerName, blobName, objMeta);
+            objMeta.setMeta(jsonmeta);
+            insertObject(containerName, blobName, objMeta);
         } catch (AzuException e) {
             PrintStack.logging(logger, e);
             throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
