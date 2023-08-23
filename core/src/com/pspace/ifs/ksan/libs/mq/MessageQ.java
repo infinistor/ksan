@@ -16,6 +16,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -278,7 +279,7 @@ public abstract class MessageQ{
                 .build();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());  
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes(StandardCharsets.UTF_8));  
         return 0;
     }
     
