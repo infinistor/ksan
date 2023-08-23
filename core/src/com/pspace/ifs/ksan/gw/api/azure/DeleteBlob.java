@@ -46,8 +46,9 @@ public class DeleteBlob extends AzuRequest {
         String versionId = GWConstants.VERSIONING_DISABLE_TAIL;
         Metadata objMeta = null;
 		try {
-			objMeta = open(containerName, blobName);
-            remove(azuParameter.getContainerName(), azuParameter.getBlobName());
+            remove(containerName, blobName);
+			// objMeta = open(containerName, blobName);
+            // remove(azuParameter.getContainerName(), azuParameter.getBlobName());
             // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
 			// azuObjectOperation.deleteObject();
 		} catch (AzuException e) {
