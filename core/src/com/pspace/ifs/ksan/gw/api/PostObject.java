@@ -66,8 +66,6 @@ public class PostObject extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-		S3Bucket s3Bucket = new S3Bucket();
-
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();
 		String object = dataPostObject.getKey();
