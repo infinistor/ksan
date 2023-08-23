@@ -62,9 +62,9 @@ public class ListObjectsV2 extends S3Request {
 		
 		if (!Strings.isNullOrEmpty(s3RequestData.getMaxKeys())) {
 			try {
-				if (Integer.valueOf(s3RequestData.getMaxKeys()) < 0) {
+				if (Integer.parseInt(s3RequestData.getMaxKeys()) < 0) {
 					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-				} else if (Integer.valueOf(s3RequestData.getMaxKeys()) > 1000) {
+				} else if (Integer.parseInt(s3RequestData.getMaxKeys()) > 1000) {
 					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 				} else {
 					s3ObjectList.setMaxKeys(s3RequestData.getMaxKeys());
