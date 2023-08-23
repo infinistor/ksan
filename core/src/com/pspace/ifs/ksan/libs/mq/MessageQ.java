@@ -315,7 +315,7 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        this.channel.basicPublish("", this.qname, props, mesg.getBytes());
+        this.channel.basicPublish("", this.qname, props, mesg.getBytes(StandardCharsets.UTF_8));
         String res = this.getReplay(replyQueueName, timeoutInMilliSec);
         return res; 
     }
