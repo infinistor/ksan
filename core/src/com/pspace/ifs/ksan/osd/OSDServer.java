@@ -24,6 +24,7 @@ import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -152,7 +153,7 @@ public class OSDServer {
                     }
                     byte[] lengthBuffer = new byte[length];
                     socket.getInputStream().read(lengthBuffer, 0, length);
-                    String strLength = new String(lengthBuffer);
+                    String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
                     length = Integer.parseInt(strLength);
 
@@ -163,8 +164,8 @@ public class OSDServer {
                     // }
 
                     socket.getInputStream().read(buffer, 0, length);
-                    String indicator = new String(buffer, 0, OsdData.INDICATOR_SIZE);
-                    String header = new String(buffer, 0, length);
+                    String indicator = new String(buffer, 0, OsdData.INDICATOR_SIZE, StandardCharsets.UTF_8);
+                    String header = new String(buffer, 0, length, StandardCharsets.UTF_8);
                     logger.debug("read header : {}", header);
                     String[] headers = header.split(OsdData.DELIMITER, -1);
                     
@@ -1006,7 +1007,7 @@ public class OSDServer {
             boolean isBorrowOsd = false;
             if (file.exists()) {
                 OutputStream os = socket.getOutputStream();
-                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                try (BufferedReader br = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
                     String line = null;
                     String objDiskId = null;
                     String objPath = null;
@@ -1649,12 +1650,12 @@ public class OSDServer {
             }
             byte[] lengthBuffer = new byte[length];
             socket.getInputStream().read(lengthBuffer, 0, length);
-            String strLength = new String(lengthBuffer);
+            String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
             length = Integer.parseInt(strLength);
             byte[] buffer = new byte[length];
             socket.getInputStream().read(buffer, 0, length);
-            String result = new String(buffer, 0, length);
+            String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
             String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 
             OsdData data = new OsdData();
