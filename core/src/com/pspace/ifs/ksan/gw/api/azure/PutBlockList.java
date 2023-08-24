@@ -114,6 +114,7 @@ public class PutBlockList extends AzuRequest {
         try {
             // objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
             objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
+            objMeta.setMeta(jsonmeta);
             insertObject(containerName, blobName, objMeta);
         } catch (AzuException e) {
             PrintStack.logging(logger, e);
