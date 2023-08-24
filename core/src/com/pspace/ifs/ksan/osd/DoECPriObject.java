@@ -161,7 +161,7 @@ public class DoECPriObject implements Runnable {
         File dir = new File(path);
         File[] files = dir.listFiles();
         String[] ends = new String[files.length];
-        File dest = new File(path + Constants.SLASH + Constants.POINT + fileName);
+        // File dest = new File(path + Constants.SLASH + Constants.POINT + fileName);
 
         logger.debug("ec parts : {}", files.length);
         for (int i = 0; i < files.length; i++) {
