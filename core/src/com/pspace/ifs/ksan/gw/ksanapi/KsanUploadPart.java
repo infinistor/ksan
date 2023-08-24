@@ -55,8 +55,6 @@ public class KsanUploadPart extends S3Request {
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
 
-		S3Bucket s3Bucket = new S3Bucket();
-
 		GWUtils.checkCors(s3Parameter);
 
 		String partNumberStr = s3RequestData.getPartNumber();
