@@ -248,7 +248,6 @@ public abstract class MessageQ{
         String replyQueueName = this.qname;
         
         if (qname.isEmpty()){
-            final String corrId = UUID.randomUUID().toString();
             replyQueueName = createQurumQueue("replyQ", false);
         }
         
