@@ -269,7 +269,6 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        final String corrId = UUID.randomUUID().toString();
         String replyQueueName = createQurumQueue("replyQ", false);
         
         BasicProperties props = new BasicProperties
