@@ -78,7 +78,7 @@ public class S3KMS {
                 logger.info(kmsUrl);
 
                 HttpClient clnt = WebClientDevWrapper.wrapClient();
-                HttpPost createKMS = new HttpPost(kmsUrl);
+                HttpPost createKMS = null;
                 createKMS = WebClientDevWrapper.wrapHttpPost(new HttpPost(kmsUrl), requestConfig);
                 createKMS.setHeader("X-Vault-Token", masterKeyId);
                 createKMS.setEntity(new StringEntity(body.toString()));
@@ -120,7 +120,7 @@ public class S3KMS {
                 String kmsUrl = s3p.getKmsEndpoint() + "/v1/transit/export/encryption-key/" + path;
 
                 HttpClient clnt = WebClientDevWrapper.wrapClient();
-                HttpGet exportKMS = new HttpGet(kmsUrl);
+                HttpGet exportKMS = null; //new HttpGet(kmsUrl);
                 logger.info(kmsUrl);
                 exportKMS = WebClientDevWrapper.wrapHttpGet(new HttpGet(kmsUrl), requestConfig);
                 exportKMS.setHeader("X-Vault-Token", masterKeyId);
