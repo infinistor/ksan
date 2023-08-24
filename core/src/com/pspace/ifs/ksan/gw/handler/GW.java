@@ -13,7 +13,6 @@ package com.pspace.ifs.ksan.gw.handler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 // import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;

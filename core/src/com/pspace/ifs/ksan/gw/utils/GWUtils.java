@@ -52,8 +52,6 @@ import com.google.common.base.Strings;
 import com.google.common.escape.Escaper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.PercentEscaper;
-import com.pspace.ifs.ksan.gw.db.MariaDB;
-import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
