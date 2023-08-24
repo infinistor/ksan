@@ -86,9 +86,9 @@ public class AzuSigning {
         String key = sharedKeys[1];
         logger.debug("account : {}, key : {}", account, key);
 
-        String x_ms_client_request_id = parameter.getRequest().getHeader(AzuConstants.X_MS_CLIENT_REQUEST_ID);
-        String x_ms_date = parameter.getRequest().getHeader(AzuConstants.X_MS_DATE);
-        String x_ms_version = parameter.getRequest().getHeader(AzuConstants.X_MS_VERSION);
+        // String x_ms_client_request_id = parameter.getRequest().getHeader(AzuConstants.X_MS_CLIENT_REQUEST_ID);
+        // String x_ms_date = parameter.getRequest().getHeader(AzuConstants.X_MS_DATE);
+        // String x_ms_version = parameter.getRequest().getHeader(AzuConstants.X_MS_VERSION);
 
         getHeaderStringToSign();
 
