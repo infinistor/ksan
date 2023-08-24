@@ -1543,7 +1543,7 @@ public class OSDServer {
             long length = Longs.tryParse(headers[OsdData.PUT_RANGE_LENGTH_INDEX]);
             String replication = headers[OsdData.PUT_RANGE_REPLICATION_INDEX];
             String replicaDiskID = headers[OsdData.PUT_RANGE_REPLICA_DISK_ID_INDEX];
-            String key = headers[OsdData.PUT_RANGE_KEY_INDEX];
+            // String key = headers[OsdData.PUT_RANGE_KEY_INDEX];
             String mode  = headers[OsdData.PUT_RANGE_MODE_INDEX];
 
             logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_RANGE_INFO, path, objId, versionId, offset, length, replication, mode);
@@ -1562,7 +1562,7 @@ public class OSDServer {
 
             if (OSDConfig.getInstance().isCacheDiskpath()) {
                 filePath = OSDConfig.getInstance().getCacheDiskpath() + KsanUtils.makeObjPath(path, objId, versionId);
-                File linkFile = new File(KsanUtils.makeObjPath(path, objId, versionId));
+                // File linkFile = new File(KsanUtils.makeObjPath(path, objId, versionId));
             } else {
                 filePath = KsanUtils.makeObjPath(path, objId, versionId);
             }
