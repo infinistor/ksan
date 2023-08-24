@@ -255,6 +255,18 @@ public class GWPortal {
 	private boolean isAppliedUsers;
 	private AgentConfig agentConfig;
 	private String serviceId;
+	private MQReceiver receiverConfigureCB;
+	private MQReceiver receiverConfigureObjManagerCB;
+	private MQReceiver receiveDiskAddCB;
+	private MQReceiver receiveDiskUpadateCB;
+	private MQReceiver receiveDiskRemoveCB;
+	private MQReceiver receiveDiskStateCB;
+	private MQReceiver receiveDiskModeCB;
+	private MQReceiver receiveDiskpoolsCB;
+	private MQReceiver receiveUserCB;
+	private MQReceiver receiveServiceAddCB;
+	private MQReceiver receiveServiceUpdateCB;
+	private MQReceiver receiverServiceRemoveCB;
 
     private static final Logger logger = LoggerFactory.getLogger(GWPortal.class);
 
@@ -269,8 +281,12 @@ public class GWPortal {
     private GWPortal() {
         agentConfig = AgentConfig.getInstance(); 
         agentConfig.configure();
+		String mqHost = agentConfig.getMQHost();
 		int mqPort = Integer.parseInt(agentConfig.getMQPort());
-		logger.info("port : {}, user :  {}, password : {}", mqPort, agentConfig.getMQUser(), agentConfig.getMQPassword());
+		String userName = agentConfig.getMQUser();
+		String password = agentConfig.getMQPassword();
+
+		logger.info("host : {}, port : {}, user :  {}, password : {}", mqHost, mqPort, userName, password);
 
 		// serviceId
 		try {
@@ -287,7 +303,7 @@ public class GWPortal {
 		postGWEvent(true);
 
 		try {
-			HeartbeatManager heartbeatManager = new HeartbeatManager(serviceId, agentConfig.getMQHost(), mqPort, agentConfig.getMQUser(), agentConfig.getMQPassword(), GWConstants.MQUEUE_EXCHANGE_NAME);
+			HeartbeatManager heartbeatManager = new HeartbeatManager(serviceId, mqHost, mqPort, userName, password, GWConstants.MQUEUE_EXCHANGE_NAME);
 			heartbeatManager.startHeartbeat(agentConfig.getServiceMonitorInterval());
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
@@ -303,10 +319,10 @@ public class GWPortal {
         try
 		{
 			MQCallback configureCB = new ConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
+			receiverConfigureCB = new MQReceiver(mqHost,
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_CONFIG + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false,
@@ -320,10 +336,10 @@ public class GWPortal {
 		try
 		{
 			MQCallback configureObjManagerCB = new ObjManagerConfigUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
+			receiverConfigureObjManagerCB = new MQReceiver(mqHost,
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_OBJMANAGER_CONFIG + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false,
@@ -335,91 +351,91 @@ public class GWPortal {
 		}
 
 		try {
-			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
+			MQCallback diskAddCB = new DiskUpdateCallback();
+			receiveDiskAddCB = new MQReceiver(mqHost,
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISK + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISK_ADDED_ROUTING_KEY, 
-											   diskCB);
+											   diskAddCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(),
+			MQCallback diskUpadateCB = new DiskUpdateCallback();
+			receiveDiskUpadateCB = new MQReceiver(mqHost,
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISK + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISK_UPDATED_ROUTING_KEY, 
-											   diskCB);
+											   diskUpadateCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback diskRemoveCB = new DiskUpdateCallback();
+			receiveDiskRemoveCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISK + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISK_REMOVED_ROUTING_KEY, 
-											   diskCB);
+											   diskRemoveCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback diskStateCB = new DiskUpdateCallback();
+			receiveDiskStateCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISK + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISK_STATE_ROUTING_KEY, 
-											   diskCB);
+											   diskStateCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback diskCB = new DiskUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback diskModeCB = new DiskUpdateCallback();
+			receiveDiskModeCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISK + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_DISK_RWMODE_ROUTING_KEY, 
-											   diskCB);
+											   diskModeCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
 			MQCallback diskpoolsCB = new DiskpoolsUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			receiveDiskpoolsCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_DISKPOOL + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
@@ -432,10 +448,10 @@ public class GWPortal {
 
 		try {
 			MQCallback userCB = new UserUpdateCallBack();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			receiveUserCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_USER + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
@@ -447,49 +463,49 @@ public class GWPortal {
 		}
 
 		try {
-			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback serviceAddCB = new ServiceUpdateCallback();
+			receiveServiceAddCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_SERVICE + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_SERVICE_ADDED_ROUTING_KEY, 
-											   serviceCB);
+											   serviceAddCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback serviceUpdateCB = new ServiceUpdateCallback();
+			receiveServiceUpdateCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_SERVICE + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY, 
-											   serviceCB);
+											   serviceUpdateCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
 
 		try {
-			MQCallback serviceCB = new ServiceUpdateCallback();
-			MQReceiver mq1ton = new MQReceiver(agentConfig.getMQHost(), 
+			MQCallback serviceRemoveCB = new ServiceUpdateCallback();
+			receiverServiceRemoveCB = new MQReceiver(mqHost, 
 											   mqPort,
-											   agentConfig.getMQUser(),
-											   agentConfig.getMQPassword(),
+											   userName,
+											   password,
 											   GWConstants.MQUEUE_NAME_GW_SERVICE + serviceId, //agentConfig.getServerId(), 
 											   GWConstants.MQUEUE_EXCHANGE_NAME, 
 											   false, 
 											   "", 
 											   GWConstants.MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY, 
-											   serviceCB);
+											   serviceRemoveCB);
 		} catch (Exception ex){
 			PrintStack.logging(logger, ex);
 		}
