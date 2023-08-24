@@ -529,22 +529,23 @@ public class S3RequestData {
 	}
 
 	public String getObjectLockXml() throws GWException {
-		String ObjectLockXml = readXml();
+		// String ObjectLockXml = readXml();
 
-		XmlMapper xmlMapper = new XmlMapper();
-		@SuppressWarnings("unused")
-		ObjectLockConfiguration oc;
-		try {
-			oc = xmlMapper.readValue(ObjectLockXml, ObjectLockConfiguration.class);
-		} catch (JsonMappingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		// XmlMapper xmlMapper = new XmlMapper();
+		// @SuppressWarnings("unused")
+		// ObjectLockConfiguration oc;
+		// try {
+		// 	oc = xmlMapper.readValue(ObjectLockXml, ObjectLockConfiguration.class);
+		// } catch (JsonMappingException e) {
+		// 	PrintStack.logging(logger, e);
+		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		// } catch (JsonProcessingException e) {
+		// 	PrintStack.logging(logger, e);
+		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		// }
 
-		return ObjectLockXml;
+		// return ObjectLockXml;
+		return readXml();
 	}
 
 	public String getConfirmRemoveSelfBucketAccess() {
