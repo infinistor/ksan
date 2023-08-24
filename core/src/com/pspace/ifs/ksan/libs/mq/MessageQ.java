@@ -248,7 +248,6 @@ public abstract class MessageQ{
         String replyQueueName = this.qname;
         
         if (qname.isEmpty()){
-            final String corrId = UUID.randomUUID().toString();
             replyQueueName = createQurumQueue("replyQ", false);
         }
         
@@ -270,7 +269,6 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        final String corrId = UUID.randomUUID().toString();
         String replyQueueName = createQurumQueue("replyQ", false);
         
         BasicProperties props = new BasicProperties
