@@ -199,20 +199,20 @@ class ServiceUpdateCallback implements MQCallback{
 	}    
 }
 
-class RegionUpdateCallBack implements MQCallback{
-	private static final Logger logger = LoggerFactory.getLogger(RegionUpdateCallBack.class);
-	@Override
-	public MQResponse call(String routingKey, String body) {
-		logger.info(GWConstants.GWPORTAL_RECEIVED_USER_CHANGE);
-		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
-		JSONParser parser = new JSONParser();
-		JSONObject data = null;
-		JSONArray jsonUserDiskpools = null;
-		try {
-			data = (JSONObject)parser.parse(body);
-		} catch (ParseException e) {
-			PrintStack.logging(logger, e);
-		}
+// class RegionUpdateCallBack implements MQCallback{
+// 	private static final Logger logger = LoggerFactory.getLogger(RegionUpdateCallBack.class);
+// 	@Override
+// 	public MQResponse call(String routingKey, String body) {
+// 		logger.info(GWConstants.GWPORTAL_RECEIVED_USER_CHANGE);
+// 		logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_MESSAGE_QUEUE_DATA, routingKey, body);
+// 		JSONParser parser = new JSONParser();
+// 		JSONObject data = null;
+// 		JSONArray jsonUserDiskpools = null;
+// 		try {
+// 			data = (JSONObject)parser.parse(body);
+// 		} catch (ParseException e) {
+// 			PrintStack.logging(logger, e);
+// 		}
 		
 		// if (routingKey.contains(GWConstants.GWPORTAL_RECEIVED_USER_ADDED)) {
 		// 	jsonUserDiskpools = (JSONArray)data.get(S3User.USER_DISK_POOLS);
@@ -246,9 +246,9 @@ class RegionUpdateCallBack implements MQCallback{
 		// 	logger.info(GWConstants.LOG_GWPORTAL_RECEIVED_USER_WRONG_ROUTING_KEY, routingKey);
 		// }
 
-		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
-	}
-}
+// 		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+// 	}
+// }
 
 public class GWPortal {
 	private boolean isAppliedDiskpools;
