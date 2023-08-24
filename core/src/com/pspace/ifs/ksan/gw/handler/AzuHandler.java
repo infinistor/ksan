@@ -65,7 +65,7 @@ public class AzuHandler {
 		String uri = request.getRequestURI();
 		requestSize += uri.length();
 
-		long startTime = System.currentTimeMillis();
+		// long startTime = System.currentTimeMillis();
 
 		AzuParameter azuParameter = new AzuParameter();
 		
@@ -117,7 +117,7 @@ public class AzuHandler {
 		}
 
 		// make request id
-		String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
+		// String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
 		String userName = "";
 		String containerName = "";
 		String blobName = "";

@@ -118,19 +118,22 @@ final public class S3Signature {
         // Build string to sign
         StringBuilder builder = new StringBuilder();
         
-        String expires = request.getParameter(GWConstants.EXPIRES);
         if (queryAuth) {
+            String expires = request.getParameter(GWConstants.EXPIRES);
+            String contentmd5 = request.getParameter(HttpHeaders.CONTENT_MD5);
+            String contenttype = request.getParameter(HttpHeaders.CONTENT_TYPE);
+
             builder.append(request.getMethod())
                 .append(GWConstants.CHAR_NEWLINE)
-                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_MD5)))
+                .append(Strings.nullToEmpty(contentmd5))
                 .append(GWConstants.CHAR_NEWLINE)
-                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_TYPE)))
+                .append(Strings.nullToEmpty(contenttype))
                 .append(GWConstants.CHAR_NEWLINE);
             // If expires is  not nil, then it is query string sign
             // If expires is nil,maybe alse query string sign
             // So should check other accessid para ,presign to judge.
             // not the expires
-            builder.append(Strings.nullToEmpty(request.getParameter(HttpHeaders.EXPIRES)));
+            builder.append(Strings.nullToEmpty(expires));
         } else {
             builder.append(request.getMethod())
                 .append(GWConstants.CHAR_NEWLINE)

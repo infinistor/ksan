@@ -392,7 +392,7 @@ public class KsanPutObject extends S3Request {
 		try {
 			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(repVersionId, GWConstants.OBJECT_TYPE_FILE, true);
-			int result = insertObject(bucket, object, objMeta);
+			insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, repVersionId);
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);
