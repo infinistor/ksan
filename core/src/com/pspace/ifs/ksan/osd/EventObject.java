@@ -736,6 +736,10 @@ class CopyObjectCallback implements MQCallback {
 
 public class EventObject {
     private AgentConfig config;
+	private MQReceiver receiverMoveObjectCallback;
+	private MQReceiver receiverDeleteObjectCallback;
+	private MQReceiver receiverGetAttrObjectCallBack;
+	private MQReceiver receiverCopyObjectCallback;
 
     private static final Logger logger = LoggerFactory.getLogger(EventObject.class);
 
@@ -760,7 +764,7 @@ public class EventObject {
 		try
 		{
 			MQCallback moveObjectCallback = new MoveObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(),
+			receiverMoveObjectCallback = new MQReceiver(config.getMQHost(),
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -776,7 +780,7 @@ public class EventObject {
 
 		try {
 			MQCallback deleteObjectCallback = new DeleteObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverDeleteObjectCallback = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -792,7 +796,7 @@ public class EventObject {
 
 		try {
 			MQCallback getAttrObjectCallBack = new GetAttrObjectCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverGetAttrObjectCallBack = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -808,7 +812,7 @@ public class EventObject {
 
 		try {
 			MQCallback copyObjectCallback = new CopyObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverCopyObjectCallback = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
