@@ -98,7 +98,7 @@ public class KsanRestoreObject extends S3Request {
         try {
             restoreObjMeta.set(objMeta.getEtag(), objMeta.getTag(), s3Metadata.toString(), objMeta.getAcl(), objMeta.getSize());
         	restoreObjMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
-			int result = insertObject(bucket, object, restoreObjMeta);
+			insertObject(bucket, object, restoreObjMeta);
 			logger.debug(GWConstants.LOG_ADMIN_RESTORE_OBJECT_INFO, bucket, object, objMeta.getSize(), objMeta.getEtag(), versionId);
 		} catch (GWException e) {
 			PrintStack.logging(logger, e);
