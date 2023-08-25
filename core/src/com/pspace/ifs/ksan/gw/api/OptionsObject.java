@@ -82,9 +82,9 @@ public class OptionsObject extends S3Request {
 						for (String corsMethod : corsMethods.split(GWConstants.COMMA)) {
 							boolean temp = false;
 
-							if(icors.AllowedMethods == null) {
-								continue;
-							}
+							// if(icors.AllowedMethods == null) {
+							// 	continue;
+							// }
 
 							for (String method : icors.AllowedMethods) {
 								if (method.compareTo(GWConstants.ASTERISK) == 0 || corsMethod.trim().compareTo(method) == 0) {
