@@ -2732,6 +2732,9 @@ public class VFSObjectManager implements IObjectManager {
                         }
                     }
                 }
+            } catch (RuntimeException e) {
+                PrintStack.logging(logger, e);
+                throw new GWException(GWErrorCode.SERVER_ERROR, param);
             } catch (Exception e) {
                 PrintStack.logging(logger, e);
                 throw new GWException(GWErrorCode.SERVER_ERROR, param);
