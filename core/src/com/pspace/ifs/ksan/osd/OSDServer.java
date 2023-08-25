@@ -384,6 +384,9 @@ public class OSDServer {
                         }
                     }
                 }   
+            } catch (RuntimeException e) {
+                PrintStack.logging(logger, e);
+                socket.close();
             } catch (Exception e) {
                 PrintStack.logging(logger, e);
                 socket.close();
@@ -1207,12 +1210,16 @@ public class OSDServer {
                             }
                         }
                     }
+                } catch (RuntimeException e) {
+                    PrintStack.logging(logger, e);
                 } catch (Exception e) {
                     PrintStack.logging(logger, e);
                 }
             } else {
                 logger.error("not found multipart file : " + file.getAbsolutePath());
             }
+        } catch (RuntimeException e) {
+            PrintStack.logging(logger, e);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
