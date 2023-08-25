@@ -64,6 +64,29 @@ public class AzuParameter {
         responseSize = 0L;
     }
 
+    public AzuParameter(AzuParameter parameter) {
+        request = parameter.getRequest();
+        response = parameter.getResponse();
+        inputStream = parameter.getInputStream();
+        user = parameter.getUser();
+        comp = parameter.getComp();
+        restype = parameter.getRestype();
+        prefix = parameter.getPrefix();
+        delimiter = parameter.getDelimiter();
+        marker = parameter.getMarker();
+        include = parameter.getInclude();
+        maxresults = parameter.getMaxResults();
+        timeout = parameter.getTimeout();
+        userName = parameter.getUserName();
+        containerName = parameter.getContainerName();
+        blobName = parameter.getBlobName();
+        method = parameter.getMethod();
+        statusCode = parameter.getStatusCode();
+        errorCode = parameter.getErrorCode();
+        requestSize = parameter.getRequestSize();
+        responseSize = parameter.getResponseSize();
+    }
+
     public HttpServletRequest getRequest() {
         return request;
     }

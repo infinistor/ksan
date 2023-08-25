@@ -70,7 +70,7 @@ public final class AzuException extends Exception {
     }
 
     public AzuParameter getAZUParameter() {
-        return parameter;
+        return new AzuParameter(parameter);
     }
 
     @Override
