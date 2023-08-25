@@ -2310,12 +2310,14 @@ public class VFSObjectManager implements IObjectManager {
         String ecDir = KsanUtils.makeECDirectoryPath(localPath, meta.getObjId());
         File dir = new File(ecDir);
         File[] ecFiles = dir.listFiles();
-        for (int i = 0; i < ecFiles.length; i++) {
-            if (ecFiles[i].getName().startsWith(Constants.POINT) && ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-                String trashPath = KsanUtils.makeTrashPath(localPath, ecFiles[i].getName());
-                File trashECPart = new File(trashPath);
-                retryRenameTo(ecFiles[i], trashECPart);
-                // ecFiles[i].delete();
+        if (ecFiles != null) {
+            for (int i = 0; i < ecFiles.length; i++) {
+                if (ecFiles[i].getName().startsWith(Constants.POINT) && ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+                    String trashPath = KsanUtils.makeTrashPath(localPath, ecFiles[i].getName());
+                    File trashECPart = new File(trashPath);
+                    retryRenameTo(ecFiles[i], trashECPart);
+                    // ecFiles[i].delete();
+                }
             }
         }
 
@@ -2362,10 +2364,14 @@ public class VFSObjectManager implements IObjectManager {
                 }
             } else {
                 String[] ranges = sourceRange.split(GWConstants.SLASH);
+                long offset = 0L;
+                long length = 0L;
                 for (String range : ranges) {
                     String[] rangeParts = range.split(GWConstants.COMMA);
-                    long offset = Longs.tryParse(rangeParts[0]);
-                    long length = Longs.tryParse(rangeParts[1]);
+                    Long offsetLong = Longs.tryParse(rangeParts[0]);
+                    Long lengthLong = Longs.tryParse(rangeParts[1]);
+                    offset = (offsetLong == null) ? 0L : offsetLong;
+                    length = (lengthLong == null) ? 0L : lengthLong;
                     logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_RANGE, offset, length);
 
                     remaingLength = length;
@@ -2531,11 +2537,15 @@ public class VFSObjectManager implements IObjectManager {
                 if (!Strings.isNullOrEmpty(sourceRange)) {
                     br.mark(0);
                     String[] ranges = sourceRange.split(GWConstants.SLASH);
+                    long offset = 0L;
+                    long length = 0L;
                     for (String range : ranges) {
                         long accOffset = 0L;
                         String[] rangeParts = range.split(GWConstants.COMMA);
-                        long offset = Longs.tryParse(rangeParts[0]);
-                        long length = Longs.tryParse(rangeParts[1]);
+                        Long offsetLong = Longs.tryParse(rangeParts[0]);
+                        Long lengthLong = Longs.tryParse(rangeParts[1]);
+                        offset = (offsetLong == null) ? 0L : offsetLong;
+                        length = (lengthLong == null) ? 0L : lengthLong;
                         logger.debug("getMultipartLocal : range : offset={}, length={}", offset, length);
                         br.reset();
                         while ((line = br.readLine()) != null) {
