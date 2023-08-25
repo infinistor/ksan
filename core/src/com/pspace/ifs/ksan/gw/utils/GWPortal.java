@@ -597,8 +597,13 @@ public class GWPortal {
 				ObjectManagerConfig.getInstance().setMqPassword(agentConfig.getMQPassword());
                 ObjectManagerConfig.getInstance().saveConfigFile();
 				return;
+			} else {
+				logger.error("Failed to get config from portal. status code : {}", response.getStatusLine().getStatusCode());
+				throw new RuntimeException(new RuntimeException());
 			}
-			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
@@ -698,8 +703,13 @@ public class GWPortal {
 
 				isAppliedDiskpools = true;
 				return;
+			} else {
+				logger.error("Failed to get diskpool from portal. status code : {}", response.getStatusLine().getStatusCode());
+				throw new RuntimeException(new RuntimeException());
 			}
-			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
@@ -742,8 +752,13 @@ public class GWPortal {
 				S3UserManager.getInstance().printUsers();
 				isAppliedUsers = true;
 				return;
+			} else {
+				logger.error("Failed to get user from portal. status code : {}", response.getStatusLine().getStatusCode());
+				throw new RuntimeException(new RuntimeException());
 			}
-			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
@@ -784,8 +799,13 @@ public class GWPortal {
 				S3RegionManager.getInstance().printRegions();
 
 				return;
+			} else {
+				logger.error("Failed to get region from portal. status code : {}", response.getStatusLine().getStatusCode());
+				throw new RuntimeException(new RuntimeException());
 			}
-			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
@@ -821,9 +841,12 @@ public class GWPortal {
 			if (response.getStatusLine().getStatusCode() == 200) {
 				return;
 			} else {
-				logger.error("response code : {}", response.getStatusLine().getStatusCode());
+				logger.error("post gw event. response code : {}", response.getStatusLine().getStatusCode());
+				throw new RuntimeException(new RuntimeException());
 			}
-			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
