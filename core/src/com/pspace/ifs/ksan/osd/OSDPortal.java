@@ -205,6 +205,9 @@ public class OSDPortal {
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			OSDUtils.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			OSDUtils.logging(logger, e);
 			throw new RuntimeException(e);
