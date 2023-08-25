@@ -243,19 +243,21 @@ public class OSDConfig {
     public void saveConfigFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(OSDConstants.CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, StandardCharsets.UTF_8);
-            fileWriter.write(VERSION + EQUAL + version + "\n");
-            fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
-            fileWriter.write(PORT + EQUAL + port + "\n");
-            fileWriter.write(EC_CHECK_INTERVAL + EQUAL + ecCheckInterval + "\n");
-            fileWriter.write(EC_WAIT_TIME + EQUAL + ecWaitTime + "\n");
-            fileWriter.write(EC_MIN_FILE_SIZE + EQUAL + ecMinSize + "\n");
-            fileWriter.write(CACHE_DISKPATH + EQUAL + cacheDiskpath + "\n");
-            fileWriter.write(CACHE_CHECK_INTERVAL + EQUAL + cacheCheckInterval + "\n");
-            // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
-            fileWriter.write(CACHE_EXPIRE + EQUAL + cacheExpire + "\n");
-            fileWriter.write(TRASH_CHECK_INTERVAL + EQUAL + trashCheckInterval + "\n");
-            fileWriter.close();
+            try(FileWriter fileWriter = new FileWriter(OSDConstants.CONFIG_PATH, StandardCharsets.UTF_8)) {
+                fileWriter.write(VERSION + EQUAL + version + "\n");
+                fileWriter.write(POOL_SIZE + EQUAL + poolSize + "\n");
+                fileWriter.write(PORT + EQUAL + port + "\n");
+                fileWriter.write(EC_CHECK_INTERVAL + EQUAL + ecCheckInterval + "\n");
+                fileWriter.write(EC_WAIT_TIME + EQUAL + ecWaitTime + "\n");
+                fileWriter.write(EC_MIN_FILE_SIZE + EQUAL + ecMinSize + "\n");
+                fileWriter.write(CACHE_DISKPATH + EQUAL + cacheDiskpath + "\n");
+                fileWriter.write(CACHE_CHECK_INTERVAL + EQUAL + cacheCheckInterval + "\n");
+                // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+                fileWriter.write(CACHE_EXPIRE + EQUAL + cacheExpire + "\n");
+                fileWriter.write(TRASH_CHECK_INTERVAL + EQUAL + trashCheckInterval + "\n");
+            } catch (IOException e) {
+                throw new IOException(e);
+            }
         } catch (IOException e) {
             throw new IOException(e);
         }
