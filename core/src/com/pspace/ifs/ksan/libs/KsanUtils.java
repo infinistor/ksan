@@ -66,12 +66,15 @@ public class KsanUtils {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8);
-			Long pid = ProcessHandle.current().pid();
+            try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
+                Long pid = ProcessHandle.current().pid();
 
-            fw.write(String.valueOf(pid));
-            fw.flush();
-            fw.close();
+                fw.write(String.valueOf(pid));
+                fw.flush();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+                System.exit(-1);
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
             System.exit(-1);

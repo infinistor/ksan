@@ -197,21 +197,23 @@ public class DiskManager {
     public void saveFile() throws IOException {
         try {
             com.google.common.io.Files.createParentDirs(new File(Constants.DISKPOOL_CONF_PATH));
-            FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, StandardCharsets.UTF_8);
-            fileWriter.write(FILE_DISKPOOL_LIST_START);
-            for (DiskPool diskPool : diskPoolList) {
-                fileWriter.write(FILE_DISKPOOL_ID + diskPool.getId() + FILE_DISKPOOL_NAME + diskPool.getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPool.getReplicationType() + FILE_DISKPOOL_NEWLINE);
-                for (Server server : diskPool.getServerList()) {
-                    fileWriter.write(FILE_SERVER_ID + server.getId() + FILE_SERVER_IP + server.getIp() + FILE_SERVER_STATUS + server.getStatus() + FILE_DISKPOOL_NEWLINE);
-                    for (Disk disk : server.getDiskList()) {
-                        fileWriter.write(FILE_DISK_ID + disk.getId() + FILE_DISK_PATH + disk.getPath() + FILE_DISK_MODE + disk.getMode() + FILE_DISK_STATUS + disk.getStatus() + FILE_DISK_END);
+            try (FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, StandardCharsets.UTF_8)) {
+                fileWriter.write(FILE_DISKPOOL_LIST_START);
+                for (DiskPool diskPool : diskPoolList) {
+                    fileWriter.write(FILE_DISKPOOL_ID + diskPool.getId() + FILE_DISKPOOL_NAME + diskPool.getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPool.getReplicationType() + FILE_DISKPOOL_NEWLINE);
+                    for (Server server : diskPool.getServerList()) {
+                        fileWriter.write(FILE_SERVER_ID + server.getId() + FILE_SERVER_IP + server.getIp() + FILE_SERVER_STATUS + server.getStatus() + FILE_DISKPOOL_NEWLINE);
+                        for (Disk disk : server.getDiskList()) {
+                            fileWriter.write(FILE_DISK_ID + disk.getId() + FILE_DISK_PATH + disk.getPath() + FILE_DISK_MODE + disk.getMode() + FILE_DISK_STATUS + disk.getStatus() + FILE_DISK_END);
+                        }
+                        fileWriter.write(FILE_SERVER_END);
                     }
-                    fileWriter.write(FILE_SERVER_END);
+                    fileWriter.write(FILE_DISKPOOL_END);
                 }
-                fileWriter.write(FILE_DISKPOOL_END);
+                fileWriter.write(FILE_DISKPOOL_LIST_END);
+            } catch (IOException e) {
+                throw new IOException(e);
             }
-            fileWriter.write(FILE_DISKPOOL_LIST_END);
-            fileWriter.close();
         } catch (IOException e) {
             throw new IOException(e);
         }
