@@ -263,7 +263,7 @@ public class OSDPortal {
 					}
 					// DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
-					if (jsonServers != null && jsonServers.size() == 0) {
+					if (jsonServers == null && jsonServers.size() == 0) {
 						logger.info("diskpools -- servers is empty");
 						return;
 					}
