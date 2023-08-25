@@ -315,17 +315,21 @@ final public class S3Signature {
             }
         }
 
-        logger.info("pre  : " + uri);
-        uri = uri.replaceAll("\\$", "%24");
-        uri = uri.replaceAll("'", "%27");
-        uri = uri.replaceAll("!", "%21");
-        uri = uri.replaceAll("\\(", "%28");
-        uri = uri.replaceAll("\\)", "%29");
-        uri = uri.replaceAll("\\*", "%2A");
-        uri = uri.replaceAll(":", "%3A");
-        uri = uri.replaceAll("\\[", "%5B");
-        uri = uri.replaceAll("\\]", "%5D");
-        logger.info("post : " + uri);
+        // percent encoding c# by hmjung 2021-11-10
+        String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+        if ( !Strings.isNullOrEmpty(userAgent) && userAgent.contains("aws-sdk-dotnet-core")) {
+            logger.info("pre  : " + uri);
+            uri = uri.replaceAll("\\$", "%24");
+            uri = uri.replaceAll("'", "%27");
+            uri = uri.replaceAll("!", "%21");
+            uri = uri.replaceAll("\\(", "%28");
+            uri = uri.replaceAll("\\)", "%29");
+            uri = uri.replaceAll("\\*", "%2A");
+            uri = uri.replaceAll(":", "%3A");
+            uri = uri.replaceAll("\\[", "%5B");
+            uri = uri.replaceAll("\\]", "%5D");
+            logger.info("post : " + uri);
+        }
         
         String canonicalRequest = "";
         if(digest == null) {
