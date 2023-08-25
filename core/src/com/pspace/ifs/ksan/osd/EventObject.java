@@ -253,9 +253,12 @@ class MoveObjectCallback implements MQCallback {
 				}
 			}
 			srcFile.delete();
+		} catch (RuntimeException e) {
+			logger.error(e.getMessage(), e);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 		logger.info("success move file : {}", fullPath);
 		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
@@ -732,10 +735,10 @@ class CopyObjectCallback implements MQCallback {
 			}
 		} catch (RuntimeException e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 
 		logger.info("success copy file : {}", fullPath);
