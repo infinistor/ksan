@@ -314,6 +314,9 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			}
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_INFO, bucket, object, s3Object.get().getFileSize(), s3Object.get().getEtag(), acl, repVersionId);
 			// objMultipart.abortMultipartUpload(uploadId);
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
