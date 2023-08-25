@@ -48,7 +48,11 @@ public class DoEmptyTrash implements Runnable {
     private void recursiveEmptyCache(String dirPath) {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
-
+        
+        if (files == null) {
+            return;
+        }
+        
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 if (files[i].getName().equals(Constants.TRASH_DIR)) {
@@ -61,6 +65,10 @@ public class DoEmptyTrash implements Runnable {
     private void empty(String dirPath) {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
+        
+        if (files == null) {
+            return;
+        }
         
         for (int i = 0; i < files.length; i++) {
             logger.info("delete : {}", files[i].getAbsolutePath());
