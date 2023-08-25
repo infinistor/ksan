@@ -730,6 +730,9 @@ class CopyObjectCallback implements MQCallback {
 					return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
 				}
 			}
+		} catch (RuntimeException e) {
+			logger.error(e.getMessage(), e);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
