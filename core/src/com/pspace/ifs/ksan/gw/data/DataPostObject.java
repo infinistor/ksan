@@ -13,6 +13,8 @@ package com.pspace.ifs.ksan.gw.data;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -199,7 +201,7 @@ public class DataPostObject extends S3RequestData{
 	}
 
 	public byte[] getPayload() {
-		return payload;
+		return Arrays.copyOf(payload, payload.length);
 	}
 
 	public String getSuccessActionStatus() {
@@ -331,7 +333,7 @@ public class DataPostObject extends S3RequestData{
 	}
 
 	public Map<String, String> getUserMetadata() {
-		return userMetadata;
+		return new HashMap<>(userMetadata);
 	}
 
 	public void setMaxContentLengthRange(String value) {
