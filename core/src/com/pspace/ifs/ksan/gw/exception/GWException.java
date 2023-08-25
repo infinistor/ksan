@@ -71,7 +71,7 @@ public final class GWException extends Exception {
     }
 
     public S3Parameter getS3Parameter() {
-        return s3Parameter;
+        return new S3Parameter(s3Parameter);
     }
 
     @Override
