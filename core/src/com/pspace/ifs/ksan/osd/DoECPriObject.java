@@ -234,6 +234,8 @@ public class DoECPriObject implements Runnable {
                     }
                 }
             }
+        } catch (RuntimeException e) {
+            PrintStack.logging(logger, e);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
