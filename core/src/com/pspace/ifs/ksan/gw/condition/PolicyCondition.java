@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.gw.condition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +36,7 @@ public abstract class PolicyCondition {
 	}
 
     public List<String> getValue() {
-		return this.value;
+		return new ArrayList<>(this.value);
 	}
 
 	public abstract void process() throws GWException;
