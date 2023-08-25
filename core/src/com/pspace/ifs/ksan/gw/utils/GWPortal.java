@@ -659,7 +659,7 @@ public class GWPortal {
 					}
 					
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
-					if (jsonServers != null && jsonServers.size() == 0) {
+					if (jsonServers == null || jsonServers.size() == 0) {
 						logger.info("diskpools -- servers is empty");
 						return;
 					}
