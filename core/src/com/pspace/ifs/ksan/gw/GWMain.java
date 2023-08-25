@@ -149,14 +149,16 @@ public class GWMain {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8);
+            try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
+				Long pid = ProcessHandle.current().pid();
 
-			Long pid = ProcessHandle.current().pid();
-
-            logger.debug(GWConstants.LOG_GW_PID, pid);
-            fw.write(String.valueOf(pid));
-            fw.flush();
-            fw.close();
+				logger.debug(GWConstants.LOG_GW_PID, pid);
+				fw.write(String.valueOf(pid));
+				fw.flush();
+			} catch (IOException e) {
+				logger.error(e.getMessage());
+				System.exit(-1);
+			}
         } catch (IOException e) {
             logger.error(e.getMessage());
             System.exit(-1);
