@@ -131,6 +131,10 @@ public class GWUtils {
 			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
 		}
 
+		if (formatter == null) {
+			return 0;
+		}
+
 		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
 		logger.debug(GWConstants.LOG_8601_DATE, date);
 		try {
