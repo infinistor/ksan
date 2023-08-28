@@ -104,6 +104,8 @@ def ServiceMonitoring(Conf, GlobalFlag, logger):
                 for Service in ServerDetail.Services:
                     try:
                         ProcObject = Process(Service.ServiceType)
+                        if Service.ServiceType != TypeServiceAgent:
+                            continue
                         NewService = dict()
                         NewService['Id'] = Service.Id
                         NewService['GroupId'] = '' if Service.GroupId is None else Service.GroupId
