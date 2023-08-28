@@ -81,7 +81,7 @@ public abstract class S3Request {
 	protected static final HashFunction MD5 = Hashing.md5();
 
 	public S3Request(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 		s3RequestData = new S3RequestData(s3Parameter);
 		srcBucket = null;
 		dstBucket = null;
