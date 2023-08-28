@@ -80,6 +80,22 @@ public class S3User {
         // }
     }
 
+    public S3User(S3User user) {
+        this.userId = user.getUserId();
+        this.userName = user.getUserName();
+        this.userEmail = user.getUserEmail();
+        this.accessKey = user.getAccessKey();
+        this.accessSecret = user.getAccessSecret();
+        this.azureKey = user.getAzureKey();
+        userDiskPools = new ArrayList<HashMap<String, String>>();
+        for (HashMap<String, String> map : user.getUserDiskpools()) {
+            HashMap<String, String> newMap = new HashMap<String, String>();
+            newMap.put(USER_DISK_POOLS_DISKPOOL_ID, map.get(USER_DISK_POOLS_DISKPOOL_ID));
+            newMap.put(USER_DISK_POOLS_STORAGE_CLASS, map.get(USER_DISK_POOLS_STORAGE_CLASS));
+            userDiskPools.add(newMap);
+        }
+    }
+
     public String getUserName() {
         return Strings.nullToEmpty(userName);
     }
@@ -126,7 +142,9 @@ public class S3User {
     }
 
     public List<HashMap<String, String>> getUserDiskpools() {
-        return userDiskPools;
+        // return userDiskPools;
+        List<HashMap<String, String>> list = new ArrayList<>(userDiskPools);
+        return list;
     }
 
     public String getUserDefaultDiskpoolId() {
