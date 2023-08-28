@@ -34,14 +34,14 @@ public class Server {
         id = "";
         ip = "";
         status = "";
-        diskList = new ArrayList<Disk>();
+        diskList = null;
     }
 
     public Server(String id, String ip, String status) {
         this.id = id;
         this.ip = ip;
         this.status = status;
-        diskList = new ArrayList<Disk>();
+        diskList = null;
     }
 
     public String getId() {
@@ -69,11 +69,11 @@ public class Server {
     }
 
     public List<Disk> getDiskList() {
-        return diskList;
+        return new ArrayList<Disk>(diskList);
     }
 
     public void setDiskList(List<Disk> diskList) {
-        this.diskList = diskList;
+        this.diskList = new ArrayList<Disk>(diskList);
     }
 
     public void addDisk(Disk disk) {
