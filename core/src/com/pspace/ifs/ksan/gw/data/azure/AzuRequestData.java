@@ -32,7 +32,7 @@ public class AzuRequestData {
 	private AzuParameter parameter;
 
     public AzuRequestData(AzuParameter parameter) {
-		this.parameter = parameter;
+		this.parameter = new AzuParameter(parameter);
 		logger = LoggerFactory.getLogger(AzuRequestData.class);
 	}
 
