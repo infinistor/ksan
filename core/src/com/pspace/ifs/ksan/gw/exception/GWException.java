@@ -48,7 +48,7 @@ public final class GWException extends Exception {
 
     public GWException(GWErrorCode error, String message, Throwable cause, Map<String, String> elements, S3Parameter s3Parameter) {
         super(requireNonNull(message), cause);
-        this.s3Parameter = s3Parameter;
+        this.s3Parameter = new S3Parameter(s3Parameter);
         if(this.s3Parameter != null) {
             this.s3Parameter.setErrorCode(error.getErrorCode());
             this.s3Parameter.setStatusCode(error.getHttpStatusCode());
