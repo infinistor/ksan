@@ -46,7 +46,7 @@ public abstract class GCSRequest {
 	protected AccessControlPolicy objectAccessControlPolicy;
 
 	public GCSRequest(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 		gcsRequestData = new GCSRequestData(s3Parameter);
 		srcBucket = null;
 		dstBucket = null;

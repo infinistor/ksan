@@ -91,9 +91,32 @@
     	</dependency>
 	</dependencies>
 
+	<reporting>
+    	<plugins>
+    		<plugin>
+    			<groupId>com.github.spotbugs</groupId>
+    			<artifactId>spotbugs-maven-plugin</artifactId>
+    			<version>4.7.3.5</version>
+    		</plugin>
+		</plugins>
+	</reporting>
+
 	<build>
 		<sourceDirectory>./</sourceDirectory>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>4.0.0-M8</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

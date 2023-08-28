@@ -53,6 +53,26 @@ public class S3Bucket {
 		timestamp = null;
 	}
 
+	public S3Bucket(S3Bucket bucket) {
+		this.userName = bucket.userName;
+		this.userId = bucket.userId;
+		this.bucket = bucket.bucket;
+		this.acl = bucket.acl;
+		this.web = bucket.web;
+		this.cors = bucket.cors;
+		this.lifecycle = bucket.lifecycle;
+		this.versioning = bucket.versioning;
+		this.access = bucket.access;
+		this.tagging = bucket.tagging;
+		this.encryption = bucket.encryption;
+		this.replication = bucket.replication;
+		this.logging = bucket.logging;
+		this.notification = bucket.notification;
+		this.policy = bucket.policy;
+		this.objectLock = bucket.objectLock;
+		this.timestamp = new Date(bucket.timestamp.getTime());
+	}
+
 	public String getUserName() {
 		return userName;
 	}
@@ -126,10 +146,10 @@ public class S3Bucket {
 		this.replication = replication;
 	}
 	public Date getTimestamp() {
-		return timestamp;
+		return new Date(timestamp.getTime());
 	}
 	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+		this.timestamp = new Date(timestamp.getTime());
 	}
 
 	public String getLogging() {

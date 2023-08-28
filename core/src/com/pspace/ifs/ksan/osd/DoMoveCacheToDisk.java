@@ -35,6 +35,10 @@ public class DoMoveCacheToDisk implements Runnable {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
 
+        if (files == null) {
+            return;
+        }
+
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 if (files[i].getName().equals(Constants.OBJ_DIR)) {
@@ -49,6 +53,11 @@ public class DoMoveCacheToDisk implements Runnable {
     private void check(String dirPath) {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
+
+        if (files == null) {
+            return;
+        }
+        
         long now = Calendar.getInstance().getTimeInMillis();
         
         for (int i = 0; i < files.length; i++) {

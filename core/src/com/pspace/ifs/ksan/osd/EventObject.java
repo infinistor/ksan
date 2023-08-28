@@ -182,10 +182,12 @@ class MoveObjectCallback implements MQCallback {
 				String ecDir = KsanUtils.makeECDirectoryPath(sourceDiskPath, objId);
 				File dir = new File(ecDir);
 				File[] ecFiles = dir.listFiles();
-				for (int i = 0; i < ecFiles.length; i++) {
-					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
-						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-							ecFiles[i].delete();
+				if (ecFiles != null) {
+					for (int i = 0; i < ecFiles.length; i++) {
+						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+								ecFiles[i].delete();
+							}
 						}
 					}
 				}
@@ -251,9 +253,12 @@ class MoveObjectCallback implements MQCallback {
 				}
 			}
 			srcFile.delete();
+		} catch (RuntimeException e) {
+			logger.error(e.getMessage(), e);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 		logger.info("success move file : {}", fullPath);
 		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
@@ -482,10 +487,12 @@ class GetAttrObjectCallBack implements MQCallback {
 				String ecDir = KsanUtils.makeECDirectoryPath(diskPath, objId);
 				File dir = new File(ecDir);
 				File[] ecFiles = dir.listFiles();
-				for (int i = 0; i < ecFiles.length; i++) {
-					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
-						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-							ecFiles[i].delete();
+				if (ecFiles != null) {
+					for (int i = 0; i < ecFiles.length; i++) {
+						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+								ecFiles[i].delete();
+							}
 						}
 					}
 				}
@@ -658,10 +665,12 @@ class CopyObjectCallback implements MQCallback {
 				String ecDir = KsanUtils.makeECDirectoryPath(sourceDiskPath, objId);
 				File dir = new File(ecDir);
 				File[] ecFiles = dir.listFiles();
-				for (int i = 0; i < ecFiles.length; i++) {
-					if (ecFiles[i].getName().startsWith(Constants.POINT)) {
-						if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-							ecFiles[i].delete();
+				if (ecFile != null) {
+					for (int i = 0; i < ecFiles.length; i++) {
+						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
+							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+								ecFiles[i].delete();
+							}
 						}
 					}
 				}
@@ -724,9 +733,12 @@ class CopyObjectCallback implements MQCallback {
 					return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, e.getMessage(), 0);
 				}
 			}
+		} catch (RuntimeException e) {
+			logger.error(e.getMessage(), e);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
 
 		logger.info("success copy file : {}", fullPath);
@@ -736,6 +748,10 @@ class CopyObjectCallback implements MQCallback {
 
 public class EventObject {
     private AgentConfig config;
+	private MQReceiver receiverMoveObjectCallback;
+	private MQReceiver receiverDeleteObjectCallback;
+	private MQReceiver receiverGetAttrObjectCallBack;
+	private MQReceiver receiverCopyObjectCallback;
 
     private static final Logger logger = LoggerFactory.getLogger(EventObject.class);
 
@@ -760,7 +776,7 @@ public class EventObject {
 		try
 		{
 			MQCallback moveObjectCallback = new MoveObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(),
+			receiverMoveObjectCallback = new MQReceiver(config.getMQHost(),
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -776,7 +792,7 @@ public class EventObject {
 
 		try {
 			MQCallback deleteObjectCallback = new DeleteObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverDeleteObjectCallback = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -792,7 +808,7 @@ public class EventObject {
 
 		try {
 			MQCallback getAttrObjectCallBack = new GetAttrObjectCallBack();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverGetAttrObjectCallBack = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),
@@ -808,7 +824,7 @@ public class EventObject {
 
 		try {
 			MQCallback copyObjectCallback = new CopyObjectCallback();
-			MQReceiver mq1ton = new MQReceiver(config.getMQHost(), 
+			receiverCopyObjectCallback = new MQReceiver(config.getMQHost(), 
 				mqPort,
 				config.getMQUser(),
 				config.getMQPassword(),

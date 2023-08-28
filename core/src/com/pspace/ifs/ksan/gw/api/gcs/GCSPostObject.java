@@ -23,6 +23,7 @@ import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.multipart.Upload;
@@ -30,6 +31,7 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -163,6 +165,10 @@ public class GCSPostObject extends GCSRequest {
         IObjectManager objectManager = new VFSObjectManager();
         
         S3Object s3Object = objectManager.putObject(s3Parameter, objMeta, new S3Encryption(null, null, null, s3Parameter));
+        if (s3Object == null) {
+            logger.error("s3Object is null");
+            throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+        }
 
         S3Metadata s3Metadata = new S3Metadata();
         s3Metadata.setName(objectName);
@@ -183,8 +189,8 @@ public class GCSPostObject extends GCSRequest {
         logger.debug("md5 : {}", md5);
 
         try {
-            objMeta.set(s3Object.getEtag(), null, s3Metadata.toString(), null, s3Object.getFileSize());
-            int result = insertObject(bucketName, objectName, objMeta);
+            objMeta.set(s3Object.getEtag(), GWConstants.EMPTY_STRING, s3Metadata.toString(), GWConstants.EMPTY_STRING, s3Object.getFileSize());
+            insertObject(bucketName, objectName, objMeta);
             logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucketName, objectName, s3Object.getFileSize(), s3Object.getEtag(), null, null);
         } catch (GWException e) {
             PrintStack.logging(logger, e);
@@ -203,7 +209,7 @@ public class GCSPostObject extends GCSRequest {
 
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes());
+            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

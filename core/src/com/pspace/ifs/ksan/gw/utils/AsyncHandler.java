@@ -12,7 +12,6 @@ package com.pspace.ifs.ksan.gw.utils;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 

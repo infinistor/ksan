@@ -16,6 +16,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -247,7 +248,6 @@ public abstract class MessageQ{
         String replyQueueName = this.qname;
         
         if (qname.isEmpty()){
-            final String corrId = UUID.randomUUID().toString();
             replyQueueName = createQurumQueue("replyQ", false);
         }
         
@@ -259,7 +259,7 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        this.channel.basicPublish("", this.qname, props, mesg.getBytes());
+        this.channel.basicPublish("", this.qname, props, mesg.getBytes(StandardCharsets.UTF_8));
        
         return 0;
     }
@@ -269,7 +269,6 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        final String corrId = UUID.randomUUID().toString();
         String replyQueueName = createQurumQueue("replyQ", false);
         
         BasicProperties props = new BasicProperties
@@ -278,7 +277,7 @@ public abstract class MessageQ{
                 .build();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());  
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes(StandardCharsets.UTF_8));  
         return 0;
     }
     
@@ -296,7 +295,7 @@ public abstract class MessageQ{
             this.connect();
         
         this.bindExchange();
-        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes()); 
+        this.channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes(StandardCharsets.UTF_8)); 
         String res = this.getReplay(replyQueueName, timeoutInMilliSec);
         return res;
     }
@@ -314,7 +313,7 @@ public abstract class MessageQ{
         if (!this.channel.isOpen())
             this.connect();
         
-        this.channel.basicPublish("", this.qname, props, mesg.getBytes());
+        this.channel.basicPublish("", this.qname, props, mesg.getBytes(StandardCharsets.UTF_8));
         String res = this.getReplay(replyQueueName, timeoutInMilliSec);
         return res; 
     }

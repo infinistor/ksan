@@ -25,6 +25,7 @@ import com.pspace.ifs.ksan.gw.object.S3Object;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
@@ -34,6 +35,7 @@ import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -120,14 +122,14 @@ public class GCSPutObject extends GCSRequest {
                     long start = Long.parseLong(range[0]);
                     long end = 0;
                     long size = 0;
-                    long totalSize = 0;
+                    // long totalSize = 0;
                     if (range[1].contains("/")) {
                         String[] rangeSize = range[1].split("/");
                         end = Long.parseLong(rangeSize[0]);
                         if (rangeSize.length == 2) {
                             if (!rangeSize[1].equals("*")) {
                                 isLast = true;
-                                totalSize = Long.parseLong(rangeSize[1]);
+                                // totalSize = Long.parseLong(rangeSize[1]);
                             }
                         }
                     } else {
@@ -276,7 +278,7 @@ public class GCSPutObject extends GCSRequest {
 
                         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
                         try {
-                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes());
+                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -307,7 +309,7 @@ public class GCSPutObject extends GCSRequest {
     
                         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
                         try {
-                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes());
+                            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
                         } catch (Exception e) {
                             logger.error(e.getMessage(), e);
                             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -356,7 +358,7 @@ public class GCSPutObject extends GCSRequest {
         }
 
         JSONObject json = new JSONObject();
-        JSONArray array = new JSONArray();
+        // JSONArray array = new JSONArray();
 
         // json.put("acl", array);
         // json.put("crc32c", "");
@@ -377,7 +379,7 @@ public class GCSPutObject extends GCSRequest {
 
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes());
+            s3Parameter.getResponse().getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

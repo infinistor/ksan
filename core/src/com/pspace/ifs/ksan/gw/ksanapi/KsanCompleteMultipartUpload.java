@@ -89,10 +89,10 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			completeMultipartUpload = xmlMapper.readValue(multipartXml, CompleteMultipartUploadRequest.class);
 		} catch (JsonMappingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		} catch (JsonProcessingException e) {
 			PrintStack.logging(logger, e);
-			new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
 		
 		if(completeMultipartUpload.parts == null || completeMultipartUpload.parts.size() == 0) {
@@ -314,6 +314,9 @@ public class KsanCompleteMultipartUpload extends S3Request {
 			}
 			logger.debug(GWConstants.LOG_COMPLETE_MULTIPART_UPLOAD_INFO, bucket, object, s3Object.get().getFileSize(), s3Object.get().getEtag(), acl, repVersionId);
 			// objMultipart.abortMultipartUpload(uploadId);
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

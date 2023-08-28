@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.encryption;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -31,7 +32,7 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.WebClientDevWrapper;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
-
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 
 import com.google.common.base.Strings;
@@ -77,7 +78,7 @@ public class S3KMS {
                 logger.info(kmsUrl);
 
                 HttpClient clnt = WebClientDevWrapper.wrapClient();
-                HttpPost createKMS = new HttpPost(kmsUrl);
+                HttpPost createKMS = null;
                 createKMS = WebClientDevWrapper.wrapHttpPost(new HttpPost(kmsUrl), requestConfig);
                 createKMS.setHeader("X-Vault-Token", masterKeyId);
                 createKMS.setEntity(new StringEntity(body.toString()));
@@ -119,7 +120,7 @@ public class S3KMS {
                 String kmsUrl = s3p.getKmsEndpoint() + "/v1/transit/export/encryption-key/" + path;
 
                 HttpClient clnt = WebClientDevWrapper.wrapClient();
-                HttpGet exportKMS = new HttpGet(kmsUrl);
+                HttpGet exportKMS = null; //new HttpGet(kmsUrl);
                 logger.info(kmsUrl);
                 exportKMS = WebClientDevWrapper.wrapHttpGet(new HttpGet(kmsUrl), requestConfig);
                 exportKMS.setHeader("X-Vault-Token", masterKeyId);
@@ -147,7 +148,7 @@ public class S3KMS {
                         }
                     }
                     
-                    enckey = new String(Base64.getDecoder().decode(enckey.getBytes()), StandardCharsets.UTF_8);
+                    enckey = new String(Base64.getDecoder().decode(enckey.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
                 } else {
                     InputStream input;
 

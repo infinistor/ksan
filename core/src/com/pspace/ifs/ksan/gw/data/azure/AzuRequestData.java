@@ -12,6 +12,8 @@
 package com.pspace.ifs.ksan.gw.data.azure;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ public class AzuRequestData {
 	private AzuParameter parameter;
 
     public AzuRequestData(AzuParameter parameter) {
-		this.parameter = parameter;
+		this.parameter = new AzuParameter(parameter);
 		logger = LoggerFactory.getLogger(AzuRequestData.class);
 	}
 
@@ -92,7 +94,7 @@ public class AzuRequestData {
 		try {
 			byte[] xml = parameter.getInputStream().readAllBytes();
 			parameter.addRequestSize(xml.length);
-			ret = new String(xml);
+			ret = new String(xml, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.INTERNAL_SERVER_ERROR, parameter);
@@ -118,7 +120,7 @@ public class AzuRequestData {
 		try {
 			byte[] json = parameter.getInputStream().readAllBytes();
 			parameter.addRequestSize(json.length);
-			ret = new String(json);
+			ret = new String(json, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new AzuException(AzuErrorCode.INTERNAL_SERVER_ERROR, parameter);

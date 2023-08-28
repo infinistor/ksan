@@ -68,7 +68,6 @@ public class HeadObject extends S3Request implements S3AddResponse {
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}

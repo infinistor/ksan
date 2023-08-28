@@ -165,11 +165,10 @@ public class CreateMultipartUpload extends S3Request {
 			String[] strtagset = strtaggingInfo.split(GWConstants.AMPERSAND);
 			int starttag = 0;
 			for (String strtag : strtagset) {
-
 				if(starttag == 0)
 					tagging.tagset.tags = new ArrayList<Tag>();
 
-				starttag+=1;
+				starttag += 1;
 
 				Tag tag = new Tag();
 				String[] keyvalue = strtag.split(GWConstants.EQUAL);
@@ -191,7 +190,6 @@ public class CreateMultipartUpload extends S3Request {
 			}
 
 			if (tagging != null) {
-
 				if (tagging.tagset != null && tagging.tagset.tags != null) {
 					for (Tag t : tagging.tagset.tags) {
 
@@ -238,6 +236,9 @@ public class CreateMultipartUpload extends S3Request {
 			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, metaJson, objMeta.getPrimaryDisk().getId());
 			objMeta.setMeta(metaJson);
 			objMeta.setAcl(aclXml);
+			if (!taggingxml.isEmpty()) {
+				objMeta.setTag(taggingxml);
+			}
 			uploadId = objMultipart.createMultipartUpload(objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);

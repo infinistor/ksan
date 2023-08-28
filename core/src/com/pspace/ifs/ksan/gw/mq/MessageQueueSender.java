@@ -11,6 +11,9 @@
 package com.pspace.ifs.ksan.gw.mq;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
+
+import java.nio.charset.StandardCharsets;
+
 import com.rabbitmq.client.Channel;
 
 /**
@@ -36,7 +39,7 @@ public class MessageQueueSender {
                 .replyTo(replyQueueName)
                 .build();
 
-        channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes());
+        channel.basicPublish(this.exchangeName, routingKey, props, mesg.getBytes(StandardCharsets.UTF_8));
         channelPool.returnChannel(channel);
         return 0;
     }

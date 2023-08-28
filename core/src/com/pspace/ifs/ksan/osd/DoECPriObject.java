@@ -72,6 +72,11 @@ public class DoECPriObject implements Runnable {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
         long now = Calendar.getInstance().getTimeInMillis();
+        
+        if (files == null) {
+            return;
+        }
+
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 check(files[i].getAbsolutePath(), ecPath);
@@ -160,10 +165,15 @@ public class DoECPriObject implements Runnable {
     private void spreadEC(String path, String fileName) {
         File dir = new File(path);
         File[] files = dir.listFiles();
-        String[] ends = new String[files.length];
-        File dest = new File(path + Constants.SLASH + Constants.POINT + fileName);
+        if (files == null) {
+            return;
+        }
 
+        String[] ends = new String[files.length];
+        // File dest = new File(path + Constants.SLASH + Constants.POINT + fileName);
         logger.debug("ec parts : {}", files.length);
+        
+
         for (int i = 0; i < files.length; i++) {
             ends[i] = Integer.toString(i) + Constants.UNDERSCORE + Integer.toString(numberOfCodingChunks + numberOfDataChunks) + Constants.ZFEC_SUFFIX;
         }
@@ -224,6 +234,8 @@ public class DoECPriObject implements Runnable {
                     }
                 }
             }
+        } catch (RuntimeException e) {
+            PrintStack.logging(logger, e);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }

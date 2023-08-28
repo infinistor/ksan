@@ -231,6 +231,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 			// uploadId = objMultipart.createMultipartUpload(bucket, object, xml, s3Metadata.toString(), objMeta.getPrimaryDisk().getId());
 			objMeta.setMeta(metaJson);
 			objMeta.setAcl(aclXml);
+			objMeta.setTag(taggingxml);
 			uploadId = objMultipart.createMultipartUpload(objMeta);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);

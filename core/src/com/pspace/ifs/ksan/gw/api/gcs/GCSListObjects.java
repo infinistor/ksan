@@ -22,6 +22,9 @@ import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
 
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -76,6 +79,7 @@ public class GCSListObjects extends GCSRequest{
             json.put("generation", s3Metadata.getVersionId());
 
             jsonArray.add(json);
+            logger.debug("object {}, {}, {}", s3Metadata.getName(), s3Metadata.getContentLength(), s3Metadata.getVersionId());
         }
         jsonObject.put("items", jsonArray);
         JSONArray emptyArray = new JSONArray();
@@ -83,7 +87,7 @@ public class GCSListObjects extends GCSRequest{
 
         s3Parameter.getResponse().setContentType(GWConstants.JSON_CONTENT_TYPE);
         try {
-            s3Parameter.getResponse().getOutputStream().write(jsonObject.toString().getBytes());
+            s3Parameter.getResponse().getOutputStream().write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

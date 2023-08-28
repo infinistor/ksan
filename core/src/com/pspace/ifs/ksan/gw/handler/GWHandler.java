@@ -28,7 +28,6 @@ import com.pspace.ifs.ksan.gw.api.S3Request;
 import com.pspace.ifs.ksan.gw.api.S3RequestFactory;
 import com.pspace.ifs.ksan.gw.api.gcs.GCSRequest;
 import com.pspace.ifs.ksan.gw.api.gcs.GCSRequestFactory;
-import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;

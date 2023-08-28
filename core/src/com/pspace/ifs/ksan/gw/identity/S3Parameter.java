@@ -68,6 +68,71 @@ public class S3Parameter {
 	private String kmsType;
 	private String kmsEndpoint;
 
+    public S3Parameter() {
+        request = null;
+        response = null;
+        inputStream = null;
+        bucketName = "";
+        objectName = "";
+        pathCategory = "";
+        maxTimeSkew = 0;
+        method = "";
+        user = null;
+        bucket = null;
+        srcBucket = null;
+        srcPath = "";
+        versionId = "";
+        srcVersionId = "";
+        startTime = 0L;
+        maxFileSize = 0L;
+        fileSize = 0L;
+        uploadId = "";
+        isWebsite = false;
+        isPublicAccess = false;
+        statusCode = 0;
+        requestSize = 0L;
+        responseSize = 0L;
+        uri = "";
+        isAdmin = false;
+        taggingInfo = "";
+        identity = "";
+        proxyHost = "";
+	    kmsType = "";
+	    kmsEndpoint = "";
+    }
+
+    public S3Parameter(S3Parameter parameter) {
+        request = parameter.getRequest();
+        response = parameter.getResponse();
+        inputStream = parameter.getInputStream();
+        bucketName = parameter.getBucketName();
+        objectName = parameter.getObjectName();
+        pathCategory = parameter.getPathCategory();
+        maxTimeSkew = parameter.getMaxTimeSkew();
+        method = parameter.getMethod();
+        user = parameter.getUser();
+        bucket = parameter.getBucket();
+        srcBucket = parameter.getSrcBucket();
+        srcPath = parameter.getSrcPath();
+        versionId = parameter.getVersionId();
+        srcVersionId = parameter.getSrcVersionId();
+        startTime = parameter.getStartTime();
+        maxFileSize = parameter.getMaxFileSize();
+        fileSize = parameter.getFileSize();
+        uploadId = parameter.getUploadId();
+        isWebsite = parameter.isWebsite();
+        isPublicAccess = parameter.isPublicAccess();
+        statusCode = parameter.getStatusCode();
+        requestSize = parameter.getRequestSize();
+        responseSize = parameter.getResponseSize();
+        uri = parameter.getUri();
+        isAdmin = parameter.isAdmin();
+        taggingInfo = parameter.getTaggingInfo();
+        identity = parameter.getIdentity();
+        proxyHost = parameter.getProxyHost();
+        kmsType = parameter.getKmsType();
+        kmsEndpoint = parameter.getKmsEndpoint();
+    }
 
     public String getUri() {
         return uri;
@@ -107,39 +172,6 @@ public class S3Parameter {
 
     public void setKmsEndpoint(String kmsEndpoint) {
         this.kmsEndpoint = kmsEndpoint;
-    }
-
-    public S3Parameter() {
-        request = null;
-        response = null;
-        inputStream = null;
-        bucketName = "";
-        objectName = "";
-        pathCategory = "";
-        maxTimeSkew = 0;
-        method = "";
-        user = null;
-        bucket = null;
-        srcBucket = null;
-        srcPath = "";
-        versionId = "";
-        srcVersionId = "";
-        startTime = 0L;
-        maxFileSize = 0L;
-        fileSize = 0L;
-        uploadId = "";
-        isWebsite = false;
-        isPublicAccess = false;
-        statusCode = 0;
-        requestSize = 0L;
-        responseSize = 0L;
-        uri = "";
-        isAdmin = false;
-        taggingInfo = "";
-        identity = "";
-        proxyHost = "";
-	    kmsType = "";
-	    kmsEndpoint = "";
     }
 
     public HttpServletRequest getRequest() {
@@ -207,11 +239,11 @@ public class S3Parameter {
     }
 
     public S3User getUser() {
-        return user;
+        return new S3User(user);
     }
 
     public void setUser(S3User user) {
-        this.user = user;
+        this.user = new S3User(user);
     }
 
     public S3Bucket getBucket() {
@@ -219,7 +251,7 @@ public class S3Parameter {
     }
 
     public void setBucket(S3Bucket bucket) {
-        this.bucket = bucket;
+        this.bucket = new S3Bucket(bucket);
     }
 
     public S3Bucket getSrcBucket() {
@@ -227,7 +259,7 @@ public class S3Parameter {
     }
 
     public void setSrcBucket(S3Bucket srcBucket) {
-        this.srcBucket = srcBucket;
+        this.srcBucket = new S3Bucket(srcBucket);
     }
 
     public String getSrcBucketName() {

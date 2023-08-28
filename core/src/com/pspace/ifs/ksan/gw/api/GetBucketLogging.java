@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 import com.google.common.base.Strings;
@@ -53,10 +55,10 @@ public class GetBucketLogging extends S3Request {
 		try {
 			if (!Strings.isNullOrEmpty(logging)) {
 				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(logging.getBytes());
+				s3Parameter.getResponse().getOutputStream().write(logging.getBytes(StandardCharsets.UTF_8));
 			} else {
                 s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(GWConstants.LOG_GET_BUCKET_LOGGING_EMPTY.getBytes());
+				s3Parameter.getResponse().getOutputStream().write(GWConstants.LOG_GET_BUCKET_LOGGING_EMPTY.getBytes(StandardCharsets.UTF_8));
             }
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);

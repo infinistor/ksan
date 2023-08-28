@@ -63,7 +63,6 @@ public class PutObjectLegalHold extends S3Request {
         Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}

@@ -30,7 +30,7 @@ public class S3Range {
 	public S3Range(S3Parameter s3Parameter) {
 		rangeList = new ArrayList<Range>();
 		logger = LoggerFactory.getLogger(Range.class);
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 	}
 
 	public void parseRange(String range, long fileLength, boolean isCopy) throws GWException {
@@ -111,7 +111,7 @@ public class S3Range {
 	}
 
 	public List<Range> getListRange() {
-		return rangeList;
+		return new ArrayList<>(rangeList);
 	}
 
 	public class Range {

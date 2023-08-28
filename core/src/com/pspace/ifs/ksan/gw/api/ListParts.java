@@ -74,12 +74,12 @@ public class ListParts extends S3Request {
 		int maxPartsValue = GWConstants.MAX_PART_VALUE;
 		
 		if (!Strings.isNullOrEmpty(maxParts)) {
-			if (Integer.valueOf(maxParts) < 0) {
+			if (Integer.parseInt(maxParts) < 0) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-			} else if (Integer.valueOf(maxParts) > 1000) {
+			} else if (Integer.parseInt(maxParts) > 1000) {
 				maxPartsValue = GWConstants.MAX_PART_VALUE;
 			} else {
-				maxPartsValue = Integer.valueOf(maxParts);
+				maxPartsValue = Integer.parseInt(maxParts);
 			}
 		}
 		

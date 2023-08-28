@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 class ConfigUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(ConfigUpdateCallback.class);
@@ -104,7 +105,7 @@ public class OSDPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH));
+			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH, StandardCharsets.UTF_8));
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();
@@ -204,6 +205,9 @@ public class OSDPortal {
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			OSDUtils.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			OSDUtils.logging(logger, e);
 			throw new RuntimeException(e);
@@ -259,7 +263,7 @@ public class OSDPortal {
 					}
 					// DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
-					if (jsonServers != null && jsonServers.size() == 0) {
+					if (jsonServers == null && jsonServers.size() == 0) {
 						logger.info("diskpools -- servers is empty");
 						return;
 					}

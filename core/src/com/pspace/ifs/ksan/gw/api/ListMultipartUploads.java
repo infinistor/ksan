@@ -67,7 +67,7 @@ public class ListMultipartUploads extends S3Request {
 		if (Strings.isNullOrEmpty(maxUploads)) {
 			maxUploads = GWConstants.DEFAULT_MAX_KEYS;
 		} else {
-			if (Integer.valueOf(maxUploads) < 0) {
+			if (Integer.parseInt(maxUploads) < 0) {
 				throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 			}
 		}
@@ -76,7 +76,7 @@ public class ListMultipartUploads extends S3Request {
 		ObjMultipart objMultipart = null;
 		try {
 			objMultipart = getInstanceObjMultipart(bucket);
-			resultUploads = objMultipart.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, Integer.valueOf(maxUploads));
+			resultUploads = objMultipart.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, Integer.parseInt(maxUploads));
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

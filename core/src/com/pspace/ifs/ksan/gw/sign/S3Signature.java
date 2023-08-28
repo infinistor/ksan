@@ -118,19 +118,22 @@ final public class S3Signature {
         // Build string to sign
         StringBuilder builder = new StringBuilder();
         
-        String expires = request.getParameter(GWConstants.EXPIRES);
         if (queryAuth) {
+            String expires = request.getParameter(GWConstants.EXPIRES);
+            String contentmd5 = request.getParameter(HttpHeaders.CONTENT_MD5);
+            String contenttype = request.getParameter(HttpHeaders.CONTENT_TYPE);
+
             builder.append(request.getMethod())
                 .append(GWConstants.CHAR_NEWLINE)
-                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_MD5)))
+                .append(Strings.nullToEmpty(contentmd5))
                 .append(GWConstants.CHAR_NEWLINE)
-                .append(Strings.nullToEmpty(request.getParameter(HttpHeaders.CONTENT_TYPE)))
+                .append(Strings.nullToEmpty(contenttype))
                 .append(GWConstants.CHAR_NEWLINE);
             // If expires is  not nil, then it is query string sign
             // If expires is nil,maybe alse query string sign
             // So should check other accessid para ,presign to judge.
             // not the expires
-            builder.append(Strings.nullToEmpty(request.getParameter(HttpHeaders.EXPIRES)));
+            builder.append(Strings.nullToEmpty(expires));
         } else {
             builder.append(request.getMethod())
                 .append(GWConstants.CHAR_NEWLINE)
@@ -312,17 +315,21 @@ final public class S3Signature {
             }
         }
 
-        logger.info("pre  : " + uri);
-        uri = uri.replaceAll("\\$", "%24");
-        uri = uri.replaceAll("'", "%27");
-        uri = uri.replaceAll("!", "%21");
-        uri = uri.replaceAll("\\(", "%28");
-        uri = uri.replaceAll("\\)", "%29");
-        uri = uri.replaceAll("\\*", "%2A");
-        uri = uri.replaceAll(":", "%3A");
-        uri = uri.replaceAll("\\[", "%5B");
-        uri = uri.replaceAll("\\]", "%5D");
-        logger.info("post : " + uri);
+        // percent encoding c# by hmjung 2021-11-10
+        String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+        if ( !Strings.isNullOrEmpty(userAgent) && userAgent.contains("aws-sdk-dotnet-core")) {
+            logger.info("pre  : " + uri);
+            uri = uri.replaceAll("\\$", "%24");
+            uri = uri.replaceAll("'", "%27");
+            uri = uri.replaceAll("!", "%21");
+            uri = uri.replaceAll("\\(", "%28");
+            uri = uri.replaceAll("\\)", "%29");
+            uri = uri.replaceAll("\\*", "%2A");
+            uri = uri.replaceAll(":", "%3A");
+            uri = uri.replaceAll("\\[", "%5B");
+            uri = uri.replaceAll("\\]", "%5D");
+            logger.info("post : " + uri);
+        }
         
         String canonicalRequest = "";
         if(digest == null) {

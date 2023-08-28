@@ -24,10 +24,11 @@ import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
+import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
-
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
@@ -58,7 +59,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -78,6 +79,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Set;
 
+import org.json.simple.JSONObject;
+
 import de.sfuhrm.openssl4j.OpenSSL4JProvider;
 
 import com.google.common.base.Strings;
@@ -94,6 +97,12 @@ public class VFSObjectManager implements IObjectManager {
 
     @Override
     public void getObject(S3Parameter param, Metadata meta, S3Encryption encryption, S3Range s3Range) throws GWException {
+        // check size 0
+        if (meta.getSize() == 0) {
+            param.addResponseSize(0L);
+            return;
+        }
+
         // check disk
         boolean isAvailablePrimary = meta.isPrimaryExist() && isAvailableDiskForRead(meta.getPrimaryDisk().getId());
         boolean isAvailableReplica = false;
@@ -114,7 +123,7 @@ public class VFSObjectManager implements IObjectManager {
         String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
         // check range
-        String sourceRange = null;
+        String sourceRange = GWConstants.EMPTY_STRING;
         long fileSize = 0L;
         if (s3Range != null && s3Range.getListRange().size() > 0) {
             for (S3Range.Range range : s3Range.getListRange()) {
@@ -175,7 +184,7 @@ public class VFSObjectManager implements IObjectManager {
                 isAvailableReplica = isAvailableDiskForWrite(replicaDISK.getId());
             } catch (ResourceNotFoundException e) {
                 logger.error("Replica is null");
-            }
+            } 
         }
         if (!isAvailablePrimary && !isAvailableReplica) {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
@@ -422,6 +431,8 @@ public class VFSObjectManager implements IObjectManager {
             s3Object.setLastModified(new Date());
             s3Object.setVersionId(param.getVersionId());
             s3Object.setDeleteMarker(GWConstants.OBJECT_TYPE_FILE);
+            s3Object.setSavePrimary(isAvailablePrimary);
+            s3Object.setSaveReplica(isAvailableReplica);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
@@ -1463,7 +1474,7 @@ public class VFSObjectManager implements IObjectManager {
             // src object is multipart
             if (isMultipart) {
                 BufferedReader br = null;
-                br = new BufferedReader(new InputStreamReader(is));
+                br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
                 // if (!Strings.isNullOrEmpty(srcKey)) {
                 //     br = new BufferedReader(new InputStreamReader(encryptIS));
                 // } else {
@@ -1528,20 +1539,20 @@ public class VFSObjectManager implements IObjectManager {
                             // }
                             sb.append(System.lineSeparator());
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         } else {
                             line += System.lineSeparator();
                             sb.setLength(0);
                             sb.append(line);
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         }
                     } else if ((accOffset + partLength - 1) == last) {
@@ -1549,10 +1560,10 @@ public class VFSObjectManager implements IObjectManager {
                         sb.setLength(0);
                         sb.append(line);
                         if (isAvailablePrimary) {
-                            osPrimary.write(sb.toString().getBytes());
+                            osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                         }
                         if (isAvailableReplica) {
-                            osReplica.write(sb.toString().getBytes());
+                            osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                         }
                         break;
                     } else {
@@ -1563,10 +1574,10 @@ public class VFSObjectManager implements IObjectManager {
                             sb.setLength(0);
                             sb.append(line);
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         } else {
                             sb.setLength(0);
@@ -1581,10 +1592,10 @@ public class VFSObjectManager implements IObjectManager {
                             sb.append(newLast);
                             sb.append(System.lineSeparator());
                             if (isAvailablePrimary) {
-                                osPrimary.write(sb.toString().getBytes());
+                                osPrimary.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                             if (isAvailableReplica) {
-                                osReplica.write(sb.toString().getBytes());
+                                osReplica.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                             }
                         }
                         break;
@@ -1791,12 +1802,12 @@ public class VFSObjectManager implements IObjectManager {
         try {
             File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
             File tempReplica = null;
-            BufferedWriter bwPrimary = new BufferedWriter(new FileWriter(tempPrimary));
+            BufferedWriter bwPrimary = new BufferedWriter(new FileWriter(tempPrimary, StandardCharsets.UTF_8));
             BufferedWriter bwReplica = null;
 
             if (meta.isReplicaExist()) {
                 tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
-                bwReplica = new BufferedWriter(new FileWriter(tempReplica));
+                bwReplica = new BufferedWriter(new FileWriter(tempReplica, StandardCharsets.UTF_8));
             }
             
             // create temp file
@@ -1854,7 +1865,7 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartPrimary.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartPrimary = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary))) {
+                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary, StandardCharsets.UTF_8))) {
                             String line = null;
                             while ((line = br.readLine()) != null) {
                                 line += System.lineSeparator();
@@ -1889,7 +1900,7 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartReplica.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartReplica = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica))) {
+                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica, StandardCharsets.UTF_8))) {
                             String line = null;
                             while ((line = br.readLine()) != null) {
                                 line += System.lineSeparator();
@@ -2299,12 +2310,14 @@ public class VFSObjectManager implements IObjectManager {
         String ecDir = KsanUtils.makeECDirectoryPath(localPath, meta.getObjId());
         File dir = new File(ecDir);
         File[] ecFiles = dir.listFiles();
-        for (int i = 0; i < ecFiles.length; i++) {
-            if (ecFiles[i].getName().startsWith(Constants.POINT) && ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-                String trashPath = KsanUtils.makeTrashPath(localPath, ecFiles[i].getName());
-                File trashECPart = new File(trashPath);
-                retryRenameTo(ecFiles[i], trashECPart);
-                // ecFiles[i].delete();
+        if (ecFiles != null) {
+            for (int i = 0; i < ecFiles.length; i++) {
+                if (ecFiles[i].getName().startsWith(Constants.POINT) && ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
+                    String trashPath = KsanUtils.makeTrashPath(localPath, ecFiles[i].getName());
+                    File trashECPart = new File(trashPath);
+                    retryRenameTo(ecFiles[i], trashECPart);
+                    // ecFiles[i].delete();
+                }
             }
         }
 
@@ -2351,10 +2364,14 @@ public class VFSObjectManager implements IObjectManager {
                 }
             } else {
                 String[] ranges = sourceRange.split(GWConstants.SLASH);
+                long offset = 0L;
+                long length = 0L;
                 for (String range : ranges) {
                     String[] rangeParts = range.split(GWConstants.COMMA);
-                    long offset = Longs.tryParse(rangeParts[0]);
-                    long length = Longs.tryParse(rangeParts[1]);
+                    Long offsetLong = Longs.tryParse(rangeParts[0]);
+                    Long lengthLong = Longs.tryParse(rangeParts[1]);
+                    offset = (offsetLong == null) ? 0L : offsetLong;
+                    length = (lengthLong == null) ? 0L : lengthLong;
                     logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_RANGE, offset, length);
 
                     remaingLength = length;
@@ -2502,7 +2519,7 @@ public class VFSObjectManager implements IObjectManager {
         boolean isBorrowOsd = false;
         logger.debug("getMultipartLocal file : {}", file.getAbsolutePath());
         if (file.exists()) {
-            try (BufferedReader br = new BufferedReader(new FileReader(file));
+            try (BufferedReader br = new BufferedReader(new FileReader(file,StandardCharsets.UTF_8));
                 OutputStream os = param.getResponse().getOutputStream()) {
                 String line = null;
                 String objDiskId = null;
@@ -2520,11 +2537,15 @@ public class VFSObjectManager implements IObjectManager {
                 if (!Strings.isNullOrEmpty(sourceRange)) {
                     br.mark(0);
                     String[] ranges = sourceRange.split(GWConstants.SLASH);
+                    long offset = 0L;
+                    long length = 0L;
                     for (String range : ranges) {
                         long accOffset = 0L;
                         String[] rangeParts = range.split(GWConstants.COMMA);
-                        long offset = Longs.tryParse(rangeParts[0]);
-                        long length = Longs.tryParse(rangeParts[1]);
+                        Long offsetLong = Longs.tryParse(rangeParts[0]);
+                        Long lengthLong = Longs.tryParse(rangeParts[1]);
+                        offset = (offsetLong == null) ? 0L : offsetLong;
+                        length = (lengthLong == null) ? 0L : lengthLong;
                         logger.debug("getMultipartLocal : range : offset={}, length={}", offset, length);
                         br.reset();
                         while ((line = br.readLine()) != null) {
@@ -2711,6 +2732,9 @@ public class VFSObjectManager implements IObjectManager {
                         }
                     }
                 }
+            } catch (RuntimeException e) {
+                PrintStack.logging(logger, e);
+                throw new GWException(GWErrorCode.SERVER_ERROR, param);
             } catch (Exception e) {
                 PrintStack.logging(logger, e);
                 throw new GWException(GWErrorCode.SERVER_ERROR, param);

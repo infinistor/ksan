@@ -85,7 +85,8 @@ public class CompleteMultipartUpload extends S3Request {
 
 		String multipartXml = s3RequestData.getMultipartXml();
 		XmlMapper xmlMapper = new XmlMapper();
-		CompleteMultipartUploadRequest completeMultipartUpload = new CompleteMultipartUploadRequest();
+
+		CompleteMultipartUploadRequest completeMultipartUpload = null;
 		try {
 			completeMultipartUpload = xmlMapper.readValue(multipartXml, CompleteMultipartUploadRequest.class);
 		} catch (JsonMappingException e) {
@@ -339,6 +340,9 @@ public class CompleteMultipartUpload extends S3Request {
 			// objMultipart.abortMultipartUpload(uploadId);
 			long afterTime = System.currentTimeMillis();
 			logger.debug("CompleteMultipartUpload ... uploadId:{}, worktime : {} ms", uploadId, (afterTime - beforeTime));
+		} catch (RuntimeException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
