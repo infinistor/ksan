@@ -54,7 +54,7 @@ public class S3Encryption {
     // x-amz-customer-key, x-amz-customer-key-MD5, upload metadata
     // awk:kms
     public S3Encryption(String customerAlgorithm, String customerKey, String customerKeyMD5, S3Parameter s3Parameter) {
-        this.s3Parameter = s3Parameter;
+        this.s3Parameter = new S3Parameter(s3Parameter);
 
         if (!Strings.isNullOrEmpty(customerAlgorithm))
             this.customerAlgorithm = customerAlgorithm;
@@ -70,7 +70,7 @@ public class S3Encryption {
             String kmsMasterKeyId, String bucketKeyEnabled,
             S3Parameter s3Parameter) {
         op = "put";
-        this.s3Parameter = s3Parameter;
+        this.s3Parameter = new S3Parameter(s3Parameter);
 
         if (!Strings.isNullOrEmpty(bucketEncryption))
             this.encryptionXml = bucketEncryption;
@@ -86,7 +86,7 @@ public class S3Encryption {
     }
 
     public S3Encryption(String option, S3Metadata s3metadata, S3Parameter s3Parameter) {
-        this.s3Parameter = s3Parameter;
+        this.s3Parameter = new S3Parameter(s3Parameter);
         if(option.equalsIgnoreCase("upload")) {
             op = "put";
             this.customerAlgorithm = s3metadata.getCustomerAlgorithm();
