@@ -88,7 +88,8 @@ public class DiskManager {
     }
 
     public HashMap<String, String> getLocalDiskInfo() {
-        return localDiskInfoMap;
+        HashMap<String, String> map = new HashMap<String, String>(localDiskInfoMap);
+        return map;
     }
 
     public String getLocalPath(String diskID) {
@@ -151,7 +152,7 @@ public class DiskManager {
     }
 
     public List<DiskPool> getDiskPoolList() {
-        return diskPoolList;
+        return new ArrayList<DiskPool>(diskPoolList);
     }
 
     public DiskPool getDiskPool() {
