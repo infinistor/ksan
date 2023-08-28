@@ -52,11 +52,12 @@ public class ResultRange {
     }
 
     public List<String> getContentLengthHeaders() {
-        return contentLengthHeaders;
+        // return contentLengthHeaders;
+        return new ArrayList<String>(contentLengthHeaders);
     }
 
     public void setContentLengthHeaders(List<String> contentLengthHeaders) {
-        this.contentLengthHeaders = contentLengthHeaders;
+        this.contentLengthHeaders = new ArrayList<>(contentLengthHeaders);
     }
 
     public S3Range getS3Range() {
