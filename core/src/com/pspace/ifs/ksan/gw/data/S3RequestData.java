@@ -50,7 +50,7 @@ public class S3RequestData {
 	protected Logger logger;
 
 	public S3RequestData(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 		logger = LoggerFactory.getLogger(S3RequestData.class);
 	}
 
