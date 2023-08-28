@@ -88,11 +88,11 @@ public class S3Metadata {
 	}
 
 	public Map<String, String> getUserMetadata() {
-		return userMetadata;
+		return new HashMap<String, String>(userMetadata);
 	}
 
 	public void setUserMetadata(Map<String, String> userMetadata) {
-		this.userMetadata = userMetadata;
+		this.userMetadata = new HashMap<String, String>(userMetadata);
 	}
 
 	public String getETag() {
@@ -104,19 +104,19 @@ public class S3Metadata {
 	}
 
 	public Date getCreationDate() {
-		return creationDate;
+		return new Date(creationDate.getTime());
 	}
 
 	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+		this.creationDate = new Date(creationDate.getTime());
 	}
 
 	public Date getLastModified() {
-		return lastModified;
+		return new Date(lastModified.getTime());
 	}
 
 	public void setLastModified(Date lastModified) {
-		this.lastModified = lastModified;
+		this.lastModified = new Date(lastModified.getTime());
 	}
 	public String getTier() {
 		return tier;
@@ -239,11 +239,11 @@ public class S3Metadata {
 	}
 
 	public Date getExpires() {
-		return expire;
+		return new Date(expire.getTime());
 	}
 
 	public void setExpires(Date expires) {
-		this.expire = expires;
+		this.expire = new Date(expires.getTime());
 	}
 
 	public String getTaggingCount() {
