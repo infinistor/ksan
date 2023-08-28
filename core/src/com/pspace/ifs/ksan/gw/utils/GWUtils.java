@@ -232,8 +232,8 @@ public class GWUtils {
 			XmlMapper xmlMapper = new XmlMapper();
 			try {
 				CORSConfiguration corsConfiguration = xmlMapper.readValue(s3Parameter.getBucket().getCors(), CORSConfiguration.class);
-				String corsOrigin = s3Parameter.getHeader(HttpHeaders.ORIGIN);
-				String corsMethods = s3Parameter.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
+				String corsOrigin = s3Parameter.getRequest().getHeader(HttpHeaders.ORIGIN);
+				String corsMethods = s3Parameter.getRequest().getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
 
 				boolean originpass = false;
 				String resOrigin = "";
