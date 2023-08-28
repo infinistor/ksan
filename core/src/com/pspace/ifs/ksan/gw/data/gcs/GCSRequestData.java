@@ -38,7 +38,7 @@ public class GCSRequestData {
     protected Logger logger;
     
     public GCSRequestData(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 		logger = LoggerFactory.getLogger(GCSRequestData.class);
 	}
 
