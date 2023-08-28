@@ -43,7 +43,7 @@ public abstract class AzuRequest {
     protected Logger logger;
 
     public AzuRequest(AzuParameter parameter) {
-        this.azuParameter = parameter;
+        this.azuParameter = new AzuParameter(parameter);
 		azuRequestData = new AzuRequestData(parameter);
 		objManager = ObjManagers.getInstance().getObjManager();
     }
