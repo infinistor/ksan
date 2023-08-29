@@ -564,7 +564,7 @@ public class VFSObjectManager implements IObjectManager {
                     GWConstants.EMPTY_STRING,
                     null,
                     srcKey);
-                is = srcClient.getSocket().getInputStream();
+                is = srcClient.getInputStream();
             } else if (isAvailableSrcReplica) {
                 // get src replica from OSD
                 try {
@@ -585,7 +585,7 @@ public class VFSObjectManager implements IObjectManager {
                     GWConstants.EMPTY_STRING,
                     null,
                     srcKey);
-                is = srcClient.getSocket().getInputStream();
+                is = srcClient.getInputStream();
             }
 
             File filePrimary = null;
@@ -1366,7 +1366,7 @@ public class VFSObjectManager implements IObjectManager {
                     sourceRange,
                     null,
                     srcKey);
-                is = srcClient.getSocket().getInputStream();
+                is = srcClient.getInputStream();
             } else if (isAvailableSrcReplica) {
                 // get src replica from OSD
                 try {
@@ -1387,7 +1387,7 @@ public class VFSObjectManager implements IObjectManager {
                     sourceRange,
                     null,
                     srcKey);
-                is = srcClient.getSocket().getInputStream();                    
+                is = srcClient.getInputStream();                    
             }
 
             File filePrimary = null;
@@ -1433,7 +1433,7 @@ public class VFSObjectManager implements IObjectManager {
                         String.valueOf(param.getPartNumber()),
                         length,
                         key);
-                    osPrimary = osdClientPrimary.getSocket().getOutputStream();
+                    osPrimary = osdClientPrimary.getOutputStream();
                 }
             }
 
@@ -1467,7 +1467,7 @@ public class VFSObjectManager implements IObjectManager {
                         String.valueOf(param.getPartNumber()),
                         length,
                         key);
-                    osReplica = osdClientReplica.getSocket().getOutputStream();
+                    osReplica = osdClientReplica.getOutputStream();
                 }
             }
 

@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.libs.osd;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -51,13 +52,21 @@ public class OSDClient {
 		this.isUsed = isUsed;
 	}
 
-	public Socket getSocket() {
-		return socket;
+	// public Socket getSocket() {
+	// 	return socket;
+	// }
+
+	public InputStream getInputStream() throws IOException {
+		return socket.getInputStream();
 	}
 
-	public void setSocket(Socket socket) {
-		this.socket = socket;
+	public OutputStream getOutputStream() throws IOException {
+		return socket.getOutputStream();
 	}
+
+	// public void setSocket(Socket socket) {
+	// 	this.socket = socket;
+	// }
 	
 	public void disconnect() throws IOException {
 		socket.close();
@@ -76,6 +85,10 @@ public class OSDClient {
 		}
 	}
 
+	private void setByPassOut(OutputStream out) {
+		byPassOut = out;
+	}
+
 	public void getInit(String path, String objId, String versionId, long fileSize, String sourceRange, OutputStream out, String key) throws IOException {
 		String header = OsdData.GET 
 						+ OsdData.DELIMITER + path 
@@ -86,7 +99,7 @@ public class OSDClient {
 		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
-		byPassOut = out;
+		setByPassOut(out);
 	}
 
 	public void getInitWithMD5(String path, String objId, String versionId, long fileSize, String sourceRange, OutputStream out, MessageDigest md5er, String key) throws IOException {
@@ -99,7 +112,7 @@ public class OSDClient {
 		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
-		byPassOut = out;
+		setByPassOut(out);
 		this.md5er = md5er;
 	}
 
@@ -155,7 +168,7 @@ public class OSDClient {
 	// 	logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 	// 	sendHeader(header);
 	// 	this.fileSize = fileSize;
-	// 	byPassOut = out;
+	// 	setByPassOut(out);
 	// 	// this.md5er = md5er;
 	// }
 
@@ -166,7 +179,7 @@ public class OSDClient {
 		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = size;
-		byPassOut = out;
+		setByPassOut(out);
 	}
 
 	public long getPart() throws IOException {
@@ -318,7 +331,7 @@ public class OSDClient {
 		logger.debug(Constants.LOG_OSDCLIENT_GET_MULTIPART_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
-		byPassOut = out;
+		setByPassOut(out);
 	}
 
 	public long getMultipart() throws IOException {
@@ -368,7 +381,7 @@ public class OSDClient {
 						+ OsdData.DELIMITER + path;
 		logger.debug(Constants.LOG_OSDCLIENT_GET_EC_PART_HEADER, header);
 		sendHeader(header);
-		byPassOut = out;
+		setByPassOut(out);
 	}
 
 	public long getECPart() throws IOException {
@@ -495,7 +508,7 @@ public class OSDClient {
 		logger.debug(Constants.LOG_OSDCLIENT_GET_HEADER, header);
 		sendHeader(header);
 		this.fileSize = fileSize;
-		byPassOut = out;
+		setByPassOut(out);
 	}
 
 	public void putECInit(String path, String objId, String versionId, long length, String replication, String replicaDiskID, String key, String mode) throws IOException {
