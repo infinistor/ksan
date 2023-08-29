@@ -34,14 +34,14 @@ public class Server {
         id = "";
         ip = "";
         status = "";
-        diskList = null;
+        diskList = new ArrayList<Disk>();
     }
 
     public Server(String id, String ip, String status) {
         this.id = id;
         this.ip = ip;
         this.status = status;
-        diskList = null;
+        diskList = new ArrayList<Disk>();
     }
 
     public String getId() {
