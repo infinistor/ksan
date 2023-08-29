@@ -438,12 +438,14 @@ public class OSDClient {
 			return null;
 		}
 		byte[] lengthBuffer = new byte[length];
-		socket.getInputStream().read(lengthBuffer, 0, length);
+		int reads = socket.getInputStream().read(lengthBuffer, 0, length);
+		logger.debug("length : {}, reads : {}", length, reads);
 		String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
 		length = Integer.parseInt(strLength);
 		byte[] buffer = new byte[length];
-		socket.getInputStream().read(buffer, 0, length);
+		reads = socket.getInputStream().read(buffer, 0, length);
+		logger.debug("length : {}, reads : {}", length, reads);
 		String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
 		String[] ArrayResult = result.split(Constants.COLON, -1);
 
