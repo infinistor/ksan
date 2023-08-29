@@ -44,7 +44,7 @@ public class DiskPool {
         replicationType = "";
         ecM = 0;
         ecK = 0;
-        serverList = null;
+        serverList = new ArrayList<Server>();
     }
 
     public DiskPool(String id, String name, String classTypeId, String replicationType) {
@@ -54,7 +54,7 @@ public class DiskPool {
         this.replicationType = replicationType;
         ecM = 0;
         ecK = 0;
-        serverList = null;
+        serverList = new ArrayList<Server>();
     }
 
     public DiskPool(String id, String name, String classTypeId, String replicationType, int ecM, int ecK) {
@@ -64,7 +64,7 @@ public class DiskPool {
         this.replicationType = replicationType;
         this.ecM = ecM;
         this.ecK = ecK;
-        serverList = null;
+        serverList = new ArrayList<Server>();
     }
 
     public String getId() {
