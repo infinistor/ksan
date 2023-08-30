@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -421,8 +423,8 @@ public class KsanUtils {
     public static void setAttributeFileReplication(File file, String replica, String diskID) {
         UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
         try {
-            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(replica));
-            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(diskID));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, ByteBuffer.wrap(replica.getBytes(StandardCharsets.UTF_8)));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, ByteBuffer.wrap(diskID.getBytes(StandardCharsets.UTF_8)));
             logger.debug("Set attribute file replication {}, {}", replica, diskID);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
@@ -443,7 +445,19 @@ public class KsanUtils {
         } catch (SecurityException e) {
             logger.error(e.getMessage());
         }
-        String replica = Charset.defaultCharset().decode(buf).toString();
+
+        String replica;
+        if (buf != null) {
+            try {
+                CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+                replica = decoder.decode(buf).toString();
+            } catch (CharacterCodingException e) {
+                logger.error(e.getMessage());
+                replica = "";
+            }
+        } else {
+            replica = "";
+        }
         logger.debug("get replica : {}", replica);
         return replica;
     }
@@ -463,7 +477,18 @@ public class KsanUtils {
             logger.error(e.getMessage());
         }
 
-        String diskID = Charset.defaultCharset().decode(buf).toString();
+        String diskID;
+        if (buf != null) {
+            try {
+                CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+                diskID = decoder.decode(buf).toString();
+            } catch (CharacterCodingException e) {
+                logger.error(e.getMessage());
+                diskID = "";
+            }
+        } else {
+            diskID = "";
+        }
         logger.debug("file replicaDiskID : {}", diskID);
         return diskID;
     }
