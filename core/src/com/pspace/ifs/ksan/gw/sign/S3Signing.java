@@ -388,7 +388,9 @@ public class S3Signing {
 						PrintStack.logging(logger, e);
 					}
 					
-					s3Parameter.setInputStream(new ByteArrayInputStream(payload));
+					if (payload != null) {
+						s3Parameter.setInputStream(new ByteArrayInputStream(payload));
+					}
 				}
 			}
 
