@@ -73,9 +73,9 @@ public class OSDClient {
 	}
 
 	public void close() {
-		logger.debug(Constants.LOG_OSDCLIENT_CLOSE_SOCKET_INFO, socket.toString());
 		if (socket != null) {
 			try {
+				logger.debug(Constants.LOG_OSDCLIENT_CLOSE_SOCKET_INFO, socket.toString());
 				socket.close();
 			} catch (IOException e) {
 				logger.error(Constants.LOG_OSDCLIENT_SOCKET_ERROR, e.getMessage());
