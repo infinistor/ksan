@@ -159,18 +159,24 @@ public class OSDServer {
                         break;
                     }
                     byte[] lengthBuffer = new byte[length];
-                    socket.getInputStream().read(lengthBuffer, 0, length);
+                    int reads = socket.getInputStream().read(lengthBuffer, 0, length);
+                    if (reads != length) {
+                        logger.error("header length. read length is not equal to length : {} != {}", reads, length);
+                    }
+
                     String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
-
                     length = Integer.parseInt(strLength);
-
+                    
                     logger.info("header length : {}", length);
                     // if (length > OSDConstants.HEADERSIZE) {
                     //     logger.error("Header size is too big : {}", length);
                     //     break;
                     // }
 
-                    socket.getInputStream().read(buffer, 0, length);
+                    reads = socket.getInputStream().read(buffer, 0, length);
+                    if (reads != length) {
+                        logger.error("header. read length is not equal to length : {} != {}", reads, length);
+                    }
                     String indicator = new String(buffer, 0, OsdData.INDICATOR_SIZE, StandardCharsets.UTF_8);
                     String header = new String(buffer, 0, length, StandardCharsets.UTF_8);
                     logger.debug("read header : {}", header);
@@ -1681,12 +1687,12 @@ public class OSDServer {
                 return null;
             }
             byte[] lengthBuffer = new byte[length];
-            socket.getInputStream().read(lengthBuffer, 0, length);
+            int reads = socket.getInputStream().read(lengthBuffer, 0, length);
             String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
             length = Integer.parseInt(strLength);
             byte[] buffer = new byte[length];
-            socket.getInputStream().read(buffer, 0, length);
+            reads = socket.getInputStream().read(buffer, 0, length);
             String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
             String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 
