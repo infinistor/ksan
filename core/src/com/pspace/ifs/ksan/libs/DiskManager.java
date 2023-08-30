@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.List;
+import java.util.Map;
 
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
@@ -97,18 +98,16 @@ public class DiskManager {
     }
 
     public String getLocalPath() {
-        Set<String> keys = localDiskInfoMap.keySet();
-        if (keys.size() > 0) {
-            String key = keys.iterator().next();
-            return localDiskInfoMap.get(key);
+        if (!localDiskInfoMap.isEmpty()) {
+            Map.Entry<String, String> entry = localDiskInfoMap.entrySet().iterator().next();
+            return entry.getValue();
         }
         return null;
     }
 
     public String getLocalDiskId() {
-        Set<String> keys = localDiskInfoMap.keySet();
-        if (keys.size() > 0) {
-            String key = keys.iterator().next();
+        if (!localDiskInfoMap.isEmpty()) {
+            String key = localDiskInfoMap.keySet().iterator().next();
             return key;
         }
         return null;
