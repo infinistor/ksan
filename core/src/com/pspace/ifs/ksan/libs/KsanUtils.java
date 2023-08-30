@@ -65,16 +65,23 @@ public class KsanUtils {
     public static void writePID(String path) {
         File file = new File(path);
         try {
+            boolean created = false;
             if (!file.exists()) {
-                file.createNewFile();
+                created = file.createNewFile();
             }
-            try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
-                Long pid = ProcessHandle.current().pid();
 
-                fw.write(String.valueOf(pid));
-                fw.flush();
-            } catch (IOException e) {
-                logger.error(e.getMessage());
+            if (!created) {
+                try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
+                    Long pid = ProcessHandle.current().pid();
+    
+                    fw.write(String.valueOf(pid));
+                    fw.flush();
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                    System.exit(-1);
+                }
+            } else {
+                logger.error("failed to create pid file");
                 System.exit(-1);
             }
         } catch (IOException e) {
@@ -227,7 +234,9 @@ public class KsanUtils {
         sb.append(uploadId);
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(Constants.SLASH);
