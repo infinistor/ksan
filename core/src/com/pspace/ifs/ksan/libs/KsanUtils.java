@@ -349,12 +349,16 @@ public class KsanUtils {
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
         sb.append(makeDirectorySub(objId.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(Constants.SLASH);
@@ -417,13 +421,17 @@ public class KsanUtils {
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(makeDirectorySub(fileName.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         return sb.toString();
