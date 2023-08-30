@@ -290,7 +290,7 @@ public class GWPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty(Constants.SERVICEID_KEY) + File.separator + Constants.SERVICEID_FILE, StandardCharsets.UTF_8));
+			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty(Constants.GW_SERVICEID_KEY) + File.separator + Constants.GW_SERVICEID_FILE, StandardCharsets.UTF_8));
 
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);

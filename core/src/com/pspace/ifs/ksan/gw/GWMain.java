@@ -146,7 +146,7 @@ public class GWMain {
 	public static void writePID() {
 		
         // File file = new File(GWConstants.PID_PATH);
-		File file = new File(System.getProperty(Constants.PID_KEY) + File.separator + Constants.PID_FILE);
+		File file = new File(System.getProperty(Constants.GW_PID_KEY) + File.separator + Constants.GW_PID_FILE);
         try {
             if (!file.exists()) {
                 file.createNewFile();
@@ -168,10 +168,10 @@ public class GWMain {
     }
 
 	private static void setSystemConfiguration() {
-		System.setProperty(Constants.SERVICEID_KEY, Constants.SERVICEID_DIR);
-		System.setProperty(Constants.CONFIG_KEY, Constants.CONFIG_DIR);
+		System.setProperty(Constants.GW_SERVICEID_KEY, Constants.GW_SERVICEID_DIR);
+		System.setProperty(Constants.GW_CONFIG_KEY, Constants.GW_CONFIG_DIR);
 		System.setProperty(Constants.OBJMANAGER_CONFIG_KEY, Constants.OBJMANAGER_CONFIG_DIR);
-		System.setProperty(Constants.PID_KEY, Constants.PID_DIR);
+		System.setProperty(Constants.GW_PID_KEY, Constants.GW_PID_DIR);
 		System.setProperty(Constants.AGENT_CONF_KEY, Constants.AGENT_CONF_DIR);
 		System.setProperty(Constants.DISKPOOL_CONF_KEY, Constants.DISKPOOL_CONF_DIR);
 

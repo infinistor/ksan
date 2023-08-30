@@ -559,8 +559,8 @@ public class GWConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.CONFIG_KEY) + File.separator + Constants.CONFIG_FILE));
-            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.CONFIG_KEY) + File.separator + Constants.CONFIG_FILE, StandardCharsets.UTF_8)) {
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.GW_CONFIG_KEY) + File.separator + Constants.GW_CONFIG_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.GW_CONFIG_KEY) + File.separator + Constants.GW_CONFIG_FILE, StandardCharsets.UTF_8)) {
                 fileWriter.write(VERSION + EQUAL + version + "\n");
                 fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
                 fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");

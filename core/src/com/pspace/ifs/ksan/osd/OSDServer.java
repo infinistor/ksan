@@ -81,9 +81,16 @@ public class OSDServer {
         server.start();
     }
 
+    private static void setSystemConfiguration() {
+        System.setProperty(Constants.OSD_CONFIG_KEY, Constants.OSD_CONFIG_DIR);
+        System.setProperty(Constants.OSD_PID_KEY, Constants.OSD_PID_DIR);
+        System.setProperty(Constants.OSD_SERVICEID_KEY, Constants.OSD_SERVICEID_DIR);
+    }
+
     public void start() {
         logger.info(OSDConstants.LOG_OSD_SERVER_START);
-        KsanUtils.writePID(OSDConstants.PID_PATH);
+        setSystemConfiguration();
+        KsanUtils.writePID(System.getProperty(Constants.OSD_PID_KEY) + File.separator + Constants.OSD_PID_FILE);
         try {
             OSDPortal.getInstance().getConfig();
             OSDPortal.getInstance().getDiskPoolsDetails();

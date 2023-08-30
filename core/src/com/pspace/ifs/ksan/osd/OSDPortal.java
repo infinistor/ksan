@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.osd;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -105,7 +107,7 @@ public class OSDPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH, StandardCharsets.UTF_8));
+			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty(Constants.OSD_SERVICEID_KEY) + File.separator + Constants.OSD_SERVICEID_FILE, StandardCharsets.UTF_8));
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();
