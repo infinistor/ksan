@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -558,8 +559,8 @@ public class GWConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(GWConstants.CONFIG_PATH));
-            try (FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, StandardCharsets.UTF_8)) {
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.CONFIG_KEY) + File.separator + Constants.CONFIG_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.CONFIG_KEY) + File.separator + Constants.CONFIG_FILE, StandardCharsets.UTF_8)) {
                 fileWriter.write(VERSION + EQUAL + version + "\n");
                 fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
                 fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");

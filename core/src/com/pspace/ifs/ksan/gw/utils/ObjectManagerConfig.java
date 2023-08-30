@@ -19,6 +19,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.ifs.ksan.libs.Constants;
+
 public class ObjectManagerConfig {
     private String version;
 
@@ -200,8 +202,8 @@ public class ObjectManagerConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(GWConstants.OBJMANAGER_CONFIG_PATH));
-            try (FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, StandardCharsets.UTF_8)) {
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.OBJMANAGER_CONFIG_KEY) + File.separator + Constants.OBJMANAGER_CONFIG_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.OBJMANAGER_CONFIG_KEY) + File.separator + Constants.OBJMANAGER_CONFIG_FILE, StandardCharsets.UTF_8)) {
                 fileWriter.write(VERSION + EQUAL + version + "\n");
                 fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
                 fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");

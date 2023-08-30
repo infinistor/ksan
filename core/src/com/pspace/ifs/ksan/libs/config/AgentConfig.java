@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.libs.config;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class AgentConfig {
     private AgentConfig() {
         String path = System.getProperty("configure");
 		if (path == null) {
-			path = Constants.AGENT_CONFIG_PATH;
+			path = System.getProperty(Constants.AGENT_CONF_KEY) + File.separator + Constants.AGENT_CONFIG_FILE;
 		}
 
         properties = new Properties();

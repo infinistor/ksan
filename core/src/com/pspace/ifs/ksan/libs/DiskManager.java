@@ -196,8 +196,8 @@ public class DiskManager {
 
     public void saveFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(Constants.DISKPOOL_CONF_PATH));
-            try (FileWriter fileWriter = new FileWriter(Constants.DISKPOOL_CONF_PATH, StandardCharsets.UTF_8)) {
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.DISKPOOL_CONF_KEY) + File.separator + Constants.DISKPOOL_CONF_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.DISKPOOL_CONF_KEY) + File.separator + Constants.DISKPOOL_CONF_FILE, StandardCharsets.UTF_8)) {
                 fileWriter.write(FILE_DISKPOOL_LIST_START);
                 for (DiskPool diskPool : diskPoolList) {
                     fileWriter.write(FILE_DISKPOOL_ID + diskPool.getId() + FILE_DISKPOOL_NAME + diskPool.getName() + FILE_DISKPOOL_REPLICATION_TYPE + diskPool.getReplicationType() + FILE_DISKPOOL_NEWLINE);

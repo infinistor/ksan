@@ -23,6 +23,7 @@ import java.io.FileReader;
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.handler.Azu;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
@@ -54,6 +55,7 @@ public class GWMain {
 		}
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
+		setSystemConfiguration();
 		writePID();
 
 		// setting timezone, locale 
@@ -61,7 +63,6 @@ public class GWMain {
 		Locale.setDefault(Locale.KOREA);
 
 		logger.info("GWMain Started.");
-		
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
@@ -132,7 +133,7 @@ public class GWMain {
 		@Override
 		public void run() {
 			// kill -TERM pid
-			logger.info(GWConstants.HOOK_THREAD_INFO);
+			logger.warn(GWConstants.HOOK_THREAD_INFO);
 			try {
 				gw.stop();
 				GWPortal.getInstance().postGWEvent(false);
@@ -144,7 +145,8 @@ public class GWMain {
 
 	public static void writePID() {
 		
-        File file = new File(GWConstants.PID_PATH);
+        // File file = new File(GWConstants.PID_PATH);
+		File file = new File(System.getProperty(Constants.PID_KEY) + File.separator + Constants.PID_FILE);
         try {
             if (!file.exists()) {
                 file.createNewFile();
@@ -164,4 +166,14 @@ public class GWMain {
             System.exit(-1);
         }
     }
+
+	private static void setSystemConfiguration() {
+		System.setProperty(Constants.SERVICEID_KEY, Constants.SERVICEID_DIR);
+		System.setProperty(Constants.CONFIG_KEY, Constants.CONFIG_DIR);
+		System.setProperty(Constants.OBJMANAGER_CONFIG_KEY, Constants.OBJMANAGER_CONFIG_DIR);
+		System.setProperty(Constants.PID_KEY, Constants.PID_DIR);
+		System.setProperty(Constants.AGENT_CONF_KEY, Constants.AGENT_CONF_DIR);
+		System.setProperty(Constants.DISKPOOL_CONF_KEY, Constants.DISKPOOL_CONF_DIR);
+
+	} 
 }

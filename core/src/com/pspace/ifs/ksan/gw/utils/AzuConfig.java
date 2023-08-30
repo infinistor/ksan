@@ -17,35 +17,35 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class AzuConfig {
-    private Properties properties;
-    private String path;
-    public static final String DISK_PATH = "diskpath";
+    // private Properties properties;
+    // private String path;
+    // public static final String DISK_PATH = "diskpath";
 
-    public static AzuConfig getInstance() {
-        return LazyHolder.INSTANCE;
-    }
+    // public static AzuConfig getInstance() {
+    //     return LazyHolder.INSTANCE;
+    // }
 
-    private static class LazyHolder {
-        private static AzuConfig INSTANCE = new AzuConfig();
-    }
+    // private static class LazyHolder {
+    //     private static AzuConfig INSTANCE = new AzuConfig();
+    // }
 
-    private AzuConfig() {
-        properties = new Properties();
-        try (InputStream config = new FileInputStream(AzuConstants.CONFIG_FILE)) {
-            properties.load(config);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Config file is not exists.");
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Config file load is failed.");
-        }
-    }
+    // private AzuConfig() {
+    //     properties = new Properties();
+    //     try (InputStream config = new FileInputStream(AzuConstants.CONFIG_FILE)) {
+    //         properties.load(config);
+    //     } catch (FileNotFoundException e) {
+    //         throw new IllegalArgumentException("Config file is not exists.");
+    //     } catch (IOException e) {
+    //         throw new IllegalArgumentException("Config file load is failed.");
+    //     }
+    // }
 
-    public void configure() {
-        path = properties.getProperty(DISK_PATH);
-    }
+    // public void configure() {
+    //     path = properties.getProperty(DISK_PATH);
+    // }
 
-    public String getDiskPath() {
-        return path;
-    }
+    // public String getDiskPath() {
+    //     return path;
+    // }
 }
 

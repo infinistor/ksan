@@ -43,7 +43,7 @@ public class Azu {
     }
 
     public void configure() {
-        AzuConfig.getInstance().configure();
+        // AzuConfig.getInstance().configure();
     }
 
     public void init() {
