@@ -275,9 +275,11 @@ public class CopyObject extends S3Request {
         s3Metadata.setOwnerName(s3Parameter.getUser().getUserName());
 
         if (userMetadata.size() > 0) {
-            for (String key : userMetadata.keySet()) {
-                logger.info(GWConstants.LOG_COPY_OBJECT_USER_METADATA, key, userMetadata.get(key));
-            }
+			for (Map.Entry<String, String> entry : userMetadata.entrySet()) {
+				String key = entry.getKey();
+				String value = entry.getValue();
+				logger.info(GWConstants.LOG_COPY_OBJECT_USER_METADATA, key, value);
+			}
             if (bReplaceMetadata) {
 				logger.info(GWConstants.LOG_COPY_OBJECT_REPLACE_USER_METADATA, userMetadata.toString());
                 s3Metadata.setUserMetadata(userMetadata);
