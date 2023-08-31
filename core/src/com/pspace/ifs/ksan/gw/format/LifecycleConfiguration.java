@@ -97,7 +97,7 @@ public final class LifecycleConfiguration {
 			
 			@JacksonXmlProperty(localName = GWConstants.STORAGE_CLASS)
 			public
-			String StorageClass;
+			String storageClass;
 		}
 		
 		@JacksonXmlProperty(localName = GWConstants.XML_EXPIRATION)
@@ -115,7 +115,7 @@ public final class LifecycleConfiguration {
 			
 			@JacksonXmlProperty(localName = GWConstants.XML_EXPIRED_OBJECT_DELETE_MARKER)
 			public
-			String ExpiredObjectDeleteMarker;
+			String expiredObjectDeleteMarker;
 		}
 		
 		@JacksonXmlProperty(localName = GWConstants.XML_NON_CURRENT_VERSION_EXPIRATION)
@@ -125,7 +125,7 @@ public final class LifecycleConfiguration {
 		public static final class NoncurrentVersionExpiration {
 			@JacksonXmlProperty(localName = GWConstants.XML_NON_CURRENT_DAYS)
 			public
-			String NoncurrentDays;
+			String noncurrentDays;
 		}
 		
 		@JacksonXmlProperty(localName = GWConstants.XML_NON_CURRENT_VERSION_TRANSITION)
@@ -135,11 +135,11 @@ public final class LifecycleConfiguration {
 		public static final class NoncurrentVersionTransition {
 			@JacksonXmlProperty(localName = GWConstants.XML_NON_CURRENT_DAYS)
 			public
-			String NoncurrentDays;
+			String noncurrentDays;
 			
 			@JacksonXmlProperty(localName = GWConstants.STORAGE_CLASS)
 			public
-			String StorageClass;
+			String storageClass;
 		}
 
 		@JacksonXmlProperty(localName = GWConstants.XML_ABORT_INCOMPLETE_MULTIPART_UPLOAD)
@@ -149,11 +149,11 @@ public final class LifecycleConfiguration {
 		public static final class AbortIncompleteMultipartUpload {
 			@JacksonXmlProperty(localName = GWConstants.XML_DAYS_AFTER_INITIATION)
 			public
-			String DaysAfterInitiation;
+			String daysAfterInitiation;
 			
 			@JacksonXmlProperty(localName = GWConstants.STORAGE_CLASS)
 			public
-			String StorageClass;
+			String storageClass;
 		}
 		
 		@JacksonXmlProperty(localName = GWConstants.XML_PREFIX)
