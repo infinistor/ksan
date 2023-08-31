@@ -103,7 +103,11 @@ public class GWHandler {
 			}
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.BAD_REQUEST, null);
+			S3Parameter s3Parameter = new S3Parameter();
+			s3Parameter.setURI(uri);
+			s3Parameter.setRequestSize(requestSize);
+			s3Parameter.setMethod(method);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 
 		// check if the request is for GCS, OAuth2
