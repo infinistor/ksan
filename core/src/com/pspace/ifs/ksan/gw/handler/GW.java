@@ -65,11 +65,11 @@ public class GW {
 	}
 
     public void init() throws Exception {
-		
 		try {
 			configure();
 		} catch (Exception e) {
-			throw new GWException(GWErrorCode.SERVER_ERROR, null);
+			PrintStack.logging(logger, e);
+			throw e;
 		}
 		
 		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,
