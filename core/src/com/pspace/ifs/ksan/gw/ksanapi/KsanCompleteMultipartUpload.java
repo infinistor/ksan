@@ -84,7 +84,8 @@ public class KsanCompleteMultipartUpload extends S3Request {
 
 		String multipartXml = s3RequestData.getMultipartXml();
 		XmlMapper xmlMapper = new XmlMapper();
-		CompleteMultipartUploadRequest completeMultipartUpload = new CompleteMultipartUploadRequest();
+		
+		CompleteMultipartUploadRequest completeMultipartUpload = null;
 		try {
 			completeMultipartUpload = xmlMapper.readValue(multipartXml, CompleteMultipartUploadRequest.class);
 		} catch (JsonMappingException e) {
