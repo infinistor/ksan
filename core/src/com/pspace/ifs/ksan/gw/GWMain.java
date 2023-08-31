@@ -59,10 +59,10 @@ public class GWMain {
 		writePID();
 
 		// setting timezone, locale 
-		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-		Locale.setDefault(Locale.KOREA);
+		// TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		// Locale.setDefault(Locale.KOREA);
 
-		logger.info("GWMain Started.");
+		logger.info(GWConstants.LOG_GW_START);
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
@@ -144,12 +144,13 @@ public class GWMain {
 	}
 
 	public static void writePID() {
-		
         // File file = new File(GWConstants.PID_PATH);
 		File file = new File(System.getProperty(Constants.GW_PID_KEY) + File.separator + Constants.GW_PID_FILE);
         try {
             if (!file.exists()) {
-                file.createNewFile();
+                if (!file.createNewFile()) {
+					logger.error(GWConstants.LOG_PID_FILE_CREATE_FAILED);
+				}
             }
             try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
 				Long pid = ProcessHandle.current().pid();
