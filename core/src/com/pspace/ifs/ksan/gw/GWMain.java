@@ -74,10 +74,18 @@ public class GWMain {
 					logger.error("Stop ksan azu ...");
 				} catch (IllegalStateException e) {
 					logger.error(e.getMessage());
-					System.exit(1);
+					try {
+						azu.stop();
+					} catch (Exception ex) {
+						logger.error(ex.getMessage());
+					}
 				} catch (Exception e) {
 					logger.error(e.getMessage());
-					System.exit(1);
+					try {
+						azu.stop();
+					} catch (Exception ex) {
+						logger.error(ex.getMessage());
+					}
 				}
 			}
 		};
@@ -92,10 +100,18 @@ public class GWMain {
 			logger.error(GWConstants.STOP_KSAN_GW);
 		} catch (IllegalStateException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			try {
+				gw.stop();
+			} catch (Exception ex) {
+				PrintStack.logging(logger, ex);
+			}
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			try {
+				gw.stop();
+			} catch (Exception ex) {
+				PrintStack.logging(logger, ex);
+			}
 		}
 	}
 
