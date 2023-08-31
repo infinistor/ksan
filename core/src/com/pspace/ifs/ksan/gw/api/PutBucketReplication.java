@@ -135,10 +135,10 @@ public class PutBucketReplication extends S3Request {
 					}
 				}
 
-				if (rl.deleteMarkerReplication != null && rl.deleteMarkerReplication.Status != null) {
+				if (rl.deleteMarkerReplication != null && rl.deleteMarkerReplication.status != null) {
 					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION, rl.deleteMarkerReplication);
-					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION_STATUS, rl.deleteMarkerReplication.Status);
-					if (rl.deleteMarkerReplication.Status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.deleteMarkerReplication.Status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
+					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION_STATUS, rl.deleteMarkerReplication.status);
+					if (rl.deleteMarkerReplication.status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.deleteMarkerReplication.status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
 						logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
 						throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 					}
