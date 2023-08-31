@@ -42,16 +42,16 @@ public abstract class GCSRequest {
 	protected Logger logger;
 	protected Bucket srcBucket;
 	protected Bucket dstBucket;
-	protected AccessControlPolicy bucketAccessControlPolicy;
-	protected AccessControlPolicy objectAccessControlPolicy;
+	// protected AccessControlPolicy bucketAccessControlPolicy;
+	// protected AccessControlPolicy objectAccessControlPolicy;
 
 	public GCSRequest(S3Parameter s3Parameter) {
 		this.s3Parameter = new S3Parameter(s3Parameter);
 		gcsRequestData = new GCSRequestData(s3Parameter);
 		srcBucket = null;
 		dstBucket = null;
-		bucketAccessControlPolicy = null;
-		objectAccessControlPolicy = null;
+		// bucketAccessControlPolicy = null;
+		// objectAccessControlPolicy = null;
 		objManager = ObjManagers.getInstance().getObjManager();
 	}
 	
@@ -125,12 +125,12 @@ public abstract class GCSRequest {
 		checkBucket(bucket);
 		try {
 			dstBucket = objManager.getBucket(bucket);
-			if (dstBucket != null) {
-				String bucketAcl = dstBucket.getAcl();
-				if (!Strings.isNullOrEmpty(bucketAcl)) {
-					bucketAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(bucketAcl);
-				}
-			}
+			// if (dstBucket != null) {
+			// 	String bucketAcl = dstBucket.getAcl();
+			// 	if (!Strings.isNullOrEmpty(bucketAcl)) {
+			// 		bucketAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(bucketAcl);
+			// 	}
+			// }
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
 		} catch (Exception e) {
@@ -175,12 +175,12 @@ public abstract class GCSRequest {
 		Metadata meta = null;
 		try {
 			meta = objManager.open(bucket, object);
-			if (meta != null) {
-				String objectAcl = meta.getAcl();
-				if (!Strings.isNullOrEmpty(objectAcl)) {
-					objectAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(objectAcl);
-				}
-			}
+			// if (meta != null) {
+			// 	String objectAcl = meta.getAcl();
+			// 	if (!Strings.isNullOrEmpty(objectAcl)) {
+			// 		objectAccessControlPolicy = AccessControlPolicy.getAclClassFromJson(objectAcl);
+			// 	}
+			// }
 		} catch (ResourceNotFoundException e) {
 			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
 		} catch (Exception e) {
