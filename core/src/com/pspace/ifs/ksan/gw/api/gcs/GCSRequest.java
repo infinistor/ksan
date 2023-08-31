@@ -57,6 +57,29 @@ public abstract class GCSRequest {
 	
 	public abstract void process() throws GWException;
 
+	protected void setSrcBucket(String bucket) throws GWException {
+		checkBucket(bucket);
+		srcBucket = getBucket(bucket);
+		if (srcBucket == null) {
+			logger.info(GWConstants.LOG_BUCKET_IS_NOT_EXIST, bucket);
+			throw new GWException(GWErrorCode.NO_SUCH_BUCKET, s3Parameter);
+		}
+	}
+
+	protected Bucket getBucket(String bucket) throws GWException {
+		Bucket bucketInfo = null;
+		try {
+			bucketInfo = objManager.getBucket(bucket);
+		} catch (ResourceNotFoundException e) {
+			return null;
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+
+		return bucketInfo;
+	}
+
     protected int createBucket(Bucket bucket) throws GWException {
 		int result = 0;
 		try {
