@@ -132,7 +132,7 @@ public class AzuHandler {
 				}
 			} catch (UnsupportedEncodingException e) {
 				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.BAD_REQUEST, null);
+				throw new AzuException(AzuErrorCode.BAD_REQUEST, azuParameter);
 			}
 	
 			userName = path[1];
@@ -161,7 +161,7 @@ public class AzuHandler {
 			}
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new AzuException(AzuErrorCode.SERVER_ERROR, null);
+			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
 		}
 		
 		azuParameter.setMethod(method);
