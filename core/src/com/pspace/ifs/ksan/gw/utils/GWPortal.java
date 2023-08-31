@@ -297,7 +297,7 @@ public class GWPortal {
 			reader.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			throw new RuntimeException(new RuntimeException());
 		}
 
 		postGWEvent(true);
@@ -691,11 +691,28 @@ public class GWPortal {
 						if (GWUtils.getLocalIP().equals(server.getIp())) {
 							for (Disk disk : server.getDiskList()) {
 								File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create obj dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
+
 								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create temp dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
+
 								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create trash dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
 							}
 						}
 					}
