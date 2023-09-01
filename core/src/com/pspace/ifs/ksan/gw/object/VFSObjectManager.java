@@ -2198,14 +2198,26 @@ public class VFSObjectManager implements IObjectManager {
             logger.info("local disk info list is null");
             return -1;
         } else {
-            Set<String> diskIds = localDiskInfo.keySet();
-            for (int i = 0; i < diskIds.size(); i++) {
-                String diskId = diskIds.iterator().next();
-                if (isAvailableDiskForRead(diskId)) {
-                    localPath = localDiskInfo.get(diskId);
+            for (Map.Entry<String, String> entry : localDiskInfo.entrySet()) {
+                if (isAvailableDiskForRead(entry.getKey())) {
+                    localPath = entry.getValue();
                     break;
                 }
             }
+            // Set<String> diskIds = localDiskInfo.keySet();
+            // for (String diskId : diskIds) {
+            //     if (isAvailableDiskForRead(diskId)) {
+            //         localPath = localDiskInfo.get(diskId);
+            //         break;
+            //     }
+            // }
+            // for (int i = 0; i < diskIds.size(); i++) {
+            //     String diskId = diskIds.iterator().next();
+            //     if (isAvailableDiskForRead(diskId)) {
+            //         localPath = localDiskInfo.get(diskId);
+            //         break;
+            //     }
+            // }
             if (localPath == null) {
                 logger.info("local disk is not available for read");
                 return -1;
