@@ -2271,14 +2271,17 @@ public class VFSObjectManager implements IObjectManager {
         
         // zunfec
         String ecAllFilePath = KsanUtils.makeECPathForOpen(localPath, meta.getObjId(), versionId);
-        String command = Constants.ZUNFEC + ecAllFilePath;
+        String command = "";
         getECPartCount = 0;
+        StringBuffer buf = new StringBuffer();
+        buf.append(Constants.ZUNFEC + ecAllFilePath);
         for (ECPart ecPart : ecList) {
             String ecPartPath = file.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
             if (ecPart.isProcessed()) {
-                command += Constants.SPACE + ecPartPath;
+                buf.append(Constants.SPACE + ecPartPath);
                 getECPartCount++;
             }
+            command = buf.toString();
         }
         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND, command);
         
