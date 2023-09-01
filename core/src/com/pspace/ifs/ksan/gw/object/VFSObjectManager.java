@@ -2281,8 +2281,8 @@ public class VFSObjectManager implements IObjectManager {
                 buf.append(Constants.SPACE + ecPartPath);
                 getECPartCount++;
             }
-            command = buf.toString();
         }
+        command = buf.toString();
         logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_ZUNFEC_COMMAND, command);
         
         try {
