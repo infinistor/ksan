@@ -160,15 +160,18 @@ class MoveObjectCallback implements MQCallback {
 				}
 				// zunfec
 				String ecAllFilePath = KsanUtils.makeECPathForOpen(sourceDiskPath, objId, versionId);
-				String command = Constants.ZUNFEC + ecAllFilePath;
+				String command = "";
 				getECPartCount = 0;
+				StringBuffer sb = new StringBuffer();
+				sb.append(Constants.ZUNFEC + ecAllFilePath);
 				for (ECPart ecPart : ecList) {
 					String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
 					if (ecPart.isProcessed()) {
-						command += Constants.SPACE + ecPartPath;
 						getECPartCount++;
+						sb.append(Constants.SPACE + ecPartPath);
 					}
 				}
+				command = sb.toString();
 				logger.debug("command : {}", command);
 				Process p = Runtime.getRuntime().exec(command);
 				try {
@@ -465,15 +468,18 @@ class GetAttrObjectCallBack implements MQCallback {
 				}
 				// zunfec
 				String ecAllFilePath = KsanUtils.makeECPathForOpen(diskPath, objId, versionId);
-				String command = Constants.ZUNFEC + ecAllFilePath;
+				String command = "";
 				getECPartCount = 0;
+				StringBuffer sb = new StringBuffer();
+				sb.append(Constants.ZUNFEC + ecAllFilePath);
 				for (ECPart ecPart : ecList) {
 					String ecPartPath = ecFile.getAbsolutePath() + Constants.POINT + Integer.toString(getECPartCount);
 					if (ecPart.isProcessed()) {
-						command += Constants.SPACE + ecPartPath;
 						getECPartCount++;
+						sb.append(Constants.SPACE + ecPartPath);
 					}
 				}
+				command = sb.toString();
 				logger.debug("command : {}", command);
 				Process p = Runtime.getRuntime().exec(command);
 				try {
