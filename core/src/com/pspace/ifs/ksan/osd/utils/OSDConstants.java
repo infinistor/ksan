@@ -232,4 +232,15 @@ public final class OSDConstants {
 
     // MoveObject
     public static final String LOG_MOVE_OBJECT_START = "MoveObject start ...";
+
+    // EventObject
+    public static final String LOG_EVENT_OBJECT_FILE_NOT_EXIST = "file not exists: {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_NOT_EXIST = "ec part does not exist : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE = "delete ec part : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE_FAILED = "fail to delete ec part : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE_FROM_TO = "delete ec part file : {}, to : {}, {}";
+    public static final String LOG_EVENT_OBJECT_DELETE_SUCCESS = "success delete object : {}";
+    public static final String LOG_EVENT_OBJECT_DELETE_FAILED = "failed delete object : {}";
+    public static final String LOG_EVENT_OBJECT_FULL_PATH = "full path : {}";
+    public static final String EVENT_OBJECT_NOT_EXIST = "object not exist";
 }

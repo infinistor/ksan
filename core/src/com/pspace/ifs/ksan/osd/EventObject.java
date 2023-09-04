@@ -189,7 +189,9 @@ class MoveObjectCallback implements MQCallback {
 					for (int i = 0; i < ecFiles.length; i++) {
 						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
 							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-								ecFiles[i].delete();
+								if (!ecFiles[i].delete()) {
+									logger.error(OSDConstants.LOG_EVENT_OBJECT_DELETE_FAILED, ecFiles[i].getAbsolutePath());
+								}
 							}
 						}
 					}
@@ -255,7 +257,9 @@ class MoveObjectCallback implements MQCallback {
 					}
 				}
 			}
-			srcFile.delete();
+			if (!srcFile.delete()) {
+				logger.error(OSDConstants.LOG_EVENT_OBJECT_DELETE_FAILED, srcFile.getAbsolutePath());
+			}
 		} catch (RuntimeException e) {
 			logger.error(e.getMessage(), e);
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
@@ -325,17 +329,17 @@ class DeleteObjectCallback implements MQCallback {
                     File file = new File(getPath);
                     if (file.exists()) {
                         if (file.delete()) {
-                            logger.debug("delete ec part : {}", getPath);
+                            logger.debug(OSDConstants.LOG_EVENT_OBJECT_EC_PART_DELETE, getPath);
                         } else {
-                            logger.debug("fail to delete ec part : {}", getPath);
+                            logger.debug(OSDConstants.LOG_EVENT_OBJECT_EC_PART_DELETE_FAILED, getPath);
                         }
                     } else {
-                        logger.debug("ec part does not exist.", getPath);
+                        logger.debug(OSDConstants.LOG_EVENT_OBJECT_EC_PART_NOT_EXIST, getPath);
                     }
                 } else {
                     try {
                         OSDClient ecClient = new OSDClient(ecPart.getServerIP(), OSDConfig.getInstance().getPort());
-                        logger.debug("delete ec part file : {}, to : {}, {}", getPath, ecPart.getServerIP(), ecPart.getDiskPath());
+                        logger.debug(OSDConstants.LOG_EVENT_OBJECT_EC_PART_DELETE_FROM_TO, getPath, ecPart.getServerIP(), ecPart.getDiskPath());
                         ecClient.deleteECPart(getPath);
                     } catch (Exception e) {
                         PrintStack.logging(logger, e);
@@ -343,24 +347,24 @@ class DeleteObjectCallback implements MQCallback {
                 }
             }
 
-			logger.info("success delete object : {}", ecFile.getAbsolutePath());
+			logger.info(OSDConstants.LOG_EVENT_OBJECT_DELETE_SUCCESS, ecFile.getAbsolutePath());
 			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         }
 
 		String fullPath = KsanUtils.makeObjPath(diskPath, objId, versionId);
-		logger.info("full path : {}", fullPath);
+		logger.info(OSDConstants.LOG_EVENT_OBJECT_FULL_PATH, fullPath);
 		File file = new File(fullPath);
 		if (file.exists()) {
 			if (file.delete()) {
-				logger.info("success delete object : {}", fullPath);
+				logger.info(OSDConstants.LOG_EVENT_OBJECT_DELETE_SUCCESS, fullPath);
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 			} else {
-				logger.info("failed delete object : {}", fullPath);
-				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+				logger.info(OSDConstants.LOG_EVENT_OBJECT_DELETE_FAILED, fullPath);
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, OSDConstants.EVENT_OBJECT_NOT_EXIST, 0);
 			}
 		} else {
-			logger.info("file not exists: {}", fullPath);
-			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, "object not exist", 0);
+			logger.info(OSDConstants.LOG_EVENT_OBJECT_FILE_NOT_EXIST, fullPath);
+			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_OBJECT_NOT_FOUND, OSDConstants.EVENT_OBJECT_NOT_EXIST, 0);
 		}
 	}
 }
@@ -444,7 +448,7 @@ class GetAttrObjectCallBack implements MQCallback {
 							ecPart.setProcessed(true);
 							getECPartCount++;
 						} else {
-							logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+							logger.info(OSDConstants.LOG_EVENT_OBJECT_EC_PART_NOT_EXIST, sourceECPartFile.getAbsolutePath());
 						}
 					} else {
 						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
@@ -497,7 +501,9 @@ class GetAttrObjectCallBack implements MQCallback {
 					for (int i = 0; i < ecFiles.length; i++) {
 						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
 							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-								ecFiles[i].delete();
+								if (!ecFiles[i].delete()) {
+									logger.error(OSDConstants.LOG_EVENT_OBJECT_DELETE_FAILED, ecFiles[i].getAbsolutePath());
+								}
 							}
 						}
 					}
@@ -625,7 +631,7 @@ class CopyObjectCallback implements MQCallback {
 							ecPart.setProcessed(true);
 							getECPartCount++;
 						} else {
-							logger.info("ec part does not exist. {}", sourceECPartFile.getAbsolutePath());
+							logger.info(OSDConstants.LOG_EVENT_OBJECT_EC_PART_NOT_EXIST, sourceECPartFile.getAbsolutePath());
 						}
 					} else {
 						try (FileOutputStream fos = new FileOutputStream(newECPartFile)) {
@@ -678,7 +684,9 @@ class CopyObjectCallback implements MQCallback {
 					for (int i = 0; i < ecFiles.length; i++) {
 						if (ecFiles[i].getName().startsWith(Constants.POINT)) {
 							if (ecFiles[i].getName().charAt(ecFiles[i].getName().length() - 2) == Constants.CHAR_POINT) {
-								ecFiles[i].delete();
+								if (!ecFiles[i].delete()) {
+									logger.error(OSDConstants.LOG_EVENT_OBJECT_DELETE_FAILED, ecFiles[i].getAbsolutePath());
+								}
 							}
 						}
 					}
