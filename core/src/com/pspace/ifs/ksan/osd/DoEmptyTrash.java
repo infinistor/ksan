@@ -69,10 +69,12 @@ public class DoEmptyTrash implements Runnable {
         if (files == null) {
             return;
         }
-        
+
         for (int i = 0; i < files.length; i++) {
             logger.info("delete : {}", files[i].getAbsolutePath());
-            files[i].delete();
+            if (!files[i].delete()) {
+                logger.error(OSDConstants.LOG_DO_EC_PRI_OBJECT_DELETE_FAILED, files[i].getAbsolutePath());
+            }
         }
     }
 }
