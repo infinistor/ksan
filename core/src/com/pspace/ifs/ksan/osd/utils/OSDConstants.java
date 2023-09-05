@@ -123,6 +123,8 @@ public final class OSDConstants {
     public static final String SERVER = "SERVER";
     public static final String DISK = "DISK";
 
+    public static final String LOG_DELETE_FAILED = "delete failed : {}";
+
     // OSDServer constants
     public static final String LOG_OSD_SERVER_START = "OSD Server start ...";
     public static final String LOG_OSD_SERVER_PID = "pid : {}";
@@ -219,7 +221,6 @@ public final class OSDConstants {
     public static final String LOG_DO_EC_PRI_OBJECT_HEADER = "send header : {}";
     public static final String LO_DO_EC_PRI_OBJECT_MKDIR_FAILED = "mkdir failed : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_FILE_DELETE_FAILED = "replica file delete failed : {}";
-    public static final String LOG_DO_EC_PRI_OBJECT_DELETE_FAILED = "delete failed : {}";
 
     // DoEmptyTrash
     public static final String LOG_DO_EMPTY_TRASH_START = "DoEmptyTrash start ...";

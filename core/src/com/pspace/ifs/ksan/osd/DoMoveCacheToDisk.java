@@ -57,7 +57,7 @@ public class DoMoveCacheToDisk implements Runnable {
         if (files == null) {
             return;
         }
-        
+
         long now = Calendar.getInstance().getTimeInMillis();
         
         for (int i = 0; i < files.length; i++) {
@@ -79,7 +79,9 @@ public class DoMoveCacheToDisk implements Runnable {
         logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH, targetPath);
         File target = new File(targetPath);
         if (target.exists()) {
-            target.delete();
+            if (!target.delete()) {
+                logger.error(OSDConstants.LOG_DELETE_FAILED, target.getAbsolutePath());
+            }
         }
 
         String command = OSDConstants.DO_MOVE_CACHE_TO_DISK_COMMAND + file.getAbsolutePath() + OSDConstants.SPACE + targetPath;
@@ -90,7 +92,9 @@ public class DoMoveCacheToDisk implements Runnable {
             int exitCode = p.waitFor();
             p.destroy();
             logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE, exitCode);
-            file.delete();
+            if (!file.delete()) {
+                logger.error(OSDConstants.LOG_DELETE_FAILED, file.getAbsolutePath());
+            }
         } catch (IOException | InterruptedException e) {
             logger.error(e.getMessage());
         }

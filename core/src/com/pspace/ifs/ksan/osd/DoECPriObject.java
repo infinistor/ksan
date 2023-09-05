@@ -152,7 +152,7 @@ public class DoECPriObject implements Runnable {
             }
 
             if (!file.delete()) {
-                logger.error(OSDConstants.LOG_DO_EC_PRI_OBJECT_DELETE_FAILED, file.getAbsolutePath());
+                logger.error(OSDConstants.LOG_DELETE_FAILED, file.getAbsolutePath());
             }
         } catch (IOException | InterruptedException e) {
             logger.error(e.getMessage());
@@ -201,7 +201,7 @@ public class DoECPriObject implements Runnable {
                 logger.debug("file : {}", files[i].getName());
                 if (!files[i].getName().endsWith(".fec")) {
                     if (!files[i].delete()) {
-                        logger.error(OSDConstants.LOG_DO_EC_PRI_OBJECT_DELETE_FAILED, files[i].getAbsolutePath());
+                        logger.error(OSDConstants.LOG_DELETE_FAILED, files[i].getAbsolutePath());
                     }
                     continue;
                 }
@@ -238,7 +238,7 @@ public class DoECPriObject implements Runnable {
                             client.putECPartFlush();
                             sendECPart.setProcessed(true);
                             if (!files[i].delete()) {
-                                logger.error(OSDConstants.LOG_DO_EC_PRI_OBJECT_DELETE_FAILED, files[i].getAbsolutePath());
+                                logger.error(OSDConstants.LOG_DELETE_FAILED, files[i].getAbsolutePath());
                             }
                         }
                         break;
