@@ -228,7 +228,10 @@ public class Worker implements Runnable {
                             logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
         
                             if (offset > 0) {
-                                encryptIS.skip(offset);
+                                long skip = encryptIS.skip(offset);
+                                if (skip != offset) {
+                                    logger.error(OSDConstants.LOG_OSD_SERVER_SKIP_ERROR, offset, skip);
+                                }
                             }
                             remainLength = length;
                             while (remainLength > 0) {
@@ -283,7 +286,10 @@ public class Worker implements Runnable {
                             logger.debug(OSDConstants.LOG_OSD_SERVER_RANGE_INFO, offset, length);
         
                             if (offset > 0) {
-                                fis.skip(offset);
+                                long skip = fis.skip(offset);
+                                if (skip != offset) {
+                                    logger.error(OSDConstants.LOG_OSD_SERVER_SKIP_ERROR, offset, skip);
+                                }
                             }
                             remainLength = length;
                             while (remainLength > 0) {
@@ -674,7 +680,10 @@ public class Worker implements Runnable {
                 offset = Long.parseLong(rangeInfo[0]);
                 last = Long.parseLong(rangeInfo[1]);
                 remainLength = last - offset + 1;
-                fis.skip(offset);
+                long skip = fis.skip(offset);
+                if (skip != offset) {
+                    logger.error(OSDConstants.LOG_OSD_SERVER_SKIP_ERROR, offset, skip);
+                }
             } else {
                 remainLength = file.length();
             }
@@ -1023,7 +1032,10 @@ public class Worker implements Runnable {
                                 File partFile = new File(objPath);
                                 try (FileInputStream fis = new FileInputStream(partFile)) {
                                     if (isRange) {
-                                        fis.skip(objOffset);
+                                        long skip = fis.skip(objOffset);
+                                        if (skip != offset) {
+                                            logger.error(OSDConstants.LOG_OSD_SERVER_SKIP_ERROR, objOffset, skip);
+                                        }
                                     }
                                     while (remaingLength > 0) {
                                         readBytes = 0;
@@ -1096,7 +1108,10 @@ public class Worker implements Runnable {
                             File partFile = new File(objPath);
                             try (FileInputStream fis = new FileInputStream(partFile)) {
                                 if (isRange) {
-                                    fis.skip(objOffset);
+                                    long skip = fis.skip(objOffset);
+                                    if (skip != objOffset) {
+                                        logger.error(OSDConstants.LOG_OSD_SERVER_SKIP_ERROR, objOffset, skip);
+                                    }
                                 }
                                 while (remaingLength > 0) {
                                     readBytes = 0;

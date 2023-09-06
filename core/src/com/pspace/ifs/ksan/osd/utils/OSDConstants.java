@@ -216,6 +216,8 @@ public final class OSDConstants {
     public static final String LOG_OSD_REPLICA_DELETE = "replica delete : {}";
     public static final String LOG_OSD_REPLICA_DOES_NOT_EXIST = "replica does not exist: {}";
 
+    public static final String LOG_OSD_SERVER_SKIP_ERROR = "diff offset : {}, skip : {}";
+
     // DoECPriObject
     public static final String LOG_DO_EC_PRI_OBJECT_START = "DoECPriObject start ...";
     public static final String LOG_DO_EC_PRI_OBJECT_LOCAL_IP = "ip = {}";
