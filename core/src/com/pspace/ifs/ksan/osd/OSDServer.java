@@ -601,7 +601,9 @@ public class OSDServer {
             retryRenameTo(file, trashFile);
             if (isCache) {
                 File link = new File(KsanUtils.makeObjPath(path, objId, versionId));
-                link.delete();
+                if (!link.delete()) {
+                    logger.error(OSDConstants.LOG_OSD_DELETE_LINK_FILE_FAILED, link.getAbsolutePath());
+                }
             }
 
             logger.info(OSDConstants.LOG_OSD_SERVER_DELETE_SUCCESS_INFO, path, objId, versionId);
@@ -632,10 +634,13 @@ public class OSDServer {
             
             File file = new File(path);
             if (file.exists()) {
-                file.delete();
-                logger.debug("ec part delete : {}", path);
+                if (!file.delete()) {
+                    logger.error(OSDConstants.LOG_OSD_EC_PART_DELETE_FAILED, path);
+                } else {
+                    logger.debug(OSDConstants.LOG_OSD_EC_PART_DELETE, path);
+                }
             } else {
-                logger.debug("file does not exist. : {}", path);
+                logger.debug(OSDConstants.LOG_EC_PART_DOES_NOT_EXIST, path);
             }
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_EC_PART_END);
         }
@@ -647,9 +652,13 @@ public class OSDServer {
 
             File file = new File(path);
             if (file.exists()) {
-                file.delete();
+                if (!file.delete()) {
+                    logger.error(OSDConstants.LOG_OSD_REPLICA_DELETE_FAILED, path);
+                } else {
+                    logger.debug(OSDConstants.LOG_OSD_REPLICA_DELETE, path);
+                }
             } else {
-                logger.info("deleteReplica, does not exist: {}", path);
+                logger.info(OSDConstants.LOG_OSD_REPLICA_DOES_NOT_EXIST, path);
             }
             
             logger.debug(OSDConstants.LOG_OSD_SERVER_DELETE_REPLICA_END);

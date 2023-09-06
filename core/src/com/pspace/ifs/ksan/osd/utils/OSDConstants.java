@@ -207,6 +207,15 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_DELETE_EC_PART_START = "delete ec part start ...";
     public static final String LOG_OSD_SERVER_DELETE_EC_PART_END = "delete ec part end ...";
 
+    public static final String LOG_OSD_DELETE_LINK_FILE_FAILED = "delete link file failed : {}";
+    public static final String LOG_OSD_EC_PART_DELETE_FAILED = "ec part delete failed : {}";
+    public static final String LOG_OSD_EC_PART_DELETE = "ec part delete : {}";
+    public static final String LOG_EC_PART_DOES_NOT_EXIST = "ec part file does not exist. : {}";
+
+    public static final String LOG_OSD_REPLICA_DELETE_FAILED = "replica delete failed : {}";
+    public static final String LOG_OSD_REPLICA_DELETE = "replica delete : {}";
+    public static final String LOG_OSD_REPLICA_DOES_NOT_EXIST = "replica does not exist: {}";
+
     // DoECPriObject
     public static final String LOG_DO_EC_PRI_OBJECT_START = "DoECPriObject start ...";
     public static final String LOG_DO_EC_PRI_OBJECT_LOCAL_IP = "ip = {}";
