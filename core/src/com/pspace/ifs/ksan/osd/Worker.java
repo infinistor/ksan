@@ -1624,11 +1624,27 @@ public class Worker implements Runnable {
         }
         byte[] lengthBuffer = new byte[length];
         int reads = socket.getInputStream().read(lengthBuffer, 0, length);
+        if (reads == -1) {
+            logger.info("socket {} EOF ...", socket.getRemoteSocketAddress().toString());
+            return null;
+        } else if (reads != length) {
+            logger.error("socket {} read length error : {} != {}", socket.getRemoteSocketAddress().toString(), reads, length);
+            return null;
+        }
+
         String strLength = new String(lengthBuffer, StandardCharsets.UTF_8);
 
         length = Integer.parseInt(strLength);
         byte[] buffer = new byte[length];
         reads = socket.getInputStream().read(buffer, 0, length);
+        if (reads == -1) {
+            logger.info("socket {} EOF ...", socket.getRemoteSocketAddress().toString());
+            return null;
+        } else if (reads != length) {
+            logger.error("socket {} read length error : {} != {}", socket.getRemoteSocketAddress().toString(), reads, length);
+            return null;
+        }
+        
         String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
         String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 
