@@ -595,7 +595,7 @@ public class Worker implements Runnable {
 
         logger.debug(OSDConstants.LOG_OSD_SERVER_COPY_INFO, srcPath, srcObjId, srcVersionId, destPath, destObjId, destVersionId);
 
-        String destIP = null; //DiskManager.getInstance().getOSDIP(destDiskId);
+        String destIP = DiskManager.getInstance().getOSDIP(replicaDiskID);
         if (destIP == null) {
             logger.error(OSDConstants.LOG_OSD_SERVER_CAN_NOT_FIND_OSD_IP, destPath);
             return;
@@ -1644,7 +1644,7 @@ public class Worker implements Runnable {
             logger.error("socket {} read length error : {} != {}", socket.getRemoteSocketAddress().toString(), reads, length);
             return null;
         }
-        
+
         String result = new String(buffer, 0, length, StandardCharsets.UTF_8);
         String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 
