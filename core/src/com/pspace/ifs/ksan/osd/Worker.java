@@ -56,13 +56,16 @@ public class Worker implements Runnable {
             // DataInputStream di = new DataInputStream(socket.getInputStream());
             boolean flag = false;
 
-            while (true) {                    
+            while (true) {
+                if (socket == null) {
+                    logger.info("socket is null ... break");
+                    break;
+                }
+
                 int length = socket.getInputStream().read();
                 if (length == -1) {
                     logger.info("socket {} EOF ... socket close.", socket.getRemoteSocketAddress().toString());
-                    if (socket != null) {
-                        socket.close();
-                    }
+                    socket.close();
                     break;
                 }
                 byte[] lengthBuffer = new byte[length];
@@ -172,7 +175,9 @@ public class Worker implements Runnable {
             PrintStack.logging(logger, e);
         } finally {
             try {
-                socket.close();
+                if (socket != null) {
+                    socket.close();
+                }
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
