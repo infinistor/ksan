@@ -1061,13 +1061,15 @@ public class Worker implements Runnable {
                                 }
                             } else {
                                 // get osd
-                                OSDClient client = null; //OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
-                                if (client == null) {
-                                    client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
-                                    isBorrowOsd = false;
-                                } else {
-                                    isBorrowOsd = true;
-                                }
+                                // OSDClient client = null; //OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
+                                OSDClient client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
+                                isBorrowOsd = false;
+                                // if (client == null) {
+                                //     client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
+                                //     isBorrowOsd = false;
+                                // } else {
+                                //     isBorrowOsd = true;
+                                // }
                                 String partRange = null;
                                 if (isRange) {
                                     partRange = objOffset + OSDConstants.DASH + (objOffset + objLength - 1);
@@ -1137,13 +1139,15 @@ public class Worker implements Runnable {
                             }
                         } else {
                             // get osd
-                            OSDClient client = null; //OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
-                            if (client == null) {
-                                client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
-                                isBorrowOsd = false;
-                            } else {
-                                isBorrowOsd = true;
-                            }
+                            // OSDClient client = null; //OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
+                            OSDClient client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
+                            isBorrowOsd = false;
+                            // if (client == null) {
+                            //     client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), OSDConfig.getInstance().getPort());
+                            //     isBorrowOsd = false;
+                            // } else {
+                            //     isBorrowOsd = true;
+                            // }
                             String partRange = null;
                             if (isRange) {
                                 partRange = infos[3];
