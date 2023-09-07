@@ -76,7 +76,12 @@ public class OSDServer {
     public static void main(String[] args) {
         Runtime.getRuntime().addShutdownHook(new HookThread());
         OSDServer server = new OSDServer();
-        server.start();
+        
+        try {
+            server.start();
+        } catch (Exception e) {
+            logger.error("OSDServer start error : {}", e.getMessage());
+        }
     }
 
     private static void setSystemConfiguration() {
@@ -98,7 +103,7 @@ public class OSDServer {
             }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
-            System.exit(1);
+            throw new RuntimeException(new RuntimeException());
         }
 
         try {
