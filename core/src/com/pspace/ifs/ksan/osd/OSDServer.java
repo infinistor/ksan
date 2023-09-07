@@ -68,12 +68,10 @@ import org.slf4j.LoggerFactory;
 
 public class OSDServer {
     private final static Logger logger = LoggerFactory.getLogger(OSDServer.class);
-    private static String localIP;
-    private static int port;
-    private static boolean isRunning;
-    private static ScheduledExecutorService serviceEmptyTrash = null;
-    private static ScheduledExecutorService serviceMoveCacheToDisk = null;
-    private static ScheduledExecutorService serviceEC = null;
+    private volatile boolean isRunning;
+    private static volatile ScheduledExecutorService serviceEmptyTrash = null;
+    private static volatile ScheduledExecutorService serviceMoveCacheToDisk = null;
+    private static volatile ScheduledExecutorService serviceEC = null;
 
     public static void main(String[] args) {
         Runtime.getRuntime().addShutdownHook(new HookThread());
@@ -114,13 +112,11 @@ public class OSDServer {
         startECThread();
 
         int poolSize = OSDConfig.getInstance().getPoolSize();
-        localIP = KsanUtils.getLocalIP();
-        port = OSDConfig.getInstance().getPort();
 
         ExecutorService pool = Executors.newFixedThreadPool(poolSize);
 
         isRunning = true;
-        try (ServerSocket server = new ServerSocket(port)) {
+        try (ServerSocket server = new ServerSocket(OSDConfig.getInstance().getPort())) {
             while (isRunning) {
                 try {
                     Socket socket = server.accept();
