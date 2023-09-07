@@ -1254,7 +1254,7 @@ public class VFSObjectManager implements IObjectManager {
             logger.error("src medata is null.");
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
         }
-        
+
         boolean isAvailableSrcPrimary = srcMeta.isPrimaryExist() && isAvailableDiskForRead(srcMeta.getPrimaryDisk().getId());
         boolean isAvailableSrcReplica = false;
         DISK srcReplicaDISK = null;
@@ -1424,9 +1424,9 @@ public class VFSObjectManager implements IObjectManager {
                     //     osdClientPrimary = null;
                     // }
                     // logger.debug("upload part copy osd : {}", meta.getPrimaryDisk().getOsdIp());
-                    srcClient = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    osdClientPrimary = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     // if (osdClientPrimary == null) {
-                    //     srcClient = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    //     osdClientPrimary = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     // } else {
                     //     isBorrowOsdPrimary = true;
                     // }
