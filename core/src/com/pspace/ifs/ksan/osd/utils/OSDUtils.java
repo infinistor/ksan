@@ -278,7 +278,10 @@ public class OSDUtils {
         DataInputStream si = new DataInputStream(socket.getInputStream());
         int size = si.readInt();
         byte[] buffer = new byte[size];
-        si.read(buffer, 0, size);
+        int reads = si.read(buffer, 0, size);
+        if (size != reads) {
+            logger.warn("size : {}, reads : {}", size, reads);
+        }
         String result = new String(buffer, 0, size, StandardCharsets.UTF_8);
         String[] ArrayResult = result.split(OsdData.DELIMITER, -1);
 

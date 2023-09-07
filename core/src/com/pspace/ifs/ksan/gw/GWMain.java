@@ -23,6 +23,7 @@ import java.io.FileReader;
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.handler.Azu;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
@@ -54,14 +55,14 @@ public class GWMain {
 		}
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
+		setSystemConfiguration();
 		writePID();
 
 		// setting timezone, locale 
-		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-		Locale.setDefault(Locale.KOREA);
+		// TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		// Locale.setDefault(Locale.KOREA);
 
-		logger.info("GWMain Started.");
-		
+		logger.info(GWConstants.LOG_GW_START);
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
@@ -73,10 +74,18 @@ public class GWMain {
 					logger.error("Stop ksan azu ...");
 				} catch (IllegalStateException e) {
 					logger.error(e.getMessage());
-					System.exit(1);
+					try {
+						azu.stop();
+					} catch (Exception ex) {
+						logger.error(ex.getMessage());
+					}
 				} catch (Exception e) {
 					logger.error(e.getMessage());
-					System.exit(1);
+					try {
+						azu.stop();
+					} catch (Exception ex) {
+						logger.error(ex.getMessage());
+					}
 				}
 			}
 		};
@@ -91,10 +100,18 @@ public class GWMain {
 			logger.error(GWConstants.STOP_KSAN_GW);
 		} catch (IllegalStateException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			try {
+				gw.stop();
+			} catch (Exception ex) {
+				PrintStack.logging(logger, ex);
+			}
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			try {
+				gw.stop();
+			} catch (Exception ex) {
+				PrintStack.logging(logger, ex);
+			}
 		}
 	}
 
@@ -132,7 +149,7 @@ public class GWMain {
 		@Override
 		public void run() {
 			// kill -TERM pid
-			logger.info(GWConstants.HOOK_THREAD_INFO);
+			logger.warn(GWConstants.HOOK_THREAD_INFO);
 			try {
 				gw.stop();
 				GWPortal.getInstance().postGWEvent(false);
@@ -143,11 +160,13 @@ public class GWMain {
 	}
 
 	public static void writePID() {
-		
-        File file = new File(GWConstants.PID_PATH);
+        // File file = new File(GWConstants.PID_PATH);
+		File file = new File(System.getProperty(Constants.GW_PID_KEY) + File.separator + Constants.GW_PID_FILE);
         try {
             if (!file.exists()) {
-                file.createNewFile();
+                if (!file.createNewFile()) {
+					logger.error(GWConstants.LOG_PID_FILE_CREATE_FAILED);
+				}
             }
             try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
 				Long pid = ProcessHandle.current().pid();
@@ -164,4 +183,14 @@ public class GWMain {
             System.exit(-1);
         }
     }
+
+	private static void setSystemConfiguration() {
+		System.setProperty(Constants.GW_SERVICEID_KEY, Constants.GW_SERVICEID_DIR);
+		System.setProperty(Constants.GW_CONFIG_KEY, Constants.GW_CONFIG_DIR);
+		System.setProperty(Constants.OBJMANAGER_CONFIG_KEY, Constants.OBJMANAGER_CONFIG_DIR);
+		System.setProperty(Constants.GW_PID_KEY, Constants.GW_PID_DIR);
+		System.setProperty(Constants.AGENT_CONF_KEY, Constants.AGENT_CONF_DIR);
+		System.setProperty(Constants.DISKPOOL_CONF_KEY, Constants.DISKPOOL_CONF_DIR);
+
+	} 
 }

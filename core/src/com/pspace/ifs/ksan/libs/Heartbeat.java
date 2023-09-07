@@ -14,7 +14,10 @@ import com.pspace.ifs.ksan.libs.mq.MQSender;
 import org.json.simple.JSONObject;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class Heartbeat implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(DiskManager.class);
     private String serviceId;
     private String mqHost;
     private int mqPort;
@@ -47,7 +50,7 @@ public class Heartbeat implements Runnable {
             obj.put(Constants.HEARTBEAT_STATE, Constants.HEARTBEAT_STATE_ONLINE);
             mqSender.send(obj.toString(), Constants.HEARTBEAT_BINDING_KEY);
         } catch (Exception e) {
-
+            logger.error("Heartbeat error: {}", e.getMessage());
         }
     }
 }

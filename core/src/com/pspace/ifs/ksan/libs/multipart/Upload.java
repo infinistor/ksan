@@ -31,7 +31,7 @@ public class Upload {
     public Upload(String object, Date changeTime, String uploadId, String meta)  {
         this.object = object;
         this.uploadId = uploadId;
-        this.changeTime = changeTime;
+        this.changeTime = new Date(changeTime.getTime());
         s3Metadata = S3Metadata.getS3Metadata(meta);
     }
 
@@ -44,7 +44,7 @@ public class Upload {
     }
 
     public Date getChangeTime() {
-        return changeTime;
+        return new Date(changeTime.getTime());
     }
 
     public String getOwnerID() {

@@ -161,16 +161,16 @@ public class S3Encryption {
                 ServerSideEncryption sse = new XmlMapper().readValue(encryptionXml, ServerSideEncryption.class);
                 if (sse.rules.size() > 0) {
                     for (Rule r : sse.rules) {
-                        if (r.apply.SSEAlgorithm.compareTo(ALGORITHM_AES256) == 0) {
+                        if (r.apply.sseAlgorithm.compareTo(ALGORITHM_AES256) == 0) {
                             algorithm = ALGORITHM_AES256;
                             encryptionKey = "INFINISTOR";
                             return;
                         }
 
-                        if (!Strings.isNullOrEmpty(r.apply.KMSMasterKeyID)) {
-                            kmsMasterKeyId = r.apply.KMSMasterKeyID;
-                            if (!Strings.isNullOrEmpty(r.BucketKeyEnabled)
-                                    && r.BucketKeyEnabled.equalsIgnoreCase("true") == true) {
+                        if (!Strings.isNullOrEmpty(r.apply.kmsMasterKeyID)) {
+                            kmsMasterKeyId = r.apply.kmsMasterKeyID;
+                            if (!Strings.isNullOrEmpty(r.bucketKeyEnabled)
+                                    && r.bucketKeyEnabled.equalsIgnoreCase("true") == true) {
                                 bucketKeyEnabled = "true";
                                 kmsKeyPath = bucket;
                                 if(op.equals("get")) {

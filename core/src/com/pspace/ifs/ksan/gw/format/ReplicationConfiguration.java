@@ -33,7 +33,7 @@ public final class ReplicationConfiguration {
 
         public static final class DeleteMarkerReplication{
             @JacksonXmlProperty(localName = GWConstants.XML_STATUS)
-            public String Status;
+            public String status;
         }
 
         @JacksonXmlProperty(localName = GWConstants.XML_DESTINATION)

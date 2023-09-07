@@ -946,6 +946,10 @@ public final class GWConstants {
 	public static final String MESSAGE_QUEUE_OPTION_FANOUT = "fanout";
 	public static final String MESSAGE_QUEUE_OPTION_DIRECT = "direct";
 
+	// GWMain
+	public static final String LOG_GW_START = "GWMain Started.";
+	public static final String LOG_PID_FILE_CREATE_FAILED = "pid file create is fail";
+	
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";

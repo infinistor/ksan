@@ -95,12 +95,16 @@ public class GCSRequestData {
                 ret = new String(json, StandardCharsets.UTF_8);
             } else {
                 if (contentEncoding.equals("gzip")) {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Parameter.getInputStream()), StandardCharsets.UTF_8));
-                    StringBuilder sb = new StringBuilder();
-                    for (String line; (line = br.readLine())!= null;) {
-                        sb.append(line);
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Parameter.getInputStream()), StandardCharsets.UTF_8))) {
+                        StringBuilder sb = new StringBuilder();
+                        for (String line; (line = br.readLine())!= null;) {
+                            sb.append(line);
+                        }
+                        ret = sb.toString();
+                    } catch (IOException e) {
+                        PrintStack.logging(logger, e);
+                        throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
                     }
-                    ret = sb.toString();
                 } else {
                     byte[] json = s3Parameter.getInputStream().readAllBytes();
                     s3Parameter.addRequestSize(json.length);

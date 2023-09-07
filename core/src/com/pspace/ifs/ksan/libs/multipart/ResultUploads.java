@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.libs.multipart;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResultUploads {
@@ -62,11 +63,11 @@ public class ResultUploads {
     }
     
     public List<Upload> getList() {
-        return list;
+        return new ArrayList<Upload>(list);
     }
     
     public void setList(List<Upload> list) {
-        this.list = list;
+        this.list = new ArrayList<Upload>(list);
     }
 
     public boolean isTruncated() {

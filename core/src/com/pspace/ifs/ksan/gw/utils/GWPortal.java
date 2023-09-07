@@ -290,14 +290,14 @@ public class GWPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(GWConstants.SERVICEID_PATH, StandardCharsets.UTF_8));
+			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty(Constants.GW_SERVICEID_KEY) + File.separator + Constants.GW_SERVICEID_FILE, StandardCharsets.UTF_8));
 
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			throw new RuntimeException(new RuntimeException());
 		}
 
 		postGWEvent(true);
@@ -659,7 +659,7 @@ public class GWPortal {
 					}
 					
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
-					if (jsonServers == null || jsonServers.size() == 0) {
+					if (jsonServers == null || jsonServers.isEmpty()) {
 						logger.info("diskpools -- servers is empty");
 						return;
 					}
@@ -691,11 +691,28 @@ public class GWPortal {
 						if (GWUtils.getLocalIP().equals(server.getIp())) {
 							for (Disk disk : server.getDiskList()) {
 								File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create obj dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
+
 								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create temp dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
+
 								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-								file.mkdirs();
+								if (!file.exists()) {
+									if (!file.mkdirs()) {
+										logger.error("Failed to create trash dir : {}", file.getAbsolutePath());
+										throw new RuntimeException(new RuntimeException());
+									}
+								}
 							}
 						}
 					}

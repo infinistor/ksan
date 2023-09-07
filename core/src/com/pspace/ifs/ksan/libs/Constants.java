@@ -35,11 +35,39 @@ public class Constants {
 	public static final String COLON = ":";
 	public static final String CHARSET_UTF_8 = "UTF-8";
 
+	public static final String GW_CONFIG_KEY = "gw.config.dir";
+	public static final String GW_CONFIG_DIR = "/var/log/ksan/gw";
+	public static final String GW_CONFIG_FILE = "gw_dump.conf";
+	public static final String OSD_CONFIG_KEY = "osd.config.dir";
+	public static final String OSD_CONFIG_DIR = "/var/log/ksan/osd";
+	public static final String OSD_CONFIG_FILE = "osd_dump.conf";
+	public static final String GW_SERVICEID_KEY = "gw.serviceid.dir";
+	public static final String GW_SERVICEID_DIR = "/usr/local/ksan/etc";
+	public static final String GW_SERVICEID_FILE = "ksanGW.ServiceId";
+	public static final String OSD_SERVICEID_KEY = "osd.serviceid.dir";
+	public static final String OSD_SERVICEID_DIR = "/usr/local/ksan/etc";
+	public static final String OSD_SERVICEID_FILE = "ksanOSD.ServiceId";
+	public static final String GW_PID_KEY = "gw.pid.dir";
+	public static final String GW_PID_DIR = "/var/run";
+	public static final String GW_PID_FILE = "ksangw.pid";
+	public static final String OSD_PID_KEY = "osd.pid.dir";
+	public static final String OSD_PID_DIR = "/var/run";
+	public static final String OSD_PID_FILE = "ksanosd.pid";
+	public static final String OBJMANAGER_CONFIG_KEY = "objmanager.dir";
+	public static final String OBJMANAGER_CONFIG_DIR = "/var/log/ksan/objmanager";
+	public static final String OBJMANAGER_CONFIG_FILE = "objmanager_dump.conf";
+	public static final String DISKPOOL_CONF_KEY = "diskpool.conf.dir";
+	public static final String DISKPOOL_CONF_DIR = "/var/log/ksan/gw";
+	public static final String DISKPOOL_CONF_FILE = "diskpools_dump.xml";
+	public static final String AGENT_CONF_KEY = "agent.conf.dir";
+	public static final String AGENT_CONF_DIR = "/usr/local/ksan/etc";
+	public static final String AGENT_CONFIG_FILE = "ksanAgent.conf";
+
     public static final String PORTAL_REST_API_CONFIG_S3 = "/api/v1/Config/S3";
 	public static final String PORTAL_REST_API_DISKPOOLS_DETAILS = "/api/v1/DiskPools/Details";
 	public static final String PORTAL_REST_API_S3USERS = "/api/v1/S3Users";
-    public static final String AGENT_CONFIG_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
-	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
+    
+	
 	public static final String AGENT_PROPERTY_PORTAL_HOST = "PortalHost";
 	public static final String AGENT_PROPERTY_PORTAL_PORT = "PortalPort";
 	public static final String AGENT_POOPERTY_POTAL_KEY = "PortalApiKey";

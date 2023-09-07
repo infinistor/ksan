@@ -107,7 +107,10 @@ public class DoECPriObject implements Runnable {
             String path = KsanUtils.makeECDirectory(file.getName(), ecPath);
             File ecFile = new File(path);
             com.google.common.io.Files.createParentDirs(ecFile);
-            ecFile.mkdir();
+            
+            if (!ecFile.mkdir()) {
+                logger.error(OSDConstants.LO_DO_EC_PRI_OBJECT_MKDIR_FAILED, ecFile.getAbsolutePath());
+            }
 
             String command = Constants.ZFEC
                             + path
@@ -138,7 +141,9 @@ public class DoECPriObject implements Runnable {
                         // local replica
                         File replicaFile = new File(replicaPath);
                         if (replicaFile.exists()) {
-                            replicaFile.delete();
+                            if (!replicaFile.delete()) {
+                                logger.error(OSDConstants.LOG_DO_EC_PRI_OBJECT_REPLICA_FILE_DELETE_FAILED, replicaFile.getAbsolutePath());
+                            }
                         }
                     } else {
                         deleteReplica(ip, replicaPath);
@@ -146,7 +151,9 @@ public class DoECPriObject implements Runnable {
                 }
             }
 
-            file.delete();
+            if (!file.delete()) {
+                logger.error(OSDConstants.LOG_DELETE_FAILED, file.getAbsolutePath());
+            }
         } catch (IOException | InterruptedException e) {
             logger.error(e.getMessage());
         }
@@ -193,7 +200,9 @@ public class DoECPriObject implements Runnable {
             for (int i = 0, j = 1; i < ends.length; i++) {
                 logger.debug("file : {}", files[i].getName());
                 if (!files[i].getName().endsWith(".fec")) {
-                    files[i].delete();
+                    if (!files[i].delete()) {
+                        logger.error(OSDConstants.LOG_DELETE_FAILED, files[i].getAbsolutePath());
+                    }
                     continue;
                 }
                 for (ECPart sendECPart : sendList) {
@@ -228,7 +237,9 @@ public class DoECPriObject implements Runnable {
                             }
                             client.putECPartFlush();
                             sendECPart.setProcessed(true);
-                            files[i].delete();
+                            if (!files[i].delete()) {
+                                logger.error(OSDConstants.LOG_DELETE_FAILED, files[i].getAbsolutePath());
+                            }
                         }
                         break;
                     }

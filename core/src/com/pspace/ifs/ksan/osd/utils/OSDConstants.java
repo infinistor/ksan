@@ -123,6 +123,8 @@ public final class OSDConstants {
     public static final String SERVER = "SERVER";
     public static final String DISK = "DISK";
 
+    public static final String LOG_DELETE_FAILED = "delete failed : {}";
+
     // OSDServer constants
     public static final String LOG_OSD_SERVER_START = "OSD Server start ...";
     public static final String LOG_OSD_SERVER_PID = "pid : {}";
@@ -205,6 +207,17 @@ public final class OSDConstants {
     public static final String LOG_OSD_SERVER_DELETE_EC_PART_START = "delete ec part start ...";
     public static final String LOG_OSD_SERVER_DELETE_EC_PART_END = "delete ec part end ...";
 
+    public static final String LOG_OSD_DELETE_LINK_FILE_FAILED = "delete link file failed : {}";
+    public static final String LOG_OSD_EC_PART_DELETE_FAILED = "ec part delete failed : {}";
+    public static final String LOG_OSD_EC_PART_DELETE = "ec part delete : {}";
+    public static final String LOG_EC_PART_DOES_NOT_EXIST = "ec part file does not exist. : {}";
+
+    public static final String LOG_OSD_REPLICA_DELETE_FAILED = "replica delete failed : {}";
+    public static final String LOG_OSD_REPLICA_DELETE = "replica delete : {}";
+    public static final String LOG_OSD_REPLICA_DOES_NOT_EXIST = "replica does not exist: {}";
+
+    public static final String LOG_OSD_SERVER_SKIP_ERROR = "diff offset : {}, skip : {}";
+
     // DoECPriObject
     public static final String LOG_DO_EC_PRI_OBJECT_START = "DoECPriObject start ...";
     public static final String LOG_DO_EC_PRI_OBJECT_LOCAL_IP = "ip = {}";
@@ -217,6 +230,8 @@ public final class OSDConstants {
     public static final String LOG_DO_EC_PRI_OBJECT_ZFEC_COMMAND = "command : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_DISK_ID = "replica disk id : {}";
     public static final String LOG_DO_EC_PRI_OBJECT_HEADER = "send header : {}";
+    public static final String LO_DO_EC_PRI_OBJECT_MKDIR_FAILED = "mkdir failed : {}";
+    public static final String LOG_DO_EC_PRI_OBJECT_REPLICA_FILE_DELETE_FAILED = "replica file delete failed : {}";
 
     // DoEmptyTrash
     public static final String LOG_DO_EMPTY_TRASH_START = "DoEmptyTrash start ...";
@@ -229,4 +244,15 @@ public final class OSDConstants {
 
     // MoveObject
     public static final String LOG_MOVE_OBJECT_START = "MoveObject start ...";
+
+    // EventObject
+    public static final String LOG_EVENT_OBJECT_FILE_NOT_EXIST = "file not exists: {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_NOT_EXIST = "ec part does not exist : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE = "delete ec part : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE_FAILED = "fail to delete ec part : {}";
+    public static final String LOG_EVENT_OBJECT_EC_PART_DELETE_FROM_TO = "delete ec part file : {}, to : {}, {}";
+    public static final String LOG_EVENT_OBJECT_DELETE_SUCCESS = "success delete object : {}";
+    public static final String LOG_EVENT_OBJECT_DELETE_FAILED = "failed delete object : {}";
+    public static final String LOG_EVENT_OBJECT_FULL_PATH = "full path : {}";
+    public static final String EVENT_OBJECT_NOT_EXIST = "object not exist";
 }

@@ -13,6 +13,9 @@ package com.pspace.ifs.ksan.gw.handler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import javax.management.RuntimeErrorException;
+
+import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 // import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
@@ -62,8 +65,12 @@ public class GW {
 	}
 
     public void init() throws Exception {
-		
-		configure();
+		try {
+			configure();
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw e;
+		}
 		
 		checkArgument(GWConfig.getInstance().getEndpoint() != null || GWConfig.getInstance().getSecureEndpoint() != null,
 				GWConstants.LOG_GW_MUST_ENDPOINT);
