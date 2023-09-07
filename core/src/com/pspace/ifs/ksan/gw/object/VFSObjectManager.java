@@ -1250,6 +1250,11 @@ public class VFSObjectManager implements IObjectManager {
     public S3Object uploadPartCopy(S3Parameter param, Metadata srcMeta, S3Encryption srcEncryption, S3Range s3Range,
             Metadata meta) throws GWException {
         // check src disk
+        if (srcMeta == null) {
+            logger.error("src medata is null.");
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        }
+        
         boolean isAvailableSrcPrimary = srcMeta.isPrimaryExist() && isAvailableDiskForRead(srcMeta.getPrimaryDisk().getId());
         boolean isAvailableSrcReplica = false;
         DISK srcReplicaDISK = null;
@@ -1307,7 +1312,7 @@ public class VFSObjectManager implements IObjectManager {
         // check src object is multipart and objId is same
         boolean isMultipart = false;
         S3Metadata srcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
-        if (srcMeta != null && !Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
+        if (!Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
             logger.debug("src object is multipart ...");
             isMultipart = true;
         }
