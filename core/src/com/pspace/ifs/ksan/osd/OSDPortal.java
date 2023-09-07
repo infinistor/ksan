@@ -113,7 +113,7 @@ public class OSDPortal {
 			reader.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			throw new RuntimeException(new RuntimeException());
 		}
 
 		postGWEvent(true);
