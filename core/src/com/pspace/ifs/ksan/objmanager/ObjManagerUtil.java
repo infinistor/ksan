@@ -33,6 +33,8 @@ public class ObjManagerUtil {
     private LifeCycleManagment lfm;
     private ObjMultipart multipart;
     private RestoreObjects restoreObj;
+    private BucketManager bucketMGT;
+    private Objects objectMGT;
     private static Logger logger;
     
     public ObjManagerUtil(ObjManagerConfig config) throws Exception{
@@ -50,6 +52,10 @@ public class ObjManagerUtil {
             obmCache.setDBManager(dbm);
                 
             dAlloc = new DiskAllocation(obmCache);
+            
+            bucketMGT = new BucketManager(dbm, obmCache);
+        
+            objectMGT = new Objects(dbm, dAlloc, obmCache, bucketMGT);
             
             lfm = new LifeCycleManagment(dbm);
             
@@ -283,5 +289,16 @@ public class ObjManagerUtil {
     
     public RestoreObjects getRestoreObjects(){
         return this.restoreObj;
+    }
+    
+    public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, int maxKeys, long expiredTime) throws SQLException{
+        return objectMGT.listExpiredObjects(bucketName, prefix, nextMarker, maxKeys, expiredTime);
+    }
+    public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker, String nextVersionId, int maxKeys, long expiredTime) throws SQLException{
+        return objectMGT.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, maxKeys, expiredTime);
+    }
+    
+    public List<Metadata> listDeleteMarkedObjects(String bucketName, String prefix, String nextMarker, int maxKeys) throws SQLException{
+        return objectMGT.listDeleteMarkedObjects(bucketName, prefix, nextMarker, maxKeys);
     }
 }

@@ -326,4 +326,22 @@ public class Objects {
         logger.debug("[listObjectWithTags] tagsList> {} query> {} maxObjects {}", tagsList, query.toString(), maxObjects);
         return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
+    
+    public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, int maxKeys, long expiredTime) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, prefix);
+        list.setExpiredTime(expiredTime, "listExpiredObject");
+        return list.getUnformatedList();
+    }
+    
+    public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker, String nextVersionId, int maxKeys, long expiredTime) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, nextVersionId, "", maxKeys, prefix);
+        list.setExpiredTime(expiredTime, "listExpiredObjectVersion");
+        return list.getUnformatedList();
+    }
+    
+    public List<Metadata> listDeleteMarkedObjects(String bucketName, String prefix, String nextMarker, int maxKeys) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, prefix);
+        list.setExpiredTime(0, "listExpiredDeletedObject");
+        return list.getUnformatedList();
+    }
 }
