@@ -18,6 +18,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.simple.JSONObject;
 
 /**
@@ -306,6 +308,16 @@ public class Metadata {
         this.replicaCount = replicaCount;
     }
     
+    public int exchangePrimaryReplicaDisk(){
+        try {
+            DISK dsk = getReplicaDisk();
+            allocDisk.put(REPLICADISK, getPrimaryDisk());
+            allocDisk.put(PRIMARYDISK, dsk);
+            return 0;
+        } catch (ResourceNotFoundException ex) {
+            return -1;
+        }
+    }
     @Override
     public String toString(){
         String replicaDiskStr;
