@@ -16,6 +16,9 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import org.json.simple.JSONArray;
 
@@ -501,10 +504,11 @@ public class DiskMonitor {
     
     private MQResponse updateDiskPool(DISKPOOL dskPool, JsonOutput jo, String msg) {
         MQResponse res;
-        JSONObject dsk;
-        JSONArray dskArray = decodeJsonArray(msg, "Disks");
-        Iterator it = dskArray.iterator();
-        while(it.hasNext()){
+        try {
+            /*JSONObject dsk;
+            JSONArray dskArray = decodeJsonArray(msg, "Disks");
+            Iterator it = dskArray.iterator();
+            while(it.hasNext()){
             dsk = (JSONObject)it.next();
             String diskId =(String)dsk.get("Id");
             String serverId = (String)dsk.get("ServerId");
@@ -512,73 +516,79 @@ public class DiskMonitor {
             String mpath = (String)dsk.get("Path");
             String status = (String)dsk.get("State");
             DiskStatus st;
-             if (status.equalsIgnoreCase("Good"))
-                 st = DiskStatus.GOOD;
-             else if(status.equalsIgnoreCase("stop"))
-                 st = DiskStatus.STOPPED;
-             else if (status.equalsIgnoreCase("broken"))
-                 st = DiskStatus.BROKEN;
-             else
-                 st = DiskStatus.UNKNOWN;
-                 
+            if (status.equalsIgnoreCase("Good"))
+            st = DiskStatus.GOOD;
+            else if(status.equalsIgnoreCase("stop"))
+            st = DiskStatus.STOPPED;
+            else if (status.equalsIgnoreCase("broken"))
+            st = DiskStatus.BROKEN;
+            else
+            st = DiskStatus.UNKNOWN;
+            
             String diskMood = (String)dsk.get("RwMode");
             DiskMode mode;
             if (diskMood.equalsIgnoreCase(KEYS.RO.label))
-                mode = DiskMode.READONLY;
-            else 
-                mode = DiskMode.READWRITE;
-           
+            mode = DiskMode.READONLY;
+            else
+            mode = DiskMode.READWRITE;
+            
             double totalInode = Double.valueOf(dsk.get(KEYS.TOTALINODE.label).toString());
             //double reservedInode = Double.valueOf(dsk.get(KEYS.RESERVEDINODE.label).toString());
             double userInode = Double.valueOf(dsk.get(KEYS.USEDINODE.label).toString());
             double totalSize = Double.valueOf(dsk.get(KEYS.TOTALSPACE.label).toString());
             double reservedSize = Double.valueOf(dsk.get(KEYS.RESERVEDSPACE.label).toString());
             double usedSize = Double.valueOf(dsk.get(KEYS.USEDSPACE.label).toString());
-       
-            logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} status : {} diskMood: {} totalInode : {} userInode {} totalSize : {} usedSize {}}", 
-                    diskId, serverId, dskPoolId, mpath, status, diskMood, totalInode,  userInode, totalSize, usedSize);
+            
+            logger.debug("DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} status : {} diskMood: {} totalInode : {} userInode {} totalSize : {} usedSize {}}",
+            diskId, serverId, dskPoolId, mpath, status, diskMood, totalInode,  userInode, totalSize, usedSize);
             DISKPOOL dskPool1 = null;
-            try { 
-                addDiskNotExist(dskPoolId, serverId, mpath, diskId);
-                dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
-                dskPool1.setDiskMode(serverId, diskId, mode);
-                dskPool1.setDiskStatus(serverId, diskId, st);
-                dskPool1.getDisk(diskId).setInode(totalInode, userInode);
-                dskPool1.getDisk(diskId).setSpace(totalSize, usedSize, reservedSize);
-               
-                logger.debug("DISK to update: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!", 
-                    diskId, serverId, dskPoolId, mpath);
+            try {
+            addDiskNotExist(dskPoolId, serverId, mpath, diskId);
+            dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+            dskPool1.setDiskMode(serverId, diskId, mode);
+            dskPool1.setDiskStatus(serverId, diskId, st);
+            dskPool1.getDisk(diskId).setInode(totalInode, userInode);
+            dskPool1.getDisk(diskId).setSpace(totalSize, usedSize, reservedSize);
+            
+            logger.debug("DISK to update: { diskid : {} serverId : {} dskPoolId : {} mpath : {} update Applied!",
+            diskId, serverId, dskPoolId, mpath);
             } catch (ResourceNotFoundException ex) { // add disk if not exist
-                logger.debug(" NEW DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
-                            diskId, serverId, dskPoolId, mpath);
-                
-                SERVER svr;
-                try {
-                    dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
-                    svr = dskPool1.getServerById(serverId);
-                    svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
-                } catch (ResourceNotFoundException ex1) {
-                    try {
-                        svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
-                        if (svr == null){
-                            logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                            updateReplicaCount(jo);
-                            return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
-                        }
-                        dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
-                        dskPool1.addServer(svr);
-                    } catch (ResourceNotFoundException ex2) {
-                        logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
-                        updateReplicaCount(jo);
-                        return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
-                    }
-                }
-                logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!", 
-                        diskId, serverId, dskPoolId, mpath); 
+            logger.debug(" NEW DISK to add: { diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!",
+            diskId, serverId, dskPoolId, mpath);
+            
+            SERVER svr;
+            try {
+            dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+            svr = dskPool1.getServerById(serverId);
+            svr.addDisk(mpath, diskId, 0, DiskStatus.GOOD);
+            } catch (ResourceNotFoundException ex1) {
+            try {
+            svr = config.getPortalHandel().loadOSDserver(serverId, dskPoolId);
+            if (svr == null){
+            logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+            updateReplicaCount(jo);
+            return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0); 
             }
+            dskPool1 = obmCache.getDiskPoolFromCache(dskPoolId);
+            dskPool1.addServer(svr);
+            } catch (ResourceNotFoundException ex2) {
+            logger.debug("OSD identfied with serverId {} not exist in the system!", serverId);
+            updateReplicaCount(jo);
+            return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+            }
+            }
+            logger.debug("DISK to add: diskid : {} serverId : {} dskPoolId : {} mpath : {} new disk Applied!",
+            diskId, serverId, dskPoolId, mpath);
+            }
+            }
+            updateReplicaCount(jo);*/
+            this.config.getPortalHandel().loadDiskPoolList(obmCache);
+            res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+        } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException | ParseException ex) {
+            logger.debug("[updateDiskPool] unable apply diskpool update msg {}", msg);
+            res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         }
-        updateReplicaCount(jo);
-        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+        
         return res;
     }
     
