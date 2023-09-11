@@ -29,26 +29,26 @@ ConfigTitleLine = '%s' % ('-' * ConfigMaxWidthLen)
 
 
 OsdDefaultPoolsize = 650
-OsdDefaultPort = 8000
-OsdDefaultEcScheduleMinute = 30000
-OsdDefaultEcApplyMinute = 3000000
+OsdDefaultPort = 6300
+OsdDefaultEcScheduleMilliSec = 3600000
+OsdDefaultEcApplyMilliSec = 36000000
 OsdDefaultEcFileSize = 100000
 OsdDefaultCacheDisk = ''
-OsdDefaultCacheScheduleMinute = 2
+OsdDefaultCacheScheduleMilliSec = 2000
 OsdDefaultCacheFileSize = 1024
-OsdDefaultCacheLimitMinute = 5
-OsdDefaultTrashScheduleMinute = 5
+OsdDefaultCacheLimitMilliSec = 5000
+OsdDefaultTrashScheduleMilliSec = 5000
 OsdDefaultPerformanceMode = 'NO_OPTION'
 
-OsdDefaultConfigInfo = [{'key': 'osd.pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert connection pool size'},
-                  {'key': 'osd.port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert ksanOSD port'},
-                  {'key': 'osd.ec_check_interval', 'value': OsdDefaultEcScheduleMinute, 'type': int, 'question': 'Insert EC check interval(ms)'},
-                  {'key': 'osd.ec_wait_time', 'value': OsdDefaultEcApplyMinute, 'type': int, 'question': 'Insert EC wait time(ms)'},
-                  {'key': 'osd.ec_min_size', 'value': OsdDefaultEcFileSize, 'type': int, 'question': 'Insert EC file size'},
-                  {'key': 'osd.cache_diskpath', 'value': OsdDefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path', 'value_command': 'disable: NULL, '},
-                  {'key': 'osd.cache_check_interval', 'value': OsdDefaultCacheScheduleMinute, 'type': int, 'question': 'Insert cache check interval(ms)'},
-                  {'key': 'osd.cache_expire', 'value': OsdDefaultCacheLimitMinute, 'type': int, 'question': 'Insert cache expire(ms)'},
-                  {'key': 'osd.trash_check_interval', 'value': OsdDefaultTrashScheduleMinute, 'type': int, 'question': 'Insert trash check interval(ms)'}]
+OsdDefaultConfigInfo = [{'key': 'pool_size', 'value': OsdDefaultPoolsize, 'type': int, 'question': 'Insert connection pool size'},
+                  {'key': 'port', 'value': OsdDefaultPort, 'type': int, 'question': 'Insert ksanOSD port'},
+                  {'key': 'ec_check_interval', 'value': OsdDefaultEcScheduleMilliSec, 'type': int, 'question': 'Insert EC check interval(ms)'},
+                  {'key': 'ec_wait_time', 'value': OsdDefaultEcApplyMilliSec, 'type': int, 'question': 'Insert EC wait time(ms)'},
+                  {'key': 'ec_min_size', 'value': OsdDefaultEcFileSize, 'type': int, 'question': 'Insert EC file size'},
+                  {'key': 'cache_diskpath', 'value': OsdDefaultCacheDisk, 'type': str, 'question': 'Insert cache disk path', 'value_command': 'disable: NULL, '},
+                  {'key': 'cache_check_interval', 'value': OsdDefaultCacheScheduleMilliSec, 'type': int, 'question': 'Insert cache check interval(ms)'},
+                  {'key': 'cache_expire', 'value': OsdDefaultCacheLimitMilliSec, 'type': int, 'question': 'Insert cache expire(ms)'},
+                  {'key': 'trash_check_interval', 'value': OsdDefaultTrashScheduleMilliSec, 'type': int, 'question': 'Insert trash check interval(ms)'}]
 
 
 S3DefaultDbRepository = TypeServiceMariaDB

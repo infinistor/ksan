@@ -60,6 +60,8 @@ public class ListObject{
     private boolean bDelimitertoken;
     private boolean bVersionIdMarker;
     
+    private long expiredTime;
+    
     private ObjectListParameter objectListParameter;
     private DataRepository dbm;
     private static Logger logger  = LoggerFactory.getLogger(ListObject.class);
@@ -184,13 +186,27 @@ public class ListObject{
         return objectListParameter;
     }
     
+    public void setExpiredTime(long expiredTime, String type){
+        this.expiredTime = expiredTime;
+        listType = type;
+    }
+    
     public List<Metadata> getUnformatedList() throws SQLException{
         Object query1;
         
-        if (!listType.equalsIgnoreCase("utility"))
+        if (!listType.equalsIgnoreCase("utility") && !listType.startsWith("listExpired"))
             return this.fetchList();
 
-        query1 = makeQueryWithDiskId(diskid, lastObjId, versionIdMarker);
+        if (listType.equalsIgnoreCase("utility"))
+            query1 = makeQueryWithDiskId(diskid, lastObjId, versionIdMarker);
+        else{
+            query1=makeQuery4ExpiredObject();
+            if (dbm instanceof MongoDataRepository)
+                return dbm.getObjectList(bucketName, query1, maxKeys, 0);
+            else
+                return this.bindExcuteExpiredObjectQuery();
+        }
+        
         if (query1 != null){
             if (dbm instanceof MongoDataRepository)
                 return dbm.getObjectList(bucketName, query1, maxKeys, 0);
@@ -465,6 +481,139 @@ public class ListObject{
        return null;
     }
     
+    private List<Metadata> bindExcuteExpiredObjectQuery() throws SQLException{
+        int prepareOrder = 0;
+        PreparedStatement pstmt;
+        
+        if (query.isEmpty())
+            return null;
+        
+	pstmt = (PreparedStatement)dbm.getStatement(query);
+        if(!listType.equalsIgnoreCase("listExpiredDeletedObject"))
+            pstmt.setLong(++prepareOrder, expiredTime);
+        
+        if (bBucketListParameterPrefix) {
+            pstmt.setString(++prepareOrder, prefix.replaceAll("\\%",  "\\\\%").replaceAll("\\_",  "\\\\_") + "%");
+        }
+
+	if (bMarker && !bVersionIdMarker)
+            pstmt.setString(++prepareOrder, marker);
+        
+        if (bMarker && bVersionIdMarker) {
+            pstmt.setString(++prepareOrder, marker);
+            pstmt.setString(++prepareOrder, versionIdMarker);
+        }
+
+        if (bDelForceGte) {
+            pstmt.setString(++prepareOrder, delmarker);
+            bDelForceGte = false;
+        }
+
+        return dbm.getObjectList(bucketName, pstmt, maxKeys, 0);
+    }
+    
+    private Object makeQuery4ExpiredObject(){
+        if (dbm instanceof MongoDataRepository){
+           String prefixStr;
+           BasicDBObject andObjQuery;
+           BasicDBObject objQuery;
+           List<BasicDBObject> and = new ArrayList();
+           
+           if (listType.equalsIgnoreCase("listExpiredObject")){
+               and.add(new BasicDBObject("lastversion", true));
+               and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
+           } 
+           else if(listType.equalsIgnoreCase("listExpiredObjectVersion")){
+               and.add(new BasicDBObject("lastversion", false));
+           } 
+           else if(listType.equalsIgnoreCase("listExpiredDeletedObject")){
+               and.add(new BasicDBObject("lastversion", true));
+               and.add(new BasicDBObject("deleteMarker",  "mark"));
+           } 
+           else{
+               return null;
+           }
+           
+           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+                   .replaceAll("\\_",  "\\\\_")
+                   .replaceAll("\\(", "\\\\(")
+                   .replaceAll("\\)", "\\\\)");
+           
+           if (bBucketListParameterPrefix){    
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
+           }
+           
+           if (bMarker && !bVersionIdMarker){
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
+           }
+           
+           if (bMarker && bVersionIdMarker)
+               if (bDelimiterMarker)
+                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker))); //objkey
+               else
+                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
+           
+           if (bVersionIdMarker){
+               if (!versionIdMarker.equalsIgnoreCase("null")){
+                    objQuery = new BasicDBObject("objKey", marker);
+                    objQuery.append("versionid", new BasicDBObject("$lt", versionIdMarker));
+                    and.add(objQuery);
+               } 
+               else{
+                   and.add(new BasicDBObject("versionid", versionIdMarker));
+               }
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));
+           }
+           
+           if (bDelForceGte){
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", delmarker))); //objkey
+               bDelForceGte = false;
+           }
+ 
+           if (and.isEmpty())
+               andObjQuery = new BasicDBObject();
+           else {
+               if (!versionIdMarker.equalsIgnoreCase("null"))
+                   andObjQuery = new BasicDBObject("$or", and.toArray());
+               else
+                   andObjQuery = new BasicDBObject("$and", and.toArray());  
+           } 
+           System.out.println( "andObjQuery >>" + andObjQuery);
+           return andObjQuery;
+       }
+       else{
+           if (listType.equalsIgnoreCase("listExpiredObject")){
+               query = "SELECT * FROM `"+ bucketName +"` WHERE lastversion=true AND deleteMarker <> 'mark' AND lastModified < ?";
+           } 
+           else if(listType.equalsIgnoreCase("listExpiredObjectVersion")){
+               query = "SELECT * FROM `"+ bucketName +"` WHERE lastversion=false AND lastModified < ? ";
+           } 
+           else if(listType.equalsIgnoreCase("listExpiredDeletedObject")){
+               query = "SELECT * FROM `"+ bucketName +"` WHERE lastversion=true AND deleteMarker='mark' ";
+           } 
+           else{
+               return null;
+           }
+           
+           if (bBucketListParameterPrefix)
+                query += " AND objKey LIKE ?";
+
+           if (bMarker && !bVersionIdMarker)
+                query += " AND objKey > ?";
+
+           if (bMarker && bVersionIdMarker)
+                query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+
+           if (bDelForceGte) {
+                query += " AND objKey >= ?";
+           }
+
+           query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
+           System.out.println( "query >>" + query);
+           return null;
+       }
+    }
+     
     private void makeQuery(){
         mongoQuery = makeMongoQuery();
         if (mongoQuery != null){

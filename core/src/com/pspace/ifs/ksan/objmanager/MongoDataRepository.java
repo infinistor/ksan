@@ -1311,6 +1311,7 @@ public class MongoDataRepository implements DataRepository{
     public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys, long offset) throws SQLException {
         int def_replicaCount = 0;
         int replicaCount;
+        boolean diskExist=false;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
         BasicDBObject sortBy;
@@ -1349,6 +1350,7 @@ public class MongoDataRepository implements DataRepository{
             try {
                 mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));
                 def_replicaCount = 1;
+                diskExist = true;
             } catch (ResourceNotFoundException ex) {
                 mt.setPrimaryDisk(new DISK());
             }
@@ -1367,7 +1369,11 @@ public class MongoDataRepository implements DataRepository{
             }
             
             try {
-                replicaCount = obmCache.getDiskPoolFromCache(mt.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount();
+                
+                if (diskExist)
+                   replicaCount = obmCache.getDiskPoolFromCache(mt.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount();
+                else
+                   replicaCount = def_replicaCount; 
             } catch (ResourceNotFoundException ex) {
                replicaCount = def_replicaCount;
             }
