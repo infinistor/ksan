@@ -1623,7 +1623,8 @@ public class VFSObjectManager implements IObjectManager {
                 long remainLength = length;
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     if (hasRange) {
-                        encryptIS.skip(offset);
+                        long skip = encryptIS.skip(offset);
+                        logger.debug("offset : {}, skip : {}", offset, skip);
                     }
                     
                     while (remainLength > 0L) {
@@ -1650,7 +1651,8 @@ public class VFSObjectManager implements IObjectManager {
                     encryptIS.close();
                 } else {
                     if (hasRange) {
-                        is.skip(offset);
+                        long skip = is.skip(offset);
+                        logger.debug("offset : {}, skip : {}", offset, skip);
                     }
 
                     while (remainLength > 0L) {
@@ -2395,7 +2397,8 @@ public class VFSObjectManager implements IObjectManager {
                     if (!Strings.isNullOrEmpty(key)) {
                         encryptIS = GWUtils.initCtrDecrypt(fis, key);
                         if (offset > 0) {
-                            encryptIS.skip(offset);
+                            long skip = encryptIS.skip(offset);
+                            logger.debug("offset : {}, skip : {}", offset, skip);
                         }
                         while (remaingLength > 0) {
                             readBytes = 0;
@@ -2414,7 +2417,8 @@ public class VFSObjectManager implements IObjectManager {
                         }
                     } else {
                         if (offset > 0) {
-                            fis.skip(offset);
+                            long skip = fis.skip(offset);
+                            logger.debug("offset : {}, skip : {}", offset, skip);
                         }
                         while (remaingLength > 0) {
                             readBytes = 0;
@@ -2610,7 +2614,8 @@ public class VFSObjectManager implements IObjectManager {
                                 logger.debug("from local : {}, length : {}, remaingLength : {}, objLength : {}", partFile.getAbsolutePath(), length, remaingLength, objLength);
                                 try (FileInputStream fis = new FileInputStream(partFile)) {
                                     if (isRange) {
-                                        fis.skip(objOffset);
+                                        long skip = fis.skip(objOffset);
+                                        logger.debug("offset : {}, skip : {}", offset, skip);
                                     }
                                     while (remaingLength > 0) {
                                         readBytes = 0;
@@ -2697,7 +2702,8 @@ public class VFSObjectManager implements IObjectManager {
                             logger.info("partFile : {}, file size : {}, remaingLength : {}", partFile.getAbsolutePath(), partFile.length(), remaingLength);
                             try (FileInputStream fis = new FileInputStream(partFile)) {
                                 if (isRange) {
-                                    fis.skip(objOffset);
+                                    long skip = fis.skip(objOffset);
+                                    logger.debug("objOffset : {}, skip : {}", objOffset, skip);
                                 }
 
                                 while (remaingLength > 0) {
