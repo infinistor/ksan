@@ -327,20 +327,26 @@ public class Objects {
         return dbm.listObjectWithTags(bucketName, query, maxObjects);
     }
     
+    private String avoidNull(String str){
+        if (str == null)
+            return "";
+        return str;
+    }
+    
     public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, int maxKeys, long expiredTime) throws SQLException{
-        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, prefix);
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, avoidNull(prefix));
         list.setExpiredTime(expiredTime, "listExpiredObject");
         return list.getUnformatedList();
     }
     
     public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker, String nextVersionId, int maxKeys, long expiredTime) throws SQLException{
-        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, nextVersionId, "", maxKeys, prefix);
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, nextVersionId, "", maxKeys, avoidNull(prefix));
         list.setExpiredTime(expiredTime, "listExpiredObjectVersion");
         return list.getUnformatedList();
     }
     
     public List<Metadata> listDeleteMarkedObjects(String bucketName, String prefix, String nextMarker, int maxKeys) throws SQLException{
-        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, prefix);
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, avoidNull(prefix));
         list.setExpiredTime(0, "listExpiredDeletedObject");
         return list.getUnformatedList();
     }
