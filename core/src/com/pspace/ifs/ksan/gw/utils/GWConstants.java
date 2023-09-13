@@ -1366,6 +1366,7 @@ public final class GWConstants {
 	public static final String LOG_UTILS_SOURCE_ACL = "source acl : {}";
 	public static final String LOG_UTILS_CANNED_ACL = "cannedAcl : {}";
 	public static final String LOG_UTILS_ACL_XML = "aclXml : {}";
+	public static final String LOG_UTILS_GW_DISK_MAKE_DIR_FAILED = "failed to make disk dir : {}";
 
 	// Data
 	public static final String LOG_DATA_UPLOAD_ID_NULL = "uploadid is null or empty";

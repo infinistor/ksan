@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class S3UserManager {
-    private static Set<S3User> userSet;
     private static final Logger logger = LoggerFactory.getLogger(S3UserManager.class);
+    private Set<S3User> userSet;
 
     public static S3UserManager getInstance() {
         return LazyHolder.INSTANCE;

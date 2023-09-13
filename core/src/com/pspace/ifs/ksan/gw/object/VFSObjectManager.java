@@ -1250,6 +1250,11 @@ public class VFSObjectManager implements IObjectManager {
     public S3Object uploadPartCopy(S3Parameter param, Metadata srcMeta, S3Encryption srcEncryption, S3Range s3Range,
             Metadata meta) throws GWException {
         // check src disk
+        if (srcMeta == null) {
+            logger.error("src medata is null.");
+            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+        }
+
         boolean isAvailableSrcPrimary = srcMeta.isPrimaryExist() && isAvailableDiskForRead(srcMeta.getPrimaryDisk().getId());
         boolean isAvailableSrcReplica = false;
         DISK srcReplicaDISK = null;
@@ -1307,7 +1312,7 @@ public class VFSObjectManager implements IObjectManager {
         // check src object is multipart and objId is same
         boolean isMultipart = false;
         S3Metadata srcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
-        if (srcMeta != null && !Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
+        if (!Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
             logger.debug("src object is multipart ...");
             isMultipart = true;
         }
@@ -1419,9 +1424,9 @@ public class VFSObjectManager implements IObjectManager {
                     //     osdClientPrimary = null;
                     // }
                     // logger.debug("upload part copy osd : {}", meta.getPrimaryDisk().getOsdIp());
-                    srcClient = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    osdClientPrimary = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     // if (osdClientPrimary == null) {
-                    //     srcClient = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    //     osdClientPrimary = new OSDClient(srcReplicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
                     // } else {
                     //     isBorrowOsdPrimary = true;
                     // }
@@ -1618,7 +1623,8 @@ public class VFSObjectManager implements IObjectManager {
                 long remainLength = length;
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     if (hasRange) {
-                        encryptIS.skip(offset);
+                        long skip = encryptIS.skip(offset);
+                        logger.debug("offset : {}, skip : {}", offset, skip);
                     }
                     
                     while (remainLength > 0L) {
@@ -1645,7 +1651,8 @@ public class VFSObjectManager implements IObjectManager {
                     encryptIS.close();
                 } else {
                     if (hasRange) {
-                        is.skip(offset);
+                        long skip = is.skip(offset);
+                        logger.debug("offset : {}, skip : {}", offset, skip);
                     }
 
                     while (remainLength > 0L) {
@@ -2390,7 +2397,8 @@ public class VFSObjectManager implements IObjectManager {
                     if (!Strings.isNullOrEmpty(key)) {
                         encryptIS = GWUtils.initCtrDecrypt(fis, key);
                         if (offset > 0) {
-                            encryptIS.skip(offset);
+                            long skip = encryptIS.skip(offset);
+                            logger.debug("offset : {}, skip : {}", offset, skip);
                         }
                         while (remaingLength > 0) {
                             readBytes = 0;
@@ -2409,7 +2417,8 @@ public class VFSObjectManager implements IObjectManager {
                         }
                     } else {
                         if (offset > 0) {
-                            fis.skip(offset);
+                            long skip = fis.skip(offset);
+                            logger.debug("offset : {}, skip : {}", offset, skip);
                         }
                         while (remaingLength > 0) {
                             readBytes = 0;
@@ -2605,7 +2614,8 @@ public class VFSObjectManager implements IObjectManager {
                                 logger.debug("from local : {}, length : {}, remaingLength : {}, objLength : {}", partFile.getAbsolutePath(), length, remaingLength, objLength);
                                 try (FileInputStream fis = new FileInputStream(partFile)) {
                                     if (isRange) {
-                                        fis.skip(objOffset);
+                                        long skip = fis.skip(objOffset);
+                                        logger.debug("offset : {}, skip : {}", offset, skip);
                                     }
                                     while (remaingLength > 0) {
                                         readBytes = 0;
@@ -2692,7 +2702,8 @@ public class VFSObjectManager implements IObjectManager {
                             logger.info("partFile : {}, file size : {}, remaingLength : {}", partFile.getAbsolutePath(), partFile.length(), remaingLength);
                             try (FileInputStream fis = new FileInputStream(partFile)) {
                                 if (isRange) {
-                                    fis.skip(objOffset);
+                                    long skip = fis.skip(objOffset);
+                                    logger.debug("objOffset : {}, skip : {}", objOffset, skip);
                                 }
 
                                 while (remaingLength > 0) {

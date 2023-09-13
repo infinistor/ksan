@@ -568,18 +568,29 @@ public class GWUtils {
 							sb.append(Constants.OBJ_DIR);
 
 							File file = new File(sb.toString());
-							file.mkdirs();
-							// makeSubDirs(sb.toString());
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 
 							StringBuilder sbTemp = sb.delete(length, sb.length());
 							sbTemp.append(Constants.TEMP_DIR);
 							file = new File(sbTemp.toString());
-							file.mkdirs();
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 
 							sbTemp = sb.delete(length, sb.length());
 							sbTemp.append(Constants.TRASH_DIR);
 							file = new File(sbTemp.toString());
-							file.mkdirs();
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 						}
 					}
 				}
@@ -593,12 +604,23 @@ public class GWUtils {
 				if (GWUtils.getLocalIP().equals(server.getIp())) {
 					for (Disk disk : server.getDiskList()) {
 						File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-						file.mkdirs();
-						// makeSubDirs(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-						file.mkdirs();
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-						file.mkdirs();
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 					}
 				}
 			}
@@ -619,8 +641,11 @@ public class GWUtils {
 					sb.append(Constants.SLASH);
 					sb.append(Constants.EC_DIR);
 					File file = new File(sb.toString());
-					file.mkdirs();
-					// makeSubDirs(sb.toString());
+					if (file.exists()) {
+						if (!file.mkdirs()) {
+							logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+						}
+					}
 				}
 			});
 		}
@@ -644,7 +669,11 @@ public class GWUtils {
 						subPath[5] = data[l];
 
 						file = new File(path + new String(subPath, StandardCharsets.UTF_8));
-						file.mkdirs();
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 					}
 				}
 			}
