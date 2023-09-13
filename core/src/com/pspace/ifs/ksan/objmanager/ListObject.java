@@ -534,12 +534,11 @@ public class ListObject{
                return null;
            }
            
-           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+           if (bBucketListParameterPrefix){    
+               prefixStr = prefix.replaceAll("\\%",  "\\\\/")
                    .replaceAll("\\_",  "\\\\_")
                    .replaceAll("\\(", "\\\\(")
                    .replaceAll("\\)", "\\\\)");
-           
-           if (bBucketListParameterPrefix){    
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
            }
            

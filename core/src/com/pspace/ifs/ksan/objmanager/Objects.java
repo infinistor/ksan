@@ -12,6 +12,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
@@ -328,7 +329,7 @@ public class Objects {
     }
     
     private String avoidNull(String str){
-        if (str == null)
+        if (Strings.isNullOrEmpty(str))
             return "";
         return str;
     }
