@@ -267,7 +267,7 @@ public class SendReplicator {
 		InitRequest.setAccessControlList(ACL);
 		// 헤더추가
 		InitRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		// Mulitpart 등록
+		// Multipart 등록
 		var InitResponse = targetClient.initiateMultipartUpload(InitRequest);
 		var UploadId = InitResponse.getUploadId();
 
@@ -277,16 +277,16 @@ public class SendReplicator {
 		// 업로드 시작
 		var partList = new ArrayList<PartETag>();
 		int PartNumber = 1;
-		long StartpPosition = 0;
+		long StartPosition = 0;
 
-		while (StartpPosition < Size) {
-			long EndPosition = StartpPosition + partSize;
+		while (StartPosition < Size) {
+			long EndPosition = StartPosition + partSize;
 			if (EndPosition > Size)
 				EndPosition = Size;
 
 			// 업로드할 내용 가져오기
 			var Request = new GetObjectRequest(event.SourceBucketName, event.ObjectName)
-					.withRange(StartpPosition, EndPosition - 1);
+					.withRange(StartPosition, EndPosition - 1);
 			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, "");
 			var s3Object = sourceClient.getObject(Request);
 
@@ -307,7 +307,7 @@ public class SendReplicator {
 			var PartResPonse = targetClient.uploadPart(PartRequest);
 			partList.add(PartResPonse.getPartETag());
 
-			StartpPosition += partSize;
+			StartPosition += partSize;
 			s3Object.close();
 		}
 

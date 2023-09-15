@@ -20,7 +20,6 @@ import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
 import com.pspace.backend.libs.Data.S3.S3BucketData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
-import com.pspace.backend.libs.Data.S3.S3ObjectData;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.s3format.S3Parameters;
@@ -141,7 +140,7 @@ public class ReplicationFilter implements MQCallback {
 							var TagList = MyRule.Tags;
 							if (TagList.size() > 0) {
 								// 해당 오브젝트의 태그 정보를 가져오기
-								S3ObjectData Object = objManager.getObject(sourceBucketName, ObjectName, versionId);
+								var Object = objManager.getObject(sourceBucketName, ObjectName, versionId);
 
 								// 해당 오브젝트가 존재하지 않을 경우 스킵
 								if (Object == null)

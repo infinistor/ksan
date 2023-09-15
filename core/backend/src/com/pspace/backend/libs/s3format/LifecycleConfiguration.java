@@ -107,7 +107,7 @@ public final class LifecycleConfiguration {
 			public String NewerNoncurrentVersions;
 
 			@JacksonXmlProperty(localName = "NoncurrentDays")
-			public String NoncurrentDays;
+			public String days;
 		}
 
 		@JacksonXmlProperty(localName = "NoncurrentVersionTransition")
