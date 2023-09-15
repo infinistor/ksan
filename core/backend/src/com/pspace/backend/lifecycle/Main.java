@@ -47,7 +47,7 @@ public class Main {
 		// Get Service Id
 		var serviceId = Utility.ReadServiceId(Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
 		if (serviceId == null) {
-			logger.error("Service Id is Empty");
+			logger.error("Service Id is Empty. path : {}", Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
 
@@ -123,10 +123,10 @@ public class Main {
 		var today = Utility.GetNowDay();
 		var AlreadyRun = true;
 
-		var Filter = new LifecycleFilter();
+		var filter = new LifecycleFilter();
 		try {
 			logger.info("Lifecycle Filter Start!");
-			Filter.Filtering();
+			filter.filtering();
 			logger.info("Lifecycle Filter End!");
 		} catch (Exception e) {
 			logger.error("", e);
@@ -146,7 +146,7 @@ public class Main {
 					logger.error("Schedule is not a valid value. {}\n", config.schedule);
 					return;
 				}
-				Thread.sleep(config.checkInterval);
+				Utility.Delay(config.checkInterval);
 
 				if (!Utility.isRun(Schedule) || AlreadyRun) {
 					continue;
@@ -154,7 +154,7 @@ public class Main {
 				AlreadyRun = true;
 
 				logger.info("Lifecycle Filter Start!");
-				Filter.Filtering();
+				filter.filtering();
 				logger.info("Lifecycle Manager End!");
 			} catch (Exception e) {
 				logger.error("", e);

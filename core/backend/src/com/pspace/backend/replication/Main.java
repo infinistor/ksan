@@ -41,7 +41,7 @@ public class Main {
 		// Get Service Id
 		var ServiceId = Utility.ReadServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 		if (ServiceId == null) {
-			logger.error("Service Id is Empty");
+			logger.error("Service Id is Empty. path : {}", Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
 		// Heartbeat
