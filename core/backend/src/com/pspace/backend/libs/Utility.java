@@ -91,6 +91,12 @@ public class Utility {
 		} catch (InterruptedException e) {
 		}
 	}
+	public static void Delay(long milliseconds) {
+		try {
+			Thread.sleep(milliseconds);
+		} catch (InterruptedException e) {
+		}
+	}
 
 	public static boolean checkAlive(String URL) {
 		try {
