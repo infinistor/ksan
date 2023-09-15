@@ -12,9 +12,9 @@ package com.pspace.backend.libs.Data;
 
 public class Constants {
 	public static final String AGENT_CONF_PATH = "/usr/local/ksan/etc/ksanAgent.conf";
-	public static final String LIFECYCLE_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLifecycleManager.ServiceId";
-	public static final String LOG_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanLogManager.ServiceId";
-	public static final String REPLICATION_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/sbin/.ksanReplicationManager.ServiceId";
+	public static final String LIFECYCLE_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/etc/ksanLifecycleManager.ServiceId";
+	public static final String LOG_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/etc/ksanLogManager.ServiceId";
+	public static final String REPLICATION_MANAGER_SERVICE_ID_PATH = "/usr/local/ksan/etc/ksanReplicationManager.ServiceId";
 
 	public static final String MQ_KSAN_SYSTEM_EXCHANGE = "ksan.system";
 	public static final String MQ_KSAN_LOG_EXCHANGE = "ksan.log";
