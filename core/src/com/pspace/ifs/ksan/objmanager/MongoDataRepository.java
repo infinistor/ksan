@@ -12,6 +12,7 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import org.bson.Document; 
@@ -393,7 +394,17 @@ public class MongoDataRepository implements DataRepository{
             doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
             objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
-        objects.insertOne(doc);
+        try{
+            objects.insertOne(doc);
+        } catch(MongoWriteException ex){
+            if (ex.getCode() == 11000 && md.getVersionId().equals("null")){
+                deleteObject(md.getBucket(), md.getPath(), md.getVersionId());
+                objects.insertOne(doc);
+            } else{
+                throw new ResourceNotFoundException(ex.getMessage());
+            }
+                
+        }
         updateBucketObjectCount(md.getBucket(), 1);
     
         insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
