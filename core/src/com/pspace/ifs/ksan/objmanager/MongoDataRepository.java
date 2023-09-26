@@ -293,14 +293,36 @@ public class MongoDataRepository implements DataRepository{
     
     private MongoCollection<Document> getMultiPartUploadCollection(){
         MongoCollection<Document> multip;
-        
+        Document index;
+        Document index1;
         multip = this.database.getCollection(MULTIPARTUPLOAD);
         if (multip == null){
             database.createCollection(MULTIPARTUPLOAD);
             multip = database.getCollection(MULTIPARTUPLOAD); 
-            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
+            //multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
+        
+        if (multip != null){
+            index = new Document(UPLOADID, 1);
+            if (indexExist(multip, index) == false )
+                multip.createIndex(index, null); // index only in uploadid
+       
+            index.append(PARTNO, 1);
+            if (indexExist(multip, index) == false )
+                multip.createIndex(index, null); // index on uploadid and partno
             
+            index.append(BUCKETNAME, 1);
+            if (indexExist(multip, index) == false )
+                multip.createIndex(index, null); //index on uploadid  partno, and bucketname
+            
+            index.append(COMPLETED, 1);
+            if (indexExist(multip, index) == false )
+                multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, bucketname and completed 
+            
+            index1 = new Document(OBJKEY, 1);
+            if (indexExist(multip, index1) == false )
+                multip.createIndex(index1, null); // index on objkey for listing
+        }
         return multip;
     }
     
@@ -766,9 +788,9 @@ public class MongoDataRepository implements DataRepository{
         doc.append(COMPLETED, false);
         doc.append(CHANGETIME, getCurrentDateTime());
         doc.append(ACL, mt.getAcl());
-        //doc.append(META, mt.getMeta());
-        //doc.append(ETAG, mt.getEtag());
-        //doc.append(SIZE, mt.getSize());
+        doc.append(META, mt.getMeta());
+        doc.append(ETAG, mt.getEtag());
+        doc.append(SIZE, mt.getSize());
         doc.append(PDISKID, mt.getPrimaryDisk().getId());
         try {
             doc.append(RDISKID, mt.getReplicaDisk().getId());
