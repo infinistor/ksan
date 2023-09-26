@@ -1080,8 +1080,8 @@ public class MongoDataRepository implements DataRepository{
             Upload upload = new Upload(doc.getString(OBJKEY), changeTime, doc.getString(UPLOADID), doc.getString(META));
             resultUploads.getList().add(upload);
         }
-        logger.debug("bucket : {} maxUploads : {} query :{} res_cnt : {}", bucket, maxUploads, 
-                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)).toString(), count);
+        logger.debug("bucket : {} maxUploads : {} query :{} res_cnt : {}  resultUploads_getList_size: {}", bucket, maxUploads, 
+                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)).toString(), count, resultUploads.getList().size());
         return resultUploads;
     }
 
