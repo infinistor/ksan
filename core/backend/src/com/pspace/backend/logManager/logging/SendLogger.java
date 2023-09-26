@@ -39,55 +39,55 @@ public class SendLogger {
 	private final Logger logger = LoggerFactory.getLogger(SendLogger.class);
 	private final int DEFAULT_UNIQUE_STRING_SIZE = 16;
 
-	// private final LoggingConfig Config;
-	// private final DBManager DB;
-	// private final AmazonS3 Client;
+	private final LoggingConfig Config;
+	private final DBManager DB;
+	private final AmazonS3 Client;
 	private boolean stop = false;
 	private boolean quit = false;
 
 	public SendLogger(S3RegionData Region) {
-		// this.DB = DB;
-		// this.Config = Config;
-		// this.Client = CreateClient(Region);
+		this.DB = DB;
+		this.Config = Config;
+		this.Client = CreateClient(Region);
 	}
 
 	public void Run() {
-		// while (!Quit) {
-		// 	// 일시정지 확인
-		// 	if (Stop) {
-		// 		Utility.Delay(Config.getDelay());
-		// 		continue;
-		// 	}
+		while (!Quit) {
+			// 일시정지 확인
+			if (Stop) {
+				Utility.Delay(Config.getDelay());
+				continue;
+			}
 
-		// 	try {
-		// 		var BucketList = DB.getBucketInfoLoggingList();
-		// 		for (var BucketInfo : BucketList) {
-		// 			var SourceBucketName = BucketInfo.BucketName;
-		// 			var TargetBucketName = BucketInfo.Loggings.loggingEnabled.targetBucket;
-		// 			var Prefix = BucketInfo.Loggings.loggingEnabled.targetPrefix;
-		// 			var Grants = getAccessControlList(BucketInfo.Loggings.loggingEnabled.targetGrants);
+			try {
+				var BucketList = DB.getBucketInfoLoggingList();
+				for (var BucketInfo : BucketList) {
+					var SourceBucketName = BucketInfo.BucketName;
+					var TargetBucketName = BucketInfo.Loggings.loggingEnabled.targetBucket;
+					var Prefix = BucketInfo.Loggings.loggingEnabled.targetPrefix;
+					var Grants = getAccessControlList(BucketInfo.Loggings.loggingEnabled.targetGrants);
 	
-		// 			// 로그 출력
-		// 			var Loggings = DB.getLoggingEventList(SourceBucketName);
-		// 			var LastIndex = 0L;
-		// 			var Data = "";
-		// 			for (var Logging : Loggings) {
-		// 				LastIndex = Logging.Index;
-		// 				Data += Logging.Print();
-		// 			}
-		// 			if (LastIndex > 0) {
-		// 				var Key = NewKey(Prefix);
-		// 				PutLogging(TargetBucketName, Key, Data, Grants);
-		// 				DB.DeleteLoggingEvent(SourceBucketName, LastIndex);
-		// 			}
-		// 		}
-		// 	} catch (Exception e) {
-		// 		logger.error("", e);
-		// 	}
+					// 로그 출력
+					var Loggings = DB.getLoggingEventList(SourceBucketName);
+					var LastIndex = 0L;
+					var Data = "";
+					for (var Logging : Loggings) {
+						LastIndex = Logging.Index;
+						Data += Logging.Print();
+					}
+					if (LastIndex > 0) {
+						var Key = NewKey(Prefix);
+						PutLogging(TargetBucketName, Key, Data, Grants);
+						DB.DeleteLoggingEvent(SourceBucketName, LastIndex);
+					}
+				}
+			} catch (Exception e) {
+				logger.error("", e);
+			}
 
-		// 	// 대기
-		// 	Utility.Delay(Config.getDelay());
-		// }
+			// 대기
+			Utility.Delay(Config.getDelay());
+		}
 	}
 
 	public void Stop() {

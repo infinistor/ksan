@@ -75,4 +75,40 @@ public class LifecycleEventData {
 			return "";
 		}
 	}
+	
+
+	public static class Builder{
+		private String bucketName;
+		private String objectName;
+		private String versionId;
+		private String storageClass;
+		private String uploadId;
+
+		public Builder(String bucketName, String objectName) {
+			this.bucketName = bucketName;
+			this.objectName = objectName;
+			this.versionId = "";
+			this.storageClass = "";
+			this.uploadId = "";
+		}
+
+		public Builder setVersionId(String versionId) {
+			this.versionId = versionId;
+			return this;
+		}
+
+		public Builder setStorageClass(String storageClass) {
+			this.storageClass = storageClass;
+			return this;
+		}
+
+		public Builder setUploadId(String uploadId) {
+			this.uploadId = uploadId;
+			return this;
+		}
+
+		public LifecycleEventData build() {
+			return new LifecycleEventData(bucketName, objectName, versionId, storageClass, uploadId);
+		}
+	}
 }

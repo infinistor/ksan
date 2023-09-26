@@ -14,11 +14,7 @@ import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.DeleteVersionRequest;
@@ -46,8 +42,8 @@ public class LifecycleSender implements MQCallback {
 	private final MQSender mq;
 
 	public LifecycleSender(S3RegionData region) throws Exception {
-		Client = CreateClient(region);
-		ksanClient = new KsanClient(region.Address, region.Port, region.AccessKey, region.SecretKey);
+		Client = region.client;
+		ksanClient = new KsanClient(region.address, region.port, region.accessKey, region.secretKey);
 
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
@@ -128,14 +124,6 @@ public class LifecycleSender implements MQCallback {
 	/***************************************
 	 * Utility
 	 *******************************************/
-
-	protected AmazonS3 CreateClient(S3RegionData region) {
-		BasicAWSCredentials credentials = new BasicAWSCredentials(region.AccessKey, region.SecretKey);
-
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
-				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(region.getHttpURL(), ""))
-				.withPathStyleAccessEnabled(true).build();
-	}
 
 	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
 

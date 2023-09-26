@@ -57,7 +57,8 @@ public class SendReplicator {
 	private final MQSender mq;
 	private final long partSize;
 
-	public SendReplicator(AmazonS3 sourceClient, AmazonS3 targetClient, MQSender mq, ReplicationEventData event, long partSize) {
+	public SendReplicator(AmazonS3 sourceClient, AmazonS3 targetClient, MQSender mq, ReplicationEventData event,
+			long partSize) {
 		this.sourceClient = sourceClient;
 		this.targetClient = targetClient;
 		this.event = event;
@@ -82,8 +83,10 @@ public class SendReplicator {
 
 	private String Send() {
 		logger.debug(event.toString());
-		if (sourceClient == null) throw new IllegalStateException("Source Client is NULL");
-		if (targetClient == null) throw new IllegalStateException("Target Client is NULL");
+		if (sourceClient == null)
+			throw new IllegalStateException("Source Client is NULL");
+		if (targetClient == null)
+			throw new IllegalStateException("Target Client is NULL");
 
 		var Result = "";
 		var RetryCount = 3;
@@ -136,6 +139,7 @@ public class SendReplicator {
 	 * C# API를 사용하여 업로드 할경우 Jetty와의 호환성 이슈로
 	 * UTF-8이 강제로 대문자 치환되는 버그가 존재하므로
 	 * 해당 내용에 대응하기 위한 예외처리가 포함되어 있습니다.
+	 * 
 	 * @return Object Metadata
 	 * @throws Exception
 	 */
@@ -158,6 +162,7 @@ public class SendReplicator {
 
 	/**
 	 * 복제할 대상의 태그 정보를 설정한다.
+	 * 
 	 * @return Object Tagging
 	 * @throws Exception
 	 */
@@ -173,6 +178,7 @@ public class SendReplicator {
 
 	/**
 	 * 원본 버킷의 권한정보와 타깃버킷의 유저 정보를 가져와서 복제할 대상의 권한 정보를 설정한다.
+	 * 
 	 * @return Object ACL
 	 * @throws Exception
 	 */
@@ -197,6 +203,11 @@ public class SendReplicator {
 		return SourceACL;
 	}
 
+	/**
+	 * 오브젝트를 PutObject로 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void PutObject() throws Exception {
 		// 메타 정보 가져오기
 		var Metadata = GetObjectMetadata();
@@ -209,7 +220,7 @@ public class SendReplicator {
 		InputStream Body = null;
 		S3Object MyObject = null;
 		if (FolderCheck(event.ObjectName))
-			Body = Utility.CreateBody("");
+			Body = Utility.createBody("");
 		// 일반적인 오브젝트일 경우 버전 정보를 포함하여 오브젝트를 다운로드
 		else {
 			var Request = new GetObjectRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
@@ -230,10 +241,18 @@ public class SendReplicator {
 		PutRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
 		PutRequest.putCustomRequestHeader(BackendHeaders.HEADER_VERSIONID, event.VersionId);
 		targetClient.putObject(PutRequest);
+		// 전송 완료 후 Stream을 닫는다.
+		if (Body != null)
+			Body.close();
 		if (MyObject != null)
 			MyObject.close();
 	}
 
+	/**
+	 * 오브젝트를 CopyObject로 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void CopyObject() throws Exception {
 
 		// 같은 시스템일 경우 복사
@@ -252,6 +271,11 @@ public class SendReplicator {
 
 	}
 
+	/**
+	 * 오브젝트를 Multipart로 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void MultiPartUpload() throws Exception {
 		// 메타 정보 가져오기
 		ObjectMetadata Metadata = GetObjectMetadata();
@@ -323,6 +347,11 @@ public class SendReplicator {
 		targetClient.completeMultipartUpload(CompRequest);
 	}
 
+	/**
+	 * 오브젝트의 ACL 정보를 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void PutObjectACL() throws Exception {
 		// 권한 정보 받아오기
 		var ACL = GetObjectACL();
@@ -335,6 +364,11 @@ public class SendReplicator {
 		targetClient.setObjectAcl(SetRequest);
 	}
 
+	/**
+	 * 오브젝트의 Retention 정보를 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void PutObjectRetention() throws Exception {
 		// Retention 가져오기
 		var GetRequest = new GetObjectRetentionRequest().withBucketName(event.SourceBucketName)
@@ -351,6 +385,11 @@ public class SendReplicator {
 		targetClient.setObjectRetention(SetRequest);
 	}
 
+	/**
+	 * 오브젝트의 Tagging 정보를 복제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void PutObjectTagging() throws Exception {
 		// Tagging 가져오기
 		var GetRequest = new GetObjectTaggingRequest(event.SourceBucketName, event.ObjectName,
@@ -368,6 +407,11 @@ public class SendReplicator {
 		targetClient.setObjectTagging(SetRequest);
 	}
 
+	/**
+	 * 오브젝트를 삭제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void DeleteObject() throws Exception {
 		var DelRequest = new DeleteObjectRequest(event.TargetBucketName, event.ObjectName);
 		// 헤더추가
@@ -376,6 +420,11 @@ public class SendReplicator {
 		targetClient.deleteObject(DelRequest);
 	}
 
+	/**
+	 * 오브젝트의 Tagging 정보를 삭제한다.
+	 * 
+	 * @throws Exception
+	 */
 	protected void DeleteObjectTagging() throws Exception {
 		var DelRequest = new DeleteObjectTaggingRequest(event.TargetBucketName, event.ObjectName);
 		// 헤더추가

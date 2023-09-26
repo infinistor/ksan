@@ -11,11 +11,13 @@
 package com.pspace.backend.lifecycle.Lifecycle;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
-import java.util.TimeZone;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -25,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.s3format.LifecycleConfiguration;
 import com.pspace.backend.libs.s3format.LifecycleConfiguration.Rule;
 import com.pspace.backend.libs.s3format.Tagging;
@@ -34,11 +36,13 @@ import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
 public class LifecycleFilter {
-	private final SimpleDateFormat StringDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private final Logger logger = LoggerFactory.getLogger(LifecycleFilter.class);
 	private final AgentConfig ksanConfig;
 	private final ObjManagerHelper objManager;
-	private final Logger logger = LoggerFactory.getLogger(LifecycleFilter.class);
 	private final MQSender mq;
+
+	boolean todayIsRun = false;
+	List<LifecycleEventData> events = new ArrayList<LifecycleEventData>();
 
 	public LifecycleFilter() throws Exception {
 		objManager = ObjManagerHelper.getInstance();
@@ -53,276 +57,261 @@ public class LifecycleFilter {
 				Constants.MQ_BINDING_LIFECYCLE_EVENT);
 	}
 
-	public void Filtering() throws SQLException {
+	public boolean filtering() {
 		logger.info("Lifecycle Filtering Start!");
+		todayIsRun = true;
+		var result = false;
 
-		var BucketList = objManager.getBucketList();
+		// 버킷목록을 가져온다.
+		var buckets = objManager.getBucketList();
+		logger.info("Bucket Count : {}", buckets.size());
 
-		if (BucketList.size() > 0) {
-			for (var Bucket : BucketList) {
-				var bucketName = Bucket.getName();
+		for (var bucket : buckets) {
+			var bucketName = bucket.getName();
+			// 버킷의 수명주기 설정을 가져온다.
+			var lifecycle = GetLifecycleConfiguration(bucket.getLifecycle());
 
-				// 버킷의 수명주기 설정을 가져온다.
-				var Lifecycle = GetLifecycleConfiguration(Bucket.getLifecycle());
+			// 버킷의 수명주기 설정을 불러오지 못할 경우 스킵
+			if (lifecycle == null)
+				continue;
 
-				// 버킷의 수명주기 설정을 불러오지 못할 경우 스킵
-				if (Lifecycle == null)
+			// 버킷의 수명주기 규칙이 비어있거나 재대로 불러오지 못할 경우 스킵
+			if (lifecycle.rules == null || lifecycle.rules.size() == 0) {
+				logger.error("[{}] invalid rules");
+				continue;
+			}
+
+			logger.info("[{}] is filtering", bucketName);
+
+			// 룰정보 가져오기
+			var rules = lifecycle.rules;
+
+			for (var rule : rules) {
+				// 버킷의 수명주기 설정이 활성화 되어있지 않을 경우 스킵
+				if (!isEnabled(rule.status))
 					continue;
 
-				// 버킷의 수명주기 규칙이 비어있거나 재대로 불러오지 못할 경우 스킵
-				if (Lifecycle.rules == null || Lifecycle.rules.size() == 0) {
-					logger.error("[{}] is not a valid rules");
-					continue;
-				}
+				// 룰에 prefix 가 설정되어 있을 경우 가져오기
+				var prefix = getPrefix2Rule(rule);
 
-				// 룰정보 가져오기
-				var Rules = Lifecycle.rules;
-
-				// 오브젝트 수명주기 검사
-				var nextKeyMarker = "";
-				var nextVersionId = "";
-				while (true) {
-					// 오브젝트 목록 가져오기
-					var objects = objManager.listObjects(bucketName, nextKeyMarker, nextVersionId, 1000);
-
-					// 오브젝트가 없을 경우 종료
-					if (objects == null || objects.size() == 0)
-						break;
-
-					var lastKeyMarker = objects.get(objects.size() - 1).getObjId();
-					var lastVersionId = objects.get(objects.size() - 1).getVersionId();
-
-					// 마지막 오브젝트 ID와 같을 경우 종료
-					if (nextKeyMarker.equals(lastKeyMarker))
-						break;
-					// 다음 오브젝트 ID 설정
-					else {
-						nextKeyMarker = lastKeyMarker;
-						nextVersionId = lastVersionId;
+				// Current 버전의 수명주기 설정이 되어있을 경우
+				if (rule.expiration != null) {
+					var expired = 0L;
+					// 수명주기 설정이 특정 날짜일 경우
+					if (!StringUtils.isBlank(rule.expiration.date)) {
+						expired = getExpiredTimeDate(rule.expiration.date);
+						// 수명주기 설정이 일정 기간일 경우 기간을 숫자로 변환
+					} else if (!StringUtils.isBlank(rule.expiration.days)) {
+						expired = getExpiredTimeNoncurrentDays(rule.expiration.days);
 					}
 
-					// 버킷에 존재하는 모든 오브젝트에 대한 수명주기 검사
-					for (var obj : objects) {
+					// 수명주기 설정이 정상적일 경우
+					if (expired != 0) {
 
-						for (var rule : Rules) {
-							// 버킷의 수명주기 설정이 활성화 되어있지 않을 경우 스킵
-							if (!isEnabled(rule.status))
-								continue;
+						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, Long2Date(expired));
+						
 
-							// 오브젝트의 수명주기가 설정되었을 경우
-							if (rule.expiration != null && !checkSkip(rule, obj)) {
+						// 해당 버킷의 모든 오브젝트에 대해 필터링
+						var nextMarker = "";
+						var isTruncated = true;
+						while (isTruncated) {
 
-								// 오브젝트의 수명주기가 특정한 날짜일 경우
-								if (rule.expiration.date != null) {
-									// 문자열에서 DATE로 변경
-									Date ExpiredTime = StringToDate(rule.expiration.date);
+							// 오브젝트 목록 가져오기
+							logger.info("[{}] Expired Current Object List Get. ({}, {}, {})", bucketName, prefix,
+									nextMarker, expired);
+							var objects = objManager.listExpiredObjects(bucketName, prefix, nextMarker, expired);
 
-									// 변경 성공시에만 동작
-									if (ExpiredTime != null) {
+							// 오브젝트가 없을 경우 스킵
+							if (objects == null || objects.size() == 0)
+								break;
 
-										// 오브젝트의 수명주기가 만료되었을 경우
-										if (checkExpired(ExpiredTime)) {
-											// 이벤트 저장
-											sendEvent(new LifecycleEventData(obj.getBucket(), obj.getPath()));
-											continue;
-										}
-									}
-								}
-								// 오브젝트의 수명주기가 일정 기간일 경우
-								else if (rule.expiration.days != null) {
-									// 기간을 숫자로 변환
-									var ExpiredDays = NumberUtils.toInt(rule.expiration.days);
+							logger.info("[{}] Expired Current Object List Get. ({}, {}, {}) : {}", bucketName, prefix,
+									nextMarker, expired, objects.size());
 
-									// 오브젝트의 수명주기가 만료되었을 경우
-									if (checkExpired(obj.getLastModified(), ExpiredDays)) {
-										// 이벤트 저장
-										sendEvent(new LifecycleEventData(obj.getBucket(), obj.getPath()));
-										continue;
-									}
-								}
+							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
+								isTruncated = false;
+							else {
+								nextMarker = objects.get(objects.size() - 1).getPath();
 							}
 
-							// 오브젝트의 변환주기가 설정되었을 경우
-							if (rule.transition != null && StringUtils.isNotBlank(rule.transition.StorageClass)) {
-
+							for (var object : objects) {
 								// 스킵 체크
-								if (checkSkip(rule, obj) || obj.getMeta().contains(rule.transition.StorageClass))
+								if (skipCheck(rule, object))
 									continue;
+								// 수명주기가 만료된 오브젝트를 DB에 저장
+								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath()).build());
+							}
+						}
+					}
 
-								// 오브젝트의 변환주기가 특정한 날짜일 경우
-								if (rule.transition.date != null) {
-									// 문자열에서 DATE로 변경
-									Date ExpiredTime = StringToDate(rule.transition.date);
+					// DeleteMarker 수명주기 설정이 되어있을 경우
+					if (Boolean.parseBoolean(rule.expiration.ExpiredObjectDeleteMarker)) {
+						var nextMarker = "";
+						var isTruncated = true;
+						while (isTruncated) {
+							// DeleteMarker가 current 버전인 오브젝트 목록가져오기
+							logger.info("[{}] Expired DeleteMarker Object List Get. ({}, {})", bucketName, prefix,
+									nextMarker);
+							var objects = objManager.listDeleteMarkers(bucketName, prefix, nextMarker);
 
-									// 변경 성공시에만 동작
-									if (ExpiredTime != null) {
+							// 오브젝트가 없을 경우 스킵
+							if (objects == null || objects.size() == 0)
+								break;
 
-										// 오브젝트의 변환주기가 만료되었을 경우
-										if (checkExpired(ExpiredTime)) {
-											// 이벤트 저장
-											sendEvent(new LifecycleEventData(obj.getBucket(), obj.getPath(),
-													obj.getVersionId(), rule.transition.StorageClass, ""));
-											continue;
-										}
-									}
-								}
-								// 오브젝트의 변환주기가 일정 기간일 경우
-								else if (rule.transition.days != null) {
-									// 기간을 숫자로 변환
-									var ExpiredDays = NumberUtils.toInt(rule.transition.days);
+							logger.info("[{}] Expired DeleteMarker Object List Get. ({}, {}) : {}", bucketName, prefix,
+									nextMarker, objects.size());
 
-									// 오브젝트의 변환주기가 만료되었을 경우
-									if (checkExpired(obj.getLastModified(), ExpiredDays)) {
-										// 이벤트 저장
-										sendEvent(new LifecycleEventData(obj.getBucket(), obj.getPath(),
-												obj.getVersionId(), rule.transition.StorageClass, ""));
-										continue;
-									}
-								}
+							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
+								isTruncated = false;
+							else {
+								nextMarker = objects.get(objects.size() - 1).getPath();
 							}
 
-							// 오브젝트의 버저닝 수명주기가 설정 되었을 경우
-							if (rule.versionExpiration != null && !checkSkipVersioning(rule, obj)) {
-								// 오브젝트 버저닝의 수명주기가 일정 기간일 경우
-								if (rule.versionExpiration.NoncurrentDays != null) {
-									// 기간을 숫자로 변환
-									var ExpiredDays = NumberUtils.toInt(rule.transition.days);
-
-									// 오브젝트의 변환주기가 만료되었을 경우
-									if (checkExpired(obj.getLastModified(), ExpiredDays)) {
-										// 이벤트 저장
-										sendEvent(new LifecycleEventData(obj.getBucket(), obj.getPath(),
-												obj.getVersionId()));
-										continue;
-									}
-								}
+							for (var object : objects) {
+								// // 해당 오브젝트의 갯수 확인
+								// var objectCount = objManager.getObjectCount(bucketName, object.getPath());
+								// // 오브젝트가 1개 초과일 경우 스킵
+								// if (objectCount > 1)
+								// continue;
+								// // 스킵 체크
+								// if (skipCheck(rule, object))
+								// continue;
+								// 수명주기가 만료된 오브젝트를 DB에 저장
+								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath())
+										.setVersionId(object.getVersionId())
+										.build());
 							}
 						}
 					}
 				}
 
-				// 멀티파트 인스턴스를 가져온다.
-				var multiManager = objManager.getMultipartInstance(bucketName);
+				// Noncurrent 버전의 수명주기 설정이 되어있을 경우
+				if (rule.versionExpiration != null
+						&& !StringUtils.isBlank(rule.versionExpiration.days)) {
+					// 기간을 숫자로 변환
+					var expired = getExpiredTimeNoncurrentDays(rule.versionExpiration.days);
+					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, Long2Date(expired));
 
-				var nextKey = "";
-				var nextUploadId = "";
-				while (true) {
+					// 수명주기 설정이 정상적일 경우
+					if (expired != 0) {
+						// 해당 버킷의 모든 오브젝트에 대해 필터링
+						var nextMarker = "";
+						var nextVersionId = "";
+						var isTruncated = true;
+						while (isTruncated) {
 
-					// 업로드 중인 Multipart 목록을 가져온다.
-					var uploads = multiManager.listUploads("", "", nextKey, nextUploadId, 1000);
+							// 오브젝트 목록 가져오기
+							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {})", bucketName, nextMarker,
+									nextVersionId, expired);
+							var objects = objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker,
+									nextVersionId, expired);
+							if (objects == null || objects.size() == 0)
+								break;
+							// logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}) : {}",
+							// bucketName, prefix, nextMarker, nextVersionId, expired, objects.size());
 
-					// 목록이 비어있을 경우 종료
-					if (uploads.size() == 0)
-						break;
+							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
+								isTruncated = false;
+							else {
+								nextMarker = objects.get(objects.size() - 1).getPath();
+								nextVersionId = objects.get(objects.size() - 1).getVersionId();
+							}
 
-					var lastKey = uploads.get(uploads.size() - 1).getKey();
-					var lastUploadId = uploads.get(uploads.size() - 1).getUploadId();
-
-					// 마지막 오브젝트 ID와 같을 경우 종료
-					if (nextUploadId.equals(lastKey) && nextUploadId.equals(lastUploadId))
-						break;
-					// 다음 오브젝트 ID 설정
-					else {
-						nextKey = lastKey;
-						nextUploadId = lastUploadId;
-					}
-
-					for (var upload : uploads) {
-						for (var rule : Rules) {
-							// 버킷의 수명주기 설정이 활성화 되어있지 않을 경우 스킵
-							if (!isEnabled(rule.status))
-								continue;
-
-							// 스킵 체크
-							if (checkSkipUpload(rule, upload.getKey()))
-								continue;
-
-							// Multipart의 part 수명주기가 설정 되었을 경우
-							if (rule.abortIncompleteMultipartUpload != null
-									&&
-									!StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
-								// 기간을 숫자로 변환
-								var ExpiredDays = NumberUtils
-										.toInt(rule.abortIncompleteMultipartUpload.DaysAfterInitiation);
-								// Multipart의 수명주기가 만료 되었을 경우
-								if (checkExpired(upload.getLastModified().getTime(), ExpiredDays)) {
-									// 이벤트 저장
-									sendEvent(new LifecycleEventData(upload.getBucket(), upload.getKey(), "",
-											upload.getUploadId(), ""));
+							for (var object : objects) {
+								// 스킵 체크
+								if (skipCheck(rule, object))
 									continue;
+								// 수명주기가 만료된 오브젝트를 DB에 저장
+								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath())
+										.setVersionId(object.getVersionId())
+										.build());
+							}
+						}
+					}
+				}
+
+				// Multipart 수명주기 설정이 되어있을 경우
+				if (rule.abortIncompleteMultipartUpload != null
+						&& !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
+					// 멀티파트 인스턴스를 가져온다.
+					var multiManager = objManager.getMultipartInstance(bucketName);
+					// 기간을 숫자로 변환
+					var expiredNoncurrentDays = NumberUtils
+							.toInt(rule.abortIncompleteMultipartUpload.DaysAfterInitiation);
+
+					// 해당 버킷의 모든 오브젝트에 대해 필터링
+					var nextMarker = "";
+					var nextUploadIdMarker = "";
+					var isTruncated = true;
+					while (isTruncated) {
+						try {
+							// Multipart 목록을 가져온다.
+							var multipartList = multiManager.listUploads(null, prefix, nextMarker, nextUploadIdMarker,
+									ObjManagerHelper.MAX_KEY_SIZE);
+
+							if (multipartList.size() < ObjManagerHelper.MAX_KEY_SIZE) {
+								isTruncated = false;
+							} else {
+								nextMarker = multipartList.get(multipartList.size() - 1).getKey();
+								nextUploadIdMarker = multipartList.get(multipartList.size() - 1).getUploadId();
+							}
+							for (var multipart : multipartList) {
+								// Multipart의 수명주기가 만료 되었을 경우
+								if (checkExpired(multipart.getLastModified(), expiredNoncurrentDays)) {
+									sendEvent(new LifecycleEventData.Builder(bucketName, multipart.getKey())
+											.setUploadId(multipart.getUploadId())
+											.build());
 								}
 							}
+						} catch (SQLException e) {
+							logger.error("", e);
+							break;
 						}
 					}
 				}
 			}
+			// 이벤트 저장
+			logger.info("[{}] is filtering end", bucketName);
 		}
+		logger.info("Lifecycle Filtering End");
+		return result;
 	}
 
-	private boolean checkSkip(Rule Rule, Metadata Object) {
-		// 마지막 버전이 아닐 경우 스킵
-		if (!Object.getLastVersion())
-			return true;
-
-		// DeleteMarker일 경우 스킵
-		if (isMARKER(Object.getDeleteMarker()))
-			return true;
-
+	private boolean skipCheck(Rule rule, Metadata object) {
 		// 필터가 존재할 경우
-		if (Rule.filter != null) {
-			var Tags = getTagging(Object.getTag());
+		if (rule.filter != null) {
 			// And 필터가 존재할 경우
-			if (Rule.filter.and != null) {
-				// Prefix가 설정되어 있을 경우
-				if (!StringUtils.isBlank(Rule.filter.and.prefix)) {
-					// Prefix가 일치하지 않을 경우 스킵
-					if (!Object.getPath().startsWith(Rule.filter.and.prefix))
-						return true;
-				}
-
+			if (rule.filter.and != null) {
 				// 태그 필터가 설정되어 있을 경우
-				if (Rule.filter.and.tag.size() > 0) {
+				if (rule.filter.and.tag.size() > 0) {
 					// 오브젝트의 모든 태그를 비교
-					int TagCount = Rule.filter.and.tag.size();
-					for (var FilterTag : Rule.filter.and.tag) {
-						for (var ObjectTag : Tags.tags.tags) {
-							if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
-								TagCount--;
+					int tagCount = rule.filter.and.tag.size();
+					var tags = string2Tag(object.getTag());
+					// 태그가 없을 경우 스킵
+					if (tags == null)
+						return true;
+					for (var FilterTag : rule.filter.and.tag) {
+						for (var objectTag : tags) {
+							if (FilterTag.key == objectTag.key && FilterTag.value == objectTag.value)
+								tagCount--;
 						}
 					}
 					// 필터에 설정된 태그목록이 오브젝트의 태그목록에 포함되지 않을경우 스킵
-					if (TagCount > 0)
+					if (tagCount > 0)
 						return true;
 				}
-
-				// 최소 크기 필터가 설정되어 있을 경우
-				if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
-					// 오브젝트가 최소크기보다 작을 경우 스킵
-					var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
-					if (Object.getSize() < MinFileSize)
-						return true;
-				}
-
-				// 최대 크기 필터가 설정되어 있을 경우
-				if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
-					// 오브젝트가 최대크기보다 클 경우 스킵
-					var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
-					if (Object.getSize() > MaxFileSize)
-						return true;
-				}
-			}
-			// Prefix가 설정되어 있을 경우
-			else if (!StringUtils.isBlank(Rule.filter.prefix)) {
-				if (!Object.getPath().startsWith(Rule.filter.prefix))
-					return true;
 			}
 			// 태그 필터가 설정 되어 있을 경우
-			else if (Rule.filter.tag != null) {
-				var FilterTag = Rule.filter.tag;
+			else if (rule.filter.tag != null) {
+				var FilterTag = rule.filter.tag;
 				boolean Find = false;
 
+				var tags = string2Tag(object.getTag());
+				// 태그가 없을 경우 스킵
+				if (tags == null)
+					return true;
 				// 오브젝트의 모든 태그를 비교
-				for (var ObjectTag : Tags.tags.tags)
+				for (var ObjectTag : tags)
 					if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
 						Find = true;
 
@@ -331,104 +320,48 @@ public class LifecycleFilter {
 					return true;
 			}
 			// 최소 크기 필터가 설정되어 있을 경우
-			else if (!StringUtils.isBlank(Rule.filter.objectSizeGreaterThan)) {
+			if (StringUtils.isNotBlank(rule.filter.objectSizeGreaterThan)) {
 				// 오브젝트가 최소크기보다 작을 경우 스킵
-				var MinFileSize = NumberUtils.toInt(Rule.filter.objectSizeGreaterThan);
-				if (Object.getSize() < MinFileSize)
+				var MinFileSize = NumberUtils.toInt(rule.filter.objectSizeGreaterThan);
+				if (object.getSize() < MinFileSize)
 					return true;
 			}
 			// 최대 크기 필터가 설정되어 있을 경우
-			else if (!StringUtils.isBlank(Rule.filter.objectSizeLessThan)) {
+			else if (StringUtils.isNotBlank(rule.filter.objectSizeLessThan)) {
 				// 오브젝트가 최대크기보다 클 경우 스킵
-				var MaxFileSize = NumberUtils.toInt(Rule.filter.objectSizeLessThan);
-				if (Object.getSize() > MaxFileSize)
+				var MaxFileSize = NumberUtils.toInt(rule.filter.objectSizeLessThan);
+				if (object.getSize() > MaxFileSize)
 					return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean checkSkipVersioning(Rule Rule, Metadata Object) {
-		if (Object.getLastVersion()) {
-			// 마지막 버전이 DeleteMarker 일 경우
-			if (isMARKER(Object.getDeleteMarker())) {
-				// DeleteMarker 옵션이 없을 경우 스킵
-				if (Rule.expiration == null)
-					return true;
-				if (Rule.expiration.ExpiredObjectDeleteMarker == null)
-					return true;
-				else if (!Boolean.parseBoolean(Rule.expiration.ExpiredObjectDeleteMarker))
-					return true;
+	private String getPrefix2Rule(Rule rule) {
+		// 필터가 존재할 경우
+		if (rule.filter != null) {
+			// And 필터가 존재할 경우
+			if (rule.filter.and != null) {
+				// Prefix가 설정되어 있을 경우
+				if (StringUtils.isNotBlank(rule.filter.and.prefix)) {
+					return rule.filter.and.prefix;
+				}
 			}
-			// 마지막 버전일 경우 스킵
-			else
-				return true;
+			// Prefix가 설정되어 있을 경우
+			else if (StringUtils.isNotBlank(rule.filter.prefix)) {
+				return rule.filter.prefix;
+			}
 		}
-
-		// 필터가 존재할 경우
-		if (Rule.filter != null && !StringUtils.isBlank(Rule.filter.prefix)) {
-			// 필터가 일치하지 않을 경우 스킵
-			if (!Object.getPath().startsWith(Rule.filter.prefix))
-				return true;
-		}
-		return false;
-	}
-
-	private boolean checkSkipUpload(Rule Rule, String KeyName) {
-		// 필터가 존재할 경우
-		if (Rule.filter != null || !StringUtils.isBlank(Rule.filter.prefix)) {
-			// 필터가 일치하지 않을 경우 스킵
-			if (!KeyName.startsWith(Rule.filter.prefix))
-				return true;
-		}
-		return false;
+		return null;
 	}
 
 	/***************************************
 	 * Utility
 	 *******************************************/
 	private final String ENABLED = "Enabled";
-	// private final String DISABLED = "Disabled";
-	private final String MARKER = "mark";
 
 	private boolean isEnabled(String Status) {
 		return ENABLED.equalsIgnoreCase(Status);
-	}
-
-	// private boolean isDisabled(String Status) {return
-	// DISABLED.equalsIgnoreCase(Status);}
-	private boolean isMARKER(String DeleteMarker) {
-		return MARKER.equalsIgnoreCase(DeleteMarker);
-	}
-
-	private boolean checkExpired(Date ExpiredTime) {
-		if (new Date().getTime() > ExpiredTime.getTime())
-			return true;
-		return false;
-	}
-
-	private boolean checkExpired(long LastModified, int ExpiredDay) {
-		var LocalDate = LocalDateTime.ofInstant(Instant.ofEpochSecond((Long.MAX_VALUE - LastModified) / 1000000000L),
-				TimeZone.getDefault().toZoneId());
-
-		// 마지막 수정시간에서 수명주기가 설정된 시간만큼 날짜를 더하기
-		var ExpiredTime = LocalDate.plusDays(ExpiredDay);
-		var NowTime = LocalDateTime.now();
-
-		// 만료시간이 지났을 경우
-		if (NowTime.isAfter(ExpiredTime))
-			return true;
-		return false;
-	}
-
-	private Date StringToDate(String Data) {
-		try {
-			int Index = Data.indexOf("T");
-			return StringDateFormat.parse(Data.substring(0, Index));
-		} catch (Exception e) {
-			logger.error("", e);
-			return null;
-		}
 	}
 
 	private LifecycleConfiguration GetLifecycleConfiguration(String StrLifecycle) {
@@ -443,15 +376,48 @@ public class LifecycleFilter {
 		}
 	}
 
-	private Tagging getTagging(String StrTags) {
-		if (StringUtils.isBlank(StrTags))
-			return new Tagging();
+	private boolean checkExpired(Date lastModified, int expiredDay) {
+		// 마지막 수정시간에서 수명주기가 설정된 시간만큼 날짜를 더하기
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(lastModified);
+		cal.add(Calendar.DATE, expiredDay);
+
+		var expiredTime = cal.getTime();
+		var now = new Date();
+
+		// 만료시간이 지났을 경우
+		if (now.getTime() > expiredTime.getTime())
+			return true;
+		return false;
+	}
+
+	private long getExpiredTimeDate(String date) {
+		Instant instant = Instant.parse(date);
+		Instant now = Instant.now();
+			if (instant.getEpochSecond() > now.getEpochSecond())
+		return instant.getEpochSecond() * 1000000000L + instant.getNano();
+		else
+			return Long.MAX_VALUE;
+
+	}
+
+	private long getExpiredTimeNoncurrentDays(String NoncurrentDays) {
+		var expired = NumberUtils.toInt(NoncurrentDays);
+		Instant instant = Instant.now().plus(-expired, ChronoUnit.DAYS);
+		return instant.getEpochSecond() * 1000000000L + instant.getNano();
+	}
+
+	private static String Long2Date(long timestamp) {
+		return Instant.ofEpochSecond(timestamp / 1000000000L, timestamp % 1000000000L).toString();
+	}
+
+	private Collection<com.pspace.backend.libs.s3format.Tagging.TagSet.Tag> string2Tag(String strTags) {
 		try {
-			// 수명주기 설정 언마샬링
-			return new XmlMapper().readValue(StrTags, Tagging.class);
+			var tagging = new XmlMapper().readValue(strTags, Tagging.class);
+			return tagging.tags.tags;
 		} catch (Exception e) {
-			logger.error("Tag read Failed : {}", e);
-			return new Tagging();
+			logger.error("", e);
+			return null;
 		}
 	}
 

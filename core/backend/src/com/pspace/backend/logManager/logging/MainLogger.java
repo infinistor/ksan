@@ -53,7 +53,7 @@ public class MainLogger {
 						Constants.MQ_QUEUE_LOG_MANAGER_S3_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_GW_LOG,
 						new S3LogReceiver()));
 				replicationLogReceivers.add(new MQReceiver(
@@ -64,7 +64,7 @@ public class MainLogger {
 						Constants.MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_REPLICATION_LOG,
 						new ReplicationLogReceiver()));
 				LifecycleLogReceivers.add(new MQReceiver(
@@ -75,7 +75,7 @@ public class MainLogger {
 						Constants.MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_LIFECYCLE_LOG,
 						new LifecycleLogReceiver()));
 
