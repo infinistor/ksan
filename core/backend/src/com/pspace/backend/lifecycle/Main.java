@@ -45,7 +45,7 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var serviceId = Utility.ReadServiceId(Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
+		var serviceId = Utility.getServiceId(Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
 		if (serviceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.LIFECYCLE_MANAGER_SERVICE_ID_PATH);
 			return;
@@ -66,10 +66,6 @@ public class Main {
 
 		// 포탈 초기화
 		var portal = PortalManager.getInstance();
-		if (!portal.RegionInit()) {
-			logger.error("Portal Manager Init Failed!");
-			return;
-		}
 		logger.info("Portal initialized");
 
 		// Read Configuration to Portal
@@ -103,7 +99,7 @@ public class Main {
 					Constants.MQ_QUEUE_LIFECYCLE_EVENT_ADD,
 					Constants.MQ_KSAN_LOG_EXCHANGE,
 					false,
-					"",
+					Constants.MQ_EXCHANGE_OPTION_TOPIC,
 					Constants.MQ_BINDING_LIFECYCLE_EVENT,
 					new LifecycleSender(region)));
 
@@ -115,12 +111,12 @@ public class Main {
 					Constants.MQ_QUEUE_RESTORE_EVENT_ADD,
 					Constants.MQ_KSAN_LOG_EXCHANGE,
 					false,
-					"",
+					Constants.MQ_EXCHANGE_OPTION_TOPIC,
 					Constants.MQ_BINDING_RESTORE_EVENT,
 					new RestoreSender(region)));
 		}
 
-		var today = Utility.GetNowDay();
+		var today = Utility.getNowDay();
 		var AlreadyRun = true;
 
 		var filter = new LifecycleFilter();
@@ -135,8 +131,8 @@ public class Main {
 
 		while (true) {
 			try {
-				if (today != Utility.GetNowDay()) {
-					today = Utility.GetNowDay();
+				if (today != Utility.getNowDay()) {
+					today = Utility.getNowDay();
 					AlreadyRun = false;
 				}
 
@@ -146,7 +142,7 @@ public class Main {
 					logger.error("Schedule is not a valid value. {}\n", config.schedule);
 					return;
 				}
-				Utility.Delay(config.checkInterval);
+				Utility.delay(config.checkInterval);
 
 				if (!Utility.isRun(Schedule) || AlreadyRun) {
 					continue;

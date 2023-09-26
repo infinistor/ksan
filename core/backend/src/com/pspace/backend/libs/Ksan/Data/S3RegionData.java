@@ -10,41 +10,61 @@
 */
 package com.pspace.backend.libs.Ksan.Data;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.Utility;
 
 public class S3RegionData {
-	public String Name;
-	public String Address;
-	public int Port;
-	public int SSLPort;
-	public String AccessKey;
-	public String SecretKey;
+	@JsonProperty("Name")
+	public String name;
+	@JsonProperty("Address")
+	public String address;
+	@JsonProperty("Port")
+	public int port;
+	@JsonProperty("SSLPort")
+	public int sslPort;
+	@JsonProperty("AccessKey")
+	public String accessKey;
+	@JsonProperty("SecretKey")
+	public String secretKey;
+
+	@JsonIgnore
+	public AmazonS3 client;
+
+	public void setClient() {
+		client = Utility.createClient(this);
+	}
 
 	public S3RegionData(String Name, String Address, int Port, int SSLPort, String AccessKey, String SecretKey) {
-		this.Name = Name;
-		this.Address = Address;
-		this.Port = Port;
-		this.SSLPort = SSLPort;
-		this.AccessKey = AccessKey;
-		this.SecretKey = SecretKey;
+		this.name = Name;
+		this.address = Address;
+		this.port = Port;
+		this.sslPort = SSLPort;
+		this.accessKey = AccessKey;
+		this.secretKey = SecretKey;
+		setClient();
 	}
 	public S3RegionData(ResponseRegion Data) {
-		this.Name = Data.Name;
-		this.Address = Data.Address;
-		this.Port = Data.Port;
-		this.SSLPort = Data.SSLPort;
-		this.AccessKey = Data.AccessKey;
-		this.SecretKey = Data.SecretKey;
+		this.name = Data.Name;
+		this.address = Data.Address;
+		this.port = Data.Port;
+		this.sslPort = Data.SSLPort;
+		this.accessKey = Data.AccessKey;
+		this.secretKey = Data.SecretKey;
+		setClient();
 	}
 
-	public void init() {
-		Name = "";
-		Address = "";
-		Port = 0;
-		SSLPort = 0;
-		AccessKey = "";
-		SecretKey = "";
+	public void update(S3RegionData Data) {
+		name = Data.name;
+		address = Data.address;
+		port = Data.port;
+		sslPort = Data.sslPort;
+		accessKey = Data.accessKey;
+		secretKey = Data.secretKey;
+		setClient();
 	}
 
 	@Override
@@ -53,15 +73,15 @@ public class S3RegionData {
 		try {
 			return mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			return "";
+			return super.toString();
 		}
 	}
 
 	public String getHttpURL() {
-		return String.format("http://%s:%d", Address, Port);
+		return String.format("http://%s:%d", address, port);
 	}
 
 	public String getHttpsURL() {
-		return String.format("https://%s:%d", Address, SSLPort);
+		return String.format("https://%s:%d", address, sslPort);
 	}
 }
