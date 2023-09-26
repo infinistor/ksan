@@ -58,12 +58,6 @@ public class EventReplicator extends BaseReplicator {
 			}
 
 			try {
-				// 목적지 s3의 동작 여부 확인
-				if (!checkRegion(event.TargetRegion)) {
-					// 동작하지 않을 경우 실패처리
-					var data = new ReplicationLogData(event, Constants.EM_S3_NOT_WORKING);
-					mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG);
-				}
 
 				// 타겟 클라이언트 생성
 				AmazonS3 TargetClient = CreateClient(event);
