@@ -35,8 +35,6 @@ import com.pspace.ifs.ksan.libs.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -53,6 +51,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -66,7 +66,7 @@ public class MongoDataRepository implements DataRepository{
     private ObjManagerCache obmCache;
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
-    private static Logger mongoLogger;
+    private static Logger logger;
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
@@ -160,6 +160,7 @@ public class MongoDataRepository implements DataRepository{
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
         createRestoreObjHolder();
+        logger = LoggerFactory.getLogger(MongoDataRepository.class);
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -742,7 +743,7 @@ public class MongoDataRepository implements DataRepository{
                 bt =parseBucket(bucketName, doc);
                 obmCache.setBucketInCache(bt);
             } catch (ResourceNotFoundException | SQLException ex) {
-                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+                logger.debug(ex.getMessage());
             }
         }
     } 
@@ -761,7 +762,7 @@ public class MongoDataRepository implements DataRepository{
                 Bucket bt = parseBucket(bucketName, doc);//new Bucket(bucketName, bucketId, diskPoolId);
                 btList.add(bt);
             } catch (ResourceNotFoundException | SQLException ex) {
-                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+                logger.debug(ex.getMessage());
             }
         } 
         return btList;
@@ -1056,12 +1057,12 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return resultUploads;
         
-        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        //BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
         
         FindIterable fit = multip.find(
                 Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)))
-                .limit(maxUploads + 1)
-                .sort(sortList);
+                .limit(maxUploads + 1);
+                //.sort(sortList);
         
         int count = 0;
         Iterator it = fit.iterator();
@@ -1079,6 +1080,8 @@ public class MongoDataRepository implements DataRepository{
             Upload upload = new Upload(doc.getString(OBJKEY), changeTime, doc.getString(UPLOADID), doc.getString(META));
             resultUploads.getList().add(upload);
         }
+        logger.debug("bucket : {} maxUploads : {} query :{} res_cnt : {}", bucket, maxUploads, 
+                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)).toString(), count);
         return resultUploads;
     }
 
