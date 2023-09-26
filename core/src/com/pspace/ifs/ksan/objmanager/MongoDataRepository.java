@@ -393,7 +393,8 @@ public class MongoDataRepository implements DataRepository{
         if (md.isReplicaExist())
             doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
-            objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
+            if (!md.getVersionId().equals("null"))
+                objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
         try{
             objects.insertOne(doc);
         } catch(MongoWriteException ex){
@@ -765,9 +766,9 @@ public class MongoDataRepository implements DataRepository{
         doc.append(COMPLETED, false);
         doc.append(CHANGETIME, getCurrentDateTime());
         doc.append(ACL, mt.getAcl());
-        doc.append(META, mt.getMeta());
-        doc.append(ETAG, mt.getEtag());
-        doc.append(SIZE, mt.getSize());
+        //doc.append(META, mt.getMeta());
+        //doc.append(ETAG, mt.getEtag());
+        //doc.append(SIZE, mt.getSize());
         doc.append(PDISKID, mt.getPrimaryDisk().getId());
         try {
             doc.append(RDISKID, mt.getReplicaDisk().getId());
@@ -781,14 +782,19 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public int updateMultipartUpload(String bucket,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
+    public int updateMultipartUpload(Metadata mt,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         MongoCollection<Document> multip;
         
         multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.updateOne(Filters.and(eq(BUCKETNAME, bucket), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.set(COMPLETED, iscompleted));
+        multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
+                Updates.set(COMPLETED, iscompleted),
+                Updates.set(META, mt.getMeta()),
+                Updates.set(ETAG, mt.getEtag()),
+                Updates.set(SIZE, mt.getSize())
+                ));
         return 0;
     }
     

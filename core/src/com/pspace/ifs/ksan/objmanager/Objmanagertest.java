@@ -443,7 +443,7 @@ public class Objmanagertest {
                 String uploadId = mp.createMultipartUpload(mt);
                 for (idx1 =1; idx1 < 100; idx1++){
                     mp.startSingleUpload(mt, uploadId, idx1);
-                    mp.finishSingleUpload(uploadId, idx1);
+                    mp.finishSingleUpload(mt, uploadId, idx1);
                 }
                 List<Integer> lst = mp.listParts(path, uploadId, 100, 0);
                 System.out.println("key : " + path + " uploadId : " + uploadId + " parts : " + lst.toString());
@@ -486,6 +486,42 @@ public class Objmanagertest {
         }*/
     }
     
+    static void testListOExpiredbject(){
+        String bucketName = "my-test-java-v14lovqrhb1pd6g-fj4k6";//testvol3";
+        //String delimiter = "/";
+        String marker = "";//parentDir1/subDir_Thread_101/test26";
+        int maxKeys = 1000; 
+        String prefix = "";//parentDir1/subDir";
+        long expiredTime = 10000;
+        int idx;
+        int execute_time = 2;
+        
+        try {
+            ObjManagerUtil om = new ObjManagerUtil();
+            while(true){
+                List<Metadata> ml =om.listExpiredObjects(bucketName, prefix, marker, maxKeys, expiredTime);
+                for(idx = 0; idx < ml.size(); idx++){
+                    System.out.println(ml.get(idx).toString());
+                    //System.out.println("leng >> " + ml.size());
+                    if ((ml.size() == maxKeys) && (idx == (maxKeys - 1))){
+                        marker = ml.get(idx).getPath();
+                    }
+                }
+                
+                if (marker.isEmpty())
+                    break;
+                
+                if (execute_time-- > 0)
+                    break;
+            }
+        } 
+        catch (SQLException ex) {
+            System.out.println("list sql error!");
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     public static void main(String[] args) {
         logger = new OMLogger(Objmanagertest.class.getName());
        
@@ -513,6 +549,8 @@ public class Objmanagertest {
        
        //testMultiPartUpload();
        
-       testListObjectV3();
+       //testListObjectV3();
+       
+       testListOExpiredbject();
     }
 }

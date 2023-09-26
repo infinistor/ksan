@@ -899,11 +899,14 @@ public class MysqlDataRepository implements DataRepository{
     }
   
     @Override
-    public synchronized int updateMultipartUpload(String bucket,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
+    public synchronized int updateMultipartUpload(Metadata mt,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         pstUpdateMultiPart.clearParameters();
         pstUpdateMultiPart.setBoolean(1, iscompleted);
         pstUpdateMultiPart.setString(2, uploadid);
         pstUpdateMultiPart.setInt(3, partNo);
+        pstUpdateMultiPart.setString( 4, mt.getMeta());
+        pstUpdateMultiPart.setString( 5, mt.getEtag());
+        pstUpdateMultiPart.setLong(   6, mt.getSize());
         pstUpdateMultiPart.execute();
         return 0;
     }
