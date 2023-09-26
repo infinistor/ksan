@@ -413,8 +413,15 @@ public class ListObject{
                    .replaceAll("\\(", "\\\\(")
                    .replaceAll("\\)", "\\\\)");
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
-           if (bBucketListParameterPrefix){    
-               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
+           if (bBucketListParameterPrefix){   
+                if (!bDelimiterMarker)
+                    and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr)));//.append("$options", "i")
+                else{
+                    List<BasicDBObject> lor = new ArrayList();
+                    lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*$")));
+                    lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*/+$")));
+                    and.add(new BasicDBObject("objKey", new BasicDBObject("$or", lor.toArray())));
+                }
            }
            
            if (listType.equalsIgnoreCase("listObjectVersion")){
@@ -539,7 +546,7 @@ public class ListObject{
                    .replaceAll("\\_",  "\\\\_")
                    .replaceAll("\\(", "\\\\(")
                    .replaceAll("\\)", "\\\\)");
-               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr).append("$options", "i")));
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr)));//.append("$options", "i")
            }
            
            if (bMarker && !bVersionIdMarker){
