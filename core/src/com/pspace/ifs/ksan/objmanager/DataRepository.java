@@ -73,7 +73,7 @@ public interface DataRepository {
     
     // for multipart upload
     public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException;
-    public int updateMultipartUpload(String bucket, String uploadid, int partNo, boolean iscompleted) throws SQLException;
+    public int updateMultipartUpload(Metadata mt, String uploadid, int partNo, boolean iscompleted) throws SQLException;
     public int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException;
     public List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException;
     public void selectMultipartUpload(String bucketName, Object query, int maxKeys, DBCallBack callback) throws SQLException;

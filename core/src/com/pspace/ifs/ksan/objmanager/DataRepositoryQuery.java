@@ -95,7 +95,7 @@ public final class DataRepositoryQuery {
                     + " rdiskid VARCHAR(80) , "
                     + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
      public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, rdiskid, changeTime, partRef) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?)";
-     public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now() WHERE uploadid=? and partNo=?";
+     public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now(), meta=?, etag=?, size=? WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";
      public  static String  selectMultiPartQuery = "SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ";
 
