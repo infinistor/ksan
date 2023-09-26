@@ -37,9 +37,9 @@ public class Main {
 			return;
 		}
 		logger.info("ksanAgent Read end");
-		
+
 		// Get Service Id
-		var ServiceId = Utility.ReadServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
+		var ServiceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 		if (ServiceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 			return;
@@ -56,10 +56,9 @@ public class Main {
 			return;
 		}
 
-		// 포탈 초기화
+		// 리전 설정
 		var portal = PortalManager.getInstance();
-		if (!portal.RegionInit())
-		{
+		if (!portal.RegionUpdate()) {
 			logger.error("Portal Manager Init Failed!");
 			return;
 		}
@@ -87,7 +86,7 @@ public class Main {
 		logger.info("Replicator Start!");
 
 		while (true) {
-			Utility.Delay(10000);
+			Utility.delay(10000);
 		}
 	}
 }

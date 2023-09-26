@@ -18,7 +18,7 @@ public class Constants {
 
 	public static final String MQ_KSAN_SYSTEM_EXCHANGE = "ksan.system";
 	public static final String MQ_KSAN_LOG_EXCHANGE = "ksan.log";
-	
+
 	public static final String MQ_HEARTBEAT_BINDING_KEY = "*.services.state";
 
 	/***********************************
@@ -52,7 +52,6 @@ public class Constants {
 	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
 
 	public static final String MQ_EXCHANGE_OPTION_DIRECT = "direct";
-	public static final String MQ_EXCHANGE_OPTION_FANOUT = "fanout";
 	public static final String MQ_EXCHANGE_OPTION_TOPIC = "topic";
 
 	public static final String EM_S3_NOT_WORKING = "This S3 does not work!";
@@ -63,4 +62,16 @@ public class Constants {
 	public static final String MQ_QUEUE_NAME(String QueueName, String ServiceId) {
 		return QueueName + "-" + ServiceId;
 	}
+
+	/***********************************
+	 * Portal Manager
+	 ***********************************/
+	public static final String URL_CONFIG = "/api/v1/Config";
+	public static final String URL_OBJ_MANAGER_CONFIG = URL_CONFIG + "/KsanObjManager";
+	public static final String URL_REPLICATION_MANAGER_CONFIG = URL_CONFIG + "/KsanReplicationManager";
+	public static final String URL_LIFECYCLE_MANAGER_CONFIG = URL_CONFIG + "/KsanLifecycleManager";
+	public static final String URL_LOG_MANAGER_CONFIG = URL_CONFIG + "/KsanLogManager";
+
+	public static final String URL_REGION = "/api/v1/Regions";
+	public static final String URL_LOCAL_REGION = URL_REGION + "/Default";
 }

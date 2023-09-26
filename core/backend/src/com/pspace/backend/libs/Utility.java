@@ -39,7 +39,7 @@ public class Utility {
 	private static final int TimeOut = 3 * 1000;
 	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 
-	public static String ReadServiceId(String FilePath) {
+	public static String getServiceId(String FilePath) {
 		try {
 			BufferedReader Reader = new BufferedReader(new FileReader(FilePath));
 			var ServiceId = Reader.readLine();
@@ -50,7 +50,7 @@ public class Utility {
 		}
 	}
 
-	public static String GetNowTime() {
+	public static String getNowTime() {
 		var now = new Date();
 		return simpleDateFormat.format(now);
 	}
@@ -69,15 +69,15 @@ public class Utility {
 	}
 
 	public static boolean isRun(int Time) {
-		return Time == GetNowTimetoInt();
+		return Time == getNowTime2Int();
 	}
 
-	public static int GetNowDay() {
+	public static int getNowDay() {
 		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
 		return time.get(Calendar.DAY_OF_YEAR);
 	}
 
-	public static int GetNowTimetoInt() {
+	public static int getNowTime2Int() {
 		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
 		int Hour = time.get(Calendar.HOUR_OF_DAY);
 		int Minute = time.get(Calendar.MINUTE);
@@ -85,13 +85,13 @@ public class Utility {
 		return Hour * 60 + Minute;
 	}
 
-	public static void Delay(int milliseconds) {
+	public static void delay(int milliseconds) {
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
 		}
 	}
-	public static void Delay(long milliseconds) {
+	public static void delay(long milliseconds) {
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
@@ -117,13 +117,13 @@ public class Utility {
 		return false;
 	}
 
-	public static InputStream CreateBody(String Body) {
+	public static InputStream createBody(String Body) {
 		return new ByteArrayInputStream(Body.getBytes());
 	}
 
-	public static AmazonS3 CreateClient(S3RegionData region) {
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(region.AccessKey, region.SecretKey);
-		logger.debug("Client : {}, {}", region.AccessKey, region.SecretKey);
+	public static AmazonS3 createClient(S3RegionData region) {
+		BasicAWSCredentials awsCreds = new BasicAWSCredentials(region.accessKey, region.secretKey);
+		logger.debug("Client : {}, {}", region.accessKey, region.secretKey);
 
 		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(region.getHttpURL(), ""))

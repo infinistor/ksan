@@ -38,7 +38,7 @@ public class Heartbeat {
 
 		while (!Stop) {
 			try {
-				Utility.Delay(Delay);
+				Utility.delay(Delay);
 				Sender.send(Request.toString(), Constants.MQ_HEARTBEAT_BINDING_KEY);
 			} catch (Exception e) {
 				logger.error("", e);
