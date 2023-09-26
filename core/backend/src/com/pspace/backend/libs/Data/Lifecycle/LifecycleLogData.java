@@ -25,7 +25,7 @@ public class LifecycleLogData extends LifecycleEventData {
 
 	public LifecycleLogData(LifecycleEventData data, String message) {
 		super(data);
-		this.date = Utility.GetNowTime();
+		this.date = Utility.getNowTime();
 		this.message = message;
 	}
 
