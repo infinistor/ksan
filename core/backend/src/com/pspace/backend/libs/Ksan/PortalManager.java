@@ -34,6 +34,7 @@ import com.pspace.backend.libs.Config.LifecycleManagerConfig;
 import com.pspace.backend.libs.Config.LogManagerConfig;
 import com.pspace.backend.libs.Config.ReplicationManagerConfig;
 import com.pspace.backend.libs.Config.objManagerConfig;
+import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Ksan.Data.ResponseConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
@@ -58,7 +59,7 @@ public class PortalManager {
 	private PortalManager() {
 		Config = AgentConfig.getInstance();
 	}
-
+	
 	/**
 	 * 현재 시스템의 Region 정보를 가져온다.
 	 * 
@@ -225,7 +226,12 @@ public class PortalManager {
 		return null;
 	}
 
-	public boolean RegionInit() {
+	/**
+	 * Portal에 등록된 모든 Region 정보를 가져온다.
+	 * 
+	 * @return Region 정보
+	 */
+	public boolean RegionUpdate() {
 		try (var Client = getClient();) {
 
 			var get = getRequest(getRegionsURL());
@@ -249,6 +255,17 @@ public class PortalManager {
 					for (var Region : Result.Data.Items)
 						regions.add(new S3RegionData(Region));
 				}
+				else{
+					for (var Region : Result.Data.Items) {
+						var data = new S3RegionData(Region);
+						var find = regions.stream().filter(f -> f.name.equals(data.name)).findAny().orElse(null);
+						if (find == null) {
+							regions.add(data);
+						} else {
+							find.update(data);
+						}
+					}
+				}
 			}
 		} catch (Exception e) {
 			logger.error("", e);
@@ -266,7 +283,7 @@ public class PortalManager {
 	public S3RegionData get2Address(String Address) {
 		if (regions == null || regions.size() == 0 || StringUtils.isBlank(Address))
 			return null;
-		return regions.stream().filter(f -> Address.equals(f.Address)).findAny().orElse(null);
+		return regions.stream().filter(f -> Address.equals(f.address)).findAny().orElse(null);
 	}
 
 	/**
@@ -278,7 +295,7 @@ public class PortalManager {
 	public S3RegionData getRegion(String RegionName) {
 		if (regions == null || regions.size() == 0 || StringUtils.isBlank(RegionName))
 			return null;
-		return regions.stream().filter(f -> RegionName.equals(f.Name)).findAny().orElse(null);
+		return regions.stream().filter(f -> RegionName.equals(f.name)).findAny().orElse(null);
 	}
 
 	private String getURL() {
@@ -290,27 +307,27 @@ public class PortalManager {
 	// }
 
 	private String getObjManagerConfigURL() {
-		return String.format("%s/api/v1/Config/KsanObjManager", getURL());
+		return getURL()+ Constants.URL_OBJ_MANAGER_CONFIG;
 	}
 
 	private String getLifecycleManagerConfigURL() {
-		return String.format("%s/api/v1/Config/KsanLifecycleManager", getURL());
+		return getURL()+ Constants.URL_LIFECYCLE_MANAGER_CONFIG;
 	}
 
 	private String getReplicationConfigURL() {
-		return String.format("%s/api/v1/Config/KsanReplicationManager", getURL());
+		return getURL()+ Constants.URL_REPLICATION_MANAGER_CONFIG;
 	}
 
 	private String getLogManagerConfigURL() {
-		return String.format("%s/api/v1/Config/KsanLogManager", getURL());
+		return getURL()+ Constants.URL_LOG_MANAGER_CONFIG;
 	}
 
 	private String getLocalRegionURL() {
-		return String.format("%s/api/v1/Regions/Default", getURL());
+		return getURL()+ Constants.URL_LOCAL_REGION;
 	}
 
 	private String getRegionsURL() {
-		return String.format("%s/api/v1/Regions", getURL());
+		return getURL()+ Constants.URL_REGION;
 	}
 
 	// private String getRegionURL(String RegionName) {
