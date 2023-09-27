@@ -98,6 +98,9 @@ public class ObjMultipart{
 
     public int startSingleUpload(Metadata mt, String uploadId, int partNo){
         try {
+            mt.setEtag("");
+            mt.setSize(0);
+            mt.setMeta("");
             return dbm.insertMultipartUpload(mt, uploadId, partNo);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
