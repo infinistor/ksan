@@ -314,11 +314,11 @@ public class MongoDataRepository implements DataRepository{
             
             index.append(BUCKETNAME, 1);
             if (indexExist(multip, index) == false )
-                multip.createIndex(index); //index on uploadid  partno, and bucketname
+                multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, and bucketname
             
             index.append(COMPLETED, 1);
             if (indexExist(multip, index) == false )
-                multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, bucketname and completed 
+                multip.createIndex(index); //index on uploadid  partno, bucketname and completed 
             
             index1 = new Document(OBJKEY, 1);
             if (indexExist(multip, index1) == false )
