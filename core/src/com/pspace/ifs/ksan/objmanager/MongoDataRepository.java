@@ -805,9 +805,30 @@ public class MongoDataRepository implements DataRepository{
             doc.append(RDISKID, "");
         }
         doc.append(PARTREF, "");
-        
-        multip.insertOne(doc);
+        try{
+            multip.insertOne(doc);
+        } catch(MongoWriteException ex){
+            if (ex.getCode() == 11000 && partNo > 0){
+                _updateMultipartUpload(multip, mt,  uploadid, partNo, false);
+            }
+            else{
+                throw new SQLException(ex.getMessage());
+            }
+        }
         logger.debug("[insertMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, false, mt.getEtag());
+        return 0;
+    }
+    
+    private int _updateMultipartUpload(MongoCollection<Document> multip, Metadata mt,  String uploadid, int partNo, boolean iscompleted){
+        if (multip == null)
+            return -1;
+        
+        multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
+                Updates.set(COMPLETED, iscompleted),
+                Updates.set(META, mt.getMeta()),
+                Updates.set(ETAG, mt.getEtag()),
+                Updates.set(SIZE, mt.getSize())
+                ));
         return 0;
     }
     
@@ -819,12 +840,13 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return -1;
         
-        multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
+         _updateMultipartUpload(multip, mt,  uploadid, partNo, iscompleted);
+        /*multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
                 Updates.set(COMPLETED, iscompleted),
                 Updates.set(META, mt.getMeta()),
                 Updates.set(ETAG, mt.getEtag()),
                 Updates.set(SIZE, mt.getSize())
-                ));
+                ));*/
         logger.debug("[updateMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, iscompleted, mt.getEtag());
         return 0;
     }
