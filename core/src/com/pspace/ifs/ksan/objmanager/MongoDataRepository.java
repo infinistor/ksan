@@ -801,6 +801,7 @@ public class MongoDataRepository implements DataRepository{
         doc.append(PARTREF, "");
         
         multip.insertOne(doc);
+        logger.debug("[insertMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, false, mt.getEtag());
         return 0;
     }
     
@@ -818,6 +819,7 @@ public class MongoDataRepository implements DataRepository{
                 Updates.set(ETAG, mt.getEtag()),
                 Updates.set(SIZE, mt.getSize())
                 ));
+        logger.debug("[updateMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, iscompleted, mt.getEtag());
         return 0;
     }
     
