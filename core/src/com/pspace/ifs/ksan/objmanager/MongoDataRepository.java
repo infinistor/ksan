@@ -12,6 +12,7 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoCommandException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
@@ -303,26 +304,31 @@ public class MongoDataRepository implements DataRepository{
             //multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
         
-        if (multip != null){
-            index = new Document(UPLOADID, 1);
-            if (indexExist(multip, index) == false )
-                multip.createIndex(index); // index only in uploadid
-       
-            index.append(PARTNO, 1);
-            if (indexExist(multip, index) == false )
-                multip.createIndex(index); // index on uploadid and partno
-            
-            index.append(BUCKETNAME, 1);
-            if (indexExist(multip, index) == false )
-                multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, and bucketname
-            
-            index.append(COMPLETED, 1);
-            if (indexExist(multip, index) == false )
-                multip.createIndex(index); //index on uploadid  partno, bucketname and completed 
-            
-            index1 = new Document(OBJKEY, 1);
-            if (indexExist(multip, index1) == false )
-                multip.createIndex(index1); // index on objkey for listing
+        if (multip != null){ 
+            try {
+                index1 = new Document(OBJKEY, 1);
+                if (indexExist(multip, index1) == false )
+                    multip.createIndex(index1); // index on objkey for listing
+                
+                index = new Document(UPLOADID, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); // index only in uploadid
+
+                index.append(PARTNO, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); // index on uploadid and partno
+
+                index.append(BUCKETNAME, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, and bucketname
+                
+                index.append(COMPLETED, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); //index on uploadid  partno, bucketname and completed 
+                
+            } catch (MongoCommandException e) {
+                //ignore create index
+            }
         }
         return multip;
     }
