@@ -583,6 +583,8 @@ public class DiskMonitor {
             }
             updateReplicaCount(jo);*/
             this.config.getPortalHandel().loadDiskPoolList(obmCache);
+            updateReplicaCount(jo);
+            obmCache.dumpCacheInFile();
             res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException | ParseException ex) {
             logger.debug("[updateDiskPool] unable apply diskpool update msg {}", msg);
