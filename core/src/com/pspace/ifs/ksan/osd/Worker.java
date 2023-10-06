@@ -54,7 +54,7 @@ public class Worker implements Runnable {
         try {
             byte[] buffer = new byte[OSDConstants.HEADERSIZE];
             // DataInputStream di = new DataInputStream(socket.getInputStream());
-            boolean flag = false;
+            boolean flag = true;
 
             while (true) {
                 if (socket == null) {

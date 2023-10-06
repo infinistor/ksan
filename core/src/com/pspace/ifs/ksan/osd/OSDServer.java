@@ -86,6 +86,7 @@ public class OSDServer {
     }
 
     private static void setSystemConfiguration() {
+        System.setProperty(Constants.AGENT_CONF_KEY, Constants.AGENT_CONF_DIR);
         System.setProperty(Constants.OSD_CONFIG_KEY, Constants.OSD_CONFIG_DIR);
         System.setProperty(Constants.OSD_PID_KEY, Constants.OSD_PID_DIR);
         System.setProperty(Constants.OSD_SERVICEID_KEY, Constants.OSD_SERVICEID_DIR);
@@ -115,11 +116,15 @@ public class OSDServer {
 
         // startEmptyTrash();
         // startMoveCacheToDisk();
+        serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
+        serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashCheckInterval(), TimeUnit.MILLISECONDS);
         startECThread();
+        startMoveCacheToDisk();
 
         int poolSize = OSDConfig.getInstance().getPoolSize();
 
         service = Executors.newFixedThreadPool(poolSize);
+        logger.info("OSD Server start, pool size : {}", poolSize);
 
         isRunning = true;
         try (ServerSocket server = new ServerSocket(OSDConfig.getInstance().getPort())) {
@@ -154,11 +159,11 @@ public class OSDServer {
 
     public static void startMoveCacheToDisk() {
         if (OSDConfig.getInstance().isCacheDiskpath()) {
-            if (serviceMoveCacheToDisk != null) {
-                serviceMoveCacheToDisk.shutdownNow();
-            } else {
-                serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
-            }
+            // if (serviceMoveCacheToDisk != null) {
+            //     serviceMoveCacheToDisk.shutdownNow();
+            // } else {
+            //     serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
+            // }
             serviceMoveCacheToDisk.scheduleAtFixedRate(new DoMoveCacheToDisk(), 1000, OSDConfig.getInstance().getCacheCheckInterval(), TimeUnit.MILLISECONDS);
         }
     }
