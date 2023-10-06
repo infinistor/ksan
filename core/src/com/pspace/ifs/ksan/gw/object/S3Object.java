@@ -77,11 +77,11 @@ public class S3Object {
 	}
 
 	public Date getLastModified() {
-		return new Date(lastModified.getTime());
+		return lastModified;
 	}
 
 	public void setLastModified(Date lastModified) {
-		this.lastModified = new Date(lastModified.getTime());
+		this.lastModified = lastModified;
 	}
 
 	public String getTagging() {
