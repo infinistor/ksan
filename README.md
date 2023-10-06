@@ -44,7 +44,7 @@ KSAN은 AWS S3 호환 API를 기본적으로 제공하고 개발 로드맵에 �
 
 ℹ️ Microsoft Azure API 및 Google Cloud API는 각각 2022년, 2023년에 단계적으로 지원할 예정입니다.
 
-ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다. Google Cloud API는 v1.4.0부터 상호호환성을 제공할 예정입니다.
+ℹ️ Microsoft Azure API는 v1.2.0부터 지원합니다. Google Cloud API는 v1.3.1부터 지원합니다.
 
 <br><br>
 
