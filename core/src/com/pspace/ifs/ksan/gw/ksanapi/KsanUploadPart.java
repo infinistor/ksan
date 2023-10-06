@@ -133,6 +133,7 @@ public class KsanUploadPart extends S3Request {
 		}
 
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		objMultipart.startSingleUpload(objMeta, uploadId, partNumber);
 		IObjectManager objectManager = new VFSObjectManager();
 		Metadata part = null;
 		S3Object s3Object = null;
@@ -150,8 +151,8 @@ public class KsanUploadPart extends S3Request {
 		}
 		
 		// objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
-		objMultipart.startSingleUpload(objMeta, uploadId, partNumber);
-		objMultipart.finishSingleUpload(uploadId, partNumber);
+		
+		objMultipart.finishSingleUpload(objMeta, uploadId, partNumber);
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());
 		s3Parameter.setFileSize(s3Object.getFileSize());
