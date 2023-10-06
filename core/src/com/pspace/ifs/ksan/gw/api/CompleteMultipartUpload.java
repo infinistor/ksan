@@ -152,9 +152,11 @@ public class CompleteMultipartUpload extends S3Request {
 						throw new GWException(GWErrorCode.ENTITY_TOO_SMALL, s3Parameter);
 					}
 				} else {
+					logger.error("etag not match : xml:{} - db:{}", eTag, part.getPartETag());
 					throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);	
 				}
 			} else {
+				logger.error("no such part : {}", entry.getKey());
 				throw new GWException(GWErrorCode.INVALID_PART, s3Parameter);
 			}
 		}
@@ -329,6 +331,7 @@ public class CompleteMultipartUpload extends S3Request {
 				objMeta.set(s3Object.get().getEtag(), "", jsonmeta, acl, s3Object.get().getFileSize());
 				objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
 				result = insertObject(bucket, object, objMeta);
+				logger.debug("CompleteMultipartUpload ... etag : {}", objMeta.getEtag());
 			} catch (GWException e) {
 				PrintStack.logging(logger, e);
 				throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
