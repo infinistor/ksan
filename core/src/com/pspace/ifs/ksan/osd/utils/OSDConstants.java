@@ -238,9 +238,14 @@ public final class OSDConstants {
 
     // DoMoveCacheToDisk
     public static final String LOG_DO_MOVE_CACHE_TO_DISK = "DoMoveCacheToDisk start ...";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_END = "DoMoveCacheToDisk end ...";
     public static final String DO_MOVE_CACHE_TO_DISK_COMMAND = "cp -a ";
     public static final String LOG_DO_MOVE_CACHE_TO_DISK_COMMAND = "{}";
     public static final String LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH = "targetPath : {}";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_DELETE_TARGET_FAIL = "delete target fail : {}";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_RENAME_FAIL = "move fail : {} -> {}";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_RENAME_SUCCESS = "move success : {} -> {}";
+    public static final String LOG_DO_MOVE_CACHE_TO_DISK_DELETE_FAIL = "delete fail : {}";
 
     // MoveObject
     public static final String LOG_MOVE_OBJECT_START = "MoveObject start ...";

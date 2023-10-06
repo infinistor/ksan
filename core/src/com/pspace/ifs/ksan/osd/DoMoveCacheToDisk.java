@@ -11,92 +11,196 @@
 package com.pspace.ifs.ksan.osd;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
 import com.pspace.ifs.ksan.libs.Constants;
+import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DoMoveCacheToDisk implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(DoMoveCacheToDisk.class);
+    private static volatile boolean isStop = false;
+    ExecutorService executorService;
+    List<Callable<Void>> tasks;
+
+    public static void stopDoMoveCacheToDisk() {
+        isStop = true;
+    }
 
     @Override
     public void run() {
-        // logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK);
+        logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK, OSDConfig.getInstance().getCacheDiskpath());
+        executorService = Executors.newFixedThreadPool(4);
+        tasks = new ArrayList<>();
         recursiveMove(OSDConfig.getInstance().getCacheDiskpath());
+        try {
+            executorService.invokeAll(tasks);
+            executorService.shutdown();
+            while (!executorService.isTerminated()) {
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            PrintStack.logging(logger, e);
+        } finally {
+            logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_END);
+        }
     }
     
     private void recursiveMove(String dirPath) {
-        File dir = new File(dirPath);
-        File[] files = dir.listFiles();
-
-        if (files == null) {
-            return;
-        }
-
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isDirectory()) {
-                if (files[i].getName().equals(Constants.OBJ_DIR)) {
-                    check(files[i].getAbsolutePath());
-                } else {
-                    recursiveMove(files[i].getAbsolutePath());
-                }
-            }
-        }
-    }
-
-    private void check(String dirPath) {
-        File dir = new File(dirPath);
-        File[] files = dir.listFiles();
-
-        if (files == null) {
-            return;
-        }
-
-        long now = Calendar.getInstance().getTimeInMillis();
-        
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isDirectory()) {
-                check(files[i].getAbsolutePath());
-            } else if (files[i].isFile()) {
-                long diff = (now - files[i].lastModified());
-
-                if (diff >= OSDConfig.getInstance().getCacheExpire()) {
-                    move(files[i]);
-                }
-            }
-        }
-    }
-
-    private void move(File file) {
-        String targetPath = file.getAbsolutePath().substring(OSDConfig.getInstance().getCacheDiskpath().length());
-
-        logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_TARGET_PATH, targetPath);
-        File target = new File(targetPath);
-        if (target.exists()) {
-            if (!target.delete()) {
-                logger.error(OSDConstants.LOG_DELETE_FAILED, target.getAbsolutePath());
-            }
-        }
-
-        String command = OSDConstants.DO_MOVE_CACHE_TO_DISK_COMMAND + file.getAbsolutePath() + OSDConstants.SPACE + targetPath;
-        logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_COMMAND, command);
-        Process p;
         try {
-            p = Runtime.getRuntime().exec(command);
-            int exitCode = p.waitFor();
-            p.destroy();
-            logger.info(OSDConstants.LOG_DO_EC_PRI_OBJECT_ZFEC_EXIT_CODE, exitCode);
-            if (!file.delete()) {
-                logger.error(OSDConstants.LOG_DELETE_FAILED, file.getAbsolutePath());
+            File dir = new File(dirPath);
+            File[] files = dir.listFiles();
+
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    if (files[i].getName().equals(Constants.OBJ_DIR)) {
+                        // check(files[i].getAbsolutePath());
+                        tasks.add(new FindFiles(files[i]));
+                        return;
+                    } else {
+                        recursiveMove(files[i].getAbsolutePath());
+                    }
+                }
             }
-        } catch (IOException | InterruptedException e) {
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+        }
+    }
+
+    class FindFiles implements Callable<Void> {
+        // private volatile boolean isDone = false;
+        private File file;
+        private long expire = OSDConfig.getInstance().getCacheExpire();
+        List<String> fileList;
+        ExecutorService executor;
+        // Queue<String> queue = new LinkedList<>();
+
+        public FindFiles(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            try {
+                logger.info("file path : {}", file.getAbsolutePath());
+                executor = Executors.newFixedThreadPool(5);
+                fileList = new ArrayList<>();
+                // MoveWorker mover = new MoveWorker();
+                // mover.start();
+                check(file.getAbsolutePath());
+                if (fileList.size() > 0) {
+                    executor.execute(new MoveWorker(fileList));
+                }
+                executor.shutdown();
+                while (!executor.isTerminated()) {
+                    Thread.sleep(1000);
+                }
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+            } finally {
+                logger.info("FindFiles end : {}", file.getAbsolutePath());
+            }
+            // logger.info("file list size : {}", fileList.size());
+            // move();
+            return null;
+        }
+
+        private void check(String dirPath) {
+            File dir = new File(dirPath);
+            File[] files = dir.listFiles();
+            long now = Calendar.getInstance().getTimeInMillis();
+
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    check(files[i].getAbsolutePath());
+                } else if (files[i].isFile()) {
+                    long diff = (now - files[i].lastModified());
+                    if (diff >= expire) {
+                        fileList.add(files[i].getAbsolutePath());
+                        // queue.add(files[i].getAbsolutePath());
+                    }
+                }
+                if (fileList.size() >= 100) {
+                    // MoveFiles moveFiles = new MoveFiles(fileList);
+                    // executor.execute(moveFiles);
+                    executor.execute(new MoveWorker(fileList));
+                    fileList = new ArrayList<>();
+                }
+            }
+        }
+
+        class MoveWorker extends Thread {
+            List<String> list;
+            
+            MoveWorker(List<String> list) {
+                this.list = list;
+            }
+
+            public void run() {
+                try {
+                    byte[] buffer = new byte[512 * 1024];
+                    int len;
+                    for (String source : list) {
+                        if (isStop) {
+                            logger.info("MoveWorker is Stoped. : {}", file.getAbsolutePath());
+                            return;
+                        }
+
+                        if (source == null || source.isEmpty()) {
+                            continue;
+                        }
+
+                        String targetPath = source.substring(OSDConfig.getInstance().getCacheDiskpath().length());
+                        File file = new File(source);
+                        File target = new File(targetPath);
+                        
+                        if (file.exists()) {
+                            if (target.exists()) {
+                                if (!target.delete()) {
+                                    logger.error(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_DELETE_TARGET_FAIL, target.getAbsolutePath());
+                                } 
+                            }
+                            try (FileInputStream fis = new FileInputStream(file);
+                                 FileOutputStream fos = new FileOutputStream(target)) {
+                                while ((len = fis.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, len);
+                                }
+                                fos.flush();
+                                logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_RENAME_SUCCESS, file.getAbsolutePath(), targetPath);
+                            } catch (IOException e) {
+                                logger.error(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_RENAME_FAIL, file.getAbsolutePath(), targetPath);
+                                logger.error(e.getMessage());
+                                Files.createSymbolicLink(Paths.get(target.getAbsolutePath()), Paths.get(file.getAbsolutePath()));
+                            }
+                            // try {
+                            //     Files.move(Paths.get(file.getAbsolutePath()), Paths.get(target.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING);
+                            //     logger.info(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_RENAME_SUCCESS, file.getAbsolutePath(), targetPath);
+                            // } catch (IOException e) {
+                            //     logger.error(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_RENAME_FAIL, file.getAbsolutePath(), targetPath);
+                            //     logger.error(e.getMessage());
+                            // }
+                        }
+                    }
+                } catch (Exception e) {
+                    PrintStack.logging(logger, e);
+                }
+                logger.info("MoveWorker end : {}", file.getAbsolutePath());
+            }
         }
     }
 }
