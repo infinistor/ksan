@@ -69,11 +69,11 @@ public class Server {
     }
 
     public List<Disk> getDiskList() {
-        return new ArrayList<Disk>(diskList);
+        return diskList;
     }
 
     public void setDiskList(List<Disk> diskList) {
-        this.diskList = new ArrayList<Disk>(diskList);
+        this.diskList = diskList;
     }
 
     public void addDisk(Disk disk) {

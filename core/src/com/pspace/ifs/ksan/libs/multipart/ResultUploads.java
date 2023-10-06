@@ -63,11 +63,11 @@ public class ResultUploads {
     }
     
     public List<Upload> getList() {
-        return new ArrayList<Upload>(list);
+        return list;
     }
     
     public void setList(List<Upload> list) {
-        this.list = new ArrayList<Upload>(list);
+        this.list = list;
     }
 
     public boolean isTruncated() {

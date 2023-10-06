@@ -239,11 +239,11 @@ public class S3Parameter {
     }
 
     public S3User getUser() {
-        return new S3User(user);
+        return user;
     }
 
     public void setUser(S3User user) {
-        this.user = new S3User(user);
+        this.user = user;
     }
 
     public S3Bucket getBucket() {
@@ -251,7 +251,7 @@ public class S3Parameter {
     }
 
     public void setBucket(S3Bucket bucket) {
-        this.bucket = new S3Bucket(bucket);
+        this.bucket = bucket;
     }
 
     public S3Bucket getSrcBucket() {
@@ -259,7 +259,7 @@ public class S3Parameter {
     }
 
     public void setSrcBucket(S3Bucket srcBucket) {
-        this.srcBucket = new S3Bucket(srcBucket);
+        this.srcBucket = srcBucket;
     }
 
     public String getSrcBucketName() {
