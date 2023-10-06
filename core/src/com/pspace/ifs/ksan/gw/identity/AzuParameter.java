@@ -64,24 +64,53 @@ public class AzuParameter {
         responseSize = 0L;
     }
 
+    public AzuParameter(AzuParameter parameter) {
+        request = parameter.getRequest();
+        response = parameter.getResponse();
+        inputStream = parameter.getInputStream();
+        user = parameter.getUser();
+        comp = parameter.getComp();
+        restype = parameter.getRestype();
+        prefix = parameter.getPrefix();
+        delimiter = parameter.getDelimiter();
+        marker = parameter.getMarker();
+        include = parameter.getInclude();
+        maxresults = parameter.getMaxResults();
+        timeout = parameter.getTimeout();
+        userName = parameter.getUserName();
+        containerName = parameter.getContainerName();
+        blobName = parameter.getBlobName();
+        method = parameter.getMethod();
+        statusCode = parameter.getStatusCode();
+        errorCode = parameter.getErrorCode();
+        requestSize = parameter.getRequestSize();
+        responseSize = parameter.getResponseSize();
+    }
+
     public HttpServletRequest getRequest() {
         return request;
     }
+
     public void setRequest(HttpServletRequest request) {
         this.request = request;
     }
+    
     public HttpServletResponse getResponse() {
         return response;
     }
+    
     public void setResponse(HttpServletResponse response) {
         this.response = response;
     }
+    
     public InputStream getInputStream() {
         return inputStream;
     }
+    
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
     }
+    
     public S3User getUser() {
         return user;
     }
@@ -89,96 +118,127 @@ public class AzuParameter {
     public void setUser(S3User user) {
         this.user = user;
     }
+    
     public String getComp() {
         return comp;
     }
+    
     public void setComp(String comp) {
         this.comp = comp;
     }
+    
     public String getRestype() {
         return restype;
     }
+    
     public void setRestype(String restype) {
         this.restype = restype;
     }
+    
     public String getPrefix() {
         return prefix;
     }
+    
     public void setDelimiter(String delimiter) {
         this.delimiter = delimiter;
     }
+    
     public String getDelimiter() {
         return delimiter;
     }
+    
     public void setMarker(String marker) {
         this.marker = marker;
     }
+    
     public String getMarker() {
         return marker;
     }
+    
     public void setInclude(String include) {
         this.include = include;
     }
+    
     public String getInclude() {
         return include;
     }
+    
     public void setMaxresults(String maxresults) {
         this.maxresults = maxresults;
     }
+    
     public String getMaxResults() {
         return maxresults;
     }
+    
     public void setTimeout(String timeout) {
         this.timeout = timeout;
     }
+    
     public String getTimeout() {
         return timeout;
     }
+    
     public void setPrefix(String prefix) {
         this.prefix = prefix;
     }
+    
     public void setUserName(String userName) {
         this.userName = userName;
     }
+    
     public String getUserName() {
         return this.userName;
     }
+    
     public String getContainerName() {
         return containerName;
     }
+    
     public void setContainerName(String containerName) {
         this.containerName = containerName;
     }
+    
     public String getBlobName() {
         return blobName;
     }
+    
     public void setBlobName(String blobName) {
         this.blobName = blobName;
     }
+    
     public String getPathCategory() {
         return pathCategory;
     }
+    
     public void setPathCategory(String pathCategory) {
         this.pathCategory = pathCategory;
     }
+    
     public String getMethod() {
         return method;
     }
+    
     public void setMethod(String method) {
         this.method = method;
     }
+    
     public int getStatusCode() {
         return statusCode;
     }
+    
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
+    
     public String getErrorCode() {
         return errorCode;
     }
+    
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
+    
     public void setRequestSize(long requestSize) {
         this.requestSize = requestSize;
     }

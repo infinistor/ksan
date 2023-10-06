@@ -13,6 +13,9 @@ package com.pspace.backend.libs.Ksan;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pspace.backend.libs.Data.S3.S3BucketData;
 import com.pspace.backend.libs.Data.S3.S3ObjectData;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -23,7 +26,9 @@ import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 public class ObjManagerHelper {
-	private static ObjManagerUtil ObjManager;
+	private final Logger logger = LoggerFactory.getLogger(ObjManagerHelper.class);
+	private static ObjManagerUtil objManager;
+	public static int MAX_KEY_SIZE = 1000;
 
 	public static ObjManagerHelper getInstance() {
 		return LazyHolder.INSTANCE;
@@ -34,34 +39,80 @@ public class ObjManagerHelper {
 	}
 
 	public void init(ObjManagerConfig config) throws Exception {
-		ObjManager = new ObjManagerUtil(config);
+		objManager = new ObjManagerUtil(config);
 	}
 
 	public List<Bucket> getBucketList() {
-		return ObjManager.getBucketList();
+		return objManager.getBucketList();
 	}
 
 	public S3BucketData getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
-		return new S3BucketData(ObjManager.getBucket(bucketName));
+		return new S3BucketData(objManager.getBucket(bucketName));
 	}
 
-	public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects){
-		return ObjManager.listObjects(bucketName, lastObjId, numObjects);
+	public List<Metadata> listObjects(String bucketName, String lastObjId, long numObjects) {
+		return objManager.listObjects(bucketName, lastObjId, numObjects);
 	}
-	public List<Metadata> listObjects(String bucketName, String KeyMarker, String nextVersionId, long numObjects){
-		return ObjManager.listObjectsVersion(bucketName, "", KeyMarker, nextVersionId, numObjects);
+
+	public List<Metadata> listObjects(String bucketName, String KeyMarker, String nextVersionId, long numObjects) {
+		return objManager.listObjectsVersion(bucketName, "", KeyMarker, nextVersionId, numObjects);
 	}
+
+	public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, long ExpiredTime) {
+		try {
+			return objManager.listExpiredObjects(bucketName, prefix, nextMarker, MAX_KEY_SIZE, ExpiredTime);
+		} catch (Exception e) {
+			logger.error("", e);
+			return null;
+		}
+	}
+
+	public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker,
+			String nextVersionId, long ExpiredTime) {
+		try {
+			return objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, MAX_KEY_SIZE,
+					ExpiredTime);
+		} catch (Exception e) {
+			logger.error("", e);
+			return null;
+		}
+	}
+
+	/**
+	 * 삭제 마커만 남은 객체 목록을 조회한다.
+	 * @param bucketName
+	 * @param prefix
+	 * @param nextMarker
+	 * @return
+	 */
+	public List<Metadata> listDeleteMarkers(String bucketName, String prefix, String nextMarker) {
+		try {
+			return objManager.listDeleteMarkedObjects(bucketName, prefix, nextMarker, MAX_KEY_SIZE);
+		} catch (Exception e) {
+			logger.error("", e);
+			return null;
+		}
+	}
+
+	// public int getObjectCount(String bucketName, String objectName) {
+	// 	try {
+	// 		return objManager.getObjectCount(bucketName, objectName);
+	// 	} catch (Exception e) {
+	// 		log.error("", e);
+	// 		return 0;
+	// 	}
+	// }
 
 	public S3ObjectData getObject(String bucketName, String objectName) throws ResourceNotFoundException {
-		return new S3ObjectData(ObjManager.getObject(bucketName, objectName));
+		return new S3ObjectData(objManager.getObject(bucketName, objectName));
 	}
 
 	public S3ObjectData getObject(String bucketName, String objectName, String versionId)
 			throws ResourceNotFoundException {
-		return new S3ObjectData(ObjManager.getObject(bucketName, objectName, versionId));
+		return new S3ObjectData(objManager.getObject(bucketName, objectName, versionId));
 	}
 
 	public ObjMultipart getMultipartInstance(String bucketName) {
-		return ObjManager.getMultipartInsatance(bucketName);
+		return objManager.getMultipartInsatance(bucketName);
 	}
 }

@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.osd;
 import com.pspace.ifs.ksan.osd.utils.OSDConfig;
 import com.pspace.ifs.ksan.osd.utils.OSDConstants;
 import com.pspace.ifs.ksan.osd.utils.OSDUtils;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -46,8 +47,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 class ConfigUpdateCallback implements MQCallback{
 	private static final Logger logger = LoggerFactory.getLogger(ConfigUpdateCallback.class);
@@ -104,13 +107,13 @@ public class OSDPortal {
 
 		// serviceId
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(OSDConstants.SERVICEID_PATH));
+			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty(Constants.OSD_SERVICEID_KEY) + File.separator + Constants.OSD_SERVICEID_FILE, StandardCharsets.UTF_8));
 			serviceId = reader.readLine();
 			logger.info("serviceId : {}", serviceId);
 			reader.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
-			System.exit(1);
+			throw new RuntimeException(new RuntimeException());
 		}
 
 		postGWEvent(true);
@@ -199,11 +202,14 @@ public class OSDPortal {
                 OSDConfig.getInstance().setVersion(version);
                 OSDConfig.getInstance().saveConfigFile();
 
-				OSDServer.startEmptyTrash();
-				OSDServer.startMoveCacheToDisk();
+				// OSDServer.startEmptyTrash();
+				// OSDServer.startMoveCacheToDisk();
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());
+		} catch (RuntimeException e) {
+			OSDUtils.logging(logger, e);
+			throw new RuntimeException(e);
 		} catch (Exception e) {
 			OSDUtils.logging(logger, e);
 			throw new RuntimeException(e);
@@ -259,7 +265,7 @@ public class OSDPortal {
 					}
 					// DiskPool diskPool = new DiskPool((String)item.get(DiskPool.ID), (String)item.get(DiskPool.NAME), (String)item.get(DiskPool.DISK_POOL_TYPE), (String)item.get(DiskPool.REPLICATION_TYPE));
 					JSONArray jsonServers = (JSONArray)item.get(DiskPool.SERVERS);
-					if (jsonServers != null && jsonServers.size() == 0) {
+					if (jsonServers == null || jsonServers.isEmpty()) {
 						logger.info("diskpools -- servers is empty");
 						return;
 					}

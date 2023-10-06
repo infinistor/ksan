@@ -55,11 +55,9 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 public class S3Signing {
 	private static final Logger logger = LoggerFactory.getLogger(S3Signing.class);
 	S3Parameter s3Parameter;
-	private int maxDateSkew;
 	
 	public S3Signing(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
-		this.maxDateSkew = s3Parameter.getMaxTimeSkew();
+		this.s3Parameter = new S3Parameter(s3Parameter);
 	}
 	
 	private boolean ishasDateHeader(HttpServletRequest request) {
@@ -165,7 +163,7 @@ public class S3Signing {
 			// s3Parameter.path = path;
 		}
 
-		return s3Parameter;
+		return new S3Parameter(s3Parameter);
 	}
 	
 	public S3Parameter validation(boolean isAdmin) throws GWException {
@@ -281,6 +279,8 @@ public class S3Signing {
 			finalAuthType = AuthenticationType.AWS_V2;
 		} else if ( authHeader.authenticationType == AuthenticationType.AWS_V4) {
 			finalAuthType = AuthenticationType.AWS_V4;
+		} else if (authHeader.authenticationType == AuthenticationType.GOOGLE) {
+			finalAuthType = AuthenticationType.GOOGLE;
 		} else {
 			logger.error(GWConstants.LOG_S3SIGNING_AUTHENTICATION_NULL, uri);
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
@@ -339,7 +339,7 @@ public class S3Signing {
 		}
 		
 		if (haveDate) {
-			GWUtils.isTimeSkewed(dateSkew, maxDateSkew, s3Parameter);
+			GWUtils.isTimeSkewed(dateSkew, s3Parameter.getMaxTimeSkew(), s3Parameter);
 		}
 		
 		String credential = user.getAccessSecret();
@@ -353,8 +353,15 @@ public class S3Signing {
 		
 		logger.info(GWConstants.LOG_S3SIGNING_URI, preuri);
 		if (authHeader.hmacAlgorithm == null) { //v2
-			expectedSignature = s3Signature.createAuthorizationSignature(
+			if (authHeader.authenticationType == AuthenticationType.AWS_V2) {
+				expectedSignature = s3Signature.createAuthorizationSignature(
 					s3Parameter.getRequest(), uriForSigning, credential, presignedUrl, haveBothDateHeader);
+			} else if (authHeader.authenticationType == AuthenticationType.GOOGLE) {
+				expectedSignature = s3Signature.createAuthorizationSignatureGoogle(s3Parameter.getRequest(), uriForSigning, credential);
+			} else {
+				logger.error(GWConstants.LOG_S3SIGNING_AUTHENTICATION_NULL, authHeader.authenticationType);
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
 		} else {
 			String contentSha256 = s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_CONTENT_SHA256);
 			byte[] payload = null;
@@ -381,7 +388,9 @@ public class S3Signing {
 						PrintStack.logging(logger, e);
 					}
 					
-					s3Parameter.setInputStream(new ByteArrayInputStream(payload));
+					if (payload != null) {
+						s3Parameter.setInputStream(new ByteArrayInputStream(payload));
+					}
 				}
 			}
 
@@ -424,7 +433,7 @@ public class S3Signing {
 		
 		s3Parameter.setUser(user);
 		
-		return s3Parameter;
+		return new S3Parameter(s3Parameter);
 	}
 	
 	public String uriReconstructer(String uri, String hostHeader, Optional<String> virtualHost) {
@@ -606,6 +615,6 @@ public class S3Signing {
 		
 		// s3Parameter.s3Property = GWUtils.getS3Property();
 		s3Parameter.setUser(user);
-		return s3Parameter;
+		return new S3Parameter(s3Parameter);
 	}
 }

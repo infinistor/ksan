@@ -191,10 +191,9 @@ public class DeleteObject extends S3Request {
 			s3Metadata.setContentLength(0L);
 			s3Metadata.setTier(GWConstants.AWS_TIER_STANTARD);
 
-			int result;
 			objMeta.set("", "", s3Metadata.toString(), "", 0L);
 			objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
-			result = insertObject(bucket, object, objMeta);
+			insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_DELETE_MARKER, GWConstants.XML_TRUE);
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);

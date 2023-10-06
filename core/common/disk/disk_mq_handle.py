@@ -241,7 +241,7 @@ def DiskUsageMonitoring(Conf, DiskStatInfo, GlobalFlag, logger):
                         #ServerId = disk['ServerId']
                         #State = disk['State']
                         Usage = Disk(disk['Path'])
-                        ret, errlog = Usage.GetUsage(disk['State'])
+                        ret, errlog = Usage.GetUsage(disk['State'], disk['Id'])
                         if ret == ResOk:
                             Usage.GetInode()
                             disk['TotalSize'] = Usage.TotalSize

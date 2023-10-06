@@ -60,13 +60,11 @@ def UpdateNetworkStat(Conf, GlobalFlag, logger):
 
                     for dev in Svr.NetworkInterfaces:
                         try:
-                            #stat1 = LocalDev.IoCounterPerNic
-                            stat1 = psutil.net_io_counters(pernic=True)
-                            #LocalDev.ReNewalNicStat()
+                            stat1 = LocalDev.IoCounterPerNic
+                            LocalDev.ReNewalNicStat()
                             time.sleep(1)
                             # Update Network Io(Rx/Tx) bytes per 1 sec
-                            #stat2 = LocalDev.IoCounterPerNic
-                            stat2 = psutil.net_io_counters(pernic=True)
+                            stat2 = LocalDev.IoCounterPerNic
                             RxPerSec = stat2[dev.Name].bytes_recv - stat1[dev.Name].bytes_recv
                             TxPerSec = stat2[dev.Name].bytes_sent - stat1[dev.Name].bytes_sent
                             stat = RequestNetworkInterfaceStat(dev.Id, dev.ServerId, RxPerSec, TxPerSec)

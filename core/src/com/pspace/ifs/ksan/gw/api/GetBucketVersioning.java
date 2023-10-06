@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -69,7 +71,7 @@ public class GetBucketVersioning extends S3Request {
 		logger.debug(GWConstants.LOG_GET_BUCKET_VERSIONING_XML, xml);
 		try {
 			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-			s3Parameter.getResponse().getOutputStream().write(xml.getBytes());
+			s3Parameter.getResponse().getOutputStream().write(xml.getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);

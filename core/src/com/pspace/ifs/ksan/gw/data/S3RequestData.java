@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.data;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -48,7 +50,7 @@ public class S3RequestData {
 	protected Logger logger;
 
 	public S3RequestData(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 		logger = LoggerFactory.getLogger(S3RequestData.class);
 	}
 
@@ -527,22 +529,23 @@ public class S3RequestData {
 	}
 
 	public String getObjectLockXml() throws GWException {
-		String ObjectLockXml = readXml();
+		// String ObjectLockXml = readXml();
 
-		XmlMapper xmlMapper = new XmlMapper();
-		@SuppressWarnings("unused")
-		ObjectLockConfiguration oc;
-		try {
-			oc = xmlMapper.readValue(ObjectLockXml, ObjectLockConfiguration.class);
-		} catch (JsonMappingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		} catch (JsonProcessingException e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-		}
+		// XmlMapper xmlMapper = new XmlMapper();
+		// @SuppressWarnings("unused")
+		// ObjectLockConfiguration oc;
+		// try {
+		// 	oc = xmlMapper.readValue(ObjectLockXml, ObjectLockConfiguration.class);
+		// } catch (JsonMappingException e) {
+		// 	PrintStack.logging(logger, e);
+		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		// } catch (JsonProcessingException e) {
+		// 	PrintStack.logging(logger, e);
+		// 	throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		// }
 
-		return ObjectLockXml;
+		// return ObjectLockXml;
+		return readXml();
 	}
 
 	public String getConfirmRemoveSelfBucketAccess() {
@@ -619,7 +622,7 @@ public class S3RequestData {
 		try {
 			byte[] xml = s3Parameter.getInputStream().readAllBytes();
 			s3Parameter.addRequestSize(xml.length);
-			ret = new String(xml);
+			ret = new String(xml, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -645,7 +648,7 @@ public class S3RequestData {
 		try {
 			byte[] json = s3Parameter.getInputStream().readAllBytes();
 			s3Parameter.addRequestSize(json.length);
-			ret = new String(json);
+			ret = new String(json, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);

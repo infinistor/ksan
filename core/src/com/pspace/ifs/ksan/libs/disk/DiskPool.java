@@ -113,11 +113,11 @@ public class DiskPool {
     }
 
     public List<Server> getServerList() {
-        return serverList;
+        return new ArrayList<Server>(serverList);
     }
 
     public void setServerList(List<Server> serverList) {
-        this.serverList = serverList;
+        this.serverList = new ArrayList<Server>(serverList);
     }
 
     public void addServer(Server server) {

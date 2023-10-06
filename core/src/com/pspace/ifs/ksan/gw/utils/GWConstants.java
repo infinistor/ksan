@@ -28,10 +28,11 @@ public final class GWConstants {
 	public static final String CONFIG_PATH = "/var/log/ksan/gw/gw_dump.conf";
 	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
-	public static final String SERVICEID_PATH = "/usr/local/ksan/sbin/.ksanGW.ServiceId";
+	public static final String SERVICEID_PATH = "/usr/local/ksan/etc/ksanGW.ServiceId";
 
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
+	public static final String MQUEUE_UTILITY_EXCHANGE_NAME = "ksan.UtilityExchange";
     public static final String MQUEUE_OSD_EXCHANGE_NAME = "OSDExchange";
 	public static final String MQUEUE_LOG_EXCHANGE_NAME = "ksan.log";
 
@@ -55,6 +56,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
 	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
+	public static final String MQUEUE_NAME_UTILITY_RECOVERD = "services.recoverd.report.fail_of_replication";
 
 	public static final String RESTORE_BUCKET_NAME = "BucketName";
 	public static final String RESTORE_OBJECT_NAME = "ObjectName";
@@ -80,6 +82,13 @@ public final class GWConstants {
 	public static final String KMON_POOPERTY_POTAL_KEY = "IfsPortalKey";
 	public static final String KMON_PROPERTY_MQ_PORT = "MqPort";
 	public static final String KMON_PROPERTY_SERVER_ID = "ServerId";
+
+	public static final String RECOVERD_JSON_VERSIONID = "VersionId";
+	public static final String RECOVERD_JSON_BUCKETNAME = "bucketName";
+	public static final String RECOVERD_JSON_OSD_IP = "osdIP";
+	public static final String RECOVERD_JSON_DISK_PATH = "DiskPath";
+	public static final String RECOVERD_JSON_OBJECT_ID = "objId";
+	public static final String RECOVERD_JSON_DISK_ID = "DiskId";
 
 	public static final String PERFORMANCE_MODE_NO_OPTION = "NO_OPTION";
 	public static final String PERFORMANCE_MODE_NO_IO = "NO_IO";
@@ -136,6 +145,8 @@ public final class GWConstants {
 	public static final String XML_VERSION_CONFIGURATION_STATUS_TAIL ="</Status>";
 	public static final String XML_VERSION_CONFIGURATION_TAIL = "</VersioningConfiguration>";
 	public static final String XML_CONTENT_TYPE = "application/xml";
+
+	public static final String JSON_CONTENT_TYPE = "application/json";
 	
 	public static final String DIRECTORY_SUFFIX = GWConstants.SLASH;
 	
@@ -155,6 +166,15 @@ public final class GWConstants {
 	public static final String MARIADB_VALIDATION_QUERY = "select 1";
 
 	public static final int RETRY_COUNT = 3;
+
+	public static final String GCS_HOST = "storage.googleapis.com";
+	public static final String GCS_PATH = "/storage/v1/";
+	public static final String GCS_BUCKET_PATH = "/storage/v1/b/";
+	public static final String GCS_USER_NAME = "gcs-user";
+	public static final String GCS_BUCKET_REQUEST = "/b";
+	public static final String GCS_BUCKET_CONTAIN_REQUEST = "/b/";
+	public static final String GCS_OBJECT_REQUEST = "/o";
+	public static final String GCS_OBJECT_CONTAIN_REQUEST = "/o/";
 
 	public static final String METHOD_PUT = "PUT";
 	public static final String METHOD_GET = "GET";
@@ -190,6 +210,7 @@ public final class GWConstants {
 	public static final String EMPTY_STRING = "";
 	public static final String AWS = "AWS";
 	public static final String AWS_SPACE = "AWS ";
+	public static final String GOOGLE_SPACE = "GOOG1 ";
 	public static final String AWS4_HMAC = "AWS4-HMAC";
 	public static final String AWS4 = "AWS4";
 	public static final String HMAC = "Hmac";
@@ -309,6 +330,10 @@ public final class GWConstants {
 	public static final String UNDEFINED_METHOD = "undefined method : {}";
 
 	public static final String START_WITH_X_AMZ = "x-amz-";
+
+	// GOOGLE GCS Header
+	public static final String GCS_HEADER_API_VERSION = "x-goog-api-version";
+	public static final String GCS_HEADER_PROJECT_ID = "x-goog-project-id";
 
 	// policy actions constants
 	public static final String ACTION_ALL = "s3:*";
@@ -921,6 +946,10 @@ public final class GWConstants {
 	public static final String MESSAGE_QUEUE_OPTION_FANOUT = "fanout";
 	public static final String MESSAGE_QUEUE_OPTION_DIRECT = "direct";
 
+	// GWMain
+	public static final String LOG_GW_START = "GWMain Started.";
+	public static final String LOG_PID_FILE_CREATE_FAILED = "pid file create is fail";
+	
 	// GWConfig
 	public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
@@ -1337,6 +1366,7 @@ public final class GWConstants {
 	public static final String LOG_UTILS_SOURCE_ACL = "source acl : {}";
 	public static final String LOG_UTILS_CANNED_ACL = "cannedAcl : {}";
 	public static final String LOG_UTILS_ACL_XML = "aclXml : {}";
+	public static final String LOG_UTILS_GW_DISK_MAKE_DIR_FAILED = "failed to make disk dir : {}";
 
 	// Data
 	public static final String LOG_DATA_UPLOAD_ID_NULL = "uploadid is null or empty";
@@ -1540,4 +1570,15 @@ public final class GWConstants {
 	public static final String LOG_VALUE = "value : {}";
 	public static final String LOG_T_KEY = "t.key : {}";
 	public static final String LOG_T_VALUE = "t.value : {}";
+
+	// GCS
+	public static final String LOG_GCS_CREATE_BUCKET_START = "GCS CreateBucket ...";
+	public static final String LOG_GCS_LIST_BUCKET_START = "GCS ListBucket ...";
+	public static final String LOG_GCS_DELETE_START = "GCS DeleteBucket...";
+	public static final String LOG_GCS_PUT_OBJECT_START = "GCS PutObject...";
+	public static final String LOG_GCS_DELETE_OBJECT_START = "GCS DeleteObject...";
+	public static final String LOG_GCS_HEAD_OBJECT_START = "GCS HeadObject...";
+	public static final String LOG_GCS_GET_OBJECT_START = "GCS GetObject...";
+	public static final String LOG_GCS_LIST_OBJECTS_START = "GCS ListObjects...";
+	public static final String LOG_GCS_POST_OBJECT_START = "GCS PostObject...";
 }

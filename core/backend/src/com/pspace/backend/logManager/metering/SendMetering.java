@@ -30,10 +30,10 @@ public class SendMetering {
 		while (!Quit) {
 			// 일시정지 확인
 			if (Stop) {
-				Utility.Delay(config.getMeterDelay());
+				Utility.delay(config.getMeterDelay());
 				continue;
 			}
-			Utility.Delay(config.getMeterDelay());
+			Utility.delay(config.getMeterDelay());
 			AssetTime += config.getMeterDelay();
 
 			DB.insertApiMeter(config.getMeter());

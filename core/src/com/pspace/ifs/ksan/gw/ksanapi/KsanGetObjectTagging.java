@@ -12,6 +12,7 @@ package com.pspace.ifs.ksan.gw.ksanapi;
 
 import com.pspace.ifs.ksan.gw.api.S3Request;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
@@ -80,7 +81,7 @@ public class KsanGetObjectTagging extends S3Request {
 			try {
 				if (!Strings.isNullOrEmpty(taggingInfo)) {
 					s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-					s3Parameter.getResponse().getOutputStream().write(taggingInfo.getBytes());
+					s3Parameter.getResponse().getOutputStream().write(taggingInfo.getBytes(StandardCharsets.UTF_8));
 				}
 			} catch (IOException e) {
 				PrintStack.logging(logger, e);

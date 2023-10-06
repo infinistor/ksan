@@ -54,7 +54,7 @@ public class Bucket {
         mfaDelete = "";
         acl = "";
         userId = "";
-        createTime = new Date(0);
+        createTime = new Date();
         replicaCount= 0;
         encryption = "";
         objectlock = "";
@@ -74,7 +74,7 @@ public class Bucket {
         mfaDelete = "";
         acl = "";
         userId = "";
-        createTime = new Date(0);
+        createTime = new Date();
         replicaCount = 0;
         encryption = "";
         objectlock = "";
@@ -94,7 +94,7 @@ public class Bucket {
         this.mfaDelete = "";
         this.acl = acl;
         this.userId = userId; 
-        this.createTime = new Date(0);
+        this.createTime = new Date();
         if (createTime != null)
             this.createTime = createTime;
           

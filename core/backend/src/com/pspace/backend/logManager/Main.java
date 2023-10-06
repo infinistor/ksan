@@ -37,13 +37,14 @@ public class Main {
 			return;
 		}
 		logger.info("ksanAgent Read end");
-		
+
 		// Get Service Id
-		var ServiceId = Utility.ReadServiceId(Constants.LOG_MANAGER_SERVICE_ID_PATH);
+		var ServiceId = Utility.getServiceId(Constants.LOG_MANAGER_SERVICE_ID_PATH);
 		if (ServiceId == null) {
-			logger.error("Service Id is Empty");
+			logger.error("Service Id is Empty. path : {}", Constants.LOG_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
+
 		// Heartbeat
 		Thread HBThread;
 		Heartbeat HB;
@@ -66,11 +67,10 @@ public class Main {
 
 		// DB 초기화
 		var DB = DBManager.getInstance();
-		try{
+		try {
 			DB.init(config.getDBConfig());
 			DB.connect();
-		}catch (Exception e)
-		{
+		} catch (Exception e) {
 			logger.error("db connect error : ", e);
 			return;
 		}
@@ -84,7 +84,7 @@ public class Main {
 		logger.info("Logger Initialization!");
 
 		while (true) {
-			Utility.Delay(10000);
+			Utility.delay(10000);
 		}
 	}
 }

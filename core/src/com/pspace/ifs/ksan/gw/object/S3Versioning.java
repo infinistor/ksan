@@ -31,7 +31,7 @@ public class S3Versioning {
 	private String status = null;
 	
 	public S3Versioning(S3Parameter s3Parameter) {
-		this.s3Parameter = s3Parameter;
+		this.s3Parameter = new S3Parameter(s3Parameter);
 	}
 	
 	public void build() throws GWException {

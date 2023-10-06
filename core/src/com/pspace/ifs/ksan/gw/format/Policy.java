@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.HashMultimap;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 public final class Policy {
@@ -74,7 +75,7 @@ public final class Policy {
 			
 			@JsonAnyGetter 
 			public Multimap<String, JsonNode> getUserExtensions() { 
-				return userExtensions; 
+				return HashMultimap.create(userExtensions);
 			} 
 			
 			@JsonAnySetter 

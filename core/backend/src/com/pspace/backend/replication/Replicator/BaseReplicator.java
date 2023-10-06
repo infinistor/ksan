@@ -13,11 +13,7 @@ package com.pspace.backend.replication.Replicator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Config.ReplicationManagerConfig;
 import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
@@ -50,7 +46,7 @@ public abstract class BaseReplicator implements MQCallback {
 	public void setConfig() {
 		this.config = portal.getReplicationManagerConfig();
 		this.sourceRegion = portal.getLocalRegion();
-		this.sourceClient = createClient(sourceRegion);
+		this.sourceClient = sourceRegion.client;
 	}
 
 	/******************************************
@@ -58,7 +54,7 @@ public abstract class BaseReplicator implements MQCallback {
 	 *************************************************/
 
 	protected boolean checkRegion(String regionName) {
-		if (StringUtils.isBlank(regionName) || sourceRegion.Name == regionName) return true;
+		if (StringUtils.isBlank(regionName) || sourceRegion.name == regionName) return true;
 
 		var Region = portal.getRegion(regionName);
 		if (Region == null) {
@@ -68,31 +64,17 @@ public abstract class BaseReplicator implements MQCallback {
 		return Utility.checkAlive(Region.getHttpURL());
 	}
 
-	protected AmazonS3 createClient(S3RegionData Region) {
-		BasicAWSCredentials credentials = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
-		logger.debug("Client : {}, {}", Region.AccessKey, Region.SecretKey);
-
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
-				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(Region.getHttpURL(), ""))
-				.withPathStyleAccessEnabled(true).build();
-	}
-
 	protected AmazonS3 CreateClient(ReplicationEventData Data) throws Exception {
-		return CreateClient(Data.TargetRegion);
+		return getRegionClient(Data.TargetRegion);
 	}
 
-	protected AmazonS3 CreateClient(String RegionName) throws Exception {
+	protected AmazonS3 getRegionClient(String RegionName) throws Exception {
 		if (StringUtils.isBlank(RegionName))
 			return sourceClient;
 
-		var Region = portal.getRegion(RegionName);
-		if (Region == null)
+		var region = portal.getRegion(RegionName);
+		if (region == null)
 			throw new Exception(RegionName + " Region is not exists.");
-
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
-
-		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(Region.getHttpURL(), ""))
-				.withPathStyleAccessEnabled(true).build();
+		return region.client;
 	}
 }

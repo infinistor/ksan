@@ -101,8 +101,12 @@ public class ListContainers extends AzuRequest {
                 PrintStack.logging(logger, e);
                 throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
             }
+        } catch (RuntimeException e) {
+            PrintStack.logging(logger, e);
+            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
         } catch (Exception e) {
             PrintStack.logging(logger, e);
+            throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
         }
         
         azuParameter.getResponse().setStatus(HttpServletResponse.SC_OK);

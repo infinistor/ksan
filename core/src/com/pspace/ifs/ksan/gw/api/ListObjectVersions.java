@@ -71,9 +71,9 @@ public class ListObjectVersions extends S3Request {
 
 		if (!Strings.isNullOrEmpty(maxKeys)) {
 			try {
-				if (Integer.valueOf(maxKeys) < 0) {
+				if (Integer.parseInt(maxKeys) < 0) {
 					throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
-				} else if (Integer.valueOf(maxKeys) > 1000) {
+				} else if (Integer.parseInt(maxKeys) > 1000) {
 					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 				} else {
 					s3ObjectList.setMaxKeys(maxKeys);
@@ -86,7 +86,7 @@ public class ListObjectVersions extends S3Request {
 		}
 
 		logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_MAXKEYS, s3ObjectList.getMaxKeys());
-		if (Integer.valueOf(s3ObjectList.getMaxKeys()) < 0) {
+		if (Integer.parseInt(s3ObjectList.getMaxKeys()) < 0) {
 			throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 		}
 		s3ObjectList.setPrefix(prefix);

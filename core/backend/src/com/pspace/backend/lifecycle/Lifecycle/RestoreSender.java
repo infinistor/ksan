@@ -25,7 +25,7 @@ public class RestoreSender implements MQCallback {
 	private final MQSender mq;
 
 	public RestoreSender(S3RegionData region) throws Exception {
-		ksanClient = new KsanClient(region.Address, region.Port, region.AccessKey, region.SecretKey);
+		ksanClient = new KsanClient(region.address, region.port, region.accessKey, region.secretKey);
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
 				ksanConfig.MQHost,

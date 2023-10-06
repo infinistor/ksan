@@ -12,6 +12,8 @@
 package com.pspace.ifs.ksan.objmanager;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoCommandException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import org.bson.Document; 
@@ -34,8 +36,6 @@ import com.pspace.ifs.ksan.libs.multipart.Upload;
 
 import java.net.UnknownHostException;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -52,6 +52,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -65,7 +67,7 @@ public class MongoDataRepository implements DataRepository{
     private ObjManagerCache obmCache;
     private MongoDatabase database; 
     private MongoCollection<Document> buckets;
-    private static Logger mongoLogger;
+    private static Logger logger;
     // constant for data elements
     // for object collection
     //private static final String BUCKET="bucket";
@@ -159,6 +161,7 @@ public class MongoDataRepository implements DataRepository{
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
         createRestoreObjHolder();
+        logger = LoggerFactory.getLogger(MongoDataRepository.class);
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -292,14 +295,41 @@ public class MongoDataRepository implements DataRepository{
     
     private MongoCollection<Document> getMultiPartUploadCollection(){
         MongoCollection<Document> multip;
-        
+        Document index;
+        Document index1;
         multip = this.database.getCollection(MULTIPARTUPLOAD);
         if (multip == null){
             database.createCollection(MULTIPARTUPLOAD);
             multip = database.getCollection(MULTIPARTUPLOAD); 
-            multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
+            //multip.createIndex(Indexes.ascending(UPLOADID, PARTNO, OBJKEY, BUCKETNAME), new IndexOptions().unique(true));
         }
-            
+        
+        if (multip != null){ 
+            try {
+                index1 = new Document(OBJKEY, 1);
+                if (indexExist(multip, index1) == false )
+                    multip.createIndex(index1); // index on objkey for listing
+                
+                index = new Document(UPLOADID, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); // index only in uploadid
+
+                index.append(PARTNO, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); // index on uploadid and partno
+
+                index.append(BUCKETNAME, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index, new IndexOptions().unique(true)); //index on uploadid  partno, and bucketname
+                
+                index.append(COMPLETED, 1);
+                if (indexExist(multip, index) == false )
+                    multip.createIndex(index); //index on uploadid  partno, bucketname and completed 
+                
+            } catch (MongoCommandException e) {
+                //ignore create index
+            }
+        }
         return multip;
     }
     
@@ -392,8 +422,19 @@ public class MongoDataRepository implements DataRepository{
         if (md.isReplicaExist())
             doc.append(RDISKID, md.getReplicaDisk().getId());
         if (!(md.getVersionId()).isEmpty())
-            objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
-        objects.insertOne(doc);
+            if (!md.getVersionId().equals("null"))
+                objects.updateMany(Filters.eq(OBJID, md.getObjId()), Updates.set(LASTVERSION, false));
+        try{
+            objects.insertOne(doc);
+        } catch(MongoWriteException ex){
+            if (ex.getCode() == 11000 && md.getVersionId().equals("null")){
+                deleteObject(md.getBucket(), md.getPath(), md.getVersionId());
+                objects.insertOne(doc);
+            } else{
+                throw new ResourceNotFoundException(ex.getMessage());
+            }
+                
+        }
         updateBucketObjectCount(md.getBucket(), 1);
     
         insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
@@ -708,7 +749,7 @@ public class MongoDataRepository implements DataRepository{
                 bt =parseBucket(bucketName, doc);
                 obmCache.setBucketInCache(bt);
             } catch (ResourceNotFoundException | SQLException ex) {
-                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+                logger.debug(ex.getMessage());
             }
         }
     } 
@@ -727,7 +768,7 @@ public class MongoDataRepository implements DataRepository{
                 Bucket bt = parseBucket(bucketName, doc);//new Bucket(bucketName, bucketId, diskPoolId);
                 btList.add(bt);
             } catch (ResourceNotFoundException | SQLException ex) {
-                Logger.getLogger(MongoDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+                logger.debug(ex.getMessage());
             }
         } 
         return btList;
@@ -764,20 +805,49 @@ public class MongoDataRepository implements DataRepository{
             doc.append(RDISKID, "");
         }
         doc.append(PARTREF, "");
+        try{
+            multip.insertOne(doc);
+        } catch(MongoWriteException ex){
+            if (ex.getCode() == 11000 && partNo > 0){
+                _updateMultipartUpload(multip, mt,  uploadid, partNo, false);
+            }
+            else{
+                throw new SQLException(ex.getMessage());
+            }
+        }
+        logger.debug("[insertMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, false, mt.getEtag());
+        return 0;
+    }
+    
+    private int _updateMultipartUpload(MongoCollection<Document> multip, Metadata mt,  String uploadid, int partNo, boolean iscompleted){
+        if (multip == null)
+            return -1;
         
-        multip.insertOne(doc);
+        multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
+                Updates.set(COMPLETED, iscompleted),
+                Updates.set(META, mt.getMeta()),
+                Updates.set(ETAG, mt.getEtag()),
+                Updates.set(SIZE, mt.getSize())
+                ));
         return 0;
     }
     
     @Override
-    public int updateMultipartUpload(String bucket,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
+    public int updateMultipartUpload(Metadata mt,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         MongoCollection<Document> multip;
         
         multip = getMultiPartUploadCollection();
         if (multip == null)
             return -1;
         
-        multip.updateOne(Filters.and(eq(BUCKETNAME, bucket), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.set(COMPLETED, iscompleted));
+         _updateMultipartUpload(multip, mt,  uploadid, partNo, iscompleted);
+        /*multip.updateOne(Filters.and(eq(BUCKETNAME, mt.getBucket()), eq(UPLOADID, uploadid), eq(PARTNO, partNo)), Updates.combine(
+                Updates.set(COMPLETED, iscompleted),
+                Updates.set(META, mt.getMeta()),
+                Updates.set(ETAG, mt.getEtag()),
+                Updates.set(SIZE, mt.getSize())
+                ));*/
+        logger.debug("[updateMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, iscompleted, mt.getEtag());
         return 0;
     }
     
@@ -1017,12 +1087,12 @@ public class MongoDataRepository implements DataRepository{
         if (multip == null)
             return resultUploads;
         
-        BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
+        //BasicDBObject sortList = new BasicDBObject(PARTNO, 1 );
         
         FindIterable fit = multip.find(
                 Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)))
-                .limit(maxUploads + 1)
-                .sort(sortList);
+                .limit(maxUploads + 1);
+                //.sort(sortList);
         
         int count = 0;
         Iterator it = fit.iterator();
@@ -1040,6 +1110,8 @@ public class MongoDataRepository implements DataRepository{
             Upload upload = new Upload(doc.getString(OBJKEY), changeTime, doc.getString(UPLOADID), doc.getString(META));
             resultUploads.getList().add(upload);
         }
+        logger.debug("bucket : {} maxUploads : {} query :{} res_cnt : {}  resultUploads_getList_size: {}", bucket, maxUploads, 
+                Filters.and(Filters.eq(BUCKETNAME, bucket), Filters.eq(PARTNO, 0), Filters.eq(COMPLETED, false)).toString(), count, resultUploads.getList().size());
         return resultUploads;
     }
 
@@ -1311,6 +1383,7 @@ public class MongoDataRepository implements DataRepository{
     public List<Metadata> getObjectList(String bucketName, Object query, int maxKeys, long offset) throws SQLException {
         int def_replicaCount = 0;
         int replicaCount;
+        boolean diskExist=false;
         MongoCollection<Document> objects;
         objects = database.getCollection(bucketName);
         BasicDBObject sortBy;
@@ -1349,6 +1422,7 @@ public class MongoDataRepository implements DataRepository{
             try {
                 mt.setPrimaryDisk(obmCache.getDiskWithId(pdiskid));
                 def_replicaCount = 1;
+                diskExist = true;
             } catch (ResourceNotFoundException ex) {
                 mt.setPrimaryDisk(new DISK());
             }
@@ -1367,7 +1441,11 @@ public class MongoDataRepository implements DataRepository{
             }
             
             try {
-                replicaCount = obmCache.getDiskPoolFromCache(mt.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount();
+                
+                if (diskExist)
+                   replicaCount = obmCache.getDiskPoolFromCache(mt.getPrimaryDisk().getDiskPoolId()).getDefaultReplicaCount();
+                else
+                   replicaCount = def_replicaCount; 
             } catch (ResourceNotFoundException ex) {
                replicaCount = def_replicaCount;
             }

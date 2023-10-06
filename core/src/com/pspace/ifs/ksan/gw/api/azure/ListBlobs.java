@@ -64,9 +64,9 @@ public class ListBlobs extends AzuRequest {
         S3ObjectList s3ObjectList = new S3ObjectList();
 		if (!Strings.isNullOrEmpty(maxResults)) {
 			try {
-				if (Integer.valueOf(maxResults) <= 0) {
+				if (Integer.parseInt(maxResults) <= 0) {
 					throw new AzuException(AzuErrorCode.BAD_REQUEST, azuParameter);
-				} else if (Integer.valueOf(maxResults) > 1000) {
+				} else if (Integer.parseInt(maxResults) > 1000) {
 					s3ObjectList.setMaxKeys(GWConstants.DEFAULT_MAX_KEYS);
 				} else {
 					s3ObjectList.setMaxKeys(maxResults);

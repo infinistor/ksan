@@ -149,7 +149,7 @@ namespace PortalSvr.Controllers.Services
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceWithGroup>))]
 		[HttpGet]
 		public async Task<ActionResult> GetServices(
-			List<EnumServiceState> SearchStates = null , int Skip = 0, int CountPerPage = 100
+			List<EnumServiceState> SearchStates = null, int Skip = 0, int CountPerPage = 100
 			, List<string> OrderFields = null, List<string> OrderDirections = null
 			, List<string> SearchFields = null, string SearchKeyword = ""
 		)

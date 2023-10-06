@@ -125,13 +125,13 @@ public class DeleteObjects extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		
         String versioningStatus = getBucketInfo().getVersioning();
-		String currentVid = null;
+		// String currentVid = null;
 		Metadata objMeta = null;
 		try {
 			logger.debug("bucket : {}, object : {}, versionId : {}", bucket, object, versionId);
 			if (Strings.isNullOrEmpty(versionId) || GWConstants.VERSIONING_DISABLE_TAIL.equals(versionId)) {
 				objMeta = open(bucket, object);
-				currentVid = objMeta.getVersionId();
+				// currentVid = objMeta.getVersionId();
 			} else {
 				objMeta = open(bucket, object, versionId);
 			}
@@ -198,10 +198,10 @@ public class DeleteObjects extends S3Request {
 							String jsonmeta = s3Metadata.toString();
 							// jsonMapper.setSerializationInclusion(Include.NON_NULL);
 							// jsonmeta = jsonMapper.writeValueAsString(s3Metadata);
-							int result;
+
 							objMeta.set("", "", jsonmeta, "", 0L);
 							objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_MARKER, true);
-							result = insertObject(bucket, object, objMeta);
+							insertObject(bucket, object, objMeta);
 							
 							logger.debug(GWConstants.LOG_PUT_DELETE_MARKER);
 							xml.writeStartElement(GWConstants.DELETE_RESULT_DELETED);

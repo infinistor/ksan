@@ -25,53 +25,49 @@ import org.slf4j.LoggerFactory;
 public class S3ObjectData {
 	final Logger logger = LoggerFactory.getLogger(S3ObjectData.class);
 
-	public String ObjectName;
+	public String objectName;
 	public String versionId;
+	public long size;
 	public Collection<Tag> tags;
 
 	public Boolean isTagSet;
 
-	public S3ObjectData(String ObjectName, String VersionId) {
-		this.ObjectName = ObjectName;
-		this.versionId = VersionId;
-		setTags(null);
-	}
-
-	public S3ObjectData(String ObjectName, String VersionId, String StrTags) {
-		this.ObjectName = ObjectName;
-		this.versionId = VersionId;
-		setTags(StrTags);
+	public S3ObjectData(String objectName, String versionId, long size, String strTags) {
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.size = size;
+		setTags(strTags);
 	}
 
 	public S3ObjectData(Metadata Data) {
-		this.ObjectName = Data.getPath();
+		this.objectName = Data.getPath();
 		this.versionId = Data.getVersionId();
 		setTags(Data.getTag());
 	}
 
-	public Boolean setTags(String StrTagging) {
-		if (StringUtils.isBlank(StrTagging)) {
+	public Boolean setTags(String strTagging) {
+		if (StringUtils.isBlank(strTagging)) {
 			isTagSet = false;
 			return false;
 		}
 		try {
 			// Tag 언마샬링
-			var MyTags = new XmlMapper().readValue(StrTagging, Tagging.class);
-			if (MyTags == null)
+			var myTags = new XmlMapper().readValue(strTagging, Tagging.class);
+			if (myTags == null)
 				return false;
-			if (MyTags.tags == null)
+			if (myTags.tags == null)
 				return false;
-			if (MyTags.tags.tags == null)
+			if (myTags.tags.tags == null)
 				return false;
-			if (MyTags.tags.tags.size() == 0)
+			if (myTags.tags.tags.size() == 0)
 				return false;
 
-			for (var MyTag : MyTags.tags.tags)
+			for (var MyTag : myTags.tags.tags)
 				tags.add(MyTag);
 			isTagSet = true;
 			return true;
 		} catch (Exception e) {
-			logger.error("Object info read failed : {}", StrTagging, e);
+			logger.error("Object info read failed : {}", strTagging, e);
 			return false;
 		}
 	}

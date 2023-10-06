@@ -235,11 +235,12 @@ public class UploadPartCopy extends S3Request {
 		// s3ObjectEncryption.build();
 
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
-		String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
-		if (path == null) {
-			path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
-		}
+		// String path = DiskManager.getInstance().getLocalPath(objMeta.getPrimaryDisk().getId());
+		// if (path == null) {
+		// 	path = DiskManager.getInstance().getPath(objMeta.getPrimaryDisk().getId());
+		// }
 		
+		objMultipart.startSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
 		S3Object s3Object = null;
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
 		IObjectManager objectManager = new VFSObjectManager();
@@ -252,9 +253,10 @@ public class UploadPartCopy extends S3Request {
 		}
 		objMeta.setSize(s3Object.getFileSize());
 		objMeta.setEtag(s3Object.getEtag());
+		objMeta.setMeta(s3Metadata.toString());
 		// objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
-		objMultipart.startSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
-		objMultipart.finishSingleUpload(uploadId, Integer.parseInt(partNumber));
+		
+		objMultipart.finishSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
 
 		s3Parameter.setFileSize(s3Object.getFileSize());
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);

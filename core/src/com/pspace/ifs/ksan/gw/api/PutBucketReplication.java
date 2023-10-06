@@ -11,6 +11,7 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -86,6 +87,7 @@ public class PutBucketReplication extends S3Request {
 		
 		if(rc.rules != null) {
 			logger.warn(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULES, rc.rules.toString());
+			Random random = new Random();
 			for(Rule rl : rc.rules) {
 				logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_ID, rl.id);
 				logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_PREFIX, rl.prefix);
@@ -98,8 +100,8 @@ public class PutBucketReplication extends S3Request {
 					id.put(rl.id, rl.id);
 				} else {
 					byte[] array = new byte[7]; // length is bounded by 7
-					new Random().nextBytes(array);
-					String generatedString = new String(array, Charset.forName(Constants.CHARSET_UTF_8));
+					random.nextBytes(array);
+					String generatedString = new String(array, StandardCharsets.UTF_8);
 					id.put(generatedString, generatedString);
 				}
 				
@@ -133,10 +135,10 @@ public class PutBucketReplication extends S3Request {
 					}
 				}
 
-				if (rl.deleteMarkerReplication != null && rl.deleteMarkerReplication.Status != null) {
+				if (rl.deleteMarkerReplication != null && rl.deleteMarkerReplication.status != null) {
 					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION, rl.deleteMarkerReplication);
-					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION_STATUS, rl.deleteMarkerReplication.Status);
-					if (rl.deleteMarkerReplication.Status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.deleteMarkerReplication.Status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
+					logger.info(GWConstants.LOG_PUT_BUCKET_REPLICATION_RULE_DELETE_MARKER_REPLICATION_STATUS, rl.deleteMarkerReplication.status);
+					if (rl.deleteMarkerReplication.status.compareTo(GWConstants.STATUS_ENABLED) != 0 && rl.deleteMarkerReplication.status.compareTo(GWConstants.STATUS_DISABLED) != 0) {
 						logger.error(GWErrorCode.MALFORMED_X_M_L.getMessage());
 						throw new GWException(GWErrorCode.MALFORMED_X_M_L, s3Parameter);
 					}

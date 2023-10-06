@@ -58,8 +58,4 @@ public class GWHandlerJetty extends AbstractHandler {
 			baseRequest.setHandled(true);
         }
     }
-    
-    public GWHandler getHandler() {
-        return this.handler;
-    }
 }

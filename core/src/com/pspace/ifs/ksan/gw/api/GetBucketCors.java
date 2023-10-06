@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.api;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -57,7 +59,7 @@ public class GetBucketCors extends S3Request {
 		try {
 			if (!Strings.isNullOrEmpty(cors)) {
 				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(cors.getBytes());
+				s3Parameter.getResponse().getOutputStream().write(cors.getBytes(StandardCharsets.UTF_8));
 			}
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);

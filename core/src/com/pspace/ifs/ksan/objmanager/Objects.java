@@ -12,6 +12,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
@@ -325,5 +326,29 @@ public class Objects {
         Object query = getListWithTagQuery(tagsList);
         logger.debug("[listObjectWithTags] tagsList> {} query> {} maxObjects {}", tagsList, query.toString(), maxObjects);
         return dbm.listObjectWithTags(bucketName, query, maxObjects);
+    }
+    
+    private String avoidNull(String str){
+        if (Strings.isNullOrEmpty(str))
+            return "";
+        return str;
+    }
+    
+    public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, int maxKeys, long expiredTime) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, avoidNull(prefix));
+        list.setExpiredTime(expiredTime, "listExpiredObject");
+        return list.getUnformatedList();
+    }
+    
+    public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker, String nextVersionId, int maxKeys, long expiredTime) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, nextVersionId, "", maxKeys, avoidNull(prefix));
+        list.setExpiredTime(expiredTime, "listExpiredObjectVersion");
+        return list.getUnformatedList();
+    }
+    
+    public List<Metadata> listDeleteMarkedObjects(String bucketName, String prefix, String nextMarker, int maxKeys) throws SQLException{
+        ListObject list = new ListObject(dbm, bucketName, "", nextMarker, "", "", maxKeys, avoidNull(prefix));
+        list.setExpiredTime(0, "listExpiredDeletedObject");
+        return list.getUnformatedList();
     }
 }

@@ -34,4 +34,6 @@ public interface IObjectManager {
 
     void restoreObject(S3Parameter param, Metadata meta, Metadata restoreMeta) throws GWException;
     void storageMove(S3Parameter param, Metadata meta, Metadata restoreMeta) throws GWException;
+
+    S3Object putObjectRange(S3Parameter param, Metadata meta, long offset, long length) throws GWException;
 }

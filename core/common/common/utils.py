@@ -560,6 +560,14 @@ def get_input(Description, type, default=None, ValidAnsList=None, ValueComment='
         print(err, sys.exc_info()[2].tb_lineno)
 
 
+def isSystemdServiceRunning(ServiceName):
+    status = "systemctl status %s|grep Active:" % ServiceName
+    out, err = shcall(status)
+    if 'running' in out:
+        return True
+    else:
+        return False
+
 
 def isValidConfig(ConfPath, *CheckKeys, **kwargs):
     """

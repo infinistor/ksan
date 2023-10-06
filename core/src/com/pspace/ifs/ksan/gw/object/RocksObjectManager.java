@@ -89,4 +89,10 @@ public class RocksObjectManager implements IObjectManager {
     public void storageMove(S3Parameter param, Metadata meta, Metadata restoreMeta) throws GWException {
         
     }
+
+    @Override
+    public S3Object putObjectRange(S3Parameter param, Metadata meta, long offset, long length) throws GWException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'putObjectRange'");
+    }
 }

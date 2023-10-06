@@ -58,7 +58,7 @@ public class MainReplicator {
 						Constants.MQ_QUEUE_REPLICATION_EVENT_ADD,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_REPLICATION_EVENT,
 						new EventReplicator());
 				eventReceivers.add(eventReceiver);

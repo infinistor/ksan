@@ -13,6 +13,7 @@ package com.pspace.backend.libs.Heartbeat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
@@ -37,7 +38,7 @@ public class Heartbeat {
 
 		while (!Stop) {
 			try {
-				Thread.sleep(Delay);
+				Utility.delay(Delay);
 				Sender.send(Request.toString(), Constants.MQ_HEARTBEAT_BINDING_KEY);
 			} catch (Exception e) {
 				logger.error("", e);

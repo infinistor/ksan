@@ -51,8 +51,4 @@ public class AzuHandlerJetty extends AbstractHandler {
             baseRequest.setHandled(true);
         }
     }
-
-    public AzuHandler getHandler() {
-        return handler;
-    }
 }

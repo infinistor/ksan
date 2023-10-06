@@ -69,9 +69,6 @@ namespace PortalSvr.Services
 							// API 키에 대한 사용자 정보를 가져온다.
 							var User = UserManager.FindByIdAsync(ResponseApiKey.Data.UserId).Result;
 
-							// 해당 사용자로 로그인 처리
-							SignInManager.SignInAsync(User, false).Wait();
-
 							// 로그인 정보를 저장한다. (이번 요청부터 로그인된 상태를 처리하기 하기 위해서)
 							context.HttpContext.User = ClaimsPrincipalFactory.CreateAsync(User).Result;
 

@@ -26,10 +26,12 @@ import javax.xml.stream.XMLStreamWriter;
 import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.api.S3Request;
 import com.pspace.ifs.ksan.gw.api.S3RequestFactory;
-import com.pspace.ifs.ksan.gw.db.GWDB;
+import com.pspace.ifs.ksan.gw.api.gcs.GCSRequest;
+import com.pspace.ifs.ksan.gw.api.gcs.GCSRequestFactory;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.gw.object.osdclient.OSDClientManager;
 import com.pspace.ifs.ksan.gw.sign.S3Signing;
@@ -37,6 +39,7 @@ import com.pspace.ifs.ksan.gw.utils.AsyncHandler;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.objmanager.ObjManager;
@@ -100,7 +103,59 @@ public class GWHandler {
 			}
 		} catch (UnsupportedEncodingException e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.BAD_REQUEST, null);
+			S3Parameter s3Parameter = new S3Parameter();
+			s3Parameter.setURI(uri);
+			s3Parameter.setRequestSize(requestSize);
+			s3Parameter.setMethod(method);
+			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
+		}
+
+		// check if the request is for GCS, OAuth2
+		if (uri.contains(GWConstants.GCS_PATH) /*&& request.getHeader(HttpHeaders.HOST).equals(GWConstants.GCS_HOST)*/) {
+			S3Parameter s3Parameter = new S3Parameter();
+			s3Parameter.setURI(uri);
+			s3Parameter.setRequestSize(requestSize);
+			s3Parameter.setRequestID(requestID);
+			s3Parameter.setRequest(request);
+			s3Parameter.setResponse(response);
+			s3Parameter.setInputStream(is);
+			s3Parameter.setMethod(method);
+
+			if (uri.endsWith(GWConstants.GCS_BUCKET_REQUEST)) {
+				s3Parameter.setPathCategory(GWConstants.CATEGORY_BUCKET);
+			} else if (uri.endsWith(GWConstants.GCS_OBJECT_REQUEST)) {
+				s3Parameter.setPathCategory(GWConstants.CATEGORY_OBJECT);
+				String bucketName = uri.substring(uri.indexOf(GWConstants.GCS_BUCKET_PATH) + GWConstants.GCS_BUCKET_PATH.length(), uri.length() - 2);
+				s3Parameter.setBucketName(bucketName);
+			} else if (uri.contains(GWConstants.GCS_BUCKET_CONTAIN_REQUEST)) {
+				if (uri.contains(GWConstants.GCS_OBJECT_CONTAIN_REQUEST)) {
+					s3Parameter.setPathCategory(GWConstants.CATEGORY_OBJECT);
+					String bucketName = uri.substring(uri.indexOf(GWConstants.GCS_BUCKET_PATH) + GWConstants.GCS_BUCKET_PATH.length(), uri.indexOf(GWConstants.GCS_OBJECT_CONTAIN_REQUEST));
+					s3Parameter.setBucketName(bucketName);
+					String objectName = uri.substring(uri.indexOf(GWConstants.GCS_OBJECT_CONTAIN_REQUEST) + 3);
+					s3Parameter.setObjectName(objectName);
+					logger.debug("bucketName : {}, objectName : {}", bucketName, objectName);
+				} else {
+					s3Parameter.setPathCategory(GWConstants.CATEGORY_BUCKET);
+					String bucketName = uri.substring(GWConstants.GCS_BUCKET_PATH.length());
+					s3Parameter.setBucketName(bucketName);
+					logger.debug("bucketName : {}", bucketName);
+				}
+			} else {
+				s3Parameter.setPathCategory(GWConstants.CATEGORY_ROOT);
+			}
+
+			S3User s3User = S3UserManager.getInstance().getUserByName(GWConstants.GCS_USER_NAME);
+			
+			if (s3User == null) {
+				throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
+			}
+			s3Parameter.setUser(s3User);
+
+			GCSRequestFactory gcsRequestFactory = new GCSRequestFactory();
+			GCSRequest gcsRequest = gcsRequestFactory.createRequest(s3Parameter);
+			gcsRequest.process();
+			return;
 		}
 
 		S3Parameter s3Parameter = new S3Parameter();

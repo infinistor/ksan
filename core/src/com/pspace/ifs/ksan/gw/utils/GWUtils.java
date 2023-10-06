@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -51,8 +52,6 @@ import com.google.common.base.Strings;
 import com.google.common.escape.Escaper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.PercentEscaper;
-import com.pspace.ifs.ksan.gw.db.MariaDB;
-import com.pspace.ifs.ksan.gw.db.GWDB;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
@@ -130,6 +129,10 @@ public class GWUtils {
 			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_SIMPLE_FORMAT);
 		} else if (!date.contains(":") && date.length() < 23) {
 			formatter = new SimpleDateFormat(GWConstants.ISO_8601_TIME_FORMAT);
+		}
+
+		if (formatter == null) {
+			return 0;
 		}
 
 		formatter.setTimeZone(TimeZone.getTimeZone(GWConstants.UTC));
@@ -565,18 +568,29 @@ public class GWUtils {
 							sb.append(Constants.OBJ_DIR);
 
 							File file = new File(sb.toString());
-							file.mkdirs();
-							// makeSubDirs(sb.toString());
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 
 							StringBuilder sbTemp = sb.delete(length, sb.length());
 							sbTemp.append(Constants.TEMP_DIR);
 							file = new File(sbTemp.toString());
-							file.mkdirs();
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 
 							sbTemp = sb.delete(length, sb.length());
 							sbTemp.append(Constants.TRASH_DIR);
 							file = new File(sbTemp.toString());
-							file.mkdirs();
+							if (!file.exists()) {
+								if (!file.mkdirs()) {
+									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+								}
+							}
 						}
 					}
 				}
@@ -590,12 +604,23 @@ public class GWUtils {
 				if (GWUtils.getLocalIP().equals(server.getIp())) {
 					for (Disk disk : server.getDiskList()) {
 						File file = new File(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
-						file.mkdirs();
-						// makeSubDirs(disk.getPath() + GWConstants.SLASH + Constants.OBJ_DIR);
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-						file.mkdirs();
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
-						file.mkdirs();
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 					}
 				}
 			}
@@ -616,8 +641,11 @@ public class GWUtils {
 					sb.append(Constants.SLASH);
 					sb.append(Constants.EC_DIR);
 					File file = new File(sb.toString());
-					file.mkdirs();
-					// makeSubDirs(sb.toString());
+					if (file.exists()) {
+						if (!file.mkdirs()) {
+							logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+						}
+					}
 				}
 			});
 		}
@@ -640,8 +668,12 @@ public class GWUtils {
 						subPath[4] = data[k];
 						subPath[5] = data[l];
 
-						file = new File(path + new String(subPath));
-						file.mkdirs();
+						file = new File(path + new String(subPath, StandardCharsets.UTF_8));
+						if (!file.exists()) {
+							if (!file.mkdirs()) {
+								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							}
+						}
 					}
 				}
 			}
@@ -673,8 +705,8 @@ public class GWUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
@@ -692,8 +724,8 @@ public class GWUtils {
 		byte[] key = new byte[32];
 		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
@@ -773,4 +805,17 @@ public class GWUtils {
 			throw new GWException(GWErrorCode.BAD_REQUEST, s3Parameter);
 		}
 	}
+
+	public static String calculateMD5HashBase64(String input) {
+        try {
+            MessageDigest md5Digest = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md5Digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

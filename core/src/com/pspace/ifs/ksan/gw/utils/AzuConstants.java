@@ -13,6 +13,8 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.io.File;
 
 public final class AzuConstants {
+    public static final int AZU_PORT = 10000;
+    public static final int AZU_TIME_OUT = 60000;
     public static final String LOG_PRE_URI = "PREURI - {}";
     public static final String LOG_URI = "URI - {}";
     public static final String LOG_CLIENT_ADDRESS = "client address - {}";

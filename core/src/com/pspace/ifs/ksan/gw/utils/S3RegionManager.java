@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class S3RegionManager {
     private static final Logger logger = LoggerFactory.getLogger(S3RegionManager.class);
-    private static Set<S3Region> regions;
+    private Set<S3Region> regions;
 
     public static S3RegionManager getInstance() {
         return LazyHolder.INSTANCE;

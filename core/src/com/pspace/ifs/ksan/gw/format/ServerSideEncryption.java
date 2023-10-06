@@ -32,16 +32,16 @@ public final class ServerSideEncryption {
 		public static final class ApplyServerSideEncryptionByDefault {
 			@JacksonXmlProperty(localName = GWConstants.SSE_ALGORITHM)
 			public
-			String SSEAlgorithm;
+			String sseAlgorithm;
 			
 			@JacksonXmlProperty(localName = GWConstants.KMS_MASTERKEY_ID)
 			public
-			String KMSMasterKeyID;
+			String kmsMasterKeyID;
 		}
 
 		@JacksonXmlProperty(localName = GWConstants.BUCKET_KEY_ENABLED)
 		public
-		String BucketKeyEnabled;
+		String bucketKeyEnabled;
 	}
 }
 //CHECKSTYLE:ON

@@ -11,6 +11,8 @@
 package com.pspace.ifs.ksan.gw.identity;
 
 import com.google.common.base.Strings;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +62,7 @@ public class S3User {
         this.userEmail = email;
         this.accessKey = access;
         this.accessSecret = secret;
-        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes()));
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(access.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
         userDiskPools = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < diskpools.size(); i++) {
             JSONObject item = (JSONObject)diskpools.get(i);
@@ -76,6 +78,22 @@ public class S3User {
         //     logger.debug("map:{}", map.toString());
         //     logger.debug("DiskPoolId:{}, StorageClass : {}", map.get(USER_DISK_POOLS_DISKPOOL_ID), map.get(USER_DISK_POOLS_STORAGE_CLASS));
         // }
+    }
+
+    public S3User(S3User user) {
+        this.userId = user.getUserId();
+        this.userName = user.getUserName();
+        this.userEmail = user.getUserEmail();
+        this.accessKey = user.getAccessKey();
+        this.accessSecret = user.getAccessSecret();
+        this.azureKey = user.getAzureKey();
+        userDiskPools = new ArrayList<HashMap<String, String>>();
+        for (HashMap<String, String> map : user.getUserDiskpools()) {
+            HashMap<String, String> newMap = new HashMap<String, String>();
+            newMap.put(USER_DISK_POOLS_DISKPOOL_ID, map.get(USER_DISK_POOLS_DISKPOOL_ID));
+            newMap.put(USER_DISK_POOLS_STORAGE_CLASS, map.get(USER_DISK_POOLS_STORAGE_CLASS));
+            userDiskPools.add(newMap);
+        }
     }
 
     public String getUserName() {
@@ -108,7 +126,7 @@ public class S3User {
 
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
-        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes()));
+        this.azureKey = new String(java.util.Base64.getEncoder().encode(accessKey.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 
     public String getAccessSecret() {
@@ -124,7 +142,9 @@ public class S3User {
     }
 
     public List<HashMap<String, String>> getUserDiskpools() {
-        return userDiskPools;
+        // return userDiskPools;
+        List<HashMap<String, String>> list = new ArrayList<>(userDiskPools);
+        return list;
     }
 
     public String getUserDefaultDiskpoolId() {

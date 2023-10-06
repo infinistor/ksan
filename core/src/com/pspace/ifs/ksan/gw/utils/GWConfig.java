@@ -17,8 +17,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import com.google.common.base.Strings;
+import com.pspace.ifs.ksan.libs.Constants;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -557,34 +559,36 @@ public class GWConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(GWConstants.CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(GWConstants.CONFIG_PATH, false);
-            fileWriter.write(VERSION + EQUAL + version + "\n");
-            fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
-            fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");
-            fileWriter.write(SECURE_ENDPOINT + EQUAL + secureEndpoint.toString() + "\n");
-            fileWriter.write(KEYSTORE_PATH + EQUAL + keyStorePath + "\n");
-            fileWriter.write(KEYSTORE_PASSWORD + EQUAL + keyStorePassword + "\n");
-            fileWriter.write(MAX_FILE_SIZE + EQUAL + maxFileSize + "\n");
-            fileWriter.write(MAX_LIST_SIZE + EQUAL + maxListSize + "\n");
-            fileWriter.write(MAX_TIMESKEW + EQUAL + maxTimeSkew + "\n");
-            fileWriter.write(EVENT_LOG + EQUAL + logging + "\n");
-            // fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
-            fileWriter.write(OSD_PORT + EQUAL + osdPort + "\n");
-            fileWriter.write(JETTY_MAX_THREADS + EQUAL + jettyMaxThreads + "\n");
-            fileWriter.write(OSD_CLIENT_COUNT + EQUAL + osdClientCount + "\n");
-            fileWriter.write(OBJMANAGER_COUNT + EQUAL + objManagerCount + "\n");
-            fileWriter.write(PERFORMANCE_MODE + EQUAL + performanceMode + "\n");
-            // fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
-            // fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
-            // fileWriter.write(DB_NAME + EQUAL + database + "\n");
-            // fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
-            // fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
-            // fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
-            // fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
-            fileWriter.write(CACHE_PATH + EQUAL + cacheDiskpath + "\n");
-            // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
-            fileWriter.close();
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.GW_CONFIG_KEY) + File.separator + Constants.GW_CONFIG_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.GW_CONFIG_KEY) + File.separator + Constants.GW_CONFIG_FILE, StandardCharsets.UTF_8)) {
+                fileWriter.write(VERSION + EQUAL + version + "\n");
+                fileWriter.write(AUTHORIZATION + EQUAL + authorizationString + "\n");
+                fileWriter.write(ENDPOINT + EQUAL + endpoint.toString() + "\n");
+                fileWriter.write(SECURE_ENDPOINT + EQUAL + secureEndpoint.toString() + "\n");
+                fileWriter.write(KEYSTORE_PATH + EQUAL + keyStorePath + "\n");
+                fileWriter.write(KEYSTORE_PASSWORD + EQUAL + keyStorePassword + "\n");
+                fileWriter.write(MAX_FILE_SIZE + EQUAL + maxFileSize + "\n");
+                fileWriter.write(MAX_LIST_SIZE + EQUAL + maxListSize + "\n");
+                fileWriter.write(MAX_TIMESKEW + EQUAL + maxTimeSkew + "\n");
+                fileWriter.write(EVENT_LOG + EQUAL + logging + "\n");
+                // fileWriter.write(REPLICATION + EQUAL + replicaCount + "\n");
+                fileWriter.write(OSD_PORT + EQUAL + osdPort + "\n");
+                fileWriter.write(JETTY_MAX_THREADS + EQUAL + jettyMaxThreads + "\n");
+                fileWriter.write(OSD_CLIENT_COUNT + EQUAL + osdClientCount + "\n");
+                fileWriter.write(OBJMANAGER_COUNT + EQUAL + objManagerCount + "\n");
+                fileWriter.write(PERFORMANCE_MODE + EQUAL + performanceMode + "\n");
+                // fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
+                // fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
+                // fileWriter.write(DB_NAME + EQUAL + database + "\n");
+                // fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
+                // fileWriter.write(DB_USER + EQUAL + dbUser + "\n");
+                // fileWriter.write(DB_PASSWORD + EQUAL + dbPass + "\n");
+                // fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
+                fileWriter.write(CACHE_PATH + EQUAL + cacheDiskpath + "\n");
+                // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+            } catch (IOException e) {
+                throw new IOException(e);
+            }
         } catch (IOException e) {
             throw new IOException(e);
         }

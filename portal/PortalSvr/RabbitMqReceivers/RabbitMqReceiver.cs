@@ -115,6 +115,14 @@ namespace PortalSvr.RabbitMQReceivers
 				{
 					m_logger.LogInformation($"[Rabbit MQ] Connection is shutdown. {m_queueName}");
 				};
+				m_connection.ConnectionBlocked += (_, _) =>
+				{
+					m_logger.LogInformation($"[Rabbit MQ] Connection is blocked. {m_queueName}");
+				};
+				m_connection.ConnectionUnblocked += (_, _) =>
+				{
+					m_logger.LogInformation($"[Rabbit MQ] Connection is unblocked. {m_queueName}");
+				};
 				// 채널 생성
 				m_channel = m_connection.CreateModel();
 				// 큐 설정

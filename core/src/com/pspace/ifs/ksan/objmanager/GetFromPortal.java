@@ -333,8 +333,8 @@ public class GetFromPortal {
                 dp.setDefaultReplicaCount(2);
             else if (replication.equalsIgnoreCase("ErasureCode"))
                 dp.setDefaultReplicaCount(2);
-            else
-                dp.setDefaultReplicaCount(1);
+            /*else
+                dp.setDefaultReplicaCount(1);*/
             
             dp = parseDiskPoolResponse(dp, servers);
             omc.setDiskPoolInCache(dp);

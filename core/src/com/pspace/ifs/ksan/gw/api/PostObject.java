@@ -12,6 +12,8 @@ package com.pspace.ifs.ksan.gw.api;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -64,8 +66,6 @@ public class PostObject extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-		S3Bucket s3Bucket = new S3Bucket();
-
 		DataPostObject dataPostObject = new DataPostObject(s3Parameter);
 		dataPostObject.extract();
 		String object = dataPostObject.getKey();
@@ -81,7 +81,7 @@ public class PostObject extends S3Request {
         if (!Strings.isNullOrEmpty(dataPostObject.getPolicy())) {
 			Decoder decoder = Base64.getDecoder();
 			byte[] bytePostPolicy = decoder.decode(dataPostObject.getPolicy());
-			String postPolicy = new String(bytePostPolicy);
+			String postPolicy = new String(bytePostPolicy, StandardCharsets.UTF_8);
 			ObjectMapper jsonMapper = new ObjectMapper();
 
 			PostPolicy postPolicyJson = null;

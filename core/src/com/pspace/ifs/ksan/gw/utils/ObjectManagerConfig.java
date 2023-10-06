@@ -13,10 +13,13 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.pspace.ifs.ksan.libs.Constants;
 
 public class ObjectManagerConfig {
     private String version;
@@ -199,20 +202,22 @@ public class ObjectManagerConfig {
 
     public void saveConfigFile() throws IOException {
         try {
-            com.google.common.io.Files.createParentDirs(new File(GWConstants.OBJMANAGER_CONFIG_PATH));
-            FileWriter fileWriter = new FileWriter(GWConstants.OBJMANAGER_CONFIG_PATH, false);
-            fileWriter.write(VERSION + EQUAL + version + "\n");
-            fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
-            fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
-            fileWriter.write(DB_NAME + EQUAL + dbName + "\n");
-            fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
-            fileWriter.write(DB_USER + EQUAL + dbUserName + "\n");
-            fileWriter.write(DB_PASSWORD + EQUAL + dbPassword + "\n");
-            fileWriter.write(MQ_HOST + EQUAL + mqHost + "\n");
-            fileWriter.write(MQ_QUEUE_NAME + EQUAL + mqQueueName + "\n");
-            fileWriter.write(MQ_EXCHANGE_NAME + EQUAL + mqExchangeName + "\n");
-            fileWriter.write(MQ_OSD_EXCHANGE_NAME + EQUAL + mqOsdExchangeName + "\n");
-            fileWriter.close();
+            com.google.common.io.Files.createParentDirs(new File(System.getProperty(Constants.OBJMANAGER_CONFIG_KEY) + File.separator + Constants.OBJMANAGER_CONFIG_FILE));
+            try (FileWriter fileWriter = new FileWriter(System.getProperty(Constants.OBJMANAGER_CONFIG_KEY) + File.separator + Constants.OBJMANAGER_CONFIG_FILE, StandardCharsets.UTF_8)) {
+                fileWriter.write(VERSION + EQUAL + version + "\n");
+                fileWriter.write(DB_REPOSITORY + EQUAL + dbRepository + "\n");
+                fileWriter.write(DB_HOST + EQUAL + dbHost + "\n");
+                fileWriter.write(DB_NAME + EQUAL + dbName + "\n");
+                fileWriter.write(DB_PORT + EQUAL + dbPort + "\n");
+                fileWriter.write(DB_USER + EQUAL + dbUserName + "\n");
+                fileWriter.write(DB_PASSWORD + EQUAL + dbPassword + "\n");
+                fileWriter.write(MQ_HOST + EQUAL + mqHost + "\n");
+                fileWriter.write(MQ_QUEUE_NAME + EQUAL + mqQueueName + "\n");
+                fileWriter.write(MQ_EXCHANGE_NAME + EQUAL + mqExchangeName + "\n");
+                fileWriter.write(MQ_OSD_EXCHANGE_NAME + EQUAL + mqOsdExchangeName + "\n");
+            } catch (IOException e) {
+                throw new IOException(e);
+            }
         } catch (IOException e) {
             throw new IOException(e);
         }

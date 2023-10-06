@@ -13,32 +13,32 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.io.File;
 
 public class AzuUtils {
-    public static String getPath() {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY;
-    }
+    // public static String getPath() {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY;
+    // }
 
-    public static String getPath(String path) {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY + File.separator + path;
-    }
+    // public static String getPath(String path) {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY + File.separator + path;
+    // }
 
-    public static String getPath(String container, String blob) {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY + File.separator + container + File.separator + blob;
-    }
+    // public static String getPath(String container, String blob) {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.CONTAINER_DIRECTORY + File.separator + container + File.separator + blob;
+    // }
 
-    public static String getInfoPath() {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY;
-    }
+    // public static String getInfoPath() {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY;
+    // }
 
-    public static String getInfoPath(String path) {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY + File.separator + path;
-    }
+    // public static String getInfoPath(String path) {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY + File.separator + path;
+    // }
 
-    public static String getInfoPath(String container, String blob) {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY + File.separator + container + File.separator + blob;
-    }
+    // public static String getInfoPath(String container, String blob) {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_INFO_DIRECTORY + File.separator + container + File.separator + blob;
+    // }
 
-    public static String getBlockPath(String container, String blob, String id) {
-        return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_BLOCK_DIRECTORY + File.separator + container + File.separator + blob + File.separator + id;
-    }
+    // public static String getBlockPath(String container, String blob, String id) {
+    //     return AzuConfig.getInstance().getDiskPath() + File.separator + AzuConstants.BLOB_BLOCK_DIRECTORY + File.separator + container + File.separator + blob + File.separator + id;
+    // }
 }
 

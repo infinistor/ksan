@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.libs.multipart;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResultUploads {

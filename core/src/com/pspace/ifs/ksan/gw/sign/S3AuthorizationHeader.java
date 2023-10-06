@@ -81,6 +81,24 @@ public final class S3AuthorizationHeader {
             String awsSignatureVersion = header.substring(0, header.indexOf(GWConstants.CHAR_SPACE));
             hashAlgorithm = DIGEST_MAP.get(Splitter.on(GWConstants.CHAR_DASH).splitToList(awsSignatureVersion).get(GWConstants.AWS4_REGION_INDEX));
             hmacAlgorithm = GWConstants.HMAC + Splitter.on(GWConstants.CHAR_DASH).splitToList(awsSignatureVersion).get(GWConstants.AWS4_REGION_INDEX);
+        } else if (header.startsWith(GWConstants.GOOGLE_SPACE)) {
+            // Google Cloud Storage
+            authenticationType = AuthenticationType.GOOGLE;
+            hmacAlgorithm = null;
+            hashAlgorithm = null;
+            region = null;
+            date = null;
+            service = null;
+            List<String> fields = Splitter.on(GWConstants.CHAR_SPACE).splitToList(header);
+            if (fields.size() != GWConstants.AUTH_FIELD_SIZE) {
+                throw new IllegalArgumentException(GWConstants.INVALID_HEADER);
+            }
+            List<String> identityTuple = Splitter.on(GWConstants.CHAR_COLON).splitToList(fields.get(GWConstants.SIGNATURE_INDEX));
+            if (identityTuple.size() != GWConstants.AUTH_FIELD_SIZE) {
+                throw new IllegalArgumentException(GWConstants.INVALID_HEADER);
+            }
+            identity = identityTuple.get(GWConstants.IDENTITY_INDEX);
+            signature = identityTuple.get(GWConstants.SIGNATURE_INDEX);
         } else {
             throw new IllegalArgumentException(GWConstants.INVALID_HEADER);
         }

@@ -65,7 +65,7 @@ public class AzuHandler {
 		String uri = request.getRequestURI();
 		requestSize += uri.length();
 
-		long startTime = System.currentTimeMillis();
+		// long startTime = System.currentTimeMillis();
 
 		AzuParameter azuParameter = new AzuParameter();
 		
@@ -117,7 +117,7 @@ public class AzuHandler {
 		}
 
 		// make request id
-		String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
+		// String requestID = UUID.randomUUID().toString().substring(24).toUpperCase();
 		String userName = "";
 		String containerName = "";
 		String blobName = "";
@@ -132,7 +132,7 @@ public class AzuHandler {
 				}
 			} catch (UnsupportedEncodingException e) {
 				PrintStack.logging(logger, e);
-				throw new AzuException(AzuErrorCode.BAD_REQUEST, null);
+				throw new AzuException(AzuErrorCode.BAD_REQUEST, azuParameter);
 			}
 	
 			userName = path[1];
@@ -161,7 +161,7 @@ public class AzuHandler {
 			}
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new AzuException(AzuErrorCode.SERVER_ERROR, null);
+			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
 		}
 		
 		azuParameter.setMethod(method);

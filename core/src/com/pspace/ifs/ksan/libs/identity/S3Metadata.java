@@ -728,7 +728,7 @@ public class S3Metadata {
 		startIndex = json.indexOf(JSON_USER_METADATA, endIndex);
 		if (startIndex > 0) {
 			startIndex += JSON_USER_METADATA.length();
-			endIndex = json.indexOf(RIGHT_BRACKET);
+			endIndex = json.indexOf(RIGHT_BRACKET, startIndex + 1);
 			data = json.substring(startIndex + 1, endIndex);
 			logger.debug("usermeta : {}", data);
 			int sIndex = 0;

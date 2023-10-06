@@ -47,7 +47,7 @@ public final class AzuException extends Exception {
 
     public AzuException(AzuErrorCode error, String message, Throwable cause, Map<String, String> elements, AzuParameter parameter) {
         super(requireNonNull(message), cause);
-        this.parameter = parameter;
+        this.parameter = new AzuParameter(parameter);
         if(this.parameter != null) {
             this.parameter.setErrorCode(error.getErrorCode());
             this.parameter.setStatusCode(error.getHttpStatusCode());
@@ -70,7 +70,7 @@ public final class AzuException extends Exception {
     }
 
     public AzuParameter getAZUParameter() {
-        return parameter;
+        return new AzuParameter(parameter);
     }
 
     @Override

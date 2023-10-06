@@ -68,7 +68,6 @@ public class HeadObject extends S3Request implements S3AddResponse {
 		Metadata objMeta = null;
 		if (Strings.isNullOrEmpty(versionId)) {
 			objMeta = open(bucket, object);
-			versionId = objMeta.getVersionId();
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
@@ -97,7 +96,13 @@ public class HeadObject extends S3Request implements S3AddResponse {
 		}
 
 		// s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, s3Metadata.getVersionId());
-		addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
+		try {
+			addMetadataToResponse(s3Parameter.getResponse(), s3Metadata, null, null);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+		
 		
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
 	}

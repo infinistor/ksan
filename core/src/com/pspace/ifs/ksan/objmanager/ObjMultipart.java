@@ -98,6 +98,8 @@ public class ObjMultipart{
 
     public int startSingleUpload(Metadata mt, String uploadId, int partNo){
         try {
+            mt.setEtag("");
+            //mt.setMeta("");
             return dbm.insertMultipartUpload(mt, uploadId, partNo);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
@@ -105,9 +107,9 @@ public class ObjMultipart{
         return -1;
     }
     
-    public int finishSingleUpload(String uploadId, int partNo){
+    public int finishSingleUpload(Metadata mt, String uploadId, int partNo){
         try {
-            return dbm.updateMultipartUpload(bucket, uploadId, partNo, true);
+            return dbm.updateMultipartUpload(mt, uploadId, partNo, true);
         } catch (SQLException ex) {
             Logger.getLogger(ObjMultipart.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -134,9 +136,9 @@ public class ObjMultipart{
     private Object makeMongoQuery(String delimiter, String prefix, String keyMarker, String uploadIdMarker){
         BasicDBObject listObjQuery = new BasicDBObject();
         if (delimiter.isEmpty())
-           listObjQuery.put("key", new BasicDBObject("$regex", prefix).append("$options", "i"));
+           listObjQuery.put("key", new BasicDBObject("$regex", prefix));
         else
-           listObjQuery.put("key", new BasicDBObject("$regex", prefix + ".*" + delimiter).append("$options", "i")); // prefix like
+           listObjQuery.put("key", new BasicDBObject("$regex", prefix + ".*" + delimiter)); // prefix like
         
         if (!keyMarker.isEmpty()){
             listObjQuery.append("$gt", keyMarker);

@@ -22,6 +22,10 @@ public class S3Object {
 	private String tagging;
 	private String acl;
 	private String meta;
+	// md5hash for GCS
+	private String md5hash;
+	private boolean isSavePrimary;
+	private boolean isSaveReplica;
 	
 	public S3Object() {
 		versionId = null;
@@ -102,5 +106,29 @@ public class S3Object {
 
 	public void setMeta(String meta) {
 		this.meta = meta;
+	}
+
+	public void setMd5hash(String md5hash) {
+		this.md5hash = md5hash;
+	}
+
+	public String getMd5hash() {
+		return md5hash;
+	}
+
+	public void setSavePrimary(boolean isSavePrimary) {
+		this.isSavePrimary = isSavePrimary;
+	}
+
+	public boolean isSavePrimary() {
+		return isSavePrimary;
+	}
+
+	public void setSaveReplica(boolean isSaveReplica) {
+		this.isSaveReplica = isSaveReplica;
+	}
+
+	public boolean isSaveReplica() {
+		return isSaveReplica;
 	}
 }

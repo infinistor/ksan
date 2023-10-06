@@ -74,6 +74,7 @@ public class AzuObjectOperation {
     private ObjManager objManager;
     private static final Logger logger = LoggerFactory.getLogger(AzuObjectOperation.class);
 
+    /* 
     public AzuObjectOperation(Metadata objMeta, S3Metadata s3Meta, AzuParameter azuParameter, String versionId) {
         this.objMeta = objMeta;
         this.s3Meta = s3Meta;
@@ -86,7 +87,7 @@ public class AzuObjectOperation {
             this.versionId = versionId;
         }
     }
-/*
+
     public void getObject(String range) throws Exception {       
         OSDClient client = null;
         String sourceRange = AzuConstants.EMPTY_STRING;

@@ -72,7 +72,7 @@ public class PutBlockList extends AzuRequest {
         logger.info("blocklist xml : {}", blockListXml);
         
         XmlMapper xmlMapper = new XmlMapper();
-        BlockList blockList = new BlockList();
+        BlockList blockList = null;
         try {
             blockList = xmlMapper.readValue(blockListXml, BlockList.class);
         } catch (JsonMappingException e) {
@@ -114,7 +114,8 @@ public class PutBlockList extends AzuRequest {
         try {
             // objMeta.set(s3Object.getEtag(), AzuConstants.EMPTY_STRING, jsonmeta, AzuConstants.EMPTY_STRING, s3Object.getFileSize());
             objMeta.setVersionId(versionId, GWConstants.OBJECT_TYPE_FILE, true);
-            int result = insertObject(containerName, blobName, objMeta);
+            objMeta.setMeta(jsonmeta);
+            insertObject(containerName, blobName, objMeta);
         } catch (AzuException e) {
             PrintStack.logging(logger, e);
             throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);

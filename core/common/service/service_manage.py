@@ -104,6 +104,8 @@ def ServiceMonitoring(Conf, GlobalFlag, logger):
                 for Service in ServerDetail.Services:
                     try:
                         ProcObject = Process(Service.ServiceType)
+                        if Service.ServiceType != TypeServiceAgent:
+                            continue
                         NewService = dict()
                         NewService['Id'] = Service.Id
                         NewService['GroupId'] = '' if Service.GroupId is None else Service.GroupId
@@ -112,14 +114,14 @@ def ServiceMonitoring(Conf, GlobalFlag, logger):
                         NewService['IsEnable'] = True
                         LocalServices.append(NewService)
 
-                        ret, errlog = isKsanServiceIdFileExists(Service.ServiceType)
-                        if ret is False:
-                            logger.debug('ServiceId file is not found. %s %s' % (Service.Name, errlog))
-                            ret, errlog = SaveKsanServiceIdFile(Service.ServiceType, Service.Id)
-                            if ret is False:
-                                logger.error(errlog)
-                        else:
-                            logger.debug('ServiceId file exists %s' % Service.Name)
+                        #ret, errlog = isKsanServiceIdFileExists(Service.ServiceType)
+                        #if ret is False:
+                        #    logger.debug('ServiceId file is not found. %s %s' % (Service.Name, errlog))
+                        #    ret, errlog = SaveKsanServiceIdFile(Service.ServiceType, Service.Id)
+                        #    if ret is False:
+                        #        logger.error(errlog)
+                        #else:
+                        #    logger.debug('ServiceId file exists %s' % Service.Name)
                         #logging.log(logging.INFO, 'Service %s is added' % Service.ServiceType)
                     except Exception as err:
                         logger.error("fail to get service info %s " % str(err))

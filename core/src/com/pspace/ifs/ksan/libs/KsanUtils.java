@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,15 +65,25 @@ public class KsanUtils {
     public static void writePID(String path) {
         File file = new File(path);
         try {
+            boolean created = false;
             if (!file.exists()) {
-                file.createNewFile();
+                created = file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file);
-			Long pid = ProcessHandle.current().pid();
 
-            fw.write(String.valueOf(pid));
-            fw.flush();
-            fw.close();
+            if (!created) {
+                try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
+                    Long pid = ProcessHandle.current().pid();
+    
+                    fw.write(String.valueOf(pid));
+                    fw.flush();
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                    System.exit(-1);
+                }
+            } else {
+                logger.error("failed to create pid file");
+                System.exit(-1);
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
             System.exit(-1);
@@ -107,17 +120,17 @@ public class KsanUtils {
 
     private static String makeDirectorySub(String objId) {
         byte[] path = new byte[3];
-        byte[] byteObjId = objId.getBytes();
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
         path[2] = byteObjId[1];
 
-        return new String(path);
+        return new String(path, StandardCharsets.UTF_8);
     }
 
     private static String makeDirectoryName(String objId) {
         byte[] path = new byte[6];
-        byte[] byteObjId = objId.getBytes();
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
 
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
@@ -126,7 +139,7 @@ public class KsanUtils {
         path[4] = byteObjId[2];
         path[5] = byteObjId[3];
 
-        return new String(path);
+        return new String(path, StandardCharsets.UTF_8);
     }
 
     public static String makePath(String path, String fileName) {
@@ -221,7 +234,9 @@ public class KsanUtils {
         sb.append(uploadId);
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(Constants.SLASH);
@@ -334,12 +349,16 @@ public class KsanUtils {
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
         sb.append(makeDirectorySub(objId.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(Constants.SLASH);
@@ -402,13 +421,17 @@ public class KsanUtils {
 
         File objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         sb.append(makeDirectorySub(fileName.substring(2, 4)));
         objDir = new File(sb.toString());
         if (!objDir.exists()) {
-            objDir.mkdir();
+            if (!objDir.mkdir()) {
+                return null;
+            }
         }
 
         return sb.toString();
@@ -417,8 +440,8 @@ public class KsanUtils {
     public static void setAttributeFileReplication(File file, String replica, String diskID) {
         UserDefinedFileAttributeView view = Files.getFileAttributeView(Paths.get(file.getPath()), UserDefinedFileAttributeView.class);
         try {
-            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, Charset.defaultCharset().encode(replica));
-            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, Charset.defaultCharset().encode(diskID));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICATION, ByteBuffer.wrap(replica.getBytes(StandardCharsets.UTF_8)));
+            view.write(Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID, ByteBuffer.wrap(diskID.getBytes(StandardCharsets.UTF_8)));
             logger.debug("Set attribute file replication {}, {}", replica, diskID);
         } catch (IOException e) {
             PrintStack.logging(logger, e);
@@ -439,7 +462,19 @@ public class KsanUtils {
         } catch (SecurityException e) {
             logger.error(e.getMessage());
         }
-        String replica = Charset.defaultCharset().decode(buf).toString();
+
+        String replica;
+        if (buf != null) {
+            try {
+                CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+                replica = decoder.decode(buf).toString();
+            } catch (CharacterCodingException e) {
+                logger.error(e.getMessage());
+                replica = "";
+            }
+        } else {
+            replica = "";
+        }
         logger.debug("get replica : {}", replica);
         return replica;
     }
@@ -459,7 +494,18 @@ public class KsanUtils {
             logger.error(e.getMessage());
         }
 
-        String diskID = Charset.defaultCharset().decode(buf).toString();
+        String diskID;
+        if (buf != null) {
+            try {
+                CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+                diskID = decoder.decode(buf).toString();
+            } catch (CharacterCodingException e) {
+                logger.error(e.getMessage());
+                diskID = "";
+            }
+        } else {
+            diskID = "";
+        }
         logger.debug("file replicaDiskID : {}", diskID);
         return diskID;
     }
@@ -480,8 +526,8 @@ public class KsanUtils {
 		byte[] key = new byte[32];
 		logger.info(customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
@@ -499,8 +545,8 @@ public class KsanUtils {
 		byte[] key = new byte[32];
 		logger.info("init ctr decrypt key : {}", customerKey);
 		for (int i = 0; i < 32; i++) {
-			if (i < customerKey.getBytes().length)
-				key[i] = customerKey.getBytes()[i];
+			if (i < customerKey.getBytes(StandardCharsets.UTF_8).length)
+				key[i] = customerKey.getBytes(StandardCharsets.UTF_8)[i];
 			else
 				key[i] = 0;
 		}
