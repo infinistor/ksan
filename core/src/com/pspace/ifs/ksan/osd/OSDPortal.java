@@ -202,8 +202,8 @@ public class OSDPortal {
                 OSDConfig.getInstance().setVersion(version);
                 OSDConfig.getInstance().saveConfigFile();
 
-				OSDServer.startEmptyTrash();
-				OSDServer.startMoveCacheToDisk();
+				// OSDServer.startEmptyTrash();
+				// OSDServer.startMoveCacheToDisk();
 				return;
 			}
 			throw new RuntimeException(new RuntimeException());

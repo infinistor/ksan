@@ -48,7 +48,7 @@ public class UploadPart extends S3Request {
 	@Override
 	public void process() throws GWException {
 		logger.info(GWConstants.LOG_UPLOAD_PART_START);
-		
+
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 		String object = s3Parameter.getObjectName();
@@ -103,6 +103,7 @@ public class UploadPart extends S3Request {
 		// get metadata
 		S3Metadata s3Metadata = null;
 		try {
+			logger.debug("multipart.getMeta() : {}", multipart.getMeta());
 			s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
 		} catch(Exception e) {
 			PrintStack.logging(logger, e);
@@ -130,6 +131,8 @@ public class UploadPart extends S3Request {
 		}
 		long length = Long.parseLong(contentLength);
 		s3Metadata.setContentLength(length);
+
+		logger.debug("object size : {}", length);
 		
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 		objMeta.setSize(length);
@@ -146,6 +149,15 @@ public class UploadPart extends S3Request {
 		// }
 
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		try {
+			objMultipart.startSingleUpload(objMeta, uploadId, partNumber);
+			logger.info("startSingleUpload ... size:{}, etag:{}, uploadId:{}, partNumber:{}", objMeta.getSize(), objMeta.getEtag(), uploadId, partNumber);
+
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
+
 		IObjectManager objectManager = new VFSObjectManager();
 		Metadata part = null;
 		S3Object s3Object = null;
@@ -157,6 +169,7 @@ public class UploadPart extends S3Request {
 			}
 			// s3Object = objectOperation.uploadPart(path, length);
 			s3Object = objectManager.uploadPart(s3Parameter, objMeta);
+			logger.debug("s3Object etag : {}", s3Object.getEtag());
 			s3Metadata.setETag(s3Object.getEtag());
 			s3Metadata.setLastModified(s3Object.getLastModified());
 			s3Metadata.setContentLength(s3Object.getFileSize());
@@ -168,14 +181,18 @@ public class UploadPart extends S3Request {
 		}
 		
 		// objMultipart.startSingleUpload(object, uploadId, partNumber, "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
-		
-		objMultipart.startSingleUpload(objMeta, uploadId, partNumber);
-		objMultipart.finishSingleUpload(uploadId, partNumber);
+		try {
+			objMultipart.finishSingleUpload(objMeta, uploadId, partNumber);
+			logger.info("finishSingleUpload ... objid:{}, etag:{}, uploadId:{}, partNumber:{}", objMeta.getObjId(), objMeta.getEtag(), uploadId, partNumber);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
+		}
 
 		s3Parameter.addRequestSize(s3Object.getFileSize());
 		s3Parameter.setFileSize(s3Object.getFileSize());
 		
 		s3Parameter.getResponse().addHeader(HttpHeaders.ETAG, GWUtils.maybeQuoteETag(s3Object.getEtag()));
-		logger.info("End UploadPart ... uploadId:{}, partNumber:{}, size:{}", uploadId, partNumber, s3Object.getFileSize());
+		logger.info("End UploadPart ... uploadId:{}, partNumber:{}, size:{}, etag:{}", uploadId, partNumber, s3Object.getFileSize(), s3Object.getEtag());
 	}
 }

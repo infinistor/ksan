@@ -77,6 +77,8 @@ public class ListMultipartUploads extends S3Request {
 		try {
 			objMultipart = getInstanceObjMultipart(bucket);
 			resultUploads = objMultipart.getUploads(bucket, delimiter, prefix, keyMarker, uploadIdMarker, Integer.parseInt(maxUploads));
+			logger.debug("bucket : {}, delimiter : {}, prefix : {}, keyMarker : {}, uploadIdMarker : {}, maxUploads : {}", bucket, delimiter, prefix, keyMarker, uploadIdMarker, maxUploads);
+			logger.info("uploadIdMarker : {}, size : {}", uploadIdMarker, resultUploads.getList().size());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
