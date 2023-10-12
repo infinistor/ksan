@@ -50,7 +50,7 @@ public class ObjManagerCache {
     
     public void setDiskPoolInCache(DISKPOOL dskPool){
         if (dskPool != null)
-            diskPoolMap.put(dskPool.getId(), dskPool);
+            diskPoolMap.put(dskPool.getId(),   dskPool); // incase of modification it will be replaced
     }
     
     public void removeDiskPoolFromCache(String diskPoolId){
