@@ -307,18 +307,30 @@ public class Objects {
         return maxKeys;
     }
     
+    private String displayString(String st){
+        if (st == null)
+            return "null";
+        return st;
+    }
+    
     public ObjectListParameter listObject(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
+        logger.debug("[listObject] Begin bucketName : {} delimiter : {}  Marker : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
+        logger.debug("[listObject] End bucketName : {} delimiter : {}  Marker : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated());
         return list.getList();
     }
 
     public ObjectListParameter listObjectV2(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
+        logger.debug("[listObjectV2] Begin bucketName : {} delimiter : {}  StartAfter : {} ContinuationToken : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getStartAfter()), displayString(s3ObjectList.getContinuationToken()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
+        logger.debug("[listObjectV2] End bucketName : {} delimiter : {} StartAfter : {} ContinuationToken : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getStartAfter()), displayString(s3ObjectList.getContinuationToken()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated());
         return list.getList();
     }
 
     public ObjectListParameter listObjectVersions(String bucketName, S3ObjectList s3ObjectList) throws SQLException {
+        logger.debug("[listObjectVersions] Begin bucketName : {} delimiter : {}  keyMarker : {} VersionIdMarker : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getKeyMarker()), displayString(s3ObjectList.getVersionIdMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix(), true);
+        logger.debug("[listObjectVersions] End bucketName : {} delimiter : {} keyMarker : {} VersionIdMarker : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getKeyMarker()), displayString(s3ObjectList.getVersionIdMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated());
         return list.getList();
     }
     
