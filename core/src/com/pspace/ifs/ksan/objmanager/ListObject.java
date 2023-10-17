@@ -64,10 +64,11 @@ public class ListObject{
     
     private ObjectListParameter objectListParameter;
     private DataRepository dbm;
-    private static Logger logger  = LoggerFactory.getLogger(ListObject.class);
+    private static Logger logger; //  = LoggerFactory.getLogger(ListObject.class);
     
     private void initParameters(DataRepository dbm, String bucketName, String delimiter, String marker, String versionIdMarker, String continuationToken, int maxKeys, String prefix){
         this.dbm = dbm;
+        logger  = LoggerFactory.getLogger(ListObject.class);
         this.bucketName = bucketName;
         this.delimiter = delimiter;
         this.marker = marker;
@@ -648,6 +649,7 @@ public class ListObject{
         }
 
         objectListParameter.getObjects().add(s3Metadata);
+        logger.debug("[setObject] objkey : {} list_size : {} offset : {}", mt.getPath(), objectListParameter.getObjects().size(),  offset);
         if ((objectListParameter.getObjects().size() + offset)== maxKeys) {
             if (objectListParameter.isTruncated()) {
                 objectListParameter.setNextMarker(objKey);
@@ -782,6 +784,7 @@ public class ListObject{
                     objectListParameter.setIstruncated(false);
                 }
                 
+                logger.debug("[listObjectAndParse] rawcount : {}  ", rowcount);
                 if (!bDelimiter) {
         
                     while (itr.hasNext()) {
@@ -817,6 +820,7 @@ public class ListObject{
 
                         // delimiter를 발견하면 common prefix
                         // 아니라면 object
+                        logger.debug("[listObjectAndParse] objectName : {}  subName : {}", objectName, subName);
                         while ((find = subName.indexOf(delimiter)) >= 0) {
                             endPrefix += subName.substring(0, find + delimiter.length());
                             match++;
@@ -824,6 +828,7 @@ public class ListObject{
                         }
 
                         // delimiter가 발견
+                        logger.debug("[listObjectAndParse] objectName : {}  subName : {}  endPrefix : {} find : {}  match : {}", objectName, subName, endPrefix, find, match);
                         if (match > 0) {
                             // common prefix 등록
                             objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
@@ -835,6 +840,7 @@ public class ListObject{
                                 delmarker = delimiterp1.toString();
                                 bDelForceGte = true;
 
+                                logger.debug("[listObjectAndParse] objectName : {}  subName : {}  delmarker : {} ", objectName, subName, delmarker);
                                 if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
                                         && !(listType.equalsIgnoreCase("listObjectVersion"))) {
                                     makeQuery();
@@ -842,7 +848,7 @@ public class ListObject{
                                     Iterator truncateItr = truncateList.iterator();
                          
                                     int truncateMatchCount = 0;
-
+                                    logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
                                     while (truncateItr.hasNext()) {
                                         //mt = (Metadata)truncateItr.next();
                                         String truncateObjectName = objectName;//mt.getPath();
@@ -852,7 +858,7 @@ public class ListObject{
                                         if (bBucketListParameterPrefix) {
                                             truncateEndPrefix = prefix;
                                         }
-
+                                        logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
                                         int istruncatefind = 0;
                                         int istruncatematch = 0;
 
