@@ -807,7 +807,7 @@ public class ListObject{
                     while (itr.hasNext()) {
                         Metadata mt = (Metadata)itr.next();
                         String objectName = mt.getPath();
-                        String metaValue = mt.getMeta();
+                        //String metaValue = mt.getMeta();
                         String subName = objectName.substring(end, objectName.length());
 
                         String endPrefix = "";
@@ -836,68 +836,70 @@ public class ListObject{
                             if(objectListParameter.isTruncated()) {
                                 StringBuilder delimiterp1 = new StringBuilder(); 
                                 delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
-                                delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
+                                //delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
                                 delmarker = delimiterp1.toString();
                                 bDelForceGte = true;
 
                                 logger.debug("[listObjectAndParse] objectName : {}  subName : {}  delmarker : {} ", objectName, subName, delmarker);
-                                if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
-                                        && !(listType.equalsIgnoreCase("listObjectVersion"))) {
-                                    makeQuery();
-                                    List<Metadata> truncateList = bindAndExcute();
-                                    Iterator truncateItr = truncateList.iterator();
-                         
-                                    int truncateMatchCount = 0;
-                                    logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
-                                    while (truncateItr.hasNext()) {
-                                        //mt = (Metadata)truncateItr.next();
-                                        String truncateObjectName = objectName;//mt.getPath();
-                                        String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
-
-                                        String truncateEndPrefix = "";
-                                        if (bBucketListParameterPrefix) {
-                                            truncateEndPrefix = prefix;
-                                        }
-                                        logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
-                                        int istruncatefind = 0;
-                                        int istruncatematch = 0;
-
-                                        // delimiter를 발견하면 common prefix
-                                        // 아니라면 object
-                                        while ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
-                                            truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
-                                            istruncatematch++;
-                                            break;
-                                        }
-
-                                        if (istruncatematch > 0) {
-                                            truncateMatchCount++;
-                                            objectListParameter.setNextMarker(truncateEndPrefix);
-                                            break;
-                                        }
-                                    }
-
-                                    if (truncateMatchCount == 0) {
-                                        objectListParameter.setIstruncated(false);
-                                    }
-                                }
-                                break;
                             }
                         } else {
                             int ret;
                             
-                            if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")) 
+                            if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")){ 
                                 ret = setObject(objectName, mt, objectListParameter.getCommonPrefixes().size());
-                            else  
+                                delmarker = objectName;
+                                bDelForceGte = true;
+                            } else  
                                 ret = setObject(objectName, mt, 0);
                             
                             if (ret == 1)
                                 break;
                         }
-                    }
+                    
+                        if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
+                                            && !(listType.equalsIgnoreCase("listObjectVersion"))) {
+                            makeQuery();
+                            List<Metadata> truncateList = bindAndExcute();
+                            Iterator truncateItr = truncateList.iterator();
 
-                    if (!objectListParameter.isTruncated()) {
+                            int truncateMatchCount = 0;
+                            logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
+                            while (truncateItr.hasNext()) {
+                                //mt = (Metadata)truncateItr.next();
+                                String truncateObjectName = objectName;//mt.getPath();
+                                String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
+
+                                String truncateEndPrefix = "";
+                                if (bBucketListParameterPrefix) {
+                                    truncateEndPrefix = prefix;
+                                }
+                                logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
+                                int istruncatefind = 0;
+                                int istruncatematch = 0;
+
+                                // delimiter를 발견하면 common prefix
+                                // 아니라면 object
+                                while ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
+                                    truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
+                                    istruncatematch++;
+                                    break;
+                                }
+
+                                if (istruncatematch > 0) {
+                                    truncateMatchCount++;
+                                    objectListParameter.setNextMarker(truncateEndPrefix);
+                                    break;
+                                }
+                            }
+
+                            if (truncateMatchCount == 0) {
+                                objectListParameter.setIstruncated(false);
+                            }
                             break;
+                        }
+                    }
+                    if (!objectListParameter.isTruncated()) {
+                        break;
                     }
                 }
             }
