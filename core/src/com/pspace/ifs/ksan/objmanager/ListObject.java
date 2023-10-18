@@ -773,7 +773,7 @@ public class ListObject{
                 objectListParameter.setIstruncated(false);
             }
 			
-	    while ((objectListParameter.getObjects().size() + getCommonPrefixCount()) < maxKeys) {                                
+	    while ((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) < maxKeys) {                                
                 makeQuery();
                                 
                 List<Metadata> list = bindAndExcute();
