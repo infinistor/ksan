@@ -845,19 +845,19 @@ public class ListObject{
                         } else {
                             int ret;
                             
-                            if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")){ 
+                            //if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")){ 
                                 ret = setObject(objectName, mt, objectListParameter.getCommonPrefixes().size());
                                 delmarker = objectName;
                                 bDelForceGte = true;
-                            } else  
-                                ret = setObject(objectName, mt, 0);
+                            /*} else  
+                                ret = setObject(objectName, mt, 0);*/
                             
                             if (ret == 1)
                                 break;
                         }
                     
                         if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
-                                            && !(listType.equalsIgnoreCase("listObjectVersion"))) {
+                                            /*&& !(listType.equalsIgnoreCase("listObjectVersion"))*/) {
                             makeQuery();
                             List<Metadata> truncateList = bindAndExcute();
                             Iterator truncateItr = truncateList.iterator();
