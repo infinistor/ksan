@@ -573,7 +573,7 @@ public class ListObject{
            }
            
            if (bDelForceGte){
-               and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", delmarker))); //objkey
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", delmarker))); //objkey
                bDelForceGte = false;
            }
  
