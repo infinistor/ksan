@@ -650,7 +650,7 @@ public class ListObject{
 
         objectListParameter.getObjects().add(s3Metadata);
         logger.debug("[setObject] objkey : {} list_size : {} offset : {}", mt.getPath(), objectListParameter.getObjects().size(),  offset);
-        if ((objectListParameter.getObjects().size() + offset)== maxKeys) {
+        if ((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size())== maxKeys) {
             if (objectListParameter.isTruncated()) {
                 objectListParameter.setNextMarker(objKey);
                 if (listType.equalsIgnoreCase("listObjectVersion"))
