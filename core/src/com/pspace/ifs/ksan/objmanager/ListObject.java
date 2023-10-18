@@ -832,7 +832,8 @@ public class ListObject{
                         if (match > 0) {
                             // common prefix 등록
                             objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
-
+                            objectListParameter.setNextMarker(endPrefix); // FIXME
+                            
                             if(objectListParameter.isTruncated()) {
                                 StringBuilder delimiterp1 = new StringBuilder(); 
                                 delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
@@ -852,8 +853,8 @@ public class ListObject{
                             /*} else  
                                 ret = setObject(objectName, mt, 0);*/
                             
-                            if (ret == 1)
-                                break;
+                            //if (ret == 1)
+                            //    break;
                         }
                     
                         if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
