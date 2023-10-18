@@ -57,6 +57,7 @@ enum KEYS{
     STOP("stop"),
     RW("ReadWrite"),
     RO("ReadOnly"),
+    MAINTENACE("Maintenance"),
     ADD("Add"),       /*for add disk, server, diskpool and server*/
     REMOVE("Remove"), /*to remove disk, server, diskpool and server*/
     TIMEOUT("timeout"), /* for server timout */
@@ -359,6 +360,9 @@ public class DiskMonitor {
         else if (jo.mode.equalsIgnoreCase(KEYS.RO.label)){
             dskPool.setDiskMode(jo.serverid, jo.id, DiskMode.READONLY);
         }
+        else if (jo.mode.equalsIgnoreCase(KEYS.MAINTENACE.label))
+            dskPool.setDiskMode(jo.serverid, jo.id, DiskMode.MAINTENANCE);
+        
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         obmCache.displayDiskPoolList();
         
@@ -588,8 +592,8 @@ public class DiskMonitor {
             }
             }
             updateReplicaCount(jo);*/
-            this.config.getPortalHandel().removeDiskFromDiskPool(obmCache, msg, dskPool.getId());
-            this.config.getPortalHandel().loadDiskPoolList(obmCache);
+            if (config.getPortalHandel().removeDiskFromDiskPool(obmCache, msg, dskPool.getId()) != 0)
+                 config.getPortalHandel().loadDiskPoolList(obmCache);
             updateReplicaCount(jo);
             obmCache.dumpCacheInFile();
             res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
