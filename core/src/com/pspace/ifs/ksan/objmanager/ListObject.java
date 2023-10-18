@@ -853,8 +853,12 @@ public class ListObject{
                             /*} else  
                                 ret = setObject(objectName, mt, 0);*/
                             
-                            //if (ret == 1)
-                            //    break;
+                            if (ret == 1){
+                                if (rowcount == (maxKeys + 1) ) {
+                                    objectListParameter.setIstruncated(true);
+                                }
+                                break;
+                            }
                         }
                     
                         if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
