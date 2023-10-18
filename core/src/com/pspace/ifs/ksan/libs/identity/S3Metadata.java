@@ -67,6 +67,9 @@ public class S3Metadata {
 	private String kmsKeyPath;
 	private String bucketKeyEnabled;
 
+	// expiration-date : Lifecycle
+	private String expirationDate;
+
 	public S3Metadata() {
 		userMetadata = new HashMap<String, String>();
 	}
@@ -356,6 +359,14 @@ public class S3Metadata {
 
 	public void setBucketKeyEnabled(String bucketKeyEnabled) {
 		this.bucketKeyEnabled = bucketKeyEnabled;
+	}
+
+	public String getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(String expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 	private static final String USER_METADATA_PREFIX = "x-amz-meta-";
