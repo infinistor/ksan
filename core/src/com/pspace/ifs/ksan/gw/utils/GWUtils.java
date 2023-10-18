@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -57,15 +58,19 @@ import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.Owner;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration;
+import com.pspace.ifs.ksan.gw.format.LifecycleConfiguration;
 import com.pspace.ifs.ksan.gw.format.Policy;
 import com.pspace.ifs.ksan.gw.format.PublicAccessBlockConfiguration;
+import com.pspace.ifs.ksan.gw.format.Tagging;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant;
 import com.pspace.ifs.ksan.gw.format.AccessControlPolicy.AccessControlList.Grant.Grantee;
 import com.pspace.ifs.ksan.gw.format.CORSConfiguration.CORSRule;
 import com.pspace.ifs.ksan.gw.format.Policy.Statement;
+import com.pspace.ifs.ksan.gw.format.Tagging.TagSet.Tag;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.objmanager.Bucket;
+import com.pspace.ifs.ksan.objmanager.Metadata;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.disk.Disk;
@@ -818,4 +823,203 @@ public class GWUtils {
 
         return null;
     }
+
+	public static boolean skipLifecycleCheck(LifecycleConfiguration.Rule rule, Metadata meta) {
+		// 필터가 존재할 경우
+		if (rule.filter != null) {
+			// And 필터가 존재할 경우
+			if (rule.filter.and != null) {
+				// Prefix가 설정되어 있을 경우
+				if (!Strings.isNullOrEmpty(rule.filter.and.prefix)) {
+					// Prefix가 일치하지 않을 경우 스킵
+					if (!meta.getPath().startsWith(rule.filter.and.prefix)) {
+						return true;
+					}
+				}
+
+				// 태그 필터가 설정되어 있는 경우
+				if (rule.filter.and.tag.size() > 0) {
+					// 오브젝트의 모든 태크를 비교
+					int tagCount = rule.filter.and.tag.size();
+					for (var filterTag : rule.filter.and.tag) {
+						if (!Strings.isNullOrEmpty(meta.getTag())) {
+							XmlMapper xmlMapper = new XmlMapper();
+							try {
+								Tagging tagging = xmlMapper.readValue(meta.getTag(), Tagging.class);
+								if (tagging != null && tagging.tagset != null && tagging.tagset.tags != null) {
+									for (Tag tag : tagging.tagset.tags) {
+										if (filterTag.key.equals(tag.key) && filterTag.value.equals(tag.value)) {
+											tagCount--;
+										}
+									}
+								}
+							} catch (JsonProcessingException e) {
+								PrintStack.logging(logger, e);
+							}
+						}
+					}
+
+					// 필터에 설정된 태그 목록이 오브젝트의 태그 목록에 포함되지 않을 경우 스킵
+					if (tagCount > 0) {
+						return true;
+					}
+				}
+			}
+			// Prefix가 설정되어 있을 경우
+			else if (!Strings.isNullOrEmpty(rule.filter.prefix)) {
+				if (!meta.getPath().startsWith(rule.filter.prefix)) {
+					return true;
+				}
+			}
+			// 태그 필터가 설정되어 있을 경우
+			else if (rule.filter.tag != null) {
+				var filterTag = rule.filter.tag;
+				boolean find = false;
+
+				// 오브젝트의 모든 태그를 비교
+				if (!Strings.isNullOrEmpty(meta.getTag())) {
+					XmlMapper xmlMapper = new XmlMapper();
+					try {
+						Tagging tagging = xmlMapper.readValue(meta.getTag(), Tagging.class);
+						if (tagging != null && tagging.tagset != null && tagging.tagset.tags != null) {
+							for (Tag tag : tagging.tagset.tags) {
+								if (filterTag.key.equals(tag.key) && filterTag.value.equals(tag.value)) {
+									find = true;
+								}
+							}
+						}
+					} catch (JsonProcessingException e) {
+						PrintStack.logging(logger, e);
+					}
+				}
+				// 필터에 설정된 태그가 오브젝트의 태그에 존재하지 않을 경우 스킵
+				if (!find) {
+					return true;
+				}
+			}
+
+			// 최소 크기 필터가 설정되어 있을 경우
+			if (!Strings.isNullOrEmpty(rule.filter.objectSizeGreaterThan)) {
+				// 오브젝트가 최소 크기보다 작을 경우 스킵
+				long minFileSize = Long.parseLong(rule.filter.objectSizeGreaterThan);
+				if (meta.getSize() < minFileSize) {
+					return true;
+				}
+			}
+			// 최대 크기 필터가 설정되어 있을 경우
+			else if (!Strings.isNullOrEmpty(rule.filter.objectSizeLessThan)) {
+				// 오브젝트가 최대 크기보다 클 경우 스킵
+				long maxFileSize = Long.parseLong(rule.filter.objectSizeLessThan);
+				if (meta.getSize() > maxFileSize) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static S3Metadata checkForLifecycle(S3Metadata s3Metadata, Metadata metadata, String lifecycle) throws GWException {
+		String oldestDate = GWConstants.EMPTY_STRING;
+		try {
+			if (!Strings.isNullOrEmpty(lifecycle)) {
+				logger.info("lifecycle : {}", lifecycle);
+				XmlMapper xmlMapper = new XmlMapper();
+				LifecycleConfiguration BucketLifecycle = xmlMapper.readValue(lifecycle, LifecycleConfiguration.class);
+				if (BucketLifecycle.rules != null && BucketLifecycle.rules.size() > 0) {
+					for (LifecycleConfiguration.Rule r : BucketLifecycle.rules) {
+						if (GWUtils.skipLifecycleCheck(r, metadata) == false) {
+							// expiration rule
+							if (r.expiration != null) {
+								if (!Strings.isNullOrEmpty(r.expiration.date)) {
+									if (metadata.getLastVersion()) {
+										// expiry-date="Fri, 23 Dec 2012 00:00:00 GMT", rule-id="picture-deletion-rule"
+										SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+										sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // 시간대를 GMT로 설정
+										Date expireDate;
+										Date olderDate = null;
+
+										try {
+											expireDate = sdf.parse(r.expiration.date);
+											if (!Strings.isNullOrEmpty(oldestDate) )
+												olderDate = sdf.parse(oldestDate);
+										} catch (ParseException e) {
+											PrintStack.logging(logger, e);
+											continue;
+										} 
+										
+										if (olderDate != null) {
+											if ( olderDate.compareTo(expireDate) > 0) {
+												s3Metadata.setExpirationDate(
+													"expiry-date=\"" + r.expiration.date + "\", rule-id=\"" + r.id + "\"");
+												oldestDate = r.expiration.date;
+											}
+										} else {
+											// UTC 형식의 문자열로 변환
+											s3Metadata.setExpirationDate(
+												"expiry-date=\"" + r.expiration.date + "\", rule-id=\"" + r.id + "\"");
+											oldestDate = r.expiration.date;
+										}
+									}
+								}
+
+								if (!Strings.isNullOrEmpty(r.expiration.days)) {
+									if (metadata.getLastVersion()) {
+										Calendar cal = Calendar.getInstance();
+										cal.setTime(s3Metadata.getLastModified());
+										cal.add(Calendar.DAY_OF_MONTH, Integer.parseInt(r.expiration.days));
+										Date newDate = cal.getTime();
+
+										SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+										sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // 시간대를 GMT로 설정
+										String utcDate = sdf.format(newDate); // UTC 형식의 문자열로 변환
+										Date olderDate = null;
+
+										try {
+											if (!Strings.isNullOrEmpty(oldestDate)) {
+												olderDate = sdf.parse(oldestDate);
+											}
+										} catch (ParseException e) {
+											PrintStack.logging(logger, e);
+											continue;
+										}
+
+										if (olderDate != null) {
+											if (olderDate.compareTo(newDate) > 0) {
+												s3Metadata.setExpirationDate("expiry-date=\"" + utcDate + "\", rule-id=\"" + r.id + "\"");
+												oldestDate = utcDate;
+											}
+										} else {
+											s3Metadata.setExpirationDate("expiry-date=\"" + utcDate + "\", rule-id=\"" + r.id + "\"");
+											oldestDate = utcDate;
+										}
+									}
+								}
+							}
+
+							// expiration noncurrency rule
+							if (r.versionexpiration != null) {
+								if (!Strings.isNullOrEmpty(r.versionexpiration.noncurrentDays)) {
+									if (metadata.getLastVersion()) {
+										Calendar cal = Calendar.getInstance();
+										cal.setTime(s3Metadata.getLastModified());
+										cal.add(Calendar.DAY_OF_MONTH, Integer.parseInt(r.versionexpiration.noncurrentDays));
+										Date newDate = cal.getTime();
+
+										SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+										sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // 시간대를 UTC로 설정
+										String utcDate = sdf.format(newDate); // UTC 형식의 문자열로 변환
+										s3Metadata.setExpirationDate("expiry-date=\"" + utcDate + "\", rule-id=\"" + r.id + "\"");
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (JsonProcessingException e) {
+			PrintStack.logging(logger, e);
+		}
+
+		return s3Metadata;
+	}
 }

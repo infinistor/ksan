@@ -83,6 +83,12 @@ public class ListObjectsV2 extends S3Request {
 		s3ObjectList.setStartAfter(s3RequestData.getStartAfter());
 		s3ObjectList.setFetchOwner(s3RequestData.getFetchOwner());
 
+		logger.debug("continuationToken : {}", s3ObjectList.getContinuationToken());
+		logger.debug("delimiter : {}", s3ObjectList.getDelimiter());
+		logger.debug("prefix : {}", s3ObjectList.getPrefix());
+		logger.debug("startAfter : {}", s3ObjectList.getStartAfter());
+		logger.debug("maxKeys : {}", s3ObjectList.getMaxKeys());
+
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();

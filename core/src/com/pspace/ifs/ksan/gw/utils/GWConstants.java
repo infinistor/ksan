@@ -502,6 +502,7 @@ public final class GWConstants {
 	public static final String X_AMZ_OBJECT_LOCK_MODE = "x-amz-object-lock-mode";
 	public static final String X_AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE = "x-amz-object-lock-retain-until-date";
 	public static final String X_AMZ_OBJECT_LOCK_LEGAL_HOLD = "x-amz-object-lock-legal-hold";
+	public static final String X_AMZ_EXPIRATION = "x-amz-expiration";
 	public static final String X_AMZ_SOURCE_EXPECTED_BUCKET_OWNER = "x-amz-source-expected-bucket-owner";
 	public static final String X_AMZ_BUCKET_OBJECT_LOCK_ENABLED = "x-amz-bucket-object-lock-enabled";
 	public static final String X_AMZ_MFA = "x-amz-mfa";
@@ -1393,6 +1394,7 @@ public final class GWConstants {
 	public static final String LOG_DATA_VERSION_ID_MARKER_NULL = "versionIdMarker is null or empty";
 	public static final String LOG_DATA_MAX_PARTS_NULL = "maxParts is null or empty";
 	public static final String LOG_DATA_PART_NUMBER_MARKER_NULL = "partNumberMarker is null or empty";
+	public static final String LOG_DATA_LIFECYCLE_RULE_ID_LENGTH = "r1.id.length : {}";
 	public static final String LOG_DATA_LIFECYCLE_R1_STATUS = "rl.status : {}";
 	public static final String LOG_DATA_LIFECYCLE_LCC_RULE_SIZE = "lcc.rules.size : {}, id.size : {}";
 	public static final String LOG_DATA_TAG_NULL = "tag is null or empty";
