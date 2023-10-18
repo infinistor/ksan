@@ -10,7 +10,9 @@
 */
 package com.pspace.ifs.ksan.gw.data;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -32,6 +34,7 @@ import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.format.LifecycleConfiguration;
@@ -432,8 +435,10 @@ public class S3RequestData {
 		
 		if (lcc.rules != null) {
 			for (Rule rl : lcc.rules) {
+				logger.debug("r1.id : {}", rl.id);
 				if (rl.id != null) { 
 					if (rl.id.length() > 255) {
+						logger.error(GWConstants.LOG_DATA_LIFECYCLE_RULE_ID_LENGTH, rl.id.length());
 						throw new GWException(GWErrorCode.INVALID_ARGUMENT, s3Parameter);
 					}
 				
@@ -618,11 +623,29 @@ public class S3RequestData {
 
 	protected String readXml() throws GWException {
 		String ret = null;
-
+		byte[] srcByteBuf = new byte[Constants.MAXBUFSIZE];
+		byte[] destByteBuf = new byte[Constants.MAXBUFSIZE];
+		int readLength = 0;
+		int bufferOff = 0;
+		int bufferSize = Constants.BUFSIZE;
+		OutputStream out = new ByteArrayOutputStream();
 		try {
-			byte[] xml = s3Parameter.getInputStream().readAllBytes();
-			s3Parameter.addRequestSize(xml.length);
-			ret = new String(xml, StandardCharsets.UTF_8);
+			while ((readLength = s3Parameter.getInputStream().read(srcByteBuf, 0, bufferSize)) >= 0) {
+				s3Parameter.addRequestSize(readLength);
+				System.arraycopy(srcByteBuf, 0, destByteBuf, bufferOff, readLength);
+				bufferOff += readLength;
+
+				if (bufferOff >= Constants.BUFSIZE) {
+					out.write(destByteBuf, 0, bufferOff);
+					bufferOff = 0;
+				}
+			}
+
+			if (bufferOff != 0) {
+				out.write(destByteBuf, 0, bufferOff);
+			}
+			ret = out.toString();
+			out.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
@@ -644,11 +667,30 @@ public class S3RequestData {
 
 	protected String readJson() throws GWException {
 		String ret = null;
-
+		byte[] srcByteBuf = new byte[Constants.MAXBUFSIZE];
+		byte[] destByteBuf = new byte[Constants.MAXBUFSIZE];
+		int readLength = 0;
+		int bufferOff = 0;
+		int bufferSize = Constants.BUFSIZE;
+		OutputStream out = new ByteArrayOutputStream();
 		try {
-			byte[] json = s3Parameter.getInputStream().readAllBytes();
-			s3Parameter.addRequestSize(json.length);
-			ret = new String(json, StandardCharsets.UTF_8);
+			while ((readLength = s3Parameter.getInputStream().read(srcByteBuf, 0, bufferSize)) >= 0) {
+				s3Parameter.addRequestSize(readLength);
+				System.arraycopy(srcByteBuf, 0, destByteBuf, bufferOff, readLength);
+				bufferOff += readLength;
+
+				if (bufferOff >= Constants.BUFSIZE) {
+					out.write(destByteBuf, 0, bufferOff);
+					bufferOff = 0;
+				}
+			}
+
+			if (bufferOff != 0) {
+				out.write(destByteBuf, 0, bufferOff);
+			}
+
+			ret = out.toString();
+			out.close();
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
