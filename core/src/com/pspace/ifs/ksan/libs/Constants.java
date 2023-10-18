@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.libs;
 
 public class Constants {
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
+	public static final int BUFSIZE = 262144; // 256 * 1024
 
 	public static final char CHAR_SLASH = '/';
 	public static final char CHAR_POINT = '.';
