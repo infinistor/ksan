@@ -165,6 +165,11 @@ public class CopyObject extends S3Request {
 		srcVersionId = srcMeta.getVersionId();
 		
 		logger.info("request src versionId : {}, src meta versionId : {}", srcVersionId, srcMeta.getVersionId());
+		// check src object is delete marker
+		if (srcMeta.getDeleteMarker().equals(GWConstants.OBJECT_TYPE_MARKER) && srcMeta.getLastVersion()) {
+			logger.error("src object is delete marker : {}:{}", srcBucket, srcObjectName);
+			throw new GWException(GWErrorCode.NO_SUCH_KEY, s3Parameter);
+		}
 
 		s3Parameter.setSrcBucketName(srcBucket);
 		s3Parameter.setSrcVersionId(srcVersionId);
