@@ -837,7 +837,7 @@ public class ListObject{
                             if(objectListParameter.isTruncated()) {
                                 StringBuilder delimiterp1 = new StringBuilder(); 
                                 delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
-                                //delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
+                                delimiterp1.append(Character.getNumericValue(endPrefix.charAt(endPrefix.length()-1)) + 1);
                                 delmarker = delimiterp1.toString();
                                 bDelForceGte = true;
 
@@ -868,6 +868,7 @@ public class ListObject{
                             Iterator truncateItr = truncateList.iterator();
 
                             int truncateMatchCount = 0;
+                            int truncateMatchObjCount = 0;
                             logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
                             while (truncateItr.hasNext()) {
                                 //mt = (Metadata)truncateItr.next();
@@ -890,6 +891,14 @@ public class ListObject{
                                     break;
                                 }
 
+                                if (istruncatematch > 0){
+                                    if (objectListParameter.getCommonPrefixes().get(truncateEndPrefix)!= null)
+                                        istruncatematch--;
+                                }
+                                else{
+                                   truncateMatchObjCount++;
+                                }
+                                
                                 if (istruncatematch > 0) {
                                     truncateMatchCount++;
                                     objectListParameter.setNextMarker(truncateEndPrefix);
@@ -898,6 +907,9 @@ public class ListObject{
                             }
 
                             if (truncateMatchCount == 0) {
+                                objectListParameter.setIstruncated(false);
+                            }
+                            else if (truncateMatchObjCount == 0){
                                 objectListParameter.setIstruncated(false);
                             }
                             break;
