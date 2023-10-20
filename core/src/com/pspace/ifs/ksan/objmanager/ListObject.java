@@ -871,8 +871,8 @@ public class ListObject{
                             int truncateMatchObjCount = 0;
                             logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
                             while (truncateItr.hasNext()) {
-                                //mt = (Metadata)truncateItr.next();
-                                String truncateObjectName = objectName;//mt.getPath();
+                                Metadata mt1 = (Metadata)truncateItr.next();
+                                String truncateObjectName = mt1.getPath();
                                 String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
 
                                 String truncateEndPrefix = "";
