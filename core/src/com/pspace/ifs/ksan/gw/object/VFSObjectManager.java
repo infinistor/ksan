@@ -253,21 +253,26 @@ public class VFSObjectManager implements IObjectManager {
                     fileTrashPrimary = new File(trashPath);
                     fosPrimary = new FileOutputStream(fileTempPrimary, false);
                 } else {
-                    // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
-                    osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // if (osdClientPrimary == null) {
-                    //     osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // } else {
-                    //     isBorrowOsdPrimary = true;
-                    // }
-                    osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
-                        meta.getObjId(),
-                        param.getVersionId(),
-                        length,
-                        Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
-                        replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
-                        key,
-                        "");
+                    try {
+                        // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
+                        osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // if (osdClientPrimary == null) {
+                        //     osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // } else {
+                        //     isBorrowOsdPrimary = true;
+                        // }
+                        osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
+                            meta.getObjId(),
+                            param.getVersionId(),
+                            length,
+                            Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
+                            replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+                            key,
+                            "");
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                    }
                 }
             }
 
@@ -298,21 +303,27 @@ public class VFSObjectManager implements IObjectManager {
                     fileTrashReplica = new File(trashPath);
                     fosReplica = new FileOutputStream(fileTempReplica, false);
                 } else {
-                    // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
-                    osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // if (osdClientReplica == null) {
-                    //     osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // } else {
-                    //     isBorrowOsdReplica = true;
-                    // }
-                    osdClientReplica.putInit(replicaDISK.getPath(),
-                        meta.getObjId(),
-                        param.getVersionId(),
-                        length,
-                        Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA,
-                        Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
-                        key,
-                        "");
+                    try {
+                        // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
+                        osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // if (osdClientReplica == null) {
+                        //     osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // } else {
+                        //     isBorrowOsdReplica = true;
+                        // }
+                        osdClientReplica.putInit(replicaDISK.getPath(),
+                            meta.getObjId(),
+                            param.getVersionId(),
+                            length,
+                            Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA,
+                            Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+                            key,
+                            "");
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                        isAvailableReplica = false;
+                    }
+                    
                 }
             }
 

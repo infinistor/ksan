@@ -126,7 +126,15 @@ public class ListObjectsV2 extends S3Request {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_CONTINUEATION_TOKEN, GWUtils.encodeObjectName(encodingType, s3ObjectList.getContinuationToken()));
 			}
 
-			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(objectListParameter.getObjects().size()));
+			// KEY_COUNT
+			int keyCount = 0;
+			if (objectListParameter.getObjects() != null) {
+				keyCount = objectListParameter.getObjects().size();
+			}
+			if (objectListParameter.getCommonPrefixes() != null) {
+				keyCount += objectListParameter.getCommonPrefixes().size();
+			}
+			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(keyCount));
 			
 			if (s3ObjectList.getDelimiter() != null) {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_DELIMITER, GWUtils.encodeObjectName(encodingType, s3ObjectList.getDelimiter()));
