@@ -796,13 +796,13 @@ public class ListObject{
 
             if (istruncatematch > 0){
                 if (objectListParameter.getCommonPrefixes().get(truncateEndPrefix)== null){
-                    objectListParameter.setNextMarker(truncateEndPrefix);
+                    //objectListParameter.setNextMarker(truncateEndPrefix);
                     objectListParameter.setIstruncated(true);
                     return 1;
                 }
             }
             else{
-               objectListParameter.setNextMarker(truncateObjectName);
+               //objectListParameter.setNextMarker(truncateObjectName);
                objectListParameter.setIstruncated(true); 
                //truncateMatchObjCount++;
                return 1;
@@ -880,14 +880,14 @@ public class ListObject{
                         if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys)){
                             if (match > 0) {
                                 if (objectListParameter.getCommonPrefixes().get(endPrefix)== null){
-                                     objectListParameter.setNextMarker(endPrefix);
+                                     //objectListParameter.setNextMarker(endPrefix);
                                      objectListParameter.setIstruncated(true); 
                                 }
                                 else
                                    isResultTruncated(end); 
                             }
                             else{
-                                objectListParameter.setNextMarker(subName); 
+                                //objectListParameter.setNextMarker(subName); 
                                 objectListParameter.setIstruncated(true);
                                 //break;
                             }
