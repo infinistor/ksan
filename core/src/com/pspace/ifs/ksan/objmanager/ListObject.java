@@ -556,7 +556,7 @@ public class ListObject{
            
            if (bMarker && bVersionIdMarker)
                if (bDelimiterMarker)
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker))); //objkey
+                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
                else
                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
            
