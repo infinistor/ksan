@@ -764,6 +764,55 @@ public class ListObject{
         return 0;
     }
     
+    private int isResultTruncated(int end) throws SQLException{
+        int truncateMatchCount = 0;
+        int truncateMatchObjCount = 0;
+        
+        makeQuery();
+        List<Metadata> truncateList = bindAndExcute();
+        Iterator truncateItr = truncateList.iterator();
+        
+        logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
+        while (truncateItr.hasNext()) {
+            Metadata mt1 = (Metadata)truncateItr.next();
+            String truncateObjectName = mt1.getPath();
+            String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
+            String truncateEndPrefix = "";
+            if (bBucketListParameterPrefix) {
+                truncateEndPrefix = prefix;
+            }
+            
+            logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
+            int istruncatefind = 0;
+            int istruncatematch = 0;
+
+            // delimiter를 발견하면 common prefix
+            // 아니라면 object
+            if ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
+                truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
+                istruncatematch++;
+                //break;
+            }
+
+            if (istruncatematch > 0){
+                if (objectListParameter.getCommonPrefixes().get(truncateEndPrefix)== null){
+                    objectListParameter.setNextMarker(truncateEndPrefix);
+                    objectListParameter.setIstruncated(true);
+                    return 1;
+                }
+            }
+            else{
+               objectListParameter.setNextMarker(truncateObjectName);
+               objectListParameter.setIstruncated(true); 
+               //truncateMatchObjCount++;
+               return 1;
+            }
+        }
+
+        objectListParameter.setIstruncated(false);
+        return 0;
+    }
+    
     private void listObjectAndParse() throws SQLException {       
         int rowcount;
         
@@ -821,14 +870,31 @@ public class ListObject{
                         // delimiter를 발견하면 common prefix
                         // 아니라면 object
                         logger.debug("[listObjectAndParse] objectName : {}  subName : {}", objectName, subName);
-                        while ((find = subName.indexOf(delimiter)) >= 0) {
+                        if ((find = subName.indexOf(delimiter)) >= 0) {
                             endPrefix += subName.substring(0, find + delimiter.length());
                             match++;
-                            break;
+                            //break;
                         }
 
-                        // delimiter가 발견
                         logger.debug("[listObjectAndParse] objectName : {}  subName : {}  endPrefix : {} find : {}  match : {}", objectName, subName, endPrefix, find, match);
+                        if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys)){
+                            if (match > 0) {
+                                if (objectListParameter.getCommonPrefixes().get(endPrefix)== null){
+                                     objectListParameter.setNextMarker(endPrefix);
+                                     objectListParameter.setIstruncated(true); 
+                                }
+                                else
+                                   isResultTruncated(end); 
+                            }
+                            else{
+                                objectListParameter.setNextMarker(subName); 
+                                objectListParameter.setIstruncated(true);
+                                //break;
+                            }
+                            break;
+                        }
+                        
+                        // delimiter가 발견
                         if (match > 0) {
                             // common prefix 등록
                             objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
@@ -860,9 +926,8 @@ public class ListObject{
                                 break;
                             }
                         }
-                    
-                        if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
-                                            /*&& !(listType.equalsIgnoreCase("listObjectVersion"))*/) {
+ 
+                        /*if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys)) {
                             makeQuery();
                             List<Metadata> truncateList = bindAndExcute();
                             Iterator truncateItr = truncateList.iterator();
@@ -913,7 +978,7 @@ public class ListObject{
                                 objectListParameter.setIstruncated(false);
                             }
                             break;
-                        }
+                        }*/
                     }
                     if (!objectListParameter.isTruncated()) {
                         break;

@@ -317,7 +317,7 @@ public class Objects {
         logger.debug("[listObject] Begin bucketName : {} delimiter : {}  Marker : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         logger.debug("[listObject] End bucketName : {} delimiter : {}  Marker : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {} nextMarker : {} ", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getMarker()), 
-                parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated(), list.getList().getNextMarker());
+                parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size() + list.getList().getCommonPrefixes().size(), list.getList().isTruncated(), list.getList().getNextMarker());
         return list.getList();
     }
 
@@ -325,7 +325,7 @@ public class Objects {
         logger.debug("[listObjectV2] Begin bucketName : {} delimiter : {}  StartAfter : {} ContinuationToken : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getStartAfter()), displayString(s3ObjectList.getContinuationToken()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getStartAfter(), s3ObjectList.getContinuationToken(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix());
         logger.debug("[listObjectV2] End bucketName : {} delimiter : {} StartAfter : {} ContinuationToken : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {} nextMarker : {} ", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getStartAfter()), displayString(s3ObjectList.getContinuationToken()), parseMaxKeys(s3ObjectList.getMaxKeys()), 
-                displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated(), list.getList().getNextMarker());
+                displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size() + list.getList().getCommonPrefixes().size(), list.getList().isTruncated(), list.getList().getNextMarker());
         return list.getList();
     }
 
@@ -333,7 +333,7 @@ public class Objects {
         logger.debug("[listObjectVersions] Begin bucketName : {} delimiter : {}  keyMarker : {} VersionIdMarker : {} maxNumKeys: {} prefix : {}", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getKeyMarker()), displayString(s3ObjectList.getVersionIdMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), displayString(s3ObjectList.getPrefix()));
         ListObject list = new ListObject(dbm, bucketName, s3ObjectList.getDelimiter(), s3ObjectList.getKeyMarker(), s3ObjectList.getVersionIdMarker(), parseMaxKeys(s3ObjectList.getMaxKeys()), s3ObjectList.getPrefix(), true);
         logger.debug("[listObjectVersions] End bucketName : {} delimiter : {} keyMarker : {} VersionIdMarker : {} maxNumKeys: {} prefix : {} num_res : {} is_truncated : {} nextMarker : {} ", bucketName, displayString(s3ObjectList.getDelimiter()), displayString(s3ObjectList.getKeyMarker()), displayString(s3ObjectList.getVersionIdMarker()), parseMaxKeys(s3ObjectList.getMaxKeys()), 
-                displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size(), list.getList().isTruncated(), list.getList().getNextMarker());
+                displayString(s3ObjectList.getPrefix()), list.getList().getObjects().size() + list.getList().getCommonPrefixes().size(), list.getList().isTruncated(), list.getList().getNextMarker());
         return list.getList();
     }
     
