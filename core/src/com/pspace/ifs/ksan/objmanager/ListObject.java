@@ -19,6 +19,7 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class ListObject{
     private String diskid;
     //private long offset;
     private String lastObjId;
-  
+    private HashMap<String, String> uniqObjectsMap;
     private BasicDBObject mongoQuery;
     
     private boolean bBucketListParameterPrefix;
@@ -128,8 +129,9 @@ public class ListObject{
                 this.continuationToken = delimiterp2.toString();
                 bDelimitertoken = true;
             }
-        }  
+        } 
         
+        uniqObjectsMap = new HashMap();
     }
     // for listObject
     public ListObject(DataRepository dbm, String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException{
@@ -234,6 +236,14 @@ public class ListObject{
         this.diskid = diskid;
         this.lastObjId = lastObjId;
         this.versionIdMarker = lastVersionId;
+    }
+    
+    private void setUniqObjects(Metadata mt){
+        uniqObjectsMap.putIfAbsent(mt.getObjId()+"_" + mt.getVersionId(), mt.getObjId()+"_" + mt.getVersionId());
+    }
+    
+    private boolean objectExistInUniqObjects(Metadata mt){
+        return uniqObjectsMap.containsKey(mt.getObjId()+"_" + mt.getVersionId());
     }
     
     private Object makeQueryWithDiskId(String diskid, String lastObjId, String lastVersionId){
@@ -640,7 +650,10 @@ public class ListObject{
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{
         //S3Metadata s3Metadata = new S3Metadata();
-       S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
+        if (objectExistInUniqObjects(mt))
+            return 0; // ignore
+        
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
         
         s3Metadata.setName(objKey);
         if (listType.equalsIgnoreCase("listObjectVersion")){
@@ -649,6 +662,7 @@ public class ListObject{
         }
 
         objectListParameter.getObjects().add(s3Metadata);
+        setUniqObjects(mt); // to avoid redendency 
         logger.debug("[setObject] objkey : {} list_size : {} offset : {}", mt.getPath(), objectListParameter.getObjects().size(),  offset);
         if ((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size())== maxKeys) {
             if (objectListParameter.isTruncated()) {
