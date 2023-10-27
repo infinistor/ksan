@@ -345,6 +345,18 @@ public class DiskMonitor {
             logger.debug("Stop Disk>> {}",  jo);
             dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.STOPPED);
         }
+        else if (jo.status.equalsIgnoreCase("Weak")){
+            logger.debug("Weak Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.WEAK);
+        }
+        else if (jo.status.equalsIgnoreCase("broken")){
+            logger.debug("Broken Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.BROKEN);
+        }
+        else if (jo.status.equalsIgnoreCase("disabled")){
+            logger.debug("Disabled Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.DISABLED);
+        }
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         obmCache.displayDiskPoolList();
         

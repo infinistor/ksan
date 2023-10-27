@@ -244,10 +244,14 @@ public class GetFromPortal {
             dsk.setOSDServerId(svr.getId());
             if (status.equalsIgnoreCase("Good"))
                 dsk.setStatus(DiskStatus.GOOD);
+            else if (status.equalsIgnoreCase("Weak"))
+                dsk.setStatus(DiskStatus.WEAK);
             else if (status.equalsIgnoreCase("stop"))
                 dsk.setStatus(DiskStatus.STOPPED);
             else if (status.equalsIgnoreCase("broken"))
                 dsk.setStatus(DiskStatus.BROKEN);
+            else if (status.equalsIgnoreCase("DISABLED"))
+                dsk.setStatus(DiskStatus.DISABLED);
             else
                 dsk.setStatus(DiskStatus.UNKNOWN);
             

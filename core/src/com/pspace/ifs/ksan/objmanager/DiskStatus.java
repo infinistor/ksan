@@ -16,5 +16,5 @@ package com.pspace.ifs.ksan.objmanager;
  */
 
 public enum DiskStatus {
-    UNKNOWN, GOOD, STOPPED, BROKEN;
+    UNKNOWN, GOOD, STOPPED, BROKEN, WEAK, DISABLED;
 }
