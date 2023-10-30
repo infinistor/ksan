@@ -202,7 +202,7 @@ public class MongoDataRepository implements DataRepository{
         MongoClient mongo;
         
         mongo = MongoClients.create(url);
-                
+        logger.debug("Mongodb connection url : {}", url);
         database = mongo.getDatabase(dbname);
     }
     
