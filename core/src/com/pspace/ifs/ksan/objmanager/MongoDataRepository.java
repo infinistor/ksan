@@ -732,7 +732,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException {
         //FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
-        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName));
+        FindIterable fit = buckets.find(eq(BUCKETNAME, bucketName)).sort(new BasicDBObject(BUCKETNAME, 1 ));
         Document doc =(Document)fit.first();
         return parseBucket(bucketName, doc);
     }

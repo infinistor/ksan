@@ -431,7 +431,7 @@ public class ListObject{
                     List<BasicDBObject> lor = new ArrayList();
                     lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*$")));
                     lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*/+$")));
-                    and.add(new BasicDBObject("objKey", new BasicDBObject("$or", lor.toArray())));
+                    and.add(new BasicDBObject("$or", lor.toArray()));
                 }
            }
            
