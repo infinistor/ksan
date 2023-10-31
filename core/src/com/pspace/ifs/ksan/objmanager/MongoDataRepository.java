@@ -151,6 +151,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String OBJRESTORE_REQUEST = "request";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
+        logger = LoggerFactory.getLogger(MongoDataRepository.class);
         this.username = username;
         this.passwd = passwd;
         this.dbname = dbname;
@@ -161,7 +162,6 @@ public class MongoDataRepository implements DataRepository{
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
         createRestoreObjHolder();
-        logger = LoggerFactory.getLogger(MongoDataRepository.class);
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
