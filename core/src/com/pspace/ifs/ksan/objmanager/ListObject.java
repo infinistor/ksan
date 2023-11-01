@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -407,6 +408,10 @@ public class ListObject{
         query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
     }
     
+    private static String escapeSpecialChars(String source) {
+        return Pattern.quote(source);
+    }
+
     private BasicDBObject makeMongoQuery(){
         if (dbm instanceof MongoDataRepository){
            String prefixStr;
@@ -419,10 +424,11 @@ public class ListObject{
                and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            }
            
-           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+           prefixStr = escapeSpecialChars(prefix);
+           /*prefixStr = prefix.replaceAll("\\%",  "\\\\/")
                    .replaceAll("\\_",  "\\\\_")
                    .replaceAll("\\(", "\\\\(")
-                   .replaceAll("\\)", "\\\\)");
+                   .replaceAll("\\)", "\\\\)");*/
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){   
                 if (!bDelimiterMarker)
