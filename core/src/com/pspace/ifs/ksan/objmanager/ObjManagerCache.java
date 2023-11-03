@@ -23,6 +23,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -196,8 +198,8 @@ public class ObjManagerCache {
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
         reloadBucketList(); // get list always bucket from db 
-        
-        for (String key : bucketMap.keySet()) {
+        SortedSet<String> bucketkeySet = new TreeSet<>(bucketMap.keySet());
+        for (String key : bucketkeySet) {
             Bucket bt = bucketMap.get(key);
             if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
             	S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
