@@ -192,6 +192,7 @@ public class ObjManagerCache {
     }
     
     public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
+        int idx = 0;
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
         reloadBucketList(); // get list always bucket from db 
@@ -203,6 +204,7 @@ public class ObjManagerCache {
             	bsi.setBucketName(bt.getName());
             	bsi.setCreateDate(bt.getCreateTime());
             	btList.add(bsi);
+                logger.debug("id : {}  buckename : {}",idx++, key);
 	    }
         }
          

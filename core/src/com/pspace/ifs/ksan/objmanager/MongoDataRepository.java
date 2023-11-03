@@ -740,7 +740,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void loadBucketList() {
         Bucket bt;
-        FindIterable<Document> fit = buckets.find();
+        FindIterable<Document> fit = buckets.find().sort(new BasicDBObject(BUCKETNAME, 1 ));
         Iterator it = fit.iterator();
         while((it.hasNext())){
             try {
@@ -757,7 +757,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public List<Bucket> getBucketList() {
         List<Bucket> btList = new ArrayList();
-        FindIterable<Document> fit = buckets.find();
+        FindIterable<Document> fit = buckets.find().sort(new BasicDBObject(BUCKETNAME, 1 ));
         Iterator it = fit.iterator();
         while((it.hasNext())){
             try {
