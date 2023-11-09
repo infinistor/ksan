@@ -16,7 +16,9 @@ import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,5 +230,30 @@ public class BucketManager {
         bt.setObjectTagIndexEnabled(isEnabled);
         dbm.updateBucketObjTagIndexing(bt);
         obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAnalytics(analytics);
+        dbm.updateBucketAnalytics(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAccelerate(accelerate);
+        dbm.updateBucketAccelerate(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketPayment(String bucketName, String payment) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setPayment(payment);
+        dbm.updateBucketPayment(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public List<Map<String, String>> listBucketAnalyticsConfiguration() {
+        return obmCache.listBucketAnalyticsConfiguration();
     }
 }

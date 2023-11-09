@@ -67,6 +67,9 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketFilecount;
     private PreparedStatement pstUpdateBucketUsedSpace;
     private PreparedStatement pstUpdateObjTagIndexBucket;
+    private PreparedStatement pstUpdateAnalyticsBucket;
+    private PreparedStatement pstUpdateAccelerateBucket;
+    private PreparedStatement pstUpdatePaymentBucket;
     
 // for multipart upload
     private PreparedStatement pstCreateMultiPart;
@@ -128,6 +131,9 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketUsedSpace = con.prepareStatement(DataRepositoryQuery.updateBucketUsedSpaceQuery);
             //pstIsDeleteBucket = con.prepareStatement(DataRepositoryQuery.objIsDeleteBucketQuery);
             pstUpdateObjTagIndexBucket = con.prepareStatement(DataRepositoryQuery.updateBucketObjTagIndexingQuery);
+            pstUpdateAnalyticsBucket = con.prepareStatement(DataRepositoryQuery.updateBucketAnalyticsQuery);
+            pstUpdateAccelerateBucket = con.prepareStatement(DataRepositoryQuery.updateBucketAccelerateQuery);
+            pstUpdatePaymentBucket = con.prepareStatement(DataRepositoryQuery.updateBucketPaymentQuery);
             
             // for multipart
             pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
@@ -719,6 +725,9 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setString(8, bt.getObjectLock());
             this.pstInsertBucket.setInt(9, bt.getReplicaCount());
             this.pstInsertBucket.setBoolean(10, bt.isObjectTagIndexEnabled());
+            this.pstInsertBucket.setString(11, bt.getAnalytics());
+            this.pstInsertBucket.setString(12, bt.getAccelerate());
+            this.pstInsertBucket.setString(13, bt.getPayment());
             this.pstInsertBucket.executeUpdate();
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
@@ -778,6 +787,9 @@ public class MysqlDataRepository implements DataRepository{
         long fileCount = rs.getLong(21);
         String logging = rs.getString(22);
         boolean isObjTagIndexing = rs.getBoolean(23);
+        String analytics = rs.getString(24);
+        String accelerate = rs.getString(25);
+        String payment = rs.getString(26);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -796,6 +808,9 @@ public class MysqlDataRepository implements DataRepository{
         bt.setFileCount(fileCount);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(isObjTagIndexing);
+        bt.setAnalytics(analytics);
+        bt.setAccelerate(accelerate);
+        bt.setPayment(payment);
         return bt;
     }
     
@@ -1244,6 +1259,30 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateBucketEncryption.setString(1, bt.getLogging());
         pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
         pstUpdateBucketEncryption.executeUpdate();
+    }
+    
+    @Override
+    public void updateBucketAnalytics(Bucket bt) throws SQLException {
+        pstUpdateAnalyticsBucket.clearParameters();
+        pstUpdateAnalyticsBucket.setString(1, bt.getAnalytics());
+        pstUpdateAnalyticsBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdateAnalyticsBucket.executeUpdate();
+    }
+    
+    @Override
+    public void updateBucketAccelerate(Bucket bt) throws SQLException {
+        pstUpdateAccelerateBucket.clearParameters();
+        pstUpdateAccelerateBucket.setString(1, bt.getAccelerate());
+        pstUpdateAccelerateBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdateAccelerateBucket.executeUpdate();
+    }
+    
+    @Override
+    public void updateBucketPayment(Bucket bt) throws SQLException {
+        pstUpdatePaymentBucket.clearParameters();
+        pstUpdatePaymentBucket.setString(1, bt.getPayment());
+        pstUpdatePaymentBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdatePaymentBucket.executeUpdate();
     }
     
     @Override

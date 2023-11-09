@@ -118,6 +118,9 @@ public class MongoDataRepository implements DataRepository{
     private static final String USEDSPACE="usedSpace";
     private static final String LOGGING="logging";
     private static final String OBJECTTAG_INDEXING = "objTagIndexing";
+    private static final String ANALYTICS="analytics";
+    private static final String ACCELERATE="accelerate";
+    private static final String PAYMENT="payment";
     
     // for multipart upload
     private static final String UPLOADID="uploadId";
@@ -619,6 +622,9 @@ public class MongoDataRepository implements DataRepository{
         doc.append(CREATETIME, getCurrentDateTime());
         doc.append(LOGGING, bt.getLogging());
         doc.append(OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
+        doc.append(ANALYTICS, bt.getAnalytics());
+        doc.append(ACCELERATE, bt.getAccelerate());
+        doc.append(PAYMENT, bt.getPayment());
 
         buckets.insertOne(doc);
         database.createCollection(bt.getName());
@@ -688,6 +694,9 @@ public class MongoDataRepository implements DataRepository{
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
         String logging  = doc.getString(LOGGING);
+        String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
+        String accelerate = doc.containsKey(ACCELERATE) ? doc.getString(ACCELERATE) :  "";
+        String payment = doc.containsKey(PAYMENT) ? doc.getString(PAYMENT) : "";
         boolean objTagIndexing = false;
         if (doc.containsKey(OBJECTTAG_INDEXING))
             objTagIndexing = doc.getBoolean(OBJECTTAG_INDEXING);
@@ -726,6 +735,9 @@ public class MongoDataRepository implements DataRepository{
         bt.setUsedSpace(usedSpace);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(objTagIndexing);
+        bt.setAnalytics(analytics);
+        bt.setAccelerate(accelerate);
+        bt.setPayment(payment);
         return bt;
     }
     
@@ -1257,6 +1269,21 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void updateBucketObjTagIndexing(Bucket bt) throws SQLException {
         updateBucket(bt.getName(), OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
+    }
+    
+    @Override
+    public void updateBucketAnalytics(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ANALYTICS, bt.getAnalytics());
+    }
+    
+    @Override
+    public void updateBucketAccelerate(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ACCELERATE, bt.getAccelerate());
+    }
+    
+    @Override
+    public void updateBucketPayment(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), PAYMENT, bt.getPayment());
     }
     
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,

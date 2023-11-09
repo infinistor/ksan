@@ -51,16 +51,17 @@ public final class DataRepositoryQuery {
                     + "lifecycle TEXT, access TEXT, "
                     + "tagging TEXT, replication TEXT, logging TEXT, "
                     + "encryption TEXT,   objectlock TEXT,  policy TEXT, "
+                    + "analytics TEXT,   accelerate TEXT,  payment TEXT, "
                     + "versioning VARCHAR(50), MfaDelete VARCHAR(50), "
                     + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
                     + "replicaCount INT DEFAULT 2, objTagIndexing BOOLEAN default false, "
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
-    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing, analytics, accelerate, payment) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing FROM BUCKETS";
+    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, analytics, accelerate, payment FROM BUCKETS WHERE id=?";
+    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, analytics, accelerate, payment FROM BUCKETS";
     public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";
             
     public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
@@ -77,6 +78,9 @@ public final class DataRepositoryQuery {
     public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?";
     public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE id=?";
     public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCK SET objTagIndexing=? WHERE id=?";
+    public  static String  updateBucketAnalyticsQuery = "UPDATE BUCK SET analytics=? WHERE id=?";
+    public  static String  updateBucketAccelerateQuery = "UPDATE BUCK SET accelerate=? WHERE id=?";
+    public  static String  updateBucketPaymentQuery = "UPDATE BUCK SET payment=? WHERE id=?";
     
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("

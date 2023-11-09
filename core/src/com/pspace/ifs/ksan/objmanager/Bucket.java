@@ -40,6 +40,9 @@ public class Bucket {
     private String userName; // new
     private String userId;
     private String logging;
+    private String analytics;
+    private String accelerate;
+    private String payment; 
     private Date createTime;
     private int replicaCount;
     private long usedSpace; // new
@@ -64,6 +67,9 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -84,6 +90,9 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
     }
     
     public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
@@ -107,6 +116,9 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
     }
     
     private void setHashOfName() {
@@ -215,6 +227,18 @@ public class Bucket {
         objTagIndexEnabled = enabled;
     }
     
+    public void setAnalytics(String analytics){
+        this.analytics = analytics;
+    }
+    
+    public void setAccelerate(String accelerate){
+        this.accelerate = accelerate;
+    }
+    
+    public void setPayment(String payment){
+        this.payment = payment;
+    }
+    
     public String getName(){
         return name;
     }
@@ -307,6 +331,18 @@ public class Bucket {
     
     public boolean isObjectTagIndexEnabled(){
         return objTagIndexEnabled;
+    }
+    
+    public String getAnalytics(){
+        return this.analytics;
+    }
+    
+    public String getAccelerate(){
+        return this.accelerate;
+    }
+    
+    public String getPayment(){
+        return this.payment;
     }
     
     @Override

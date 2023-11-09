@@ -70,6 +70,9 @@ public interface DataRepository {
     //public void updateBucketFileCount(Bucket bt) throws SQLException ;
     public void updateBucketLogging(Bucket bt) throws SQLException;
     public void updateBucketObjTagIndexing(Bucket bt) throws SQLException;
+    public void updateBucketAnalytics(Bucket bt) throws SQLException;
+    public void updateBucketAccelerate(Bucket bt) throws SQLException;
+    public void updateBucketPayment(Bucket bt) throws SQLException;
     
     // for multipart upload
     public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException;

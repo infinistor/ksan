@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -212,7 +213,25 @@ public class ObjManagerCache {
          
         return btList;
     }
-
+    
+    public List<Map<String, String>> listBucketAnalyticsConfiguration( ) {
+        int idx = 0;
+        List<Map<String, String>> btList = new ArrayList<>();
+        
+        reloadBucketList(); // get list always bucket from db 
+        SortedSet<String> bucketkeySet = new TreeSet<>(bucketMap.keySet());
+        for (String key : bucketkeySet) {
+            Bucket bt = bucketMap.get(key);
+            if (!bt.getAnalytics().isEmpty()){
+                Map<String, String > map = new HashMap< >();
+                map.put(bt.getName(), bt.getAnalytics());
+            	btList.add(map);
+                logger.debug("id : {}  buckename : {}",idx++, key);
+	    }
+        }  
+        return btList;
+    }
+    
     public boolean bucketExist(String bucketName){
         if (bucketMap.containsKey(bucketName))
             return true;
