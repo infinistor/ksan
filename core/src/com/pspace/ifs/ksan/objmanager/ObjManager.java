@@ -20,6 +20,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundExcept
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
 import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.libs.identity.S3ObjectList;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -400,6 +401,22 @@ public class ObjManager {
     
     public RestoreObjects getRestoreObjects(){
         return this.restoreObj;
+    }
+    
+    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
+        bucketMGT.updateBucketAnalyticsConfiguration(bucketName, analytics);
+    }
+    
+    public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
+        bucketMGT.updateBucketAccelerateConfiguration(bucketName, accelerate);
+    }
+    
+    public void updateBucketPayment(String bucketName, String payment) throws ResourceNotFoundException, SQLException{
+        bucketMGT.updateBucketPayment(bucketName, payment);
+    }
+    
+    public List<Map<String, String>> listBucketAnalyticsConfiguration() {
+        return bucketMGT.listBucketAnalyticsConfiguration();
     }
     
     // for pool
