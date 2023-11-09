@@ -415,8 +415,8 @@ public class ObjManager {
         bucketMGT.updateBucketPayment(bucketName, payment);
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration() {
-        return bucketMGT.listBucketAnalyticsConfiguration();
+    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
+        return bucketMGT.listBucketAnalyticsConfiguration(userName, userId );
     }
     
     // for pool

@@ -253,7 +253,7 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration() {
-        return obmCache.listBucketAnalyticsConfiguration();
+    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
+        return obmCache.listBucketAnalyticsConfiguration(userName, userId);
     }
 }

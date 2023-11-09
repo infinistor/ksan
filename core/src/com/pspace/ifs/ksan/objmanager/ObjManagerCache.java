@@ -214,7 +214,7 @@ public class ObjManagerCache {
         return btList;
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration( ) {
+    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
         int idx = 0;
         List<Map<String, String>> btList = new ArrayList<>();
         
@@ -222,12 +222,14 @@ public class ObjManagerCache {
         SortedSet<String> bucketkeySet = new TreeSet<>(bucketMap.keySet());
         for (String key : bucketkeySet) {
             Bucket bt = bucketMap.get(key);
-            if (!bt.getAnalytics().isEmpty()){
-                Map<String, String > map = new HashMap< >();
-                map.put(bt.getName(), bt.getAnalytics());
-            	btList.add(map);
-                logger.debug("id : {}  buckename : {}",idx++, key);
-	    }
+            if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
+                if (!bt.getAnalytics().isEmpty()){
+                    Map<String, String > map = new HashMap< >();
+                    map.put(bt.getName(), bt.getAnalytics());
+                    btList.add(map);
+                    logger.debug("id : {}  buckename : {}",idx++, key);
+                }
+            }
         }  
         return btList;
     }
