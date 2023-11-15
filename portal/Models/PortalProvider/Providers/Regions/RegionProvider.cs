@@ -131,6 +131,7 @@ namespace PortalProvider.Providers.Accounts
 						await m_dbContext.Regions.AddAsync(NewData);
 					}
 					await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
+					await Transaction.CommitAsync();
 
 					Result.Result = EnumResponseResult.Success;
 					Result.Code = Resource.SC_COMMON__SUCCESS;
