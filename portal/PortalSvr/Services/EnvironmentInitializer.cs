@@ -21,6 +21,8 @@ namespace PortalSvr.Services
 		#region AppSettings
 		/// <summary> AppSettings </summary>
 		public static readonly string KEY_APP_SETTINGS = "AppSettings";
+		/// <summary> 리전명 </summary>
+		public static readonly string KEY_REGION_NAME = "RegionName";
 		/// <summary> RabbitMQ </summary>
 		public static readonly string KEY_RABBITMQ = "RabbitMQ";
 		/// <summary> AppSettings Host </summary>
@@ -178,6 +180,10 @@ namespace PortalSvr.Services
 			// 	Console.WriteLine($"{KSAN_REPLICATION_MANAGER_SETTINGS_FILE} is Empty");
 			// 	return;
 			// }
+
+			// 리전명
+			if (GetEnvValue(Resource.ENV_REGION_NAME, out string RegionName))
+				KsanApi[KEY_APP_SETTINGS][KEY_REGION_NAME] = RegionName;
 
 			// 호스트 주소
 			if (GetEnvValue(Resource.ENV_PORTAL_HOST, out string PortalHost))
