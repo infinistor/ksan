@@ -30,11 +30,11 @@ import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
-public class PutBucketAccelerateConfiguration extends S3Request {
+public class PutBucketAccelerate extends S3Request {
 
-    public PutBucketAccelerateConfiguration(S3Parameter s3Parameter) {
+    public PutBucketAccelerate(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(PutBucketAccelerateConfiguration.class);
+        logger = LoggerFactory.getLogger(PutBucketAccelerate.class);
     }
 
     @Override

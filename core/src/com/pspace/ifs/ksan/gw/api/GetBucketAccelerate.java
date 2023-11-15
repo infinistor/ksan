@@ -27,11 +27,11 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketAccelerateConfiguration extends S3Request {
+public class GetBucketAccelerate extends S3Request {
 
-    public GetBucketAccelerateConfiguration(S3Parameter s3Parameter) {
+    public GetBucketAccelerate(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(GetBucketAccelerateConfiguration.class);
+        logger = LoggerFactory.getLogger(GetBucketAccelerate.class);
     }
 
     @Override
