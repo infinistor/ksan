@@ -602,6 +602,33 @@ public abstract class S3Request {
         }
 	}
 
+	protected void updateBucketAnalytics(String bucket, String analytics) throws GWException {
+		try {
+			objManager.updateBucketAnalyticsConfiguration(bucket, analytics);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+	}
+
+	protected void updateBucketAccelerate(String bucket, String accelerate) throws GWException {
+		try {
+			objManager.updateBucketAccelerateConfiguration(bucket, accelerate);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+	}
+
+	protected void updateBucketPayment(String bucket, String payment) throws GWException {
+		try {
+			objManager.updateBucketPayment(bucket, payment);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+            throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+	}
+
 	protected Bucket getBucket(String bucket) throws GWException {
 		Bucket bucketInfo = null;
 		try {
@@ -711,6 +738,18 @@ public abstract class S3Request {
 		}
 
 		return objectListParameter;
+	}
+
+	protected List<Map<String, String>> listBucketAnalytics(String userName, String userId) throws GWException {
+		List<Map<String, String>> bucketAnalystics = null;
+		try {
+			bucketAnalystics = objManager.listBucketAnalyticsConfiguration(userName, userId);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+		
+		return bucketAnalystics;
 	}
 
 	protected void updateObjectTagging(Metadata meta) throws GWException {
