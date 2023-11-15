@@ -214,7 +214,7 @@ public class ObjManagerCache {
         return btList;
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
+    /*public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
         int idx = 0;
         List<Map<String, String>> btList = new ArrayList<>();
         
@@ -232,7 +232,7 @@ public class ObjManagerCache {
             }
         }  
         return btList;
-    }
+    }*/
     
     public boolean bucketExist(String bucketName){
         if (bucketMap.containsKey(bucketName))
