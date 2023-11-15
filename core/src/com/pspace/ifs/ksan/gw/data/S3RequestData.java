@@ -400,6 +400,10 @@ public class S3RequestData {
 		return s3Parameter.getRequest().getParameter(GWConstants.PART_NUMBER_MARKER);
 	}
 
+	public String getAnalyticsId() {
+		return s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ANALYTICS_ID);
+	}
+
 	public String getAclXml() throws GWException {
 		return readXml();
 	}
@@ -600,6 +604,18 @@ public class S3RequestData {
 	public String getRetoreXml() throws GWException {
 		return readXml();
     }
+
+	public String getAnalyticsXml() throws GWException {
+		return readXml();
+	}
+
+	public String getPaymentXml() throws GWException {
+		return readXml();
+	}
+
+	public String getAccelerateXml() throws GWException {
+		return readXml();
+	}
 
 	public String getCopySourceRange() {
 		return s3Parameter.getRequest().getHeader(GWConstants.X_AMZ_COPY_SOURCE_RANGE);
