@@ -337,8 +337,7 @@ namespace PortalProvider.Providers.Accounts
 						User.IsDeleted = true;
 						if (m_dbContext.HasChanges())
 							await m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-						Transaction.Commit();
+						await Transaction.CommitAsync();
 
 						Result.Result = EnumResponseResult.Success;
 						Result.Code = Resource.SC_COMMON__SUCCESS;

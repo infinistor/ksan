@@ -45,7 +45,7 @@ public class MainReplicator {
 						Constants.MQ_QUEUE_REPLICATION_S3_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_GW_LOG,
 						new ReplicationFilter()));
 
