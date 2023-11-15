@@ -1,9 +1,9 @@
-FROM maven:3.8.6-jdk-11 as libsbuild
+FROM maven:3.8.6-jdk-17 as libsbuild
 WORKDIR /src
 COPY ./core/src/com/pspace/ifs/ksan/libs/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package install
 ########################################################################
-FROM maven:3.8.6-jdk-11 as objmanagerbuild
+FROM maven:3.8.6-jdk-17 as objmanagerbuild
 WORKDIR /src
 COPY ./core/src/com/pspace/ifs/ksan/objmanager/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package install

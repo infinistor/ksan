@@ -1019,7 +1019,10 @@ class GetNetwork(object):
         :return:
         """
         # get dns info
-        dnsresolvers = dns.resolver.Resolver()
+        try:
+            dnsresolvers = dns.resolver.Resolver()
+        except:
+            dnsresolvers = None
 
         # get status of each nic(isup(tru/false), duplex, speed, mtu)
         netif_stat = psutil.net_if_stats()
@@ -1039,12 +1042,13 @@ class GetNetwork(object):
             tmp_dic['Gateway'] = self.GetGatewayWithNic(nic)
             tmp_dic['Dns1'] = ''
             tmp_dic['Dns2'] = ''
-            for idx, nameserver in enumerate(dnsresolvers.nameservers, start=1):
-                key = 'Dns%d' % idx
-                tmp_dic[key] = nameserver
+            if dnsresolvers is not None:
+                for idx, nameserver in enumerate(dnsresolvers.nameservers, start=1):
+                    key = 'Dns%d' % idx
+                    tmp_dic[key] = nameserver
 
-            if tmp_dic['Dns2'] == '':
-                tmp_dic['Dns2'] = tmp_dic['Dns1']
+                if tmp_dic['Dns2'] == '':
+                    tmp_dic['Dns2'] = tmp_dic['Dns1']
 
 
             self.nicinfo_list.append(tmp_dic)
