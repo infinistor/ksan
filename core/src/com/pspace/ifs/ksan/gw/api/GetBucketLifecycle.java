@@ -27,10 +27,10 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketLifecycleConfiguration extends S3Request {
-    public GetBucketLifecycleConfiguration(S3Parameter s3Parameter) {
+public class GetBucketLifecycle extends S3Request {
+    public GetBucketLifecycle(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(GetBucketLifecycleConfiguration.class);
+		logger = LoggerFactory.getLogger(GetBucketLifecycle.class);
 	}
 
 	@Override

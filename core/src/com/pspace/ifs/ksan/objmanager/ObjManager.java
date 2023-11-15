@@ -403,9 +403,7 @@ public class ObjManager {
         return this.restoreObj;
     }
     
-    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
-        bucketMGT.updateBucketAnalyticsConfiguration(bucketName, analytics);
-    }
+   
     
     public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
         bucketMGT.updateBucketAccelerateConfiguration(bucketName, accelerate);
@@ -415,8 +413,20 @@ public class ObjManager {
         bucketMGT.updateBucketPayment(bucketName, payment);
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
-        return bucketMGT.listBucketAnalyticsConfiguration(userName, userId );
+    public void putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws ResourceNotFoundException, SQLException{
+        bucketMGT.putBucketAnalyticsConfiguration(bucketName, id, analytics);
+    }
+    
+    public void getBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
+        bucketMGT.getBucketAnalyticsConfiguration(bucketName, id);
+    }
+    
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
+        bucketMGT.deleteBucketAnalyticsConfiguration(bucketName, id);
+    }
+    
+    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String continuationId, String userName, String userId ) throws SQLException {
+        return bucketMGT.listBucketAnalyticsConfiguration(bucketName, continuationId, userId);
     }
     
     // for pool

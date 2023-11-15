@@ -11,6 +11,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoCommandException;
 import com.mongodb.MongoWriteException;
@@ -622,7 +623,7 @@ public class MongoDataRepository implements DataRepository{
         doc.append(CREATETIME, getCurrentDateTime());
         doc.append(LOGGING, bt.getLogging());
         doc.append(OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
-        doc.append(ANALYTICS, bt.getAnalytics());
+        //doc.append(ANALYTICS, bt.getAnalytics());
         doc.append(ACCELERATE, bt.getAccelerate());
         doc.append(PAYMENT, bt.getPayment());
 
@@ -694,7 +695,7 @@ public class MongoDataRepository implements DataRepository{
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
         String logging  = doc.getString(LOGGING);
-        String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
+        //String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
         String accelerate = doc.containsKey(ACCELERATE) ? doc.getString(ACCELERATE) :  "";
         String payment = doc.containsKey(PAYMENT) ? doc.getString(PAYMENT) : "";
         boolean objTagIndexing = false;
@@ -735,7 +736,7 @@ public class MongoDataRepository implements DataRepository{
         bt.setUsedSpace(usedSpace);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(objTagIndexing);
-        bt.setAnalytics(analytics);
+        //bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
         return bt;
@@ -1272,8 +1273,64 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
-    public void updateBucketAnalytics(Bucket bt) throws SQLException {
-        updateBucket(bt.getName(), ANALYTICS, bt.getAnalytics());
+    public int putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws SQLException {
+        BasicDBObject config = new BasicDBObject("config", analytics);
+        config.append("id", id);
+        BasicDBObject push_data = new BasicDBObject("$push", new BasicDBObject(ANALYTICS, config));
+        buckets.findOneAndUpdate(eq(BUCKETNAME, bucketName), push_data);
+        return 0;
+    }
+    
+    @Override
+    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String lastId) throws SQLException{
+        boolean foundStart = false;
+        BucketAnalytics lst = new BucketAnalytics();
+        
+        FindIterable fit = buckets.find(Filters.eq(BUCKETNAME, bucketName));
+     
+        if (Strings.isNullOrEmpty(lastId))
+            foundStart = true;
+        
+        Iterator it = fit.iterator();
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            String id = doc.getString(ANALYTICS+".id");
+            if (foundStart){
+                if (lst.getConfig().size() == 100){
+                    lst.setLastId(id);
+                    lst.setTruncated(true);
+                    break;
+                }
+                String config = doc.getString(ANALYTICS+".config");
+                lst.getConfig().add(config);
+            }
+            
+            if (foundStart == false) 
+                if (id.equals(lastId))
+                    foundStart = true;
+        }
+        return lst;
+    }
+    
+    @Override
+    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        String config = "";
+        FindIterable fit = buckets.find(Filters.and(Filters.eq(BUCKETNAME, bucketName), Filters.eq(ANALYTICS+".id",id)));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            config = doc.getString(ANALYTICS+".config");
+        }
+        
+        return config;
+    }
+    
+    @Override
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        BasicDBObject query = new BasicDBObject(BUCKETNAME, bucketName);
+        BasicDBObject configToDelete = new BasicDBObject("$pull", new BasicDBObject(ANALYTICS+".id",id));
+        buckets.updateOne(query, configToDelete);
     }
     
     @Override

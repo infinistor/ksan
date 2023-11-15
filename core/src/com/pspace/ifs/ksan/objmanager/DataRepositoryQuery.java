@@ -58,12 +58,12 @@ public final class DataRepositoryQuery {
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
                     + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
-    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing, analytics, accelerate, payment) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing, accelerate, payment) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, analytics, accelerate, payment FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, analytics, accelerate, payment FROM BUCKETS";
-    public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";
-            
+    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment FROM BUCKETS WHERE id=?";
+    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment FROM BUCKETS";
+    public  static String  selectBucketAnalyticsQuery = "SELECT analytics FROM BUCKETS WHERE id=?";
+    public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";            
     public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
     public  static String  updateBucketWebQuery = "UPDATE BUCKETS SET web=? WHERE id=?";
     public  static String  updateBucketCorsQuery = "UPDATE BUCKETS SET cors=? WHERE id=?";

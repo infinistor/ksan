@@ -16,7 +16,6 @@ import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -231,14 +230,7 @@ public class BucketManager {
         dbm.updateBucketObjTagIndexing(bt);
         obmCache.updateBucketInCache(bt);
     }
-    
-    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
-        Bucket bt = getBucket(bucketName);
-        bt.setAnalytics(analytics);
-        dbm.updateBucketAnalytics(bt);
-        obmCache.updateBucketInCache(bt);
-    }
-    
+     
     public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
         Bucket bt = getBucket(bucketName);
         bt.setAccelerate(accelerate);
@@ -253,7 +245,19 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
-        return obmCache.listBucketAnalyticsConfiguration(userName, userId);
+    public void putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws ResourceNotFoundException, SQLException{
+        dbm.putBucketAnalyticsConfiguration(bucketName, id, analytics);
+    }
+    
+    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
+        return dbm.getBucketAnalyticsConfiguration(bucketName, id);
+    }
+    
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
+        dbm.deleteBucketAnalyticsConfiguration(bucketName, id);
+    }
+    
+    public BucketAnalytics listBucketAnalyticsConfiguration(String userName, String continuation_id, String userId ) throws SQLException {
+        return dbm.listBucketAnalyticsConfiguration(userName, continuation_id);
     }
 }

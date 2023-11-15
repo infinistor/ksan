@@ -35,10 +35,10 @@ import java.util.Random;
 
 import org.slf4j.LoggerFactory;
 
-public class PutBucketLifecycleConfiguration extends S3Request {
-    public PutBucketLifecycleConfiguration(S3Parameter s3Parameter) {
+public class PutBucketLifecycle extends S3Request {
+    public PutBucketLifecycle(S3Parameter s3Parameter) {
 		super(s3Parameter);
-		logger = LoggerFactory.getLogger(PutBucketLifecycleConfiguration.class);
+		logger = LoggerFactory.getLogger(PutBucketLifecycle.class);
 	}
 
 	@Override
