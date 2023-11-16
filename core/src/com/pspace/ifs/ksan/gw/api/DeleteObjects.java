@@ -216,11 +216,8 @@ public class DeleteObjects extends S3Request {
 					}
 				} else {	// request with versionId
 					if (isLastVersion) {	// request with versionId and same currentVid
-						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_MARKER)) {
-							remove(bucket, object);
-						} else if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE)) {
-							remove(bucket, object, versionId);
-							// objectOperation.deleteObject();
+						remove(bucket, object, versionId);
+						if (deleteMarker.equalsIgnoreCase(GWConstants.OBJECT_TYPE_FILE)) {
 							objectManager.deleteObject(s3Parameter, objMeta);
 						}
 					} else {	// request with versionId not currentVid
