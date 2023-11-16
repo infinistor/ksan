@@ -53,7 +53,7 @@ public class S3RequestData {
 	protected Logger logger;
 
 	public S3RequestData(S3Parameter s3Parameter) {
-		this.s3Parameter = new S3Parameter(s3Parameter);
+		this.s3Parameter = s3Parameter;
 		logger = LoggerFactory.getLogger(S3RequestData.class);
 	}
 
@@ -614,6 +614,10 @@ public class S3RequestData {
 	}
 
 	public String getAccelerateXml() throws GWException {
+		return readXml();
+	}
+
+	public String getNotificationXml() throws GWException {
 		return readXml();
 	}
 
