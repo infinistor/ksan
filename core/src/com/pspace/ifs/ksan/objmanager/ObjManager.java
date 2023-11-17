@@ -402,9 +402,7 @@ public class ObjManager {
     public RestoreObjects getRestoreObjects(){
         return this.restoreObj;
     }
-    
    
-    
     public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
         bucketMGT.updateBucketAccelerateConfiguration(bucketName, accelerate);
     }
@@ -413,20 +411,16 @@ public class ObjManager {
         bucketMGT.updateBucketPayment(bucketName, payment);
     }
     
-    public void putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws ResourceNotFoundException, SQLException{
-        bucketMGT.putBucketAnalyticsConfiguration(bucketName, id, analytics);
+    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
+       bucketMGT.updateBucketAnalyticsConfiguration(bucketName, analytics);
     }
     
-    public void getBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
-        bucketMGT.getBucketAnalyticsConfiguration(bucketName, id);
+    public void updateBucketNotificationConfiguration(String bucketName, String notification) throws ResourceNotFoundException, SQLException{
+       bucketMGT.updateBucketNotificationConfiguration(bucketName, notification);
     }
     
-    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
-        bucketMGT.deleteBucketAnalyticsConfiguration(bucketName, id);
-    }
-    
-    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String continuationId, String userName, String userId ) throws SQLException {
-        return bucketMGT.listBucketAnalyticsConfiguration(bucketName, continuationId, userId);
+    public void updateBucketInventoryConfiguration(String bucketName, String inventory) throws ResourceNotFoundException, SQLException{
+       bucketMGT.updateBucketInventoryConfiguration(bucketName, inventory);
     }
     
     // for pool
