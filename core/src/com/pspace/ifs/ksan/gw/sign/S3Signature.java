@@ -80,7 +80,11 @@ final public class S3Signature {
             GWConstants.PARAMETER_REPLICATION,
             GWConstants.PARAMETER_DELETE,
             GWConstants.PARAMETER_TAG_INDEX,
-            GWConstants.PARAMETER_RESTORE
+            GWConstants.PARAMETER_RESTORE,
+            GWConstants.PARAMETER_ACCELERATE,
+            GWConstants.PARAMETER_ANALYTICS,
+            GWConstants.PARAMETER_PAYMENT,
+            GWConstants.PARAMETER_NOTIFICATION
     );
 
     S3Signature() { 

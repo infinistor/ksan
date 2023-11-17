@@ -16,7 +16,6 @@ import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -231,14 +230,7 @@ public class BucketManager {
         dbm.updateBucketObjTagIndexing(bt);
         obmCache.updateBucketInCache(bt);
     }
-    
-    public void updateBucketAnalyticsConfiguration(String bucketName, String analytics) throws ResourceNotFoundException, SQLException{
-        Bucket bt = getBucket(bucketName);
-        bt.setAnalytics(analytics);
-        dbm.updateBucketAnalytics(bt);
-        obmCache.updateBucketInCache(bt);
-    }
-    
+     
     public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
         Bucket bt = getBucket(bucketName);
         bt.setAccelerate(accelerate);
@@ -253,7 +245,24 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
     
-    public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
-        return obmCache.listBucketAnalyticsConfiguration(userName, userId);
+    public void updateBucketAnalyticsConfiguration(String bucketName,  String analytics) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAnalytics(analytics);
+        dbm.updateBucketAnalyticsConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketNotificationConfiguration(String bucketName,  String notification) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setNotification(notification);
+        dbm.updateBucketNotification(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketInventoryConfiguration(String bucketName,  String inventory) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setInventory(inventory);
+        dbm.updateBucketInventoryConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
     }
 }

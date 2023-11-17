@@ -63,8 +63,8 @@ public class GWLogging {
         }
 
         // bucket name
-        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getBucket())) {
-            object.put(GWConstants.GW_LOG_BUCKET_NAME, s3Parameter.getBucket().getBucket());
+        if (s3Parameter.getBucketName() != null && !Strings.isNullOrEmpty(s3Parameter.getBucketName())) {
+            object.put(GWConstants.GW_LOG_BUCKET_NAME, s3Parameter.getBucketName());
         } else {
             object.put(GWConstants.GW_LOG_BUCKET_NAME, GWConstants.EMPTY_STRING);
         }

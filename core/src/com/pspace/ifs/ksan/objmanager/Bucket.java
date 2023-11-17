@@ -48,6 +48,8 @@ public class Bucket {
     private long usedSpace; // new
     private long fileCount; // new
     private boolean objTagIndexEnabled;
+    private String notification;
+    private String inventory;
     
     public Bucket(){
         name = "";
@@ -70,6 +72,8 @@ public class Bucket {
         analytics = "";
         accelerate = "";
         payment = "";
+        notification = "";
+        inventory = "";
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -93,6 +97,8 @@ public class Bucket {
         analytics = "";
         accelerate = "";
         payment = "";
+        notification = "";
+        inventory = "";
     }
     
     public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
@@ -119,6 +125,8 @@ public class Bucket {
         analytics = "";
         accelerate = "";
         payment = "";
+        notification = "";
+        inventory = "";
     }
     
     private void setHashOfName() {
@@ -239,6 +247,14 @@ public class Bucket {
         this.payment = payment;
     }
     
+    public void setNotification( String notification){
+        this.notification = notification;
+    }
+    
+    public void setInventory( String inventory){
+        this.inventory = inventory;
+    }
+    
     public String getName(){
         return name;
     }
@@ -343,6 +359,14 @@ public class Bucket {
     
     public String getPayment(){
         return this.payment;
+    }
+    
+    public String getNotification(){
+        return notification;
+    }
+    
+    public String getInventory(){
+        return inventory;
     }
     
     @Override

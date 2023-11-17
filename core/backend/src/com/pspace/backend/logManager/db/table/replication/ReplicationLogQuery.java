@@ -29,7 +29,7 @@ public class ReplicationLogQuery {
 	public static final String DB_IN_DATE = "INDATE";
 	public static final String DB_OPERATION = "OPERATION";
 	public static final String DB_OBJECTNAME = "OBJECT_NAME";
-	public static final String DB_VERSIONID = "VERSION_ID";
+	public static final String DB_VERSION_ID = "VERSION_ID";
 	public static final String DB_SOURCE_BUCKET_NAME = "SOURCE_BUCKET_NAME";
 	public static final String DB_TARGET_BUCKET_NAME = "TARGET_BUCKET_NAME";
 	public static final String DB_TARGET_REGION = "TARGET_REGION";
@@ -41,7 +41,7 @@ public class ReplicationLogQuery {
 				DB_IN_DATE + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
 				DB_OPERATION + " VARCHAR(64) NOT NULL, " +
 				DB_OBJECTNAME + " VARCHAR(2048) NOT NULL, " +
-				DB_VERSIONID + " VARCHAR(32) NOT NULL, " +
+				DB_VERSION_ID + " VARCHAR(32) NOT NULL, " +
 				DB_SOURCE_BUCKET_NAME + " VARCHAR(256) NOT NULL, " +
 				DB_TARGET_BUCKET_NAME + " VARCHAR(256) NOT NULL," +
 				DB_TARGET_REGION + " VARCHAR(32) NULL, " +
@@ -51,7 +51,7 @@ public class ReplicationLogQuery {
 
 	public static String getInsert() {
 	return String.format("INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?, ?, ?)",
-	DB_TABLE_NAME, DB_OPERATION, DB_OBJECTNAME, DB_VERSIONID, DB_SOURCE_BUCKET_NAME, DB_TARGET_BUCKET_NAME, DB_TARGET_REGION, DB_MESSAGE);
+	DB_TABLE_NAME, DB_OPERATION, DB_OBJECTNAME, DB_VERSION_ID, DB_SOURCE_BUCKET_NAME, DB_TARGET_BUCKET_NAME, DB_TARGET_REGION, DB_MESSAGE);
 	}
 
 	public static String getExpiration(int Days) {
@@ -77,7 +77,7 @@ public class ReplicationLogQuery {
 		param.put(DB_IN_DATE, LocalDateTime.now());
 		param.put(DB_OPERATION, data.Operation);
 		param.put(DB_OBJECTNAME, data.ObjectName);
-		param.put(DB_VERSIONID, data.VersionId);
+		param.put(DB_VERSION_ID, data.VersionId);
 		param.put(DB_SOURCE_BUCKET_NAME, data.SourceBucketName);
 		param.put(DB_TARGET_BUCKET_NAME, data.TargetBucketName);
 		param.put(DB_TARGET_REGION, data.TargetRegion);

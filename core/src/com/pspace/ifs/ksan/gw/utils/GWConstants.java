@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.gw.utils;
 import java.util.Set;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
+import com.pspace.ifs.ksan.gw.format.AnalyticsConfiguration;
 
 public final class GWConstants {
 	public static final String PID_PATH = "/var/run/ksangw.pid";
@@ -29,6 +30,8 @@ public final class GWConstants {
 	public static final String OBJMANAGER_CONFIG_PATH = "/var/log/ksan/objmanager/objmanager_dump.conf";
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
 	public static final String SERVICEID_PATH = "/usr/local/ksan/etc/ksanGW.ServiceId";
+
+	public static final String DEFAULT_USER_NAME = "ksanuser";
 
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
@@ -131,6 +134,38 @@ public final class GWConstants {
 			"bucket-owner-full-control",
 			"log-delivery-write"
 			);
+
+	public static final Set<String> INVENTORY_OPTIONS = ImmutableSet.of(
+		"Size",
+		"LastModifiedDate",
+		"StorageClass",
+		"ETag",
+		"IsMultipartUploaded",
+		"ReplicationStatus",
+		"EncryptionStatus",
+		"ObjectLockRetainUntilDate",
+		"ObjectLockMode",
+		"ObjectLockLegalHoldStatus",
+		"IntelligentTieringAccessTier",
+		"BucketKeyStatus",
+		"ChecksumAlgorithm"
+	);
+
+	public static final Set<String> INVENTORY_INCLUDE_OBJECT_VERSIONS = ImmutableSet.of(
+            "All",
+            "Current"
+    );
+
+	public static final Set<String> INVENTORY_SCHEDULE = ImmutableSet.of(
+            "Daily",
+            "Weekly"
+    );
+
+	public static final Set<String> INVENTORY_FORMAT = ImmutableSet.of(
+            "CSV",
+            "ORC",
+			"Parquet"
+	);
 
 	public static final String INVALID_HEADER = "Invalid header";
 	public static final String INVALID_CREDENTIAL = "Invalid Credential: ";
@@ -266,6 +301,7 @@ public final class GWConstants {
 	public static final String OBJECT_TYPE_MARKER = "mark";
 	public static final String STATUS_ENABLED = "Enabled";
 	public static final String STATUS_DISABLED = "Disabled";
+	public static final String STATUS_SUSPENDED = "Suspended";
 	public static final String VERSIONING_ENABLED = "Enabled";
 	public static final String VERSIONING_SUSPENDED = "Suspended";
 	public static final String VERSIONING_DISABLE_TAIL = "null";
@@ -273,6 +309,8 @@ public final class GWConstants {
 	public static final String COMPLIANCE = "COMPLIANCE";
 	public static final String ON = "ON";
 	public static final String OFF = "OFF";
+	public static final String PAYMENT_REQUESTER = "Requester";
+	public static final String PAYMENT_BUCKET_OWNER = "BucketOwner";
 
 	public static final String S3_ARN = "arn:aws:s3";
 	public static final String HTTP = "http://";
@@ -322,6 +360,10 @@ public final class GWConstants {
 	public static final String PARAMETER_VERSION_ID = "versionId";
 	public static final String PARAMETER_RESTORE = "restore";
 	public static final String PARAMETER_STORAGE_MOVE = "storagemove";
+	public static final String PARAMETER_ACCELERATE = "accelerate";
+	public static final String PARAMETER_ANALYTICS = "analytics";
+	public static final String PARAMETER_ID = "id";
+	public static final String PARAMETER_PAYMENT = "requestPayment";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";
@@ -687,6 +729,15 @@ public final class GWConstants {
 	public static final String TAG_INDEX_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Disabled</Status></TagIndexingConfiguration>";
 	public static final String TAG_INDEX_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TagIndexingConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></TagIndexingConfiguration>";
 
+	public static final String ACCELERATE_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><AccelerateConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"/>";
+	public static final String ACCELERATE_CONFIGURATION_XMLNS_ENABLED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><AccelerateConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Enabled</Status></AccelerateConfiguration>";
+	public static final String ACCELERATE_CONFIGURATION_XMLNS_SUSPENDED = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><AccelerateConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Status>Suspended</Status></AccelerateConfiguration>";
+
+	public static final String PAYMENT_CONFIGURATION_XMLNS_REQUESTER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><RequestPaymentConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Payer>Requester</Payer></RequestPaymentConfiguration>";
+	public static final String PAYMENT_CONFIGURATION_XMLNS_BUCKET_OWNER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><RequestPaymentConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Payer>BucketOwner</Payer></RequestPaymentConfiguration>";
+
+	public static final String NOTIFICATION_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><NotificationConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"/>";
+	
 	public static final String TAGGING = "Tagging";
 	public static final String TAG_SET = "TagSet";
 	public static final String TAG_SET_ASSIGN = "tagset=";
@@ -697,6 +748,8 @@ public final class GWConstants {
 	public static final String LIST_BUCKET_TAG_SEARCH = "ListBucketTagSearchResult";
 	public static final String LIST_VERSIONS_RESULT = "ListVersionsResult";
 	public static final String LIST_ALL_MY_BUCKETS_RESULT = "ListAllMyBucketsResult";
+	public static final String LIST_BUCKET_ANALYTICS_RESULT = "ListBucketAnalyticsConfigurationResult";
+	public static final String LIST_BUCKET_ANANLYTICS_CONFIGURATION = "AnalyticsConfiguration";
 	public static final String RETENTION = "Retention";
 	public static final String RETAIN_UNTIL_DATE = "RetainUntilDate";
 	public static final String COPY_OBJECT_RESULT = "CopyObjectResult";
@@ -748,7 +801,9 @@ public final class GWConstants {
 	public static final String XML_RULE = "Rule";
 	public static final String XML_OWNER = "Owner";
 	public static final String XML_ID = "ID";
+	public static final String XML_ID_ANALYTICS = "Id";
 	public static final String XML_STATUS = "Status";
+	public static final String XML_PAYER = "Payer";
 	public static final String XML_MFA_DELETE = "MfaDelete";
 	public static final String XML_DISPLAY_NAME = "DisplayName";
 	public static final String XML_EMAIL_ADDRESS = "EmailAddress";
@@ -820,6 +875,9 @@ public final class GWConstants {
 	public static final String XML_UPLOAD = "Upload";
 	public static final String XML_INITIATED = "Initiated";
 	public static final String XML_BYTES = "bytes=";
+
+	public static final String XML_STORAGE_CLASS_ANALYSIS = "StorageClassAnalysis";
+	public static final String XML_DATA_EXPORT = "DataExport";
 
 	public static final String LEFT_BRACE = "{";
 	public static final String RIGHT_BRACE = "}";
@@ -1131,10 +1189,10 @@ public final class GWConstants {
 	public static final String LOG_GET_BUCKET_VERSIONING_START = "GetBucketVersioning ...";
 	public static final String LOG_GET_BUCKET_VERSIONING = "bucket({}) versioning : {}";
 	public static final String LOG_GET_BUCKET_VERSIONING_WRONG = "not defined versioning status: {}";
-	public static final String LOG_GET_BUCKET_VERSIONING_XML = "xml : {}";
+	public static final String LOG_GET_BUCKET_VERSIONING_XML = "bucket versioning xml : {}";
 
 	// GetBucketTagIndexing
-	public static final String LOG_GET_BUCKET_TAG_INDEX_XML = "xml : {}";
+	public static final String LOG_GET_BUCKET_TAG_INDEX_XML = "bucket tag index xml : {}";
 
 	// GetBucketWebsite
 	public static final String LOG_GET_BUCKET_WEBSITE_START = "GetBucketWebsite ...";
@@ -1583,4 +1641,61 @@ public final class GWConstants {
 	public static final String LOG_GCS_GET_OBJECT_START = "GCS GetObject...";
 	public static final String LOG_GCS_LIST_OBJECTS_START = "GCS ListObjects...";
 	public static final String LOG_GCS_POST_OBJECT_START = "GCS PostObject...";
+
+
+	public static final String XML_START = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
+	public static final String XML_ANALYTICS_STRING = "<AnalyticsConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
+	public static final String XML_INVENTORY_STRING = "<InventoryConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
+
+	// GetBucketAnalytics
+	public static final String LOG_GET_BUCKET_ANALYTICS_START = "GetBucketAnalytics ...";
+	public static final String LOG_GET_BUCKET_ANALYTICS = "analytics : {}";
+
+	// DeleteBucketAnalytics
+	public static final String LOG_DELETE_BUCKET_ANALYTICS_START = "DeleteBucketAnalytics ...";
+
+	// GetBucketAccelerate
+	public static final String LOG_GET_BUCKET_ACCELERATE_START = "GetBucketAccelerate ...";
+	public static final String LOG_GET_BUCKET_ACCELERATE = "bucket({}) accelerate : {}";
+	public static final String LOG_GET_BUCKET_ACCELERATE_WRONG = "not defined accelerate status: {}";
+	public static final String LOG_GET_BUCKET_ACCELERATE_XML = "bucket accelerate xml : {}";
+
+	// GetBucketPayment
+	public static final String LOG_GET_BUCKET_PAYMENT_START = "GetBucketPayment ...";
+	public static final String LOG_GET_BUCKET_PAYMENT = "bucket({}) payer : {}";
+	public static final String LOG_GET_BUCKET_PAYMENT_XML = "bucket payer xml : {}";
+
+	// PutBucketAnalytics
+	public static final String LOG_PUT_BUCKET_ANALYTICS_START = "PutBucketAnalytics ...";
+
+	// PutBucketAccelerate
+	public static final String LOG_PUT_BUCKET_ACCELERATE_START = "PutBucketAccelerate ...";
+
+	// PutBucketPayment
+	public static final String LOG_PUT_BUCKET_PAYMENT_START = "PutBucketPayment ...";
+
+	// ListBucketAnalytics
+	public static final String LOG_LIST_BUCKET_ANALYTICS_START = "ListBucketAnalytics ...";
+	public static final String LOG_LIST_BUCKET_ANALYTICS_SIZE = "bucket analytics list size : {}";
+
+	// GetBucketNotification
+	public static final String LOG_GET_BUCKET_NOTIFICATION_START = "GetBucketNotification ...";
+	public static final String LOG_GET_BUCKET_NOTIFICATION_XML = "bucket({}) notification xml : {}";
+
+	// PutBucketNotificantion
+	public static final String LOG_PUT_BUCKET_NOTIFICATION_START = "PutBucketNotificantion ...";
+	public static final String LOG_PUT_BUCKET_NOTIFICATION_XML = "bucket notification xml : {}";
+
+	// GetBucketInventory
+	public static final String LOG_GET_BUCKET_INVENTORY_START = "GetBucketInventory ...";
+	public static final String LOG_GET_BUCKET_INVENTORY = "bucket({}) inventory : {}";
+
+	// PutBucketInventory
+	public static final String LOG_PUT_BUCKET_INVENTORY_START = "PutBucketInventory ...";
+
+	// DeleteBucketInventory
+	public static final String LOG_DELETE_BUCKET_INVENTORY_START = "DeleteBucketInventory ...";
+
+	// ListBucketInventory
+	public static final String LOG_LIST_BUCEKT_INVENTORY_START = "ListBucketInventory ...";
 }

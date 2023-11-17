@@ -10,6 +10,8 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
+import com.mongodb.BasicDBObject;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 // import com.pspace.ifs.ksan.gw.exception.GWException;
@@ -24,6 +26,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
@@ -49,6 +52,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstDeleteBucket;
     private PreparedStatement pstSelectBucket;
     private PreparedStatement pstSelectAllBucket;
+    private PreparedStatement pstSelectAnalyticsBucket;
     private PreparedStatement pstUpdateBucket;
     //private PreparedStatement pstSelectUsedBucket;
     private PreparedStatement pstSelectUsedDisks;
@@ -70,6 +74,9 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateAnalyticsBucket;
     private PreparedStatement pstUpdateAccelerateBucket;
     private PreparedStatement pstUpdatePaymentBucket;
+    private PreparedStatement pstUpdateNotificationBucket;
+    private PreparedStatement pstSelectInventoryBucket;
+    private PreparedStatement pstUpdateInventoryBucket;
     
 // for multipart upload
     private PreparedStatement pstCreateMultiPart;
@@ -115,6 +122,7 @@ public class MysqlDataRepository implements DataRepository{
             pstDeleteBucket = con.prepareStatement(DataRepositoryQuery.deleteBucketQuery);
             pstSelectBucket = con.prepareStatement(DataRepositoryQuery.selectBucketQuery);
             pstSelectAllBucket = con.prepareStatement(DataRepositoryQuery.selectAllBucketQuery);
+            pstSelectAnalyticsBucket= con.prepareStatement(DataRepositoryQuery.selectBucketAnalyticsQuery);
             pstUpdateBucket = con.prepareStatement(DataRepositoryQuery.updateBucketQuery);
             
             pstUpdateBucketAcl = con.prepareStatement(DataRepositoryQuery.updateBucketAclQuery);
@@ -134,6 +142,8 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateAnalyticsBucket = con.prepareStatement(DataRepositoryQuery.updateBucketAnalyticsQuery);
             pstUpdateAccelerateBucket = con.prepareStatement(DataRepositoryQuery.updateBucketAccelerateQuery);
             pstUpdatePaymentBucket = con.prepareStatement(DataRepositoryQuery.updateBucketPaymentQuery);
+            pstUpdateNotificationBucket = con.prepareStatement(DataRepositoryQuery.updateBucketNotificationQuery);
+            pstUpdateInventoryBucket = con.prepareStatement(DataRepositoryQuery.updateBucketInventoryQuery);
             
             // for multipart
             pstCreateMultiPart= con.prepareStatement(DataRepositoryQuery.createMultiPartQuery);
@@ -725,9 +735,9 @@ public class MysqlDataRepository implements DataRepository{
             this.pstInsertBucket.setString(8, bt.getObjectLock());
             this.pstInsertBucket.setInt(9, bt.getReplicaCount());
             this.pstInsertBucket.setBoolean(10, bt.isObjectTagIndexEnabled());
-            this.pstInsertBucket.setString(11, bt.getAnalytics());
-            this.pstInsertBucket.setString(12, bt.getAccelerate());
-            this.pstInsertBucket.setString(13, bt.getPayment());
+            //this.pstInsertBucket.setString(11, bt.getAnalytics());
+            this.pstInsertBucket.setString(11, bt.getAccelerate());
+            this.pstInsertBucket.setString(12, bt.getPayment());
             this.pstInsertBucket.executeUpdate();
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
@@ -787,9 +797,9 @@ public class MysqlDataRepository implements DataRepository{
         long fileCount = rs.getLong(21);
         String logging = rs.getString(22);
         boolean isObjTagIndexing = rs.getBoolean(23);
-        String analytics = rs.getString(24);
-        String accelerate = rs.getString(25);
-        String payment = rs.getString(26);
+        //String analytics = rs.getString(24);
+        String accelerate = rs.getString(24);
+        String payment = rs.getString(25);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -808,7 +818,7 @@ public class MysqlDataRepository implements DataRepository{
         bt.setFileCount(fileCount);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(isObjTagIndexing);
-        bt.setAnalytics(analytics);
+        //bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
         return bt;
@@ -1261,13 +1271,105 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdateBucketEncryption.executeUpdate();
     }
     
+    /*private String getBucketAnalyticsConfigurationsAsString(String bucketName) throws SQLException{
+        String analytics = "";
+        pstSelectAnalyticsBucket.clearParameters();
+        pstSelectAnalyticsBucket.setString(1, getBucketId(bucketName));
+        ResultSet rs = this.pstSelectAnalyticsBucket.executeQuery();
+
+        if  (rs.next()) {
+            analytics = rs.getString(1);
+        }
+        return analytics;
+    }*/
+    
     @Override
-    public void updateBucketAnalytics(Bucket bt) throws SQLException {
+    public void updateBucketAnalyticsConfiguration(Bucket bt ) throws SQLException {
         pstUpdateAnalyticsBucket.clearParameters();
         pstUpdateAnalyticsBucket.setString(1, bt.getAnalytics());
         pstUpdateAnalyticsBucket.setString(2, getBucketId(bt.getName()));
         pstUpdateAnalyticsBucket.executeUpdate();
     }
+    
+    /*@Override
+    public int putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws SQLException {
+        List<BasicDBObject> configList;
+        BasicDBObject config = new BasicDBObject("config", analytics);
+        config.append("id", id);
+        
+        String configListstr = getBucketAnalyticsConfigurationsAsString(bucketName);
+        if (configListstr.isEmpty())
+            configList = new ArrayList();
+        else{
+            configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            if (configList.size() >= 1000)
+                return -500;
+            
+            if (configList.contains(config))
+                return -17;
+        }
+        configList.add(config);
+        updateBucketAnalytics(bucketName, Arrays.toString(configList.toArray()));
+        return 0;
+    }
+    
+    @Override
+    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String lastId) throws SQLException{
+        String configListstr = getBucketAnalyticsConfigurationsAsString(bucketName);
+        boolean foundStart = false;
+        BucketAnalytics lst = new BucketAnalytics();
+        
+        if (Strings.isNullOrEmpty(lastId))
+            foundStart = true;
+        
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (foundStart){
+                    if (lst.getConfig().size() == 100){
+                        lst.setLastId(cnf.getString("id"));
+                        lst.setTruncated(true);
+                        break;
+                    }
+                    lst.getConfig().add(cnf.getString("config"));
+                }
+            
+                if (foundStart == false) 
+                   if (cnf.getString("id").equals(lastId))
+                       foundStart = true;
+            }
+        }
+        return lst;
+    }
+    
+    @Override
+    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        String config = "";
+        String configListstr = getBucketAnalyticsConfigurationsAsString(bucketName);
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (cnf.getString("id").equals(id))
+                    config = cnf.getString("config");
+            }
+        }
+        return config;
+    }
+    
+    @Override
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        String configListstr = getBucketAnalyticsConfigurationsAsString(bucketName);
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (cnf.getString("id").equals(id)){
+                    configList.remove(cnf);
+                    updateBucketAnalytics(bucketName, Arrays.toString(configList.toArray()));
+                    break;
+                }
+            }
+        }
+    }*/
     
     @Override
     public void updateBucketAccelerate(Bucket bt) throws SQLException {
@@ -1284,6 +1386,114 @@ public class MysqlDataRepository implements DataRepository{
         pstUpdatePaymentBucket.setString(2, getBucketId(bt.getName()));
         pstUpdatePaymentBucket.executeUpdate();
     }
+    
+    @Override
+    public void updateBucketNotification(Bucket bt) throws SQLException {
+        pstUpdateNotificationBucket.clearParameters();
+        pstUpdateNotificationBucket.setString(1, bt.getNotification());
+        pstUpdateNotificationBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdateNotificationBucket.executeUpdate();
+    }
+    
+    /*private String getBucketInventoryConfigurationsAsString(String bucketName) throws SQLException{
+        String inventory = "";
+        pstSelectInventoryBucket.clearParameters();
+        pstSelectInventoryBucket.setString(1, getBucketId(bucketName));
+        ResultSet rs = this.pstSelectInventoryBucket.executeQuery();
+
+        if  (rs.next()) {
+            inventory = rs.getString(1);
+        }
+        return inventory;
+    }*/
+   
+    @Override
+    public void updateBucketInventoryConfiguration(Bucket bt) throws SQLException {
+        pstUpdateInventoryBucket.clearParameters();
+        pstUpdateInventoryBucket.setString(1, bt.getInventory());
+        pstUpdateInventoryBucket.setString(2, getBucketId(bt.getName()));
+        pstUpdateInventoryBucket.executeUpdate();
+    }
+    
+    /* @Override
+    public int putBucketInventoryConfiguration(String bucketName, String id, String analytics) throws SQLException {
+        List<BasicDBObject> configList;
+        BasicDBObject config = new BasicDBObject("config", analytics);
+        config.append("id", id);
+        
+        String configListstr = getBucketInventoryConfigurationsAsString(bucketName);
+        if (configListstr.isEmpty())
+            configList = new ArrayList();
+        else{
+            configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            if (configList.size() >= 1000)
+                return -500;
+            
+            if (configList.contains(config))
+                return -17;
+        }
+        configList.add(config);
+        updateBucketInventory(bucketName, Arrays.toString(configList.toArray()));
+        return 0;
+    }
+    
+    @Override
+    public BucketAnalytics listBucketInventoryConfiguration(String bucketName, String lastId) throws SQLException{
+        String configListstr = getBucketInventoryConfigurationsAsString(bucketName);
+        boolean foundStart = false;
+        BucketAnalytics lst = new BucketAnalytics();
+        
+        if (Strings.isNullOrEmpty(lastId))
+            foundStart = true;
+        
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (foundStart){
+                    if (lst.getConfig().size() == 100){
+                        lst.setLastId(cnf.getString("id"));
+                        lst.setTruncated(true);
+                        break;
+                    }
+                    lst.getConfig().add(cnf.getString("config"));
+                }
+            
+                if (foundStart == false) 
+                   if (cnf.getString("id").equals(lastId))
+                       foundStart = true;
+            }
+        }
+        return lst;
+    }
+    
+    @Override
+    public String getBucketInventoryConfiguration(String bucketName, String id) throws SQLException{
+        String config = "";
+        String configListstr = getBucketInventoryConfigurationsAsString(bucketName);
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (cnf.getString("id").equals(id))
+                    config = cnf.getString("config");
+            }
+        }
+        return config;
+    }
+    
+    @Override
+    public void deleteBucketInventoryConfiguration(String bucketName, String id) throws SQLException{
+        String configListstr = getBucketInventoryConfigurationsAsString(bucketName);
+        if (!configListstr.isEmpty()){
+            List<BasicDBObject> configList = (List<BasicDBObject>) BasicDBObject.parse(configListstr);
+            for (BasicDBObject cnf :configList ){
+                if (cnf.getString("id").equals(id)){
+                    configList.remove(cnf);
+                    updateBucketInventory(bucketName, Arrays.toString(configList.toArray()));
+                    break;
+                }
+            }
+        }
+    }*/
     
     @Override
     public boolean isUploadId(String uploadid) throws SQLException {
