@@ -186,7 +186,7 @@ public class KsanPutObject extends S3Request {
 			}
 		}
 
-		String aclXml = makeAcl(null, false);
+		String aclXml = makeAdminAcl(null, false);
 
 		logger.debug(GWConstants.LOG_ACL, aclXml);
 		String bucketEncryption = getBucketInfo().getEncryption();

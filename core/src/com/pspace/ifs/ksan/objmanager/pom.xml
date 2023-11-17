@@ -9,7 +9,7 @@
 	<properties>
    		<slf4j.version>1.7.32</slf4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    	<jdk.version>11</jdk.version>
+    	<jdk.version>17</jdk.version>
   	</properties>
 	
 	<dependencies>

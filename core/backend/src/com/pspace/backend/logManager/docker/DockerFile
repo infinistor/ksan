@@ -1,24 +1,24 @@
-FROM maven:3.8.6-jdk-17 as libsbuild
+FROM maven:3.8.3-openjdk-17 as libsbuild
 WORKDIR /src
 COPY ./core/src/com/pspace/ifs/ksan/libs/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 ########################################################################
-FROM maven:3.8.6-jdk-17 as objmanagerbuild
+FROM maven:3.8.3-openjdk-17 as objmanagerbuild
 WORKDIR /src
 COPY ./core/src/com/pspace/ifs/ksan/objmanager/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 ########################################################################
-FROM maven:3.8.6-jdk-17 as backendlibsbuild
+FROM maven:3.8.3-openjdk-17 as backendlibsbuild
 WORKDIR /src
 COPY ./core/backend/src/com/pspace/backend/libs/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 #######################################################################
-FROM maven:3.8.6-jdk-17 as build
+FROM maven:3.8.3-openjdk-17 as build
 WORKDIR /src
 COPY ./core/backend/src/com/pspace/backend/logManager/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
 ########################################################################
-FROM openjdk:17-jre-slim
+FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 RUN mkdir -p /usr/local/ksan/etc/
 COPY ./core/backend/src/com/pspace/backend/logManager/ksanLogManager_log_conf.xml /usr/local/ksan/etc/

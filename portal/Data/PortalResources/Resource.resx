@@ -1933,4 +1933,7 @@
     <value>Performance</value>
     <comment>고성능</comment>
   </data>
+  <data name="ENV_REGION_NAME" xml:space="preserve">
+    <value>REGION_NAME</value>
+  </data>
 </root>
