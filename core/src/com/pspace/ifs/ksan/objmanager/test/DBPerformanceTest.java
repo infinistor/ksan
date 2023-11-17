@@ -16,6 +16,7 @@ package com.pspace.ifs.ksan.objmanager.test;
  */
 //package com.pspace.ifs.DSAN.ObjManger;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,10 +28,16 @@ import com.pspace.ifs.ksan.objmanager.ObjManager;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.AllServiceOfflineException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistException;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
+import com.pspace.ifs.ksan.objmanager.ObjManagerUtil;
+import com.pspace.ifs.ksan.objmanager.Objmanagertest;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,12 +48,18 @@ public class DBPerformanceTest extends Thread{
     static int mcount = 0;
     static long reportPUnit = 1000000;
     static long maxNumJob = 5000000;
+    static long lineNum = 0;
+    static long processNum = 0;
+    static long year = 0;
+    static long month = 0;
+    public long days1 = 0;
     static long num_entry = 0;
     static boolean isFinished;
     static long startTime = System.nanoTime();
     static long startTime1m = System.nanoTime();
     static String bucket = "testvol3";
     static String userName="user1";
+    static List<String> opList = new ArrayList();
     static int idx_job = 0;
     static int notDone_job = 0;
     static boolean timeInitOn=false;
@@ -100,15 +113,34 @@ public class DBPerformanceTest extends Thread{
             indexLock.unlock();
         }
     }
-    static void getConfig(){
+    static void getConfig(String tconfpath){
         InputStream is = null;
+        String op;
+        int idx =0;
         try {
             Properties prop = new Properties();
-            is = new FileInputStream("/usr/local/ksan/etc/dbtest.conf");
+            //is = new FileInputStream("/usr/local/ksan/etc/dbtest.conf");
+            is = new FileInputStream(tconfpath);
             prop.load(is);
             userName   = prop.getProperty("test.user");
             bucket     = prop.getProperty("test.bucketName");
-            maxNumJob = Long.parseLong(prop.getProperty("test.number"));
+            maxNumJob = 1000; //Long.parseLong(prop.getProperty("test.number"));
+            lineNum = Long.parseLong(prop.getProperty("test.line"));
+            processNum = Long.parseLong(prop.getProperty("test.process"));
+            year = Long.parseLong(prop.getProperty("test.year"));
+            //month = Long.parseLong(prop.getProperty("test.month"));
+            do {
+                op = prop.getProperty("test.operations" + idx);
+                idx++;
+                if (op == null)
+                    break;
+                
+                if (!op.isEmpty()){
+                    opList.add(op);
+                    System.out.println("test.operations : " + op);
+                }
+            } while(true);
+           
             //System.out.format(" >>>> userName : %s  bucket : %s numJobPerT : %d \n", userName, bucket, maxNumJob);
         } catch (IOException ex) {
             System.out.println(ex);
@@ -214,7 +246,7 @@ public class DBPerformanceTest extends Thread{
         } catch (ResourceAlreadyExistException ex) {
             System.out.println("Bucket already exist!");
         } catch (Exception ex) {
-            System.out.println("OBJMANAGER INIT ERROR : " + ex);
+            System.out.println("[createBucket] OBJMANAGER INIT ERROR : " + ex);
         }
     }
 
@@ -222,7 +254,7 @@ public class DBPerformanceTest extends Thread{
         String path;
         pathlock.lock();
         try {
-            path = subPath + idx;
+            path = subPath + "File" + idx;
         }
         finally{
             pathlock.unlock();
@@ -230,24 +262,25 @@ public class DBPerformanceTest extends Thread{
         return path;
     }
     
-    static void createFileOnDBPerformanceTest( ObjManager om, String name) {
+    static void createFileOnDBPerformanceTest( ObjManager om, String name) throws SQLException {  
         int idx = 0;
         String path;
-        String tmp = bucket + "testDir_" + name + "/test";
-        String etag = "etag_sample";
+        //String tmp = bucket + "testDir_" + name + "/test";
+        String etag = "0b4117540b9b10b43853078b87532c24";
         String tag = "tag_sample";
-        String meta = "meta_sample";
+        String meta = "{\"key\":\"2.pptx\",\"uM\":[{\"x-amz-meta-s3b-last-modified\":\"20230323T085209Z\"},{\"x-amz-meta-sha256\":\"ff9e10be07c2b040b95cb84740bcdece139cf4dc5bdd70193557d826e191e8e3\"}],\"eT\":\"0b4117540b9b10b43853078b87532c24\",\"lM\":\"Fri Jun 30 19:17:43 KST 2023\",\"tier\":\"STANDARD\",\"dM\":\"file\",\"cL\":\"441559\",\"cT\":\"application/vnd.openxmlformats-officedocument.presentationml.presentation\",\"oI\":\"5ee7bc18-9c05-4092-8b27-94b22ba68012\",\"oN\":\"ksanuser\",\"tC\":\"0\",\"vId\":\"null\"}";
         String acl = "acl_sample";
-        String deleteMarker = "dmarker";
+        String deleteMarker = "file";
         //long tm = System.nanoTime();
         //long diff;
         //long count = 0;
         
         try {
             //ObjManager om = new ObjManager();
-            //for (idx = 0; idx < (int) numJobPerT; idx++) { //500000
-            while((idx = getIndex(name + "_create"))!= -1) { 
-                path = getPath(tmp, idx);
+            for (idx = 0; idx < 1000; idx++) { //500000
+            //while((getIndex(name + "_create"))!= -1) { 
+                path = getPath(name, idx);
+                //System.out.println(">>" +path);
                 Metadata mt = om.create(bucket, path); // to create on round robin osd disk
                 mt.setMeta(meta);
                 mt.setEtag(etag);
@@ -257,10 +290,11 @@ public class DBPerformanceTest extends Thread{
                 om.close(bucket, path, mt);
                 //count++;
                 countEntry();
-            }
+            //}
+           }
             //System.out.format("End num_entry : %d  idx : %d  thread  : %s \n",  num_entry, idx, name);
         } catch (IOException | InvalidParameterException | AllServiceOfflineException | ResourceNotFoundException ex) {
-            System.out.println("Error : " + ex.getMessage());
+            System.out.println("[createFileOnDBPerformanceTest]Error : " + ex.getMessage());
             System.out.println("<><><> idx :" + idx + " thread > " + name );
 
         } /*catch (Exception ex) {
@@ -301,9 +335,44 @@ public class DBPerformanceTest extends Thread{
         } 
     }
     
-    @Override
-    public void run(){
+    static void listExpiredObject(ObjManagerUtil om, String bucketName){
+        String marker = "";
+        int maxKeys = 1000; 
+        String prefix = "/";
+        long expiredTime = 10000;
+        int idx;
+        int execute_time = 2;
+        
+        try {
+            //ObjManagerUtil om = new ObjManagerUtil();
+            while(true){
+                List<Metadata> ml =om.listExpiredObjects(bucketName, prefix, marker, maxKeys, expiredTime);
+                for(idx = 0; idx < ml.size(); idx++){
+                    System.out.println("idx :>" + idx + " " + ml.get(idx).toString());
+                    //System.out.println("leng >> " + ml.size());
+                    if ((ml.size() == maxKeys) && (idx == (maxKeys - 1))){
+                        marker = ml.get(idx).getPath();
+                    }
+                }
+                
+                if (marker.isEmpty())
+                    break;
+                
+                if (execute_time-- > 0)
+                    break;
+            }
+        } 
+        catch (SQLException ex) {
+            System.out.println("list sql error!");
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Objmanagertest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    void run_io(){
        long diff;
+       String dirpath;
        try {
             ObjManager om = new ObjManager();
             System.out.print("\033[H\033[2J");
@@ -312,7 +381,14 @@ public class DBPerformanceTest extends Thread{
             
             initWriteStartTime();
             
-            createFileOnDBPerformanceTest(om, "Thread_" + getId());
+            for ( int months=0; months < 12; months++){
+                for (int hours = 0; hours < 24; hours++){
+                    dirpath = String.format("Line%d/공정%d/%d/%d/%d/%d/", lineNum , processNum, year, months, days1, hours);
+                    //System.out.println(dirpath);
+                    createFileOnDBPerformanceTest(om, dirpath);
+                }
+            }
+            
 
             //System.out.format("maxNumJob : %d  num_entry : %d  isFinished : %s \n", maxNumJob,num_entry ,  isFinished);
             if ((maxNumJob == num_entry )&& (isFinished == false)){
@@ -322,13 +398,13 @@ public class DBPerformanceTest extends Thread{
                 //System.exit(0); 
             }
              
-            readFileFromDBPerformanceTest(om, "Thread_" + getId());
+            /*readFileFromDBPerformanceTest(om, "Thread_" + getId());
             if ((maxNumJob == num_ReadEntry )&& (isReadFinished == false)){
                 diff = System.nanoTime() - startReadTime;
                 System.out.println("Total " + num_ReadEntry + " read excution time  : " + getInSecond(diff));
                 isReadFinished = true;
                 //System.exit(0); 
-            } 
+            } */
        } catch (Exception ex) {
            latch.countDown();
            ex.printStackTrace();
@@ -336,20 +412,75 @@ public class DBPerformanceTest extends Thread{
        }
     }
     
+    void run_list_objects(){
+       long diff;
+       try {
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+            //System.out.println("Thread: " + getId() + " running");
+            ObjManagerUtil om = new ObjManagerUtil();
+            initWriteStartTime();
+            
+            listExpiredObject(om, bucket);
+
+            System.out.format("maxNumJob : %d  num_entry : %d  isFinished : %s \n", maxNumJob,num_entry ,  isFinished);
+            if ((maxNumJob == num_entry )&& (isFinished == false)){
+                diff = System.nanoTime() - startTime;
+                System.out.println("Total " + num_entry + "  listExpiredObjects excution time  : " + getInSecond(diff));
+                isFinished = true;
+                //System.exit(0); 
+            }
+       } catch (Exception ex) {
+           latch.countDown();
+           ex.printStackTrace();
+       }
+    }
+    
+    @Override
+    public void run(){
+        run_io();
+        /*for (String op : opList){
+           if (op.equalsIgnoreCase("io"))
+               run_io();
+           if (op.equalsIgnoreCase("list"))
+               run_list_objects();
+        }*/     
+    }
+    
+    static void disableDebuglog(String driver){
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(driver);
+        rootLogger.setLevel(ch.qos.logback.classic.Level.OFF);
+    }
+    
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        disableDebuglog("org.mongodb.driver");
+        disableDebuglog("com.pspace.ifs.ksan.objmanager");
         
-        if (args.length == 0)
-            getConfig();
+        if (args.length == 1)
+            getConfig(args[0]);
         else {
-            if (args.length >= 1)
+            if (args.length != 4 ){
+                System.out.println("Wrong paramters! expected bucketName  ineNum 공정 Year!");
+                System.exit(-1);
+            }
+            /*if (args.length >= 1)
                 bucket=args[0];
 
             if (args.length >=2){
                 maxNumJob = Long.parseLong(args[1]);        
-            }
+            }*/
+            bucket=args[0];
+            //userName   = args[1];
+            maxNumJob = 1000; 
+            lineNum = Long.parseLong(args[1]);
+            processNum = Long.parseLong(args[2]);
+            year = Long.parseLong(args[3]);
+            System.out.format("Args: > bucket : %s numFileinEachDir : %d lineNum : %d 공정 : %d year : %d \n", bucket, maxNumJob, lineNum, processNum, year);
+            //System.exit(1); //FIXME
         }
         
         if (maxNumJob > 0){
@@ -361,45 +492,32 @@ public class DBPerformanceTest extends Thread{
             else if(maxNumJob <= 100000 && maxNumJob > 10000)
                 reportPUnit=10000;
             else if (maxNumJob <= 10000 && maxNumJob > 1000)
-                reportPUnit=1000;
-            else
-                reportPUnit=maxNumJob;
+                reportPUnit=1000; 
+            else{
+                //reportPUnit=maxNumJob;// FIXME
+                reportPUnit=100000;
+            }
         }
         
         System.out.println("Bucket Name : " + bucket + " len " + args.length);
         System.out.format("bucket : %s user : %s maxNumJob : %d reportPUnit : %d \n", bucket, userName, maxNumJob, reportPUnit);
-        createBucket();
+        //createBucket();
         
-        DBPerformanceTest dbT[] = new DBPerformanceTest[40];
+        DBPerformanceTest dbT[] = new DBPerformanceTest[30];
         
-        for (int tidx = 1; tidx <= 40; tidx++) {
+        for (int tidx = 1; tidx <= 30; tidx++) {
             dbT[tidx - 1] = new DBPerformanceTest();
+            dbT[tidx - 1].days1 = tidx;
             dbT[tidx - 1].start();
-            /*new Thread("" + tidx) {
-                @Override
-                public void run() {
-                    long diff;
-                    System.out.println("Thread: " + getId() + " running");
-                    createFileOnDBPerformanceTest("Thread_" + getId());
-                    
-                    System.out.format("maxNumJob : %d  num_entry : %d  isFinished : %s \n", maxNumJob,num_entry ,  isFinished);
-                    if ((maxNumJob == num_entry )&& (isFinished == false)){
-                        diff = System.nanoTime() - startTime;
-                        System.out.println("Total " + num_entry + " create excution time  : " + diff + " nanosecond ");
-                        isFinished = true;
-                        //System.exit(0); 
-                    }
-                    
-                }
-               
-            }.start();*/
-            System.out.format(">>Thread Index : %d\n", tidx);
+
+            System.out.format(">>Thread Index(days) : %d\n", tidx);
         }
         
         if (isFinished == false){
             long diff = System.nanoTime() - startTime;
             System.out.println("Total " + num_entry + " create excution time  : " + diff + " nanosecond ");
         }
+        //System.exit(0);  
     }
     
 }
