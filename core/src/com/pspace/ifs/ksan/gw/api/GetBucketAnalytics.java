@@ -55,7 +55,7 @@ public class GetBucketAnalytics extends S3Request {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
-        String id = s3RequestData.getAnalyticsId();
+        String id = s3RequestData.getId();
 		String analiytics = getBucketInfo().getAnalytics();
 		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
 		if (Strings.isNullOrEmpty(analiytics)) {

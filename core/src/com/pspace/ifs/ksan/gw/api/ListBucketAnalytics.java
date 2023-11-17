@@ -46,19 +46,24 @@ public class ListBucketAnalytics extends S3Request {
     @Override
     public void process() throws GWException {
         logger.info(GWConstants.LOG_LIST_BUCKET_ANALYTICS_START);
-
-        List<Map<String, String>> bucketList = listBucketAnalytics(s3Parameter.getUser().getUserName(), s3Parameter.getUser().getUserId());
+        String bucket = s3Parameter.getBucketName();
+		initBucketInfo(bucket);
+        
+        String analyticsList = getBucketInfo().getAnalytics();
+        logger.debug("analyticsList: " + analyticsList);
         
         String analyticsInfo = GWConstants.XML_VERSION_FULL;
         analyticsInfo += "<ListBucketAnalyticsConfigurationsResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
         analyticsInfo += "<IsTruncated>false</IsTruncated>";
-        for (Map<String, String> mapAanlytics : bucketList) {
-            for (Map.Entry<String, String> entry : mapAanlytics.entrySet()) {
-                analyticsInfo += entry.getValue();
-            }
+
+        String[] analyticsIds = analyticsList.split("\\n");
+        for (String analyticsId : analyticsIds) {
+            analyticsInfo += analyticsId;
         }
+
         analyticsInfo += "</ListBucketAnalyticsConfigurationsResult>";
         logger.debug("analyticsInfo: " + analyticsInfo);
+
         try {
             s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
             s3Parameter.getResponse().getOutputStream().write(analyticsInfo.getBytes(StandardCharsets.UTF_8));

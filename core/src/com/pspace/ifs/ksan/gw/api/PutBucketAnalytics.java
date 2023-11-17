@@ -44,7 +44,7 @@ public class PutBucketAnalytics extends S3Request {
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
 
-        String id = s3RequestData.getAnalyticsId();
+        String id = s3RequestData.getId();
         if (Strings.isNullOrEmpty(id)) {
             throw new GWException(GWErrorCode.INVALID_CONFIGURATION_ID, s3Parameter);
         }
