@@ -255,7 +255,7 @@ public class BucketManager {
     public void updateBucketNotificationConfiguration(String bucketName,  String notification) throws ResourceNotFoundException, SQLException{
         Bucket bt = getBucket(bucketName);
         bt.setNotification(notification);
-        dbm.updateBucketInventoryConfiguration(bt);
+        dbm.updateBucketNotification(bt);
         obmCache.updateBucketInCache(bt);
     }
     
