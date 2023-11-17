@@ -449,6 +449,31 @@ def GetReplicationDspType(StringType, EC=None):
     else:
         return 'Invalid Replica'
 
+def BatchDiskPoolHandler(PortalIp, PortalPort, PortalApiKey, Action, Options, logger):
+    """
+    Disk start/stop/restrt batch handler
+    """
+    DiskNameList = Options.DiskName.split(',')
+    DiskPoolName = Options.DiskpoolName
+    if Action.lower() in ['add2disk', 'remove2disk']:
+
+        if Action.lower() == 'add2disk':
+            Res, Errmsg, Ret = AddDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, AddDiskIds=DiskNameList,
+                                            DiskPoolName=DiskPoolName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result, Ret.Message)
+            else:
+                print(Errmsg)
+        else:
+            Res, Errmsg, Ret = RemoveDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, DelDiskIds=DiskNameList,
+                                               DiskPoolName=DiskPoolName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result, Ret.Message)
+            else:
+                print(Errmsg)
+
+
+
 def DiskpoolUtilHandler(Conf, Action, Parser, logger):
 
     options, args = Parser.parse_args()
@@ -537,36 +562,12 @@ def DiskpoolUtilHandler(Conf, Action, Parser, logger):
                 print(Ret.Result, Ret.Message)
         else:
             print(Errmsg)
-    elif Action.lower() == 'add2disk':
-        AddDiskIds = None
+    elif Action.lower() in ['add2disk', 'remove2disk']:
         if not (options.DiskpoolName and options.DiskName):
             Parser.print_help()
             sys.exit(-1)
-        if options.DiskName is not None:
-            AddDiskIds = options.DiskName.split()
-        else:
-            Parser.print_help()
-            print("Disk Ids or Disk Name is required")
-            sys.exit(-1)
 
-        Res, Errmsg, Ret = AddDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, AddDiskIds=AddDiskIds,
-                                           DiskPoolName=options.DiskpoolName, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
-    elif Action.lower() == 'remove2disk':
-        if not ((options.DiskpoolName and options.DiskName)):
-            Parser.print_help()
-            sys.exit(-1)
-        DelDiskIds = options.DiskName.split()
-
-        Res, Errmsg, Ret = RemoveDisk2DiskPool(PortalIp, PortalPort, PortalApiKey, DelDiskIds=DelDiskIds,
-                                           DiskPoolName=options.DiskpoolName, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
+        BatchDiskPoolHandler(PortalIp, PortalPort, PortalApiKey, Action, options, logger)
 
     elif Action.lower() in ['update', 'modify']:
         AddDiskIds = None

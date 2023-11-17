@@ -249,6 +249,21 @@ def UnknownServiceRestart(ServiceList):
 
 
 
+def BatchServiceHandler(PortalIp, PortalPort, PortalApiKey, Action, Options, logger):
+    """
+    Service start/stop/restrt batch handler
+    """
+    ServiceNameList = Options.ServiceName.split(',')
+
+    for ServiceName in ServiceNameList:
+        Res, Errmsg, Ret = ControlService(PortalIp, PortalPort, PortalApiKey, Action.lower(),
+                                          ServiceName=ServiceName, logger=logger)
+        if Res == ResOk:
+            print(Ret.Result, Ret.Message)
+        else:
+            print(Errmsg)
+
+
 def ServiceUtilHandler(Conf, Action, Parser, logger):
     #if Action == 'init'
     options, args = Parser.parse_args()
@@ -339,12 +354,7 @@ def ServiceUtilHandler(Conf, Action, Parser, logger):
             Parser.print_help()
             sys.exit(-1)
 
-        Res, Errmsg, Ret = ControlService(PortalIp, PortalPort, PortalApiKey, Action.lower(),
-                                          ServiceName=options.ServiceName, logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
+        BatchServiceHandler(PortalIp, PortalPort, PortalApiKey, Action, options, logger)
 
     elif Action.lower() == 'unknown_restart':
         #if options.Detail:
