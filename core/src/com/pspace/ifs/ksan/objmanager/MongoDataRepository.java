@@ -122,6 +122,8 @@ public class MongoDataRepository implements DataRepository{
     private static final String ANALYTICS="analytics";
     private static final String ACCELERATE="accelerate";
     private static final String PAYMENT="payment";
+    private static final String NOTIFICATION="notification";
+    private static final String INVENTORY="INVENTORY";
     
     // for multipart upload
     private static final String UPLOADID="uploadId";
@@ -623,10 +625,12 @@ public class MongoDataRepository implements DataRepository{
         doc.append(CREATETIME, getCurrentDateTime());
         doc.append(LOGGING, bt.getLogging());
         doc.append(OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
-        //doc.append(ANALYTICS, bt.getAnalytics());
+        doc.append(ANALYTICS, bt.getAnalytics());
         doc.append(ACCELERATE, bt.getAccelerate());
         doc.append(PAYMENT, bt.getPayment());
-
+        doc.append(NOTIFICATION, bt.getNotification());
+        doc.append(INVENTORY, bt.getInventory());
+        
         buckets.insertOne(doc);
         database.createCollection(bt.getName());
         // for index for object collection
@@ -695,9 +699,11 @@ public class MongoDataRepository implements DataRepository{
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
         String logging  = doc.getString(LOGGING);
-        //String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
+        String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
         String accelerate = doc.containsKey(ACCELERATE) ? doc.getString(ACCELERATE) :  "";
         String payment = doc.containsKey(PAYMENT) ? doc.getString(PAYMENT) : "";
+        String notification = doc.containsKey(NOTIFICATION) ? doc.getString(NOTIFICATION) : "";
+        String inventory = doc.containsKey(INVENTORY) ? doc.getString(INVENTORY) : "";
         boolean objTagIndexing = false;
         if (doc.containsKey(OBJECTTAG_INDEXING))
             objTagIndexing = doc.getBoolean(OBJECTTAG_INDEXING);
@@ -736,9 +742,11 @@ public class MongoDataRepository implements DataRepository{
         bt.setUsedSpace(usedSpace);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(objTagIndexing);
-        //bt.setAnalytics(analytics);
+        bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
+        bt.setNotification(notification);
+        bt.setInventory(inventory);
         return bt;
     }
     
@@ -1273,6 +1281,11 @@ public class MongoDataRepository implements DataRepository{
     }
     
     @Override
+    public void updateBucketAnalyticsConfiguration(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ANALYTICS, bt.getAnalytics());
+    }
+    
+   /* @Override
     public int putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws SQLException {
         BasicDBObject config = new BasicDBObject("config", analytics);
         config.append("id", id);
@@ -1331,7 +1344,7 @@ public class MongoDataRepository implements DataRepository{
         BasicDBObject query = new BasicDBObject(BUCKETNAME, bucketName);
         BasicDBObject configToDelete = new BasicDBObject("$pull", new BasicDBObject(ANALYTICS+".id",id));
         buckets.updateOne(query, configToDelete);
-    }
+    }*/
     
     @Override
     public void updateBucketAccelerate(Bucket bt) throws SQLException {
@@ -1341,6 +1354,16 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void updateBucketPayment(Bucket bt) throws SQLException {
         updateBucket(bt.getName(), PAYMENT, bt.getPayment());
+    }
+    
+    @Override
+    public void updateBucketNotification(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), NOTIFICATION, bt.getNotification());
+    }
+    
+    @Override
+    public void updateBucketInventoryConfiguration(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), INVENTORY, bt.getInventory());
     }
     
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,

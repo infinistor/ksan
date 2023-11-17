@@ -245,19 +245,24 @@ public class BucketManager {
         obmCache.updateBucketInCache(bt);
     }
     
-    public void putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws ResourceNotFoundException, SQLException{
-        dbm.putBucketAnalyticsConfiguration(bucketName, id, analytics);
+    public void updateBucketAnalyticsConfiguration(String bucketName,  String analytics) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAnalytics(analytics);
+        dbm.updateBucketAnalyticsConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
     }
     
-    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
-        return dbm.getBucketAnalyticsConfiguration(bucketName, id);
+    public void updateBucketNotificationConfiguration(String bucketName,  String notification) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setNotification(notification);
+        dbm.updateBucketInventoryConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
     }
     
-    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws ResourceNotFoundException, SQLException{
-        dbm.deleteBucketAnalyticsConfiguration(bucketName, id);
-    }
-    
-    public BucketAnalytics listBucketAnalyticsConfiguration(String userName, String continuation_id, String userId ) throws SQLException {
-        return dbm.listBucketAnalyticsConfiguration(userName, continuation_id);
+    public void updateBucketInventoryConfiguration(String bucketName,  String inventory) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setInventory(inventory);
+        dbm.updateBucketInventoryConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
     }
 }
