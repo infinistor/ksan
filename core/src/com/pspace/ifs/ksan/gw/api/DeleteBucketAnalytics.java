@@ -26,6 +26,7 @@ import com.pspace.ifs.ksan.libs.PrintStack;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +52,10 @@ public class DeleteBucketAnalytics extends S3Request {
 		
         String id = s3RequestData.getId();
         String analiytics = getBucketInfo().getAnalytics();
+        if (Strings.isNullOrEmpty(analiytics)) {
+            throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
+        }
+
 		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
 
         String[] analyticsIds = analiytics.split("\\n");
