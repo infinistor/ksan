@@ -636,7 +636,7 @@ public class MongoDataRepository implements DataRepository{
         // for index for object collection
         index = new Document(OBJID, 1);
         index.append(VERSIONID, 1);
-        index.append(LASTVERSION, 1);
+        //index.append(LASTVERSION, 1);
         index.append(DELETEMARKER, 1);
         
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
