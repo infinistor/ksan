@@ -83,7 +83,9 @@ final public class S3Signature {
             GWConstants.PARAMETER_RESTORE,
             GWConstants.PARAMETER_ACCELERATE,
             GWConstants.PARAMETER_ANALYTICS,
-            GWConstants.PARAMETER_PAYMENT
+            GWConstants.PARAMETER_PAYMENT,
+            GWConstants.PARAMETER_NOTIFICATION,
+            GWConstants.PARAMETER_INVENTORY
     );
 
     S3Signature() { 

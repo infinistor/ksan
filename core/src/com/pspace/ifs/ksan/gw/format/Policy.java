@@ -10,12 +10,21 @@
 */
 package com.pspace.ifs.ksan.gw.format;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -24,51 +33,70 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
 public final class Policy {
 	@JsonProperty(GWConstants.VERSION)
-	public
-	String version;
+	public String version;
 
 	@JsonProperty(GWConstants.POLICY_ID)
-	public
-	String id;
+	public String id;
 
 	@JsonProperty(GWConstants.STATEMENT)
 	@JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-	public
-	List<Statement> statements;
+	public List<Statement> statements;
 	
 	public static final class Statement {
 		@JsonProperty(GWConstants.SID)
-		public
-		String sid;
+		public String sid;
 
 		@JsonProperty(GWConstants.EFFECT)
-		public
-		String effect;
+		public String effect;
 
 		@JsonProperty(GWConstants.PRINCIPAL)
-		public
-		Principal principal;
+		public Principal principal;
+
+		public static final class PrincipalDeserializer extends JsonDeserializer<List<String>> {
+			@Override
+			public List<String> deserialize(JsonParser jp, DeserializationContext ctxt)
+					throws IOException, JsonProcessingException {
+				JsonNode node = jp.getCodec().readTree(jp);
+				List<String> aws = new ArrayList<String>();
+				if (node.isTextual() && node.asText().equals("*")) {
+					aws.add("*");
+				} else if (node.isObject() && node.get("AWS") != null && node.get("AWS").isTextual()
+				 && node.get("AWS").asText().equals("*")) {
+					aws.add("*");
+				} else if (node.isObject() && node.get("AWS") != null && node.get("AWS").isArray() ) {
+					aws = jp.getCodec().readValue(node.get("AWS").traverse(), new TypeReference<List<String>>() {});
+				} else {
+					aws = jp.getCodec().readValue(node.traverse(), new TypeReference<List<String>>() {});
+				}
+
+				return aws;
+			}
+		}
 
 		public static final class Principal {
 			@JsonProperty(GWConstants.AWS)
 			@JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-			public
-			List<String> aws;
+			public List<String> aws;
+			@JsonCreator
+			public static Principal fromString(String value) {
+				Principal principal = new Principal();
+				if ("*".equals(value)) {
+					principal.aws = Arrays.asList("*");
+				}
+				return principal;
+			}
 		}
 
 		@JsonProperty(GWConstants.ACTION)
 		@JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-		public
-		List<String> actions;
+		public List<String> actions;
 
 		@JsonProperty(GWConstants.RESOURCE)
 		@JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-		public
-		List<String> resources;
+		public List<String> resources;
 
 		@JsonProperty(GWConstants.CONDITION)
-		public
-		Condition condition;
+		public Condition condition;
 
 		public static final class Condition { 
 			private Multimap<String, JsonNode> userExtensions = ArrayListMultimap.create(); 

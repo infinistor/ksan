@@ -40,6 +40,7 @@ public class S3RequestFactory {
 	private final String OP_DELETE_REPLICATION = "REST.DELETE.REPLICATION";
 	private final String OP_DELETE_BUCKET_TAG_INDEX = "REST.DELETE.BUCKET.TAG_INDEX";
 	private final String OP_DELETE_BUCKET_ANALYTICS = "REST.DELETE.BUCKET.ANALYTICS";
+	private final String OP_DELETE_BUCKET_INVENTORY = "REST.DELETE.BUCKET.INVENTORY";
 
 	private final String OP_GET_LISTBUCKET = "REST.GET.LISTBUCKET";
 	private final String OP_GET_WEBSITE = "REST.GET.WEBSITE";
@@ -57,7 +58,10 @@ public class S3RequestFactory {
 	private final String OP_GET_BUCKET_ACCELERATE = "REST.GET.BUCKET.ACCELERATE";
 	private final String OP_GET_BUCKET_ANALYTICS = "REST.GET.BUCKET.ANALYTICS";
 	private final String OP_GET_BUCKET_PAYMENT = "REST.GET.BUCKET.PAYMENT";
+	private final String OP_GET_BUCKET_NOTIFICATION = "REST.GET.BUCKET.NOTIFICATION";
 	private final String OP_GET_LISTBUCKETANALYTICS = "REST.GET.LISTBUCKETANALYTICS";
+	private final String OP_GET_BUCKET_INVENTORY = "REST.GET.BUCKET.INVENTORY";
+	private final String OP_GET_LISTBUCKETINVENTORY = "REST.GET.LISTBUCKETINVENTORY";
 
 	private final String OP_GET_ENCRYPTION = "REST.GET.ENCRYPTION";
 	private final String OP_GET_BUCKET_ACL = "REST.GET.BUCKET.ACL";
@@ -102,6 +106,8 @@ public class S3RequestFactory {
 	private final String OP_PUT_BUCKET_ACCELERATE = "REST.PUT.BUCKET.ACCELERATE";
 	private final String OP_PUT_BUCKET_ANALYTICS = "REST.PUT.BUCKET.ANALYTICS";
 	private final String OP_PUT_BUCKET_PAYMENT = "REST.PUT.BUCKET.PAYMENT";
+	private final String OP_PUT_BUCKET_NOTIFICATION = "REST.PUT.BUCKET.NOTIFICATION";
+	private final String OP_PUT_BUCKET_INVENTORY = "REST.PUT.BUCKET.INVENTORY";
 	
 	private final String OP_PUT_OBJECT_PART_COPY = "REST.PUT.OBJECT.PART.COPY";
 	private final String OP_PUT_OBJECT_PART = "REST.PUT.OBJECT.PART";
@@ -176,6 +182,9 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ANALYTICS))) {
 						s3Parameter.setOperation(OP_DELETE_BUCKET_ANALYTICS);
 						return new DeleteBucketAnalytics(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_INVENTORY))) {
+						s3Parameter.setOperation(OP_DELETE_BUCKET_INVENTORY);
+						return new DeleteBucketInventory(s3Parameter);
 					}
 
 					if (s3Parameter.isPublicAccess()) {
@@ -284,7 +293,7 @@ public class S3RequestFactory {
 						s3Parameter.setOperation(OP_GET_BUCKET_ACCELERATE);
 						return new GetBucketAccelerate(s3Parameter);
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ANALYTICS))) {
-						String id = s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ANALYTICS_ID);
+						String id = s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ID);
 						if (id != null) {
 							s3Parameter.setOperation(OP_GET_BUCKET_ANALYTICS);
 							return new GetBucketAnalytics(s3Parameter);
@@ -295,6 +304,18 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PAYMENT))) {
 						s3Parameter.setOperation(OP_GET_BUCKET_PAYMENT);
 						return new GetBucketRequestPayment(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_NOTIFICATION))) {
+						s3Parameter.setOperation(OP_GET_BUCKET_NOTIFICATION);
+						return new GetBucketNotification(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_INVENTORY))) {
+						String id = s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_ID);
+						if (id != null) {
+							s3Parameter.setOperation(OP_GET_BUCKET_INVENTORY);
+							return new GetBucketInventory(s3Parameter);
+						} else {
+							s3Parameter.setOperation(OP_GET_LISTBUCKETINVENTORY);
+							return new ListBucketInventory(s3Parameter);
+						}
 					}
 
 					if (s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_LIST_TYPE) != null) {
@@ -460,6 +481,12 @@ public class S3RequestFactory {
 					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_PAYMENT))) { 
 						s3Parameter.setOperation(OP_PUT_BUCKET_PAYMENT);
 						return new PutBucketRequestPayment(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_NOTIFICATION))) { 
+						s3Parameter.setOperation(OP_PUT_BUCKET_NOTIFICATION);
+						return new PutBucketNotification(s3Parameter);
+					} else if (GWConstants.EMPTY_STRING.equals(s3Parameter.getRequest().getParameter(GWConstants.PARAMETER_INVENTORY))) { 
+						s3Parameter.setOperation(OP_PUT_BUCKET_INVENTORY);
+						return new PutBucketInventory(s3Parameter);
 					}
 
 					if (s3Parameter.isPublicAccess()) {

@@ -630,6 +630,24 @@ public abstract class S3Request {
 		}
 	}
 
+	protected void updateBucketInventory(String bucket, String inventory) throws GWException {
+		try {
+			objManager.updateBucketInventoryConfiguration(bucket, inventory);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+	}
+
+	protected void updateBucketNotification(String bucket, String notification) throws GWException {
+		try {
+			objManager.updateBucketNotificationConfiguration(bucket, notification);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+		}
+	}
+
 	protected Bucket getBucket(String bucket) throws GWException {
 		Bucket bucketInfo = null;
 		try {
@@ -739,18 +757,6 @@ public abstract class S3Request {
 		}
 
 		return objectListParameter;
-	}
-
-	protected List<Map<String, String>> listBucketAnalytics(String userName, String userId) throws GWException {
-		List<Map<String, String>> bucketAnalystics = null;
-		try {
-			bucketAnalystics = objManager.listBucketAnalyticsConfiguration(userName, userId);
-		} catch (Exception e) {
-			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
-		}
-		
-		return bucketAnalystics;
 	}
 
 	protected void updateObjectTagging(Metadata meta) throws GWException {

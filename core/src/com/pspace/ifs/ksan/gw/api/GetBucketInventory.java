@@ -16,13 +16,14 @@ import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Strings;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AnalyticsConfiguration;
+import com.pspace.ifs.ksan.gw.format.Inventory;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -31,16 +32,16 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketAnalytics extends S3Request {
+public class GetBucketInventory extends S3Request {
 
-    public GetBucketAnalytics(S3Parameter s3Parameter) {
+    public GetBucketInventory(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(GetBucketAnalytics.class);
+        logger = LoggerFactory.getLogger(GetBucketInventory.class);
     }
 
     @Override
     public void process() throws GWException {
-        logger.info(GWConstants.LOG_GET_BUCKET_ANALYTICS_START);
+        logger.info(GWConstants.LOG_GET_BUCKET_INVENTORY_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -56,22 +57,22 @@ public class GetBucketAnalytics extends S3Request {
 		}
 
         String id = s3RequestData.getId();
-		String analiytics = getBucketInfo().getAnalytics();
-		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
-		if (Strings.isNullOrEmpty(analiytics)) {
-			throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
-		}
+		String inventorys = getBucketInfo().getInventory();
+        if (Strings.isNullOrEmpty(inventorys)) {
+            throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
+        }
+        logger.debug(GWConstants.LOG_GET_BUCKET_INVENTORY, bucket, inventorys);
 
-        String[] analyticsIds = analiytics.split("\\n");
+        String[] inventoryIds = inventorys.split("\\n");
         XmlMapper xmlMapper = new XmlMapper();
         boolean bFindId = false;
-        for (String analyticsId : analyticsIds) {
-            AnalyticsConfiguration analyticsConfiguration = null;
+        for (String inventoryId : inventoryIds) {
+            Inventory inventory = null;
             try {
-                analyticsConfiguration = xmlMapper.readValue(analyticsId, AnalyticsConfiguration.class);
-                if (id.equals(analyticsConfiguration.Id)) {
+                inventory = xmlMapper.readValue(inventoryId, Inventory.class);
+                if (id.equals(inventory.id)) {
                     s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				    s3Parameter.getResponse().getOutputStream().write(analiytics.getBytes(StandardCharsets.UTF_8));
+				    s3Parameter.getResponse().getOutputStream().write(inventoryId.getBytes(StandardCharsets.UTF_8));
                     bFindId = true;
                     break;
                 }

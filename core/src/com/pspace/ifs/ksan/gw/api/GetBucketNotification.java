@@ -31,16 +31,16 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketAnalytics extends S3Request {
+public class GetBucketNotification extends S3Request {
 
-    public GetBucketAnalytics(S3Parameter s3Parameter) {
+    public GetBucketNotification(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(GetBucketAnalytics.class);
+        logger = LoggerFactory.getLogger(GetBucketNotification.class);
     }
 
     @Override
     public void process() throws GWException {
-        logger.info(GWConstants.LOG_GET_BUCKET_ANALYTICS_START);
+        logger.info(GWConstants.LOG_GET_BUCKET_NOTIFICATION_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -55,43 +55,27 @@ public class GetBucketAnalytics extends S3Request {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
-        String id = s3RequestData.getId();
-		String analiytics = getBucketInfo().getAnalytics();
-		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
-		if (Strings.isNullOrEmpty(analiytics)) {
-			throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
+		String notification = getBucketInfo().getNotification();
+        logger.debug(GWConstants.LOG_GET_BUCKET_NOTIFICATION_XML, bucket, notification);
+
+		String xml = null;
+        if (Strings.isNullOrEmpty(notification)) {
+            xml = GWConstants.NOTIFICATION_CONFIGURATION_XMLNS_DISABLE;
+        } else {
+            xml = notification;
+        }
+
+		try {
+			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
+			s3Parameter.getResponse().getOutputStream().write(xml.getBytes(StandardCharsets.UTF_8));
+            s3Parameter.getResponse().getOutputStream().flush();
+            s3Parameter.getResponse().getOutputStream().close();
+		} catch (IOException e) {
+			PrintStack.logging(logger, e);
+			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
 
-        String[] analyticsIds = analiytics.split("\\n");
-        XmlMapper xmlMapper = new XmlMapper();
-        boolean bFindId = false;
-        for (String analyticsId : analyticsIds) {
-            AnalyticsConfiguration analyticsConfiguration = null;
-            try {
-                analyticsConfiguration = xmlMapper.readValue(analyticsId, AnalyticsConfiguration.class);
-                if (id.equals(analyticsConfiguration.Id)) {
-                    s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				    s3Parameter.getResponse().getOutputStream().write(analiytics.getBytes(StandardCharsets.UTF_8));
-                    bFindId = true;
-                    break;
-                }
-            } catch (JsonMappingException e) {
-                PrintStack.logging(logger, e);
-                throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-            } catch (JsonProcessingException e) {
-                PrintStack.logging(logger, e);
-                throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-            } catch (IOException e) {
-                PrintStack.logging(logger, e);
-                throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
-            }
-        }
-
-        if (bFindId) {
-            s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-        } else {
-            throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
-        }
+		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
     }
     
 }

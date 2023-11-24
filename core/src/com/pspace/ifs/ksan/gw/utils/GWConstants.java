@@ -31,6 +31,8 @@ public final class GWConstants {
 	public static final String DISKPOOL_CONF_PATH = "/var/log/ksan/gw/diskpools_dump.xml";
 	public static final String SERVICEID_PATH = "/usr/local/ksan/etc/ksanGW.ServiceId";
 
+	public static final String DEFAULT_USER_NAME = "ksanuser";
+
 	public static final String MQUEUE_NAME = "disk";
     public static final String MQUEUE_EXCHANGE_NAME = "ksan.system";
 	public static final String MQUEUE_UTILITY_EXCHANGE_NAME = "ksan.UtilityExchange";
@@ -132,6 +134,38 @@ public final class GWConstants {
 			"bucket-owner-full-control",
 			"log-delivery-write"
 			);
+
+	public static final Set<String> INVENTORY_OPTIONS = ImmutableSet.of(
+		"Size",
+		"LastModifiedDate",
+		"StorageClass",
+		"ETag",
+		"IsMultipartUploaded",
+		"ReplicationStatus",
+		"EncryptionStatus",
+		"ObjectLockRetainUntilDate",
+		"ObjectLockMode",
+		"ObjectLockLegalHoldStatus",
+		"IntelligentTieringAccessTier",
+		"BucketKeyStatus",
+		"ChecksumAlgorithm"
+	);
+
+	public static final Set<String> INVENTORY_INCLUDE_OBJECT_VERSIONS = ImmutableSet.of(
+            "All",
+            "Current"
+    );
+
+	public static final Set<String> INVENTORY_SCHEDULE = ImmutableSet.of(
+            "Daily",
+            "Weekly"
+    );
+
+	public static final Set<String> INVENTORY_FORMAT = ImmutableSet.of(
+            "CSV",
+            "ORC",
+			"Parquet"
+	);
 
 	public static final String INVALID_HEADER = "Invalid header";
 	public static final String INVALID_CREDENTIAL = "Invalid Credential: ";
@@ -328,7 +362,7 @@ public final class GWConstants {
 	public static final String PARAMETER_STORAGE_MOVE = "storagemove";
 	public static final String PARAMETER_ACCELERATE = "accelerate";
 	public static final String PARAMETER_ANALYTICS = "analytics";
-	public static final String PARAMETER_ANALYTICS_ID = "id";
+	public static final String PARAMETER_ID = "id";
 	public static final String PARAMETER_PAYMENT = "requestPayment";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
@@ -701,6 +735,8 @@ public final class GWConstants {
 
 	public static final String PAYMENT_CONFIGURATION_XMLNS_REQUESTER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><RequestPaymentConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Payer>Requester</Payer></RequestPaymentConfiguration>";
 	public static final String PAYMENT_CONFIGURATION_XMLNS_BUCKET_OWNER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><RequestPaymentConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Payer>BucketOwner</Payer></RequestPaymentConfiguration>";
+
+	public static final String NOTIFICATION_CONFIGURATION_XMLNS_DISABLE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><NotificationConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"/>";
 	
 	public static final String TAGGING = "Tagging";
 	public static final String TAG_SET = "TagSet";
@@ -1609,6 +1645,7 @@ public final class GWConstants {
 
 	public static final String XML_START = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 	public static final String XML_ANALYTICS_STRING = "<AnalyticsConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
+	public static final String XML_INVENTORY_STRING = "<InventoryConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
 
 	// GetBucketAnalytics
 	public static final String LOG_GET_BUCKET_ANALYTICS_START = "GetBucketAnalytics ...";
@@ -1640,4 +1677,25 @@ public final class GWConstants {
 	// ListBucketAnalytics
 	public static final String LOG_LIST_BUCKET_ANALYTICS_START = "ListBucketAnalytics ...";
 	public static final String LOG_LIST_BUCKET_ANALYTICS_SIZE = "bucket analytics list size : {}";
+
+	// GetBucketNotification
+	public static final String LOG_GET_BUCKET_NOTIFICATION_START = "GetBucketNotification ...";
+	public static final String LOG_GET_BUCKET_NOTIFICATION_XML = "bucket({}) notification xml : {}";
+
+	// PutBucketNotificantion
+	public static final String LOG_PUT_BUCKET_NOTIFICATION_START = "PutBucketNotificantion ...";
+	public static final String LOG_PUT_BUCKET_NOTIFICATION_XML = "bucket notification xml : {}";
+
+	// GetBucketInventory
+	public static final String LOG_GET_BUCKET_INVENTORY_START = "GetBucketInventory ...";
+	public static final String LOG_GET_BUCKET_INVENTORY = "bucket({}) inventory : {}";
+
+	// PutBucketInventory
+	public static final String LOG_PUT_BUCKET_INVENTORY_START = "PutBucketInventory ...";
+
+	// DeleteBucketInventory
+	public static final String LOG_DELETE_BUCKET_INVENTORY_START = "DeleteBucketInventory ...";
+
+	// ListBucketInventory
+	public static final String LOG_LIST_BUCEKT_INVENTORY_START = "ListBucketInventory ...";
 }
