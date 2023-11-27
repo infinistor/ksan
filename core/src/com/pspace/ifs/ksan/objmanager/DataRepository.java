@@ -121,4 +121,6 @@ public interface DataRepository {
      public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException;
      public String getRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
      public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
+     
+     public long getEstimatedCount(String bucketName);
 }

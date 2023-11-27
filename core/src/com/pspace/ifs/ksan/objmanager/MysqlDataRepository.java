@@ -1909,4 +1909,9 @@ public class MysqlDataRepository implements DataRepository{
     public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId)  throws SQLException{
          removeRestoreObject(bucketName, objId, versionId);
     }
+    
+    @Override
+    public long getEstimatedCount(String bucketName){
+        return 0;
+    }
 }

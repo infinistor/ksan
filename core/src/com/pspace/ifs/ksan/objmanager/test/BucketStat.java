@@ -37,7 +37,7 @@ public class BucketStat {
         }
         
         for(Bucket bt :  blst){
-            System.out.format("%10.50s   %30d   %30d \n", bt.getName(), bt.getFileCount(), bt.getUsedSpace());
+            System.out.format("%10.50s   %30d   %30d \n", bt.getName(), omu.getEstimatedBucketCount(bt.getName()), bt.getUsedSpace());
         }
     }
     

@@ -441,7 +441,7 @@ public class MongoDataRepository implements DataRepository{
             }
                 
         }
-        updateBucketObjectCount(md.getBucket(), 1);
+        //updateBucketObjectCount(md.getBucket(), 1);
     
         insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
         return 0;
@@ -1948,4 +1948,11 @@ public class MongoDataRepository implements DataRepository{
         objRestore = getRestoreObjCollection();
         objRestore.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
     }
+    
+    public long getEstimatedCount(String bucketName){
+        MongoCollection<Document> objects;
+        
+        objects = this.database.getCollection(bucketName);
+        return objects.estimatedDocumentCount();
+    } 
 }
