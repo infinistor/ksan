@@ -18,28 +18,29 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AnalyticsConfiguration;
+import com.pspace.ifs.ksan.gw.format.Inventory;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.libs.PrintStack;
 
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
-public class DeleteBucketAnalytics extends S3Request {
+public class DeleteBucketInventory extends S3Request {
 
-    public DeleteBucketAnalytics(S3Parameter s3Parameter) {
+    public DeleteBucketInventory(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(DeleteBucketAnalytics.class);
+        logger = LoggerFactory.getLogger(DeleteBucketInventory.class);
     }
 
     @Override
     public void process() throws GWException {
-        logger.info(GWConstants.LOG_DELETE_BUCKET_ANALYTICS_START);
+        logger.info(GWConstants.LOG_DELETE_BUCKET_INVENTORY_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -51,28 +52,30 @@ public class DeleteBucketAnalytics extends S3Request {
 		}
 		
         String id = s3RequestData.getId();
-        String analiytics = getBucketInfo().getAnalytics();
-        if (Strings.isNullOrEmpty(analiytics)) {
+        String inventoryXmls = getBucketInfo().getInventory();
+        if (Strings.isNullOrEmpty(inventoryXmls)) {
             throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
         }
 
-		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
+		logger.debug(GWConstants.LOG_GET_BUCKET_INVENTORY, bucket, inventoryXmls);
 
-        String[] analyticsIds = analiytics.split("\\n");
+        String[] inventoryIds = inventoryXmls.split("\\n");
         XmlMapper xmlMapper = new XmlMapper();
-        String newAnalytics = "";
+        String newInventory = "";
         int count = 0;
-        for (String analyticsId : analyticsIds) {
-            AnalyticsConfiguration analyticsConfiguration = null;
+        boolean bFound = false;
+        for (String inventoryId : inventoryIds) {
+            Inventory inventory = null;
             try {
-                analyticsConfiguration = xmlMapper.readValue(analyticsId, AnalyticsConfiguration.class);
-                if (id.equals(analyticsConfiguration.Id)) {
+                inventory = xmlMapper.readValue(inventoryId, Inventory.class);
+                if (id.equals(inventory.id)) {
+                    bFound = true;
                     continue;
                 } else {
                     if (count == 0) {
-                        newAnalytics = analyticsId;
+                        newInventory = inventoryId;
                     } else {
-                        newAnalytics += "\n" + analyticsId;
+                        newInventory += "\n" + inventoryId;
                     }
                     count++;
                 }
@@ -88,9 +91,13 @@ public class DeleteBucketAnalytics extends S3Request {
             }
         }
 
-		updateBucketAnalytics(bucket, newAnalytics);
+		updateBucketInventory(bucket, newInventory);
 
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
+        if (bFound) {
+            s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
+        }
     }
     
 }

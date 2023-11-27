@@ -10,71 +10,71 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Strings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
 import com.pspace.ifs.ksan.gw.format.AnalyticsConfiguration;
+import com.pspace.ifs.ksan.gw.format.Inventory;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
+import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
-import com.pspace.ifs.ksan.libs.PrintStack;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
-public class DeleteBucketAnalytics extends S3Request {
+public class GetBucketInventory extends S3Request {
 
-    public DeleteBucketAnalytics(S3Parameter s3Parameter) {
+    public GetBucketInventory(S3Parameter s3Parameter) {
         super(s3Parameter);
-        logger = LoggerFactory.getLogger(DeleteBucketAnalytics.class);
+        logger = LoggerFactory.getLogger(GetBucketInventory.class);
     }
 
     @Override
     public void process() throws GWException {
-        logger.info(GWConstants.LOG_DELETE_BUCKET_ANALYTICS_START);
+        logger.info(GWConstants.LOG_GET_BUCKET_INVENTORY_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-        
+
 		GWUtils.checkCors(s3Parameter);
 
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
+
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter)) {
+			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
+		}
+
         String id = s3RequestData.getId();
-        String analiytics = getBucketInfo().getAnalytics();
-        if (Strings.isNullOrEmpty(analiytics)) {
+		String inventorys = getBucketInfo().getInventory();
+        if (Strings.isNullOrEmpty(inventorys)) {
             throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
         }
+        logger.debug(GWConstants.LOG_GET_BUCKET_INVENTORY, bucket, inventorys);
 
-		logger.debug(GWConstants.LOG_GET_BUCKET_ANALYTICS, analiytics);
-
-        String[] analyticsIds = analiytics.split("\\n");
+        String[] inventoryIds = inventorys.split("\\n");
         XmlMapper xmlMapper = new XmlMapper();
-        String newAnalytics = "";
-        int count = 0;
-        for (String analyticsId : analyticsIds) {
-            AnalyticsConfiguration analyticsConfiguration = null;
+        boolean bFindId = false;
+        for (String inventoryId : inventoryIds) {
+            Inventory inventory = null;
             try {
-                analyticsConfiguration = xmlMapper.readValue(analyticsId, AnalyticsConfiguration.class);
-                if (id.equals(analyticsConfiguration.Id)) {
-                    continue;
-                } else {
-                    if (count == 0) {
-                        newAnalytics = analyticsId;
-                    } else {
-                        newAnalytics += "\n" + analyticsId;
-                    }
-                    count++;
+                inventory = xmlMapper.readValue(inventoryId, Inventory.class);
+                if (id.equals(inventory.id)) {
+                    s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
+				    s3Parameter.getResponse().getOutputStream().write(inventoryId.getBytes(StandardCharsets.UTF_8));
+                    bFindId = true;
+                    break;
                 }
             } catch (JsonMappingException e) {
                 PrintStack.logging(logger, e);
@@ -88,9 +88,11 @@ public class DeleteBucketAnalytics extends S3Request {
             }
         }
 
-		updateBucketAnalytics(bucket, newAnalytics);
-
-		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
+        if (bFindId) {
+            s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+        } else {
+            throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
+        }
     }
     
 }
