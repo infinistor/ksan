@@ -207,8 +207,13 @@ class KsanServiceUtilOptParser(OptionParser):
                 
               4. start/stop/restart service 
                 # ./ksan service start --ServiceName osd1
+                # ./ksan service start --ServiceName osd1,osd2,osd3
                 # ./ksan service stop --ServiceName osd1
+                # ./ksan service stop --ServiceName osd1,osd2,osd3
+                # ./ksan service restart --ServiceName osd1
+                # ./ksan service restart --ServiceName osd1,osd2,osd3
               """
+        # ./ksan service start --ServiceName osd1,osd2,osd3
 
         self.AddOption()
     def AddOption(self):
@@ -301,12 +306,15 @@ class KsanDiskUtilOptParser(OptionParser):
                 
               4. start/stop disk 
                 # ./ksan disk start --DiskName disk1
+                # ./ksan disk start --DiskName disk1,disk2,disk3
                 # ./ksan disk stop --DiskName disk1
+                # ./ksan disk stop --DiskName disk1,disk2,disk3
                 
               5. set disk mode 
                 # ./ksan disk set --DiskName disk1 --Mode ro 
                 # ./ksan disk set --DiskName disk2 --Mode rw
                 # ./ksan disk set --DiskName disk2 --Mode ma
+                # ./ksan disk set --DiskName disk1,disk2,disk3 --Mode ro 
 
 
                 """
@@ -363,7 +371,9 @@ class KsanDiskpoolUtilOptParser(OptionParser):
                 
               4. add disk to diskpool  
                 # ./ksan diskpool add2disk --DiskPoolName diskpool1 --DiskName disk1  
+                # ./ksan diskpool add2disk --DiskPoolName diskpool1 --DiskName disk1,disk2,disk3  
                 # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
+                # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1,disk2,disk3              
                 
               5. set/get diskpool default diskpool 
                 # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1
