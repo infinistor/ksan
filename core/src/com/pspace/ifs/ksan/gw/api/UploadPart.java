@@ -30,7 +30,10 @@ import com.pspace.ifs.ksan.gw.object.IObjectManager;
 import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
+import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.DiskManager;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -133,6 +136,13 @@ public class UploadPart extends S3Request {
 		s3Metadata.setContentLength(length);
 
 		logger.debug("object size : {}", length);
+		// set multipart upload method
+		String multipartUploadMethod = AgentConfig.getInstance().getMultipartUploadMethod();
+		if (!Strings.isNullOrEmpty(multipartUploadMethod)) {
+			s3Metadata.setMultipartUploadMethod(multipartUploadMethod);
+		} else {
+			s3Metadata.setMultipartUploadMethod(Constants.MULTIPART_UPLOAD_MERGE);
+		}
 		
 		Metadata objMeta = createLocal(multipart.getDiskPoolId(), bucket, object, "null");
 		objMeta.setSize(length);
@@ -173,6 +183,7 @@ public class UploadPart extends S3Request {
 			s3Metadata.setETag(s3Object.getEtag());
 			s3Metadata.setLastModified(s3Object.getLastModified());
 			s3Metadata.setContentLength(s3Object.getFileSize());
+			objMeta.setMeta(s3Metadata.toString());
 			objMeta.setSize(s3Object.getFileSize());
 			objMeta.setEtag(s3Object.getEtag());
 		} catch (Exception e) {
