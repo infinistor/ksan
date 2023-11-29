@@ -120,35 +120,41 @@ public class KsanUtils {
     }
 
     private static String makeDirectorySub(String objId) {
-        byte[] path = new byte[3];
-        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
+        char[] path = new char[3];
+        char[] byteObjId = objId.toCharArray();
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
         path[2] = byteObjId[1];
 
-        return new String(path, StandardCharsets.UTF_8);
+        return new String(path);
     }
 
     private static String makeDirectoryName(String objId) {
-        byte[] path = new byte[9];
-        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
+        char[] byteObjId = objId.toCharArray();
+        char[] path;
 
-        path[0] = Constants.CHAR_SLASH;
-        path[1] = byteObjId[0];
-        path[2] = byteObjId[1];
-        path[3] = Constants.CHAR_SLASH;
-        path[4] = byteObjId[2];
-        path[5] = byteObjId[3];
-
-        // check obj index dir depth
-        // logger.debug("Checking obj index dir depth : {}", AgentConfig.getInstance().getObjIndexDirDepth());
         if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+            path = new char[9];
+            path[0] = Constants.CHAR_SLASH;
+            path[1] = byteObjId[0];
+            path[2] = byteObjId[1];
+            path[3] = Constants.CHAR_SLASH;
+            path[4] = byteObjId[2];
+            path[5] = byteObjId[3];
             path[6] = Constants.CHAR_SLASH;
             path[7] = byteObjId[4];
             path[8] = byteObjId[5];
+        } else {
+            path = new char[6];
+            path[0] = Constants.CHAR_SLASH;
+            path[1] = byteObjId[0];
+            path[2] = byteObjId[1];
+            path[3] = Constants.CHAR_SLASH;
+            path[4] = byteObjId[2];
+            path[5] = byteObjId[3];
         }
 
-        return new String(path, StandardCharsets.UTF_8);
+        return new String(path);
     }
 
     public static String makePath(String path, String fileName) {
