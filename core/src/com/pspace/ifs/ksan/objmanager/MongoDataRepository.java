@@ -1605,7 +1605,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     private void updateBucketObjectCount(String bucketName, long fileCount){
-        updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
+        //updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
     }
     
     @Override
@@ -1948,7 +1948,8 @@ public class MongoDataRepository implements DataRepository{
         objRestore = getRestoreObjCollection();
         objRestore.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
     }
-    
+     
+    @Override
     public long getEstimatedCount(String bucketName){
         MongoCollection<Document> objects;
         
