@@ -323,15 +323,18 @@ public class KsanPutObject extends S3Request {
 		}
 
 		Metadata objMeta = null;
+		boolean isOpen = false;
 		try {
 			// check exist object
 			objMeta = open(bucket, object, repVersionId);
+			isOpen = true;
 		} catch (GWException e) {
 			logger.info(e.getMessage());
 			s3Parameter.setErrorCode(GWConstants.EMPTY_STRING);
             s3Parameter.setStatusCode(0);
 			objMeta = createLocal(diskpoolId, bucket, object, repVersionId);
 		}
+
 		s3Parameter.setVersionId(repVersionId);
 		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, repVersionId, encryption);
 		// S3Object s3Object = objectOperation.putObject();
@@ -392,6 +395,9 @@ public class KsanPutObject extends S3Request {
 		try {
 			objMeta.set(s3Object.getEtag(), taggingxml, s3Metadata.toString(), aclXml, s3Object.getFileSize());
         	objMeta.setVersionId(repVersionId, GWConstants.OBJECT_TYPE_FILE, true);
+			if (isOpen) {
+				remove(bucket, object, repVersionId);
+			}
 			insertObject(bucket, object, objMeta);
 			logger.debug(GWConstants.LOG_PUT_OBJECT_INFO, bucket, object, s3Object.getFileSize(), s3Object.getEtag(), aclXml, repVersionId);
 		} catch (GWException e) {

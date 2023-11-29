@@ -586,6 +586,7 @@ public class GWConfig {
                 // fileWriter.write(DB_POOL_SIZE + EQUAL + dbPoolSize + "\n");
                 fileWriter.write(CACHE_PATH + EQUAL + cacheDiskpath + "\n");
                 // fileWriter.write(CACHE_FILE_SIZE + EQUAL + cacheFileSize + "\n");
+                fileWriter.flush();
             } catch (IOException e) {
                 throw new IOException(e);
             }

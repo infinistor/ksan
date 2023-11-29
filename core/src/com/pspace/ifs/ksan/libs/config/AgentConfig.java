@@ -31,6 +31,8 @@ public class AgentConfig {
     private String mqUser;
     private String mqPassword;
     private long serviceMonitorInterval;
+    private String multipartUploadMethod;
+    private int objIndexDirDepth;
 
     public static final String DATA = "Data";
     public static final String VERSION = "Version";
@@ -117,6 +119,19 @@ public class AgentConfig {
         } else {
             serviceMonitorInterval = Long.parseLong(interval);
         }
+        multipartUploadMethod = properties.getProperty(Constants.AGENT_PROPERTY_MULTIPART_UPLOAD_METHOD);
+        if (multipartUploadMethod == null) {
+            multipartUploadMethod = Constants.MULTIPART_UPLOAD_MERGE;
+        }
+        String depth = properties.getProperty(Constants.AGENT_PROPERTY_OBJ_INDEX_DIR_DEPTH);
+        if (depth == null) {
+            objIndexDirDepth = Constants.OBJECT_INDEX_DIR_DEPTH_2;
+        } else {
+            objIndexDirDepth = Integer.parseInt(depth);
+            if (objIndexDirDepth < Constants.OBJECT_INDEX_DIR_DEPTH_2 || objIndexDirDepth > Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+                objIndexDirDepth = Constants.OBJECT_INDEX_DIR_DEPTH_2;
+            }
+        }
     }
 
     public String getPortalIp() {
@@ -153,5 +168,13 @@ public class AgentConfig {
 
     public long getServiceMonitorInterval() {
         return serviceMonitorInterval;
+    }
+
+    public String getMultipartUploadMethod() {
+        return multipartUploadMethod;
+    }
+
+    public int getObjIndexDirDepth() {
+        return objIndexDirDepth;
     }
 }

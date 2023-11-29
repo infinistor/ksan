@@ -33,6 +33,7 @@ import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
 import com.pspace.ifs.ksan.libs.osd.OSDClient;
+import com.pspace.ifs.ksan.libs.data.OsdData;
 import com.pspace.ifs.ksan.libs.data.ECPart;
 import com.pspace.ifs.ksan.libs.disk.Disk;
 import com.pspace.ifs.ksan.libs.disk.DiskPool;
@@ -1082,6 +1083,7 @@ public class VFSObjectManager implements IObjectManager {
                 logger.error("Replica is null");
             }
         }
+
         if (!isAvailablePrimary && !isAvailableReplica) {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
@@ -1314,6 +1316,7 @@ public class VFSObjectManager implements IObjectManager {
                     sourceRange += GWConstants.SLASH + String.valueOf(offset) + GWConstants.COMMA + String.valueOf(last);
                 }
                 length += last - offset + 1;
+                logger.debug("offset : {}, last : {}, length : {}", offset, last, length);
             }
             hasRange = true;
         } else {
@@ -1321,11 +1324,13 @@ public class VFSObjectManager implements IObjectManager {
         }
 
         // check src object is multipart and objId is same
-        boolean isMultipart = false;
+        boolean isMultipartLink = false;
         S3Metadata srcMetadata = S3Metadata.getS3Metadata(srcMeta.getMeta());
-        if (!Strings.isNullOrEmpty(srcMetadata.getUploadId())) { // && srcMeta.getObjId().equals(meta.getObjId())) {
+        if (!Strings.isNullOrEmpty(srcMetadata.getUploadId()) && !Strings.isNullOrEmpty(srcMetadata.getMultipartUploadMethod())) {
             logger.debug("src object is multipart ...");
-            isMultipart = true;
+            if (srcMetadata.getMultipartUploadMethod().equalsIgnoreCase(Constants.MULTIPART_UPLOAD_LINK)) {
+                isMultipartLink = true;
+            }
         }
 
         S3Object s3Object = new S3Object();
@@ -1348,10 +1353,10 @@ public class VFSObjectManager implements IObjectManager {
         
         try {
             File srcFile = null;
-            
-            
+
             String localPath = GWConstants.EMPTY_STRING;
-            String srcKey = srcEncryption.isEnabledEncryption() ? srcEncryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
+            String srcKey = GWConstants.EMPTY_STRING;
+            // String srcKey = srcEncryption.isEnabledEncryption() ? srcEncryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
 
             if (isAvailableSrcPrimary && (localPath = DiskManager.getInstance().getLocalPath(srcMeta.getPrimaryDisk().getId())) != null) {
                 srcFile = new File(KsanUtils.makeObjPathForOpen(localPath, srcMeta.getObjId(), srcMeta.getVersionId()));
@@ -1364,6 +1369,7 @@ public class VFSObjectManager implements IObjectManager {
             // check : replica local
             else if (isAvailableSrcReplica && (localPath = DiskManager.getInstance().getLocalPath(srcReplicaDISK.getId())) != null) {
                 srcFile = new File(KsanUtils.makeObjPathForOpen(localPath, srcMeta.getObjId(), srcMeta.getVersionId()));
+                logger.debug("srcFile : {}", srcFile.getAbsolutePath());
                 is = new FileInputStream(srcFile);
                 if (!Strings.isNullOrEmpty(srcKey)) {
                     encryptIS = GWUtils.initCtrDecrypt(is, srcKey);
@@ -1487,7 +1493,7 @@ public class VFSObjectManager implements IObjectManager {
             }
 
             // src object is multipart
-            if (isMultipart) {
+            if (isMultipartLink) {
                 BufferedReader br = null;
                 br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
                 // if (!Strings.isNullOrEmpty(srcKey)) {
@@ -1667,13 +1673,13 @@ public class VFSObjectManager implements IObjectManager {
                     }
 
                     while (remainLength > 0L) {
+                        logger.debug("remain length : {}, read length : {}", remainLength, readLength);
                         if (remainLength > GWConstants.MAXBUFSIZE) {
                             readByte = GWConstants.MAXBUFSIZE;
                         } else {
                             readByte = (int)remainLength;
                         }
                         if ((readLength = is.read(buffer, 0, readByte)) != -1) {
-
                             if (isAvailablePrimary) {
                                 osPrimary.write(buffer, 0, readByte);
                                 osPrimary.flush();
@@ -1780,6 +1786,7 @@ public class VFSObjectManager implements IObjectManager {
         // save file to local and rename, osd put
         // osd에 put하기 위해서는 length를 알아야 함. 
 
+        // String localPath = DiskManager.getInstance().getLocalPath();
         String localPath = DiskManager.getInstance().getLocalPath(meta.getPrimaryDisk().getId());
         if (localPath == null) {
             logger.error("local path is null");
@@ -1804,23 +1811,37 @@ public class VFSObjectManager implements IObjectManager {
         InputStream isPartReplica = null;
         BufferedWriter bwPrimary = null;
         BufferedWriter bwReplica = null;
+        FileOutputStream tmpOutPrimary = null;
+        FileOutputStream tmpOutReplica = null;
+        long totalLength = 0L;
+        String primaryDiskId = null;
+        String replicaDiskId = null;
+        String primaryPartPath = null;
+        String replicaPartPath = null;
+        byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
+
+        // check multipart upload method
+        boolean isLink = false;
+        String multipartUploadMethod = AgentConfig.getInstance().getMultipartUploadMethod();
+        if (!Strings.isNullOrEmpty(multipartUploadMethod) && multipartUploadMethod.equals(Constants.MULTIPART_UPLOAD_LINK)) {
+            isLink = true;
+        }
 
         try {
             File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
             File tempReplica = null;
+            logger.info("temp primary : {}", tempPrimary.getAbsolutePath());
+            tmpOutPrimary = new FileOutputStream(tempPrimary, false);
             bwPrimary = new BufferedWriter(new FileWriter(tempPrimary, StandardCharsets.UTF_8));
             
             if (meta.isReplicaExist()) {
                 tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
+                logger.info("temp replica : {}", tempReplica.getAbsolutePath());
+                tmpOutReplica = new FileOutputStream(tempReplica, false);
                 bwReplica = new BufferedWriter(new FileWriter(tempReplica, StandardCharsets.UTF_8));
             }
             
             // create temp file
-            long totalLength = 0L;
-            String primaryDiskId = null;
-            String replicaDiskId = null;
-            String primaryPartPath = null;
-            String replicaPartPath = null;
             StringBuilder sbPrimary = new StringBuilder();
             StringBuilder sbReplica = new StringBuilder();
 
@@ -1836,14 +1857,16 @@ public class VFSObjectManager implements IObjectManager {
                     replicaPartPath = DiskManager.getInstance().getPath(replicaDiskId);
                 }
                 logger.debug("primaryDiskId : {} - {}, replicaDiskId : {} - {}", primaryDiskId, DiskManager.getInstance().getOSDIP(primaryDiskId), replicaDiskId, DiskManager.getInstance().getOSDIP(replicaDiskId));
-                // part copy file
-                if (entry.getValue().getPartETag().equals(GWConstants.PARTCOPY_MD5)) {
+                
+                // merge || link and part copy file
+                if (!isLink || (isLink && entry.getValue().getPartETag().equals(GWConstants.PARTCOPY_MD5))) {
                     boolean isAvailablePartPrimary = primaryDiskId != null && isAvailableDiskForRead(primaryDiskId);
                     boolean isAvailablePartReplica = replicaDiskId != null && isAvailableDiskForRead(replicaDiskId);
                     
                     if (isAvailablePartPrimary) {
                         if ((localPath = DiskManager.getInstance().getLocalPath(primaryDiskId)) != null) {
                             partPrimary = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                            logger.info("part primary : {}", partPrimary.getAbsolutePath());
                             fisPrimary = new FileInputStream(partPrimary);
                             isPartPrimary = fisPrimary;
                         } else {
@@ -1864,22 +1887,39 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartPrimary.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartPrimary = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary, StandardCharsets.UTF_8))) {
-                            String line = null;
-                            while ((line = br.readLine()) != null) {
-                                line += System.lineSeparator();
-                                if (bwPrimary != null) {
-                                    bwPrimary.write(line);
+
+                        if (!isLink) { // merge
+                            try {
+                                int readLength = 0;
+                                while ((readLength = isPartPrimary.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
+                                    // totalLength += readLength;
+                                    tmpOutPrimary.write(buffer, 0, readLength);
+                                    // md5er.update(buffer, 0, readLength);
                                 }
+                                tmpOutPrimary.flush();
+                            } catch (IOException e) {
+                                PrintStack.logging(logger, e);
+                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
                             }
-                        } catch (IOException e) {
-                            PrintStack.logging(logger, e);
-                            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                        } else {
+                            try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary, StandardCharsets.UTF_8))) {
+                                String line = null;
+                                while ((line = br.readLine()) != null) {
+                                    line += System.lineSeparator();
+                                    if (bwPrimary != null) {
+                                        bwPrimary.write(line);
+                                    }
+                                }
+                            } catch (IOException e) {
+                                PrintStack.logging(logger, e);
+                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                            }
                         }
                     }
                     if (isAvailablePartReplica) {
                         if ((localPath = DiskManager.getInstance().getLocalPath(replicaDiskId)) != null) {
                             partReplica = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                            logger.info("part replica : {}", partReplica.getAbsolutePath());
                             fisReplica = new FileInputStream(partReplica);
                             isPartReplica = fisReplica;
                         } else {
@@ -1899,17 +1939,32 @@ public class VFSObjectManager implements IObjectManager {
                             clientPartReplica.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
                             isPartReplica = new ByteArrayInputStream(baos.toByteArray());
                         }
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica, StandardCharsets.UTF_8))) {
-                            String line = null;
-                            while ((line = br.readLine()) != null) {
-                                line += System.lineSeparator();
-                                if (bwReplica != null) {
-                                    bwReplica.write(line);
+                        if (!isLink) {
+                            try {
+                                int readLength = 0;
+                                while ((readLength = isPartReplica.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
+                                    // totalLength += readLength;
+                                    tmpOutReplica.write(buffer, 0, readLength);
+                                    // md5er.update(buffer, 0, readLength);
                                 }
+                                tmpOutReplica.flush();
+                            } catch (IOException e) {
+                                PrintStack.logging(logger, e);
+                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
                             }
-                        } catch (IOException e) {
-                            PrintStack.logging(logger, e);
-                            throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                        } else {
+                            try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica, StandardCharsets.UTF_8))) {
+                                String line = null;
+                                while ((line = br.readLine()) != null) {
+                                    line += System.lineSeparator();
+                                    if (bwReplica != null) {
+                                        bwReplica.write(line);
+                                    }
+                                }
+                            } catch (IOException e) {
+                                PrintStack.logging(logger, e);
+                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                            }
                         }
                     }
                 } else {
@@ -1996,7 +2051,6 @@ public class VFSObjectManager implements IObjectManager {
                         key,
                         "");
                     try (FileInputStream fis = new FileInputStream(tempPrimary)) {
-                        byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
                         int readLength = 0;
                         while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
                             osdClientPrimary.put(buffer, 0, readLength);
@@ -2057,7 +2111,6 @@ public class VFSObjectManager implements IObjectManager {
                         key,
                         "");
                     try (FileInputStream fis = new FileInputStream(tempReplica)) {
-                        byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
                         int readLength = 0;
                         while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
                             osdClientReplica.put(buffer, 0, readLength);
@@ -2080,6 +2133,24 @@ public class VFSObjectManager implements IObjectManager {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
         } finally {
+            if (tmpOutPrimary != null) {
+                try {
+                    tmpOutPrimary.flush();
+                    tmpOutPrimary.close();
+                } catch (IOException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            }
+            if (tmpOutReplica != null) {
+                try {
+                    tmpOutReplica.flush();
+                    tmpOutReplica.close();
+                } catch (IOException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            }
             if (bwPrimary != null) {
                 try {
                     bwPrimary.flush();
@@ -2549,45 +2620,256 @@ public class VFSObjectManager implements IObjectManager {
         File file = new File(KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId()));
         boolean isBorrowOsd = false;
         logger.debug("getMultipartLocal file : {}", file.getAbsolutePath());
+        CtrCryptoInputStream encryptIS = null;
         if (file.exists()) {
-            try (BufferedReader br = new BufferedReader(new FileReader(file,StandardCharsets.UTF_8));
-                OutputStream os = param.getResponse().getOutputStream()) {
-                String line = null;
-                String objDiskId = null;
-                String objPath = null;
-                long objSize = 0L;
-                long objOffset = 0L;
-                long objLast = 0L;
-                long objLength = 0L;
-                long remaingLength = 0L;
-                int readBytes = 0;
-                int readLength = 0;
-                boolean isRange = false;
+            // check merge
+            boolean isLink = false;
+            String multipartUploadMethod = AgentConfig.getInstance().getMultipartUploadMethod();
+            if (!Strings.isNullOrEmpty(multipartUploadMethod) && multipartUploadMethod.equals(Constants.MULTIPART_UPLOAD_LINK)) {
+                isLink = true;
+            }
 
-                // check range
-                if (!Strings.isNullOrEmpty(sourceRange)) {
-                    br.mark(0);
-                    String[] ranges = sourceRange.split(GWConstants.SLASH);
-                    long offset = 0L;
-                    long length = 0L;
-                    for (String range : ranges) {
-                        long accOffset = 0L;
-                        String[] rangeParts = range.split(GWConstants.COMMA);
-                        Long offsetLong = Longs.tryParse(rangeParts[0]);
-                        Long lengthLong = Longs.tryParse(rangeParts[1]);
-                        offset = (offsetLong == null) ? 0L : offsetLong;
-                        length = (lengthLong == null) ? 0L : lengthLong;
-                        logger.debug("getMultipartLocal : range : offset={}, length={}", offset, length);
-                        br.reset();
+            if (!isLink) {
+                try (FileInputStream fis = new FileInputStream(file);
+                    OutputStream os = param.getResponse().getOutputStream()) {
+                    int readLength = 0;
+                    long remaingLength = 0L;
+                    int readBytes = 0;
+                    if (Strings.isNullOrEmpty(sourceRange)) {
+                        if (!Strings.isNullOrEmpty(key)) {
+                            encryptIS = GWUtils.initCtrDecrypt(fis, key);
+                            while ((readLength = encryptIS.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                                actualSize += readLength;
+                                os.write(buffer, 0, readLength);
+                            }
+                        } else {
+                            remaingLength = file.length();
+                            while (remaingLength > 0) {
+                                readBytes = 0;
+                                if (remaingLength < GWConstants.MAXBUFSIZE) {
+                                    readBytes = (int)remaingLength;
+                                } else {
+                                    readBytes = GWConstants.MAXBUFSIZE;
+                                }
+                                if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                    actualSize += readLength;
+                                    os.write(buffer, 0, readLength);
+                                    remaingLength -= readLength;
+                                } else {
+                                    break;
+                                }
+                            }
+
+                        }
+                    } else {
+                        String[] ranges = sourceRange.split(GWConstants.SLASH);
+                        long offset = 0L;
+                        long length = 0L;
+                        for (String range : ranges) {
+                            String[] rangeParts = range.split(GWConstants.COMMA);
+                            Long offsetLong = Longs.tryParse(rangeParts[0]);
+                            Long lengthLong = Longs.tryParse(rangeParts[1]);
+                            offset = (offsetLong == null) ? 0L : offsetLong;
+                            length = (lengthLong == null) ? 0L : lengthLong;
+                            logger.debug(GWConstants.LOG_S3OBJECT_OPERATION_RANGE, offset, length);
+
+                            remaingLength = length;
+                            
+                            // if (!Strings.isNullOrEmpty(key)) {
+                            //     encryptIS = GWUtils.initCtrDecrypt(fis, key);
+                            //     if (offset > 0) {
+                            //         long skip = encryptIS.skip(offset);
+                            //         logger.debug("offset : {}, skip : {}", offset, skip);
+                            //     }
+                            //     while (remaingLength > 0) {
+                            //         readBytes = 0;
+                            //         if (remaingLength < GWConstants.MAXBUFSIZE) {
+                            //             readBytes = (int)remaingLength;
+                            //         } else {
+                            //             readBytes = GWConstants.MAXBUFSIZE;
+                            //         }
+                            //         if ((readLength = encryptIS.read(buffer, 0, readBytes)) != -1) {
+                            //             actualSize += readLength;
+                            //             os.write(buffer, 0, readLength);
+                            //             remaingLength -= readLength;
+                            //         } else {
+                            //             break;
+                            //         }
+                            //     }
+                            // } else {
+                                if (offset > 0) {
+                                    long skip = fis.skip(offset);
+                                    logger.debug("offset : {}, skip : {}", offset, skip);
+                                }
+                                while (remaingLength > 0) {
+                                    readBytes = 0;
+                                    if (remaingLength < GWConstants.MAXBUFSIZE) {
+                                        readBytes = (int)remaingLength;
+                                    } else {
+                                        readBytes = GWConstants.MAXBUFSIZE;
+                                    }
+                                    if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                        actualSize += readLength;
+                                        os.write(buffer, 0, readLength);
+                                        remaingLength -= readLength;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            // }
+                        }
+                    }
+                    os.flush();
+                } catch (IOException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            } else {
+                try (BufferedReader br = new BufferedReader(new FileReader(file,StandardCharsets.UTF_8));
+                    OutputStream os = param.getResponse().getOutputStream()) {
+                    String line = null;
+                    String objDiskId = null;
+                    String objPath = null;
+                    long objSize = 0L;
+                    long objOffset = 0L;
+                    long objLast = 0L;
+                    long objLength = 0L;
+                    long remaingLength = 0L;
+                    int readBytes = 0;
+                    int readLength = 0;
+                    boolean isRange = false;
+
+                    // check range
+                    if (!Strings.isNullOrEmpty(sourceRange)) {
+                        br.mark(0);
+                        String[] ranges = sourceRange.split(GWConstants.SLASH);
+                        long offset = 0L;
+                        long length = 0L;
+                        for (String range : ranges) {
+                            long accOffset = 0L;
+                            String[] rangeParts = range.split(GWConstants.COMMA);
+                            Long offsetLong = Longs.tryParse(rangeParts[0]);
+                            Long lengthLong = Longs.tryParse(rangeParts[1]);
+                            offset = (offsetLong == null) ? 0L : offsetLong;
+                            length = (lengthLong == null) ? 0L : lengthLong;
+                            logger.debug("getMultipartLocal : range : offset={}, length={}", offset, length);
+                            br.reset();
+                            while ((line = br.readLine()) != null) {
+                                String[] infos = line.split(GWConstants.COLON);
+                                objDiskId = infos[0];
+                                objPath = infos[1];
+                                objSize = Long.parseLong(infos[2]);
+                                long saveRemaingLength = 0L;
+                                objOffset = 0L;
+                                objLast = 0L;
+
+                                if (infos.length > 3) {
+                                    String[] objRanges = infos[3].split(GWConstants.DASH);
+                                    objOffset = Long.parseLong(objRanges[0]);
+                                    objLast = Long.parseLong(objRanges[1]);
+                                    objLength = objLast - objOffset + 1;
+                                    isRange = true;
+                                } else {
+                                    objLength = objSize;
+                                    isRange = false;
+                                }
+
+                                if (accOffset < offset) {
+                                    if (accOffset + objLength <= offset) {
+                                        accOffset += objLength;
+                                        continue;
+                                    } else {
+                                        objOffset += offset - accOffset;
+                                        objLength -= offset - accOffset;
+                                        accOffset += objLength;
+                                        isRange = true;
+                                    }
+                                }
+
+                                if (objLength > length) {
+                                    remaingLength = length;
+                                } else {
+                                    remaingLength = objLength;
+                                }
+                                saveRemaingLength = remaingLength;
+
+                                // check local path
+                                if (DiskManager.getInstance().getLocalPath(objDiskId) != null) {
+                                    // get local
+                                    File partFile = new File(objPath);
+                                    logger.debug("from local : {}, length : {}, remaingLength : {}, objLength : {}", partFile.getAbsolutePath(), length, remaingLength, objLength);
+                                    try (FileInputStream fis = new FileInputStream(partFile)) {
+                                        if (isRange) {
+                                            long skip = fis.skip(objOffset);
+                                            logger.debug("offset : {}, skip : {}", offset, skip);
+                                        }
+                                        while (remaingLength > 0) {
+                                            readBytes = 0;
+                                            if (remaingLength < GWConstants.MAXBUFSIZE) {
+                                                readBytes = (int)remaingLength;
+                                            } else {
+                                                readBytes = GWConstants.MAXBUFSIZE;
+                                            }
+                                            if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
+                                                actualSize += readLength;
+                                                os.write(buffer, 0, readLength);
+                                                remaingLength -= readLength;
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                    } catch (Exception e1) {
+                                        PrintStack.logging(logger, e1);
+                                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                                    }
+                                } else {
+                                    // get osd
+                                    logger.debug("from osd : {}, length : {}, remaingLength : {}, objLength : {}", DiskManager.getInstance().getOSDIP(objDiskId), length, remaingLength, objLength);
+                                    // OSDClient client = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
+                                    OSDClient client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), (int)GWConfig.getInstance().getOsdPort());
+                                    isBorrowOsd = false;
+                                    // if (client == null) {
+                                    //     client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), (int)GWConfig.getInstance().getOsdPort());
+                                    //     isBorrowOsd = false;
+                                    // } else {
+                                    //     isBorrowOsd = true;
+                                    // }
+                                    String partRange = null;
+                                    if (isRange) {
+                                        partRange = objOffset + GWConstants.DASH + (objOffset + objLength - 1);
+                                    } else {
+                                        partRange = GWConstants.EMPTY_STRING;
+                                    }
+                                    if (remaingLength < objLength) {
+                                        partRange = objOffset + GWConstants.DASH + (objOffset + remaingLength - 1);
+                                    }
+
+                                    client.getPartInit(objPath, remaingLength, partRange, os);
+                                    actualSize += client.getPart();
+                                    if (isBorrowOsd) {
+                                        try {
+                                            // OSDClientManager.getInstance().releaseOSDClient(client);
+                                        } catch (Exception e) {
+                                            PrintStack.logging(logger, e);
+                                        }
+                                    } else {
+                                        client.close();
+                                    }
+                                }
+
+                                length -= saveRemaingLength;
+                                if (length <= 0) {
+                                    break;
+                                }
+                                logger.debug("actualSize : {}, length : {}", actualSize, length);
+                            }
+                        }
+                    } else {
                         while ((line = br.readLine()) != null) {
                             String[] infos = line.split(GWConstants.COLON);
                             objDiskId = infos[0];
                             objPath = infos[1];
                             objSize = Long.parseLong(infos[2]);
-                            long saveRemaingLength = 0L;
-                            objOffset = 0L;
-                            objLast = 0L;
-
                             if (infos.length > 3) {
                                 String[] objRanges = infos[3].split(GWConstants.DASH);
                                 objOffset = Long.parseLong(objRanges[0]);
@@ -2598,36 +2880,18 @@ public class VFSObjectManager implements IObjectManager {
                                 objLength = objSize;
                                 isRange = false;
                             }
-
-                            if (accOffset < offset) {
-                                if (accOffset + objLength <= offset) {
-                                    accOffset += objLength;
-                                    continue;
-                                } else {
-                                    objOffset += offset - accOffset;
-                                    objLength -= offset - accOffset;
-                                    accOffset += objLength;
-                                    isRange = true;
-                                }
-                            }
-
-                            if (objLength > length) {
-                                remaingLength = length;
-                            } else {
-                                remaingLength = objLength;
-                            }
-                            saveRemaingLength = remaingLength;
-
+                            remaingLength = objLength;
                             // check local path
                             if (DiskManager.getInstance().getLocalPath(objDiskId) != null) {
                                 // get local
                                 File partFile = new File(objPath);
-                                logger.debug("from local : {}, length : {}, remaingLength : {}, objLength : {}", partFile.getAbsolutePath(), length, remaingLength, objLength);
+                                logger.info("partFile : {}, file size : {}, remaingLength : {}", partFile.getAbsolutePath(), partFile.length(), remaingLength);
                                 try (FileInputStream fis = new FileInputStream(partFile)) {
                                     if (isRange) {
                                         long skip = fis.skip(objOffset);
-                                        logger.debug("offset : {}, skip : {}", offset, skip);
+                                        logger.debug("objOffset : {}, skip : {}", objOffset, skip);
                                     }
+
                                     while (remaingLength > 0) {
                                         readBytes = 0;
                                         if (remaingLength < GWConstants.MAXBUFSIZE) {
@@ -2649,7 +2913,6 @@ public class VFSObjectManager implements IObjectManager {
                                 }
                             } else {
                                 // get osd
-                                logger.debug("from osd : {}, length : {}, remaingLength : {}, objLength : {}", DiskManager.getInstance().getOSDIP(objDiskId), length, remaingLength, objLength);
                                 // OSDClient client = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
                                 OSDClient client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), (int)GWConfig.getInstance().getOsdPort());
                                 isBorrowOsd = false;
@@ -2661,15 +2924,11 @@ public class VFSObjectManager implements IObjectManager {
                                 // }
                                 String partRange = null;
                                 if (isRange) {
-                                    partRange = objOffset + GWConstants.DASH + (objOffset + objLength - 1);
+                                    partRange = infos[3];
                                 } else {
                                     partRange = GWConstants.EMPTY_STRING;
                                 }
-                                if (remaingLength < objLength) {
-                                    partRange = objOffset + GWConstants.DASH + (objOffset + remaingLength - 1);
-                                }
-
-                                client.getPartInit(objPath, remaingLength, partRange, os);
+                                client.getPartInit(objPath, objSize, partRange, os);
                                 actualSize += client.getPart();
                                 if (isBorrowOsd) {
                                     try {
@@ -2681,98 +2940,15 @@ public class VFSObjectManager implements IObjectManager {
                                     client.close();
                                 }
                             }
-
-                            length -= saveRemaingLength;
-                            if (length <= 0) {
-                                break;
-                            }
-                            logger.debug("actualSize : {}, length : {}", actualSize, length);
                         }
                     }
-                } else {
-                    while ((line = br.readLine()) != null) {
-                        String[] infos = line.split(GWConstants.COLON);
-                        objDiskId = infos[0];
-                        objPath = infos[1];
-                        objSize = Long.parseLong(infos[2]);
-                        if (infos.length > 3) {
-                            String[] objRanges = infos[3].split(GWConstants.DASH);
-                            objOffset = Long.parseLong(objRanges[0]);
-                            objLast = Long.parseLong(objRanges[1]);
-                            objLength = objLast - objOffset + 1;
-                            isRange = true;
-                        } else {
-                            objLength = objSize;
-                            isRange = false;
-                        }
-                        remaingLength = objLength;
-                        // check local path
-                        if (DiskManager.getInstance().getLocalPath(objDiskId) != null) {
-                            // get local
-                            File partFile = new File(objPath);
-                            logger.info("partFile : {}, file size : {}, remaingLength : {}", partFile.getAbsolutePath(), partFile.length(), remaingLength);
-                            try (FileInputStream fis = new FileInputStream(partFile)) {
-                                if (isRange) {
-                                    long skip = fis.skip(objOffset);
-                                    logger.debug("objOffset : {}, skip : {}", objOffset, skip);
-                                }
-
-                                while (remaingLength > 0) {
-                                    readBytes = 0;
-                                    if (remaingLength < GWConstants.MAXBUFSIZE) {
-                                        readBytes = (int)remaingLength;
-                                    } else {
-                                        readBytes = GWConstants.MAXBUFSIZE;
-                                    }
-                                    if ((readLength = fis.read(buffer, 0, readBytes)) != -1) {
-                                        actualSize += readLength;
-                                        os.write(buffer, 0, readLength);
-                                        remaingLength -= readLength;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            } catch (Exception e1) {
-                                PrintStack.logging(logger, e1);
-                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                            }
-                        } else {
-                            // get osd
-                            // OSDClient client = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(objDiskId));
-                            OSDClient client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            isBorrowOsd = false;
-                            // if (client == null) {
-                            //     client = new OSDClient(DiskManager.getInstance().getOSDIP(objDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            //     isBorrowOsd = false;
-                            // } else {
-                            //     isBorrowOsd = true;
-                            // }
-                            String partRange = null;
-                            if (isRange) {
-                                partRange = infos[3];
-                            } else {
-                                partRange = GWConstants.EMPTY_STRING;
-                            }
-                            client.getPartInit(objPath, objSize, partRange, os);
-                            actualSize += client.getPart();
-                            if (isBorrowOsd) {
-                                try {
-                                    // OSDClientManager.getInstance().releaseOSDClient(client);
-                                } catch (Exception e) {
-                                    PrintStack.logging(logger, e);
-                                }
-                            } else {
-                                client.close();
-                            }
-                        }
-                    }
+                } catch (RuntimeException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                } catch (Exception e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
                 }
-            } catch (RuntimeException e) {
-                PrintStack.logging(logger, e);
-                throw new GWException(GWErrorCode.SERVER_ERROR, param);
-            } catch (Exception e) {
-                PrintStack.logging(logger, e);
-                throw new GWException(GWErrorCode.SERVER_ERROR, param);
             }
         } else {
             logger.error("not found multipart file : " + file.getAbsolutePath());
@@ -2874,55 +3050,81 @@ public class VFSObjectManager implements IObjectManager {
         File fileTrashPrimary = null;
         File fileTrashReplica = null;
 
-        if (isAvailableReplica) {
-            // if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
-            //     // check Cache
-            //     if (GWConfig.getInstance().isCacheDiskpath()) {
-            //         filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
-            //         isCachePrimary = true;
-            //     } else {
-            //         filePrimary = new File(KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
-            //     }
-            //     fosPrimary = new FileOutputStream(filePrimary, false);
-            // } else {
-            //     // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
-            //     logger.debug("osd client primary : {}", meta.getPrimaryDisk().getOsdIp());
-            //     if (osdClientPrimary == null) {
-            //         osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-            //     } else {
-            //         isBorrowOsdPrimary = true;
-            //     }
-            //     clientPartPrimary.deletePart(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
-            //     if (isBorrowOsdPrimary) {
-            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
-            //     } else {
-            //         clientPartPrimary.close();
-            //     }
-            // }
+        if (isAvailablePrimary) {
+            if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+                if (GWConfig.getInstance().isCacheDiskpath()) {
+                    filePrimary = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                    fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId()));
+                    
+                } else {
+                    filePrimary = new File(KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                    fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId()));
+                }
 
-            // if ((localPath = DiskManager.getInstance().getLocalPath(primaryDiskId)) != null) {
-            //     partFilePrimary = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
-            //     partFileTrashPrimary = new File(KsanUtils.makeTrashPath(localPath, meta.getObjId(), param.getUploadId()));
-            //     if (!partFilePrimary.exists()) {
-            //         retryRenameTo(partFilePrimary, partFileTrashPrimary);
-            //     }
-            // } else {
-            //     // clientPartPrimary = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId));
-            //     if (clientPartPrimary == null) {
-            //         clientPartPrimary = new OSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId), (int)GWConfig.getInstance().getOsdPort());
-            //     } else {
-            //         isBorrowOsdPartPrimary = true;
-            //     }
-            //     clientPartPrimary.deletePart(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
-            //     if (isBorrowOsdPartPrimary) {
-            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
-            //     } else {
-            //         clientPartPrimary.close();
-            //     }
-            // }
+                if (filePrimary.exists()) {
+                    retryRenameTo(filePrimary, fileTrashPrimary);
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        File link = new File(KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                        if (!link.delete()) {
+                            logger.error("delete link file failed. {}", link.getAbsolutePath());
+                        }
+                    }
+                }
+            } else {
+                try {
+                    OSDClient client = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        client.deletePart(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                    } else {
+                        client.deletePart(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                    }
+                    
+                    client.close();
+                } catch (Exception e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                }
+            }
         }
         if (isAvailableReplica) {
+            try {
+                if (GWUtils.getLocalIP().equals(meta.getReplicaDisk().getOsdIp())) {
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        fileReplica = new File(KsanUtils.makePartPath(GWConfig.getInstance().getCacheDiskpath() + meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId()));
+                        
+                    } else {
+                        fileReplica = new File(KsanUtils.makePartPath(meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                        fileTrashReplica = new File(KsanUtils.makeTrashPath(meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId()));
+                    }
 
+                    if (fileReplica.exists()) {
+                        retryRenameTo(fileReplica, fileTrashReplica);
+                        if (GWConfig.getInstance().isCacheDiskpath()) {
+                            File link = new File(KsanUtils.makePartPath(meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber()));
+                            if (!link.delete()) {
+                                logger.error("delete link file failed. {}", link.getAbsolutePath());
+                            }
+                        }
+                    }
+                } else {
+                    try {
+                        OSDClient client = new OSDClient(meta.getReplicaDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        if (GWConfig.getInstance().isCacheDiskpath()) {
+                            client.deletePart(GWConfig.getInstance().getCacheDiskpath() + meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                        } else {
+                            client.deletePart(meta.getReplicaDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                        }
+                        client.close();
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                    }
+                }
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            }
         }
 
         return true;

@@ -88,6 +88,8 @@ public class OSDPortal {
 	private boolean isAppliedDiskpools;
     private AgentConfig agentConfig;
 	private String serviceId;
+	private String multipartUploadMethod;
+	private int objIndexDirDepth;
 
     private static final Logger logger = LoggerFactory.getLogger(OSDPortal.class);
 
@@ -104,6 +106,8 @@ public class OSDPortal {
         agentConfig.configure();
 		logger.debug("ksan monitor agentConfig ...");
 		int mqPort = Integer.parseInt(agentConfig.getMQPort());
+		multipartUploadMethod = agentConfig.getMultipartUploadMethod();
+		objIndexDirDepth = agentConfig.getObjIndexDirDepth();
 
 		// serviceId
 		try {
@@ -339,5 +343,13 @@ public class OSDPortal {
 			PrintStack.logging(logger, e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	public String getMultipartUploadMethod() {
+		return multipartUploadMethod;
+	}
+
+	public int getObjIndexDirDepth() {
+		return objIndexDirDepth;
 	}
 }

@@ -364,6 +364,7 @@ public final class GWConstants {
 	public static final String PARAMETER_ANALYTICS = "analytics";
 	public static final String PARAMETER_ID = "id";
 	public static final String PARAMETER_PAYMENT = "requestPayment";
+	public static final String PARAMETER_INVENTORY = "inventory";
 	public static final String SUB_PARAMETER_VERSIONID = "?versionId=";
 	public static final String PARAMETER_BACKSLASH_VERSIONID = "\\?versionId=";
 	public static final String CONTENT_TYPE_POST_OBJECT = "multipart/form-data; boundary=";

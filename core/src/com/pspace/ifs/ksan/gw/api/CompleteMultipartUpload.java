@@ -48,7 +48,9 @@ import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.multipart.Part;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.Constants;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -223,7 +225,6 @@ public class CompleteMultipartUpload extends S3Request {
 			final AtomicReference<S3Object> s3Object = new AtomicReference<>();
 			final AtomicReference<Exception> S3Excp = new AtomicReference<>();
 
-			// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, versionId, s3ObjectEncryption);
 			IObjectManager objManager = new VFSObjectManager();
 			SortedMap<Integer, Part> constListPart = listPart;
 			Metadata constObjMeta = objMeta;
@@ -231,7 +232,6 @@ public class CompleteMultipartUpload extends S3Request {
 				@Override
 				public void run() {
 					try {
-						// s3Object.set(objectOperation.completeMultipart(constListPart));
 						s3Object.set(objManager.completeMultipart(s3Parameter, constObjMeta, encryption, constListPart));
 					} catch (Exception e) {
 						S3Excp.set(e);
@@ -320,6 +320,14 @@ public class CompleteMultipartUpload extends S3Request {
 
 			if (!Strings.isNullOrEmpty(encryption.getKmsKeyIndex())) {
 				s3Metadata.setKmsKeyIndex(encryption.getKmsKeyIndex());
+			}
+
+			// Set Multipart Upload Method 
+			String multipartUploadMethod = AgentConfig.getInstance().getMultipartUploadMethod();
+			if (!Strings.isNullOrEmpty(multipartUploadMethod)) {
+				s3Metadata.setMultipartUploadMethod(multipartUploadMethod);
+			} else {
+				s3Metadata.setMultipartUploadMethod(Constants.MULTIPART_UPLOAD_MERGE);
 			}
 
 			String jsonmeta = s3Metadata.toString();
