@@ -17,7 +17,7 @@ public class BackendHeaders {
 	public static final String HEADER_BACKEND = "x-ifs-admin";
 	
 	public static final String HEADER_REPLICATION = "x-ifs-replication";
-	public static final String HEADER_VERSIONID = "x-ifs-version-id";
+	public static final String HEADER_VERSION_ID = "x-ifs-version-id";
 
 	public static final String HEADER_LOGGING = "x-ifs-logging";
 	public static final String HEADER_LIFECYCLE = "x-ifs-lifecycle";
