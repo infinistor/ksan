@@ -157,12 +157,16 @@ public class VFSObjectManager implements IObjectManager {
         // check primary local
         String localPath = null;
         if (isAvailablePrimary && (localPath = DiskManager.getInstance().getLocalPath(meta.getPrimaryDisk().getId())) != null) {
-            File file = new File(KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId()));
+            String path = KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId());
+            logger.debug("localPath : *{}*", path);
+            File file = new File(path);
             actualSize = getObjectLocal(param, file, sourceRange, key);
         } 
         // check : replica local
         else if (isAvailableReplica && (localPath = DiskManager.getInstance().getLocalPath(replicaDISK.getId())) != null) {
-            File file = new File(KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId()));
+            String path = KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId());
+            logger.debug("localPath : *{}*", path);
+            File file = new File(path);
             actualSize = getObjectLocal(param, file, sourceRange, key);
         } else if (isAvailablePrimary) {
             actualSize = getObjectOSD(param, meta, meta.getPrimaryDisk(), sourceRange, key);
@@ -430,6 +434,10 @@ public class VFSObjectManager implements IObjectManager {
                         retryRenameTo(fileTempPrimary, filePrimary);
                         if (isCachePrimary) {
                             String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -460,6 +468,10 @@ public class VFSObjectManager implements IObjectManager {
                         retryRenameTo(fileTempReplica, fileReplica);
                         if (isCacheReplica) {
                             String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -861,6 +873,10 @@ public class VFSObjectManager implements IObjectManager {
                         retryRenameTo(fileTempPrimary, filePrimary);
                         if (isCachePrimary) {
                             String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -899,6 +915,10 @@ public class VFSObjectManager implements IObjectManager {
                         retryRenameTo(fileTempReplica, fileReplica);
                         if (isCacheReplica) {
                             String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -1227,6 +1247,10 @@ public class VFSObjectManager implements IObjectManager {
                         
                         if (isCachePrimary) {
                             String path = KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -1246,6 +1270,10 @@ public class VFSObjectManager implements IObjectManager {
                         KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         if (isCacheReplica) {
                             String path = KsanUtils.makePartPath(replicaDISK.getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -1728,6 +1756,10 @@ public class VFSObjectManager implements IObjectManager {
                         
                         if (isCachePrimary) {
                             String path = KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -1749,6 +1781,10 @@ public class VFSObjectManager implements IObjectManager {
                         KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         if (isCacheReplica) {
                             String path = KsanUtils.makePartPath(replicaDISK.getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -2027,6 +2063,10 @@ public class VFSObjectManager implements IObjectManager {
                     retryRenameTo(tempPrimary, filePrimary);
                     if (isCachePrimary) {
                         String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                     }
                 } else {
@@ -2087,6 +2127,10 @@ public class VFSObjectManager implements IObjectManager {
                     retryRenameTo(tempReplica, fileReplica);
                     if (isCacheReplica) {
                         String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                     }
                 } else {
@@ -2433,6 +2477,9 @@ public class VFSObjectManager implements IObjectManager {
         int readLength = 0;
         int readBytes;
 
+        logger.debug("getObjectLocal path exist : {}", file.exists());
+        logger.debug("getObjectLocal path : *{}*, size : {}", file.getAbsolutePath(), file.length());
+
         try (FileInputStream fis = new FileInputStream(file);
             OutputStream outputStream = param.getResponse().getOutputStream();) {
             
@@ -2541,6 +2588,7 @@ public class VFSObjectManager implements IObjectManager {
         long actualSize = 0L;
         OSDClient client = null;
         boolean isBorrowOsd = false;
+        logger.info("getObjectOSD client : {} - {}:{}:{}", disk.getOsdIp(), meta.getObjId(), meta.getVersionId(), meta.getSize());
         try {
             // try {
             //     // client = OSDClientManager.getInstance().getOSDClient(disk.getOsdIp());
@@ -3327,6 +3375,10 @@ public class VFSObjectManager implements IObjectManager {
                     
                     if (isCachePrimary) {
                         String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }
@@ -3342,6 +3394,10 @@ public class VFSObjectManager implements IObjectManager {
                     
                     if (isCacheReplica) {
                         String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }

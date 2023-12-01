@@ -120,41 +120,62 @@ public class KsanUtils {
     }
 
     private static String makeDirectorySub(String objId) {
-        char[] path = new char[3];
-        char[] byteObjId = objId.toCharArray();
+        byte[] path = new byte[3];
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
         path[0] = Constants.CHAR_SLASH;
         path[1] = byteObjId[0];
         path[2] = byteObjId[1];
 
-        return new String(path);
+        return new String(path, StandardCharsets.UTF_8);
     }
 
     private static String makeDirectoryName(String objId) {
-        char[] byteObjId = objId.toCharArray();
-        char[] path;
+        byte[] path = new byte[6];
+        byte[] byteObjId = objId.getBytes(StandardCharsets.UTF_8);
 
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            path = new char[9];
-            path[0] = Constants.CHAR_SLASH;
-            path[1] = byteObjId[0];
-            path[2] = byteObjId[1];
-            path[3] = Constants.CHAR_SLASH;
-            path[4] = byteObjId[2];
-            path[5] = byteObjId[3];
-            path[6] = Constants.CHAR_SLASH;
-            path[7] = byteObjId[4];
-            path[8] = byteObjId[5];
-        } else {
-            path = new char[6];
-            path[0] = Constants.CHAR_SLASH;
-            path[1] = byteObjId[0];
-            path[2] = byteObjId[1];
-            path[3] = Constants.CHAR_SLASH;
-            path[4] = byteObjId[2];
-            path[5] = byteObjId[3];
-        }
+        path[0] = Constants.CHAR_SLASH;
+        path[1] = byteObjId[0];
+        path[2] = byteObjId[1];
+        path[3] = Constants.CHAR_SLASH;
+        path[4] = byteObjId[2];
+        path[5] = byteObjId[3];
 
-        return new String(path);
+        // check obj index dir depth
+        // logger.debug("Checking obj index dir depth : {}", AgentConfig.getInstance().getObjIndexDirDepth());
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     path[6] = Constants.CHAR_SLASH;
+        //     path[7] = byteObjId[4];
+        //     path[8] = byteObjId[5];
+        // }
+
+        return new String(path, StandardCharsets.UTF_8);
+
+        // char[] byteObjId = objId.toCharArray();
+        // // char[] path;
+        // char[] path = new char[6];
+        // path[0] = Constants.CHAR_SLASH;
+        // path[1] = byteObjId[0];
+        // path[2] = byteObjId[1];
+        // path[3] = Constants.CHAR_SLASH;
+        // path[4] = byteObjId[2];
+        // path[5] = byteObjId[3];
+
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     path = new char[9];
+        //     path[0] = Constants.CHAR_SLASH;
+        //     path[1] = byteObjId[0];
+        //     path[2] = byteObjId[1];
+        //     path[3] = Constants.CHAR_SLASH;
+        //     path[4] = byteObjId[2];
+        //     path[5] = byteObjId[3];
+        //     path[6] = Constants.CHAR_SLASH;
+        //     path[7] = byteObjId[4];
+        //     path[8] = byteObjId[5];
+        // } else {
+            
+        // }
+
+        // return new String(path);
     }
 
     public static String makePath(String path, String fileName) {
@@ -173,6 +194,7 @@ public class KsanUtils {
         sb.append(makeDirectorySub(objId.substring(0, 2)));
 
         File objDir = new File(sb.toString());
+        logger.info("obj dir : {}", objDir.getAbsolutePath());
         if (!objDir.exists()) {
             if (!objDir.mkdir()) {
                 return null;
@@ -180,6 +202,7 @@ public class KsanUtils {
         }
         sb.append(makeDirectorySub(objId.substring(2, 4)));
         objDir = new File(sb.toString());
+        logger.info("obj dir : {}", objDir.getAbsolutePath());
         if (!objDir.exists()) {
             if (!objDir.mkdir()) {
                 return null;
@@ -187,15 +210,15 @@ public class KsanUtils {
         }
         // check index dir depth
         // logger.debug("Checking index dir depth : {}", AgentConfig.getInstance().getObjIndexDirDepth());
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            sb.append(makeDirectorySub(objId.substring(4, 6)));
-            objDir = new File(sb.toString());
-            if (!objDir.exists()) {
-                if (!objDir.mkdir()) {
-                    return null;
-                }
-            }
-        }
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     sb.append(makeDirectorySub(objId.substring(4, 6)));
+        //     objDir = new File(sb.toString());
+        //     if (!objDir.exists()) {
+        //         if (!objDir.mkdir()) {
+        //             return null;
+        //         }
+        //     }
+        // }
 
         sb.append(Constants.SLASH);
         sb.append(objId);
@@ -226,15 +249,15 @@ public class KsanUtils {
             }
         }
         // check index dir depth
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            sb.append(makeDirectorySub(objId.substring(4, 6)));
-            objDir = new File(sb.toString());
-            if (!objDir.exists()) {
-                if (!objDir.mkdir()) {
-                    return false;
-                }
-            }
-        }
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     sb.append(makeDirectorySub(objId.substring(4, 6)));
+        //     objDir = new File(sb.toString());
+        //     if (!objDir.exists()) {
+        //         if (!objDir.mkdir()) {
+        //             return false;
+        //         }
+        //     }
+        // }
         sb.append(Constants.SLASH);
         sb.append(uploadId);
         objDir = new File(sb.toString());
@@ -267,15 +290,15 @@ public class KsanUtils {
             }
         }
         // check index dir depth
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            sb.append(makeDirectorySub(objId.substring(4, 6)));
-            objDir = new File(sb.toString());
-            if (!objDir.exists()) {
-                if (!objDir.mkdir()) {
-                    return null;
-                }
-            }
-        }
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     sb.append(makeDirectorySub(objId.substring(4, 6)));
+        //     objDir = new File(sb.toString());
+        //     if (!objDir.exists()) {
+        //         if (!objDir.mkdir()) {
+        //             return null;
+        //         }
+        //     }
+        // }
         sb.append(Constants.SLASH);
         sb.append(uploadId);
         objDir = new File(sb.toString());
@@ -303,7 +326,7 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.OBJ_DIR);
-        sb.append(makeDirectoryName(objId.substring(0, 6)));
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);
@@ -320,7 +343,7 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.OBJ_DIR);
-        sb.append(makeDirectoryName(objId.substring(0, 6)));
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);
@@ -406,15 +429,15 @@ public class KsanUtils {
                 return null;
             }
         }
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            sb.append(makeDirectorySub(objId.substring(4, 6)));
-            objDir = new File(sb.toString());
-            if (!objDir.exists()) {
-                if (!objDir.mkdir()) {
-                    return null;
-                }
-            }
-        }
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     sb.append(makeDirectorySub(objId.substring(4, 6)));
+        //     objDir = new File(sb.toString());
+        //     if (!objDir.exists()) {
+        //         if (!objDir.mkdir()) {
+        //             return null;
+        //         }
+        //     }
+        // }
 
         sb.append(Constants.SLASH);
         sb.append(Constants.POINT);
@@ -433,7 +456,7 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.EC_DIR);
-        sb.append(makeDirectoryName(objId.substring(0, 6)));
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
         sb.append(Constants.SLASH);
         sb.append(Constants.POINT);
         sb.append(objId);
@@ -464,7 +487,7 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.EC_DIR);
-        sb.append(makeDirectoryName(objId.substring(0, 6)));
+        sb.append(makeDirectoryName(objId.substring(0, 4)));
 
         return sb.toString();
     }
@@ -488,15 +511,15 @@ public class KsanUtils {
                 return null;
             }
         }
-        if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-            sb.append(makeDirectorySub(fileName.substring(4, 6)));
-            objDir = new File(sb.toString());
-            if (!objDir.exists()) {
-                if (!objDir.mkdir()) {
-                    return null;
-                }
-            }
-        }
+        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
+        //     sb.append(makeDirectorySub(fileName.substring(4, 6)));
+        //     objDir = new File(sb.toString());
+        //     if (!objDir.exists()) {
+        //         if (!objDir.mkdir()) {
+        //             return null;
+        //         }
+        //     }
+        // }
 
         return sb.toString();
     }
