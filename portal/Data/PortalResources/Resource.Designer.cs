@@ -466,6 +466,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   ECS3005과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EC_S3_SUCH_BUCKET_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("EC_S3_SUCH_BUCKET_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   You do not have access.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__ACCESS_DENIED {
@@ -606,6 +615,15 @@ namespace PortalResources {
         public static string EM_COMMON__FILE_NOT_FOUND {
             get {
                 return ResourceManager.GetString("EM_COMMON__FILE_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid DateTime.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON__INVALID_DATE {
+            get {
+                return ResourceManager.GetString("EM_COMMON__INVALID_DATE", resourceCulture);
             }
         }
         
@@ -1605,6 +1623,15 @@ namespace PortalResources {
         public static string EM_NETWORKS_TX_MUST_BE_AT_LEAST_0 {
             get {
                 return ResourceManager.GetString("EM_NETWORKS_TX_MUST_BE_AT_LEAST_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Such bucket doesn&apos;t exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_S3_SUCH_BUCKET_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("EM_S3_SUCH_BUCKET_NOT_FOUND", resourceCulture);
             }
         }
         
