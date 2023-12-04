@@ -58,6 +58,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
+	public static final String MQUEUE_NAME_GW_BACKEND_LOG_ADD = "*.services.backend.log.add";
 	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
 	public static final String MQUEUE_NAME_UTILITY_RECOVERD = "services.recoverd.report.fail_of_replication";
 

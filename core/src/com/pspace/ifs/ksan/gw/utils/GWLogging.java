@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 public class GWLogging {
     private static final Logger logger = LoggerFactory.getLogger(GWLogging.class);
     private MessageQueueSender MQS;
+
     // private static MQSender mqSender;
 
     public static GWLogging getInstance() {
@@ -200,7 +201,11 @@ public class GWLogging {
 
         logger.debug("log - {}", object.toString());
         try {
-            MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+            if (s3Parameter.isAdmin()) {
+                MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_BACKEND_LOG_ADD);
+            } else {
+                MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+            }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
