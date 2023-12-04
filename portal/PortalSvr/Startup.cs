@@ -23,6 +23,7 @@ using PortalProvider.Providers.Networks;
 using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.Servers;
 using PortalProvider.Providers.Services;
+using PortalProvider.Providers.S3;
 using PortalProviderInterface;
 using PortalResources;
 using PortalSvr.RabbitMQReceivers;
@@ -180,6 +181,7 @@ namespace PortalSvr
 				Services.AddTransient<ILogProvider, LogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
+				Services.AddTransient<IS3LogProvider, S3LogProvider>();
 
 				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();
@@ -279,26 +281,6 @@ namespace PortalSvr
 					c.DocExpansion(DocExpansion.None);
 				});
 
-				// // Docker HealthCheck
-				// app.UseHealthChecks("/healthcheck", new HealthCheckOptions
-				// {
-				// 	ResponseWriter = async (context, report) =>
-				// 	{
-				// 		var result = JsonConvert.SerializeObject(new
-				// 		{
-				// 			status = report.Status.ToString(),
-				// 			checks = report.Entries.Select(c => new
-				// 			{
-				// 				check = c.Key,
-				// 				result = c.Value.Status.ToString()
-				// 			}),
-				// 		});
-
-				// 		context.Response.ContentType = MediaTypeNames.Application.Json;
-				// 		await context.Response.WriteAsync(result);
-				// 	}
-				// });
-
 				// 개발 환경인 경우
 				if (env.IsDevelopment())
 				{
@@ -327,8 +309,8 @@ namespace PortalSvr
 				// 마이그레이션 수행
 				dbContext.Migrate();
 
-				// 기본 설정을 처리한다. (요청에 대한 접근 아이피 검사 미들웨어 추가)
-				app.Configure(env, loggerFactory, Configuration, ConfigurationOptions, new List<Type>() { typeof(AllowConnectionIpCheckMiddleware) });
+				// 기본 설정을 처리한다. (요청에 대한 접근 아이피 검사 미들웨어 추가, Access Log 미들웨어 추가)
+				app.Configure(env, loggerFactory, Configuration, ConfigurationOptions, new List<Type>() { typeof(AllowConnectionIpCheckMiddleware), typeof(AccessLogMiddleware) });
 
 				// 업로드 설정을 가져온다.
 				uploadConfigLoader.GetConfig();

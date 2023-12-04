@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 55080
 EXPOSE 55443
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-bookworm-slim AS build
 WORKDIR /src
 COPY ["PortalSvr/PortalSvr.csproj", "PortalSvr/"]
 RUN dotnet restore "PortalSvr/PortalSvr.csproj"
