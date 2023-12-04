@@ -10,20 +10,26 @@
 */
 package com.pspace.ifs.ksan.gw.api;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 import com.pspace.ifs.ksan.gw.exception.GWErrorCode;
 import com.pspace.ifs.ksan.gw.exception.GWException;
+import com.pspace.ifs.ksan.gw.format.LifecycleConfiguration;
 import com.pspace.ifs.ksan.gw.identity.S3Bucket;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
@@ -80,10 +86,10 @@ public class GetObject extends S3Request {
 			objMeta = open(bucket, object, versionId);
 		}
 
-		if (GWConfig.getInstance().isDBOP()) {
-			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-			return;
-		}
+		// if (GWConfig.getInstance().isDBOP()) {
+		// 	s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+		// 	return;
+		// }
 		
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 		s3Parameter.setTaggingInfo(objMeta.getTag());
@@ -102,7 +108,7 @@ public class GetObject extends S3Request {
 		s3Parameter.setVersionId(versionId);
 
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
-
+		s3Metadata = GWUtils.checkForLifecycle(s3Metadata, objMeta, getBucketInfo().getLifecycle());
 		// check customer-key
 		if (!Strings.isNullOrEmpty(s3Metadata.getCustomerKey())) {
 			if (!Strings.isNullOrEmpty(s3RequestData.getServerSideEncryptionCustomerKey())) {
@@ -253,6 +259,10 @@ public class GetObject extends S3Request {
 
 			if (!Strings.isNullOrEmpty(metadata.getLegalHold())) {
 				response.addHeader(GWConstants.X_AMZ_OBJECT_LOCK_LEGAL_HOLD, metadata.getLegalHold());
+			}
+
+			if (!Strings.isNullOrEmpty(metadata.getExpirationDate())) {
+				response.addHeader(GWConstants.X_AMZ_EXPIRATION, metadata.getExpirationDate());
 			}
 
 			if (metadata.getUserMetadata() != null) {

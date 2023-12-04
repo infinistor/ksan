@@ -39,8 +39,10 @@ import com.pspace.ifs.ksan.gw.object.VFSObjectManager;
 import com.pspace.ifs.ksan.gw.object.S3Range;
 import com.pspace.ifs.ksan.libs.multipart.Multipart;
 import com.pspace.ifs.ksan.libs.PrintStack;
+import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.DiskManager;
 import com.pspace.ifs.ksan.libs.Constants;
+import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.objmanager.Metadata;
@@ -222,6 +224,13 @@ public class UploadPartCopy extends S3Request {
 
 		// get metadata
 		S3Metadata s3Metadata = S3Metadata.getS3Metadata(multipart.getMeta());
+		// set multipart upload method
+		String multipartUploadMethod = AgentConfig.getInstance().getMultipartUploadMethod();
+		if (!Strings.isNullOrEmpty(multipartUploadMethod)) {
+			s3Metadata.setMultipartUploadMethod(multipartUploadMethod);
+		} else {
+			s3Metadata.setMultipartUploadMethod(Constants.MULTIPART_UPLOAD_MERGE);
+		}
 
 		// if (!Strings.isNullOrEmpty(customerKey)) {
 		// 	if (customerKey.compareTo(s3Metadata.getCustomerKey()) != 0) {
@@ -242,20 +251,29 @@ public class UploadPartCopy extends S3Request {
 		
 		objMultipart.startSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
 		S3Object s3Object = null;
-		// S3ObjectOperation objectOperation = new S3ObjectOperation(objMeta, s3Metadata, s3Parameter, null, s3ObjectEncryption);
+		Metadata part = null;
 		IObjectManager objectManager = new VFSObjectManager();
+
 		try {
-			// s3Object = objectOperation.uploadPartCopy(path, srcMeta, s3Range, s3SrcObjectEncryption);
+			part = objMultipart.getObjectWithUploadIdPartNo(uploadId, Integer.parseInt(partNumber));
+			if (part != null) {
+				// objectOperation.deletePart(part.getPrimaryDisk().getId());
+				objectManager.deletePart(s3Parameter, objMeta);
+			}
+			// s3Object = objectOperation.uploadPart(path, length);
 			s3Object = objectManager.uploadPartCopy(s3Parameter, srcMeta, s3SrcEncryption, s3Range, objMeta);
+			logger.debug("s3Object etag : {}", s3Object.getEtag());
+			s3Metadata.setETag(s3Object.getEtag());
+			s3Metadata.setLastModified(s3Object.getLastModified());
+			s3Metadata.setContentLength(s3Object.getFileSize());
+			objMeta.setMeta(s3Metadata.toString());
+			objMeta.setSize(s3Object.getFileSize());
+			objMeta.setEtag(s3Object.getEtag());
 		} catch (Exception e) {
 			PrintStack.logging(logger, e);
-			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+			throw new GWException(GWErrorCode.INTERNAL_SERVER_ERROR, s3Parameter);
 		}
-		objMeta.setSize(s3Object.getFileSize());
-		objMeta.setEtag(s3Object.getEtag());
-		objMeta.setMeta(s3Metadata.toString());
-		// objMultipart.startSingleUpload(object, uploadId, Integer.parseInt(partNumber), "", "", s3Object.getEtag(), s3Object.getFileSize(), objMeta.getPrimaryDisk().getId());
-		
+
 		objMultipart.finishSingleUpload(objMeta, uploadId, Integer.parseInt(partNumber));
 
 		s3Parameter.setFileSize(s3Object.getFileSize());

@@ -11,6 +11,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -243,10 +244,14 @@ public class GetFromPortal {
             dsk.setOSDServerId(svr.getId());
             if (status.equalsIgnoreCase("Good"))
                 dsk.setStatus(DiskStatus.GOOD);
+            else if (status.equalsIgnoreCase("Weak"))
+                dsk.setStatus(DiskStatus.WEAK);
             else if (status.equalsIgnoreCase("stop"))
                 dsk.setStatus(DiskStatus.STOPPED);
             else if (status.equalsIgnoreCase("broken"))
                 dsk.setStatus(DiskStatus.BROKEN);
+            else if (status.equalsIgnoreCase("DISABLED"))
+                dsk.setStatus(DiskStatus.DISABLED);
             else
                 dsk.setStatus(DiskStatus.UNKNOWN);
             
@@ -434,6 +439,32 @@ public class GetFromPortal {
         }
         
         return null;
+    }
+    
+    public int removeDiskFromDiskPool(ObjManagerCache omc, String body, String dskPoolId) {
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject)parser.parse(body);
+            if (jsonObject == null)
+                return -1; // reload
+            
+            DISKPOOL dp = omc.getDiskPoolFromCache(dskPoolId);
+            if (dp == null)
+                return -1;
+            
+            DISKPOOL dp1 = new DISKPOOL(dskPoolId, dp.getName());
+            dp1.setDefaultReplicaCount(dp.getDefaultReplicaCount());
+            
+            JSONArray jsonDisks = (JSONArray)jsonObject.get(DISKS_TAG);
+            if (jsonDisks.isEmpty()){
+                omc.setDiskPoolInCache(dp1);
+                return 0;
+            }
+            
+            return -1; // reload the whole disk
+        } catch (ResourceNotFoundException | ParseException ex) {
+            return -1;
+        }
     }
     
     public String getHostServerId(){

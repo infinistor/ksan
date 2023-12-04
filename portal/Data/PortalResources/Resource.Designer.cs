@@ -19,7 +19,7 @@ namespace PortalResources {
     // 클래스에서 자동으로 생성되었습니다.
     // 멤버를 추가하거나 제거하려면 .ResX 파일을 편집한 다음 /str 옵션을 사용하여 ResGen을
     // 다시 실행하거나 VS 프로젝트를 다시 빌드하십시오.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resource {
@@ -466,6 +466,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   ECS3005과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EC_S3_SUCH_BUCKET_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("EC_S3_SUCH_BUCKET_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   You do not have access.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_COMMON__ACCESS_DENIED {
@@ -606,6 +615,15 @@ namespace PortalResources {
         public static string EM_COMMON__FILE_NOT_FOUND {
             get {
                 return ResourceManager.GetString("EM_COMMON__FILE_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Invalid DateTime.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_COMMON__INVALID_DATE {
+            get {
+                return ResourceManager.GetString("EM_COMMON__INVALID_DATE", resourceCulture);
             }
         }
         
@@ -1609,6 +1627,15 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Such bucket doesn&apos;t exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_S3_SUCH_BUCKET_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("EM_S3_SUCH_BUCKET_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   CPU usage should be between 0 and 100.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_SERVERS_CPU_USAGE_SHOULD_BE_BETWEEN_0_TO_100 {
@@ -2136,6 +2163,15 @@ namespace PortalResources {
         public static string ENV_RABBITMQ_USER {
             get {
                 return ResourceManager.GetString("ENV_RABBITMQ_USER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   REGION_NAME과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_REGION_NAME {
+            get {
+                return ResourceManager.GetString("ENV_REGION_NAME", resourceCulture);
             }
         }
         

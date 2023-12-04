@@ -447,6 +447,7 @@ MqPassword = 'YOUR_MQ_PASSWORD'
 
 DiskStart = 'Good'
 DiskStop = 'Stop'
+DiskRestart = 'Restart'
 MqDiskQueueName = 'disk'
 MqDiskQueueExchangeName = 'disk'
 MqDiskQueueRoutingKey = "*.services.disks.control"

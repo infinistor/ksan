@@ -125,8 +125,9 @@ public class ListObjectVersions extends S3Request {
 			} else {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_VERSIONID_MARKER, GWUtils.encodeBlob(encodingType, versionIdMarker));
 			}
-			logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_KEY_COUNT, objectListParameter.getObjects().size());
-			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(objectListParameter.getObjects().size()));
+			
+			// logger.debug(GWConstants.LOG_LIST_OBJECT_VERSIONS_KEY_COUNT, objectListParameter.getObjects().size());
+			// writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(objectListParameter.getObjects().size()));
 			
 			if (delimiter != null) {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_DELIMITER, GWUtils.encodeBlob(encodingType, delimiter));

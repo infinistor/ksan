@@ -23,6 +23,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  *  Store diskpool and list of bucket in memory
@@ -50,7 +53,7 @@ public class ObjManagerCache {
     
     public void setDiskPoolInCache(DISKPOOL dskPool){
         if (dskPool != null)
-            diskPoolMap.putIfAbsent(dskPool.getId(), dskPool);
+            diskPoolMap.put(dskPool.getId(),   dskPool); // incase of modification it will be replaced
     }
     
     public void removeDiskPoolFromCache(String diskPoolId){
@@ -192,23 +195,45 @@ public class ObjManagerCache {
     }
     
     public List<S3BucketSimpleInfo> getBucketSimpleList( String userName, String userId) {
+        int idx = 0;
         List<S3BucketSimpleInfo> btList = new ArrayList<S3BucketSimpleInfo>();
 
         reloadBucketList(); // get list always bucket from db 
-        
-        for (String key : bucketMap.keySet()) {
+        SortedSet<String> bucketkeySet = new TreeSet<>(bucketMap.keySet());
+        for (String key : bucketkeySet) {
             Bucket bt = bucketMap.get(key);
             if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
             	S3BucketSimpleInfo bsi = new S3BucketSimpleInfo();
             	bsi.setBucketName(bt.getName());
             	bsi.setCreateDate(bt.getCreateTime());
             	btList.add(bsi);
+                logger.debug("id : {}  buckename : {}",idx++, key);
 	    }
         }
          
         return btList;
     }
-
+    
+    /*public List<Map<String, String>> listBucketAnalyticsConfiguration(String userName, String userId ) {
+        int idx = 0;
+        List<Map<String, String>> btList = new ArrayList<>();
+        
+        reloadBucketList(); // get list always bucket from db 
+        SortedSet<String> bucketkeySet = new TreeSet<>(bucketMap.keySet());
+        for (String key : bucketkeySet) {
+            Bucket bt = bucketMap.get(key);
+            if (bt.getUserId().equals(userId) || bt.getUserName().equals(userName)){
+                if (!bt.getAnalytics().isEmpty()){
+                    Map<String, String > map = new HashMap< >();
+                    map.put(bt.getName(), bt.getAnalytics());
+                    btList.add(map);
+                    logger.debug("id : {}  buckename : {}",idx++, key);
+                }
+            }
+        }  
+        return btList;
+    }*/
+    
     public boolean bucketExist(String bucketName){
         if (bucketMap.containsKey(bucketName))
             return true;

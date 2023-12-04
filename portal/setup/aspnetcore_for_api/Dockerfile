@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-buster-slim AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-bookworm-slim AS base
 RUN apt-get update
 # Sendmail 설치
 RUN apt-get --assume-yes install sendmail

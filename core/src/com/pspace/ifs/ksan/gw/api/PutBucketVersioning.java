@@ -74,9 +74,7 @@ public class PutBucketVersioning extends S3Request {
 				}
 			}
 
-			if (!Strings.isNullOrEmpty(versioning.status)) {
-				putBucketVersioning(bucket, versioning.status);
-			}
+			putBucketVersioning(bucket, versioning.status);
 		}
 
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);

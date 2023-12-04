@@ -301,4 +301,8 @@ public class ObjManagerUtil {
     public List<Metadata> listDeleteMarkedObjects(String bucketName, String prefix, String nextMarker, int maxKeys) throws SQLException{
         return objectMGT.listDeleteMarkedObjects(bucketName, prefix, nextMarker, maxKeys);
     }
+    
+    public long getEstimatedBucketCount(String bucketName){
+        return dbm.getEstimatedCount(bucketName);
+    }
 }

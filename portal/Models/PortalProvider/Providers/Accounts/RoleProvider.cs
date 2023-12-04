@@ -780,8 +780,7 @@ namespace PortalProvider.Providers.Accounts
 								}
 
 								await this.m_dbContext.SaveChangesWithConcurrencyResolutionAsync();
-
-								Transaction.Commit();
+								await Transaction.CommitAsync();
 
 								Result.Result = EnumResponseResult.Success;
 							}

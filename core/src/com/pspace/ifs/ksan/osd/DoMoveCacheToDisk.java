@@ -194,6 +194,7 @@ public class DoMoveCacheToDisk implements Runnable {
                             //     logger.error(OSDConstants.LOG_DO_MOVE_CACHE_TO_DISK_RENAME_FAIL, file.getAbsolutePath(), targetPath);
                             //     logger.error(e.getMessage());
                             // }
+                            file.delete();
                         }
                     }
                 } catch (Exception e) {

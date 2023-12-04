@@ -13,6 +13,7 @@ package com.pspace.ifs.ksan.libs;
 
 public class Constants {
 	public static final int MAXBUFSIZE = 524288; // 512 * 1024
+	public static final int BUFSIZE = 262144; // 256 * 1024
 
 	public static final char CHAR_SLASH = '/';
 	public static final char CHAR_POINT = '.';
@@ -77,6 +78,8 @@ public class Constants {
 	public static final String AGENT_PROPERTY_MQ_PASSWORD = "MQPassword";
 	public static final String AGENT_PROPERTY_SERVER_ID = "ServerId";
 	public static final String AGENT_PROPERTY_SERVICE_MONITOR_INTERVAL = "ServiceMonitorInterval";
+	public static final String AGENT_PROPERTY_MULTIPART_UPLOAD_METHOD = "MultipartUploadMethod";
+	public static final String AGENT_PROPERTY_OBJ_INDEX_DIR_DEPTH = "ObjIndexDirDepth";
 
     public static final String LOG_CONFIG_NOT_EXIST = "Properties file is not exist";
 	public static final String LOG_CONFIG_FAILED_LOADING = "Properties file load is fail";
@@ -129,6 +132,11 @@ public class Constants {
 	public static final String PROPERTY_COMMONS_CRYPTO_STREAM_BUFFER_SIZE = "commons.crypto.stream.buffer.size";
 	public static final long COMMONS_CRYPTO_STREAM_BUFFER_SIZE = MAXBUFSIZE;
 
+	public static final String MULTIPART_UPLOAD_MERGE = "merge";
+	public static final String MULTIPART_UPLOAD_LINK = "link";
+	public static final int OBJECT_INDEX_DIR_DEPTH_2 = 2;
+	public static final int OBJECT_INDEX_DIR_DEPTH_3 = 3;
+	
 	private Constants() {
 		throw new IllegalStateException("Utility class");
 	}

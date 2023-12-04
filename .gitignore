@@ -9,3 +9,5 @@
 .vscode/settings.json
 **/dependency-reduced-pom.xml
 *.ps1
+core/backend/pom.xml
+core/src/pom.xml

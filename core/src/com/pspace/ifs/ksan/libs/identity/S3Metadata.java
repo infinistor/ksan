@@ -67,6 +67,12 @@ public class S3Metadata {
 	private String kmsKeyPath;
 	private String bucketKeyEnabled;
 
+	// expiration-date : Lifecycle
+	private String expirationDate;
+
+	// multipart upload
+	private String multipartUploadMethod; // merge, link
+
 	public S3Metadata() {
 		userMetadata = new HashMap<String, String>();
 	}
@@ -358,6 +364,22 @@ public class S3Metadata {
 		this.bucketKeyEnabled = bucketKeyEnabled;
 	}
 
+	public String getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(String expirationDate) {
+		this.expirationDate = expirationDate;
+	}
+
+	public String getMultipartUploadMethod() {
+		return multipartUploadMethod;
+	}
+
+	public void setMultipartUploadMethod(String multipartUpload) {
+		this.multipartUploadMethod = multipartUpload;
+	}
+
 	private static final String USER_METADATA_PREFIX = "x-amz-meta-";
 	private static final String LEFT_BRACE = "{";
 	private static final String RIGHT_BRACE = "}";
@@ -438,6 +460,8 @@ public class S3Metadata {
 	private static final String BUCKET_KEY_ENABLED = "bke";
 	private static final String JSON_BUCKET_KEY_ENABLED = "\"bke\":";
 	private static final String EMPTY_STRING = "";
+	private static final String MULTIPART_UPLOAD = "mpu";
+	private static final String JSON_MULTIPART_UPLOAD = "\"mpu\":";
 
 	@Override
 	public String toString() {
@@ -700,6 +724,13 @@ public class S3Metadata {
 			sb.append(JSON_BUCKET_KEY_ENABLED);
 			sb.append(QUOTAION);
 			sb.append(bucketKeyEnabled);
+			sb.append(QUOTAION);
+		}
+		if (multipartUploadMethod != null) {
+			sb.append(COMMA);
+			sb.append(JSON_MULTIPART_UPLOAD);
+			sb.append(QUOTAION);
+			sb.append(multipartUploadMethod);
 			sb.append(QUOTAION);
 		}
 
@@ -1082,6 +1113,16 @@ public class S3Metadata {
 			logger.debug("bucket key enabled : {}", data);
 			s3Metadata.setBucketKeyEnabled(data);
 		}
+
+		// multipart upload
+		startIndex = json.indexOf(JSON_MULTIPART_UPLOAD, endIndex);
+        if (startIndex > 0) {
+            startIndex += JSON_MULTIPART_UPLOAD.length();
+            endIndex = json.indexOf(QUOTAION, startIndex + 1);
+            data = json.substring(startIndex + 1, endIndex);
+            logger.debug("multipart upload : {}", data);
+            s3Metadata.setMultipartUploadMethod(data);
+        }
 
 		return s3Metadata;
 	}

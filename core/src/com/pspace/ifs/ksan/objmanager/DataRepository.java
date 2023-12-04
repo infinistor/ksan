@@ -70,6 +70,19 @@ public interface DataRepository {
     //public void updateBucketFileCount(Bucket bt) throws SQLException ;
     public void updateBucketLogging(Bucket bt) throws SQLException;
     public void updateBucketObjTagIndexing(Bucket bt) throws SQLException;
+    public void updateBucketAnalyticsConfiguration(Bucket bt) throws SQLException;
+    /*public int putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws SQLException;
+    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String lastId) throws SQLException;
+    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException;
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException;*/
+    public void updateBucketAccelerate(Bucket bt) throws SQLException;
+    public void updateBucketPayment(Bucket bt) throws SQLException;
+    public void updateBucketNotification(Bucket bt) throws SQLException;
+    //public int putBucketInventoryConfiguration(String bucketName, String id, String inventory) throws SQLException;
+    //public BucketAnalytics listBucketInventoryConfiguration(String bucketName, String lastId) throws SQLException;
+    //public String getBucketInventoryConfiguration(String bucketName, String id) throws SQLException;
+    //public void deleteBucketInventoryConfiguration(String bucketName, String id) throws SQLException;
+    public void updateBucketInventoryConfiguration(Bucket bt) throws SQLException;
     
     // for multipart upload
     public int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException;
@@ -108,4 +121,6 @@ public interface DataRepository {
      public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException;
      public String getRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
      public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId) throws SQLException;
+     
+     public long getEstimatedCount(String bucketName);
 }

@@ -581,6 +581,53 @@ def MqDiskHandler(RoutingKey, Body, Response, ServerId, GlobalFlag, logger):
         return ResponseReturn
 
 
+def BatchDiskHandler(PortalIp, PortalPort, PortalApiKey, Action, Options, logger, DiskMode=None):
+    """
+    Disk start/stop/restrt batch handler
+    """
+    DiskNameList = Options.DiskName.split(',')
+
+    if Action.lower() in ['start', 'stop', 'restart']:
+        if Action.lower() == 'start':
+            Action = DiskStart
+        elif Action.lower() == 'stop':
+            Action = DiskStop
+        else:
+            Action = DiskRestart
+
+        for DiskName in DiskNameList:
+            # start/stop disk
+            if Action in [DiskStart, DiskStop]:
+                Res, Errmsg, Ret = StartStopDisk(PortalIp, PortalPort, PortalApiKey, Action, Name=DiskName,
+                                                 logger=logger)
+                if Res == ResOk:
+                    print(Ret.Result, Ret.Message)
+                else:
+                    print(Errmsg)
+            else:
+                # restart disk
+                Action = DiskStop
+                Res, Errmsg, Ret = StartStopDisk(PortalIp, PortalPort, PortalApiKey, Action, Name=DiskName,
+                                                 logger=logger)
+                if Res == ResOk:
+                    Action = DiskStart
+                    Res, Errmsg, Ret = StartStopDisk(PortalIp, PortalPort, PortalApiKey, Action, Name=DiskName,
+                                                     logger=logger)
+                    if Res == ResOk:
+                        print(Ret.Result, Ret.Message)
+                    else:
+                        print(Errmsg)
+                else:
+                    print(Errmsg)
+    elif Action in ['set']:
+        for DiskName in DiskNameList:
+            Res, Errmsg, Ret = ChangeDiskMode(PortalIp, PortalPort, PortalApiKey, DiskMode,
+                                              Name=DiskName, logger=logger)
+            if Res == ResOk:
+                print(Ret.Result, Ret.Message)
+            else:
+                print(Errmsg)
+
 
 def DiskUtilHandler(Conf, Action, Parser, logger):
 
@@ -647,24 +694,14 @@ def DiskUtilHandler(Conf, Action, Parser, logger):
                 Parser.print_help()
                 sys.exit(-1)
 
-            Res, Errmsg, Ret = ChangeDiskMode(PortalIp, PortalPort,PortalApiKey, DiskMode,
-                                              Name=options.DiskName, logger=logger)
-            if Res == ResOk:
-                print(Ret.Result, Ret.Message)
-            else:
-                print(Errmsg)
+            BatchDiskHandler(PortalIp, PortalPort, PortalApiKey, Action, options, logger, DiskMode=DiskMode)
 
-    elif Action.lower() == 'start' or Action.lower() == 'stop':
-        if not options.DiskName or Action.lower() not in ['start', 'stop']:
+    elif Action.lower() == 'start' or Action.lower() == 'stop' or Action.lower() == 'restart':
+        if not options.DiskName or Action.lower() not in ['start', 'stop', 'restart']:
             Parser.print_help()
             sys.exit(-1)
-        Action = DiskStart if Action.lower() == 'start' else DiskStop
-        Res, Errmsg, Ret = StartStopDisk(PortalIp, PortalPort, PortalApiKey, Action, Name=options.DiskName,
-                                         logger=logger)
-        if Res == ResOk:
-            print(Ret.Result, Ret.Message)
-        else:
-            print(Errmsg)
+
+        BatchDiskHandler(PortalIp, PortalPort, PortalApiKey, Action, options, logger)
     elif Action.lower() == 'list':
         while True:
             Res, Errmsg, Ret, AllDisks = GetDiskInfo(PortalIp, PortalPort, PortalApiKey, logger=logger)

@@ -119,6 +119,7 @@ public class OSDServer {
         serviceEmptyTrash = Executors.newSingleThreadScheduledExecutor();
         serviceEmptyTrash.scheduleAtFixedRate(new DoEmptyTrash(), 1000, OSDConfig.getInstance().getTrashCheckInterval(), TimeUnit.MILLISECONDS);
         startECThread();
+        serviceMoveCacheToDisk = Executors.newSingleThreadScheduledExecutor();
         startMoveCacheToDisk();
 
         int poolSize = OSDConfig.getInstance().getPoolSize();

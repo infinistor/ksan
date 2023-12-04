@@ -57,6 +57,7 @@ enum KEYS{
     STOP("stop"),
     RW("ReadWrite"),
     RO("ReadOnly"),
+    MAINTENACE("Maintenance"),
     ADD("Add"),       /*for add disk, server, diskpool and server*/
     REMOVE("Remove"), /*to remove disk, server, diskpool and server*/
     TIMEOUT("timeout"), /* for server timout */
@@ -169,7 +170,7 @@ public class DiskMonitor {
         //if (routingKey.contains(".servers.disks.size"))
          //   return new MQResponse(MQResponseType.SUCCESS, "", "", 0); 
 
-        logger.debug("BiningKey : {}{ body : {}\n", routingKey, body);
+        logger.debug("BiningKey : {} body : {}\n", routingKey, body);
 
         try {
             jo = decodeJsonData(body);
@@ -344,6 +345,18 @@ public class DiskMonitor {
             logger.debug("Stop Disk>> {}",  jo);
             dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.STOPPED);
         }
+        else if (jo.status.equalsIgnoreCase("Weak")){
+            logger.debug("Weak Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.WEAK);
+        }
+        else if (jo.status.equalsIgnoreCase("broken")){
+            logger.debug("Broken Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.BROKEN);
+        }
+        else if (jo.status.equalsIgnoreCase("disabled")){
+            logger.debug("Disabled Disk>> {}",  jo);
+            dskPool.setDiskStatus(jo.serverid, jo.id, DiskStatus.DISABLED);
+        }
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         obmCache.displayDiskPoolList();
         
@@ -359,6 +372,9 @@ public class DiskMonitor {
         else if (jo.mode.equalsIgnoreCase(KEYS.RO.label)){
             dskPool.setDiskMode(jo.serverid, jo.id, DiskMode.READONLY);
         }
+        else if (jo.mode.equalsIgnoreCase(KEYS.MAINTENACE.label))
+            dskPool.setDiskMode(jo.serverid, jo.id, DiskMode.MAINTENANCE);
+        
         res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         obmCache.displayDiskPoolList();
         
@@ -471,21 +487,27 @@ public class DiskMonitor {
     
     private MQResponse addRemoveDiskPool(String action, JsonOutput jo, String msg){
         MQResponse res;
-        if (action.equalsIgnoreCase(KEYS.ADD.label)){
-            DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName); 
-            dskPool1.setDefaultReplicaCount(jo.replicaCount);
-            this.obmCache.setDiskPoolInCache(dskPool1);
-            this.obmCache.displayDiskPoolList();
-            logger.debug("[addRemoveDiskPool] diskpool name : {} Id : {} added", jo.diskPoolName, jo.id);
+        try{
+            if (action.equalsIgnoreCase(KEYS.ADD.label)){
+                DISKPOOL dskPool1 = new DISKPOOL(jo.id, jo.diskPoolName); 
+                dskPool1.setDefaultReplicaCount(jo.replicaCount);
+                this.obmCache.setDiskPoolInCache(dskPool1);
+                this.obmCache.displayDiskPoolList();
+                obmCache.dumpCacheInFile();
+                logger.debug("[addDiskPool] diskpool name : {} Id : {} added", jo.diskPoolName, jo.id);
+            }
+            else if (action.equalsIgnoreCase(KEYS.REMOVE.label)){
+                if (!(jo.id.isEmpty() && jo.diskPoolName.isEmpty()))
+                    this.obmCache.removeDiskPoolFromCache(jo.id);
+                this.obmCache.displayDiskPoolList();
+                obmCache.dumpCacheInFile();
+                logger.debug("[removeDiskPool] diskpool name : {} Id : {} removed", jo.diskPoolName, jo.id);
+            }
+            res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
+        } catch (IOException  ex) {
+            logger.debug("[addRemoveDiskPool] unable add or remove diskpool  msg {}", msg);
+            res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
         }
-        else if (action.equalsIgnoreCase(KEYS.REMOVE.label)){
-            if (!(jo.id.isEmpty() && jo.diskPoolName.isEmpty()))
-                this.obmCache.removeDiskPoolFromCache(jo.id);
-            this.obmCache.displayDiskPoolList();
-            logger.debug("[addRemoveDiskPool] diskpool name : {} Id : {} removed", jo.diskPoolName, jo.id);
-        }
-        res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
-        
         return res;
     }
     
@@ -582,7 +604,8 @@ public class DiskMonitor {
             }
             }
             updateReplicaCount(jo);*/
-            this.config.getPortalHandel().loadDiskPoolList(obmCache);
+            if (config.getPortalHandel().removeDiskFromDiskPool(obmCache, msg, dskPool.getId()) != 0)
+                 config.getPortalHandel().loadDiskPoolList(obmCache);
             updateReplicaCount(jo);
             obmCache.dumpCacheInFile();
             res = new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);

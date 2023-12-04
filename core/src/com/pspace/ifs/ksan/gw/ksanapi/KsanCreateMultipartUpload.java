@@ -65,7 +65,7 @@ public class KsanCreateMultipartUpload extends S3Request {
 
 		GWUtils.checkCors(s3Parameter);
 		
-		String aclXml = makeAcl(null, false);
+		String aclXml = makeAdminAcl(null, false);
 		
 		String customerAlgorithm = s3RequestData.getServerSideEncryptionCustomerAlgorithm();
 		String customerKey = s3RequestData.getServerSideEncryptionCustomerKey();

@@ -17,6 +17,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceAlreadyExistEx
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,6 +228,41 @@ public class BucketManager {
         Bucket bt = getBucket(bucketName);
         bt.setObjectTagIndexEnabled(isEnabled);
         dbm.updateBucketObjTagIndexing(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+     
+    public void updateBucketAccelerateConfiguration(String bucketName, String accelerate) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAccelerate(accelerate);
+        dbm.updateBucketAccelerate(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketPayment(String bucketName, String payment) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setPayment(payment);
+        dbm.updateBucketPayment(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketAnalyticsConfiguration(String bucketName,  String analytics) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setAnalytics(analytics);
+        dbm.updateBucketAnalyticsConfiguration(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketNotificationConfiguration(String bucketName,  String notification) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setNotification(notification);
+        dbm.updateBucketNotification(bt);
+        obmCache.updateBucketInCache(bt);
+    }
+    
+    public void updateBucketInventoryConfiguration(String bucketName,  String inventory) throws ResourceNotFoundException, SQLException{
+        Bucket bt = getBucket(bucketName);
+        bt.setInventory(inventory);
+        dbm.updateBucketInventoryConfiguration(bt);
         obmCache.updateBucketInCache(bt);
     }
 }

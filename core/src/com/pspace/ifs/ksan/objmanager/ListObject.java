@@ -19,8 +19,10 @@ import com.pspace.ifs.ksan.libs.identity.S3Metadata;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ public class ListObject{
     private String diskid;
     //private long offset;
     private String lastObjId;
-  
+    private HashMap<String, String> uniqObjectsMap;
     private BasicDBObject mongoQuery;
     
     private boolean bBucketListParameterPrefix;
@@ -64,10 +66,11 @@ public class ListObject{
     
     private ObjectListParameter objectListParameter;
     private DataRepository dbm;
-    private static Logger logger  = LoggerFactory.getLogger(ListObject.class);
+    private static Logger logger; //  = LoggerFactory.getLogger(ListObject.class);
     
     private void initParameters(DataRepository dbm, String bucketName, String delimiter, String marker, String versionIdMarker, String continuationToken, int maxKeys, String prefix){
         this.dbm = dbm;
+        logger  = LoggerFactory.getLogger(ListObject.class);
         this.bucketName = bucketName;
         this.delimiter = delimiter;
         this.marker = marker;
@@ -127,8 +130,9 @@ public class ListObject{
                 this.continuationToken = delimiterp2.toString();
                 bDelimitertoken = true;
             }
-        }  
+        } 
         
+        uniqObjectsMap = new HashMap();
     }
     // for listObject
     public ListObject(DataRepository dbm, String bucketName, String delimiter, String marker, int maxKeys, String prefix) throws SQLException{
@@ -233,6 +237,14 @@ public class ListObject{
         this.diskid = diskid;
         this.lastObjId = lastObjId;
         this.versionIdMarker = lastVersionId;
+    }
+    
+    private void setUniqObjects(Metadata mt){
+        uniqObjectsMap.putIfAbsent(mt.getObjId()+"_" + mt.getVersionId(), mt.getObjId()+"_" + mt.getVersionId());
+    }
+    
+    private boolean objectExistInUniqObjects(Metadata mt){
+        return uniqObjectsMap.containsKey(mt.getObjId()+"_" + mt.getVersionId());
     }
     
     private Object makeQueryWithDiskId(String diskid, String lastObjId, String lastVersionId){
@@ -396,6 +408,10 @@ public class ListObject{
         query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
     }
     
+    private static String escapeSpecialChars(String source) {
+        return Pattern.quote(source);
+    }
+
     private BasicDBObject makeMongoQuery(){
         if (dbm instanceof MongoDataRepository){
            String prefixStr;
@@ -408,10 +424,11 @@ public class ListObject{
                and.add(new BasicDBObject("deleteMarker", new BasicDBObject("$ne", "mark")));
            }
            
-           prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+           prefixStr = escapeSpecialChars(prefix);
+           /*prefixStr = prefix.replaceAll("\\%",  "\\\\/")
                    .replaceAll("\\_",  "\\\\_")
                    .replaceAll("\\(", "\\\\(")
-                   .replaceAll("\\)", "\\\\)");
+                   .replaceAll("\\)", "\\\\)");*/
            //prefixStr = prefix.replace("/[.*+?^${}()|[\]\\]/g", '\\$&');
            if (bBucketListParameterPrefix){   
                 if (!bDelimiterMarker)
@@ -420,7 +437,7 @@ public class ListObject{
                     List<BasicDBObject> lor = new ArrayList();
                     lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*$")));
                     lor.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr + "[^/]*/+$")));
-                    and.add(new BasicDBObject("objKey", new BasicDBObject("$or", lor.toArray())));
+                    and.add(new BasicDBObject("$or", lor.toArray()));
                 }
            }
            
@@ -555,7 +572,7 @@ public class ListObject{
            
            if (bMarker && bVersionIdMarker)
                if (bDelimiterMarker)
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", marker))); //objkey
+                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
                else
                    and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
            
@@ -572,7 +589,7 @@ public class ListObject{
            }
            
            if (bDelForceGte){
-               and.add(new BasicDBObject("objKey", new BasicDBObject("$gte", delmarker))); //objkey
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", delmarker))); //objkey
                bDelForceGte = false;
            }
  
@@ -639,7 +656,10 @@ public class ListObject{
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{
         //S3Metadata s3Metadata = new S3Metadata();
-       S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
+        if (objectExistInUniqObjects(mt))
+            return 0; // ignore
+        
+        S3Metadata s3Metadata = S3Metadata.getS3Metadata(mt.getMeta());
         
         s3Metadata.setName(objKey);
         if (listType.equalsIgnoreCase("listObjectVersion")){
@@ -648,7 +668,9 @@ public class ListObject{
         }
 
         objectListParameter.getObjects().add(s3Metadata);
-        if ((objectListParameter.getObjects().size() + offset)== maxKeys) {
+        setUniqObjects(mt); // to avoid redendency 
+        logger.debug("[setObject] objkey : {} list_size : {} offset : {}", mt.getPath(), objectListParameter.getObjects().size(),  offset);
+        if ((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size())== maxKeys) {
             if (objectListParameter.isTruncated()) {
                 objectListParameter.setNextMarker(objKey);
                 if (listType.equalsIgnoreCase("listObjectVersion"))
@@ -762,6 +784,55 @@ public class ListObject{
         return 0;
     }
     
+    private int isResultTruncated(int end) throws SQLException{
+        int truncateMatchCount = 0;
+        int truncateMatchObjCount = 0;
+        
+        makeQuery();
+        List<Metadata> truncateList = bindAndExcute();
+        Iterator truncateItr = truncateList.iterator();
+        
+        logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
+        while (truncateItr.hasNext()) {
+            Metadata mt1 = (Metadata)truncateItr.next();
+            String truncateObjectName = mt1.getPath();
+            String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
+            String truncateEndPrefix = "";
+            if (bBucketListParameterPrefix) {
+                truncateEndPrefix = prefix;
+            }
+            
+            logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
+            int istruncatefind = 0;
+            int istruncatematch = 0;
+
+            // delimiter를 발견하면 common prefix
+            // 아니라면 object
+            if ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
+                truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
+                istruncatematch++;
+                //break;
+            }
+
+            if (istruncatematch > 0){
+                if (objectListParameter.getCommonPrefixes().get(truncateEndPrefix)== null){
+                    //objectListParameter.setNextMarker(truncateEndPrefix);
+                    objectListParameter.setIstruncated(true);
+                    return 1;
+                }
+            }
+            else{
+               //objectListParameter.setNextMarker(truncateObjectName);
+               objectListParameter.setIstruncated(true); 
+               //truncateMatchObjCount++;
+               return 1;
+            }
+        }
+
+        objectListParameter.setIstruncated(false);
+        return 0;
+    }
+    
     private void listObjectAndParse() throws SQLException {       
         int rowcount;
         
@@ -771,7 +842,7 @@ public class ListObject{
                 objectListParameter.setIstruncated(false);
             }
 			
-	    while ((objectListParameter.getObjects().size() + getCommonPrefixCount()) < maxKeys) {                                
+	    while ((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) < maxKeys) {                                
                 makeQuery();
                                 
                 List<Metadata> list = bindAndExcute();
@@ -782,6 +853,7 @@ public class ListObject{
                     objectListParameter.setIstruncated(false);
                 }
                 
+                logger.debug("[listObjectAndParse] rawcount : {}  ", rowcount);
                 if (!bDelimiter) {
         
                     while (itr.hasNext()) {
@@ -804,7 +876,7 @@ public class ListObject{
                     while (itr.hasNext()) {
                         Metadata mt = (Metadata)itr.next();
                         String objectName = mt.getPath();
-                        String metaValue = mt.getMeta();
+                        //String metaValue = mt.getMeta();
                         String subName = objectName.substring(end, objectName.length());
 
                         String endPrefix = "";
@@ -817,17 +889,37 @@ public class ListObject{
 
                         // delimiter를 발견하면 common prefix
                         // 아니라면 object
-                        while ((find = subName.indexOf(delimiter)) >= 0) {
+                        logger.debug("[listObjectAndParse] objectName : {}  subName : {}", objectName, subName);
+                        if ((find = subName.indexOf(delimiter)) >= 0) {
                             endPrefix += subName.substring(0, find + delimiter.length());
                             match++;
-                            break;
+                            //break;
                         }
 
+                        logger.debug("[listObjectAndParse] objectName : {}  subName : {}  endPrefix : {} find : {}  match : {}", objectName, subName, endPrefix, find, match);
+                        if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys)){
+                            if (match > 0) {
+                                if (objectListParameter.getCommonPrefixes().get(endPrefix)== null){
+                                     //objectListParameter.setNextMarker(endPrefix);
+                                     objectListParameter.setIstruncated(true); 
+                                }
+                                else
+                                   isResultTruncated(end); 
+                            }
+                            else{
+                                //objectListParameter.setNextMarker(subName); 
+                                objectListParameter.setIstruncated(true);
+                                //break;
+                            }
+                            break;
+                        }
+                        
                         // delimiter가 발견
                         if (match > 0) {
                             // common prefix 등록
                             objectListParameter.getCommonPrefixes().put(endPrefix, endPrefix);
-
+                            objectListParameter.setNextMarker(endPrefix); // FIXME
+                            
                             if(objectListParameter.isTruncated()) {
                                 StringBuilder delimiterp1 = new StringBuilder(); 
                                 delimiterp1.append(endPrefix.substring(0, endPrefix.length()-1));
@@ -835,63 +927,81 @@ public class ListObject{
                                 delmarker = delimiterp1.toString();
                                 bDelForceGte = true;
 
-                                if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys) 
-                                        && !(listType.equalsIgnoreCase("listObjectVersion"))) {
-                                    makeQuery();
-                                    List<Metadata> truncateList = bindAndExcute();
-                                    Iterator truncateItr = truncateList.iterator();
-                         
-                                    int truncateMatchCount = 0;
-
-                                    while (truncateItr.hasNext()) {
-                                        //mt = (Metadata)truncateItr.next();
-                                        String truncateObjectName = objectName;//mt.getPath();
-                                        String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
-
-                                        String truncateEndPrefix = "";
-                                        if (bBucketListParameterPrefix) {
-                                            truncateEndPrefix = prefix;
-                                        }
-
-                                        int istruncatefind = 0;
-                                        int istruncatematch = 0;
-
-                                        // delimiter를 발견하면 common prefix
-                                        // 아니라면 object
-                                        while ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
-                                            truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
-                                            istruncatematch++;
-                                            break;
-                                        }
-
-                                        if (istruncatematch > 0) {
-                                            truncateMatchCount++;
-                                            objectListParameter.setNextMarker(truncateEndPrefix);
-                                            break;
-                                        }
-                                    }
-
-                                    if (truncateMatchCount == 0) {
-                                        objectListParameter.setIstruncated(false);
-                                    }
-                                }
-                                break;
+                                logger.debug("[listObjectAndParse] objectName : {}  subName : {}  delmarker : {} ", objectName, subName, delmarker);
                             }
                         } else {
                             int ret;
                             
-                            if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")) 
+                            //if (listType.equalsIgnoreCase("listObject") || listType.equalsIgnoreCase("listObjectV2")){ 
                                 ret = setObject(objectName, mt, objectListParameter.getCommonPrefixes().size());
-                            else  
-                                ret = setObject(objectName, mt, 0);
+                                delmarker = objectName;
+                                bDelForceGte = true;
+                            /*} else  
+                                ret = setObject(objectName, mt, 0);*/
                             
-                            if (ret == 1)
+                            if (ret == 1){
+                                if (rowcount == (maxKeys + 1) ) {
+                                    objectListParameter.setIstruncated(true);
+                                }
                                 break;
+                            }
                         }
-                    }
+ 
+                        /*if (((objectListParameter.getObjects().size() + objectListParameter.getCommonPrefixes().size()) == maxKeys)) {
+                            makeQuery();
+                            List<Metadata> truncateList = bindAndExcute();
+                            Iterator truncateItr = truncateList.iterator();
 
-                    if (!objectListParameter.isTruncated()) {
+                            int truncateMatchCount = 0;
+                            int truncateMatchObjCount = 0;
+                            logger.debug("[listObjectAndParse]  size : {}", truncateList.size());
+                            while (truncateItr.hasNext()) {
+                                Metadata mt1 = (Metadata)truncateItr.next();
+                                String truncateObjectName = mt1.getPath();
+                                String truncateSubName = truncateObjectName.substring(end, truncateObjectName.length());
+
+                                String truncateEndPrefix = "";
+                                if (bBucketListParameterPrefix) {
+                                    truncateEndPrefix = prefix;
+                                }
+                                logger.debug("[listObjectAndParse] truncateObjectName : {}  truncateSubName : {} ", truncateObjectName, truncateSubName);
+                                int istruncatefind = 0;
+                                int istruncatematch = 0;
+
+                                // delimiter를 발견하면 common prefix
+                                // 아니라면 object
+                                while ((istruncatefind = truncateSubName.indexOf(delimiter)) >= 0) {
+                                    truncateEndPrefix += truncateSubName.substring(0, istruncatefind + delimiter.length());
+                                    istruncatematch++;
+                                    break;
+                                }
+
+                                if (istruncatematch > 0){
+                                    if (objectListParameter.getCommonPrefixes().get(truncateEndPrefix)!= null)
+                                        istruncatematch--;
+                                }
+                                else{
+                                   truncateMatchObjCount++;
+                                }
+                                
+                                if (istruncatematch > 0) {
+                                    truncateMatchCount++;
+                                    objectListParameter.setNextMarker(truncateEndPrefix);
+                                    break;
+                                }
+                            }
+
+                            if (truncateMatchCount == 0) {
+                                objectListParameter.setIstruncated(false);
+                            }
+                            else if (truncateMatchObjCount == 0){
+                                objectListParameter.setIstruncated(false);
+                            }
                             break;
+                        }*/
+                    }
+                    if (!objectListParameter.isTruncated()) {
+                        break;
                     }
                 }
             }

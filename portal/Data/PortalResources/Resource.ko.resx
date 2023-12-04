@@ -1418,4 +1418,14 @@
   <data name="EM_COMMON_INVALID_NAME" xml:space="preserve">
     <value>대/소문자, 숫자, 특수문자(-, _)만 가능합니다.</value>
   </data>
+  <data name="EC_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
+    <value>ECS3005</value>
+    <comment>해당 버킷이 존재하지 않습니다.</comment>
+  </data>
+  <data name="EM_COMMON__INVALID_DATE" xml:space="preserve">
+    <value>날짜 설정이 잘못되었습니다.</value>
+  </data>
+  <data name="EM_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
+    <value>해당 버킷이 존재하지 않습니다.</value>
+  </data>
 </root>

@@ -40,11 +40,16 @@ public class Bucket {
     private String userName; // new
     private String userId;
     private String logging;
+    private String analytics;
+    private String accelerate;
+    private String payment; 
     private Date createTime;
     private int replicaCount;
     private long usedSpace; // new
     private long fileCount; // new
     private boolean objTagIndexEnabled;
+    private String notification;
+    private String inventory;
     
     public Bucket(){
         name = "";
@@ -64,6 +69,11 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
+        notification = "";
+        inventory = "";
     }
     
     public Bucket(String name, String id, String diskPoolId){
@@ -84,6 +94,11 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
+        notification = "";
+        inventory = "";
     }
     
     public Bucket(String name, String id, String diskPoolId, String versioning, String mfaDelete, String userId, String acl, Date createTime){
@@ -107,6 +122,11 @@ public class Bucket {
         usedSpace = 0;
         fileCount = 0;
         objTagIndexEnabled = false;
+        analytics = "";
+        accelerate = "";
+        payment = "";
+        notification = "";
+        inventory = "";
     }
     
     private void setHashOfName() {
@@ -215,6 +235,26 @@ public class Bucket {
         objTagIndexEnabled = enabled;
     }
     
+    public void setAnalytics(String analytics){
+        this.analytics = analytics;
+    }
+    
+    public void setAccelerate(String accelerate){
+        this.accelerate = accelerate;
+    }
+    
+    public void setPayment(String payment){
+        this.payment = payment;
+    }
+    
+    public void setNotification( String notification){
+        this.notification = notification;
+    }
+    
+    public void setInventory( String inventory){
+        this.inventory = inventory;
+    }
+    
     public String getName(){
         return name;
     }
@@ -307,6 +347,26 @@ public class Bucket {
     
     public boolean isObjectTagIndexEnabled(){
         return objTagIndexEnabled;
+    }
+    
+    public String getAnalytics(){
+        return this.analytics;
+    }
+    
+    public String getAccelerate(){
+        return this.accelerate;
+    }
+    
+    public String getPayment(){
+        return this.payment;
+    }
+    
+    public String getNotification(){
+        return notification;
+    }
+    
+    public String getInventory(){
+        return inventory;
     }
     
     @Override

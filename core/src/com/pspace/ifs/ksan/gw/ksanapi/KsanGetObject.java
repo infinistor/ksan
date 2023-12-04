@@ -76,6 +76,7 @@ public class KsanGetObject extends S3Request implements S3AddResponse {
 		} else {
 			objMeta = open(bucket, object, versionId);
 		}
+		s3Parameter.setVersionId(versionId);
 
 		logger.debug(GWConstants.LOG_OBJECT_META, objMeta.toString());
 

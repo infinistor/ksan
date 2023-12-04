@@ -1933,4 +1933,19 @@
     <value>Performance</value>
     <comment>고성능</comment>
   </data>
+  <data name="ENV_REGION_NAME" xml:space="preserve">
+    <value>REGION_NAME</value>
+  </data>
+  <data name="EC_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
+    <value>ECS3005</value>
+    <comment>해당 버킷이 존재하지 않습니다.</comment>
+  </data>
+  <data name="EM_COMMON__INVALID_DATE" xml:space="preserve">
+    <value>Invalid DateTime.</value>
+    <comment>날짜 설정이 잘못되었습니다.</comment>
+  </data>
+  <data name="EM_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
+    <value>Such bucket doesn't exist.</value>
+    <comment>해당 버킷이 존재하지 않습니다.</comment>
+  </data>
 </root>

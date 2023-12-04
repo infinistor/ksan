@@ -93,7 +93,9 @@ namespace PortalSvr.Services
 						{
 							// 환경변수로 api key 값을 입력할 경우
 							APIKey = Environment.GetEnvironmentVariable(Resource.ENV_SERVICE_API_KEY);
-						}catch{}
+						}catch{
+							APIKey = null;
+						}
 
 						// API 키를 발급한다.
 						var ResponseApiKey = await m_apiKeyProvider.IssueApiKey(
@@ -102,7 +104,7 @@ namespace PortalSvr.Services
 							{
 								KeyName = Resource.INTERNAL_SERVICE_API_KEY,
 								ExpireDate = DateTime.MaxValue,
-								KeyValue = APIKey.IsEmpty() ? KsanUserProvider.RandomTextLong(64) : APIKey
+								KeyValue = string.IsNullOrWhiteSpace(APIKey) ? KsanUserProvider.RandomTextLong(64) : APIKey
 							}
 						);
 

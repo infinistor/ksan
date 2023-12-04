@@ -83,6 +83,12 @@ public class ListObjectsV2 extends S3Request {
 		s3ObjectList.setStartAfter(s3RequestData.getStartAfter());
 		s3ObjectList.setFetchOwner(s3RequestData.getFetchOwner());
 
+		logger.debug("continuationToken : {}", s3ObjectList.getContinuationToken());
+		logger.debug("delimiter : {}", s3ObjectList.getDelimiter());
+		logger.debug("prefix : {}", s3ObjectList.getPrefix());
+		logger.debug("startAfter : {}", s3ObjectList.getStartAfter());
+		logger.debug("maxKeys : {}", s3ObjectList.getMaxKeys());
+
 		s3Parameter.getResponse().setCharacterEncoding(Constants.CHARSET_UTF_8);
 		
 		XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -120,7 +126,15 @@ public class ListObjectsV2 extends S3Request {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_CONTINUEATION_TOKEN, GWUtils.encodeObjectName(encodingType, s3ObjectList.getContinuationToken()));
 			}
 
-			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(objectListParameter.getObjects().size()));
+			// KEY_COUNT
+			int keyCount = 0;
+			if (objectListParameter.getObjects() != null) {
+				keyCount = objectListParameter.getObjects().size();
+			}
+			if (objectListParameter.getCommonPrefixes() != null) {
+				keyCount += objectListParameter.getCommonPrefixes().size();
+			}
+			writeSimpleElement(xmlStreamWriter, GWConstants.XML_KEY_COUNT, String.valueOf(keyCount));
 			
 			if (s3ObjectList.getDelimiter() != null) {
 				writeSimpleElement(xmlStreamWriter, GWConstants.XML_DELIMITER, GWUtils.encodeObjectName(encodingType, s3ObjectList.getDelimiter()));

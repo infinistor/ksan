@@ -27,15 +27,16 @@ import com.pspace.ifs.ksan.gw.utils.GWUtils;
 
 import org.slf4j.LoggerFactory;
 
-public class GetBucketLifecycleConfiguration extends S3Request {
-    public GetBucketLifecycleConfiguration(S3Parameter s3Parameter) {
-		super(s3Parameter);
-		logger = LoggerFactory.getLogger(GetBucketLifecycleConfiguration.class);
-	}
+public class GetBucketRequestPayment extends S3Request {
 
-	@Override
-	public void process() throws GWException {
-		logger.info(GWConstants.LOG_GET_BUCKET_LIFECYCLE_START);
+    public GetBucketRequestPayment(S3Parameter s3Parameter) {
+        super(s3Parameter);
+        logger = LoggerFactory.getLogger(GetBucketRequestPayment.class);
+    }
+
+    @Override
+    public void process() throws GWException {
+        logger.info(GWConstants.LOG_GET_BUCKET_PAYMENT_START);
 		
 		String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
@@ -45,27 +46,39 @@ public class GetBucketLifecycleConfiguration extends S3Request {
 		if (s3Parameter.isPublicAccess() && GWUtils.isIgnorePublicAcls(s3Parameter)) {
 			throw new GWException(GWErrorCode.ACCESS_DENIED, s3Parameter);
 		}
-		
-		if (!checkPolicyBucket(GWConstants.ACTION_GET_LIFECYCLE_CONFIGURATION, s3Parameter)) {
+
+		if (!checkPolicyBucket(GWConstants.ACTION_GET_BUCKET_ACL, s3Parameter)) {
 			checkGrantBucket(true, GWConstants.GRANT_READ_ACP);
 		}
 
-		String lifecycle = getBucketInfo().getLifecycle();
-		logger.debug(GWConstants.LOG_GET_BUCKET_LIFECYCLE, lifecycle);
-		if (Strings.isNullOrEmpty(lifecycle)) {
-			throw new GWException(GWErrorCode.NO_SUCH_LIFECYCLE_CONFIGURATION, s3Parameter);
-		}
+        String payer = getBucketInfo().getPayment();
+        logger.debug(GWConstants.LOG_GET_BUCKET_PAYMENT, bucket, payer);
 
+		String xml = null;
+        if (Strings.isNullOrEmpty(payer)) {
+            String bucketOwner = getBucketInfo().getUserId();
+            xml = GWConstants.PAYMENT_CONFIGURATION_XMLNS_BUCKET_OWNER;
+        } else {
+            if (GWConstants.PAYMENT_REQUESTER.equals(payer)) {
+                xml = GWConstants.PAYMENT_CONFIGURATION_XMLNS_REQUESTER;
+            } else if (GWConstants.PAYMENT_BUCKET_OWNER.equals(payer)) {
+                xml = GWConstants.PAYMENT_CONFIGURATION_XMLNS_BUCKET_OWNER;
+            } else {
+                logger.error(GWConstants.LOG_GET_BUCKET_PAYMENT, bucket, payer);
+                throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
+            }
+        }
+
+        logger.debug(GWConstants.LOG_GET_BUCKET_PAYMENT_XML, xml);
 		try {
-			if (!Strings.isNullOrEmpty(lifecycle)) {
-				s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
-				s3Parameter.getResponse().getOutputStream().write(lifecycle.getBytes(StandardCharsets.UTF_8));
-			}
+			s3Parameter.getResponse().setContentType(GWConstants.XML_CONTENT_TYPE);
+			s3Parameter.getResponse().getOutputStream().write(xml.getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			PrintStack.logging(logger, e);
 			throw new GWException(GWErrorCode.SERVER_ERROR, s3Parameter);
 		}
-		
+
 		s3Parameter.getResponse().setStatus(HttpServletResponse.SC_OK);
-	}
+    }
+    
 }

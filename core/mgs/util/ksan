@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of
@@ -9,6 +9,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 """
+
 import os, sys
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -206,8 +207,13 @@ class KsanServiceUtilOptParser(OptionParser):
                 
               4. start/stop/restart service 
                 # ./ksan service start --ServiceName osd1
+                # ./ksan service start --ServiceName osd1,osd2,osd3
                 # ./ksan service stop --ServiceName osd1
+                # ./ksan service stop --ServiceName osd1,osd2,osd3
+                # ./ksan service restart --ServiceName osd1
+                # ./ksan service restart --ServiceName osd1,osd2,osd3
               """
+        # ./ksan service start --ServiceName osd1,osd2,osd3
 
         self.AddOption()
     def AddOption(self):
@@ -300,12 +306,15 @@ class KsanDiskUtilOptParser(OptionParser):
                 
               4. start/stop disk 
                 # ./ksan disk start --DiskName disk1
+                # ./ksan disk start --DiskName disk1,disk2,disk3
                 # ./ksan disk stop --DiskName disk1
+                # ./ksan disk stop --DiskName disk1,disk2,disk3
                 
               5. set disk mode 
                 # ./ksan disk set --DiskName disk1 --Mode ro 
                 # ./ksan disk set --DiskName disk2 --Mode rw
                 # ./ksan disk set --DiskName disk2 --Mode ma
+                # ./ksan disk set --DiskName disk1,disk2,disk3 --Mode ro 
 
 
                 """
@@ -362,7 +371,9 @@ class KsanDiskpoolUtilOptParser(OptionParser):
                 
               4. add disk to diskpool  
                 # ./ksan diskpool add2disk --DiskPoolName diskpool1 --DiskName disk1  
+                # ./ksan diskpool add2disk --DiskPoolName diskpool1 --DiskName disk1,disk2,disk3  
                 # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1              
+                # ./ksan diskpool remove2disk --DiskPoolName diskpool1 --DiskName disk1,disk2,disk3              
                 
               5. set/get diskpool default diskpool 
                 # ./ksan diskpool set --DefaultDiskPool --DiskPoolName diskpool1

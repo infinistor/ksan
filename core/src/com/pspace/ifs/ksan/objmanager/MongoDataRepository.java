@@ -11,6 +11,7 @@
 
 package com.pspace.ifs.ksan.objmanager;
 
+import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoCommandException;
 import com.mongodb.MongoWriteException;
@@ -118,6 +119,11 @@ public class MongoDataRepository implements DataRepository{
     private static final String USEDSPACE="usedSpace";
     private static final String LOGGING="logging";
     private static final String OBJECTTAG_INDEXING = "objTagIndexing";
+    private static final String ANALYTICS="analytics";
+    private static final String ACCELERATE="accelerate";
+    private static final String PAYMENT="payment";
+    private static final String NOTIFICATION="notification";
+    private static final String INVENTORY="INVENTORY";
     
     // for multipart upload
     private static final String UPLOADID="uploadId";
@@ -151,6 +157,7 @@ public class MongoDataRepository implements DataRepository{
     private static final String OBJRESTORE_REQUEST = "request";
    
     public MongoDataRepository(ObjManagerCache  obmCache, String hosts, String username, String passwd, String dbname, int port) throws UnknownHostException{
+        logger = LoggerFactory.getLogger(MongoDataRepository.class);
         this.username = username;
         this.passwd = passwd;
         this.dbname = dbname;
@@ -161,7 +168,6 @@ public class MongoDataRepository implements DataRepository{
         createLifCycleHolder(LIFECYCLESEVENTS);
         createLifCycleHolder(LIFECYCLESFAILEDEVENTS);
         createRestoreObjHolder();
-        logger = LoggerFactory.getLogger(MongoDataRepository.class);
     }
     
     private void parseDBHostNames2URL(String hosts, int port){
@@ -202,7 +208,7 @@ public class MongoDataRepository implements DataRepository{
         MongoClient mongo;
         
         mongo = MongoClients.create(url);
-                
+        logger.debug("Mongodb connection url : {}", url);
         database = mongo.getDatabase(dbname);
     }
     
@@ -435,7 +441,7 @@ public class MongoDataRepository implements DataRepository{
             }
                 
         }
-        updateBucketObjectCount(md.getBucket(), 1);
+        //updateBucketObjectCount(md.getBucket(), 1);
     
         insertObjTag(md.getBucket(), md.getObjId(), md.getVersionId(), md.getTag());    
         return 0;
@@ -619,13 +625,18 @@ public class MongoDataRepository implements DataRepository{
         doc.append(CREATETIME, getCurrentDateTime());
         doc.append(LOGGING, bt.getLogging());
         doc.append(OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
-
+        doc.append(ANALYTICS, bt.getAnalytics());
+        doc.append(ACCELERATE, bt.getAccelerate());
+        doc.append(PAYMENT, bt.getPayment());
+        doc.append(NOTIFICATION, bt.getNotification());
+        doc.append(INVENTORY, bt.getInventory());
+        
         buckets.insertOne(doc);
         database.createCollection(bt.getName());
         // for index for object collection
         index = new Document(OBJID, 1);
         index.append(VERSIONID, 1);
-        index.append(LASTVERSION, 1);
+        //index.append(LASTVERSION, 1);
         index.append(DELETEMARKER, 1);
         
         database.getCollection(bt.getName()).createIndex(index, new IndexOptions().unique(true)); 
@@ -688,6 +699,11 @@ public class MongoDataRepository implements DataRepository{
         long usedSpace = getParseLong(doc, USEDSPACE);
         long fileCount = getParseLong(doc, FILECOUNT);
         String logging  = doc.getString(LOGGING);
+        String analytics = doc.containsKey(ANALYTICS) ? doc.getString(ANALYTICS) : "";
+        String accelerate = doc.containsKey(ACCELERATE) ? doc.getString(ACCELERATE) :  "";
+        String payment = doc.containsKey(PAYMENT) ? doc.getString(PAYMENT) : "";
+        String notification = doc.containsKey(NOTIFICATION) ? doc.getString(NOTIFICATION) : "";
+        String inventory = doc.containsKey(INVENTORY) ? doc.getString(INVENTORY) : "";
         boolean objTagIndexing = false;
         if (doc.containsKey(OBJECTTAG_INDEXING))
             objTagIndexing = doc.getBoolean(OBJECTTAG_INDEXING);
@@ -726,6 +742,11 @@ public class MongoDataRepository implements DataRepository{
         bt.setUsedSpace(usedSpace);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(objTagIndexing);
+        bt.setAnalytics(analytics);
+        bt.setAccelerate(accelerate);
+        bt.setPayment(payment);
+        bt.setNotification(notification);
+        bt.setInventory(inventory);
         return bt;
     }
     
@@ -740,7 +761,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public void loadBucketList() {
         Bucket bt;
-        FindIterable<Document> fit = buckets.find();
+        FindIterable<Document> fit = buckets.find().sort(new BasicDBObject(BUCKETNAME, 1 ));
         Iterator it = fit.iterator();
         while((it.hasNext())){
             try {
@@ -757,7 +778,7 @@ public class MongoDataRepository implements DataRepository{
     @Override
     public List<Bucket> getBucketList() {
         List<Bucket> btList = new ArrayList();
-        FindIterable<Document> fit = buckets.find();
+        FindIterable<Document> fit = buckets.find().sort(new BasicDBObject(BUCKETNAME, 1 ));
         Iterator it = fit.iterator();
         while((it.hasNext())){
             try {
@@ -1259,6 +1280,92 @@ public class MongoDataRepository implements DataRepository{
         updateBucket(bt.getName(), OBJECTTAG_INDEXING, bt.isObjectTagIndexEnabled());
     }
     
+    @Override
+    public void updateBucketAnalyticsConfiguration(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ANALYTICS, bt.getAnalytics());
+    }
+    
+   /* @Override
+    public int putBucketAnalyticsConfiguration(String bucketName, String id, String analytics) throws SQLException {
+        BasicDBObject config = new BasicDBObject("config", analytics);
+        config.append("id", id);
+        BasicDBObject push_data = new BasicDBObject("$push", new BasicDBObject(ANALYTICS, config));
+        buckets.findOneAndUpdate(eq(BUCKETNAME, bucketName), push_data);
+        return 0;
+    }
+    
+    @Override
+    public BucketAnalytics listBucketAnalyticsConfiguration(String bucketName, String lastId) throws SQLException{
+        boolean foundStart = false;
+        BucketAnalytics lst = new BucketAnalytics();
+        
+        FindIterable fit = buckets.find(Filters.eq(BUCKETNAME, bucketName));
+     
+        if (Strings.isNullOrEmpty(lastId))
+            foundStart = true;
+        
+        Iterator it = fit.iterator();
+        while ((it.hasNext())){
+            Document doc = (Document)it.next();
+            String id = doc.getString(ANALYTICS+".id");
+            if (foundStart){
+                if (lst.getConfig().size() == 100){
+                    lst.setLastId(id);
+                    lst.setTruncated(true);
+                    break;
+                }
+                String config = doc.getString(ANALYTICS+".config");
+                lst.getConfig().add(config);
+            }
+            
+            if (foundStart == false) 
+                if (id.equals(lastId))
+                    foundStart = true;
+        }
+        return lst;
+    }
+    
+    @Override
+    public String getBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        String config = "";
+        FindIterable fit = buckets.find(Filters.and(Filters.eq(BUCKETNAME, bucketName), Filters.eq(ANALYTICS+".id",id)));
+     
+        Iterator it = fit.iterator();
+        if ((it.hasNext())){
+            Document doc = (Document)it.next();
+            config = doc.getString(ANALYTICS+".config");
+        }
+        
+        return config;
+    }
+    
+    @Override
+    public void deleteBucketAnalyticsConfiguration(String bucketName, String id) throws SQLException{
+        BasicDBObject query = new BasicDBObject(BUCKETNAME, bucketName);
+        BasicDBObject configToDelete = new BasicDBObject("$pull", new BasicDBObject(ANALYTICS+".id",id));
+        buckets.updateOne(query, configToDelete);
+    }*/
+    
+    @Override
+    public void updateBucketAccelerate(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), ACCELERATE, bt.getAccelerate());
+    }
+    
+    @Override
+    public void updateBucketPayment(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), PAYMENT, bt.getPayment());
+    }
+    
+    @Override
+    public void updateBucketNotification(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), NOTIFICATION, bt.getNotification());
+    }
+    
+    @Override
+    public void updateBucketInventoryConfiguration(Bucket bt) throws SQLException {
+        updateBucket(bt.getName(), INVENTORY, bt.getInventory());
+    }
+    
     private List<Object> getUtilJobObject(String Id, String status, long TotalNumObject,
             long NumJobDone, boolean checkOnly, String utilName, String startTime){
         List<Object> res = new ArrayList<>();
@@ -1498,7 +1605,7 @@ public class MongoDataRepository implements DataRepository{
     }
 
     private void updateBucketObjectCount(String bucketName, long fileCount){
-        updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
+        //updateBucketObjectSpaceCount(bucketName, FILECOUNT, fileCount);
     }
     
     @Override
@@ -1841,4 +1948,12 @@ public class MongoDataRepository implements DataRepository{
         objRestore = getRestoreObjCollection();
         objRestore.findOneAndDelete(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
     }
+     
+    @Override
+    public long getEstimatedCount(String bucketName){
+        MongoCollection<Document> objects;
+        
+        objects = this.database.getCollection(bucketName);
+        return objects.estimatedDocumentCount();
+    } 
 }
