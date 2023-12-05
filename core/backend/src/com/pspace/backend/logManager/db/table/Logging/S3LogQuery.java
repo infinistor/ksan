@@ -85,7 +85,7 @@ public class S3LogQuery {
 		return String.format(
 				"INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-				DB_TABLE_NAME,
+				getTableName(),
 				DB_USER_NAME, DB_BUCKET_NAME, DB_IN_DATE, DB_REMOTE_HOST, DB_REQUEST_USER, DB_REQUEST_ID,
 				DB_OPERATION, DB_OBJECT_NAME, DB_REQUEST_URI, DB_STATUS_CODE, DB_ERROR_CODE, DB_RESPONSE_LENGTH,
 				DB_OBJECT_LENGTH, DB_TOTAL_TIME, DB_REQUEST_LENGTH, DB_REFERER, DB_USER_AGENT, DB_VERSION_ID,
@@ -93,14 +93,9 @@ public class S3LogQuery {
 	}
 
 	public static String select(String BucketName) {
-		return String.format("SELECT * FROM %s WHERE %s = '%s';", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName);
+		return String.format("SELECT * FROM %s WHERE %s = '%s';", getTableName(), DB_BUCKET_NAME, BucketName);
 	}
 
-	public static String delete(String BucketName, long Index) {
-		return String.format("DELETE FROM %s WHERE %s = '%s' and %s <= %d;", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName,
-				DB_ID, Index);
-	}
-	
 	public static String getTableName() {
 		return QueryConstants.getTodayTableName(DB_TABLE_NAME);
 	}
