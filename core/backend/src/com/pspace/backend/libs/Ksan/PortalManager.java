@@ -299,7 +299,7 @@ public class PortalManager {
 	}
 
 	private String getURL() {
-		return String.format("https://%s:%s", Config.PortalHost, Config.PortalPort);
+		return String.format("https://%s:%s", Config.portalHost, Config.portalPort);
 	}
 
 	// private String getBackendConfigURL() {
@@ -336,7 +336,7 @@ public class PortalManager {
 
 	private HttpGet getRequest(String URL) {
 		var Request = new HttpGet(URL);
-		Request.addHeader("Authorization", Config.APIKey);
+		Request.addHeader("Authorization", Config.apiKey);
 		return Request;
 	}
 

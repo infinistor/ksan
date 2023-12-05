@@ -28,7 +28,7 @@ public class MainLogger {
 
 	List<MQReceiver> s3LogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> replicationLogReceivers = new ArrayList<MQReceiver>();
-	List<MQReceiver> LifecycleLogReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> lifecycleLogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> restoreLogReceivers = new ArrayList<MQReceiver>();
 
 	// Thread SendThread;
@@ -39,17 +39,17 @@ public class MainLogger {
 		Config = ConfigManager.getInstance();
 	}
 
-	public boolean Start(int ThreadCount) {
+	public boolean start(int threadCount) {
 		try {
 			// Sender = new SendLogger(DB, Config, Region);
 			// SendThread = new Thread(() -> Sender.Run());
 			// SendThread.start();
-			for (int index = 0; index < ThreadCount; index++) {
+			for (int index = 0; index < threadCount; index++) {
 				s3LogReceivers.add(new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_LOG_MANAGER_S3_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
@@ -57,21 +57,21 @@ public class MainLogger {
 						Constants.MQ_BINDING_GW_LOG,
 						new S3LogReceiver()));
 				replicationLogReceivers.add(new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
 						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_REPLICATION_LOG,
 						new ReplicationLogReceiver()));
-				LifecycleLogReceivers.add(new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+				lifecycleLogReceivers.add(new MQReceiver(
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
@@ -80,10 +80,10 @@ public class MainLogger {
 						new LifecycleLogReceiver()));
 
 				restoreLogReceivers.add(new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
@@ -99,7 +99,7 @@ public class MainLogger {
 		}
 	}
 
-	public void Quit() {
+	public void quit() {
 		try {
 			// Sender.Quit();
 			// SendThread.join();

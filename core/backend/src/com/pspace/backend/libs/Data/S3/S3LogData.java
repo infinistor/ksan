@@ -10,112 +10,181 @@
 */
 package com.pspace.backend.libs.Data.S3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.Data.BaseData;
 
-public class S3LogData {
-	public String UserName;
-	public String BucketName;
-	public String Date;
-	public String RemoteHost;
-	public String RequestUser;
-	public String RequestId;
-	public String Operation;
-	public String ObjectName;
-	public String RequestURI;
-	public int StatusCode;
-	public String ErrorCode;
-	public long ResponseLength;
-	public long ObjectLength;
-	public long TotalTime;
-	public long RequestLength;
-	public String Referer;
-	public String UserAgent;
-	public String VersionId;
-	public String HostId;
-	public String Sign;
-	public String SSLGroup;
-	public String SignType;
-	public String EndPoint;
-	public String TLSVersion;
+public class S3LogData implements BaseData {
+	public String userName;
+	public String bucketName;
+	public String date;
+	public String remoteHost;
+	public String requestUser;
+	public String requestId;
+	public String operation;
+	public String objectName;
+	public String requestURI;
+	public int statusCode;
+	public String errorCode;
+	public long responseLength;
+	public long objectLength;
+	public long totalTime;
+	public long requestLength;
+	public String referer;
+	public String userAgent;
+	public String versionId;
+	public String hostId;
+	public String sign;
+	public String sslGroup;
+	public String signType;
+	public String endPoint;
+	public String tlsVersion;
 
-	public S3LogData(){
+	public S3LogData() {
 		Init();
 	}
-	public S3LogData(String UserName, String BucketName, String Date, String Remote_host,
-			String RequestUser, String RequestId, String Operation, String ObjectName, String RequestURI,
-			int StatusCode, String ErrorCode, long ResponseLength, long ObjectLength, long TotalTime,
-			long RequestLength, String Referer, String UserAgent, String VersionId, String HostId, String Sign,
-			String SSLGroup, String SignType, String EndPoint, String TLSVersion) {
-		this.UserName = UserName;
-		this.BucketName = BucketName;
-		this.Date = Date;
-		this.RemoteHost = Remote_host;
-		this.RequestUser = RequestUser;
-		this.RequestId = RequestId;
-		this.Operation = Operation;
-		this.ObjectName = ObjectName;
-		this.RequestURI = RequestURI;
-		this.StatusCode = StatusCode;
-		this.ErrorCode = ErrorCode;
-		this.ResponseLength = ResponseLength;
-		this.ObjectLength = ObjectLength;
-		this.TotalTime = TotalTime;
-		this.RequestLength = RequestLength;
-		this.Referer = Referer;
-		this.UserAgent = UserAgent;
-		this.VersionId = VersionId;
-		this.HostId = HostId;
-		this.Sign = Sign;
-		this.SSLGroup = SSLGroup;
-		this.SignType = SignType;
-		this.EndPoint = EndPoint;
-		this.TLSVersion = TLSVersion;
+
+	public S3LogData(String userName, String bucketName, String date, String remoteHost,
+			String requestUser, String requestId, String operation, String objectName, String requestURI,
+			int statusCode, String errorCode, long responseLength, long objectLength, long totalTime,
+			long requestLength, String referer, String userAgent, String versionId, String hostId, String sign,
+			String sslGroup, String signType, String endPoint, String tlsVersion) {
+		this.userName = userName;
+		this.bucketName = bucketName;
+		this.date = date;
+		this.remoteHost = remoteHost;
+		this.requestUser = requestUser;
+		this.requestId = requestId;
+		this.operation = operation;
+		this.objectName = objectName;
+		this.requestURI = requestURI;
+		this.statusCode = statusCode;
+		this.errorCode = errorCode;
+		this.responseLength = responseLength;
+		this.objectLength = objectLength;
+		this.totalTime = totalTime;
+		this.requestLength = requestLength;
+		this.referer = referer;
+		this.userAgent = userAgent;
+		this.versionId = versionId;
+		this.hostId = hostId;
+		this.sign = sign;
+		this.sslGroup = sslGroup;
+		this.signType = signType;
+		this.endPoint = endPoint;
+		this.tlsVersion = tlsVersion;
 	}
 
 	public void Init() {
-		UserName = "";
-		BucketName = "";
-		Date = "";
-		RemoteHost = "";
-		RequestUser = "";
-		RequestId = "";
-		Operation = "";
-		ObjectName = "";
-		RequestURI = "";
-		StatusCode = 0;
-		ErrorCode = "";
-		ResponseLength = 0;
-		ObjectLength = 0;
-		TotalTime = 0;
-		RequestLength = 0;
-		Referer = "";
-		UserAgent = "";
-		VersionId = "";
-		HostId = "";
-		Sign = "";
-		SSLGroup = "";
-		SignType = "";
-		EndPoint = "";
-		TLSVersion = "";
+		userName = "";
+		bucketName = "";
+		date = "";
+		remoteHost = "";
+		requestUser = "";
+		requestId = "";
+		operation = "";
+		objectName = "";
+		requestURI = "";
+		statusCode = 0;
+		errorCode = "";
+		responseLength = 0;
+		objectLength = 0;
+		totalTime = 0;
+		requestLength = 0;
+		referer = "";
+		userAgent = "";
+		versionId = "";
+		hostId = "";
+		sign = "";
+		sslGroup = "";
+		signType = "";
+		endPoint = "";
+		tlsVersion = "";
 	}
 
 	public boolean isOperationEmpty() {
-		return Operation.isEmpty() || Operation.equals("-");
+		return operation.isEmpty() || operation.equals("-");
 	}
+
 	public boolean isBucketNameEmpty() {
-		return BucketName.isEmpty() || BucketName.equals("-");
+		return bucketName.isEmpty() || bucketName.equals("-");
 	}
+
 	public boolean isError() {
-		return !ErrorCode.equals("-") && !ErrorCode.isBlank();
+		return !errorCode.equals("-") && !errorCode.isBlank();
 	}
 
 	public String Print() {
 		return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
-				UserName, BucketName, Date, RemoteHost, RequestUser, RequestId, Operation, ObjectName,
-				RequestURI, StatusCode, ErrorCode, ResponseLength, ObjectLength, TotalTime, RequestLength, Referer,
-				UserAgent, VersionId, HostId, Sign, SSLGroup, SignType, EndPoint, TLSVersion);
+				userName, bucketName, date, remoteHost, requestUser, requestId, operation, objectName,
+				requestURI, statusCode, errorCode, responseLength, objectLength, totalTime, requestLength, referer,
+				userAgent, versionId, hostId, sign, sslGroup, signType, endPoint, tlsVersion);
 	}
+
+	@Override
+	public List<Object> getInsertDBParameters() {
+		var param = new ArrayList<Object>();
+		param.add(userName);
+		param.add(bucketName);
+		param.add(date);
+		param.add(remoteHost);
+		param.add(requestUser);
+		param.add(requestId);
+		param.add(operation);
+		param.add(objectName);
+		param.add(requestURI);
+		param.add(statusCode);
+		param.add(errorCode);
+		param.add(responseLength);
+		param.add(objectLength);
+		param.add(totalTime);
+		param.add(requestLength);
+		param.add(referer);
+		param.add(userAgent);
+		param.add(versionId);
+		param.add(hostId);
+		param.add(sign);
+		param.add(sslGroup);
+		param.add(signType);
+		param.add(endPoint);
+		param.add(tlsVersion);
+
+		return param;
+	}
+
+	// @Override
+	// public Document getInsertDBDocument() {
+	// 	var param = new Document();
+	// 	param.put(S3LogQuery.DB_USER_NAME, UserName);
+	// 	param.put(S3LogQuery.DB_BUCKET_NAME, BucketName);
+	// 	param.put(S3LogQuery.DB_IN_DATE, Date);
+	// 	param.put(S3LogQuery.DB_REMOTE_HOST, RemoteHost);
+	// 	param.put(S3LogQuery.DB_REQUEST_USER, RequestUser);
+	// 	param.put(S3LogQuery.DB_REQUEST_ID, RequestId);
+	// 	param.put(S3LogQuery.DB_OPERATION, Operation);
+	// 	param.put(S3LogQuery.DB_OBJECT_NAME, ObjectName);
+	// 	param.put(S3LogQuery.DB_REQUEST_URI, RequestURI);
+	// 	param.put(S3LogQuery.DB_STATUS_CODE, StatusCode);
+	// 	param.put(S3LogQuery.DB_ERROR_CODE, ErrorCode);
+	// 	param.put(S3LogQuery.DB_RESPONSE_LENGTH, ResponseLength);
+	// 	param.put(S3LogQuery.DB_OBJECT_LENGTH, ObjectLength);
+	// 	param.put(S3LogQuery.DB_TOTAL_TIME, TotalTime);
+	// 	param.put(S3LogQuery.DB_REQUEST_LENGTH, RequestLength);
+	// 	param.put(S3LogQuery.DB_REFERER, Referer);
+	// 	param.put(S3LogQuery.DB_USER_AGENT, UserAgent);
+	// 	param.put(S3LogQuery.DB_VERSION_ID, VersionId);
+	// 	param.put(S3LogQuery.DB_HOST_ID, HostId);
+	// 	param.put(S3LogQuery.DB_SIGN, Sign);
+	// 	param.put(S3LogQuery.DB_SSL_GROUP, SSLGroup);
+	// 	param.put(S3LogQuery.DB_SIGN_TYPE, SignType);
+	// 	param.put(S3LogQuery.DB_ENDPOINT, EndPoint);
+	// 	param.put(S3LogQuery.DB_TLS_VERSION, TLSVersion);
+
+	// 	return param;
+	// }
 
 	@Override
 	public String toString() {

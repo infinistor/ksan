@@ -48,10 +48,10 @@ public class LifecycleFilter {
 		objManager = ObjManagerHelper.getInstance();
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_LIFECYCLE_EVENT);
@@ -69,7 +69,7 @@ public class LifecycleFilter {
 		for (var bucket : buckets) {
 			var bucketName = bucket.getName();
 			// 버킷의 수명주기 설정을 가져온다.
-			var lifecycle = GetLifecycleConfiguration(bucket.getLifecycle());
+			var lifecycle = getLifecycleConfiguration(bucket.getLifecycle());
 
 			// 버킷의 수명주기 설정을 불러오지 못할 경우 스킵
 			if (lifecycle == null)
@@ -108,7 +108,7 @@ public class LifecycleFilter {
 					// 수명주기 설정이 정상적일 경우
 					if (expired != 0) {
 
-						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, Long2Date(expired));
+						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, long2Date(expired));
 						
 
 						// 해당 버킷의 모든 오브젝트에 대해 필터링
@@ -190,7 +190,7 @@ public class LifecycleFilter {
 						&& !StringUtils.isBlank(rule.versionExpiration.days)) {
 					// 기간을 숫자로 변환
 					var expired = getExpiredTimeNoncurrentDays(rule.versionExpiration.days);
-					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, Long2Date(expired));
+					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
 
 					// 수명주기 설정이 정상적일 경우
 					if (expired != 0) {
@@ -364,7 +364,7 @@ public class LifecycleFilter {
 		return ENABLED.equalsIgnoreCase(Status);
 	}
 
-	private LifecycleConfiguration GetLifecycleConfiguration(String StrLifecycle) {
+	private LifecycleConfiguration getLifecycleConfiguration(String StrLifecycle) {
 		if (StringUtils.isBlank(StrLifecycle))
 			return null;
 		try {
@@ -407,7 +407,7 @@ public class LifecycleFilter {
 		return instant.getEpochSecond() * 1000000000L + instant.getNano();
 	}
 
-	private static String Long2Date(long timestamp) {
+	private static String long2Date(long timestamp) {
 		return Instant.ofEpochSecond(timestamp / 1000000000L, timestamp % 1000000000L).toString();
 	}
 

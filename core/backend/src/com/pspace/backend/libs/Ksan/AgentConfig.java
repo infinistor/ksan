@@ -41,13 +41,13 @@ public class AgentConfig {
 	private final Ini ini = new Ini();
 	/*********************************************************************************************************/
 
-	public String PortalHost;
-	public int PortalPort;
-	public String MQHost;
-	public int MQPort;
-	public String MQUser;
-	public String MQPassword;
-	public String APIKey;
+	public String portalHost;
+	public int portalPort;
+	public String mqHost;
+	public int mqPort;
+	public String mqUser;
+	public String mqPassword;
+	public String apiKey;
 
 	public int ServiceMonitorInterval;
 
@@ -65,16 +65,16 @@ public class AgentConfig {
 		try {
 			ini.load(new FileReader(file));
 
-			PortalHost = ReadKeyToString(STR_MGS, STR_PORTAL_IP);
-			PortalPort = ReadKeyToInt(STR_MGS, STR_PORTAL_PORT);
-			APIKey = ReadKeyToString(STR_MGS, STR_PORTAL_API_KEY);
+			portalHost = readKeyToString(STR_MGS, STR_PORTAL_IP);
+			portalPort = readKeyToInt(STR_MGS, STR_PORTAL_PORT);
+			apiKey = readKeyToString(STR_MGS, STR_PORTAL_API_KEY);
 
-			MQHost = ReadKeyToString(STR_MGS, STR_MQ_IP);
-			MQPort = ReadKeyToInt(STR_MGS, STR_MQ_PORT);
-			MQUser = ReadKeyToString(STR_MGS, STR_MQ_USER);
-			MQPassword = ReadKeyToString(STR_MGS, STR_MQ_PASSWORD);
+			mqHost = readKeyToString(STR_MGS, STR_MQ_IP);
+			mqPort = readKeyToInt(STR_MGS, STR_MQ_PORT);
+			mqUser = readKeyToString(STR_MGS, STR_MQ_USER);
+			mqPassword = readKeyToString(STR_MGS, STR_MQ_PASSWORD);
 
-			ServiceMonitorInterval = ReadKeyToInt(STR_MONITOR, STR_SERVICE_MONITOR_INTERVAL);
+			ServiceMonitorInterval = readKeyToInt(STR_MONITOR, STR_SERVICE_MONITOR_INTERVAL);
 
 		} catch (Exception e) {
 			logger.error("", e);
@@ -84,12 +84,12 @@ public class AgentConfig {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	private String ReadKeyToString(String Section, String Key) {
+	private String readKeyToString(String Section, String Key) {
 		String Value = ini.get(Section, Key);
 		return (Value == null) ? "" : Value;
 	}
 
-	private int ReadKeyToInt(String Section, String Key) {
+	private int readKeyToInt(String Section, String Key) {
 		return NumberUtils.toInt(ini.get(Section, Key));
 	}
 	// private boolean ReadKeyToBoolean(String Section, String Key)
