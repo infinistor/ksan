@@ -14,10 +14,10 @@ import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
 public class BucketIoMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketIoMeteringQuery.class);
 
-	static final String DB_TABLE_NAME_METER = "bucket_io_meter";
-	static final String DB_TABLE_NAME_ASSET = "bucket_io_asset";
-	static final String DB_UPLOAD = "upload";
-	static final String DB_DOWNLOAD = "download";
+	static final String DB_TABLE_NAME_METER = "BUCKET_IO_METER";
+	static final String DB_TABLE_NAME_ASSET = "BUCKET_IO_ASSET";
+	static final String DB_UPLOAD = "UPLOAD";
+	static final String DB_DOWNLOAD = "DOWNLOAD";
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +

@@ -12,12 +12,12 @@ import com.pspace.backend.libs.Data.Metering.UsageLogData;
 public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketUsageMeteringQuery.class);
 
-	public static final String DB_TABLE_NAME_METER = "bucket_meter";
-	public static final String DB_TABLE_NAME_ASSET = "bucket_asset";
-	public static final String DB_USED = "used";
-	public static final String DB_MAX_USED = "max_" + DB_USED;
-	public static final String DB_AVG_USED = "avg_" + DB_USED;
-	public static final String DB_MIN_USED = "min_" + DB_USED;
+	public static final String DB_TABLE_NAME_METER = "BUCKET_METER";
+	public static final String DB_TABLE_NAME_ASSET = "BUCKET_ASSET";
+	public static final String DB_USED = "USED";
+	public static final String DB_MAX_USED = "MAX_" + DB_USED;
+	public static final String DB_AVG_USED = "AVG_" + DB_USED;
+	public static final String DB_MIN_USED = "MIN_" + DB_USED;
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +

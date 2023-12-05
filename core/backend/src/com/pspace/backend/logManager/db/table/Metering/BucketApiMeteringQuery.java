@@ -14,10 +14,10 @@ import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
 public class BucketApiMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketApiMeteringQuery.class);
 
-	public static final String DB_TABLE_NAME_METER = "bucket_api_meter";
-	public static final String DB_TABLE_NAME_ASSET = "bucket_api_asset";
-	public static final String DB_EVENT = "event";
-	public static final String DB_COUNT = "count";
+	public static final String DB_TABLE_NAME_METER = "BUCKET_API_METER";
+	public static final String DB_TABLE_NAME_ASSET = "BUCKET_API_ASSET";
+	public static final String DB_EVENT = "EVENT";
+	public static final String DB_COUNT = "COUNT";
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +

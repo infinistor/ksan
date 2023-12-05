@@ -14,10 +14,10 @@ import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
 public class BackendIoMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BackendIoMeteringQuery.class);
 
-	static final String DB_TABLE_NAME_METER = "backend_io_meter";
-	static final String DB_TABLE_NAME_ASSET = "backend_io_asset";
-	static final String DB_UPLOAD = "upload";
-	static final String DB_DOWNLOAD = "download";
+	static final String DB_TABLE_NAME_METER = "BACKEND_IO_METER";
+	static final String DB_TABLE_NAME_ASSET = "BACKEND_IO_ASSET";
+	static final String DB_UPLOAD = "UPLOAD";
+	static final String DB_DOWNLOAD = "DOWNLOAD";
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
