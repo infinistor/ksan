@@ -10,38 +10,51 @@
 */
 package com.pspace.backend.libs.Data.Replication;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.Data.BaseData;
 
-public class ReplicationLogData extends ReplicationEventData {
+public class ReplicationLogData extends ReplicationEventData implements BaseData {
 
-	public String Message;
+	public String message;
 
-	public ReplicationLogData() {
-		Init();
-	}
-
-	public ReplicationLogData(String Operation, String ObjectName, String VersionId, String SourceBucketName,
-			String TargetBucketName, String TargetRegion, String Message) {
-		super(Operation, ObjectName, VersionId, SourceBucketName, TargetBucketName, TargetRegion);
-		this.Message = Message;
-	}
-
-	public ReplicationLogData(ReplicationEventData Event, String Message) {
-		super(Event);
-		this.Message = Message;
+	public ReplicationLogData(ReplicationEventData event, String message) {
+		super(event);
+		this.message = message;
+		setEndTime();
 	}
 
 	@Override
-	public void Init() {
-		this.Operation = "";
-		this.ObjectName = "";
-		this.VersionId = "";
-		this.SourceBucketName = "";
-		this.TargetBucketName = "";
-		this.TargetRegion = "";
-		this.Message = "";
+	public List<Object> getInsertDBParameters() {
+		var param = new ArrayList<Object>();
+		param.add(operation);
+		param.add(objectName);
+		param.add(versionId);
+		param.add(sourceBucketName);
+		param.add(targetBucketName);
+		param.add(targetRegion);
+		param.add(message);
+
+		return param;
 	}
+
+	// @Override
+	// public Document getInsertDBDocument() {
+	// 	var param = new Document();
+	// 	param.put(BaseReplicationQuery.DB_IN_DATE, LocalDateTime.now());
+	// 	param.put(BaseReplicationQuery.DB_OPERATION, operation);
+	// 	param.put(BaseReplicationQuery.DB_OBJECTNAME, objectName);
+	// 	param.put(BaseReplicationQuery.DB_VERSION_ID, versionId);
+	// 	param.put(BaseReplicationQuery.DB_SOURCE_BUCKET_NAME, sourceBucketName);
+	// 	param.put(BaseReplicationQuery.DB_TARGET_BUCKET_NAME, targetBucketName);
+	// 	param.put(BaseReplicationQuery.DB_TARGET_REGION, targetRegion);
+	// 	param.put(BaseReplicationQuery.DB_MESSAGE, message);
+
+	// 	return param;
+	// }
 
 	@Override
 	public String toString() {

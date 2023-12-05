@@ -64,8 +64,8 @@ public abstract class BaseReplicator implements MQCallback {
 		return Utility.checkAlive(Region.getHttpURL());
 	}
 
-	protected AmazonS3 CreateClient(ReplicationEventData Data) throws Exception {
-		return getRegionClient(Data.TargetRegion);
+	protected AmazonS3 createClient(ReplicationEventData Data) throws Exception {
+		return getRegionClient(Data.targetRegion);
 	}
 
 	protected AmazonS3 getRegionClient(String RegionName) throws Exception {

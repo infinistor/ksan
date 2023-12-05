@@ -48,7 +48,7 @@ public class Main {
 		Thread HBThread;
 		Heartbeat HB;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser, ksanConfig.MQPassword);
+			HB = new Heartbeat(ServiceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
 			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
 			HBThread.start();
 		} catch (Exception e) {

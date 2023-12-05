@@ -10,48 +10,50 @@
 */
 package com.pspace.backend.libs.Data.Replication;
 
+import java.sql.Timestamp;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ReplicationEventData {
 
-	public String Operation;
-	public String ObjectName;
-	public String VersionId;
-	public String SourceBucketName;
-	public String TargetBucketName;
-	public String TargetRegion;
-
-	public ReplicationEventData() {
-		Init();
-	}
+	public Timestamp inDate;
+	public Timestamp startTime;
+	public Timestamp endTime;
+	public String operation;
+	public String objectName;
+	public String versionId;
+	public String sourceBucketName;
+	public String targetBucketName;
+	public String targetRegion;
 
 	public ReplicationEventData(ReplicationEventData data) {
-		this.Operation = data.Operation;
-		this.ObjectName = data.ObjectName;
-		this.VersionId = data.VersionId;
-		this.SourceBucketName = data.SourceBucketName;
-		this.TargetBucketName = data.TargetBucketName;
-		this.TargetRegion = data.TargetRegion;
+		this.inDate = data.inDate;
+		this.startTime = data.startTime;
+		this.endTime = data.endTime;
+		this.operation = data.operation;
+		this.objectName = data.objectName;
+		this.versionId = data.versionId;
+		this.sourceBucketName = data.sourceBucketName;
+		this.targetBucketName = data.targetBucketName;
+		this.targetRegion = data.targetRegion;
 	}
 
-	public ReplicationEventData(String Operation, String ObjectName, String VersionId, String SourceBucketName,
-			String TargetBucketName, String TargetRegion) {
-		this.Operation = Operation;
-		this.ObjectName = ObjectName;
-		this.VersionId = VersionId;
-		this.SourceBucketName = SourceBucketName;
-		this.TargetBucketName = TargetBucketName;
-		this.TargetRegion = TargetRegion;
+	public ReplicationEventData(String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
+		this.operation = operation;
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.sourceBucketName = sourceBucketName;
+		this.targetBucketName = targetBucketName;
+		this.targetRegion = targetRegion;
 	}
 
-	public void Init() {
-		this.Operation = "";
-		this.ObjectName = "";
-		this.VersionId = "";
-		this.SourceBucketName = "";
-		this.TargetBucketName = "";
-		this.TargetRegion = "";
+	public void setStartTime() {
+		startTime = new Timestamp(System.currentTimeMillis());
+	}
+
+	public void setEndTime() {
+		endTime = new Timestamp(System.currentTimeMillis());
 	}
 
 	@Override

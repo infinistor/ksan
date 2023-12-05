@@ -33,10 +33,10 @@ public class ReplicationFilter implements MQCallback {
 	public ReplicationFilter() throws Exception {
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_REPLICATION_EVENT);
@@ -67,8 +67,8 @@ public class ReplicationFilter implements MQCallback {
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 기본정보 정의
-			var Operation = s3Log.Operation;
-			var bucketName = s3Log.BucketName;
+			var Operation = s3Log.operation;
+			var bucketName = s3Log.bucketName;
 
 			// 해당 작업이 에러이거나 복제 대상이 아닐경우 무시
 			if (s3Log.isError() || !S3Parameters.ReplicateOperationCheck(Operation))
@@ -96,17 +96,17 @@ public class ReplicationFilter implements MQCallback {
 			if (!bucketInfo.isReplication)
 				return;
 
-			var Operation = s3Log.Operation; // 오퍼레이션 가져오기
+			var Operation = s3Log.operation; // 오퍼레이션 가져오기
 			var ReplicationRules = bucketInfo.Replications;// 룰 정보 가져오기
 			var sourceBucketName = bucketInfo.BucketName; // 소스버킷 이름 가져오기
-			var ObjectName = s3Log.ObjectName;
-			var versionId = s3Log.VersionId;
+			var ObjectName = s3Log.objectName;
+			var versionId = s3Log.versionId;
 
 			// 룰이 존재하지 않을 경우 스킵
 			if (ReplicationRules == null)
 				return;
 
-			logger.info("Replication Event Check {}", s3Log.Operation);
+			logger.info("Replication Event Check {}", s3Log.operation);
 
 			// ObjManager 가져오기
 			var objManager = ObjManagerHelper.getInstance();
@@ -133,7 +133,7 @@ public class ReplicationFilter implements MQCallback {
 						// Prefix 설정이 있다면
 						if (StringUtils.isBlank(MyRule.Prefix)) {
 							// 해당 오브젝트의 Prefix가 일치하지 않을 경우 스킵
-							if (!s3Log.ObjectName.startsWith(MyRule.Prefix))
+							if (!s3Log.objectName.startsWith(MyRule.Prefix))
 								continue;
 
 							// And 태그 설정이 있다면
@@ -171,8 +171,7 @@ public class ReplicationFilter implements MQCallback {
 						}
 					}
 					// 이벤트 저장
-					var Data = new ReplicationEventData(Operation, s3Log.ObjectName, s3Log.VersionId, sourceBucketName,
-							MyRule.TargetBucket, MyRule.TargetRegion);
+					var Data = new ReplicationEventData(Operation, s3Log.objectName, s3Log.versionId, sourceBucketName, MyRule.TargetBucket, MyRule.TargetRegion);
 					mq.send(Data.toString(), Constants.MQ_BINDING_REPLICATION_EVENT);
 					logger.info("Save Event : {}", Data.toString());
 				} catch (Exception e) {
