@@ -27,6 +27,10 @@ public class ReplicationEventData {
 	public String targetBucketName;
 	public String targetRegion;
 
+	public ReplicationEventData() {
+		init();
+	}
+
 	public ReplicationEventData(ReplicationEventData data) {
 		this.inDate = data.inDate;
 		this.startTime = data.startTime;
@@ -40,12 +44,31 @@ public class ReplicationEventData {
 	}
 
 	public ReplicationEventData(String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
+		setInDate();
+		startTime = new Timestamp(0);
+		endTime = new Timestamp(0);
 		this.operation = operation;
 		this.objectName = objectName;
 		this.versionId = versionId;
 		this.sourceBucketName = sourceBucketName;
 		this.targetBucketName = targetBucketName;
 		this.targetRegion = targetRegion;
+	}
+
+	public void init() {
+		startTime = new Timestamp(0);
+		startTime = new Timestamp(0);
+		endTime = new Timestamp(0);
+		operation = "";
+		objectName = "";
+		versionId = "";
+		sourceBucketName = "";
+		targetBucketName = "";
+		targetRegion = "";
+	}
+
+	public void setInDate() {
+		inDate = new Timestamp(System.currentTimeMillis());
 	}
 
 	public void setStartTime() {

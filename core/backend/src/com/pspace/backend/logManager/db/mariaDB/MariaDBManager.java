@@ -29,6 +29,7 @@ import com.pspace.backend.libs.Data.Metering.ErrorLogData;
 import com.pspace.backend.libs.Data.Metering.IoLogData;
 import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
+import com.pspace.backend.libs.Data.Replication.ReplicationSuccessData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.logManager.db.IDBManager;
 import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
@@ -76,6 +77,10 @@ public class MariaDBManager implements IDBManager {
 		ds = new HikariDataSource(hikariConfig);
 
 		createTables();
+	}
+
+	public boolean check() {
+		return createLogTables();
 	}
 
 	/***************************** Select **********************************/
@@ -140,6 +145,14 @@ public class MariaDBManager implements IDBManager {
 				execute(BackendErrorMeteringQuery.createAsset());
 	}
 
+	boolean createLogTables() {
+		// DB Create Table
+		return execute(ReplicationSuccessQuery.create()) &&
+				execute(ReplicationFailedQuery.create()) &&
+				execute(S3LogQuery.create()) &&
+				execute(BackendLogQuery.create());
+	}
+
 	@Override
 	public boolean insertLogging(S3LogData data) {
 		return insert(S3LogQuery.insert(), data);
@@ -150,12 +163,12 @@ public class MariaDBManager implements IDBManager {
 		if (data == null)
 			return false;
 		if (StringUtils.isBlank(data.message))
-			return insertReplicationSuccessLog(data);
+			return insertReplicationSuccessLog(new ReplicationSuccessData(data));
 		else
 			return insertReplicationFailedLog(data);
 	}
 
-	private boolean insertReplicationSuccessLog(ReplicationLogData data) {
+	private boolean insertReplicationSuccessLog(ReplicationSuccessData data) {
 		return insert(ReplicationSuccessQuery.insert(), data);
 	}
 

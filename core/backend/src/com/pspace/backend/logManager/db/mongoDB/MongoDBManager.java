@@ -71,6 +71,10 @@ public class MongoDBManager implements IDBManager {
 		db = mongo.getDatabase(config.databaseName);
 	}
 
+	public boolean check() {
+		return true;
+	}
+
 	/***************************** Select **********************************/
 
 	////////////////////// Logging //////////////////////
@@ -82,7 +86,7 @@ public class MongoDBManager implements IDBManager {
 	/***************************** Insert *****************************/
 
 	public boolean insertLogging(S3LogData data) {
-		return insert(S3LogQuery.DB_TABLE_NAME, data);
+		return insert(S3LogQuery.getTableName(), data);
 	}
 
 	public boolean insertReplicationLog(ReplicationLogData data) {

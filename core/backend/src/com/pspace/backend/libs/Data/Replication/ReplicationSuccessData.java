@@ -17,19 +17,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Data.BaseData;
 
-public class ReplicationLogData extends ReplicationEventData implements BaseData {
+public class ReplicationSuccessData extends ReplicationEventData implements BaseData {
 
-	public String message;
-
-	public ReplicationLogData() {
+	public ReplicationSuccessData() {
 		super();
-		message = "";
 	}
 
-	public ReplicationLogData(ReplicationEventData event, String message) {
+	public ReplicationSuccessData(ReplicationEventData event) {
 		super(event);
-		this.message = message;
-		setEndTime();
 	}
 
 	@Override
@@ -44,7 +39,6 @@ public class ReplicationLogData extends ReplicationEventData implements BaseData
 		param.add(sourceBucketName);
 		param.add(targetBucketName);
 		param.add(targetRegion);
-		param.add(message);
 
 		return param;
 	}
