@@ -47,6 +47,7 @@ public class LifecycleLogReceiver implements MQCallback {
 			var db = DBManager.getInstance();
 
 			//DB에 저장
+			logger.info("LifecycleLogData : {}", event.toString());
 			db.insertLifecycleLog(event);
 
 		} catch (Exception e) {

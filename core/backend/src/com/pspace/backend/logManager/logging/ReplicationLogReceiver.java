@@ -33,7 +33,7 @@ public class ReplicationLogReceiver implements MQCallback {
 
 		try {
 			logger.debug("{} -> {}", routingKey, body);
-			
+
 			if (!routingKey.equals(Constants.MQ_BINDING_REPLICATION_LOG))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
@@ -41,10 +41,11 @@ public class ReplicationLogReceiver implements MQCallback {
 			var event = mapper.readValue(body, new TypeReference<ReplicationLogData>() {
 			});
 			// 변환 실패시
-			if (event == null) 
+			if (event == null)
 				throw new Exception("Invalid ReplicationLogData : " + body);
 
-			//DB에 저장
+			// DB에 저장
+			logger.info("ReplicationLogData : {}", event.toString());
 			db.insertReplicationLog(event);
 
 		} catch (Exception e) {
