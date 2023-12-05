@@ -14,41 +14,35 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DBConfig {
-	public String Type;
-	public String Host;
-	public int Port;
-	public String DatabaseName;
-	public String MeteringDBName;
-	public String User;
-	public String Password;
-	public int PoolSize;
-	public int Expires;
+	public String type;
+	public String host;
+	public int port;
+	public String databaseName;
+	public String user;
+	public String password;
+	public int poolSize;
 
 	public DBConfig() {
 		Init();
 	}
 
-	public DBConfig(String Host, int Port, String DatabaseName, String MeteringDBName, String User, String Password, int PoolSize, int Expires) {
-		this.Host = Host;
-		this.Port = Port;
-		this.DatabaseName = DatabaseName;
-		this.MeteringDBName = MeteringDBName;
-		this.User = User;
-		this.Password = Password;
-		this.PoolSize = PoolSize;
-		if (this.PoolSize > 1) this.PoolSize = 100;
-		this.Expires = Expires;
+	public DBConfig(String Host, int Port, String DatabaseName, String User, String Password, int PoolSize) {
+		this.host = Host;
+		this.port = Port;
+		this.databaseName = DatabaseName;
+		this.user = User;
+		this.password = Password;
+		this.poolSize = PoolSize;
+		if (this.poolSize > 1) this.poolSize = 100;
 	}
 
 	public void Init() {
-		Host = "";
-		Port = 3306;
-		DatabaseName = "event_log";
-		MeteringDBName = "event_log";
-		User = "root";
-		Password = "qwe123";
-		PoolSize = 100;
-		Expires = 0;
+		host = "";
+		port = 3306;
+		databaseName = "event_log";
+		user = "root";
+		password = "qwe123";
+		poolSize = 100;
 	}
 
 	@Override
