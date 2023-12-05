@@ -32,12 +32,14 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.pspace.backend.libs.Data.Metering.DateRange;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final int TimeOut = 3 * 1000;
 	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+	static final TimeZone SEOUL = TimeZone.getTimeZone("Asia/Seoul");
 
 	public static String getServiceId(String FilePath) {
 		try {
@@ -55,7 +57,7 @@ public class Utility {
 		return simpleDateFormat.format(now);
 	}
 
-	public static int String2Time(String Value) {
+	public static int string2Time(String Value) {
 		if (Value == null || Value.isBlank())
 			return -1;
 
@@ -91,6 +93,7 @@ public class Utility {
 		} catch (InterruptedException e) {
 		}
 	}
+
 	public static void delay(long milliseconds) {
 		try {
 			Thread.sleep(milliseconds);
@@ -130,4 +133,31 @@ public class Utility {
 				.withPathStyleAccessEnabled(true).build();
 	}
 
+	public static DateRange getDateRangeMinute(int interval) {
+		var start = Calendar.getInstance(SEOUL, Locale.KOREA);
+		var end = (Calendar) start.clone();
+		start.add(Calendar.MINUTE, -interval);
+		end.add(Calendar.MINUTE, -1);
+		var strStart = String.format("%04d-%02d-%02d %02d:%02d:00",
+				start.get(Calendar.YEAR), start.get(Calendar.MONTH) + 1, start.get(Calendar.DAY_OF_MONTH),
+				start.get(Calendar.HOUR_OF_DAY), start.get(Calendar.MINUTE));
+		var strEnd = String.format("%04d-%02d-%02d %02d:%02d:59",
+				end.get(Calendar.YEAR), end.get(Calendar.MONTH) + 1,
+				end.get(Calendar.DAY_OF_MONTH), end.get(Calendar.HOUR_OF_DAY), end.get(Calendar.MINUTE));
+		return new DateRange(strStart, strEnd);
+	}
+
+	public static DateRange getDateRangeHour(int interval) {
+		var start = Calendar.getInstance(SEOUL, Locale.KOREA);
+		var end = (Calendar) start.clone();
+		start.add(Calendar.HOUR, -interval);
+		end.add(Calendar.HOUR, -1);
+		var strStart = String.format("%04d-%02d-%02d %02d:00:00",
+				start.get(Calendar.YEAR), start.get(Calendar.MONTH) + 1, start.get(Calendar.DAY_OF_MONTH),
+				start.get(Calendar.HOUR_OF_DAY));
+		var strEnd = String.format("%04d-%02d-%02d %02d:59:59",
+				end.get(Calendar.YEAR), end.get(Calendar.MONTH) + 1, end.get(Calendar.DAY_OF_MONTH),
+				end.get(Calendar.HOUR_OF_DAY));
+		return new DateRange(strStart, strEnd);
+	}
 }

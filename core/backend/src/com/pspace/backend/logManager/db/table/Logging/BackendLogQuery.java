@@ -15,13 +15,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.pspace.backend.libs.Data.S3.S3LogData;
+import com.pspace.backend.logManager.db.table.QueryConstants;
 
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoggingQuery {
-	static final Logger logger = LoggerFactory.getLogger(LoggingQuery.class);
+public class BackendLogQuery {
+	static final Logger logger = LoggerFactory.getLogger(BackendLogQuery.class);
 
 	public static final String DB_TABLE_NAME = "S3LOGGINGS";
 	public static final String DB_ID = "ID";
@@ -50,8 +51,8 @@ public class LoggingQuery {
 	public static final String DB_ENDPOINT = "ENDPOINT";
 	public static final String DB_TLS_VERSION = "TLS_VERSION";
 
-	public static String getCreateTable() {
-		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
+	public static String create() {
+		return "CREATE TABLE IF NOT EXISTS " + getTableName() + " ( " +
 				DB_ID + " bigint auto_increment primary key, " +
 				DB_USER_NAME + " varchar(64) DEFAULT NULL, " +
 				DB_BUCKET_NAME + " varchar(64) DEFAULT NULL, " +
@@ -80,7 +81,7 @@ public class LoggingQuery {
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
-	public static String getInsert() {
+	public static String insert() {
 		return String.format(
 				"INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
@@ -91,17 +92,13 @@ public class LoggingQuery {
 				DB_HOST_ID, DB_SIGN, DB_SSL_GROUP, DB_SIGN_TYPE, DB_ENDPOINT, DB_TLS_VERSION);
 	}
 
-	public static String getSelect(String BucketName) {
+	public static String select(String BucketName) {
 		return String.format("SELECT * FROM %s WHERE %s = '%s';", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName);
 	}
 
-	public static String getDelete(String BucketName, long Index) {
+	public static String delete(String BucketName, long Index) {
 		return String.format("DELETE FROM %s WHERE %s = '%s' and %s <= %d;", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName,
 				DB_ID, Index);
-	}
-
-	public static String getClear(String BucketName) {
-		return String.format("DELETE FROM %s WHERE %s = '%s';", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName);
 	}
 
 	public static List<S3LogData> getList(List<HashMap<String, Object>> resultList) {
@@ -143,62 +140,66 @@ public class LoggingQuery {
 		return MyList;
 	}
 
+	public static String getTableName() {
+		return QueryConstants.getTodayTableName(DB_TABLE_NAME);
+	}
+
 	public static List<Object> getInsertParameters(S3LogData data) {
 		var param = new ArrayList<Object>();
-		param.add(data.UserName);
-		param.add(data.BucketName);
-		param.add(data.Date);
-		param.add(data.RemoteHost);
-		param.add(data.RequestUser);
-		param.add(data.RequestId);
-		param.add(data.Operation);
-		param.add(data.ObjectName);
-		param.add(data.RequestURI);
-		param.add(data.StatusCode);
-		param.add(data.ErrorCode);
-		param.add(data.ResponseLength);
-		param.add(data.ObjectLength);
-		param.add(data.TotalTime);
-		param.add(data.RequestLength);
-		param.add(data.Referer);
-		param.add(data.UserAgent);
-		param.add(data.VersionId);
-		param.add(data.HostId);
-		param.add(data.Sign);
-		param.add(data.SSLGroup);
-		param.add(data.SignType);
-		param.add(data.EndPoint);
-		param.add(data.TLSVersion);
+		param.add(data.userName);
+		param.add(data.bucketName);
+		param.add(data.date);
+		param.add(data.remoteHost);
+		param.add(data.requestUser);
+		param.add(data.requestId);
+		param.add(data.operation);
+		param.add(data.objectName);
+		param.add(data.requestURI);
+		param.add(data.statusCode);
+		param.add(data.errorCode);
+		param.add(data.responseLength);
+		param.add(data.objectLength);
+		param.add(data.totalTime);
+		param.add(data.requestLength);
+		param.add(data.referer);
+		param.add(data.userAgent);
+		param.add(data.versionId);
+		param.add(data.hostId);
+		param.add(data.sign);
+		param.add(data.sslGroup);
+		param.add(data.signType);
+		param.add(data.endPoint);
+		param.add(data.tlsVersion);
 
 		return param;
 	}
 
 	public static Document getInsertDocument(S3LogData data) {
 		var param = new Document();
-		param.put(DB_USER_NAME, data.UserName);
-		param.put(DB_BUCKET_NAME, data.BucketName);
-		param.put(DB_IN_DATE, data.Date);
-		param.put(DB_REMOTE_HOST, data.RemoteHost);
-		param.put(DB_REQUEST_USER, data.RequestUser);
-		param.put(DB_REQUEST_ID, data.RequestId);
-		param.put(DB_OPERATION, data.Operation);
-		param.put(DB_OBJECT_NAME, data.ObjectName);
-		param.put(DB_REQUEST_URI, data.RequestURI);
-		param.put(DB_STATUS_CODE, data.StatusCode);
-		param.put(DB_ERROR_CODE, data.ErrorCode);
-		param.put(DB_RESPONSE_LENGTH, data.ResponseLength);
-		param.put(DB_OBJECT_LENGTH, data.ObjectLength);
-		param.put(DB_TOTAL_TIME, data.TotalTime);
-		param.put(DB_REQUEST_LENGTH, data.RequestLength);
-		param.put(DB_REFERER, data.Referer);
-		param.put(DB_USER_AGENT, data.UserAgent);
-		param.put(DB_VERSION_ID, data.VersionId);
-		param.put(DB_HOST_ID, data.HostId);
-		param.put(DB_SIGN, data.Sign);
-		param.put(DB_SSL_GROUP, data.SSLGroup);
-		param.put(DB_SIGN_TYPE, data.SignType);
-		param.put(DB_ENDPOINT, data.EndPoint);
-		param.put(DB_TLS_VERSION, data.TLSVersion);
+		param.put(DB_USER_NAME, data.userName);
+		param.put(DB_BUCKET_NAME, data.bucketName);
+		param.put(DB_IN_DATE, data.date);
+		param.put(DB_REMOTE_HOST, data.remoteHost);
+		param.put(DB_REQUEST_USER, data.requestUser);
+		param.put(DB_REQUEST_ID, data.requestId);
+		param.put(DB_OPERATION, data.operation);
+		param.put(DB_OBJECT_NAME, data.objectName);
+		param.put(DB_REQUEST_URI, data.requestURI);
+		param.put(DB_STATUS_CODE, data.statusCode);
+		param.put(DB_ERROR_CODE, data.errorCode);
+		param.put(DB_RESPONSE_LENGTH, data.responseLength);
+		param.put(DB_OBJECT_LENGTH, data.objectLength);
+		param.put(DB_TOTAL_TIME, data.totalTime);
+		param.put(DB_REQUEST_LENGTH, data.requestLength);
+		param.put(DB_REFERER, data.referer);
+		param.put(DB_USER_AGENT, data.userAgent);
+		param.put(DB_VERSION_ID, data.versionId);
+		param.put(DB_HOST_ID, data.hostId);
+		param.put(DB_SIGN, data.sign);
+		param.put(DB_SSL_GROUP, data.sslGroup);
+		param.put(DB_SIGN_TYPE, data.signType);
+		param.put(DB_ENDPOINT, data.endPoint);
+		param.put(DB_TLS_VERSION, data.tlsVersion);
 
 		return param;
 	}

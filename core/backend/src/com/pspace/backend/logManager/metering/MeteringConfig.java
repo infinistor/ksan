@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MeteringConfig {
 
-	static final int DEFAULT_METER_MINUTE = 5;
+	static final int DEFAULT_METER_MINUTE = 1;
 	static final int DEFAULT_ASSET_HOUR = 1;
 	static final int MINUTE = 60 * 1000;
 	static final int HOUR = 60 * MINUTE;

@@ -15,21 +15,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Config.DBConfig;
+import com.pspace.backend.libs.Data.BaseData;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.libs.Data.Metering.ApiLogData;
+import com.pspace.backend.libs.Data.Metering.DateRange;
+import com.pspace.backend.libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.libs.Data.Metering.IoLogData;
+import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.logManager.db.IDBManager;
 import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
 import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
-import com.pspace.backend.logManager.db.table.Logging.LoggingQuery;
-import com.pspace.backend.logManager.db.table.Metering.ApiMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.IoMeteringQuery;
-import com.pspace.backend.logManager.db.table.replication.ReplicationLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
+import com.pspace.backend.logManager.db.table.Metering.BackendApiMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BucketApiMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BackendErrorMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BackendIoMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BucketErrorMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BucketIoMeteringQuery;
+import com.pspace.backend.logManager.db.table.Metering.BucketUsageMeteringQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationFailedQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationSuccessQuery;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -47,18 +61,18 @@ public class MariaDBManager implements IDBManager {
 	public void connect() throws Exception {
 		var URL = String.format(
 				"jdbc:mariadb://%s:%d/%s?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8mb4",
-				config.Host, config.Port, config.DatabaseName);
+				config.host, config.port, config.databaseName);
 		var hikariConfig = new HikariConfig();
 		hikariConfig.setJdbcUrl(URL);
-		hikariConfig.setUsername(config.User);
-		hikariConfig.setPassword(config.Password);
+		hikariConfig.setUsername(config.user);
+		hikariConfig.setPassword(config.password);
 		hikariConfig.setDriverClassName("org.mariadb.jdbc.Driver");
 		hikariConfig.setConnectionTestQuery("select 1");
-		hikariConfig.addDataSourceProperty("maxPoolSize", config.PoolSize);
-		hikariConfig.addDataSourceProperty("minPoolSize", config.PoolSize);
+		hikariConfig.addDataSourceProperty("maxPoolSize", config.poolSize);
+		hikariConfig.addDataSourceProperty("minPoolSize", config.poolSize);
 		hikariConfig.setPoolName("ksan");
-		hikariConfig.setMaximumPoolSize(config.PoolSize);
-		hikariConfig.setMinimumIdle(config.PoolSize);
+		hikariConfig.setMaximumPoolSize(config.poolSize);
+		hikariConfig.setMinimumIdle(config.poolSize);
 		ds = new HikariDataSource(hikariConfig);
 
 		createTables();
@@ -68,101 +82,291 @@ public class MariaDBManager implements IDBManager {
 
 	////////////////////// Logging //////////////////////
 	public List<S3LogData> getLoggingEventList(String BucketName) {
-		var map = Select(LoggingQuery.getSelect(BucketName));
-		return LoggingQuery.getList(map);
+		var map = select(S3LogQuery.select(BucketName));
+		return S3LogQuery.getList(map);
+	}
+
+	@Override
+	public List<ApiLogData> getBucketApiMeteringEvents(DateRange range) {
+		return BucketApiMeteringQuery.getMeterList(range, select(BucketApiMeteringQuery.selectMeter(range)));
+	}
+
+	@Override
+	public List<IoLogData> getBucketIoMeteringEvents(DateRange range) {
+		return BucketIoMeteringQuery.getMeterList(range, select(BucketIoMeteringQuery.selectMeter(range)));
+	}
+
+	@Override
+	public List<ErrorLogData> getBucketErrorMeteringEvents(DateRange range) {
+		return BucketErrorMeteringQuery.getMeterList(range, select(BucketErrorMeteringQuery.selectMeter(range)));
+	}
+
+	@Override
+	public List<ApiLogData> getBackendApiMeteringEvents(DateRange range) {
+		return BackendApiMeteringQuery.getMeterList(range, select(BackendApiMeteringQuery.selectMeter(range)));
+	}
+
+	@Override
+	public List<IoLogData> getBackendIoMeteringEvents(DateRange range) {
+		return BackendIoMeteringQuery.getMeterList(range, select(BackendIoMeteringQuery.selectMeter(range)));
+	}
+
+	@Override
+	public List<ErrorLogData> getBackendErrorMeteringEvents(DateRange range) {
+		return BackendErrorMeteringQuery.getMeterList(range, select(BackendErrorMeteringQuery.selectMeter(range)));
 	}
 
 	/***************************** Insert *****************************/
 
-	private boolean createTables() {
+	boolean createTables() {
 		// DB Create Table
-		return Execute(ReplicationLogQuery.getCreate()) &&
-				Execute(ApiMeteringQuery.createMeter()) &&
-				Execute(ApiMeteringQuery.createAsset()) &&
-				Execute(IoMeteringQuery.createMeter()) &&
-				Execute(IoMeteringQuery.createAsset());
+		return execute(ReplicationSuccessQuery.create()) &&
+				execute(ReplicationFailedQuery.create()) &&
+				execute(S3LogQuery.create()) &&
+				execute(BackendLogQuery.create()) &&
+				execute(BucketApiMeteringQuery.createMeter()) &&
+				execute(BucketApiMeteringQuery.createAsset()) &&
+				execute(BucketIoMeteringQuery.createMeter()) &&
+				execute(BucketIoMeteringQuery.createAsset()) &&
+				execute(BucketUsageMeteringQuery.createMeter()) &&
+				execute(BucketUsageMeteringQuery.createAsset()) &&
+				execute(BucketErrorMeteringQuery.createMeter()) &&
+				execute(BucketErrorMeteringQuery.createAsset()) &&
+				execute(BucketApiMeteringQuery.createMeter()) &&
+				execute(BucketApiMeteringQuery.createAsset()) &&
+				execute(BackendIoMeteringQuery.createMeter()) &&
+				execute(BackendIoMeteringQuery.createAsset()) &&
+				execute(BackendErrorMeteringQuery.createMeter()) &&
+				execute(BackendErrorMeteringQuery.createAsset());
 	}
 
 	@Override
 	public boolean insertLogging(S3LogData data) {
-		return insert(LoggingQuery.getInsert(), LoggingQuery.getInsertParameters(data));
+		return insert(S3LogQuery.insert(), data);
 	}
 
 	@Override
 	public boolean insertReplicationLog(ReplicationLogData data) {
-		return insert(ReplicationLogQuery.getInsert(), ReplicationLogQuery.getInsertDBParameters(data));
+		if (data == null)
+			return false;
+		if (StringUtils.isBlank(data.message))
+			return insertReplicationSuccessLog(data);
+		else
+			return insertReplicationFailedLog(data);
+	}
+
+	private boolean insertReplicationSuccessLog(ReplicationLogData data) {
+		return insert(ReplicationSuccessQuery.insert(), data);
+	}
+
+	private boolean insertReplicationFailedLog(ReplicationLogData data) {
+		return insert(ReplicationFailedQuery.insert(), data);
 	}
 
 	@Override
 	public boolean insertLifecycleLog(LifecycleLogData data) {
-		return insert(LifecycleLogQuery.getInsert(), LifecycleLogQuery.getInsertDBParameters(data));
+		return insert(LifecycleLogQuery.getInsert(), data);
 	}
+
 	@Override
 	public boolean insertRestoreLog(RestoreLogData data) {
-		return insert(RestoreLogQuery.getInsert(), RestoreLogQuery.getInsertDBParameters(data));
+		return insert(RestoreLogQuery.getInsert(), data);
 	}
 
 	@Override
-	public boolean insertApiMeter(int minutes) {
-		return Execute(ApiMeteringQuery.insertMeter(minutes));
-	}
-	
-	@Override
-	public boolean insertIoMeter(int minutes) {
-		return Execute(IoMeteringQuery.getInsertMeter(minutes));
+	public boolean insertUsageMeter(List<UsageLogData> events) {
+		return insertBulk(BucketUsageMeteringQuery.insertMeter(), events);
 	}
 
 	@Override
-	public boolean insertApiAsset() {
-		return Execute(ApiMeteringQuery.insertAsset());
+	public boolean insertUsageAsset(DateRange range) {
+		return executeUpdate(BucketUsageMeteringQuery.insertAsset(range));
 	}
-	
+
 	@Override
-	public boolean insertIoAsset() {
-		return Execute(IoMeteringQuery.getInsertAsset());
+	public boolean insertBucketApiMeter(List<ApiLogData> events) {
+		return insertBulk(BucketApiMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBucketApiAsset(DateRange range) {
+		return executeUpdate(BucketApiMeteringQuery.insertAsset(range));
+	}
+
+	@Override
+	public boolean insertBucketIoMeter(List<IoLogData> events) {
+		return insertBulk(BucketIoMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBucketIoAsset(DateRange range) {
+		return executeUpdate(BucketIoMeteringQuery.insertAsset(range));
+	}
+
+	@Override
+	public boolean insertBucketErrorMeter(List<ErrorLogData> events) {
+		return insertBulk(BucketErrorMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBucketErrorAsset(DateRange range) {
+		return executeUpdate(BucketErrorMeteringQuery.insertAsset(range));
+	}
+
+	@Override
+	public boolean insertBackendApiMeter(List<ApiLogData> events) {
+		return insertBulk(BackendApiMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBackendApiAsset(DateRange range) {
+		return executeUpdate(BackendApiMeteringQuery.insertAsset(range));
+	}
+
+	@Override
+	public boolean insertBackendIoMeter(List<IoLogData> events) {
+		return insertBulk(BackendIoMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBackendIoAsset(DateRange range) {
+		return executeUpdate(BackendIoMeteringQuery.insertAsset(range));
+	}
+
+	@Override
+	public boolean insertBackendErrorMeter(List<ErrorLogData> events) {
+		return insertBulk(BackendErrorMeteringQuery.insertMeter(), events);
+	}
+
+	@Override
+	public boolean insertBackendErrorAsset(DateRange range) {
+		return executeUpdate(BackendErrorMeteringQuery.insertAsset(range));
 	}
 
 	/***************************** Expiration *****************************/
-	public boolean Expiration() {
-		if (!Delete(ReplicationLogQuery.getExpiration(config.Expires)))
-			return false;
-		return true;
+	@Override
+	public boolean expiredMeter() {
+		return delete(BucketApiMeteringQuery.expiredMeter()) &&
+				delete(BucketIoMeteringQuery.expiredMeter()) &&
+				delete(BucketErrorMeteringQuery.expiredMeter()) &&
+				delete(BucketUsageMeteringQuery.expiredMeter()) &&
+				delete(BackendApiMeteringQuery.expiredMeter()) &&
+				delete(BackendIoMeteringQuery.expiredMeter()) &&
+				delete(BackendErrorMeteringQuery.expiredMeter());
 	}
 
 	/*********************** Utility ***********************/
-	private boolean Execute(String Query) {
+
+	/**
+	 * 특정 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @return 성공/실패 여부
+	 */
+	boolean execute(String query) {
 		try (
 				var conn = ds.getConnection();
-				var stmt = new LogPreparedStatement(conn, Query);) {
+				var stmt = new LogPreparedStatement(conn, query);) {
 			logger.debug(stmt.toString());
 			stmt.execute();
 			return true;
 		} catch (SQLException e) {
-			logger.error("Query Error : {}", Query, e);
+			logger.error("Query Error : {}", query, e);
 		} catch (Exception e) {
-			logger.error("Query Error : {}", Query, e);
+			logger.error("Query Error : {}", query, e);
 		}
 		return false;
 	}
 
-	private boolean insert(String Query, List<Object> Params) {
+	/**
+	 * 특정 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @return 성공/실패 여부
+	 */
+	boolean executeUpdate(String query) {
 		try (
 				var conn = ds.getConnection();
-				var stmt = new LogPreparedStatement(conn, Query);) {
+				var stmt = new LogPreparedStatement(conn, query);) {
+			logger.debug(stmt.toString());
+			stmt.executeUpdate();
+			return true;
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", query, e);
+		} catch (Exception e) {
+			logger.error("Query Error : {}", query, e);
+		}
+		return false;
+	}
+
+	/**
+	 * 삽입 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @param params
+	 *            파라미터
+	 * @return 성공/실패 여부
+	 */
+	<T extends BaseData> boolean insert(String query, T item) {
+		try (
+				var conn = ds.getConnection();
+				var stmt = new LogPreparedStatement(conn, query);) {
 			int index = 1;
-			for (Object Param : Params)
-				stmt.setObject(index++, Param);
+			for (Object param : item.getInsertDBParameters())
+				stmt.setObject(index++, param);
 			logger.debug(stmt.toString());
 			return stmt.executeUpdate() > 0;
 		} catch (SQLException e) {
-			logger.error("Query Error : {}", Query, e);
+			logger.error("Query Error : {}", query, e);
 		} catch (Exception e) {
-			logger.error("Query Error : {}", Query, e);
+			logger.error("Query Error : {}", query, e);
 		}
 		return false;
 	}
 
-	private List<HashMap<String, Object>> Select(String Query) {
+	/**
+	 * 대용량 추가 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @param items
+	 *            벌크 파라미터
+	 * @return 성공/실패 여부
+	 */
+	<T extends BaseData> boolean insertBulk(String query, List<T> items) {
+		try (
+				var conn = ds.getConnection();
+				var stmt = new LogPreparedStatement(conn, query);) {
+			for (var item : items) {
+				int index = 1;
+				for (var object : item.getInsertDBParameters()) {
+					stmt.setObject(index++, object);
+				}
+				stmt.addBatch();
+			}
+			logger.debug(stmt.toString());
+
+			stmt.executeBatch();
+			return true;
+		} catch (SQLException e) {
+			logger.error("Query Error : {}", query, e);
+		} catch (Exception e) {
+			logger.error("Query Error : {}", query, e);
+		}
+		return false;
+	}
+
+	/**
+	 * 특정 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @return 성공/실패 여부
+	 */
+	List<HashMap<String, Object>> select(String Query) {
 		try (
 				var conn = ds.getConnection();
 				var stmt = new LogPreparedStatement(conn, Query);
@@ -193,7 +397,14 @@ public class MariaDBManager implements IDBManager {
 		return null;
 	}
 
-	private boolean Delete(String Query) {
+	/**
+	 * 삭제 쿼리를 실행한다.
+	 * 
+	 * @param query
+	 *            쿼리
+	 * @return 성공/실패 여부
+	 */
+	boolean delete(String Query) {
 		try (
 				var conn = ds.getConnection();
 				var stmt = new LogPreparedStatement(conn, Query);) {

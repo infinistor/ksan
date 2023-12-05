@@ -10,7 +10,16 @@
 */
 package com.pspace.backend.logManager.db.table;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class QueryConstants {
 	public static final int MAX_QUERY_SIZE = 1000;
 	public static final String DB_DATE_FORMAT = "%Y-%m-%d %k:%i:%s";
+
+	public static String getTodayTableName(String tableName) {
+		var now = LocalDate.now();
+		var formatter = DateTimeFormatter.ofPattern("_yyyy_MM");
+		return tableName + now.format(formatter);
+	}
 }

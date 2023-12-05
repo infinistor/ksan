@@ -10,11 +10,18 @@
 */
 package com.pspace.backend.logManager.db;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.libs.Data.Metering.ApiLogData;
+import com.pspace.backend.libs.Data.Metering.DateRange;
+import com.pspace.backend.libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.libs.Data.Metering.IoLogData;
+import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 
@@ -27,10 +34,29 @@ public interface IDBManager {
 	boolean insertReplicationLog(ReplicationLogData data);
 	boolean insertLifecycleLog(LifecycleLogData data);
 	boolean insertRestoreLog(RestoreLogData data);
+	
+	List<ApiLogData> getBucketApiMeteringEvents(DateRange range);
+	List<IoLogData> getBucketIoMeteringEvents(DateRange range);
+	List<ErrorLogData> getBucketErrorMeteringEvents(DateRange range);
+	List<ApiLogData> getBackendApiMeteringEvents(DateRange range);
+	List<IoLogData> getBackendIoMeteringEvents(DateRange range);
+	List<ErrorLogData> getBackendErrorMeteringEvents(DateRange range);
 
-	boolean insertApiMeter(int minutes);
-	boolean insertIoMeter(int minutes);
+	boolean insertUsageMeter(List<UsageLogData> events);
+	boolean insertUsageAsset(DateRange range);
+	boolean insertBucketApiMeter(List<ApiLogData> events);
+	boolean insertBucketApiAsset(DateRange range);
+	boolean insertBucketIoMeter(List<IoLogData> events);
+	boolean insertBucketIoAsset(DateRange range);
+	boolean insertBucketErrorMeter(List<ErrorLogData> events);
+	boolean insertBucketErrorAsset(DateRange range);
 
-	boolean insertApiAsset();
-	boolean insertIoAsset();
+	boolean insertBackendApiMeter(List<ApiLogData> events);
+	boolean insertBackendApiAsset(DateRange range);
+	boolean insertBackendIoMeter(List<IoLogData> events);
+	boolean insertBackendIoAsset(DateRange range);
+	boolean insertBackendErrorMeter(List<ErrorLogData> events);
+	boolean insertBackendErrorAsset(DateRange range);
+
+	boolean expiredMeter();
 }

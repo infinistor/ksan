@@ -36,7 +36,6 @@ public class Constants {
 	public static final String MQ_QUEUE_REPLICATION_S3_LOG = "ksan-replication-s3-log";
 	public static final String MQ_QUEUE_REPLICATION_EVENT_ADD = "ksan-replication-event-add";
 
-	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
 	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
 	/***********************************
 	 * Log Manager
@@ -46,7 +45,8 @@ public class Constants {
 	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-log-manager-lifecycle-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-log-manager-replication-event-log";
 
-	// public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
+	public static final String MQ_BINDING_GW_LOG = "*.services.gw.log.add";
+	public static final String MQ_BINDING_BACKEND_LOG = "*.services.backend.log.add";
 	public static final String MQ_BINDING_RESTORE_LOG = "*.services.restore.log.add";
 	public static final String MQ_BINDING_LIFECYCLE_LOG = "*.services.lifecycle.log.add";
 	public static final String MQ_BINDING_REPLICATION_LOG = "*.services.replication.log.add";
