@@ -46,6 +46,7 @@ public class ReplicationFilter implements MQCallback {
 	public MQResponse call(String routingKey, String body) {
 
 		try {
+			// GW 로그가 아닐 경우 무시
 			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
@@ -86,7 +87,7 @@ public class ReplicationFilter implements MQCallback {
 			logger.error("", e);
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
 		}
-
+		// 정상적으로 처리되었음을 알린다.
 		return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 	}
 
@@ -115,6 +116,7 @@ public class ReplicationFilter implements MQCallback {
 			for (var MyRule : ReplicationRules) {
 
 				try {
+					// 룰이 비어있을 경우 스킵
 					if (MyRule == null) {
 						logger.error("[{}] Replication Rule Invalid!", sourceBucketName);
 						continue;

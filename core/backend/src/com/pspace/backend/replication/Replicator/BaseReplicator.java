@@ -26,8 +26,7 @@ public abstract class BaseReplicator implements MQCallback {
 	final Logger logger;
 
 	public enum OperationList {
-		OP_PUT_OBJECT, OP_PUT_OBJECT_ACL, OP_PUT_OBJECT_RETENTION, OP_PUT_OBJECT_TAGGING, OP_DELETE_OBJECT,
-		OP_DELETE_OBJECT_TAGGING
+		OP_PUT_OBJECT, OP_PUT_OBJECT_ACL, OP_PUT_OBJECT_RETENTION, OP_PUT_OBJECT_TAGGING, OP_DELETE_OBJECT, OP_DELETE_OBJECT_TAGGING
 	}
 
 	protected AmazonS3 sourceClient;
@@ -49,12 +48,16 @@ public abstract class BaseReplicator implements MQCallback {
 		this.sourceClient = sourceRegion.client;
 	}
 
-	/******************************************
-	 * Utility
-	 *************************************************/
-
+	/**
+	 * Region이 존재하는지 확인한다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
 	protected boolean checkRegion(String regionName) {
-		if (StringUtils.isBlank(regionName) || sourceRegion.name == regionName) return true;
+		if (StringUtils.isBlank(regionName) || sourceRegion.name == regionName)
+			return true;
 
 		var Region = portal.getRegion(regionName);
 		if (Region == null) {
@@ -64,10 +67,24 @@ public abstract class BaseReplicator implements MQCallback {
 		return Utility.checkAlive(Region.getHttpURL());
 	}
 
+	/**
+	 * Region Manager에서 사용할 Client를 가져온다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
 	protected AmazonS3 createClient(ReplicationEventData Data) throws Exception {
 		return getRegionClient(Data.targetRegion);
 	}
 
+	/**
+	 * Region Manager에서 사용할 Client를 가져온다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
 	protected AmazonS3 getRegionClient(String RegionName) throws Exception {
 		if (StringUtils.isBlank(RegionName))
 			return sourceClient;
