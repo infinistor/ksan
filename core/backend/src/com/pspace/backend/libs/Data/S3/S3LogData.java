@@ -13,34 +13,59 @@ package com.pspace.backend.libs.Data.S3;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Data.BaseData;
 
 public class S3LogData implements BaseData {
+	@JsonProperty("UserName")
 	public String userName;
+	@JsonProperty("BucketName")
 	public String bucketName;
+	@JsonProperty("Date")
 	public String date;
+	@JsonProperty("RemoteHost")
 	public String remoteHost;
+	@JsonProperty("RequestUser")
 	public String requestUser;
+	@JsonProperty("RequestId")
 	public String requestId;
+	@JsonProperty("Operation")
 	public String operation;
+	@JsonProperty("ObjectName")
 	public String objectName;
+	@JsonProperty("RequestURI")
 	public String requestURI;
+	@JsonProperty("StatusCode")
 	public int statusCode;
+	@JsonProperty("ErrorCode")
 	public String errorCode;
+	@JsonProperty("ResponseLength")
 	public long responseLength;
+	@JsonProperty("ObjectLength")
 	public long objectLength;
+	@JsonProperty("TotalTime")
 	public long totalTime;
+	@JsonProperty("RequestLength")
 	public long requestLength;
+	@JsonProperty("Referer")
 	public String referer;
+	@JsonProperty("UserAgent")
 	public String userAgent;
+	@JsonProperty("VersionId")
 	public String versionId;
+	@JsonProperty("HostId")
 	public String hostId;
+	@JsonProperty("Sign")
 	public String sign;
+	@JsonProperty("SSLGroup")
 	public String sslGroup;
+	@JsonProperty("SignType")
 	public String signType;
+	@JsonProperty("EndPoint")
 	public String endPoint;
+	@JsonProperty("TLSVersion")
 	public String tlsVersion;
 
 	public S3LogData() {
@@ -157,33 +182,32 @@ public class S3LogData implements BaseData {
 
 	// @Override
 	// public Document getInsertDBDocument() {
-	// 	var param = new Document();
-	// 	param.put(S3LogQuery.DB_USER_NAME, UserName);
-	// 	param.put(S3LogQuery.DB_BUCKET_NAME, BucketName);
-	// 	param.put(S3LogQuery.DB_IN_DATE, Date);
-	// 	param.put(S3LogQuery.DB_REMOTE_HOST, RemoteHost);
-	// 	param.put(S3LogQuery.DB_REQUEST_USER, RequestUser);
-	// 	param.put(S3LogQuery.DB_REQUEST_ID, RequestId);
-	// 	param.put(S3LogQuery.DB_OPERATION, Operation);
-	// 	param.put(S3LogQuery.DB_OBJECT_NAME, ObjectName);
-	// 	param.put(S3LogQuery.DB_REQUEST_URI, RequestURI);
-	// 	param.put(S3LogQuery.DB_STATUS_CODE, StatusCode);
-	// 	param.put(S3LogQuery.DB_ERROR_CODE, ErrorCode);
-	// 	param.put(S3LogQuery.DB_RESPONSE_LENGTH, ResponseLength);
-	// 	param.put(S3LogQuery.DB_OBJECT_LENGTH, ObjectLength);
-	// 	param.put(S3LogQuery.DB_TOTAL_TIME, TotalTime);
-	// 	param.put(S3LogQuery.DB_REQUEST_LENGTH, RequestLength);
-	// 	param.put(S3LogQuery.DB_REFERER, Referer);
-	// 	param.put(S3LogQuery.DB_USER_AGENT, UserAgent);
-	// 	param.put(S3LogQuery.DB_VERSION_ID, VersionId);
-	// 	param.put(S3LogQuery.DB_HOST_ID, HostId);
-	// 	param.put(S3LogQuery.DB_SIGN, Sign);
-	// 	param.put(S3LogQuery.DB_SSL_GROUP, SSLGroup);
-	// 	param.put(S3LogQuery.DB_SIGN_TYPE, SignType);
-	// 	param.put(S3LogQuery.DB_ENDPOINT, EndPoint);
-	// 	param.put(S3LogQuery.DB_TLS_VERSION, TLSVersion);
-
-	// 	return param;
+	// var param = new Document();
+	// param.put(S3LogQuery.DB_USER_NAME, UserName);
+	// param.put(S3LogQuery.DB_BUCKET_NAME, BucketName);
+	// param.put(S3LogQuery.DB_IN_DATE, Date);
+	// param.put(S3LogQuery.DB_REMOTE_HOST, RemoteHost);
+	// param.put(S3LogQuery.DB_REQUEST_USER, RequestUser);
+	// param.put(S3LogQuery.DB_REQUEST_ID, RequestId);
+	// param.put(S3LogQuery.DB_OPERATION, Operation);
+	// param.put(S3LogQuery.DB_OBJECT_NAME, ObjectName);
+	// param.put(S3LogQuery.DB_REQUEST_URI, RequestURI);
+	// param.put(S3LogQuery.DB_STATUS_CODE, StatusCode);
+	// param.put(S3LogQuery.DB_ERROR_CODE, ErrorCode);
+	// param.put(S3LogQuery.DB_RESPONSE_LENGTH, ResponseLength);
+	// param.put(S3LogQuery.DB_OBJECT_LENGTH, ObjectLength);
+	// param.put(S3LogQuery.DB_TOTAL_TIME, TotalTime);
+	// param.put(S3LogQuery.DB_REQUEST_LENGTH, RequestLength);
+	// param.put(S3LogQuery.DB_REFERER, Referer);
+	// param.put(S3LogQuery.DB_USER_AGENT, UserAgent);
+	// param.put(S3LogQuery.DB_VERSION_ID, VersionId);
+	// param.put(S3LogQuery.DB_HOST_ID, HostId);
+	// param.put(S3LogQuery.DB_SIGN, Sign);
+	// param.put(S3LogQuery.DB_SSL_GROUP, SSLGroup);
+	// param.put(S3LogQuery.DB_SIGN_TYPE, SignType);
+	// param.put(S3LogQuery.DB_ENDPOINT, EndPoint);
+	// param.put(S3LogQuery.DB_TLS_VERSION, TLSVersion);
+	// return param;
 	// }
 
 	@Override
