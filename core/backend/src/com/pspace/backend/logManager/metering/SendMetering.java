@@ -31,7 +31,7 @@ public class SendMetering {
 	public SendMetering(MeteringConfig Config) {
 		this.config = Config;
 	}
-	
+
 	public void stop() {
 		_pause = true;
 	}
@@ -43,7 +43,6 @@ public class SendMetering {
 	public void quit() {
 		_quit = true;
 	}
-
 
 	public void Run() {
 		int assetHour = 0;
@@ -98,6 +97,7 @@ public class SendMetering {
 					db.insertBackendErrorAsset(assetRange);
 
 					db.expiredMeter();
+					db.check();
 				}
 
 				// Metering 설정한 시간만큼 대기

@@ -11,6 +11,7 @@
 package com.pspace.backend.logManager.db.table;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class QueryConstants {
@@ -21,5 +22,21 @@ public class QueryConstants {
 		var now = LocalDate.now();
 		var formatter = DateTimeFormatter.ofPattern("_yyyy_MM");
 		return tableName + now.format(formatter);
+	}
+	
+	public static int getMonth() {
+		var now = LocalDate.now();
+		return now.getMonthValue();
+	}
+	
+	// 1시간 뒤에 월이 바뀌는지 체크
+	public static boolean isMonthChanged(int month) {
+		var now = LocalDateTime.now();
+		now.plusHours(1);
+		return now.getMonthValue() != month;
+	}
+
+	public static int nextMonth(int month) {
+		return month % 12 + 1;
 	}
 }

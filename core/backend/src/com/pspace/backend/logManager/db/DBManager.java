@@ -59,6 +59,13 @@ public class DBManager implements IDBManager {
 		dbManager.connect();
 	}
 
+	/**
+	 * DB 확인
+	 */
+	public boolean check() {
+		return dbManager.check();
+	}
+
 	// #region select
 
 	/**
