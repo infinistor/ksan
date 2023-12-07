@@ -13,6 +13,7 @@ package com.pspace.backend.libs.Data.S3;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -130,18 +131,22 @@ public class S3LogData implements BaseData {
 		tlsVersion = "";
 	}
 
+	@JsonIgnore
 	public boolean isOperationEmpty() {
 		return operation.isEmpty() || operation.equals("-");
 	}
 
+	@JsonIgnore
 	public boolean isBucketNameEmpty() {
 		return bucketName.isEmpty() || bucketName.equals("-");
 	}
 
+	@JsonIgnore
 	public boolean isError() {
 		return !errorCode.equals("-") && !errorCode.isBlank();
 	}
 
+	@JsonIgnore
 	public String Print() {
 		return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
 				userName, bucketName, date, remoteHost, requestUser, requestId, operation, objectName,

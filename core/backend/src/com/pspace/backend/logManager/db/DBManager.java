@@ -145,8 +145,19 @@ public class DBManager implements IDBManager {
 	 *            S3 로그 데이터
 	 * @return 성공 여부
 	 */
-	public boolean insertLogging(S3LogData data) {
-		return dbManager.insertLogging(data);
+	public boolean insertS3Log(S3LogData data) {
+		return dbManager.insertS3Log(data);
+	}
+
+	/**
+	 * S3 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            S3 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendLog(S3LogData data) {
+		return dbManager.insertBackendLog(data);
 	}
 
 	/**

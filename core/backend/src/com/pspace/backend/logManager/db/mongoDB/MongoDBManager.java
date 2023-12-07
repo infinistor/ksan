@@ -40,6 +40,7 @@ import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.logManager.db.IDBManager;
 import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
 import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
 import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
 import com.pspace.backend.logManager.db.table.replication.ReplicationFailedQuery;
 import com.pspace.backend.logManager.db.table.replication.ReplicationSuccessQuery;
@@ -85,8 +86,12 @@ public class MongoDBManager implements IDBManager {
 
 	/***************************** Insert *****************************/
 
-	public boolean insertLogging(S3LogData data) {
+	public boolean insertS3Log(S3LogData data) {
 		return insert(S3LogQuery.getTableName(), data);
+	}
+
+	public boolean insertBackendLog(S3LogData data) {
+		return insert(BackendLogQuery.getTableName(), data);
 	}
 
 	public boolean insertReplicationLog(ReplicationLogData data) {
@@ -112,10 +117,10 @@ public class MongoDBManager implements IDBManager {
 	/*********************** Utility ***********************/
 	<T extends BaseData> boolean insert(String tableName, T item) {
 		// try {
-		// 	var collection = db.getCollection(tableName);
-		// 	collection.insertOne(item.getInsertDBDocument());
+		// var collection = db.getCollection(tableName);
+		// collection.insertOne(item.getInsertDBDocument());
 		// } catch (Exception e) {
-		// 	logger.error("Error : {}", tableName, e);
+		// logger.error("Error : {}", tableName, e);
 		// }
 		return false;
 	}

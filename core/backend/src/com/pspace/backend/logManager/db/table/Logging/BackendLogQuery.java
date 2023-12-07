@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class BackendLogQuery {
 	static final Logger logger = LoggerFactory.getLogger(BackendLogQuery.class);
 
-	public static final String DB_TABLE_NAME = "S3LOGGINGS";
+	public static final String DB_TABLE_NAME = "BACKEND_LOGGINGS";
 	public static final String DB_ID = "ID";
 	public static final String DB_USER_NAME = "USER_NAME";
 	public static final String DB_BUCKET_NAME = "BUCKET_NAME";
@@ -85,7 +85,7 @@ public class BackendLogQuery {
 		return String.format(
 				"INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-				DB_TABLE_NAME,
+				getTableName(),
 				DB_USER_NAME, DB_BUCKET_NAME, DB_IN_DATE, DB_REMOTE_HOST, DB_REQUEST_USER, DB_REQUEST_ID,
 				DB_OPERATION, DB_OBJECT_NAME, DB_REQUEST_URI, DB_STATUS_CODE, DB_ERROR_CODE, DB_RESPONSE_LENGTH,
 				DB_OBJECT_LENGTH, DB_TOTAL_TIME, DB_REQUEST_LENGTH, DB_REFERER, DB_USER_AGENT, DB_VERSION_ID,
@@ -93,12 +93,7 @@ public class BackendLogQuery {
 	}
 
 	public static String select(String BucketName) {
-		return String.format("SELECT * FROM %s WHERE %s = '%s';", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName);
-	}
-
-	public static String delete(String BucketName, long Index) {
-		return String.format("DELETE FROM %s WHERE %s = '%s' and %s <= %d;", DB_TABLE_NAME, DB_BUCKET_NAME, BucketName,
-				DB_ID, Index);
+		return String.format("SELECT * FROM %s WHERE %s = '%s';", getTableName(), DB_BUCKET_NAME, BucketName);
 	}
 
 	public static List<S3LogData> getList(List<HashMap<String, Object>> resultList) {

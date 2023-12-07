@@ -154,8 +154,13 @@ public class MariaDBManager implements IDBManager {
 	}
 
 	@Override
-	public boolean insertLogging(S3LogData data) {
+	public boolean insertS3Log(S3LogData data) {
 		return insert(S3LogQuery.insert(), data);
+	}
+
+	@Override
+	public boolean insertBackendLog(S3LogData data) {
+		return insert(BackendLogQuery.insert(), data);
 	}
 
 	@Override

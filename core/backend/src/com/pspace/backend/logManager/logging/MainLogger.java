@@ -27,6 +27,7 @@ public class MainLogger {
 	protected final AgentConfig agent;
 
 	List<MQReceiver> s3LogReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> backendLogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> replicationLogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> lifecycleLogReceivers = new ArrayList<MQReceiver>();
 	List<MQReceiver> restoreLogReceivers = new ArrayList<MQReceiver>();
@@ -56,6 +57,19 @@ public class MainLogger {
 						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_GW_LOG,
 						new S3LogReceiver()));
+
+				backendLogReceivers.add(new MQReceiver(
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
+						Constants.MQ_QUEUE_LOG_MANAGER_BACKEND_LOG,
+						Constants.MQ_KSAN_LOG_EXCHANGE,
+						false,
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
+						Constants.MQ_BINDING_BACKEND_LOG,
+						new BackendLogReceiver()));
+
 				replicationLogReceivers.add(new MQReceiver(
 						agent.mqHost,
 						agent.mqPort,
@@ -67,6 +81,7 @@ public class MainLogger {
 						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_REPLICATION_LOG,
 						new ReplicationLogReceiver()));
+
 				lifecycleLogReceivers.add(new MQReceiver(
 						agent.mqHost,
 						agent.mqPort,

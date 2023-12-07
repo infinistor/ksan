@@ -41,6 +41,7 @@ public class Constants {
 	 * Log Manager
 	 ***********************************/
 	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-log-manager-s3-log";
+	public static final String MQ_QUEUE_LOG_MANAGER_BACKEND_LOG = "ksan-log-manager-backend-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG = "ksan-log-manager-restore-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_LIFECYCLE_EVENT_LOG = "ksan-log-manager-lifecycle-event-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_REPLICATION_EVENT_LOG = "ksan-log-manager-replication-event-log";

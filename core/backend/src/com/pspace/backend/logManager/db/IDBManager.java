@@ -39,7 +39,16 @@ public interface IDBManager {
 	 *            S3 로그 데이터
 	 * @return 성공 여부
 	 */
-	boolean insertLogging(S3LogData Event);
+	boolean insertS3Log(S3LogData Event);
+
+	/**
+	 * S3 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            S3 로그 데이터
+	 * @return 성공 여부
+	 */
+	boolean insertBackendLog(S3LogData Event);
 
 	/**
 	 * Replication 로그를 DB에 저장
