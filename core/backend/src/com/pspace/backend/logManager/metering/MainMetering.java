@@ -24,7 +24,7 @@ public class MainMetering {
 		this.Config = Config;
 	}
 
-	public boolean Start() {
+	public boolean start() {
 		try {
 			Sender = new SendMetering(Config);
 			SendThread = new Thread(() -> Sender.Run());
