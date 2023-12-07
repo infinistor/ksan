@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
@@ -71,8 +72,10 @@ public class GWLogging {
         }
 
         // date
-        Date date = new Date();
-        object.put(GWConstants.GW_LOG_DATE, date.toString());
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		// map.put("date_time", timestamp.toString());
+        // Date date = new Date();
+        object.put(GWConstants.GW_LOG_DATE, timestamp.toString());
 
         // remote host
         if (!Strings.isNullOrEmpty(s3Parameter.getRemoteHost())) {
@@ -203,6 +206,7 @@ public class GWLogging {
         try {
             if (s3Parameter.isAdmin()) {
                 MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_BACKEND_LOG_ADD);
+                logger.debug("Admin log : {}", GWConstants.MQUEUE_NAME_GW_BACKEND_LOG_ADD);
             } else {
                 MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
             }
