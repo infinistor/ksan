@@ -13,6 +13,8 @@ package com.pspace.backend.logManager.metering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Config.MeteringConfig;
+
 public class MainMetering {
 	private final Logger logger = LoggerFactory.getLogger(MainMetering.class);
 	private final MeteringConfig Config;

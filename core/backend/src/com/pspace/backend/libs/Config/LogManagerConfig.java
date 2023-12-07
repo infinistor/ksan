@@ -71,4 +71,8 @@ public class LogManagerConfig {
 
 		return config;
 	}
+
+	public MeteringConfig getMeterConfig() {
+		return new MeteringConfig(assertHour, meterMinute);
+	}
 }
