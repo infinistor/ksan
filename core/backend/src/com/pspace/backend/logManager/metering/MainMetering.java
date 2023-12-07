@@ -13,24 +13,22 @@ package com.pspace.backend.logManager.metering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.logManager.db.DBManager;
+import com.pspace.backend.libs.Config.MeteringConfig;
 
 public class MainMetering {
 	private final Logger logger = LoggerFactory.getLogger(MainMetering.class);
 	private final MeteringConfig Config;
-	private final DBManager DB;
 
 	private Thread SendThread;
 	private SendMetering Sender;
 
-	public MainMetering(DBManager DB, MeteringConfig Config) {
-		this.DB = DB;
+	public MainMetering(MeteringConfig Config) {
 		this.Config = Config;
 	}
 
-	public boolean Start() {
+	public boolean start() {
 		try {
-			Sender = new SendMetering(DB, Config);
+			Sender = new SendMetering(Config);
 			SendThread = new Thread(() -> Sender.Run());
 			SendThread.start();
 			return true;
@@ -41,11 +39,11 @@ public class MainMetering {
 	}
 
 	public void Stop() {
-		Sender.Stop();
+		Sender.stop();
 	}
 
 	public void Quit() {
-		Sender.Quit();
+		Sender.quit();
 		try {
 			SendThread.join();
 		} catch (Exception e) {

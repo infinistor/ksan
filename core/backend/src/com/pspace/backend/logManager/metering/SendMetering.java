@@ -10,54 +10,104 @@
 */
 package com.pspace.backend.logManager.metering;
 
+import java.util.Calendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Config.MeteringConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.logManager.db.DBManager;
 
 public class SendMetering {
+	private final Logger logger = LoggerFactory.getLogger(SendMetering.class);
 
 	private final MeteringConfig config;
-	private final DBManager DB;
-	private boolean Stop = false;
-	private boolean Quit = false;
+	private final DBManager db = DBManager.getInstance();
+	private final ObjManagerHelper objManager = ObjManagerHelper.getInstance();
+	private boolean _pause = false;
+	private boolean _quit = false;
 
-	public SendMetering(DBManager DB, MeteringConfig Config) {
-		this.DB = DB;
+	public SendMetering(MeteringConfig Config) {
 		this.config = Config;
 	}
 
+	public void stop() {
+		_pause = true;
+	}
+
+	public void start() {
+		_pause = false;
+	}
+
+	public void quit() {
+		_quit = true;
+	}
+
 	public void Run() {
-		int AssetTime = 0;
-		while (!Quit) {
+		int assetHour = 0;
+
+		while (!_quit) {
 			// 일시정지 확인
-			if (Stop) {
+			if (_pause) {
 				Utility.delay(config.getMeterDelay());
 				continue;
 			}
-			Utility.delay(config.getMeterDelay());
-			AssetTime += config.getMeterDelay();
+			try {
+				// Metering 조회 기간 설정
+				var meterRange = Utility.getDateRangeMinute(config.getMeter());
+				logger.info("Metering Range: " + meterRange.start + " ~ " + meterRange.end);
 
-			DB.insertApiMeter(config.getMeter());
-			DB.insertIoMeter(config.getMeter());
+				// Bucket Metering 집계
+				var bucketIoEvents = db.getBucketIoMeteringEvents(meterRange);
+				var bucketApiEvents = db.getBucketApiMeteringEvents(meterRange);
+				var bucketErrorEvents = db.getBucketErrorMeteringEvents(meterRange);
 
-			if (AssetTime >= config.getAssetDelay()) {
-				AssetTime -= config.getAssetDelay();
+				// // Backend Metering 집계
+				var backendIoEvents = db.getBackendIoMeteringEvents(meterRange);
+				var backendApiEvents = db.getBackendApiMeteringEvents(meterRange);
+				var backendErrorEvents = db.getBackendErrorMeteringEvents(meterRange);
 
-				DB.insertApiAsset();
-				DB.insertIoAsset();
+				// 버킷 목록 및 Usage 가져오기
+				var buckets = objManager.getBucketUsages(meterRange);
+
+				// DB에 저장
+				db.insertBucketApiMeter(bucketApiEvents);
+				db.insertBucketIoMeter(bucketIoEvents);
+				db.insertBucketErrorMeter(bucketErrorEvents);
+				db.insertUsageMeter(buckets);
+				db.insertBackendApiMeter(backendApiEvents);
+				db.insertBackendIoMeter(backendIoEvents);
+				db.insertBackendErrorMeter(backendErrorEvents);
+
+				// 현재 시간 가져오기
+				var hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+				// 시간이 바뀌었다면 집계
+				if (assetHour != hour) {
+					assetHour = hour;
+					var assetRange = Utility.getDateRangeHour(config.getMeter());
+					logger.info("Asset Range: " + assetRange.start + " ~ " + assetRange.end);
+
+					db.insertBucketApiAsset(assetRange);
+					db.insertBucketIoAsset(assetRange);
+					db.insertBucketErrorAsset(assetRange);
+					db.insertUsageAsset(assetRange);
+					db.insertBackendApiAsset(assetRange);
+					db.insertBackendIoAsset(assetRange);
+					db.insertBackendErrorAsset(assetRange);
+
+					db.expiredMeter();
+					db.check();
+				}
+
+				// Metering 설정한 시간만큼 대기
+				Utility.delay(config.getMeterDelay());
+
+			} catch (Exception e) {
+				logger.error("", e);
 			}
 		}
-	}
-
-	public void Stop() {
-		Stop = true;
-	}
-
-	public void Start() {
-		Stop = false;
-	}
-
-	public void Quit() {
-		Quit = true;
 	}
 
 }

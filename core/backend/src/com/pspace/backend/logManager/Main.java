@@ -22,6 +22,7 @@ import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.logManager.db.DBManager;
 import com.pspace.backend.logManager.logging.MainLogger;
+import com.pspace.backend.logManager.metering.MainMetering;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -49,7 +50,7 @@ public class Main {
 		Thread HBThread;
 		Heartbeat HB;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser, ksanConfig.MQPassword);
+			HB = new Heartbeat(ServiceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
 			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
 			HBThread.start();
 		} catch (Exception e) {
@@ -76,12 +77,19 @@ public class Main {
 		}
 		logger.info("DB initialized");
 
-		var Logger = new MainLogger();
-		if (!Logger.Start(config.threadCount)) {
+		var logging = new MainLogger();
+		if (!logging.start(config.threadCount)) {
 			logger.error("MainLogger is not started!");
 			return;
 		}
 		logger.info("Logger Initialization!");
+
+		var metering = new MainMetering(config.getMeterConfig());
+		if (!metering.start()) {
+			logger.error("MainMetering is not started!");
+			return;
+		}
+		logger.info("Metering Initialization!");
 
 		while (true) {
 			Utility.delay(10000);

@@ -38,10 +38,10 @@ public class MainReplicator {
 			for (int index = 0; index < threadCount; index++) {
 				// Filter Receiver 생성
 				filterReceivers.add(new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_REPLICATION_S3_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
@@ -51,10 +51,10 @@ public class MainReplicator {
 
 				// Event Receiver 생성
 				var eventReceiver = new MQReceiver(
-						agent.MQHost,
-						agent.MQPort,
-						agent.MQUser,
-						agent.MQPassword,
+						agent.mqHost,
+						agent.mqPort,
+						agent.mqUser,
+						agent.mqPassword,
 						Constants.MQ_QUEUE_REPLICATION_EVENT_ADD,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,

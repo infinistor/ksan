@@ -28,10 +28,10 @@ public class RestoreSender implements MQCallback {
 		ksanClient = new KsanClient(region.address, region.port, region.accessKey, region.secretKey);
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_RESTORE_LOG);
@@ -54,7 +54,7 @@ public class RestoreSender implements MQCallback {
 			String Result = "";
 			// 3회 시도
 			for (int i = 0; i < 3; i++) {
-				Result = RestoreObject(event.BucketName, event.ObjectName, "STANDARD", event.VersionId);
+				Result = restoreObject(event.bucketName, event.objectName, "STANDARD", event.versionId);
 				// 성공했을 경우 종료
 				if (Result.equals(""))
 					break;
@@ -82,7 +82,7 @@ public class RestoreSender implements MQCallback {
 		}
 	}
 
-	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
+	protected String restoreObject(String bucketName, String objectName, String storageClass, String versionId) {
 
 		var Result = "";
 		try {

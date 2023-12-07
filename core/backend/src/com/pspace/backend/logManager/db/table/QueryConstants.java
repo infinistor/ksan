@@ -10,7 +10,33 @@
 */
 package com.pspace.backend.logManager.db.table;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class QueryConstants {
 	public static final int MAX_QUERY_SIZE = 1000;
 	public static final String DB_DATE_FORMAT = "%Y-%m-%d %k:%i:%s";
+
+	public static String getTodayTableName(String tableName) {
+		var now = LocalDate.now();
+		var formatter = DateTimeFormatter.ofPattern("_yyyy_MM");
+		return tableName + now.format(formatter);
+	}
+	
+	public static int getMonth() {
+		var now = LocalDate.now();
+		return now.getMonthValue();
+	}
+	
+	// 1시간 뒤에 월이 바뀌는지 체크
+	public static boolean isMonthChanged(int month) {
+		var now = LocalDateTime.now();
+		now.plusHours(1);
+		return now.getMonthValue() != month;
+	}
+
+	public static int nextMonth(int month) {
+		return month % 12 + 1;
+	}
 }

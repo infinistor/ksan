@@ -37,9 +37,6 @@ public class LogManagerConfig {
 	@JsonProperty("db_pool_size")
 	public int dbPoolSize;
 
-	@JsonProperty("db_expires")
-	public int dbExpires;
-
 	@JsonProperty("check_interval")
 	public int checkInterval;
 
@@ -64,15 +61,18 @@ public class LogManagerConfig {
 
 	public DBConfig getDBConfig() {
 		var config = new DBConfig();
-		config.Type = dbType;
-		config.Host = dbHost;
-		config.Port = dbPort;
-		config.DatabaseName = dbName;
-		config.User = dbUser;
-		config.Password = dbPassword;
-		config.PoolSize = dbPoolSize;
-		config.Expires = dbExpires;
+		config.type = dbType;
+		config.host = dbHost;
+		config.port = dbPort;
+		config.databaseName = dbName;
+		config.user = dbUser;
+		config.password = dbPassword;
+		config.poolSize = dbPoolSize;
 
 		return config;
+	}
+
+	public MeteringConfig getMeterConfig() {
+		return new MeteringConfig(assertHour, meterMinute);
 	}
 }

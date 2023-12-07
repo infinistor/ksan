@@ -36,12 +36,12 @@ public class MQManager {
 
 	public void init() throws Exception {
 		if (Sender == null)
-			Sender = new MQSender(Config.MQHost, Config.MQPort, Config.MQUser, Config.MQPassword,
+			Sender = new MQSender(Config.mqHost, Config.mqPort, Config.mqUser, Config.mqPassword,
 					Constants.MQ_KSAN_LOG_EXCHANGE, Constants.MQ_EXCHANGE_OPTION_DIRECT, "");
 	}
 	public void init(String exchangeOption, String routingKey) throws Exception {
 		if (Sender == null)
-			Sender = new MQSender(Config.MQHost, Config.MQPort, Config.MQUser, Config.MQPassword,
+			Sender = new MQSender(Config.mqHost, Config.mqPort, Config.mqUser, Config.mqPassword,
 					Constants.MQ_KSAN_LOG_EXCHANGE, exchangeOption, routingKey);
 	}
 

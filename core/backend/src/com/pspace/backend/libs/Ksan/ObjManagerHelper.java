@@ -16,6 +16,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.libs.Data.Metering.DateRange;
+import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.S3.S3BucketData;
 import com.pspace.backend.libs.Data.S3.S3ObjectData;
 import com.pspace.ifs.ksan.objmanager.Bucket;
@@ -44,6 +46,18 @@ public class ObjManagerHelper {
 
 	public List<Bucket> getBucketList() {
 		return objManager.getBucketList();
+	}
+
+	public List<UsageLogData> getBucketUsages(DateRange range) {
+		var buckets = objManager.getBucketList();
+		var usages = new java.util.ArrayList<UsageLogData>();
+
+		for (var bucket : buckets) {
+			var usage = new UsageLogData(range.start, bucket.getUserName(), bucket.getName(), bucket.getUsedSpace());
+			usages.add(usage);
+		}
+
+		return usages;
 	}
 
 	public S3BucketData getBucket(String bucketName) throws ResourceNotFoundException, SQLException {
@@ -80,6 +94,7 @@ public class ObjManagerHelper {
 
 	/**
 	 * 삭제 마커만 남은 객체 목록을 조회한다.
+	 * 
 	 * @param bucketName
 	 * @param prefix
 	 * @param nextMarker
@@ -95,12 +110,12 @@ public class ObjManagerHelper {
 	}
 
 	// public int getObjectCount(String bucketName, String objectName) {
-	// 	try {
-	// 		return objManager.getObjectCount(bucketName, objectName);
-	// 	} catch (Exception e) {
-	// 		log.error("", e);
-	// 		return 0;
-	// 	}
+	// try {
+	// return objManager.getObjectCount(bucketName, objectName);
+	// } catch (Exception e) {
+	// log.error("", e);
+	// return 0;
+	// }
 	// }
 
 	public S3ObjectData getObject(String bucketName, String objectName) throws ResourceNotFoundException {

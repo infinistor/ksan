@@ -10,11 +10,15 @@
 */
 package com.pspace.backend.libs.Data.Lifecycle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Data.BaseData;
 
-public class LifecycleLogData extends LifecycleEventData {
+public class LifecycleLogData extends LifecycleEventData implements BaseData {
 
 	public String date;
 	public String message;
@@ -45,6 +49,31 @@ public class LifecycleLogData extends LifecycleEventData {
 		this.date = "";
 		this.message = "";
 	}
+
+	@Override
+	public List<Object> getInsertDBParameters() {
+		var param = new ArrayList<Object>();
+		param.add(bucketName);
+		param.add(objectName);
+		param.add(versionId);
+		param.add(uploadId);
+		param.add(message);
+
+		return param;
+	}
+
+	// @Override
+	// public Document getInsertDBDocument() {
+	// 	var param = new Document();
+	// 	param.put(LifecycleLogQuery.DB_IN_DATE, LocalDateTime.now());
+	// 	param.put(LifecycleLogQuery.DB_BUCKETNAME, bucketName);
+	// 	param.put(LifecycleLogQuery.DB_OBJECTNAME, objectName);
+	// 	param.put(LifecycleLogQuery.DB_VERSIONID, versionId);
+	// 	param.put(LifecycleLogQuery.DB_UPLOADID, uploadId);
+	// 	param.put(LifecycleLogQuery.DB_MESSAGE, message);
+
+	// 	return param;
+	// }
 
 	@Override
 	public String toString() {

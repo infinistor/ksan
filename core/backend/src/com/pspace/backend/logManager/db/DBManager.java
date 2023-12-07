@@ -13,16 +13,21 @@ package com.pspace.backend.logManager.db;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import com.pspace.backend.libs.Config.DBConfig;
-import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.libs.Data.Metering.ApiLogData;
+import com.pspace.backend.libs.Data.Metering.DateRange;
+import com.pspace.backend.libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.libs.Data.Metering.IoLogData;
+import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.logManager.db.mariaDB.MariaDBManager;
-import com.pspace.backend.logManager.db.mongoDB.MongoDBManager;
 
-public class DBManager {
+public class DBManager implements IDBManager {
 	static final Logger logger = LoggerFactory.getLogger(DBManager.class);
 	IDBManager dbManager;
 	DBConfig config;
@@ -37,44 +42,323 @@ public class DBManager {
 
 	public void init(DBConfig config) {
 		this.config = config;
-		if (config.Type.equalsIgnoreCase(Constants.DB_TYPE_MARIADB))
-			dbManager = new MariaDBManager(config);
-		else
-			dbManager = new MongoDBManager(config);
+		dbManager = new MariaDBManager(config);
+		// if (config.Type.equalsIgnoreCase(Constants.DB_TYPE_MARIADB))
+		// dbManager = new MariaDBManager(config);
+		// else
+		// dbManager = new MongoDBManager(config);
 	}
 
+	/**
+	 * DB 연결
+	 * 
+	 * @throws Exception
+	 *             DB 연결 실패시
+	 */
 	public void connect() throws Exception {
 		dbManager.connect();
 	}
 
-	public boolean insertLogging(S3LogData data) {
-		return dbManager.insertLogging(data);
+	/**
+	 * DB 확인
+	 */
+	public boolean check() {
+		return dbManager.check();
 	}
 
+	// #region select
+
+	/**
+	 * 분단위 API 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<ApiLogData> getBucketApiMeteringEvents(DateRange range) {
+		return dbManager.getBucketApiMeteringEvents(range);
+	}
+
+	/**
+	 * 분단위 IO 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<IoLogData> getBucketIoMeteringEvents(DateRange range) {
+		return dbManager.getBucketIoMeteringEvents(range);
+	}
+
+	/**
+	 * 분단위 에러 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<ErrorLogData> getBucketErrorMeteringEvents(DateRange range) {
+		return dbManager.getBucketErrorMeteringEvents(range);
+	}
+
+	/**
+	 * 분단위 Backend API 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<ApiLogData> getBackendApiMeteringEvents(DateRange range) {
+		return dbManager.getBackendApiMeteringEvents(range);
+	}
+
+	/**
+	 * 분단위 Backend IO 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<IoLogData> getBackendIoMeteringEvents(DateRange range) {
+		return dbManager.getBackendIoMeteringEvents(range);
+	}
+
+	/**
+	 * 분단위 Backend 에러 사용량 로그를 DB에서 조회
+	 * 
+	 * @param range
+	 *            조회 기간
+	 * @return 사용량 로그
+	 */
+	public List<ErrorLogData> getBackendErrorMeteringEvents(DateRange range) {
+		return dbManager.getBackendErrorMeteringEvents(range);
+	}
+
+	// #endregion
+
+	// #region insert
+
+	/**
+	 * S3 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            S3 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertS3Log(S3LogData data) {
+		return dbManager.insertS3Log(data);
+	}
+
+	/**
+	 * S3 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            S3 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendLog(S3LogData data) {
+		return dbManager.insertBackendLog(data);
+	}
+
+	/**
+	 * 복제 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            복제 로그 데이터
+	 * @return 성공 여부
+	 */
 	public boolean insertReplicationLog(ReplicationLogData data) {
 		return dbManager.insertReplicationLog(data);
 	}
 
+	/**
+	 * 만료 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            복제 로그 데이터
+	 * @return 성공 여부
+	 */
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return dbManager.insertLifecycleLog(data);
 	}
+
+	/**
+	 * 복구 로그를 DB에 저장
+	 * 
+	 * @param data
+	 *            복제 로그 데이터
+	 * @return 성공 여부
+	 */
 	public boolean insertRestoreLog(RestoreLogData data) {
 		return dbManager.insertRestoreLog(data);
 	}
 
-	public boolean insertApiMeter(int minutes) {
-		return dbManager.insertApiMeter(minutes);
+	/**
+	 * 분단위 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertUsageMeter(List<UsageLogData> events) {
+		return dbManager.insertUsageMeter(events);
 	}
 
-	public boolean insertIoMeter(int minutes) {
-		return dbManager.insertIoMeter(minutes);
+	/**
+	 * 시단위 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertUsageAsset(DateRange range) {
+		return dbManager.insertUsageAsset(range);
 	}
 
-	public boolean insertApiAsset() {
-		return dbManager.insertApiAsset();
+	/**
+	 * 분단위 API 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketApiMeter(List<ApiLogData> events) {
+		return dbManager.insertBucketApiMeter(events);
 	}
 
-	public boolean insertIoAsset() {
-		return dbManager.insertIoAsset();
+	/**
+	 * 시단위 API 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketApiAsset(DateRange range) {
+		return dbManager.insertBucketApiAsset(range);
 	}
+
+	/**
+	 * 분단위 IO 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketIoMeter(List<IoLogData> events) {
+		return dbManager.insertBucketIoMeter(events);
+	}
+
+	/**
+	 * 시단위 IO 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketIoAsset(DateRange range) {
+		return dbManager.insertBucketIoAsset(range);
+	}
+
+	/**
+	 * 분단위 에러 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketErrorMeter(List<ErrorLogData> events) {
+		return dbManager.insertBucketErrorMeter(events);
+	}
+
+	/**
+	 * 시단위 에러 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBucketErrorAsset(DateRange range) {
+		return dbManager.insertBucketErrorAsset(range);
+	}
+
+	/**
+	 * 분단위 Backend API 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendApiMeter(List<ApiLogData> events) {
+		return dbManager.insertBackendApiMeter(events);
+	}
+
+	/**
+	 * 분단위 Backend IO 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendIoMeter(List<IoLogData> events) {
+		return dbManager.insertBackendIoMeter(events);
+	}
+
+	/**
+	 * 분단위 Backend 에러 사용량 로그를 DB에 저장
+	 * 
+	 * @param events
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendErrorMeter(List<ErrorLogData> events) {
+		return dbManager.insertBackendErrorMeter(events);
+	}
+
+	/**
+	 * 시단위 Backend API 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendApiAsset(DateRange range) {
+		return dbManager.insertBackendApiAsset(range);
+	}
+
+	/**
+	 * 시단위 Backend IO 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendIoAsset(DateRange range) {
+		return dbManager.insertBackendIoAsset(range);
+	}
+
+	/**
+	 * 시단위 Backend 에러 사용량 로그를 DB에 저장
+	 * 
+	 * @param range
+	 *            사용량 로그 데이터
+	 * @return 성공 여부
+	 */
+	public boolean insertBackendErrorAsset(DateRange range) {
+		return dbManager.insertBackendErrorAsset(range);
+	}
+
+	// #endregion
+
+	// #region delete
+
+	/**
+	 * 만료된 분단위 사용량 로그를 DB에서 삭제
+	 * 
+	 * @return 성공 여부
+	 */
+	public boolean expiredMeter() {
+		return dbManager.expiredMeter();
+	}
+
+	// #endregion
 }

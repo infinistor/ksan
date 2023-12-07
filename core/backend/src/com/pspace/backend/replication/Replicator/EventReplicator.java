@@ -30,10 +30,10 @@ public class EventReplicator extends BaseReplicator {
 	public EventReplicator() throws Exception {
 		super(LoggerFactory.getLogger(EventReplicator.class));
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_REPLICATION_LOG);
@@ -60,7 +60,7 @@ public class EventReplicator extends BaseReplicator {
 			try {
 
 				// 타겟 클라이언트 생성
-				AmazonS3 TargetClient = CreateClient(event);
+				AmazonS3 TargetClient = createClient(event);
 
 				// 전송 객체 생성
 				var Sender = new SendReplicator(sourceClient, TargetClient, mq, event, config.partSize);

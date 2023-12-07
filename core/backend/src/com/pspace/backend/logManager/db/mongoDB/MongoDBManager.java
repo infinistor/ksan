@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +27,23 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.pspace.backend.libs.Config.DBConfig;
+import com.pspace.backend.libs.Data.BaseData;
 import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
 import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.libs.Data.Metering.ApiLogData;
+import com.pspace.backend.libs.Data.Metering.DateRange;
+import com.pspace.backend.libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.libs.Data.Metering.IoLogData;
+import com.pspace.backend.libs.Data.Metering.UsageLogData;
 import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
 import com.pspace.backend.libs.Data.S3.S3LogData;
 import com.pspace.backend.logManager.db.IDBManager;
 import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
 import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
-import com.pspace.backend.logManager.db.table.Logging.LoggingQuery;
-import com.pspace.backend.logManager.db.table.replication.ReplicationLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
+import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationFailedQuery;
+import com.pspace.backend.logManager.db.table.replication.ReplicationSuccessQuery;
 
 public class MongoDBManager implements IDBManager {
 	static final Logger logger = LoggerFactory.getLogger(MongoDBManager.class);
@@ -48,45 +57,56 @@ public class MongoDBManager implements IDBManager {
 	}
 
 	public void connect() throws Exception {
-		if (!config.Host.startsWith("mongodb://")) {
-			var credential = MongoCredential.createCredential(config.User, config.DatabaseName,
-					config.Password.toCharArray());
-			var serverAddress = new ServerAddress(config.Host, config.Port);
+		if (!config.host.startsWith("mongodb://")) {
+			var credential = MongoCredential.createCredential(config.user, config.databaseName,
+					config.password.toCharArray());
+			var serverAddress = new ServerAddress(config.host, config.port);
 			mongo = MongoClients.create(MongoClientSettings.builder()
 					.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(serverAddress)))
 					.credential(credential)
 					.build());
 		} else {
-			mongo = MongoClients.create(config.Host);
+			mongo = MongoClients.create(config.host);
 
 		}
-		db = mongo.getDatabase(config.DatabaseName);
+		db = mongo.getDatabase(config.databaseName);
+	}
+
+	public boolean check() {
+		return true;
 	}
 
 	/***************************** Select **********************************/
 
 	////////////////////// Logging //////////////////////
 	public List<S3LogData> getLoggingEventList(String BucketName) {
-		var map = Select(LoggingQuery.getSelect(BucketName));
-		return LoggingQuery.getList(map);
+		var map = select(S3LogQuery.select(BucketName));
+		return S3LogQuery.getList(map);
 	}
 
 	/***************************** Insert *****************************/
 
-	public boolean insertLogging(S3LogData data) {
-		return Insert(LoggingQuery.DB_TABLE_NAME, LoggingQuery.getInsertDocument(data));
+	public boolean insertS3Log(S3LogData data) {
+		return insert(S3LogQuery.getTableName(), data);
+	}
+
+	public boolean insertBackendLog(S3LogData data) {
+		return insert(BackendLogQuery.getTableName(), data);
 	}
 
 	public boolean insertReplicationLog(ReplicationLogData data) {
-		return Insert(ReplicationLogQuery.DB_TABLE_NAME, ReplicationLogQuery.getInsertDocument(data));
+		if (StringUtils.isBlank(data.message))
+			return insert(ReplicationSuccessQuery.DB_TABLE_NAME, data);
+		else
+			return insert(ReplicationFailedQuery.DB_TABLE_NAME, data);
 	}
 
 	public boolean insertLifecycleLog(LifecycleLogData data) {
-		return Insert(LifecycleLogQuery.DB_TABLE_NAME, LifecycleLogQuery.getInsertDocument(data));
+		return insert(LifecycleLogQuery.DB_TABLE_NAME, data);
 	}
 
 	public boolean insertRestoreLog(RestoreLogData data) {
-		return Insert(RestoreLogQuery.DB_TABLE_NAME, RestoreLogQuery.getInsertDocument(data));
+		return insert(RestoreLogQuery.DB_TABLE_NAME, data);
 	}
 
 	/***************************** Expiration *****************************/
@@ -95,17 +115,17 @@ public class MongoDBManager implements IDBManager {
 	}
 
 	/*********************** Utility ***********************/
-	private boolean Insert(String tableName, Document document) {
-		try {
-			var collection = db.getCollection(tableName);
-			collection.insertOne(document);
-		} catch (Exception e) {
-			logger.error("Error : {}", tableName, e);
-		}
+	<T extends BaseData> boolean insert(String tableName, T item) {
+		// try {
+		// var collection = db.getCollection(tableName);
+		// collection.insertOne(item.getInsertDBDocument());
+		// } catch (Exception e) {
+		// logger.error("Error : {}", tableName, e);
+		// }
 		return false;
 	}
 
-	private List<HashMap<String, Object>> Select(String tableName) {
+	private List<HashMap<String, Object>> select(String tableName) {
 		try {
 			var result = new ArrayList<HashMap<String, Object>>();
 
@@ -129,39 +149,129 @@ public class MongoDBManager implements IDBManager {
 	}
 
 	@Override
-	public boolean insertApiMeter(int minutes) {
+	public List<ApiLogData> getBucketApiMeteringEvents(DateRange range) {
 		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException("Unimplemented method 'getBucketApiMeteringEvents'");
 	}
 
 	@Override
-	public boolean insertIoMeter(int minutes) {
+	public List<IoLogData> getBucketIoMeteringEvents(DateRange range) {
 		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException("Unimplemented method 'getBucketIoMeteringEvents'");
 	}
 
 	@Override
-	public boolean insertApiAsset() {
+	public List<ErrorLogData> getBucketErrorMeteringEvents(DateRange range) {
 		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException("Unimplemented method 'getBucketErrorMeteringEvents'");
 	}
 
 	@Override
-	public boolean insertIoAsset() {
+	public List<ApiLogData> getBackendApiMeteringEvents(DateRange range) {
 		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException("Unimplemented method 'getBackendApiMeteringEvents'");
 	}
 
-	// private boolean Delete(String Query) {
-	// try {
-	// stmt.execute();
-	// logger.debug(stmt.toString());
-	// stmt.close();
-	// conn.close();
-	// return true;
-	// } catch (Exception e) {
-	// logger.error("Query Error : {}", Query, e);
-	// }
-	// return false;
-	// }
+	@Override
+	public List<IoLogData> getBackendIoMeteringEvents(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'getBackendIoMeteringEvents'");
+	}
+
+	@Override
+	public List<ErrorLogData> getBackendErrorMeteringEvents(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'getBackendErrorMeteringEvents'");
+	}
+
+	@Override
+	public boolean insertBucketApiMeter(List<ApiLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketApiMeter'");
+	}
+
+	@Override
+	public boolean insertBucketApiAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketApiAsset'");
+	}
+
+	@Override
+	public boolean insertBucketIoMeter(List<IoLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketIoMeter'");
+	}
+
+	@Override
+	public boolean insertBucketIoAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketIoAsset'");
+	}
+
+	@Override
+	public boolean insertBucketErrorMeter(List<ErrorLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketErrorMeter'");
+	}
+
+	@Override
+	public boolean insertBucketErrorAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBucketErrorAsset'");
+	}
+
+	@Override
+	public boolean insertUsageMeter(List<UsageLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertUsageMeter'");
+	}
+
+	@Override
+	public boolean insertUsageAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertUsageAsset'");
+	}
+
+	@Override
+	public boolean insertBackendApiMeter(List<ApiLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendApiMeter'");
+	}
+
+	@Override
+	public boolean insertBackendApiAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendApiAsset'");
+	}
+
+	@Override
+	public boolean insertBackendIoMeter(List<IoLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendIoMeter'");
+	}
+
+	@Override
+	public boolean insertBackendIoAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendIoAsset'");
+	}
+
+	@Override
+	public boolean insertBackendErrorMeter(List<ErrorLogData> events) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendErrorMeter'");
+	}
+
+	@Override
+	public boolean insertBackendErrorAsset(DateRange range) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'insertBackendErrorAsset'");
+	}
+
+	@Override
+	public boolean expiredMeter() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'expiredMeter'");
+	}
+
 }

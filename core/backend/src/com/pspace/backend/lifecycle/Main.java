@@ -55,8 +55,8 @@ public class Main {
 		Thread hbThread;
 		Heartbeat hb;
 		try {
-			hb = new Heartbeat(serviceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser,
-					ksanConfig.MQPassword);
+			hb = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser,
+					ksanConfig.mqPassword);
 			hbThread = new Thread(() -> hb.Start(ksanConfig.ServiceMonitorInterval));
 			hbThread.start();
 		} catch (Exception e) {
@@ -92,10 +92,10 @@ public class Main {
 		// Event Receiver 생성
 		for (int index = 0; index < config.threadCount; index++) {
 			sendReceivers.add(new MQReceiver(
-					ksanConfig.MQHost,
-					ksanConfig.MQPort,
-					ksanConfig.MQUser,
-					ksanConfig.MQPassword,
+					ksanConfig.mqHost,
+					ksanConfig.mqPort,
+					ksanConfig.mqUser,
+					ksanConfig.mqPassword,
 					Constants.MQ_QUEUE_LIFECYCLE_EVENT_ADD,
 					Constants.MQ_KSAN_LOG_EXCHANGE,
 					false,
@@ -104,10 +104,10 @@ public class Main {
 					new LifecycleSender(region)));
 
 			restoreReceivers.add(new MQReceiver(
-					ksanConfig.MQHost,
-					ksanConfig.MQPort,
-					ksanConfig.MQUser,
-					ksanConfig.MQPassword,
+					ksanConfig.mqHost,
+					ksanConfig.mqPort,
+					ksanConfig.mqUser,
+					ksanConfig.mqPassword,
 					Constants.MQ_QUEUE_RESTORE_EVENT_ADD,
 					Constants.MQ_KSAN_LOG_EXCHANGE,
 					false,
@@ -117,7 +117,7 @@ public class Main {
 		}
 
 		var today = Utility.getNowDay();
-		var AlreadyRun = true;
+		var alreadyRun = true;
 
 		var filter = new LifecycleFilter();
 		try {
@@ -133,21 +133,21 @@ public class Main {
 			try {
 				if (today != Utility.getNowDay()) {
 					today = Utility.getNowDay();
-					AlreadyRun = false;
+					alreadyRun = false;
 				}
 
 				// Schedule
-				var Schedule = Utility.String2Time(config.schedule);
+				var Schedule = Utility.string2Time(config.schedule);
 				if (Schedule < 0) {
 					logger.error("Schedule is not a valid value. {}\n", config.schedule);
 					return;
 				}
 				Utility.delay(config.checkInterval);
 
-				if (!Utility.isRun(Schedule) || AlreadyRun) {
+				if (!Utility.isRun(Schedule) || alreadyRun) {
 					continue;
 				}
-				AlreadyRun = true;
+				alreadyRun = true;
 
 				logger.info("Lifecycle Filter Start!");
 				filter.filtering();

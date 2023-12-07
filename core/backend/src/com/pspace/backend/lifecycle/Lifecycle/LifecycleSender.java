@@ -47,10 +47,10 @@ public class LifecycleSender implements MQCallback {
 
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_LIFECYCLE_LOG);
@@ -79,20 +79,20 @@ public class LifecycleSender implements MQCallback {
 				if (StringUtils.isBlank(event.uploadId)) {
 					// storageClass가 존재할 경우 스토리지 클래스 이동
 					if (StringUtils.isNotBlank(event.storageClass)) {
-						Result = RestoreObject(event.bucketName, event.objectName, event.storageClass, event.versionId);
+						Result = restoreObject(event.bucketName, event.objectName, event.storageClass, event.versionId);
 					}
 					// VersionId가 존재하지 않을 경우 일반적인 삭제로 취급
 					else if (StringUtils.isBlank(event.versionId))
-						Result = DeleteObject(event.bucketName, event.objectName);
+						Result = deleteObject(event.bucketName, event.objectName);
 
 					// VersionId가 존재할 경우 버전아이디를 포함한 삭제로 취급
 					else
-						Result = DeleteObjectVersion(event.bucketName, event.objectName,
+						Result = deleteObjectVersion(event.bucketName, event.objectName,
 								event.versionId);
 				}
 				// UploadId가 존재할 경우 Multipart 삭제
 				else
-					Result = AbortMultipartUpload(event.bucketName, event.objectName, event.uploadId);
+					Result = abortMultipartUpload(event.bucketName, event.objectName, event.uploadId);
 
 				// 성공했을 경우 종료
 				if (Result.equals(""))
@@ -125,7 +125,7 @@ public class LifecycleSender implements MQCallback {
 	 * Utility
 	 *******************************************/
 
-	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
+	protected String restoreObject(String bucketName, String objectName, String storageClass, String versionId) {
 
 		var Result = "";
 		try {
@@ -137,7 +137,7 @@ public class LifecycleSender implements MQCallback {
 		return Result;
 	}
 
-	protected String DeleteObject(String bucketName, String objectName) {
+	protected String deleteObject(String bucketName, String objectName) {
 		var Result = "";
 		try {
 			var Request = new DeleteObjectRequest(bucketName, objectName);
@@ -151,7 +151,7 @@ public class LifecycleSender implements MQCallback {
 		return Result;
 	}
 
-	protected String DeleteObjectVersion(String bucketName, String objectName, String VersionId) {
+	protected String deleteObjectVersion(String bucketName, String objectName, String VersionId) {
 		var Result = "";
 		try {
 			var Request = new DeleteVersionRequest(bucketName, objectName, VersionId);
@@ -165,7 +165,7 @@ public class LifecycleSender implements MQCallback {
 		return Result;
 	}
 
-	protected String AbortMultipartUpload(String bucketName, String objectName, String UploadId) {
+	protected String abortMultipartUpload(String bucketName, String objectName, String UploadId) {
 		var Result = "";
 		try {
 			var Request = new AbortMultipartUploadRequest(bucketName, objectName, UploadId);

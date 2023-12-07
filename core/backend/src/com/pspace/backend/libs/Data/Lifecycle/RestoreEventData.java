@@ -7,27 +7,27 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.backend.libs.s3format.RestoreObjectConfiguration;
 
 public class RestoreEventData {
-	public String BucketName;
-	public String ObjectName;
-	public String VersionId;
-	public String RestoreXml;
+	public String bucketName;
+	public String objectName;
+	public String versionId;
+	public String restoreXml;
 
 	public RestoreEventData() {
 		init();
 	}
 
 	public RestoreEventData(RestoreEventData data) {
-		this.BucketName = data.BucketName;
-		this.ObjectName = data.ObjectName;
-		this.VersionId = data.VersionId;
-		this.RestoreXml = data.RestoreXml;
+		this.bucketName = data.bucketName;
+		this.objectName = data.objectName;
+		this.versionId = data.versionId;
+		this.restoreXml = data.restoreXml;
 	}
 
 	public void init() {
-		this.BucketName = "";
-		this.ObjectName = "";
-		this.VersionId = "";
-		this.RestoreXml = "";
+		this.bucketName = "";
+		this.objectName = "";
+		this.versionId = "";
+		this.restoreXml = "";
 	}
 
 	public RestoreObjectConfiguration getRestoreObjectConfig(String restoreXml) throws JsonMappingException, JsonProcessingException {
