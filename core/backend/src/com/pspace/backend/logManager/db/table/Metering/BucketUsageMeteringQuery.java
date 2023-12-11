@@ -22,37 +22,37 @@ public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(200) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(200) NOT NULL, " +
 				DB_USED + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String createAsset() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_ASSET + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(200) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(200) NOT NULL, " +
 				DB_MAX_USED + " BIGINT DEFAULT NULL, " +
 				DB_AVG_USED + " BIGINT DEFAULT NULL, " +
 				DB_MIN_USED + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String insertMeter() {
-		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_USED + ") "
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_USED + ") "
 				+ " VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_USED + " = VALUES(" + DB_USED + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
 		return "INSERT INTO " + DB_TABLE_NAME_ASSET
-				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_MAX_USED + ", " + DB_AVG_USED + ", " + DB_MIN_USED + ") "
-				+ " SELECT '" + range.start + "', " + DB_USER + ", " + DB_BUCKET + ", MAX(" + DB_USED + "), AVG(" + DB_USED + "), MIN(" + DB_USED + ") FROM"
+				+ "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_MAX_USED + ", " + DB_AVG_USED + ", " + DB_MIN_USED + ") "
+				+ " SELECT '" + range.start + "', " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", MAX(" + DB_USED + "), AVG(" + DB_USED + "), MIN(" + DB_USED + ") FROM"
 				+ " (SELECT * FROM " + DB_TABLE_NAME_METER
 				+ " WHERE " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end
-				+ "') AS " + DB_TABLE_NAME_ASSET + " GROUP BY " + DB_USER + ", " + DB_BUCKET
+				+ "') AS " + DB_TABLE_NAME_ASSET + " GROUP BY " + DB_USER_NAME + ", " + DB_BUCKET_NAME
 				+ " ON DUPLICATE KEY UPDATE " + DB_MAX_USED + " = VALUES(" + DB_MAX_USED + "), " + DB_AVG_USED + " = VALUES(" + DB_AVG_USED + "), " + DB_MIN_USED + " = VALUES(" + DB_MIN_USED + ");";
 	}
 
@@ -67,8 +67,8 @@ public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 		var items = new java.util.ArrayList<UsageLogData>();
 		try {
 			for (var result : results) {
-				var user = (String) result.get(DB_USER);
-				var bucket = (String) result.get(DB_BUCKET);
+				var user = (String) result.get(DB_USER_NAME);
+				var bucket = (String) result.get(DB_BUCKET_NAME);
 				var usedSize = (Long) result.get(DB_USED);
 				items.add(new UsageLogData(range.start, user, bucket, usedSize));
 			}

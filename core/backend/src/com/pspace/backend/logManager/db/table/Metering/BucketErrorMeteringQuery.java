@@ -22,22 +22,22 @@ public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_CLIENT_ERROR_COUNT + " BIGINT NOT NULL, " +
 				DB_SERVER_ERROR_COUNT + " BIGINT NOT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String createAsset() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_ASSET + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_CLIENT_ERROR_COUNT + " BIGINT NOT NULL, " +
 				DB_SERVER_ERROR_COUNT + " BIGINT NOT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
@@ -51,17 +51,17 @@ public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String insertMeter() {
-		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ") "
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ") "
 				+ " VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_CLIENT_ERROR_COUNT + " = VALUES(" + DB_CLIENT_ERROR_COUNT + "), " + DB_SERVER_ERROR_COUNT + " = VALUES("
 				+ DB_SERVER_ERROR_COUNT + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
 		return "INSERT INTO " + DB_TABLE_NAME_ASSET
-				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ")"
-				+ " SELECT '" + range.start + "', " + DB_USER + ", " + DB_BUCKET + ", sum(" + DB_CLIENT_ERROR_COUNT + "), sum(" + DB_SERVER_ERROR_COUNT + ") FROM"
+				+ "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ")"
+				+ " SELECT '" + range.start + "', " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", sum(" + DB_CLIENT_ERROR_COUNT + "), sum(" + DB_SERVER_ERROR_COUNT + ") FROM"
 				+ " (SELECT * FROM " + DB_TABLE_NAME_METER + " where " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end + "') AS " + DB_TABLE_NAME_METER + " GROUP BY "
-				+ DB_USER + ", " + DB_BUCKET
+				+ DB_USER_NAME + ", " + DB_BUCKET_NAME
 				+ " ON DUPLICATE KEY UPDATE " + DB_CLIENT_ERROR_COUNT + " = VALUES(" + DB_CLIENT_ERROR_COUNT + "), " + DB_SERVER_ERROR_COUNT + " = VALUES(" + DB_SERVER_ERROR_COUNT + ");";
 	}
 

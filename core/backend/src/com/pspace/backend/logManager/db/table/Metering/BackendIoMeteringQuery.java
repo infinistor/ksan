@@ -22,22 +22,22 @@ public class BackendIoMeteringQuery implements BaseMeteringQuery {
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_UPLOAD + " BIGINT DEFAULT NULL, " +
 				DB_DOWNLOAD + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String createAsset() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_ASSET + " ( " +
 				DB_IN_DATE + " DATETIME NOT NULL, " +
-				DB_USER + " VARCHAR(200) NOT NULL, " +
-				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_USER_NAME + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_UPLOAD + " BIGINT DEFAULT NULL, " +
 				DB_DOWNLOAD + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
@@ -50,18 +50,18 @@ public class BackendIoMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String insertMeter() {
-		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_UPLOAD + ", " + DB_DOWNLOAD + ") "
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_UPLOAD + ", " + DB_DOWNLOAD + ") "
 				+ " VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_UPLOAD + " = VALUES(" + DB_UPLOAD + "), " + DB_DOWNLOAD + " = VALUES("
 				+ DB_DOWNLOAD + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
 		return "INSERT INTO " + DB_TABLE_NAME_ASSET
-				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_UPLOAD + ", " + DB_DOWNLOAD + ") SELECT '" + range.start
-				+ "', " + DB_USER + ", " + DB_BUCKET + ", SUM(" + DB_UPLOAD + "), SUM(" + DB_DOWNLOAD + ") FROM (SELECT * FROM "
+				+ "(" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_UPLOAD + ", " + DB_DOWNLOAD + ") SELECT '" + range.start
+				+ "', " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", SUM(" + DB_UPLOAD + "), SUM(" + DB_DOWNLOAD + ") FROM (SELECT * FROM "
 				+ DB_TABLE_NAME_METER
 				+ " WHERE " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end
-				+ "') AS " + DB_TABLE_NAME_METER + " GROUP BY " + DB_USER + ", " + DB_BUCKET
+				+ "') AS " + DB_TABLE_NAME_METER + " GROUP BY " + DB_USER_NAME + ", " + DB_BUCKET_NAME
 				+ " ON DUPLICATE KEY UPDATE " + DB_UPLOAD + " = VALUES(" + DB_UPLOAD + "), " + DB_DOWNLOAD + " = VALUES(" + DB_DOWNLOAD + ");";
 	}
 
