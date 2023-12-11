@@ -19,6 +19,7 @@ import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Heartbeat.Heartbeat;
 import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.logManager.db.DBManager;
 import com.pspace.backend.logManager.logging.MainLogger;
@@ -77,19 +78,32 @@ public class Main {
 		}
 		logger.info("DB initialized");
 
+		// ObjManager 초기화
+		var objManager = ObjManagerHelper.getInstance();
+		var objManagerConfig = portal.getObjManagerConfig();
+		try {
+			objManager.init(objManagerConfig);
+		} catch (Exception e) {
+			logger.error("objManager init error : ", e);
+			return;
+		}
+		logger.info("ObjManager initialized");
+
+		// Logger 초기화
 		var logging = new MainLogger();
 		if (!logging.start(config.threadCount)) {
 			logger.error("MainLogger is not started!");
 			return;
 		}
-		logger.info("Logger Initialization!");
+		logger.info("Logger Start!");
 
+		// Metering 초기화
 		var metering = new MainMetering(config.getMeterConfig());
 		if (!metering.start()) {
 			logger.error("MainMetering is not started!");
 			return;
 		}
-		logger.info("Metering Initialization!");
+		logger.info("Metering Start!");
 
 		while (true) {
 			Utility.delay(10000);

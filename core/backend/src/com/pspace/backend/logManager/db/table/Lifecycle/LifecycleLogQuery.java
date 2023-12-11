@@ -26,28 +26,28 @@ public class LifecycleLogQuery {
 
 	public static final String DB_TABLE_NAME = "LIFECYCLE_LOG";
 	public static final String DB_ID = "ID";
-	public static final String DB_IN_DATE = "INDATE";
-	public static final String DB_BUCKETNAME = "BUCKET_NAME";
+	public static final String DB_IN_DATE = "IN_DATE";
+	public static final String DB_BUCKET_NAME = "BUCKET_NAME";
 	public static final String DB_OBJECTNAME = "OBJECT_NAME";
 	public static final String DB_VERSIONID = "VERSION_ID";
-	public static final String DB_UPLOADID = "UPLOAD_ID";
+	public static final String DB_UPLOAD_ID = "UPLOAD_ID";
 	public static final String DB_MESSAGE = "MESSAGE";
 
 	public static String getCreateTable() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME + " ( " +
 				DB_ID + " BIGINT AUTO_INCREMENT PRIMARY KEY, " +
 				DB_IN_DATE + " varchar(64) NOT NULL, " +
-				DB_BUCKETNAME + " VARCHAR(64) NOT NULL, " +
+				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_OBJECTNAME + " VARCHAR(2048) NOT NULL, " +
 				DB_VERSIONID + " VARCHAR(256) NOT NULL, " +
-				DB_UPLOADID + " VARCHAR(256) NULL, " +
+				DB_UPLOAD_ID + " VARCHAR(256) NULL, " +
 				DB_MESSAGE + " TEXT NULL) " +
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
 	public static String getInsert() {
 		return String.format("INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?)",
-				DB_TABLE_NAME, DB_BUCKETNAME, DB_OBJECTNAME, DB_VERSIONID, DB_UPLOADID, DB_MESSAGE);
+				DB_TABLE_NAME, DB_BUCKET_NAME, DB_OBJECTNAME, DB_VERSIONID, DB_UPLOAD_ID, DB_MESSAGE);
 	}
 
 	public static String getExpiration(int Days) {
@@ -69,10 +69,10 @@ public class LifecycleLogQuery {
 	public static Document getInsertDocument(LifecycleLogData data) {
 		var param = new Document();
 		param.put(DB_IN_DATE, LocalDateTime.now());
-		param.put(DB_BUCKETNAME, data.bucketName);
+		param.put(DB_BUCKET_NAME, data.bucketName);
 		param.put(DB_OBJECTNAME, data.objectName);
 		param.put(DB_VERSIONID, data.versionId);
-		param.put(DB_UPLOADID, data.uploadId);
+		param.put(DB_UPLOAD_ID, data.uploadId);
 		param.put(DB_MESSAGE, data.message);
 
 		return param;

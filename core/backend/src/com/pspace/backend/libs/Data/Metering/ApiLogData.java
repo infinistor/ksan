@@ -13,8 +13,8 @@ public class ApiLogData extends BaseLogData {
 	public String event;
 	public long count;
 
-	public ApiLogData(String indate, String user, String bucket, String event, long count) {
-		super(indate, user, bucket);
+	public ApiLogData(String inDate, String user, String bucket, String event, long count) {
+		super(inDate, user, bucket);
 		if (StringUtils.isBlank(event))
 			event = "-";
 		else
@@ -25,7 +25,7 @@ public class ApiLogData extends BaseLogData {
 	@Override
 	public List<Object> getInsertDBParameters() {
 		var param = new ArrayList<Object>();
-		param.add(indate);
+		param.add(inDate);
 		param.add(user);
 		param.add(bucket);
 		param.add(event);

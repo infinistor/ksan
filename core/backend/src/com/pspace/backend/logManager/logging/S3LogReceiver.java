@@ -26,6 +26,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 public class S3LogReceiver implements MQCallback {
 	private final Logger logger = LoggerFactory.getLogger(S3LogReceiver.class);
 	private final ObjectMapper Mapper = new ObjectMapper();
+	private final DBManager db = DBManager.getInstance();
 
 	@Override
 	public MQResponse call(String routingKey, String body) {
@@ -43,11 +44,8 @@ public class S3LogReceiver implements MQCallback {
 			if (event == null)
 				throw new Exception("Invalid S3LogData : " + body);
 
-			// Get DB
-			var db = DBManager.getInstance();
-
 			// DB에 저장
-			db.insertLogging(event);
+			db.insertS3Log(event);
 
 		} catch (Exception e) {
 			logger.error("", e);

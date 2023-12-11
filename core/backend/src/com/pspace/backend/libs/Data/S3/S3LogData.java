@@ -10,6 +10,7 @@
 */
 package com.pspace.backend.libs.Data.S3;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class S3LogData implements BaseData {
 	@JsonProperty("BucketName")
 	public String bucketName;
 	@JsonProperty("Date")
-	public String date;
+	public Timestamp date;
 	@JsonProperty("RemoteHost")
 	public String remoteHost;
 	@JsonProperty("RequestUser")
@@ -73,7 +74,7 @@ public class S3LogData implements BaseData {
 		Init();
 	}
 
-	public S3LogData(String userName, String bucketName, String date, String remoteHost,
+	public S3LogData(String userName, String bucketName, Timestamp date, String remoteHost,
 			String requestUser, String requestId, String operation, String objectName, String requestURI,
 			int statusCode, String errorCode, long responseLength, long objectLength, long totalTime,
 			long requestLength, String referer, String userAgent, String versionId, String hostId, String sign,
@@ -105,30 +106,30 @@ public class S3LogData implements BaseData {
 	}
 
 	public void Init() {
-		userName = "";
-		bucketName = "";
-		date = "";
-		remoteHost = "";
-		requestUser = "";
-		requestId = "";
-		operation = "";
-		objectName = "";
-		requestURI = "";
+		userName = null;
+		bucketName = null;
+		date = new Timestamp(0);
+		remoteHost = null;
+		requestUser = null;
+		requestId = null;
+		operation = null;
+		objectName = null;
+		requestURI = null;
 		statusCode = 0;
-		errorCode = "";
+		errorCode = null;
 		responseLength = 0;
 		objectLength = 0;
 		totalTime = 0;
 		requestLength = 0;
-		referer = "";
-		userAgent = "";
-		versionId = "";
-		hostId = "";
-		sign = "";
-		sslGroup = "";
-		signType = "";
-		endPoint = "";
-		tlsVersion = "";
+		referer = null;
+		userAgent = null;
+		versionId = null;
+		hostId = null;
+		sign = null;
+		sslGroup = null;
+		signType = null;
+		endPoint = null;
+		tlsVersion = null;
 	}
 
 	@JsonIgnore
@@ -159,7 +160,7 @@ public class S3LogData implements BaseData {
 		var param = new ArrayList<Object>();
 		param.add(userName);
 		param.add(bucketName);
-		param.add(date);
+		param.add(date.toString());
 		param.add(remoteHost);
 		param.add(requestUser);
 		param.add(requestId);
@@ -185,43 +186,13 @@ public class S3LogData implements BaseData {
 		return param;
 	}
 
-	// @Override
-	// public Document getInsertDBDocument() {
-	// var param = new Document();
-	// param.put(S3LogQuery.DB_USER_NAME, UserName);
-	// param.put(S3LogQuery.DB_BUCKET_NAME, BucketName);
-	// param.put(S3LogQuery.DB_IN_DATE, Date);
-	// param.put(S3LogQuery.DB_REMOTE_HOST, RemoteHost);
-	// param.put(S3LogQuery.DB_REQUEST_USER, RequestUser);
-	// param.put(S3LogQuery.DB_REQUEST_ID, RequestId);
-	// param.put(S3LogQuery.DB_OPERATION, Operation);
-	// param.put(S3LogQuery.DB_OBJECT_NAME, ObjectName);
-	// param.put(S3LogQuery.DB_REQUEST_URI, RequestURI);
-	// param.put(S3LogQuery.DB_STATUS_CODE, StatusCode);
-	// param.put(S3LogQuery.DB_ERROR_CODE, ErrorCode);
-	// param.put(S3LogQuery.DB_RESPONSE_LENGTH, ResponseLength);
-	// param.put(S3LogQuery.DB_OBJECT_LENGTH, ObjectLength);
-	// param.put(S3LogQuery.DB_TOTAL_TIME, TotalTime);
-	// param.put(S3LogQuery.DB_REQUEST_LENGTH, RequestLength);
-	// param.put(S3LogQuery.DB_REFERER, Referer);
-	// param.put(S3LogQuery.DB_USER_AGENT, UserAgent);
-	// param.put(S3LogQuery.DB_VERSION_ID, VersionId);
-	// param.put(S3LogQuery.DB_HOST_ID, HostId);
-	// param.put(S3LogQuery.DB_SIGN, Sign);
-	// param.put(S3LogQuery.DB_SSL_GROUP, SSLGroup);
-	// param.put(S3LogQuery.DB_SIGN_TYPE, SignType);
-	// param.put(S3LogQuery.DB_ENDPOINT, EndPoint);
-	// param.put(S3LogQuery.DB_TLS_VERSION, TLSVersion);
-	// return param;
-	// }
-
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			return "";
+			return null;
 		}
 	}
 }

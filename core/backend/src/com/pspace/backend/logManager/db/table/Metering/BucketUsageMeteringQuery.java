@@ -21,52 +21,43 @@ public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
-				DB_IN_DATE + " datetime NOT NULL, " +
-				DB_USER + " varchar(200) NOT NULL, " +
-				DB_BUCKET + " varchar(200) NOT NULL, " +
-				DB_USED + " bigint DEFAULT NULL, " +
+				DB_IN_DATE + " DATETIME NOT NULL, " +
+				DB_USER + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET + " VARCHAR(200) NOT NULL, " +
+				DB_USED + " BIGINT DEFAULT NULL, " +
 				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
-				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
+				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String createAsset() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_ASSET + " ( " +
-				DB_IN_DATE + " datetime NOT NULL, " +
-				DB_USER + " varchar(200) NOT NULL, " +
-				DB_BUCKET + " varchar(200) NOT NULL, " +
-				DB_MAX_USED + " bigint DEFAULT NULL, " +
-				DB_AVG_USED + " bigint DEFAULT NULL, " +
-				DB_MIN_USED + " bigint DEFAULT NULL, " +
+				DB_IN_DATE + " DATETIME NOT NULL, " +
+				DB_USER + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET + " VARCHAR(200) NOT NULL, " +
+				DB_MAX_USED + " BIGINT DEFAULT NULL, " +
+				DB_AVG_USED + " BIGINT DEFAULT NULL, " +
+				DB_MIN_USED + " BIGINT DEFAULT NULL, " +
 				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
-				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
+				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String insertMeter() {
-		return String.format(
-				"insert into %s (%s, %s, %s, %s) VALUES(?, ?, ?, ?) on duplicate key update %s = VALUES(%s);",
-				DB_TABLE_NAME_METER, DB_IN_DATE, DB_USER, DB_BUCKET,
-				DB_USED, DB_USED, DB_USED);
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_USED + ") "
+				+ " VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_USED + " = VALUES(" + DB_USED + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
 		return "INSERT INTO " + DB_TABLE_NAME_ASSET
-				+ "(indate, volume, user, bucket, max_used, avg_used, min_used) "
-				+ " SELECT '" + range.start + "', volume, user, bucket, max(used), avg(used), min(used) FROM"
+				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_MAX_USED + ", " + DB_AVG_USED + ", " + DB_MIN_USED + ") "
+				+ " SELECT '" + range.start + "', " + DB_USER + ", " + DB_BUCKET + ", MAX(" + DB_USED + "), AVG(" + DB_USED + "), MIN(" + DB_USED + ") FROM"
 				+ " (SELECT * FROM " + DB_TABLE_NAME_METER
-				+ " WHERE indate > '" + range.start + "' AND indate < '" + range.end
-				+ "') AS bucket_meter GROUP BY volume, user, bucket"
-				+ " on duplicate key update max_used = VALUES(max_used), avg_used = VALUES(avg_used), min_used = VALUES(min_used);";
+				+ " WHERE " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end
+				+ "') AS " + DB_TABLE_NAME_ASSET + " GROUP BY " + DB_USER + ", " + DB_BUCKET
+				+ " ON DUPLICATE KEY UPDATE " + DB_MAX_USED + " = VALUES(" + DB_MAX_USED + "), " + DB_AVG_USED + " = VALUES(" + DB_AVG_USED + "), " + DB_MIN_USED + " = VALUES(" + DB_MIN_USED + ");";
 	}
 
 	public static String expiredMeter() {
-		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL 1 DAYS);";
-	}
-
-	public static String expiredAsset(int days) {
-		if (days < 1)
-			days = DEFAULT_EXPIRES_DAY;
-		return String.format("delete FROM %s where %s < date_add(date_format(now() , '%s'), interval -%d days);",
-				DB_TABLE_NAME_ASSET, DB_IN_DATE, DB_DATE_FORMAT, days);
+		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL -1 DAY);";
 	}
 
 	public static List<UsageLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {

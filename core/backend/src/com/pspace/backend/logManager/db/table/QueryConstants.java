@@ -18,17 +18,19 @@ public class QueryConstants {
 	public static final int MAX_QUERY_SIZE = 1000;
 	public static final String DB_DATE_FORMAT = "%Y-%m-%d %k:%i:%s";
 
+	// 롤링 테이블 이름을 가져옴
 	public static String getTodayTableName(String tableName) {
 		var now = LocalDate.now();
 		var formatter = DateTimeFormatter.ofPattern("_yyyy_MM");
 		return tableName + now.format(formatter);
 	}
-	
+
+	// 현재 월을 가져옴
 	public static int getMonth() {
 		var now = LocalDate.now();
 		return now.getMonthValue();
 	}
-	
+
 	// 1시간 뒤에 월이 바뀌는지 체크
 	public static boolean isMonthChanged(int month) {
 		var now = LocalDateTime.now();
@@ -36,6 +38,7 @@ public class QueryConstants {
 		return now.getMonthValue() != month;
 	}
 
+	// 다음 달을 가져옴
 	public static int nextMonth(int month) {
 		return month % 12 + 1;
 	}

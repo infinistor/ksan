@@ -11,8 +11,8 @@ public class IoLogData extends BaseLogData {
 	public long upload;
 	public long download;
 
-	public IoLogData(String indate, String user, String bucket, long upload, long download) {
-		super(indate, user, bucket);
+	public IoLogData(String inDate, String user, String bucket, long upload, long download) {
+		super(inDate, user, bucket);
 		this.upload = upload;
 		this.download = download;
 	}
@@ -20,7 +20,7 @@ public class IoLogData extends BaseLogData {
 	@Override
 	public List<Object> getInsertDBParameters() {
 		var param = new ArrayList<Object>();
-		param.add(indate);
+		param.add(inDate);
 		param.add(user);
 		param.add(bucket);
 		param.add(upload);

@@ -74,6 +74,10 @@ public class MariaDBManager implements IDBManager {
 		hikariConfig.setPoolName("ksan");
 		hikariConfig.setMaximumPoolSize(config.poolSize);
 		hikariConfig.setMinimumIdle(config.poolSize);
+		hikariConfig.setAutoCommit(true);
+		hikariConfig.setConnectionTimeout(30000);
+		hikariConfig.setMaxLifetime(30000);
+
 		ds = new HikariDataSource(hikariConfig);
 
 		createTables();
@@ -137,8 +141,8 @@ public class MariaDBManager implements IDBManager {
 				execute(BucketUsageMeteringQuery.createAsset()) &&
 				execute(BucketErrorMeteringQuery.createMeter()) &&
 				execute(BucketErrorMeteringQuery.createAsset()) &&
-				execute(BucketApiMeteringQuery.createMeter()) &&
-				execute(BucketApiMeteringQuery.createAsset()) &&
+				execute(BackendApiMeteringQuery.createMeter()) &&
+				execute(BackendApiMeteringQuery.createAsset()) &&
 				execute(BackendIoMeteringQuery.createMeter()) &&
 				execute(BackendIoMeteringQuery.createAsset()) &&
 				execute(BackendErrorMeteringQuery.createMeter()) &&
@@ -389,7 +393,7 @@ public class MariaDBManager implements IDBManager {
 				var conn = ds.getConnection();
 				var stmt = new LogPreparedStatement(conn, Query);
 				var rs = stmt.executeQuery();) {
-			// logger.debug(stmt.toString());
+			logger.debug(stmt.toString());
 
 			var result = new ArrayList<HashMap<String, Object>>();
 

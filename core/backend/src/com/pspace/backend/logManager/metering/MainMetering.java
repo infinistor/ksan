@@ -17,20 +17,20 @@ import com.pspace.backend.libs.Config.MeteringConfig;
 
 public class MainMetering {
 	private final Logger logger = LoggerFactory.getLogger(MainMetering.class);
-	private final MeteringConfig Config;
+	private final MeteringConfig config;
 
-	private Thread SendThread;
-	private SendMetering Sender;
+	private Thread sendThread;
+	private SendMetering sender;
 
-	public MainMetering(MeteringConfig Config) {
-		this.Config = Config;
+	public MainMetering(MeteringConfig config) {
+		this.config = config;
 	}
 
 	public boolean start() {
 		try {
-			Sender = new SendMetering(Config);
-			SendThread = new Thread(() -> Sender.Run());
-			SendThread.start();
+			sender = new SendMetering(config);
+			sendThread = new Thread(() -> sender.start());
+			sendThread.start();
 			return true;
 		} catch (Exception e) {
 			logger.error("", e);
@@ -38,14 +38,18 @@ public class MainMetering {
 		}
 	}
 
-	public void Stop() {
-		Sender.stop();
+	public void pause() {
+		sender.pause();
 	}
 
-	public void Quit() {
-		Sender.quit();
+	public void resume() {
+		sender.resume();
+	}
+
+	public void quit() {
+		sender.quit();
 		try {
-			SendThread.join();
+			sendThread.join();
 		} catch (Exception e) {
 			logger.error("", e);
 		}

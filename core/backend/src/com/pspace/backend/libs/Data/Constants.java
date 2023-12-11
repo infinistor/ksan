@@ -21,25 +21,19 @@ public class Constants {
 
 	public static final String MQ_HEARTBEAT_BINDING_KEY = "*.services.state";
 
-	/***********************************
-	 * Lifecycle Manager
-	 ***********************************/
+	/************************* Lifecycle Manager *************************/
 	public static final String MQ_QUEUE_RESTORE_EVENT_ADD = "ksan-restore-event-add";
 	public static final String MQ_QUEUE_LIFECYCLE_EVENT_ADD = "ksan-lifecycle-event-add";
 
 	public static final String MQ_BINDING_RESTORE_EVENT = "*.services.restore.event.add";
 	public static final String MQ_BINDING_LIFECYCLE_EVENT = "*.services.lifecycle.event.add";
 
-	/***********************************
-	 * Replication Manager
-	 ***********************************/
+	/************************* Replication Manager *************************/
 	public static final String MQ_QUEUE_REPLICATION_S3_LOG = "ksan-replication-s3-log";
 	public static final String MQ_QUEUE_REPLICATION_EVENT_ADD = "ksan-replication-event-add";
 
 	public static final String MQ_BINDING_REPLICATION_EVENT = "*.services.replication.event.add";
-	/***********************************
-	 * Log Manager
-	 ***********************************/
+	/************************* Log Manager *************************/
 	public static final String MQ_QUEUE_LOG_MANAGER_S3_LOG = "ksan-log-manager-s3-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_BACKEND_LOG = "ksan-log-manager-backend-log";
 	public static final String MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG = "ksan-log-manager-restore-event-log";
@@ -64,9 +58,7 @@ public class Constants {
 		return QueueName + "-" + ServiceId;
 	}
 
-	/***********************************
-	 * Portal Manager
-	 ***********************************/
+	/************************* Portal Manager *************************/
 	public static final String URL_CONFIG = "/api/v1/Config";
 	public static final String URL_OBJ_MANAGER_CONFIG = URL_CONFIG + "/KsanObjManager";
 	public static final String URL_REPLICATION_MANAGER_CONFIG = URL_CONFIG + "/KsanReplicationManager";
