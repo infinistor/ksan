@@ -80,10 +80,6 @@ public class SendMetering {
 					logger.error("Bucket Usage is null");
 					continue;
 				}
-				if (buckets.size() == 0) {
-					logger.error("Bucket Usage is empty");
-					continue;
-				}
 				logger.info("Bucket Usage Count: " + buckets.size());
 
 				// Bucket Metering 데이터 생성
