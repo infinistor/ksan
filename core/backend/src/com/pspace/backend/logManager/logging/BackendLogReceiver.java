@@ -44,7 +44,7 @@ public class BackendLogReceiver implements MQCallback {
 			if (event == null)
 				throw new Exception("Invalid BackendLogData : " + body);
 
-				// DB에 저장
+			// DB에 저장
 			logger.info("BackendLogData : {}", event.toString());
 			db.insertBackendLog(event);
 

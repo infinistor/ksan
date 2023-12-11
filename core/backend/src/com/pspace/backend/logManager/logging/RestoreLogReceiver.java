@@ -26,6 +26,7 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 public class RestoreLogReceiver implements MQCallback {
 	private final Logger logger = LoggerFactory.getLogger(RestoreLogReceiver.class);
 	private final ObjectMapper Mapper = new ObjectMapper();
+	private final DBManager db = DBManager.getInstance();
 
 	@Override
 	public MQResponse call(String routingKey, String body) {
@@ -42,9 +43,6 @@ public class RestoreLogReceiver implements MQCallback {
 			// 변환 실패시
 			if (event == null) 
 				throw new Exception("Invalid RestoreLogData : " + body);
-
-			// Get DB
-			var db = DBManager.getInstance();
 
 			//DB에 저장
 			logger.info("RestoreLogData : {}", event.toString());

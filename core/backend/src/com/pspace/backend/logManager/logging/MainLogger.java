@@ -102,11 +102,10 @@ public class MainLogger {
 						Constants.MQ_QUEUE_LOG_MANAGER_RESTORE_EVENT_LOG,
 						Constants.MQ_KSAN_LOG_EXCHANGE,
 						false,
-						"",
+						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_RESTORE_LOG,
 						new RestoreLogReceiver()));
 			}
-
 			return true;
 		} catch (Exception e) {
 			logger.error("", e);

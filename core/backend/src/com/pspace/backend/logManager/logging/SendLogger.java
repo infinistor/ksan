@@ -14,6 +14,7 @@
 // import java.time.format.DateTimeFormatter;
 // import java.util.Random;
 
+// import org.apache.commons.lang3.StringUtils;
 // import org.slf4j.Logger;
 // import org.slf4j.LoggerFactory;
 
@@ -27,8 +28,13 @@
 // import com.amazonaws.services.s3.model.ObjectMetadata;
 // import com.amazonaws.services.s3.model.Permission;
 // import com.amazonaws.services.s3.model.PutObjectRequest;
+// import com.fasterxml.jackson.databind.ObjectMapper;
 // import com.pspace.backend.libs.Utility;
+// import com.pspace.backend.libs.Config.LogManagerConfig;
 // import com.pspace.backend.libs.Data.BackendHeaders;
+// import com.pspace.backend.libs.Data.S3.S3BucketData;
+// import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+// import com.pspace.backend.libs.Ksan.PortalManager;
 // import com.pspace.backend.libs.Ksan.Data.S3RegionData;
 // import com.pspace.backend.libs.s3format.LoggingConfiguration;
 // import com.pspace.backend.logManager.db.DBManager;
@@ -40,34 +46,58 @@
 // 	private final Logger logger = LoggerFactory.getLogger(SendLogger.class);
 // 	private final int DEFAULT_UNIQUE_STRING_SIZE = 16;
 
-// 	private final LoggingConfig Config;
-// 	private final DBManager DB;
-// 	private final AmazonS3 Client;
-// 	private boolean stop = false;
-// 	private boolean quit = false;
+// 	// private final LoggingConfig Config;
+// 	private final DBManager DB = DBManager.getInstance();
+// 	private final PortalManager portal = PortalManager.getInstance();
+// 	private final ObjManagerHelper objManager = ObjManagerHelper.getInstance();
+// 	private final LogManagerConfig config;
+// 	private final AmazonS3 client;
+// 	private boolean _pause = false;
+// 	private boolean _quit = false;
 
-// 	public SendLogger(S3RegionData Region) {
-// 		this.DB = DB;
-// 		this.Config = Config;
-// 		this.Client = CreateClient(Region);
+// 	public SendLogger() {
+// 		var region = portal.getLocalRegion();
+// 		region.setClient();
+// 		client = region.client;
+// 		config = portal.getLogManagerConfig();
 // 	}
 
 // 	public void Run() {
-// 		while (!Quit) {
+// 		while (!_quit) {
 // 			// 일시정지 확인
-// 			if (Stop) {
-// 				Utility.Delay(Config.getDelay());
+// 			if (_pause) {
+// 				Utility.delay(1000);
 // 				continue;
 // 			}
 
 // 			try {
-// 				var BucketList = DB.getBucketInfoLoggingList();
-// 				for (var BucketInfo : BucketList) {
-// 					var SourceBucketName = BucketInfo.BucketName;
-// 					var TargetBucketName = BucketInfo.Loggings.loggingEnabled.targetBucket;
-// 					var Prefix = BucketInfo.Loggings.loggingEnabled.targetPrefix;
-// 					var Grants = getAccessControlList(BucketInfo.Loggings.loggingEnabled.targetGrants);
-	
+// 				// 버킷 목록 가져오기
+// 				var bucketList = objManager.getBucketList();
+
+// 				// 비어있을 경우 재시도
+// 				if (bucketList == null)
+// 					continue;
+				
+// 				// 로깅 설정이 되어있는 버킷 목록 가져오기
+// 				for (var bucket : bucketList) {
+// 					// 로깅 설정이 되어있는 버킷인지 확인
+// 					var strLogging = bucket.getLogging();
+
+// 					// 로깅 설정이 되어있지 않은 버킷이면 다음 버킷으로
+// 					if (StringUtils.isBlank(strLogging))
+// 						continue;
+					
+// 					// 로깅 설정 파싱
+// 					var bucketInfo = new S3BucketData(bucket.getName());
+// 					bucketInfo.setLoggingConfiguration(strLogging);
+// 					if (!bucketInfo.isLogging)
+// 						continue;
+					
+// 					var SourceBucketName = bucketInfo.BucketName;
+// 					var TargetBucketName = bucketInfo.Loggings.loggingEnabled.targetBucket;
+// 					var Prefix = bucketInfo.Loggings.loggingEnabled.targetPrefix;
+// 					var Grants = getAccessControlList(bucketInfo.Loggings.loggingEnabled.targetGrants);
+
 // 					// 로그 출력
 // 					var Loggings = DB.getLoggingEventList(SourceBucketName);
 // 					var LastIndex = 0L;
@@ -91,27 +121,19 @@
 // 		}
 // 	}
 
-// 	public void Stop() {
-// 		stop = true;
+// 	public void pause() {
+// 		_pause = true;
 // 	}
 
-// 	public void Start() {
-// 		stop = false;
+// 	public void resume() {
+// 		_pause = false;
 // 	}
 
-// 	public void Quit() {
-// 		quit = true;
+// 	public void quit() {
+// 		_quit = true;
 // 	}
 
 // 	/********************** Utility ****************************/
-
-// 	protected AmazonS3 CreateClient(S3RegionData Region) {
-// 		BasicAWSCredentials credentials = new BasicAWSCredentials(Region.AccessKey, Region.SecretKey);
-
-// 		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
-// 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(Region.getHttpURL(), ""))
-// 				.withPathStyleAccessEnabled(true).build();
-// 	}
 
 // 	protected String RandomText(int Length) {
 // 		StringBuffer sb = new StringBuffer();
@@ -124,17 +146,18 @@
 // 	protected String NewKey(String Prefix) {
 // 		var now = LocalDateTime.now();
 // 		var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-// 		if (Prefix == null) Prefix = "";
+// 		if (Prefix == null)
+// 			Prefix = "";
 // 		return Prefix + now.format(formatter) + RandomText(DEFAULT_UNIQUE_STRING_SIZE);
 // 	}
 
-// 	protected AccessControlList getAccessControlList(LoggingConfiguration.LoggingEnabled.TargetGrants targetGrants)
-// 	{
-// 		if (targetGrants == null) return null;
-// 		if (targetGrants.grants == null) return null;
+// 	protected AccessControlList getAccessControlList(LoggingConfiguration.LoggingEnabled.TargetGrants targetGrants) {
+// 		if (targetGrants == null)
+// 			return null;
+// 		if (targetGrants.grants == null)
+// 			return null;
 // 		var Result = new AccessControlList();
-// 		for(var Item : targetGrants.grants)
-// 		{
+// 		for (var Item : targetGrants.grants) {
 // 			var User = new CanonicalGrantee(Item.grantee.id);
 // 			User.setDisplayName(Item.grantee.displayName);
 
@@ -145,15 +168,16 @@
 
 // 	protected boolean PutLogging(String BucketName, String Key, String Body, AccessControlList Grants) {
 // 		try {
-// 			var Request = new PutObjectRequest(BucketName, Key, Utility.CreateBody(Body), new ObjectMetadata());
+// 			var Request = new PutObjectRequest(BucketName, Key, Utility.createBody(Body), new ObjectMetadata());
 // 			// 권한 설정
-// 			if (Grants != null) Request.setAccessControlList(Grants);
+// 			if (Grants != null)
+// 				Request.setAccessControlList(Grants);
 
-// 			//헤더 추가
+// 			// 헤더 추가
 // 			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
 // 			Request.putCustomRequestHeader(BackendHeaders.HEADER_LOGGING, BackendHeaders.HEADER_DATA);
 
-// 			// Client.putObject(Request);
+// 			client.putObject(Request);
 // 			return true;
 // 		} catch (Exception e) {
 // 			logger.error("", e);
