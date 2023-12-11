@@ -14,8 +14,8 @@ import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
 public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketErrorMeteringQuery.class);
 
-	public static final String DB_TABLE_NAME_METER = "BUCKET_ERROR_METER";
-	public static final String DB_TABLE_NAME_ASSET = "BUCKET_ERROR_ASSET";
+	public static final String DB_TABLE_NAME_METER = "BUCKET_ERROR_METERS";
+	public static final String DB_TABLE_NAME_ASSET = "BUCKET_ERROR_ASSETS";
 	public static final String DB_CLIENT_ERROR_COUNT = "CLIENT_ERROR_COUNT";
 	public static final String DB_SERVER_ERROR_COUNT = "SERVER_ERROR_COUNT";
 

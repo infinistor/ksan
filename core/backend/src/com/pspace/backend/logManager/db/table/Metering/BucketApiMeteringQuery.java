@@ -14,8 +14,8 @@ import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
 public class BucketApiMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketApiMeteringQuery.class);
 
-	public static final String DB_TABLE_NAME_METER = "BUCKET_API_METER";
-	public static final String DB_TABLE_NAME_ASSET = "BUCKET_API_ASSET";
+	public static final String DB_TABLE_NAME_METER = "BUCKET_API_METERS";
+	public static final String DB_TABLE_NAME_ASSET = "BUCKET_API_ASSETS";
 	public static final String DB_EVENT = "EVENT";
 	public static final String DB_COUNT = "COUNT";
 

@@ -14,8 +14,8 @@ import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
 public class BackendIoMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BackendIoMeteringQuery.class);
 
-	static final String DB_TABLE_NAME_METER = "BACKEND_IO_METER";
-	static final String DB_TABLE_NAME_ASSET = "BACKEND_IO_ASSET";
+	static final String DB_TABLE_NAME_METER = "BACKEND_IO_METERS";
+	static final String DB_TABLE_NAME_ASSET = "BACKEND_IO_ASSETS";
 	static final String DB_UPLOAD = "UPLOAD";
 	static final String DB_DOWNLOAD = "DOWNLOAD";
 

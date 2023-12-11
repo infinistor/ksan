@@ -12,8 +12,8 @@ import com.pspace.backend.libs.Data.Metering.UsageLogData;
 public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketUsageMeteringQuery.class);
 
-	public static final String DB_TABLE_NAME_METER = "BUCKET_METER";
-	public static final String DB_TABLE_NAME_ASSET = "BUCKET_ASSET";
+	public static final String DB_TABLE_NAME_METER = "BUCKET_METERS";
+	public static final String DB_TABLE_NAME_ASSET = "BUCKET_ASSETS";
 	public static final String DB_USED = "USED";
 	public static final String DB_MAX_USED = "MAX_" + DB_USED;
 	public static final String DB_AVG_USED = "AVG_" + DB_USED;
