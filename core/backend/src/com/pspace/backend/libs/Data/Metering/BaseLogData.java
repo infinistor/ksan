@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pspace.backend.libs.Data.BaseData;
 
 public class BaseLogData implements BaseData {
-	public final String indate;
+	public final String inDate;
 	public String user;
 	public String bucket;
 
-	public BaseLogData(String indate, String user, String bucket) {
-		this.indate = indate;
+	public BaseLogData(String inDate, String user, String bucket) {
+		this.inDate = inDate;
 		this.user = user;
 		this.bucket = bucket;
 	}
@@ -20,20 +20,11 @@ public class BaseLogData implements BaseData {
 	@Override
 	public List<Object> getInsertDBParameters() {
 		var param = new ArrayList<Object>();
-		param.add(indate);
+		param.add(inDate);
 		param.add(user);
 		param.add(bucket);
 		return param;
 	}
-
-	// @Override
-	// public Document getInsertDBDocument() {
-	// 	var doc = new Document();
-	// 	doc.append("indate", indate);
-	// 	doc.append("user", user);
-	// 	doc.append("bucket", bucket);
-	// 	return doc;
-	// }
 
 	@Override
 	public String toString() {

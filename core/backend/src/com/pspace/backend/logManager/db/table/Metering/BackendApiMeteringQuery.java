@@ -50,30 +50,22 @@ public class BackendApiMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String insertMeter() {
-		return String.format(
-				"INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE COUNT = VALUES(COUNT);",
-				DB_TABLE_NAME_METER, DB_IN_DATE, DB_USER, DB_BUCKET, DB_EVENT, DB_COUNT);
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_EVENT + ", " + DB_COUNT + ") "
+				+ " VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_COUNT + " = VALUES(" + DB_COUNT + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
 		return "INSERT INTO " + DB_TABLE_NAME_ASSET
-				+ "(INDATE, USER, BUCKET, EVENT, COUNT)"
-				+ " SELECT '" + range.start + "', volume, user, bucket, event, sum(COUNT) FROM"
+				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_EVENT + ", " + DB_COUNT + ")"
+				+ " SELECT '" + range.start + "', " + DB_USER + ", " + DB_BUCKET + ", " + DB_EVENT + ", SUM(" + DB_COUNT + ") FROM"
 				+ " (SELECT * FROM " + DB_TABLE_NAME_METER
-				+ " WHERE indate > '" + range.start + "' AND indate < '" + range.end
-				+ "') AS bucket_io_meter GROUP BY volume, user, bucket, event"
+				+ " WHERE " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end
+				+ "') AS " + DB_TABLE_NAME_METER + " GROUP BY " + DB_USER + ", " + DB_BUCKET + ", " + DB_EVENT
 				+ " ON DUPLICATE KEY UPDATE COUNT = VALUES(COUNT);";
 	}
 
 	public static String expiredMeter() {
-		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL 1 DAYS);";
-	}
-
-	public static String expiredAsset(int days) {
-		if (days < 1)
-			days = DEFAULT_EXPIRES_DAY;
-		return String.format("DELETE FROM %s WHERE %s < DATE_ADD(DATE_FORMAT(NOW() , '%s'), INTERVAL -%d DAYS);",
-				DB_TABLE_NAME_ASSET, DB_IN_DATE, DB_DATE_FORMAT, days);
+		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL -1 DAY);";
 	}
 
 	public static List<ApiLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {
@@ -86,8 +78,8 @@ public class BackendApiMeteringQuery implements BaseMeteringQuery {
 				var bucket = (String) result.get(BackendLogQuery.DB_BUCKET_NAME);
 				var user = (String) result.get(BackendLogQuery.DB_USER_NAME);
 				var event = (String) result.get(BackendLogQuery.DB_OPERATION);
-				var COUNT = Long.parseLong(String.valueOf(result.get(DB_COUNT)));
-				items.add(new ApiLogData(range.start, user, bucket, event, COUNT));
+				var count = Long.parseLong(String.valueOf(result.get(DB_COUNT)));
+				items.add(new ApiLogData(range.start, user, bucket, event, count));
 			}
 		} catch (Exception e) {
 			log.error("getMeterList error: ", e);

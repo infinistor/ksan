@@ -21,62 +21,52 @@ public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 
 	public static String createMeter() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_METER + " ( " +
-				DB_IN_DATE + " datetime NOT NULL, " +
-				DB_USER + " varchar(200) NOT NULL, " +
-				DB_BUCKET + " varchar(64) NOT NULL, " +
-				DB_CLIENT_ERROR_COUNT + " bigint NOT NULL, " +
-				DB_SERVER_ERROR_COUNT + " bigint NOT NULL, " +
+				DB_IN_DATE + " DATETIME NOT NULL, " +
+				DB_USER + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_CLIENT_ERROR_COUNT + " BIGINT NOT NULL, " +
+				DB_SERVER_ERROR_COUNT + " BIGINT NOT NULL, " +
 				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
-				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
+				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String createAsset() {
 		return "CREATE TABLE IF NOT EXISTS " + DB_TABLE_NAME_ASSET + " ( " +
-				DB_IN_DATE + " datetime NOT NULL, " +
-				DB_USER + " varchar(200) NOT NULL, " +
-				DB_BUCKET + " varchar(64) NOT NULL, " +
-				DB_CLIENT_ERROR_COUNT + " bigint NOT NULL, " +
-				DB_SERVER_ERROR_COUNT + " bigint NOT NULL, " +
+				DB_IN_DATE + " DATETIME NOT NULL, " +
+				DB_USER + " VARCHAR(200) NOT NULL, " +
+				DB_BUCKET + " VARCHAR(64) NOT NULL, " +
+				DB_CLIENT_ERROR_COUNT + " BIGINT NOT NULL, " +
+				DB_SERVER_ERROR_COUNT + " BIGINT NOT NULL, " +
 				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + "))" +
-				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
+				"ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;";
 	}
 
 	public static String selectMeter(DateRange range) {
-		return "select bucket_name, "
-				+ " count(case when status_code >= 400 and status_code < 500 then 1 end) as client_error_count,"
-				+ " count(case when status_code >= 500 then 1 end) as server_error_count"
-				+ " from " + S3LogQuery.getTableName()
-				+ " where date_time >= '" + range.start + "' and date_time <= '" + range.end
-				+ "' group by bucket_name;";
+		return "SELECT " + S3LogQuery.DB_BUCKET_NAME + ", "
+				+ " COUNT(CASE WHEN " + S3LogQuery.DB_STATUS_CODE + " >= 400 AND " + S3LogQuery.DB_STATUS_CODE + " < 500 THEN 1 END) AS " + DB_CLIENT_ERROR_COUNT + ","
+				+ " COUNT(CASE WHEN " + S3LogQuery.DB_STATUS_CODE + " >= 500 THEN 1 END) AS " + DB_SERVER_ERROR_COUNT + ""
+				+ " FROM " + S3LogQuery.getTableName()
+				+ " WHERE " + S3LogQuery.DB_DATE_TIME + " >= '" + range.start + "' AND " + S3LogQuery.DB_DATE_TIME + " <= '" + range.end
+				+ "' GROUP BY " + S3LogQuery.DB_BUCKET_NAME + ";";
 	}
 
 	public static String insertMeter() {
-		return String.format(
-				"INSERT INTO %s(%s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?) on duplicate key update client_error_count = VALUES(client_error_count), server_error_count = VALUES(server_error_count);",
-				DB_TABLE_NAME_METER,
-				DB_IN_DATE, DB_USER, DB_BUCKET, DB_CLIENT_ERROR_COUNT, DB_SERVER_ERROR_COUNT);
+		return "INSERT INTO " + DB_TABLE_NAME_METER + "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ") "
+				+ " VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " + DB_CLIENT_ERROR_COUNT + " = VALUES(" + DB_CLIENT_ERROR_COUNT + "), " + DB_SERVER_ERROR_COUNT + " = VALUES("
+				+ DB_SERVER_ERROR_COUNT + ");";
 	}
 
 	public static String insertAsset(DateRange range) {
-		return "insert into " + DB_TABLE_NAME_ASSET
-				+ "(indate, volume, user, bucket, client_error_count, server_error_count)"
-				+ " select '" + range.start
-				+ "', volume, user, bucket, sum(client_error_count), sum(server_error_count) from"
-				+ " (select * from " + DB_TABLE_NAME_METER
-				+ " where indate > '" + range.start + "' and indate < '" + range.end
-				+ "') as bucket_error_meter group by volume, user, bucket"
-				+ " on duplicate key update client_error_count = VALUES(client_error_count), server_error_count = VALUES(server_error_count);";
+		return "INSERT INTO " + DB_TABLE_NAME_ASSET
+				+ "(" + DB_IN_DATE + ", " + DB_USER + ", " + DB_BUCKET + ", " + DB_CLIENT_ERROR_COUNT + ", " + DB_SERVER_ERROR_COUNT + ")"
+				+ " SELECT '" + range.start + "', " + DB_USER + ", " + DB_BUCKET + ", sum(" + DB_CLIENT_ERROR_COUNT + "), sum(" + DB_SERVER_ERROR_COUNT + ") FROM"
+				+ " (SELECT * FROM " + DB_TABLE_NAME_METER + " where " + DB_IN_DATE + " > '" + range.start + "' AND " + DB_IN_DATE + " < '" + range.end + "') AS " + DB_TABLE_NAME_METER + " GROUP BY "
+				+ DB_USER + ", " + DB_BUCKET
+				+ " ON DUPLICATE KEY UPDATE " + DB_CLIENT_ERROR_COUNT + " = VALUES(" + DB_CLIENT_ERROR_COUNT + "), " + DB_SERVER_ERROR_COUNT + " = VALUES(" + DB_SERVER_ERROR_COUNT + ");";
 	}
 
 	public static String expiredMeter() {
-		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL 1 DAYS);";
-	}
-
-	public static String expiredAsset(int days) {
-		if (days < 1)
-			days = DEFAULT_EXPIRES_DAY;
-		return String.format("delete FROM %s where %s < date_add(date_format(now() , '%s'), interval -%d days);",
-				DB_TABLE_NAME_ASSET, DB_IN_DATE, DB_DATE_FORMAT, days);
+		return "DELETE FROM " + DB_TABLE_NAME_METER + " WHERE " + DB_IN_DATE + " < DATE_ADD(DATE_FORMAT(NOW() , '%Y-%m-%d %k:%i:%s'), INTERVAL -1 DAY);";
 	}
 
 	public static List<ErrorLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {

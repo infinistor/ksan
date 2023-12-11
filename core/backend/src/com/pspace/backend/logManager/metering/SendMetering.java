@@ -17,7 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
 import com.pspace.backend.libs.Config.MeteringConfig;
+import com.pspace.backend.libs.Data.Metering.ApiLogData;
+import com.pspace.backend.libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.libs.Data.Metering.IoLogData;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.s3format.S3Parameters;
 import com.pspace.backend.logManager.db.DBManager;
 
 public class SendMetering {
@@ -29,15 +33,15 @@ public class SendMetering {
 	private boolean _pause = false;
 	private boolean _quit = false;
 
-	public SendMetering(MeteringConfig Config) {
-		this.config = Config;
+	public SendMetering(MeteringConfig config) {
+		this.config = config;
 	}
 
-	public void stop() {
+	public void pause() {
 		_pause = true;
 	}
 
-	public void start() {
+	public void resume() {
 		_pause = false;
 	}
 
@@ -45,8 +49,9 @@ public class SendMetering {
 		_quit = true;
 	}
 
-	public void Run() {
+	public void start() {
 		int assetHour = 0;
+		logger.info("Metering Start!");
 
 		while (!_quit) {
 			// 일시정지 확인
@@ -64,13 +69,61 @@ public class SendMetering {
 				var bucketApiEvents = db.getBucketApiMeteringEvents(meterRange);
 				var bucketErrorEvents = db.getBucketErrorMeteringEvents(meterRange);
 
-				// // Backend Metering 집계
+				// Backend Metering 집계
 				var backendIoEvents = db.getBackendIoMeteringEvents(meterRange);
 				var backendApiEvents = db.getBackendApiMeteringEvents(meterRange);
 				var backendErrorEvents = db.getBackendErrorMeteringEvents(meterRange);
 
 				// 버킷 목록 및 Usage 가져오기
 				var buckets = objManager.getBucketUsages(meterRange);
+				if (buckets == null) {
+					logger.error("Bucket Usage is null");
+					continue;
+				}
+				if (buckets.size() == 0) {
+					logger.error("Bucket Usage is empty");
+					continue;
+				}
+				logger.info("Bucket Usage Count: " + buckets.size());
+
+				// Bucket Metering 데이터 생성
+				for (var bucket : buckets) {
+					// API Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (bucketApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var apiEvent = new ApiLogData(bucket.inDate, bucket.user, bucket.bucket, S3Parameters.OP_PUT_OBJECT, 0);
+						bucketApiEvents.add(apiEvent);
+					}
+
+					// IO Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (bucketIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var ioEvent = new IoLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
+						bucketIoEvents.add(ioEvent);
+					}
+
+					// Error Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (bucketErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var errorEvent = new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
+						bucketErrorEvents.add(errorEvent);
+					}
+
+					// Backend API Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (backendApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var apiEvent = new ApiLogData(bucket.inDate, bucket.user, bucket.bucket, S3Parameters.OP_PUT_OBJECT, 0);
+						backendApiEvents.add(apiEvent);
+					}
+
+					// Backend IO Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (backendIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var ioEvent = new IoLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
+						backendIoEvents.add(ioEvent);
+					}
+
+					// Backend Error Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (backendErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
+						var errorEvent = new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
+						backendErrorEvents.add(errorEvent);
+					}
+				}
 
 				// DB에 저장
 				db.insertBucketApiMeter(bucketApiEvents);
@@ -109,5 +162,4 @@ public class SendMetering {
 			}
 		}
 	}
-
 }

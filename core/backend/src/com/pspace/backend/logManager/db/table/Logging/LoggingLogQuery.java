@@ -23,12 +23,12 @@ public class LoggingLogQuery {
 
 	public String getCreateTableQuery() {
 		return "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ( " +
-				ID + " bigint auto_increment primary key, " +
-				SOURCE_BUCKET + " varchar(64) NOT NULL, " +
-				TARGET_BUCKET + " varchar(64) NOT NULL, " +
-				TARGET_KEY + " varchar(2048) NOT NULL, " +
-				DATE_TIME + " timestamp(3) NOT NULL DEFAULT current_timestamp(3), " +
-				LAST_LOG_ID + " bigint NOT NULL, " +
+				ID + " BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+				SOURCE_BUCKET + " VARCHAR(64) NOT NULL, " +
+				TARGET_BUCKET + " VARCHAR(64) NOT NULL, " +
+				TARGET_KEY + " VARCHAR(2048) NOT NULL, " +
+				DATE_TIME + " TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), " +
+				LAST_LOG_ID + " BIGINT NOT NULL, " +
 				MESSAGE + " TEXT NULL);";
 	}
 

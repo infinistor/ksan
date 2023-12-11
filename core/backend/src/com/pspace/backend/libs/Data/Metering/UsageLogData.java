@@ -8,15 +8,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class UsageLogData extends BaseLogData {
 	public long usedSize;
 
-	public UsageLogData(String indate, String user, String bucket, long usedSize) {
-		super(indate, user, bucket);
+	public UsageLogData(String inDate, String user, String bucket, long usedSize) {
+		super(inDate, user, bucket);
 		this.usedSize = usedSize;
 	}
 
 	@Override
 	public List<Object> getInsertDBParameters() {
 		var param = new ArrayList<Object>();
-		param.add(indate);
+		param.add(inDate);
 		param.add(user);
 		param.add(bucket);
 		param.add(usedSize);

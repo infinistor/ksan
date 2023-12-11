@@ -69,17 +69,17 @@ public class Main {
 		logger.info(config.toString());
 
 		// ObjManager 초기화
-		var ObjManager = ObjManagerHelper.getInstance();
+		var objManager = ObjManagerHelper.getInstance();
 		try {
-			ObjManager.init(portal.getObjManagerConfig());
+			objManager.init(portal.getObjManagerConfig());
 		} catch (Exception e) {
 			logger.error("", e);
 			return;
 		}
 
 		// Replication Initialization
-		var Replicator = new MainReplicator();
-		if (!Replicator.start(config.threadCount)) {
+		var replicator = new MainReplicator();
+		if (!replicator.start(config.threadCount)) {
 			logger.error("MainReplicator is not started!");
 			return;
 		}

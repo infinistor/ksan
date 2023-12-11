@@ -13,8 +13,8 @@ public class ErrorLogData extends BaseLogData {
 	public long clientError;
 	public long serverError;
 
-	public ErrorLogData(String indate, String user, String bucket, long clientError, long serverError) {
-		super(indate, user, bucket);
+	public ErrorLogData(String inDate, String user, String bucket, long clientError, long serverError) {
+		super(inDate, user, bucket);
 		this.clientError = clientError;
 		this.serverError = serverError;
 	}
@@ -22,7 +22,7 @@ public class ErrorLogData extends BaseLogData {
 	@Override
 	public List<Object> getInsertDBParameters() {
 		var param = new ArrayList<Object>();
-		param.add(indate);
+		param.add(inDate);
 		param.add(user);
 		param.add(bucket);
 		param.add(clientError);
