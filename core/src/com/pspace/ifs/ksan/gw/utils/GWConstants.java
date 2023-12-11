@@ -112,6 +112,7 @@ public final class GWConstants {
 	public static final int DEFAULT_OSD_PORT = 8000;
 	public static final int DEFAULT_OSD_CLIENT_SIZE = 10;
 	public static final int DEFAULT_OBJMANAGER_SIZE = 10;
+	public static final int LOGGER_MAX_THREADS = 20;
 	public static final String OR = " or ";
 
 	public static final String AWS_XMLNS = "http://s3.amazonaws.com/doc/2006-03-01/";

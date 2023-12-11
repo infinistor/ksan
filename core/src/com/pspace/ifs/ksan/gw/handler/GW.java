@@ -22,12 +22,15 @@ import com.pspace.ifs.ksan.gw.object.objmanager.ObjManagers;
 import com.pspace.ifs.ksan.libs.osd.OSDClientManager;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWLogging;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.GWPortal;
 import com.pspace.ifs.ksan.libs.PrintStack;
 
 import org.eclipse.jetty.http.HttpCompliance;
 import org.eclipse.jetty.http.UriCompliance;
+import org.eclipse.jetty.server.CustomRequestLog;
+import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -149,11 +152,23 @@ public class GW {
 		handler = new GWHandlerJetty();
 		server.setHandler(handler);
 
+		// Access Log
+		// String td = java.time.ZoneId.systemDefault().getId();
+		// String dateFormat = "{dd/MM/yyyy HH:mm:ss ZZZ|" + td + "}";
+		// String NCSAFromat = "%{client}a - %u %" + dateFormat + "t \"%r\" %s %O";
+		// String extendedNCSAFormat = NCSAFromat + " \"%{Referer}i\" \"%{User-Agent}i\"";
+		// server.setRequestLog(new CustomRequestLog(new Slf4jRequestLogWriter(), extendedNCSAFormat));
+
 		// try {
 		// 	OSDClientManager.getInstance().init((int)GWConfig.getInstance().getOsdPort(), (int)GWConfig.getInstance().getOsdClientCount());
 		// } catch (Exception e) {
 		// 	PrintStack.logging(logger, e);
 		// }
+
+		// Logging 
+		if (GWConfig.getInstance().isLogging()) {
+			GWLogging.getInstance().init(GWConfig.getInstance().getLoggerMaxThreads());
+		}
 
 		ObjManagers.getInstance().init();
 

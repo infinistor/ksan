@@ -67,6 +67,7 @@ public class GWConfig {
 
     private String logging;
     private boolean isLogging;
+    private long maxLoggingThreads = GWConstants.LOGGER_MAX_THREADS;
 
     private static final String VERSION = "version";
     private static final String AUTHORIZATION = "authorization";
@@ -94,6 +95,7 @@ public class GWConfig {
     private static final String CACHE_PATH = "cache_diskpath";
     // private static final String CACHE_FILE_SIZE = "gw.cache_file_size";
     private static final String EVENT_LOG = "logging";
+    private static final String LOGGER_MAX_THREADS = "logger_max_threads";
 
     private static final String EQUAL = "=";
     private static final String ON = "on";
@@ -386,6 +388,10 @@ public class GWConfig {
 
     public boolean isLogging() {
         return isLogging;
+    }
+
+    public int getLoggerMaxThreads() {
+        return (int)maxLoggingThreads;
     }
 
     public void setConfig(JSONObject jsonConfig) throws URISyntaxException {
