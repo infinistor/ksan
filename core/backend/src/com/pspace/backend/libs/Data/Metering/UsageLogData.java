@@ -8,6 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class UsageLogData extends BaseLogData {
 	public long usedSize;
 
+	public UsageLogData(String inDate, String user, String bucket) {
+		super(inDate, user, bucket);
+		usedSize = 0;
+	}
+
 	public UsageLogData(String inDate, String user, String bucket, long usedSize) {
 		super(inDate, user, bucket);
 		this.usedSize = usedSize;

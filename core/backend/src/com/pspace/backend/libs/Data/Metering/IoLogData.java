@@ -11,6 +11,12 @@ public class IoLogData extends BaseLogData {
 	public long upload;
 	public long download;
 
+	public IoLogData(String inDate, String user, String bucket) {
+		super(inDate, user, bucket);
+		upload = 0;
+		download = 0;
+	}
+
 	public IoLogData(String inDate, String user, String bucket, long upload, long download) {
 		super(inDate, user, bucket);
 		this.upload = upload;

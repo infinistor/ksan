@@ -42,7 +42,7 @@ public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String selectMeter(DateRange range) {
-		return "SELECT " + S3LogQuery.DB_BUCKET_NAME + ", "
+		return "SELECT " + S3LogQuery.DB_BUCKET_NAME + ", " + S3LogQuery.DB_REQUEST_USER + ", "
 				+ " COUNT(CASE WHEN " + S3LogQuery.DB_STATUS_CODE + " >= 400 AND " + S3LogQuery.DB_STATUS_CODE + " < 500 THEN 1 END) AS " + DB_CLIENT_ERROR_COUNT + ","
 				+ " COUNT(CASE WHEN " + S3LogQuery.DB_STATUS_CODE + " >= 500 THEN 1 END) AS " + DB_SERVER_ERROR_COUNT + ""
 				+ " FROM " + S3LogQuery.getTableName()
@@ -76,7 +76,7 @@ public class BucketErrorMeteringQuery implements BaseMeteringQuery {
 		try {
 			for (var result : results) {
 				var bucket = (String) result.get(S3LogQuery.DB_BUCKET_NAME);
-				var user = (String) result.get(S3LogQuery.DB_USER_NAME);
+				var user = (String) result.get(S3LogQuery.DB_REQUEST_USER);
 				var clientError = (long) result.get(DB_CLIENT_ERROR_COUNT);
 				var serverError = (long) result.get(DB_SERVER_ERROR_COUNT);
 				items.add(new ErrorLogData(range.start, user, bucket, clientError, serverError));

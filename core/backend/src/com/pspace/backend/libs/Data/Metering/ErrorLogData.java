@@ -13,6 +13,12 @@ public class ErrorLogData extends BaseLogData {
 	public long clientError;
 	public long serverError;
 
+	public ErrorLogData(String inDate, String user, String bucket) {
+		super(inDate, user, bucket);
+		clientError = 0;
+		serverError = 0;
+	}
+
 	public ErrorLogData(String inDate, String user, String bucket, long clientError, long serverError) {
 		super(inDate, user, bucket);
 		this.clientError = clientError;

@@ -42,7 +42,7 @@ public class BucketApiMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String selectMeter(DateRange range) {
-		return "SELECT " + S3LogQuery.DB_BUCKET_NAME + ", " + S3LogQuery.DB_OPERATION + ", COUNT(*) AS COUNT FROM " + S3LogQuery.getTableName()
+		return "SELECT " + S3LogQuery.DB_BUCKET_NAME + ", " + S3LogQuery.DB_REQUEST_USER + ", " + S3LogQuery.DB_OPERATION + ", COUNT(*) AS COUNT FROM " + S3LogQuery.getTableName()
 				+ " WHERE " + S3LogQuery.DB_DATE_TIME + " > '" + range.start + "' AND " + S3LogQuery.DB_DATE_TIME + " < '" + range.end
 				+ "' GROUP BY " + S3LogQuery.DB_BUCKET_NAME + ", " + S3LogQuery.DB_OPERATION + ";";
 	}
@@ -74,7 +74,7 @@ public class BucketApiMeteringQuery implements BaseMeteringQuery {
 			for (var result : results) {
 
 				var bucket = (String) result.get(S3LogQuery.DB_BUCKET_NAME);
-				var user = (String) result.get(S3LogQuery.DB_USER_NAME);
+				var user = (String) result.get(S3LogQuery.DB_REQUEST_USER);
 				var event = (String) result.get(S3LogQuery.DB_OPERATION);
 				var count = Long.parseLong(String.valueOf(result.get(DB_COUNT)));
 				items.add(new ApiLogData(range.start, user, bucket, event, count));

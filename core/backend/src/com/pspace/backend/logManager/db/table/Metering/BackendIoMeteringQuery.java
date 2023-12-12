@@ -42,7 +42,7 @@ public class BackendIoMeteringQuery implements BaseMeteringQuery {
 	}
 
 	public static String selectMeter(DateRange range) {
-		return "SELECT " + BackendLogQuery.DB_BUCKET_NAME + ", SUM(" + BackendLogQuery.DB_REQUEST_LENGTH + ") AS " + DB_UPLOAD + ", SUM(" + BackendLogQuery.DB_RESPONSE_LENGTH + ") AS " + DB_DOWNLOAD
+		return "SELECT " + BackendLogQuery.DB_BUCKET_NAME + ", " + BackendLogQuery.DB_REQUEST_USER + ", SUM(" + BackendLogQuery.DB_REQUEST_LENGTH + ") AS " + DB_UPLOAD + ", SUM(" + BackendLogQuery.DB_RESPONSE_LENGTH + ") AS " + DB_DOWNLOAD
 				+ ""
 				+ " FROM " + BackendLogQuery.getTableName()
 				+ " WHERE " + BackendLogQuery.DB_DATE_TIME + " >= '" + range.start + "' AND " + BackendLogQuery.DB_DATE_TIME + " <= '" + range.end + "' GROUP BY " + BackendLogQuery.DB_BUCKET_NAME
@@ -79,7 +79,7 @@ public class BackendIoMeteringQuery implements BaseMeteringQuery {
 
 			for (var result : results) {
 				var bucket = (String) result.get(BackendLogQuery.DB_BUCKET_NAME);
-				var user = (String) result.get(BackendLogQuery.DB_USER_NAME);
+				var user = (String) result.get(BackendLogQuery.DB_REQUEST_USER);
 				var upload = Long.parseLong(String.valueOf(result.get(DB_UPLOAD)));
 				var download = Long.parseLong(String.valueOf(result.get(DB_DOWNLOAD)));
 				items.add(new IoLogData(range.start, user, bucket, upload, download));

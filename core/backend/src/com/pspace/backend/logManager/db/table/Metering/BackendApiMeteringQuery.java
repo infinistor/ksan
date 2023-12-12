@@ -26,8 +26,7 @@ public class BackendApiMeteringQuery implements BaseMeteringQuery {
 				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_EVENT + " VARCHAR(200) NOT NULL, " +
 				DB_COUNT + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_EVENT
-				+ "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_EVENT + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
@@ -38,15 +37,14 @@ public class BackendApiMeteringQuery implements BaseMeteringQuery {
 				DB_BUCKET_NAME + " VARCHAR(64) NOT NULL, " +
 				DB_EVENT + " VARCHAR(200) NOT NULL, " +
 				DB_COUNT + " BIGINT DEFAULT NULL, " +
-				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_EVENT
-				+ "))" +
+				"PRIMARY KEY (" + DB_IN_DATE + ", " + DB_USER_NAME + ", " + DB_BUCKET_NAME + ", " + DB_EVENT + "))" +
 				"ENGINE=INNODB DEFAULT CHARSET=utf8mb4;";
 	}
 
 	public static String selectMeter(DateRange range) {
-		return "SELECT BUCKET_NAME, USER_NAME, OPERATION, COUNT(*) AS COUNT FROM " + BackendLogQuery.getTableName()
-				+ " WHERE DATE_TIME >= '" + range.start
-				+ "' AND DATE_TIME <= '" + range.end + "' GROUP BY BUCKET_NAME, OPERATION;";
+		return "SELECT " + BackendLogQuery.DB_BUCKET_NAME + ", " + BackendLogQuery.DB_REQUEST_USER + ", " + BackendLogQuery.DB_OPERATION + ", COUNT(*) AS COUNT FROM " + BackendLogQuery.getTableName()
+				+ " WHERE " + BackendLogQuery.DB_DATE_TIME + " > '" + range.start + "' AND " + BackendLogQuery.DB_DATE_TIME + " < '" + range.end
+				+ "' GROUP BY " + BackendLogQuery.DB_BUCKET_NAME + ", " + BackendLogQuery.DB_OPERATION + ";";
 	}
 
 	public static String insertMeter() {
@@ -75,8 +73,8 @@ public class BackendApiMeteringQuery implements BaseMeteringQuery {
 		try {
 			for (var result : results) {
 
-				var bucket = (String) result.get(BackendLogQuery.DB_BUCKET_NAME);
-				var user = (String) result.get(BackendLogQuery.DB_USER_NAME);
+				var bucket = (String) result.get(BackendLogQuery.DB_REQUEST_USER);
+				var user = (String) result.get(BackendLogQuery.DB_REQUEST_USER);
 				var event = (String) result.get(BackendLogQuery.DB_OPERATION);
 				var count = Long.parseLong(String.valueOf(result.get(DB_COUNT)));
 				items.add(new ApiLogData(range.start, user, bucket, event, count));
