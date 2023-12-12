@@ -10,12 +10,12 @@ RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 ########################################################################
 FROM maven:3.8.3-openjdk-17 as backendlibsbuild
 WORKDIR /src
-COPY ./core/backend/src/com/pspace/backend/libs/ /src/
+COPY ./core/backend/src/com/pspace/backend/Libs/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 #######################################################################
 FROM maven:3.8.3-openjdk-17 as build
 WORKDIR /src
-COPY ./core/backend/src/com/pspace/backend/replication/ /src/
+COPY ./core/backend/src/com/pspace/backend/Replication/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
 ########################################################################
 FROM openjdk:17.0.1-jdk-slim
