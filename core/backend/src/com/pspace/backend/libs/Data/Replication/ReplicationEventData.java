@@ -8,18 +8,16 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data.Replication;
-
-import java.sql.Timestamp;
+package com.pspace.backend.Libs.Data.Replication;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ReplicationEventData {
 
-	public Timestamp inDate;
-	public Timestamp startTime;
-	public Timestamp endTime;
+	public long inDate;
+	public long startTime;
+	public long endTime;
 	public String operation;
 	public String objectName;
 	public String versionId;
@@ -45,8 +43,8 @@ public class ReplicationEventData {
 
 	public ReplicationEventData(String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
 		setInDate();
-		startTime = new Timestamp(0);
-		endTime = new Timestamp(0);
+		startTime = 0;
+		endTime = 0;
 		this.operation = operation;
 		this.objectName = objectName;
 		this.versionId = versionId;
@@ -56,9 +54,9 @@ public class ReplicationEventData {
 	}
 
 	public void init() {
-		startTime = new Timestamp(0);
-		startTime = new Timestamp(0);
-		endTime = new Timestamp(0);
+		startTime = 0;
+		startTime = 0;
+		endTime = 0;
 		operation = "";
 		objectName = "";
 		versionId = "";
@@ -68,15 +66,15 @@ public class ReplicationEventData {
 	}
 
 	public void setInDate() {
-		inDate = new Timestamp(System.currentTimeMillis());
+		inDate = System.currentTimeMillis();
 	}
 
 	public void setStartTime() {
-		startTime = new Timestamp(System.currentTimeMillis());
+		startTime = System.currentTimeMillis();
 	}
 
 	public void setEndTime() {
-		endTime = new Timestamp(System.currentTimeMillis());
+		endTime = System.currentTimeMillis();
 	}
 
 	@Override

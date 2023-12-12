@@ -1,4 +1,4 @@
-package com.pspace.backend.logManager.db.table.Metering;
+package com.pspace.backend.LogManager.DB.Table.Metering;
 
 public interface BaseMeteringQuery {
 	public static final int MAX_QUERY_SIZE = 1000;

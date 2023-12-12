@@ -8,15 +8,14 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.logManager.db.table.Logging;
+package com.pspace.backend.LogManager.DB.Table.Logging;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.pspace.backend.libs.Data.S3.S3LogData;
-import com.pspace.backend.logManager.db.table.QueryConstants;
+import com.pspace.backend.Libs.Data.S3.S3LogData;
+import com.pspace.backend.LogManager.DB.Table.QueryConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +83,7 @@ public class S3LogQuery {
 	public static String insert() {
 		return String.format(
 				"INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+						+ " VALUES(?, ?, from_unixtime(? / 1000), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
 				getTableName(),
 				DB_USER_NAME, DB_BUCKET_NAME, DB_DATE_TIME, DB_REMOTE_HOST, DB_REQUEST_USER, DB_REQUEST_ID,
 				DB_OPERATION, DB_OBJECT_NAME, DB_REQUEST_URI, DB_STATUS_CODE, DB_ERROR_CODE, DB_RESPONSE_LENGTH,
@@ -109,7 +108,7 @@ public class S3LogQuery {
 				MyList.add(new S3LogData(
 						(String) result.get(DB_USER_NAME),
 						(String) result.get(DB_BUCKET_NAME),
-						(Timestamp) result.get(DB_DATE_TIME),
+						(long) result.get(DB_DATE_TIME),
 						(String) result.get(DB_REMOTE_HOST),
 						(String) result.get(DB_REQUEST_USER),
 						(String) result.get(DB_REQUEST_ID),

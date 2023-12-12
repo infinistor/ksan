@@ -1,9 +1,9 @@
-package com.pspace.backend.logManager.db.table.replication;
+package com.pspace.backend.LogManager.DB.Table.Replication;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.logManager.db.table.QueryConstants;
+import com.pspace.backend.LogManager.DB.Table.QueryConstants;
 
 public class ReplicationSuccessQuery implements BaseReplicationQuery {
 	static final Logger log = LoggerFactory.getLogger(ReplicationSuccessQuery.class);

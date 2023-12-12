@@ -1,10 +1,10 @@
-package com.pspace.backend.libs.Data.Lifecycle;
+package com.pspace.backend.Libs.Data.Lifecycle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.s3format.RestoreObjectConfiguration;
+import com.pspace.backend.Libs.S3.RestoreObjectConfiguration;
 
 public class RestoreEventData {
 	public String bucketName;

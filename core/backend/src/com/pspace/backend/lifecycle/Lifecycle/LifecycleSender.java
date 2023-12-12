@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.lifecycle.Lifecycle;
+package com.pspace.backend.Lifecycle.Lifecycle;
 
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
@@ -20,13 +20,13 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.AdminClient.KsanClient;
-import com.pspace.backend.libs.Data.BackendHeaders;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
-import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.Libs.AdminClient.KsanClient;
+import com.pspace.backend.Libs.Data.BackendHeaders;
+import com.pspace.backend.Libs.Data.Constants;
+import com.pspace.backend.Libs.Data.Lifecycle.LifecycleEventData;
+import com.pspace.backend.Libs.Data.Lifecycle.LifecycleLogData;
+import com.pspace.backend.Libs.Ksan.AgentConfig;
+import com.pspace.backend.Libs.Ksan.Data.S3RegionData;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;

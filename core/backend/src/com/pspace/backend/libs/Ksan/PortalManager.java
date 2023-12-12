@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Ksan;
+package com.pspace.backend.Libs.Ksan;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -30,16 +30,16 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Config.LifecycleManagerConfig;
-import com.pspace.backend.libs.Config.LogManagerConfig;
-import com.pspace.backend.libs.Config.ReplicationManagerConfig;
-import com.pspace.backend.libs.Config.objManagerConfig;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Ksan.Data.ResponseConfig;
-import com.pspace.backend.libs.Ksan.Data.ResponseData;
-import com.pspace.backend.libs.Ksan.Data.ResponseList;
-import com.pspace.backend.libs.Ksan.Data.ResponseRegion;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.Libs.Config.LifecycleManagerConfig;
+import com.pspace.backend.Libs.Config.LogManagerConfig;
+import com.pspace.backend.Libs.Config.ReplicationManagerConfig;
+import com.pspace.backend.Libs.Config.ObjManagerConfigBuilder;
+import com.pspace.backend.Libs.Data.Constants;
+import com.pspace.backend.Libs.Ksan.Data.ResponseConfig;
+import com.pspace.backend.Libs.Ksan.Data.ResponseData;
+import com.pspace.backend.Libs.Ksan.Data.ResponseList;
+import com.pspace.backend.Libs.Ksan.Data.ResponseRegion;
+import com.pspace.backend.Libs.Ksan.Data.S3RegionData;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class PortalManager {
@@ -117,7 +117,7 @@ public class PortalManager {
 					return null;
 				}
 
-				var objManager = Mapper.readValue(Result.Data.Config, objManagerConfig.class);
+				var objManager = Mapper.readValue(Result.Data.Config, ObjManagerConfigBuilder.class);
 				return objManager.getObjManagerConfig();
 			}
 

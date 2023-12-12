@@ -8,21 +8,21 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.logManager.metering;
+package com.pspace.backend.LogManager.Metering;
 
 import java.util.Calendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Config.MeteringConfig;
-import com.pspace.backend.libs.Data.Metering.ApiLogData;
-import com.pspace.backend.libs.Data.Metering.ErrorLogData;
-import com.pspace.backend.libs.Data.Metering.IoLogData;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.s3format.S3Parameters;
-import com.pspace.backend.logManager.db.DBManager;
+import com.pspace.backend.Libs.Utility;
+import com.pspace.backend.Libs.Config.MeteringConfig;
+import com.pspace.backend.Libs.Data.Metering.ApiLogData;
+import com.pspace.backend.Libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.Libs.Data.Metering.IoLogData;
+import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.Libs.S3.S3Parameters;
+import com.pspace.backend.LogManager.DB.DBManager;
 
 public class SendMetering {
 	private final Logger logger = LoggerFactory.getLogger(SendMetering.class);
@@ -78,6 +78,8 @@ public class SendMetering {
 				var buckets = objManager.getBucketUsages(meterRange);
 				if (buckets == null) {
 					logger.error("Bucket Usage is null");
+					// Metering 설정한 시간만큼 대기
+					Utility.delay(config.getMeterDelay());
 					continue;
 				}
 				logger.info("Bucket Usage Count: " + buckets.size());

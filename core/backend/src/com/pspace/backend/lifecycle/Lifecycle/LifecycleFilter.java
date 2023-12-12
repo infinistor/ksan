@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.lifecycle.Lifecycle;
+package com.pspace.backend.Lifecycle.Lifecycle;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -25,13 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Lifecycle.LifecycleEventData;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.s3format.LifecycleConfiguration;
-import com.pspace.backend.libs.s3format.LifecycleConfiguration.Rule;
-import com.pspace.backend.libs.s3format.Tagging;
+import com.pspace.backend.Libs.Data.Constants;
+import com.pspace.backend.Libs.Data.Lifecycle.LifecycleEventData;
+import com.pspace.backend.Libs.Ksan.AgentConfig;
+import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.Libs.S3.LifecycleConfiguration;
+import com.pspace.backend.Libs.S3.Tagging;
+import com.pspace.backend.Libs.S3.LifecycleConfiguration.Rule;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
@@ -411,7 +411,7 @@ public class LifecycleFilter {
 		return Instant.ofEpochSecond(timestamp / 1000000000L, timestamp % 1000000000L).toString();
 	}
 
-	private Collection<com.pspace.backend.libs.s3format.Tagging.TagSet.Tag> string2Tag(String strTags) {
+	private Collection<com.pspace.backend.Libs.S3.Tagging.TagSet.Tag> string2Tag(String strTags) {
 		try {
 			var tagging = new XmlMapper().readValue(strTags, Tagging.class);
 			return tagging.tags.tags;

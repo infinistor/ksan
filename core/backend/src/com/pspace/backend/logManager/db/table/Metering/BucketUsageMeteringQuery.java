@@ -1,4 +1,4 @@
-package com.pspace.backend.logManager.db.table.Metering;
+package com.pspace.backend.LogManager.DB.Table.Metering;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,8 +6,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.Data.Metering.DateRange;
-import com.pspace.backend.libs.Data.Metering.UsageLogData;
+import com.pspace.backend.Libs.Data.Metering.DateRange;
+import com.pspace.backend.Libs.Data.Metering.UsageLogData;
 
 public class BucketUsageMeteringQuery implements BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketUsageMeteringQuery.class);

@@ -1,4 +1,4 @@
-package com.pspace.backend.logManager.db.table.replication;
+package com.pspace.backend.LogManager.DB.Table.Replication;
 
 public interface BaseReplicationQuery {
 	public static final String DB_TABLE_NAME = "REPLICATION_LOG";

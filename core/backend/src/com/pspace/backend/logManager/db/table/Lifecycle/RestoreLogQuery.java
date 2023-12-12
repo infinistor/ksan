@@ -1,4 +1,4 @@
-package com.pspace.backend.logManager.db.table.Lifecycle;
+package com.pspace.backend.LogManager.DB.Table.Lifecycle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,8 @@ import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
-import com.pspace.backend.logManager.db.table.QueryConstants;
+import com.pspace.backend.Libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.LogManager.DB.Table.QueryConstants;
 
 public class RestoreLogQuery {
 

@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.logManager.db.mariaDB;
+package com.pspace.backend.LogManager.DB.MariaDB;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,32 +19,32 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.libs.Config.DBConfig;
-import com.pspace.backend.libs.Data.BaseData;
-import com.pspace.backend.libs.Data.Lifecycle.LifecycleLogData;
-import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
-import com.pspace.backend.libs.Data.Metering.ApiLogData;
-import com.pspace.backend.libs.Data.Metering.DateRange;
-import com.pspace.backend.libs.Data.Metering.ErrorLogData;
-import com.pspace.backend.libs.Data.Metering.IoLogData;
-import com.pspace.backend.libs.Data.Metering.UsageLogData;
-import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
-import com.pspace.backend.libs.Data.Replication.ReplicationSuccessData;
-import com.pspace.backend.libs.Data.S3.S3LogData;
-import com.pspace.backend.logManager.db.IDBManager;
-import com.pspace.backend.logManager.db.table.Lifecycle.LifecycleLogQuery;
-import com.pspace.backend.logManager.db.table.Lifecycle.RestoreLogQuery;
-import com.pspace.backend.logManager.db.table.Logging.BackendLogQuery;
-import com.pspace.backend.logManager.db.table.Logging.S3LogQuery;
-import com.pspace.backend.logManager.db.table.Metering.BackendApiMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BucketApiMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BackendErrorMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BackendIoMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BucketErrorMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BucketIoMeteringQuery;
-import com.pspace.backend.logManager.db.table.Metering.BucketUsageMeteringQuery;
-import com.pspace.backend.logManager.db.table.replication.ReplicationFailedQuery;
-import com.pspace.backend.logManager.db.table.replication.ReplicationSuccessQuery;
+import com.pspace.backend.Libs.Config.DBConfig;
+import com.pspace.backend.Libs.Data.BaseData;
+import com.pspace.backend.Libs.Data.Lifecycle.LifecycleLogData;
+import com.pspace.backend.Libs.Data.Lifecycle.RestoreLogData;
+import com.pspace.backend.Libs.Data.Metering.ApiLogData;
+import com.pspace.backend.Libs.Data.Metering.DateRange;
+import com.pspace.backend.Libs.Data.Metering.ErrorLogData;
+import com.pspace.backend.Libs.Data.Metering.IoLogData;
+import com.pspace.backend.Libs.Data.Metering.UsageLogData;
+import com.pspace.backend.Libs.Data.Replication.ReplicationLogData;
+import com.pspace.backend.Libs.Data.Replication.ReplicationSuccessData;
+import com.pspace.backend.Libs.Data.S3.S3LogData;
+import com.pspace.backend.LogManager.DB.IDBManager;
+import com.pspace.backend.LogManager.DB.Table.Lifecycle.LifecycleLogQuery;
+import com.pspace.backend.LogManager.DB.Table.Lifecycle.RestoreLogQuery;
+import com.pspace.backend.LogManager.DB.Table.Logging.BackendLogQuery;
+import com.pspace.backend.LogManager.DB.Table.Logging.S3LogQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BackendApiMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BackendErrorMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BackendIoMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BucketApiMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BucketErrorMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BucketIoMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Metering.BucketUsageMeteringQuery;
+import com.pspace.backend.LogManager.DB.Table.Replication.ReplicationFailedQuery;
+import com.pspace.backend.LogManager.DB.Table.Replication.ReplicationSuccessQuery;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
