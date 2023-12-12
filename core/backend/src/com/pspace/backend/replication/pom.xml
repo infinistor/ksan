@@ -113,7 +113,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>com.pspace.backend.replication.Main</mainClass>
+									<mainClass>com.pspace.backend.Replication.Main</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>

@@ -128,7 +128,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>com.pspace.backend.logManager.Main</mainClass>
+									<mainClass>com.pspace.backend.LogManager.Main</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>

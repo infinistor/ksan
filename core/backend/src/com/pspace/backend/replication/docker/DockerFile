@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
 FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 RUN mkdir -p /usr/local/ksan/etc/
-COPY ./core/backend/src/com/pspace/backend/replication/ksanReplicationManager_log_conf.xml /usr/local/ksan/etc/
+COPY ./core/backend/src/com/pspace/backend/Replication/ksanReplicationManager_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanReplicationManager.jar /usr/local/ksan/sbin/
-COPY ./core/backend/src/com/pspace/backend/replication/docker/start.sh /app
+COPY ./core/backend/src/com/pspace/backend/Replication/Docker/start.sh /app
 CMD ["/app/start.sh"]
