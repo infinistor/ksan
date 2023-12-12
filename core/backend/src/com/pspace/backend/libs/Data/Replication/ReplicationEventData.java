@@ -12,21 +12,30 @@ package com.pspace.backend.Libs.Data.Replication;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.Libs.Utility;
 
 public class ReplicationEventData {
 
-	public long inDate;
-	public long startTime;
-	public long endTime;
-	public String operation;
-	public String objectName;
-	public String versionId;
-	public String sourceBucketName;
-	public String targetBucketName;
-	public String targetRegion;
+	protected final String inDate;
+	protected String startTime;
+	protected String endTime;
+	public final String operation;
+	public final String objectName;
+	public final String versionId;
+	public final String sourceBucketName;
+	public final String targetBucketName;
+	public final String targetRegion;
 
 	public ReplicationEventData() {
-		init();
+		inDate = Utility.getDateTime();
+		startTime = "";
+		endTime = "";
+		operation = "";
+		objectName = "";
+		versionId = "";
+		sourceBucketName = "";
+		targetBucketName = "";
+		targetRegion = "";
 	}
 
 	public ReplicationEventData(ReplicationEventData data) {
@@ -42,9 +51,9 @@ public class ReplicationEventData {
 	}
 
 	public ReplicationEventData(String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
-		setInDate();
-		startTime = 0;
-		endTime = 0;
+		inDate = Utility.getDateTime();
+		startTime = "";
+		endTime = "";
 		this.operation = operation;
 		this.objectName = objectName;
 		this.versionId = versionId;
@@ -53,28 +62,12 @@ public class ReplicationEventData {
 		this.targetRegion = targetRegion;
 	}
 
-	public void init() {
-		startTime = 0;
-		startTime = 0;
-		endTime = 0;
-		operation = "";
-		objectName = "";
-		versionId = "";
-		sourceBucketName = "";
-		targetBucketName = "";
-		targetRegion = "";
-	}
-
-	public void setInDate() {
-		inDate = System.currentTimeMillis();
-	}
-
 	public void setStartTime() {
-		startTime = System.currentTimeMillis();
+		startTime = Utility.getDateTime();
 	}
 
 	public void setEndTime() {
-		endTime = System.currentTimeMillis();
+		endTime = Utility.getDateTime();
 	}
 
 	@Override

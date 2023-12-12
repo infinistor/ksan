@@ -29,7 +29,7 @@ public class LifecycleLogData extends LifecycleEventData implements BaseData {
 
 	public LifecycleLogData(LifecycleEventData data, String message) {
 		super(data);
-		this.date = Utility.getNowTime();
+		this.date = Utility.getDateTime();
 		this.message = message;
 	}
 

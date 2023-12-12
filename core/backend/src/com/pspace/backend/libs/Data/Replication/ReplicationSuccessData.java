@@ -43,21 +43,6 @@ public class ReplicationSuccessData extends ReplicationEventData implements Base
 		return param;
 	}
 
-	// @Override
-	// public Document getInsertDBDocument() {
-	// 	var param = new Document();
-	// 	param.put(BaseReplicationQuery.DB_IN_DATE, LocalDateTime.now());
-	// 	param.put(BaseReplicationQuery.DB_OPERATION, operation);
-	// 	param.put(BaseReplicationQuery.DB_OBJECTNAME, objectName);
-	// 	param.put(BaseReplicationQuery.DB_VERSION_ID, versionId);
-	// 	param.put(BaseReplicationQuery.DB_SOURCE_BUCKET_NAME, sourceBucketName);
-	// 	param.put(BaseReplicationQuery.DB_TARGET_BUCKET_NAME, targetBucketName);
-	// 	param.put(BaseReplicationQuery.DB_TARGET_REGION, targetRegion);
-	// 	param.put(BaseReplicationQuery.DB_MESSAGE, message);
-
-	// 	return param;
-	// }
-
 	@Override
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();

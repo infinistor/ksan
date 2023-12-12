@@ -16,7 +16,6 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -38,7 +37,7 @@ import com.pspace.backend.Libs.Ksan.Data.S3RegionData;
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);
 	private static final int TimeOut = 3 * 1000;
-	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	static final TimeZone SEOUL = TimeZone.getTimeZone("Asia/Seoul");
 
 	public static String getServiceId(String FilePath) {
@@ -52,9 +51,9 @@ public class Utility {
 		}
 	}
 
-	public static String getNowTime() {
-		var now = new Date();
-		return simpleDateFormat.format(now);
+	public static String getDateTime() {
+		Calendar time = Calendar.getInstance(SEOUL, Locale.KOREA);
+		return dateFormat.format(time);
 	}
 
 	public static int string2Time(String Value) {
@@ -75,12 +74,12 @@ public class Utility {
 	}
 
 	public static int getNowDay() {
-		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+		Calendar time = Calendar.getInstance(SEOUL, Locale.KOREA);
 		return time.get(Calendar.DAY_OF_YEAR);
 	}
 
 	public static int getNowTime2Int() {
-		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA);
+		Calendar time = Calendar.getInstance(SEOUL, Locale.KOREA);
 		int Hour = time.get(Calendar.HOUR_OF_DAY);
 		int Minute = time.get(Calendar.MINUTE);
 
