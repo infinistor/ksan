@@ -21,7 +21,6 @@ import com.pspace.backend.Libs.Data.Metering.ApiLogData;
 import com.pspace.backend.Libs.Data.Metering.ErrorLogData;
 import com.pspace.backend.Libs.Data.Metering.IoLogData;
 import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.Libs.S3.S3Parameters;
 import com.pspace.backend.LogManager.DB.DBManager;
 
 public class SendMetering {
@@ -87,40 +86,28 @@ public class SendMetering {
 				// Bucket Metering 데이터 생성
 				for (var bucket : buckets) {
 					// API Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (bucketApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var apiEvent = new ApiLogData(bucket.inDate, bucket.user, bucket.bucket, S3Parameters.OP_PUT_OBJECT, 0);
-						bucketApiEvents.add(apiEvent);
-					}
-
-					// IO Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (bucketIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var ioEvent = new IoLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
-						bucketIoEvents.add(ioEvent);
-					}
+					if (bucketApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						bucketApiEvents.add(new ApiLogData(bucket.inDate, bucket.user, bucket.bucket));
 
 					// Error Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (bucketErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var errorEvent = new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
-						bucketErrorEvents.add(errorEvent);
-					}
+					if (bucketErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						bucketErrorEvents.add(new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket));
+
+					// IO Metering 목록에서 Bucket이 존재하지 않을 경우
+					if (bucketIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						bucketIoEvents.add(new IoLogData(bucket.inDate, bucket.user, bucket.bucket));
 
 					// Backend API Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (backendApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var apiEvent = new ApiLogData(bucket.inDate, bucket.user, bucket.bucket, S3Parameters.OP_PUT_OBJECT, 0);
-						backendApiEvents.add(apiEvent);
-					}
+					if (backendApiEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						backendApiEvents.add(new ApiLogData(bucket.inDate, bucket.user, bucket.bucket));
 
 					// Backend IO Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (backendIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var ioEvent = new IoLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
-						backendIoEvents.add(ioEvent);
-					}
+					if (backendIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						bucketIoEvents.add(new IoLogData(bucket.inDate, bucket.user, bucket.bucket));
 
 					// Backend Error Metering 목록에서 Bucket이 존재하지 않을 경우
-					if (backendErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket))) {
-						var errorEvent = new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket, 0, 0);
-						backendErrorEvents.add(errorEvent);
-					}
+					if (backendErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
+						backendErrorEvents.add(new ErrorLogData(bucket.inDate, bucket.user, bucket.bucket));
 				}
 
 				// DB에 저장
