@@ -23,7 +23,7 @@ public class ApiLogData extends BaseLogData {
 	public ApiLogData(String inDate, String user, String bucket, String event, long count) {
 		super(inDate, user, bucket);
 		if (StringUtils.isBlank(event))
-			event = "-";
+			this.event = "-";
 		else
 			this.event = event;
 		this.count = count;
