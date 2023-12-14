@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Replication.Filter;
+package com.pspace.backend.Replication.Replicator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -62,6 +62,7 @@ public class ReplicationFilter implements MQCallback {
 				logger.error("Failed to read S3 Logging");
 				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_INVALID_REQUEST, "", 0);
 			}
+			logger.info("S3 Log : {}", s3Log.toString());
 
 			// 버킷 이름이 비어있을 경우 무시
 			if (s3Log.isBucketNameEmpty())
@@ -82,6 +83,7 @@ public class ReplicationFilter implements MQCallback {
 			// Replication 필터링
 			if (bucketInfo.isReplication)
 				ReplicationEventFiltering(bucketInfo, s3Log);
+			logger.info("Replication Filter End");
 
 		} catch (Exception e) {
 			logger.error("", e);

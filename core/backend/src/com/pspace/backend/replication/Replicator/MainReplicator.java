@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.Libs.Data.Constants;
 import com.pspace.backend.Libs.Ksan.AgentConfig;
-import com.pspace.backend.Replication.Filter.ReplicationFilter;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 public class MainReplicator {
@@ -50,7 +49,7 @@ public class MainReplicator {
 						new ReplicationFilter()));
 
 				// Event Receiver 생성
-				var eventReceiver = new MQReceiver(
+				eventReceivers.add(new MQReceiver(
 						agent.mqHost,
 						agent.mqPort,
 						agent.mqUser,
@@ -60,8 +59,7 @@ public class MainReplicator {
 						false,
 						Constants.MQ_EXCHANGE_OPTION_TOPIC,
 						Constants.MQ_BINDING_REPLICATION_EVENT,
-						new EventReplicator());
-				eventReceivers.add(eventReceiver);
+						new EventReplicator()));
 			}
 			return true;
 		} catch (Exception e) {
