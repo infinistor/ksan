@@ -15,15 +15,15 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Data.Replication.ReplicationEventData;
-import com.pspace.backend.Libs.Data.Replication.ReplicationLogData;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.data.Replication.ReplicationEventData;
+import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
-public class EventReplicator extends BaseReplicator {
+public class EventReplicator extends BaseReplicator implements MQCallback {
 
 	private final MQSender mq;
 
@@ -49,30 +49,23 @@ public class EventReplicator extends BaseReplicator {
 			logger.debug("{} : {}", routingKey, body);
 
 			// 문자열을 ReplicationEventData 클래스로 변환
-			var Mapper = new ObjectMapper();
-			var event = Mapper.readValue(body, new TypeReference<ReplicationEventData>() {
+			var mapper = new ObjectMapper();
+			var event = mapper.readValue(body, new TypeReference<ReplicationEventData>() {
 			});
 			// 변환 실패시
 			if (event == null) {
-				throw new Exception("Invalid Replication : " + body);
+				logger.error("Invalid event data");
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, "Invalid event data", 0);
 			}
 
-			try {
+			// 타겟 클라이언트 생성
+			AmazonS3 targetClient = getClient(event);
 
-				// 타겟 클라이언트 생성
-				AmazonS3 TargetClient = createClient(event);
+			// 전송 객체 생성
+			var sender = new SendReplicator(sourceClient, targetClient, mq, event, config.partSize);
 
-				// 전송 객체 생성
-				var Sender = new SendReplicator(sourceClient, TargetClient, mq, event, config.partSize);
-
-				// 복제 시작
-				Sender.run();
-			} catch (Exception e) {
-				var data = new ReplicationLogData(event, e.getMessage());
-				mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG);
-				logger.error("", e);
-				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);
-			}
+			// 복제 시작
+			sender.run();
 		} catch (Exception e) {
 			logger.error("", e);
 			return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, e.getMessage(), 0);

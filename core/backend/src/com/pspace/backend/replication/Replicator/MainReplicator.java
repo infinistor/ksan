@@ -16,16 +16,16 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.data.Constants;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 public class MainReplicator {
 	protected final Logger logger;
 	protected final AgentConfig agent;
 
-	List<MQReceiver> filterReceivers = new ArrayList<MQReceiver>();
-	List<MQReceiver> eventReceivers = new ArrayList<MQReceiver>();
+	List<MQReceiver> filterReceivers = new ArrayList<>();
+	List<MQReceiver> eventReceivers = new ArrayList<>();
 
 	public MainReplicator() {
 		this.logger = LoggerFactory.getLogger(MainReplicator.class);

@@ -15,13 +15,13 @@ import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Utility;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Heartbeat.Heartbeat;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
-import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.Libs.Ksan.PortalManager;
 import com.pspace.backend.Replication.Replicator.MainReplicator;
+import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.Ksan.PortalManager;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -39,8 +39,8 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var ServiceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
-		if (ServiceId == null) {
+		var serviceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
+		if (serviceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
@@ -48,8 +48,8 @@ public class Main {
 		Thread HBThread;
 		Heartbeat HB;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
-			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
+			HB = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
+			HBThread = new Thread(() -> HB.start(ksanConfig.ServiceMonitorInterval));
 			HBThread.start();
 		} catch (Exception e) {
 			logger.error("", e);

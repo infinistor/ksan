@@ -8,24 +8,29 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Libs.AdminClient;
+package com.pspace.backend.libs.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Auth.AWS4SignerBase;
-import com.pspace.backend.Libs.Auth.AWS4SignerForChunkedUpload;
-import com.pspace.backend.Libs.Auth.MyResult;
+import com.pspace.backend.libs.auth.AWS4SignerBase;
+import com.pspace.backend.libs.auth.AWS4SignerForChunkedUpload;
+import com.pspace.backend.libs.auth.MyResult;
 
 public class KsanClient {
+	private static final Logger logger = LoggerFactory.getLogger(KsanClient.class);
+
 	static final String METHOD_DELETE = "DELETE";
 	static final String METHOD_POST = "POST";
 	static final String METHOD_GET = "GET";
@@ -47,9 +52,11 @@ public class KsanClient {
 		this.secretKey = secretKey;
 	}
 
-	public MyResult StorageMove(String bucketName, String key, String storageClass, String versionId) throws Exception {
-		if (StringUtils.isBlank(bucketName))
-			throw new Exception("버킷 이름이 비어있습니다.");
+	public MyResult storageMove(String bucketName, String key, String storageClass, String versionId) throws MalformedURLException {
+		if (StringUtils.isBlank(bucketName)) {
+			logger.error("bucketName is blank");
+			return null;
+		}
 
 		var srtQuery = "storagemove&encoding-type=url";
 		var query = new HashMap<String, String>();
@@ -65,7 +72,7 @@ public class KsanClient {
 			query.put("VersionId", versionId);
 		}
 
-		var URI = new URL(String.format("http://%s:%d/%s/%s?%s", host, port, bucketName, key, srtQuery));
+		var url = new URL(String.format("http://%s:%d/%s/%s?%s", host, port, bucketName, key, srtQuery));
 
 		var headers = new HashMap<String, String>();
 		headers.put("X-Amz-Content-SHA256", AWS4SignerBase.EMPTY_BODY_SHA256);
@@ -73,78 +80,67 @@ public class KsanClient {
 		headers.put("Content-Type", "text/plain");
 		headers.put(HEADER_BACKEND, HEADER_DATA);
 
-		var signer = new AWS4SignerForChunkedUpload(URI, METHOD_POST, SERVICE_NAME, "us-west-2");
+		var signer = new AWS4SignerForChunkedUpload(url, METHOD_POST, SERVICE_NAME, "us-west-2");
 
 		String authorization = signer.computeSignature(headers, query, AWS4SignerBase.EMPTY_BODY_SHA256, accessKey,
 				secretKey);
 		headers.put("Authorization", authorization);
 
-		return PostUpload(URI, headers);
+		return postUpload(url, headers);
 	}
 
-	public static MyResult PostUpload(URL EndPoint, Map<String, String> headers) {
+	public static MyResult postUpload(URL endPoint, Map<String, String> headers) {
 		try {
-			var connection = createHttpConnection(EndPoint, METHOD_POST, headers);
-			return Send(connection);
+			var connection = createHttpConnection(endPoint, METHOD_POST, headers);
+			return send(connection);
 		} catch (Exception e) {
-			// logger.error("", e);
-			e.printStackTrace();
+			logger.error("", e);
 		}
 
 		return null;
 	}
 
-	public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
-			Map<String, String> headers) {
-		try {
-			HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
-			connection.setRequestMethod(httpMethod);
+	public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod, Map<String, String> headers) throws IOException {
+		HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
+		connection.setRequestMethod(httpMethod);
 
-			if (headers != null) {
-				for (String headerKey : headers.keySet()) {
-					connection.setRequestProperty(headerKey, headers.get(headerKey));
-					System.out.printf("%s, %s\n", headerKey, headers.get(headerKey));
-				}
+		if (headers != null) {
+			for (var header : headers.entrySet()) {
+				connection.setRequestProperty(header.getKey(), header.getValue());
 			}
-			connection.setFixedLengthStreamingMode(0);
-			connection.setUseCaches(false);
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			return connection;
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create connection. " + e.getMessage(), e);
 		}
+		connection.setFixedLengthStreamingMode(0);
+		connection.setUseCaches(false);
+		connection.setDoInput(true);
+		connection.setDoOutput(true);
+		return connection;
 	}
 
-	public static MyResult Send(HttpURLConnection connection) {
-		var Result = new MyResult();
-		try {
-			// Get Response
-			InputStream is;
-			try {
-				is = connection.getInputStream();
-			} catch (IOException e) {
-				is = connection.getErrorStream();
-			}
+	public static MyResult send(HttpURLConnection connection) {
+		var result = new MyResult();
+		if (connection == null) {
+			result.Message = "connection is null";
+			return result;
+		}
 
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+		try (InputStream is = connection.getResponseCode() >= 400 ? connection.getErrorStream()
+				: connection.getInputStream()) {
+			var rd = new BufferedReader(new InputStreamReader(is));
 			String line;
-			StringBuffer response = new StringBuffer();
+			var response = new StringBuilder();
 			while ((line = rd.readLine()) != null) {
 				response.append(line);
 				response.append('\r');
 			}
 			rd.close();
-			Result.Message = response.toString();
-			Result.StatusCode = connection.getResponseCode();
+			result.Message = response.toString();
+			result.StatusCode = connection.getResponseCode();
 		} catch (Exception e) {
-			e.printStackTrace();
-			Result.Message = e.getMessage();
+			logger.error("", e);
+			result.Message = e.getMessage();
 		} finally {
-			if (connection != null) {
-				connection.disconnect();
-			}
+			connection.disconnect();
 		}
-		return Result;
+		return result;
 	}
 }

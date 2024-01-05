@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Libs.Data.Lifecycle;
+package com.pspace.backend.libs.data.lifecycle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,11 @@ public class LifecycleEventData {
 	public String uploadId;
 
 	public LifecycleEventData() {
-		Init();
+		bucketName = "";
+		objectName = "";
+		versionId = "";
+		storageClass = "";
+		uploadId = "";
 	}
 
 	public LifecycleEventData(LifecycleEventData data) {
@@ -33,37 +37,12 @@ public class LifecycleEventData {
 		this.uploadId = data.uploadId;
 	}
 
-	public LifecycleEventData(String bucketName, String objectName) {
-		this.bucketName = bucketName;
-		this.objectName = objectName;
-		this.versionId = "";
-		this.storageClass = "";
-		this.uploadId = "";
-	}
-
-	public LifecycleEventData(String bucketName, String objectName, String versionId) {
-		this.bucketName = bucketName;
-		this.objectName = objectName;
-		this.versionId = versionId;
-		this.storageClass = "";
-		this.uploadId = "";
-	}
-
 	public LifecycleEventData(String bucketName, String objectName, String versionId, String storageClass, String uploadId) {
 		this.bucketName = bucketName;
 		this.objectName = objectName;
 		this.versionId = versionId;
 		this.storageClass = storageClass;
 		this.uploadId = uploadId;
-	}
-
-	public void Init()
-	{
-		this.bucketName = "";
-		this.objectName = "";
-		this.versionId = "";
-		this.storageClass = "";
-		this.uploadId = "";
 	}
 
 	@Override
@@ -75,9 +54,8 @@ public class LifecycleEventData {
 			return "";
 		}
 	}
-	
 
-	public static class Builder{
+	public static class Builder {
 		private String bucketName;
 		private String objectName;
 		private String versionId;

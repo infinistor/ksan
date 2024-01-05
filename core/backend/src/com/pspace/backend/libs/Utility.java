@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Libs;
+package com.pspace.backend.libs;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -31,21 +31,20 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.pspace.backend.Libs.Data.Metering.DateRange;
-import com.pspace.backend.Libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.libs.data.Metering.DateRange;
 
 public class Utility {
 	static final Logger logger = LoggerFactory.getLogger(Utility.class);
-	private static final int TimeOut = 3 * 1000;
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	private static final int TIME_OUT = 3 * 1000;
 	static final TimeZone SEOUL = TimeZone.getTimeZone("Asia/Seoul");
 
-	public static String getServiceId(String FilePath) {
-		try {
-			BufferedReader Reader = new BufferedReader(new FileReader(FilePath));
-			var ServiceId = Reader.readLine();
-			Reader.close();
-			return ServiceId;
+	private Utility() {
+	}
+
+	public static String getServiceId(String filePath) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+			return reader.readLine();
 		} catch (Exception e) {
 			return null;
 		}
@@ -53,24 +52,25 @@ public class Utility {
 
 	public static String getDateTime() {
 		Calendar time = Calendar.getInstance(SEOUL, Locale.KOREA);
-		return dateFormat.format(time);
+		var dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		return dateFormat.format(time.getTime());
 	}
 
-	public static int string2Time(String Value) {
-		if (Value == null || Value.isBlank())
+	public static int string2Time(String value) {
+		if (value == null || value.isBlank())
 			return -1;
 
-		String Token[] = Value.split(":");
-		if (Token.length > 1) {
-			int Hour = Integer.parseInt(Token[0]);
-			int Min = Integer.parseInt(Token[1]);
-			return Hour * 60 + Min;
+		var token = value.split(":");
+		if (token.length > 1) {
+			int hour = Integer.parseInt(token[0]);
+			int min = Integer.parseInt(token[1]);
+			return hour * 60 + min;
 		} else
 			return -1;
 	}
 
-	public static boolean isRun(int Time) {
-		return Time == getNowTime2Int();
+	public static boolean isRun(int time) {
+		return time == getNowTime2Int();
 	}
 
 	public static int getNowDay() {
@@ -80,16 +80,18 @@ public class Utility {
 
 	public static int getNowTime2Int() {
 		Calendar time = Calendar.getInstance(SEOUL, Locale.KOREA);
-		int Hour = time.get(Calendar.HOUR_OF_DAY);
-		int Minute = time.get(Calendar.MINUTE);
+		var hour = time.get(Calendar.HOUR_OF_DAY);
+		var minute = time.get(Calendar.MINUTE);
 
-		return Hour * 60 + Minute;
+		return hour * 60 + minute;
 	}
 
 	public static void delay(int milliseconds) {
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
+			logger.error("", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -97,30 +99,32 @@ public class Utility {
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
+			logger.error("", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
-	public static boolean checkAlive(String URL) {
+	public static boolean checkAlive(String url) {
 		try {
-			HttpClient Client = HttpClientBuilder.create().build();
-			HttpGet getRequest = new HttpGet(URL);
+			HttpClient client = HttpClientBuilder.create().build();
+			HttpGet getRequest = new HttpGet(url);
 			RequestConfig requestConfig = RequestConfig.custom()
-					.setSocketTimeout(TimeOut)
-					.setConnectTimeout(TimeOut)
-					.setConnectionRequestTimeout(TimeOut)
+					.setSocketTimeout(TIME_OUT)
+					.setConnectTimeout(TIME_OUT)
+					.setConnectionRequestTimeout(TIME_OUT)
 					.build();
 			getRequest.setConfig(requestConfig);
-			Client.execute(getRequest);
+			client.execute(getRequest);
 			getRequest.releaseConnection();
 			return true;
 		} catch (Exception e) {
-			logger.error("URL : {}", URL, e);
+			logger.error("URL : {}", url, e);
 		}
 		return false;
 	}
 
-	public static InputStream createBody(String Body) {
-		return new ByteArrayInputStream(Body.getBytes());
+	public static InputStream createBody(String body) {
+		return new ByteArrayInputStream(body.getBytes());
 	}
 
 	public static AmazonS3 createClient(S3RegionData region) {

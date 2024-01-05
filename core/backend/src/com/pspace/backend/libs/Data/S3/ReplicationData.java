@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Libs.Data.S3;
+package com.pspace.backend.libs.data.s3;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,28 +16,28 @@ import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.Libs.S3.ReplicationConfiguration;
-import com.pspace.backend.Libs.S3.S3Parameters;
-import com.pspace.backend.Libs.S3.ReplicationConfiguration.Rule.Filter.Tag;
+import com.pspace.backend.libs.S3.ReplicationConfiguration;
+import com.pspace.backend.libs.S3.S3Parameters;
+import com.pspace.backend.libs.S3.ReplicationConfiguration.Rule.Filter.Tag;
 
 public class ReplicationData {
 
-	public boolean Status;
-	public boolean DeleteMarker;
-	public String TargetAccessControlTranslationOwner;
-	public String TargetAccount;
-	public String TargetBucket;
-	public String TargetRegion;
-	public int TargetMetricsEventThreshold;
-	public boolean TargetMetricsStatus;
-	public boolean TargetReplicationTimeStatus;
-	public int TargetReplicationTime;
-	public boolean ExistingObjectReplicationStatus;
-	public String Prefix;
-	public Collection<Tag> Tags;
-	public String ID;
-	public int Priority;
-	public boolean ReplicaModificationsStatus;
+	public boolean status;
+	public boolean deleteMarker;
+	public String targetAccessControlTranslationOwner;
+	public String targetAccount;
+	public String targetBucket;
+	public String targetRegion;
+	public int targetMetricsEventThreshold;
+	public boolean targetMetricsStatus;
+	public boolean targetReplicationTimeStatus;
+	public int targetReplicationTime;
+	public boolean existingObjectReplicationStatus;
+	public String prefix;
+	public Collection<Tag> tags;
+	public String id;
+	public int priority;
+	public boolean replicaModificationsStatus;
 
 	public boolean isFiltering;
 
@@ -46,22 +46,22 @@ public class ReplicationData {
 	}
 
 	public void Init() {
-		Status = true;
-		DeleteMarker = false;
-		TargetAccessControlTranslationOwner = "";
-		TargetAccount = "";
-		TargetBucket = "";
-		TargetRegion = "";
-		TargetMetricsEventThreshold = 0;
-		TargetMetricsStatus = false;
-		TargetReplicationTimeStatus = false;
-		TargetReplicationTime = 0;
-		ExistingObjectReplicationStatus = false;
-		Prefix = "";
-		Tags = new ArrayList<Tag>();
-		ID = "";
-		Priority = 0;
-		ReplicaModificationsStatus = false;
+		status = true;
+		deleteMarker = false;
+		targetAccessControlTranslationOwner = "";
+		targetAccount = "";
+		targetBucket = "";
+		targetRegion = "";
+		targetMetricsEventThreshold = 0;
+		targetMetricsStatus = false;
+		targetReplicationTimeStatus = false;
+		targetReplicationTime = 0;
+		existingObjectReplicationStatus = false;
+		prefix = "";
+		tags = new ArrayList<Tag>();
+		id = "";
+		priority = 0;
+		replicaModificationsStatus = false;
 		isFiltering = false;
 	}
 
@@ -74,10 +74,10 @@ public class ReplicationData {
 			ReplicationConfiguration.Rule.Destination destination = Conf.destination;
 
 			// 복제 설정이 켜져 있다면
-			if (S3Parameters.isEnabled(Conf.status)) Status = true;
-			else Status = false;
+			if (S3Parameters.isEnabled(Conf.status)) status = true;
+			else status = false;
 
-			TargetAccount = destination.account;
+			targetAccount = destination.account;
 
 			// 버킷이름 파싱
 			if (destination.bucket != null)
@@ -85,25 +85,25 @@ public class ReplicationData {
 
 			// accessControlTranslation 설정이 있다면
 			if (destination.accessControlTranslation != null)
-				TargetAccessControlTranslationOwner = destination.accessControlTranslation.owner;
+				targetAccessControlTranslationOwner = destination.accessControlTranslation.owner;
 
 			// metrics 설정이 있다면
 			if (destination.metrics != null) {
 				ReplicationConfiguration.Rule.Destination.Metrics metrics = destination.metrics;
-				if (S3Parameters.isEnabled(metrics.status)) TargetMetricsStatus = true;
-				if (metrics.eventThreshold != null) TargetMetricsEventThreshold = metrics.eventThreshold.minutes;
+				if (S3Parameters.isEnabled(metrics.status)) targetMetricsStatus = true;
+				if (metrics.eventThreshold != null) targetMetricsEventThreshold = metrics.eventThreshold.minutes;
 			}
 
 			// replicationTime 설정이 있다면
 			if (destination.replicationTime != null) {
 				ReplicationConfiguration.Rule.Destination.ReplicationTime replicationTime = Conf.destination.replicationTime;
-				if (S3Parameters.isEnabled(replicationTime.status)) TargetReplicationTimeStatus = true;
-				if (replicationTime.time != null) TargetReplicationTime = replicationTime.time.minutes;
+				if (S3Parameters.isEnabled(replicationTime.status)) targetReplicationTimeStatus = true;
+				if (replicationTime.time != null) targetReplicationTime = replicationTime.time.minutes;
 			}
 		}
 
-		if (Conf.deleteMarkerReplication != null && S3Parameters.isEnabled(Conf.deleteMarkerReplication.Status)) DeleteMarker = true;
-		if (Conf.existingObjectReplication != null && S3Parameters.isEnabled(Conf.existingObjectReplication.status)) ExistingObjectReplicationStatus = true;
+		if (Conf.deleteMarkerReplication != null && S3Parameters.isEnabled(Conf.deleteMarkerReplication.Status)) deleteMarker = true;
+		if (Conf.existingObjectReplication != null && S3Parameters.isEnabled(Conf.existingObjectReplication.status)) existingObjectReplicationStatus = true;
 
 		/// Filter Priority
 		/// Filter.And : 1
@@ -113,23 +113,23 @@ public class ReplicationData {
 
 			// And 옵션이 있을 경우 가져오기
 			if (Conf.filter.and != null) {
-				if (!StringUtils.isBlank(Conf.filter.and.prefix)) Prefix = Conf.filter.and.prefix;
-				if (Conf.filter.and.tag != null && Conf.filter.and.tag.size() > 0) Tags = Conf.filter.and.tag;
+				if (!StringUtils.isBlank(Conf.filter.and.prefix)) prefix = Conf.filter.and.prefix;
+				if (Conf.filter.and.tag != null && Conf.filter.and.tag.size() > 0) tags = Conf.filter.and.tag;
 			}
 			// And 설정이 없을 경우 적용
 			else {
-				if (!StringUtils.isBlank(Conf.filter.prefix)) Prefix = Conf.filter.prefix;
-				if (Conf.filter.tag != null) Tags.add(Conf.filter.tag);
+				if (!StringUtils.isBlank(Conf.filter.prefix)) prefix = Conf.filter.prefix;
+				if (Conf.filter.tag != null) tags.add(Conf.filter.tag);
 			}
 		}
 
-		ID = Conf.id;
-		Priority = Conf.priority;
+		id = Conf.id;
+		priority = Conf.priority;
 
 		if (Conf.sourceSelectionCriteria != null) {
 			ReplicationConfiguration.Rule.SourceSelectionCriteria sourceSelectionCriteria = Conf.sourceSelectionCriteria;
 			if (sourceSelectionCriteria.replicaModifications != null)
-				if (S3Parameters.isEnabled(sourceSelectionCriteria.replicaModifications.status)) ReplicaModificationsStatus = true;
+				if (S3Parameters.isEnabled(sourceSelectionCriteria.replicaModifications.status)) replicaModificationsStatus = true;
 		}
 		return true;
 	}
@@ -140,7 +140,7 @@ public class ReplicationData {
 
 		// 버킷이름을 파싱했으나 :이 없다면
 		if (Token.length < 5) {
-			TargetBucket = Bucket;
+			targetBucket = Bucket;
 			return;
 		}
 
@@ -151,11 +151,11 @@ public class ReplicationData {
 		String BucketName = Token[5];
 
 		if (!StringUtils.isBlank(BucketName))
-			TargetBucket = BucketName.trim();
+			targetBucket = BucketName.trim();
 
 		//리전 정보가 존재할경우 리전 정보 저장
 		if (!StringUtils.isBlank(Region))
-			TargetRegion = Region.trim();
+			targetRegion = Region.trim();
 	}
 
 	@Override

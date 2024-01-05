@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Lifecycle;
+package com.pspace.backend.lifecycle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,15 +16,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Utility;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Heartbeat.Heartbeat;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
-import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.Libs.Ksan.PortalManager;
-import com.pspace.backend.Lifecycle.Lifecycle.LifecycleFilter;
-import com.pspace.backend.Lifecycle.Lifecycle.LifecycleSender;
-import com.pspace.backend.Lifecycle.Lifecycle.RestoreSender;
+import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.Ksan.PortalManager;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
+import com.pspace.backend.lifecycle.lifecycle.LifecycleFilter;
+import com.pspace.backend.lifecycle.lifecycle.LifecycleSender;
+import com.pspace.backend.lifecycle.lifecycle.RestoreSender;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 public class Main {
@@ -57,7 +57,7 @@ public class Main {
 		try {
 			hb = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser,
 					ksanConfig.mqPassword);
-			hbThread = new Thread(() -> hb.Start(ksanConfig.ServiceMonitorInterval));
+			hbThread = new Thread(() -> hb.start(ksanConfig.ServiceMonitorInterval));
 			hbThread.start();
 		} catch (Exception e) {
 			logger.error("", e);

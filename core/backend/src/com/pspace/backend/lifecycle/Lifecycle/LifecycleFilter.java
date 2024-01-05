@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.Lifecycle.Lifecycle;
+package com.pspace.backend.lifecycle.lifecycle;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -25,13 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Data.Lifecycle.LifecycleEventData;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
-import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.Libs.S3.LifecycleConfiguration;
-import com.pspace.backend.Libs.S3.Tagging;
-import com.pspace.backend.Libs.S3.LifecycleConfiguration.Rule;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.S3.LifecycleConfiguration;
+import com.pspace.backend.libs.S3.Tagging;
+import com.pspace.backend.libs.S3.LifecycleConfiguration.Rule;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.data.lifecycle.LifecycleEventData;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 import com.pspace.ifs.ksan.objmanager.Metadata;
 
@@ -94,6 +94,100 @@ public class LifecycleFilter {
 				// 룰에 prefix 가 설정되어 있을 경우 가져오기
 				var prefix = getPrefix2Rule(rule);
 
+				// Current 버전의 Transition 수명주기 설정이 되어있을 경우
+				if (rule.transition != null) {
+					var expired = 0L;
+					// 수명주기 설정이 특정 날짜일 경우
+					if (!StringUtils.isBlank(rule.transition.date)) {
+						expired = getExpiredTimeDate(rule.transition.date);
+						// 수명주기 설정이 일정 기간일 경우 기간을 숫자로 변환
+					} else if (!StringUtils.isBlank(rule.transition.days)) {
+						expired = getExpiredTimeNoncurrentDays(rule.transition.days);
+					}
+
+					// 수명주기 설정이 정상적일 경우
+					if (expired != 0) {
+
+						if (StringUtils.isBlank(rule.transition.StorageClass)) {
+							logger.error("[{}] invalid transition storage class", bucketName);
+							continue;
+						}
+
+						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, long2Date(expired));
+
+						// 해당 버킷의 모든 오브젝트에 대해 필터링
+						var nextMarker = "";
+						var isTruncated = true;
+						while (isTruncated) {
+
+							// 오브젝트 목록 가져오기
+							logger.info("[{}] Expired Current Object List Get. ({}, {}, {})", bucketName, prefix, nextMarker, expired);
+							var objects = objManager.listExpiredObjects(bucketName, prefix, nextMarker, expired);
+
+							// 오브젝트가 없을 경우 스킵
+							if (objects == null || objects.size() == 0)
+								break;
+
+							logger.info("[{}] Expired Current Object List Get. ({}, {}, {}) : {}", bucketName, prefix, nextMarker, expired, objects.size());
+
+							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
+								isTruncated = false;
+							else {
+								nextMarker = objects.get(objects.size() - 1).getPath();
+							}
+
+							for (var object : objects) {
+								// 스킵 체크
+								if (skipCheck(rule, object))
+									continue;
+								// 수명주기가 만료된 오브젝트를 DB에 저장
+								sendEvent(new LifecycleEventData.Builder(bucketName, object.getPath()).setStorageClass(rule.transition.StorageClass).build());
+							}
+						}
+					}
+				}
+
+				// Noncurrent 버전의 Transition 수명주기 설정이 되어있을 경우
+				if (rule.versionTransition != null && !StringUtils.isBlank(rule.versionTransition.NoncurrentDays)) {
+					// 기간을 숫자로 변환
+					var expired = getExpiredTimeNoncurrentDays(rule.versionTransition.NoncurrentDays);
+					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
+
+					// 수명주기 설정이 정상적일 경우
+					if (expired != 0) {
+						// 해당 버킷의 모든 오브젝트에 대해 필터링
+						var nextMarker = "";
+						var nextVersionId = "";
+						var isTruncated = true;
+						while (isTruncated) {
+
+							// 오브젝트 목록 가져오기
+							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {})", bucketName, nextMarker, nextVersionId, expired);
+							var objects = objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, expired);
+							if (objects == null || objects.size() == 0)
+								break;
+							// logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}) : {}",
+							// bucketName, prefix, nextMarker, nextVersionId, expired, objects.size());
+
+							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
+								isTruncated = false;
+							else {
+								nextMarker = objects.get(objects.size() - 1).getPath();
+								nextVersionId = objects.get(objects.size() - 1).getVersionId();
+							}
+
+							for (var object : objects) {
+								// 스킵 체크
+								if (skipCheck(rule, object))
+									continue;
+								// 수명주기가 만료된 오브젝트를 DB에 저장
+								sendEvent(
+										new LifecycleEventData.Builder(bucketName, object.getPath()).setVersionId(object.getVersionId()).setStorageClass(rule.versionTransition.StorageClass).build());
+							}
+						}
+					}
+				}
+
 				// Current 버전의 수명주기 설정이 되어있을 경우
 				if (rule.expiration != null) {
 					var expired = 0L;
@@ -109,7 +203,6 @@ public class LifecycleFilter {
 					if (expired != 0) {
 
 						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, long2Date(expired));
-						
 
 						// 해당 버킷의 모든 오브젝트에 대해 필터링
 						var nextMarker = "";
@@ -186,8 +279,7 @@ public class LifecycleFilter {
 				}
 
 				// Noncurrent 버전의 수명주기 설정이 되어있을 경우
-				if (rule.versionExpiration != null
-						&& !StringUtils.isBlank(rule.versionExpiration.days)) {
+				if (rule.versionExpiration != null && !StringUtils.isBlank(rule.versionExpiration.days)) {
 					// 기간을 숫자로 변환
 					var expired = getExpiredTimeNoncurrentDays(rule.versionExpiration.days);
 					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
@@ -231,8 +323,7 @@ public class LifecycleFilter {
 				}
 
 				// Multipart 수명주기 설정이 되어있을 경우
-				if (rule.abortIncompleteMultipartUpload != null
-						&& !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
+				if (rule.abortIncompleteMultipartUpload != null && !StringUtils.isBlank(rule.abortIncompleteMultipartUpload.DaysAfterInitiation)) {
 					// 멀티파트 인스턴스를 가져온다.
 					var multiManager = objManager.getMultipartInstance(bucketName);
 					// 기간을 숫자로 변환
@@ -394,8 +485,8 @@ public class LifecycleFilter {
 	private long getExpiredTimeDate(String date) {
 		Instant instant = Instant.parse(date);
 		Instant now = Instant.now();
-			if (instant.getEpochSecond() > now.getEpochSecond())
-		return instant.getEpochSecond() * 1000000000L + instant.getNano();
+		if (instant.getEpochSecond() > now.getEpochSecond())
+			return instant.getEpochSecond() * 1000000000L + instant.getNano();
 		else
 			return Long.MAX_VALUE;
 
@@ -411,7 +502,7 @@ public class LifecycleFilter {
 		return Instant.ofEpochSecond(timestamp / 1000000000L, timestamp % 1000000000L).toString();
 	}
 
-	private Collection<com.pspace.backend.Libs.S3.Tagging.TagSet.Tag> string2Tag(String strTags) {
+	private Collection<com.pspace.backend.libs.S3.Tagging.TagSet.Tag> string2Tag(String strTags) {
 		try {
 			var tagging = new XmlMapper().readValue(strTags, Tagging.class);
 			return tagging.tags.tags;
