@@ -8,20 +8,20 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.LogManager.Metering;
+package com.pspace.backend.logger.metering;
 
 import java.util.Calendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Utility;
-import com.pspace.backend.Libs.Config.MeteringConfig;
-import com.pspace.backend.Libs.Data.Metering.ApiLogData;
-import com.pspace.backend.Libs.Data.Metering.ErrorLogData;
-import com.pspace.backend.Libs.Data.Metering.IoLogData;
-import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.LogManager.DB.DBManager;
+import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.config.MeteringConfig;
+import com.pspace.backend.libs.data.Metering.ApiLogData;
+import com.pspace.backend.libs.data.Metering.ErrorLogData;
+import com.pspace.backend.libs.data.Metering.IoLogData;
+import com.pspace.backend.libs.db.DBManager;
 
 public class SendMetering {
 	private final Logger logger = LoggerFactory.getLogger(SendMetering.class);
@@ -61,7 +61,7 @@ public class SendMetering {
 			try {
 				// Metering 조회 기간 설정
 				var meterRange = Utility.getDateRangeMinute(config.getMeter());
-				logger.info("Metering Range: " + meterRange.start + " ~ " + meterRange.end);
+				logger.info("Metering Range: {} ~ {} ", meterRange.start, meterRange.end);
 
 				// Bucket Metering 집계
 				var bucketIoEvents = db.getBucketIoMeteringEvents(meterRange);
@@ -81,7 +81,7 @@ public class SendMetering {
 					Utility.delay(config.getMeterDelay());
 					continue;
 				}
-				logger.info("Bucket Usage Count: " + buckets.size());
+				logger.info("Bucket Usage Count: {}", buckets.size());
 
 				// Bucket Metering 데이터 생성
 				for (var bucket : buckets) {
@@ -125,7 +125,7 @@ public class SendMetering {
 				if (assetHour != hour) {
 					assetHour = hour;
 					var assetRange = Utility.getDateRangeHour(config.getMeter());
-					logger.info("Asset Range: " + assetRange.start + " ~ " + assetRange.end);
+					logger.info("Asset Range: {} ~ {}", assetRange.start, assetRange.end);
 
 					db.insertBucketApiAsset(assetRange);
 					db.insertBucketIoAsset(assetRange);
@@ -136,7 +136,6 @@ public class SendMetering {
 					db.insertBackendErrorAsset(assetRange);
 
 					db.expiredMeter();
-					db.check();
 				}
 
 				// Metering 설정한 시간만큼 대기

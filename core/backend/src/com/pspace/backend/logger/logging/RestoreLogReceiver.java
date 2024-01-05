@@ -8,24 +8,24 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.LogManager.Logging;
+package com.pspace.backend.logger.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Data.S3.S3LogData;
-import com.pspace.backend.LogManager.DB.DBManager;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.data.lifecycle.LifecycleLogData;
+import com.pspace.backend.libs.db.DBManager;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
 import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 
-public class S3LogReceiver implements MQCallback {
-	private final Logger logger = LoggerFactory.getLogger(S3LogReceiver.class);
-	private final ObjectMapper Mapper = new ObjectMapper();
+public class RestoreLogReceiver implements MQCallback {
+	private final Logger logger = LoggerFactory.getLogger(RestoreLogReceiver.class);
+	private final ObjectMapper mapper = new ObjectMapper();
 	private final DBManager db = DBManager.getInstance();
 
 	@Override
@@ -34,18 +34,21 @@ public class S3LogReceiver implements MQCallback {
 		try {
 			logger.debug("{} -> {}", routingKey, body);
 
-			if (!routingKey.equals(Constants.MQ_BINDING_GW_LOG))
+			if (!routingKey.equals(Constants.MQ_BINDING_RESTORE_LOG))
 				return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 
 			// 문자열을 S3LogData 클래스로 변환
-			var event = Mapper.readValue(body, new TypeReference<S3LogData>() {
+			var event = mapper.readValue(body, new TypeReference<LifecycleLogData>() {
 			});
 			// 변환 실패시
-			if (event == null)
-				throw new Exception("Invalid S3LogData : " + body);
+			if (event == null) {
+				logger.error("Failed to convert string to RestoreLogData");
+				return new MQResponse(MQResponseType.ERROR, MQResponseCode.MQ_UNKNOWN_ERROR, "Failed to convert string to RestoreLogData", 0);
+			}
 
 			// DB에 저장
-			db.insertS3Log(event);
+			logger.info("RestoreLogData : {}", event);
+			db.insertLifecycleLog(event);
 
 		} catch (Exception e) {
 			logger.error("", e);

@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.LogManager.Logging;
+package com.pspace.backend.logger.logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Config.ConfigManager;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.config.ConfigManager;
+import com.pspace.backend.libs.data.Constants;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 public class MainLogger {

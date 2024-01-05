@@ -1,4 +1,4 @@
-package com.pspace.backend.LogManager.Logging;
+package com.pspace.backend.logger.logging;
 // /*
 // * Copyright (c) 2021 PSPACE, inc. KSAN Development Team ksan@pspace.co.kr
 // * KSAN is a suite of free software: you can redistribute it and/or modify it under the terms of

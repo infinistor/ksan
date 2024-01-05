@@ -10,18 +10,18 @@ RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 ########################################################################
 FROM maven:3.8.3-openjdk-17 as backendlibsbuild
 WORKDIR /src
-COPY ./core/backend/src/com/pspace/backend/Libs/ /src/
+COPY ./core/backend/src/com/pspace/backend/libs/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml install
 #######################################################################
 FROM maven:3.8.3-openjdk-17 as build
 WORKDIR /src
-COPY ./core/backend/src/com/pspace/backend/LogManager/ /src/
+COPY ./core/backend/src/com/pspace/backend/logger/ /src/
 RUN --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
 ########################################################################
 FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 RUN mkdir -p /usr/local/ksan/etc/
-COPY ./core/backend/src/com/pspace/backend/LogManager/ksanLogManager_log_conf.xml /usr/local/ksan/etc/
+COPY ./core/backend/src/com/pspace/backend/logger/ksanLogManager_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanLogManager.jar /usr/local/ksan/sbin/
-COPY ./core/backend/src/com/pspace/backend/LogManager/Docker/start.sh /app
+COPY ./core/backend/src/com/pspace/backend/logger/Docker/start.sh /app
 CMD ["sh", "/app/start.sh"]

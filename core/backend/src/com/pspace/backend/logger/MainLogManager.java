@@ -8,25 +8,25 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.LogManager;
+package com.pspace.backend.logger;
 
 import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pspace.backend.Libs.Utility;
-import com.pspace.backend.Libs.Data.Constants;
-import com.pspace.backend.Libs.Heartbeat.Heartbeat;
-import com.pspace.backend.Libs.Ksan.AgentConfig;
-import com.pspace.backend.Libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.Libs.Ksan.PortalManager;
-import com.pspace.backend.LogManager.DB.DBManager;
-import com.pspace.backend.LogManager.Logging.MainLogger;
-import com.pspace.backend.LogManager.Metering.MainMetering;
+import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.Ksan.AgentConfig;
+import com.pspace.backend.libs.Ksan.ObjManagerHelper;
+import com.pspace.backend.libs.Ksan.PortalManager;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.db.DBManager;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
+import com.pspace.backend.logger.logging.MainLogger;
+import com.pspace.backend.logger.metering.MainMetering;
 
-public class Main {
-	static final Logger logger = LoggerFactory.getLogger(Main.class);
+public class MainLogManager {
+	static final Logger logger = LoggerFactory.getLogger(MainLogManager.class);
 
 	public static void main(String[] args) {
 		TimeZone.setDefault(TimeZone.getTimeZone("KST"));
@@ -41,19 +41,19 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var ServiceId = Utility.getServiceId(Constants.LOG_MANAGER_SERVICE_ID_PATH);
-		if (ServiceId == null) {
+		var serviceId = Utility.getServiceId(Constants.LOG_MANAGER_SERVICE_ID_PATH);
+		if (serviceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.LOG_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
 
 		// Heartbeat
-		Thread HBThread;
-		Heartbeat HB;
+		Thread heartbeatThread;
+		Heartbeat heartbeat;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
-			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
-			HBThread.start();
+			heartbeat = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
+			heartbeatThread = new Thread(() -> heartbeat.start(ksanConfig.ServiceMonitorInterval));
+			heartbeatThread.start();
 		} catch (Exception e) {
 			logger.error("", e);
 			return;
@@ -65,13 +65,13 @@ public class Main {
 
 		// Read Configuration to Portal
 		var config = portal.getLogManagerConfig();
-		logger.info(config.toString());
+		logger.info("Log Manager Config : {}", config);
 
 		// DB 초기화
-		var DB = DBManager.getInstance();
+		var db = DBManager.getInstance();
 		try {
-			DB.init(config.getDBConfig());
-			DB.connect();
+			db.init(config.getDBConfig());
+			db.connect();
 		} catch (Exception e) {
 			logger.error("db connect error : ", e);
 			return;
@@ -106,6 +106,7 @@ public class Main {
 		logger.info("Metering Start!");
 
 		while (true) {
+			db.check();
 			Utility.delay(10000);
 		}
 	}
