@@ -23,7 +23,7 @@ using PortalProvider.Providers.Networks;
 using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.Servers;
 using PortalProvider.Providers.Services;
-// using PortalProvider.Providers.S3;
+using PortalProvider.Providers.S3;
 using PortalProviderInterface;
 using PortalResources;
 using PortalSvr.RabbitMQReceivers;
@@ -181,7 +181,8 @@ namespace PortalSvr
 				Services.AddTransient<ILogProvider, LogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
-				// Services.AddTransient<IS3LogProvider, S3LogProvider>();
+				Services.AddTransient<IS3LogProvider, S3LogProvider>();
+				Services.AddTransient<IS3Provider, S3Provider>();
 
 				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();

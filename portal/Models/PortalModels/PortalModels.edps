@@ -50,6 +50,7 @@
         <File Name="PortalModels.BucketList.cs" />
         <File Name="PortalModels.BucketMeter.cs" />
         <File Name="PortalModels.BucketAsset.cs" />
+        <File Name="PortalModels.S3AccessIp.cs" />
         <File Name="PortalModels.EnumDbNetworkLinkState.cs" />
         <File Name="PortalModels.EnumDbYesNo.cs" />
         <File Name="PortalModels.EnumDbOnOff.cs" />

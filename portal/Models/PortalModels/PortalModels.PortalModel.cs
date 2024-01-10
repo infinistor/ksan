@@ -141,6 +141,8 @@ namespace PortalModels
 
 		public virtual DbSet<BucketAsset> BucketAssets { get; set; }
 
+		public virtual DbSet<S3AccessIp> S3AccessIps { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
@@ -279,6 +281,9 @@ namespace PortalModels
 
 			this.BucketAssetMapping(modelBuilder);
 			this.CustomizeBucketAssetMapping(modelBuilder);
+
+			this.S3AccessIpMapping(modelBuilder);
+			this.CustomizeS3AccessIpMapping(modelBuilder);
 
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
@@ -1159,6 +1164,27 @@ namespace PortalModels
 		}
 
 		partial void CustomizeBucketAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region S3AccessIp Mapping
+
+		private void S3AccessIpMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<S3AccessIp>().ToTable(@"S3ACCESS_IPS");
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.AddressId).HasColumnName(@"ADDRESS_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.UserId).HasColumnName(@"USER_ID").IsRequired().ValueGeneratedNever().HasMaxLength(256);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(63);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.StartIpNo).HasColumnName(@"START_IP_NO").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.EndIpNo).HasColumnName(@"END_IP_NO").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.IpAddress).HasColumnName(@"IP_ADDRESS").IsRequired().ValueGeneratedNever().HasMaxLength(100);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegName).HasColumnName(@"REG_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(400);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegId).HasColumnName(@"REG_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().HasKey(@"AddressId");
+		}
+
+		partial void CustomizeS3AccessIpMapping(ModelBuilder modelBuilder);
 
 		#endregion
 

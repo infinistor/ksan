@@ -2243,6 +2243,65 @@
       <column name="" />
     </property>
   </class>
+  <class name="S3AccessIp" entity-set="S3AccessIps" p1:Guid="56ce0763-f032-4242-8f37-4f5b81571a02">
+    <Documentation>
+      <Summary>S3 접근 아이피</Summary>
+    </Documentation>
+    <id name="AddressId" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c65fc477-b8d4-4c0c-a8d5-bc7b4f592790">
+      <Documentation>
+        <Summary>허용주소 아이디</Summary>
+      </Documentation>
+      <column name="" />
+    </id>
+    <property name="UserId" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="256" p1:ValidateRequired="true" p1:Guid="5b1f8e65-e858-440f-bb55-f809b1c6eaac">
+      <Documentation>
+        <Summary>사용자 아이디</Summary>
+      </Documentation>
+      <column name="" length="256" />
+    </property>
+    <property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="63" p1:ValidateRequired="true" p1:Guid="74737be9-902e-4f02-81e1-8362fa34992b">
+      <Documentation>
+        <Summary>버킷명</Summary>
+      </Documentation>
+      <column name="" length="63" />
+    </property>
+    <property name="StartIpNo" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="2c040fc9-862a-421d-98dc-3a152f98b00d">
+      <Documentation>
+        <Summary>허용 시작 아이피 값</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="EndIpNo" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c0bedd61-5212-4c00-999f-29ab47ca0c78">
+      <Documentation>
+        <Summary>허용 종료 아이피 값</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="7385ca6d-57b4-4ef9-87e5-a4b8762c3ab7">
+      <Documentation>
+        <Summary>입력 아이피 주소</Summary>
+      </Documentation>
+      <column name="" length="100" />
+    </property>
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b6c53812-b37b-4fe3-8d71-edce474d39ba">
+      <Documentation>
+        <Summary>등록일시</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="400" p1:ValidateRequired="true" p1:Guid="042e44a9-4298-4891-9564-c0fa9cdd3503">
+      <Documentation>
+        <Summary>등록자명</Summary>
+      </Documentation>
+      <column name="" length="400" />
+    </property>
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="0e0ef78c-6ca7-4af4-b9d8-a1f6acd26469">
+      <Documentation>
+        <Summary>등록 아이디</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
   <associations>
     <association name="Server_ServerNetworkInterface" cardinality="OneToMany" p1:Guid="6c964145-9e2a-40da-9b3b-4a2468a11c64">
       <end1 multiplicity="One" name="Service" class="ServiceNetworkInterfaceVlan" relation-class="Service" constrained="True" lazy="False" p1:Guid="bb0c2d17-10ca-44ed-9c5c-fa47ed882f4e">
