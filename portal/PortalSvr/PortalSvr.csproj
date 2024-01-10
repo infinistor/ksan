@@ -19,10 +19,12 @@
     <PackageReference Include="MTLib.AspNetCore" Version="5.0.2" />
     <PackageReference Include="MTLib.CommonData" Version="5.0.2" />
     <PackageReference Include="MTLib.EntityFramework" Version="5.0.2" />
+    <PackageReference Include="MTLib.NetworkData" Version="5.0.1" />
     <PackageReference Include="MySqlConnector" Version="2.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.5.0" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
