@@ -68,9 +68,20 @@ namespace PortalSvr.Services
 		{
 			try
 			{
+				// MariaDB 설정이 없는 경우
+				var MariaDBConfig = await m_configProvider.GetConfig(EnumServiceType.MariaDB);
+				if (MariaDBConfig == null || MariaDBConfig.Result == EnumResponseResult.Error)
+				{
+					// MariaDB의 기본 설정 정보를 읽어온다.
+					string StrMariaDB = File.ReadAllText(EnvironmentInitializer.MARIADB_SETTINGS_FILE);
+
+					var Result = await m_configProvider.SetConfig(EnumServiceType.MariaDB, StrMariaDB);
+					if (Result != null && Result.Result == EnumResponseResult.Success) await m_configProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Result.Data.Version);
+				}
+
 				// ksanObjManager 설정이 없는 경우
-				var ksanObjManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanObjManager);
-				if (ksanObjManagerConfig == null || ksanObjManagerConfig.Result == EnumResponseResult.Error)
+				var KsanObjManagerConfig = await m_configProvider.GetConfig(EnumServiceType.ksanObjManager);
+				if (KsanObjManagerConfig == null || KsanObjManagerConfig.Result == EnumResponseResult.Error)
 				{
 					// ksanObjManager의 기본 설정 정보를 읽어온다.
 					string StrKsanObjManager = File.ReadAllText(EnvironmentInitializer.KSAN_OBJ_MANAGER_SETTINGS_FILE);
