@@ -8,21 +8,20 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.replication.Replicator;
+package com.pspace.backend.Replication.Replicator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Config.ReplicationManagerConfig;
-import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
 import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.PortalManager;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
-import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.backend.libs.config.ReplicationManagerConfig;
+import com.pspace.backend.libs.data.Replication.ReplicationEventData;
 
-public abstract class BaseReplicator implements MQCallback {
+public class BaseReplicator {
 	final Logger logger;
 
 	public enum OperationList {
@@ -56,15 +55,15 @@ public abstract class BaseReplicator implements MQCallback {
 	 * @return 존재하면 true, 아니면 false
 	 */
 	protected boolean checkRegion(String regionName) {
-		if (StringUtils.isBlank(regionName) || sourceRegion.name == regionName)
+		if (StringUtils.isBlank(regionName) || sourceRegion.name.equals(regionName))
 			return true;
 
-		var Region = portal.getRegion(regionName);
-		if (Region == null) {
+		var region = portal.getRegion(regionName);
+		if (region == null) {
 			logger.error("Region Name({}) is not exists!", regionName);
 			return false;
 		}
-		return Utility.checkAlive(Region.getHttpURL());
+		return Utility.checkAlive(region.getHttpURL());
 	}
 
 	/**
@@ -74,8 +73,8 @@ public abstract class BaseReplicator implements MQCallback {
 	 *            확인할 Region 이름
 	 * @return 존재하면 true, 아니면 false
 	 */
-	protected AmazonS3 createClient(ReplicationEventData Data) throws Exception {
-		return getRegionClient(Data.targetRegion);
+	protected AmazonS3 getClient(ReplicationEventData data) throws Exception {
+		return getRegionClient(data.targetRegion);
 	}
 
 	/**
@@ -85,13 +84,13 @@ public abstract class BaseReplicator implements MQCallback {
 	 *            확인할 Region 이름
 	 * @return 존재하면 true, 아니면 false
 	 */
-	protected AmazonS3 getRegionClient(String RegionName) throws Exception {
-		if (StringUtils.isBlank(RegionName))
+	protected AmazonS3 getRegionClient(String regionName) throws Exception {
+		if (StringUtils.isBlank(regionName))
 			return sourceClient;
 
-		var region = portal.getRegion(RegionName);
+		var region = portal.getRegion(regionName);
 		if (region == null)
-			throw new Exception(RegionName + " Region is not exists.");
+			throw new Exception(regionName + " Region is not exists.");
 		return region.client;
 	}
 }

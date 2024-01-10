@@ -1,20 +1,29 @@
-package com.pspace.backend.libs.Data.Metering;
+package com.pspace.backend.libs.data.Metering;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Data.BaseData;
+import com.pspace.backend.libs.data.BaseData;
 
 public class BaseLogData implements BaseData {
 	public final String inDate;
-	public String user;
-	public String bucket;
+	public final String user;
+	public final String bucket;
 
 	public BaseLogData(String inDate, String user, String bucket) {
 		this.inDate = inDate;
-		this.user = user;
-		this.bucket = bucket;
+		if (StringUtils.isBlank(user))
+			this.user = "-";
+		else
+			this.user = user;
+
+		if (StringUtils.isBlank(bucket))
+			this.bucket = "-";
+		else
+			this.bucket = bucket;
 	}
 
 	@Override

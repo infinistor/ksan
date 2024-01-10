@@ -8,18 +8,22 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data.Replication;
+package com.pspace.backend.libs.data.Replication;
 
-import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.Utility;
+import com.pspace.backend.libs.data.BaseData;
 
-public class ReplicationEventData {
+public class ReplicationEventData implements BaseData {
 
-	public Timestamp inDate;
-	public Timestamp startTime;
-	public Timestamp endTime;
+	public long index;
+	public String inDate;
+	public String startTime;
+	public String endTime;
 	public String operation;
 	public String objectName;
 	public String versionId;
@@ -28,10 +32,20 @@ public class ReplicationEventData {
 	public String targetRegion;
 
 	public ReplicationEventData() {
-		init();
+		index = 0;
+		inDate = "";
+		startTime = "";
+		endTime = "";
+		operation = "";
+		objectName = "";
+		versionId = "";
+		sourceBucketName = "";
+		targetBucketName = "";
+		targetRegion = "";
 	}
 
 	public ReplicationEventData(ReplicationEventData data) {
+		this.index = data.index;
 		this.inDate = data.inDate;
 		this.startTime = data.startTime;
 		this.endTime = data.endTime;
@@ -44,9 +58,8 @@ public class ReplicationEventData {
 	}
 
 	public ReplicationEventData(String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
-		setInDate();
-		startTime = new Timestamp(0);
-		endTime = new Timestamp(0);
+		startTime = "";
+		endTime = "";
 		this.operation = operation;
 		this.objectName = objectName;
 		this.versionId = versionId;
@@ -55,37 +68,131 @@ public class ReplicationEventData {
 		this.targetRegion = targetRegion;
 	}
 
-	public void init() {
-		startTime = new Timestamp(0);
-		startTime = new Timestamp(0);
-		endTime = new Timestamp(0);
-		operation = "";
-		objectName = "";
-		versionId = "";
-		sourceBucketName = "";
-		targetBucketName = "";
-		targetRegion = "";
-	}
-
-	public void setInDate() {
-		inDate = new Timestamp(System.currentTimeMillis());
+	public ReplicationEventData(long index, String inDate, String startTime, String endTime, String operation, String objectName, String versionId, String sourceBucketName, String targetBucketName, String targetRegion) {
+		this.index = index;
+		this.inDate = inDate;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.operation = operation;
+		this.objectName = objectName;
+		this.versionId = versionId;
+		this.sourceBucketName = sourceBucketName;
+		this.targetBucketName = targetBucketName;
+		this.targetRegion = targetRegion;
 	}
 
 	public void setStartTime() {
-		startTime = new Timestamp(System.currentTimeMillis());
+		startTime = Utility.getDateTime();
 	}
 
 	public void setEndTime() {
-		endTime = new Timestamp(System.currentTimeMillis());
+		endTime = Utility.getDateTime();
+	}
+
+	@Override
+	public List<Object> getInsertDBParameters() {
+		var param = new ArrayList<Object>();
+		param.add(operation);
+		param.add(objectName);
+		param.add(versionId);
+		param.add(sourceBucketName);
+		param.add(targetBucketName);
+		param.add(targetRegion);
+
+		return param;
 	}
 
 	@Override
 	public String toString() {
-		ObjectMapper mapper = new ObjectMapper();
+		var mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			return "";
+			return super.toString();
+		}
+	}
+
+	public static ReplicationEventDataBuilder newBuilder() {
+		return new ReplicationEventDataBuilder();
+	}
+
+	public static class ReplicationEventDataBuilder {
+		private long index;
+		private String inDate;
+		private String startTime;
+		private String endTime;
+		private String operation;
+		private String objectName;
+		private String versionId;
+		private String sourceBucketName;
+		private String targetBucketName;
+		private String targetRegion;
+
+		public ReplicationEventDataBuilder() {
+			index = 0;
+			inDate = "";
+			startTime = "";
+			endTime = "";
+			operation = "";
+			objectName = "";
+			versionId = "";
+			sourceBucketName = "";
+			targetBucketName = "";
+			targetRegion = "";
+		}
+
+		public ReplicationEventDataBuilder setIndex(long index) {
+			this.index = index;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setInDate(String inDate) {
+			this.inDate = inDate;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setStartTime(String startTime) {
+			this.startTime = startTime;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setEndTime(String endTime) {
+			this.endTime = endTime;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setOperation(String operation) {
+			this.operation = operation;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setObjectName(String objectName) {
+			this.objectName = objectName;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setVersionId(String versionId) {
+			this.versionId = versionId;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setSourceBucketName(String sourceBucketName) {
+			this.sourceBucketName = sourceBucketName;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setTargetBucketName(String targetBucketName) {
+			this.targetBucketName = targetBucketName;
+			return this;
+		}
+
+		public ReplicationEventDataBuilder setTargetRegion(String targetRegion) {
+			this.targetRegion = targetRegion;
+			return this;
+		}
+
+		public ReplicationEventData build() {
+			return new ReplicationEventData(index, inDate, startTime, endTime, operation, objectName, versionId, sourceBucketName, targetBucketName, targetRegion);
 		}
 	}
 }

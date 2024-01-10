@@ -17,14 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Heartbeat.Heartbeat;
 import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.PortalManager;
-import com.pspace.backend.lifecycle.Lifecycle.LifecycleFilter;
-import com.pspace.backend.lifecycle.Lifecycle.LifecycleSender;
-import com.pspace.backend.lifecycle.Lifecycle.RestoreSender;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
+import com.pspace.backend.lifecycle.lifecycle.LifecycleFilter;
+import com.pspace.backend.lifecycle.lifecycle.LifecycleSender;
+import com.pspace.backend.lifecycle.lifecycle.RestoreSender;
 import com.pspace.ifs.ksan.libs.mq.MQReceiver;
 
 public class Main {
@@ -57,7 +57,7 @@ public class Main {
 		try {
 			hb = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser,
 					ksanConfig.mqPassword);
-			hbThread = new Thread(() -> hb.Start(ksanConfig.ServiceMonitorInterval));
+			hbThread = new Thread(() -> hb.start(ksanConfig.ServiceMonitorInterval));
 			hbThread.start();
 		} catch (Exception e) {
 			logger.error("", e);

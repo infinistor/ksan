@@ -226,26 +226,42 @@ namespace PortalSvr.Services
 
 			// Database
 			if (GetEnvValue(Resource.ENV_DATABASE_TYPE, out string DatabaseType))
+			{
 				KsanApi[KEY_APP_SETTINGS][KEY_DATABASE_TYPE] = DatabaseType;
+				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+			}
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
+				KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_HOST, out string MariaDBHost))
+			{
 				KsanApi[KEY_MARIADB][KEY_HOST] = MariaDBHost;
+				KsanLogManager[KEY_LOG_DB_HOST] = MariaDBHost;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out int MariaDBPort))
+			{
 				KsanApi[KEY_MARIADB][KEY_PORT] = MariaDBPort;
+				KsanLogManager[KEY_LOG_DB_PORT] = MariaDBPort;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_USER, out string MariaDBUser))
+			{
 				KsanApi[KEY_MARIADB][KEY_USER] = MariaDBUser;
+				KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_PASSWORD, out string MariaDBPassword))
+			{
 				KsanApi[KEY_MARIADB][KEY_PASSWORD] = MariaDBPassword;
+				KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
 
+			}
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))
 				KsanApi[KEY_MONGODB][KEY_HOST] = MongoDBHost;
 
@@ -268,12 +284,12 @@ namespace PortalSvr.Services
 				KsanObjManager[KEY_OBJ_DB_USER] = MongoDBUser;
 				KsanObjManager[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
 
-				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
-				KsanLogManager[KEY_LOG_DB_HOST] = MongoDBHost;
-				KsanLogManager[KEY_LOG_DB_PORT] = MongoDBPort;
-				KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
-				KsanLogManager[KEY_LOG_DB_USER] = MongoDBUser;
-				KsanLogManager[KEY_LOG_DB_PASSWORD] = MongoDBPassword;
+				// KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
+				// KsanLogManager[KEY_LOG_DB_HOST] = MongoDBHost;
+				// KsanLogManager[KEY_LOG_DB_PORT] = MongoDBPort;
+				// KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
+				// KsanLogManager[KEY_LOG_DB_USER] = MongoDBUser;
+				// KsanLogManager[KEY_LOG_DB_PASSWORD] = MongoDBPassword;
 			}
 			else
 			{
@@ -284,12 +300,12 @@ namespace PortalSvr.Services
 				KsanObjManager[KEY_OBJ_DB_USER] = MariaDBUser;
 				KsanObjManager[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
 
-				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-				KsanLogManager[KEY_LOG_DB_HOST] = MariaDBHost;
-				KsanLogManager[KEY_LOG_DB_PORT] = MariaDBPort;
-				KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
-				KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
-				KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
+				// KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
+				// KsanLogManager[KEY_LOG_DB_HOST] = MariaDBHost;
+				// KsanLogManager[KEY_LOG_DB_PORT] = MariaDBPort;
+				// KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
+				// KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
+				// KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			//KsanGW KeyStone

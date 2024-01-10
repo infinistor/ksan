@@ -8,20 +8,20 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.replication;
+package com.pspace.backend.Replication;
 
 import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.Replication.Replicator.MainReplicator;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Heartbeat.Heartbeat;
 import com.pspace.backend.libs.Ksan.AgentConfig;
 import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.Ksan.PortalManager;
-import com.pspace.backend.replication.Replicator.MainReplicator;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -39,8 +39,8 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var ServiceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
-		if (ServiceId == null) {
+		var serviceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
+		if (serviceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
@@ -48,8 +48,8 @@ public class Main {
 		Thread HBThread;
 		Heartbeat HB;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
-			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
+			HB = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
+			HBThread = new Thread(() -> HB.start(ksanConfig.ServiceMonitorInterval));
 			HBThread.start();
 		} catch (Exception e) {
 			logger.error("", e);

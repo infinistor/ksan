@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.data.Constants;
 
 public class AgentConfig {
 	/////////////////////////// MGS /////////////////////////////////////

@@ -1627,6 +1627,33 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   Please enter Bucket Name.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_S3_ACCESS_IP_REQUIRE_BUCKET_NAME {
+            get {
+                return ResourceManager.GetString("EM_S3_ACCESS_IP_REQUIRE_BUCKET_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Please enter IP Address.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_S3_ACCESS_IP_REQUIRE_IP_ADDRESS {
+            get {
+                return ResourceManager.GetString("EM_S3_ACCESS_IP_REQUIRE_IP_ADDRESS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Please enter user ID.과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string EM_S3_ACCESS_IP_REQUIRE_USER_ID {
+            get {
+                return ResourceManager.GetString("EM_S3_ACCESS_IP_REQUIRE_USER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Such bucket doesn&apos;t exist.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string EM_S3_SUCH_BUCKET_NOT_FOUND {
@@ -1978,6 +2005,78 @@ namespace PortalResources {
         }
         
         /// <summary>
+        ///   OSDDISK_PATHS과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_DISK_PATHS {
+            get {
+                return ResourceManager.GetString("ENV_DISK_PATHS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   EXCLUDE_SERVICE과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   ksanServiceAll과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_ALL {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_ALL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   KsanGW과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_KSAN_GW {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_KSAN_GW", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   KsanLifecycleManager과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_KSAN_LIFECYCLE_MANAGER {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_KSAN_LIFECYCLE_MANAGER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   KsanLogManager과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_KSAN_LOG_MANAGER {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_KSAN_LOG_MANAGER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   KsanOSD과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_KSAN_OSD {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_KSAN_OSD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   KsanReplicationManager과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        public static string ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER {
+            get {
+                return ResourceManager.GetString("ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   GW_KEYSTORE_FILE_PATH과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         public static string ENV_GW_KEYSTORE_FILE_PATH {
@@ -2109,15 +2208,6 @@ namespace PortalResources {
         public static string ENV_MONGODB_ROOT_USER {
             get {
                 return ResourceManager.GetString("ENV_MONGODB_ROOT_USER", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   OSDDISK_PATHS과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        public static string ENV_OSDDISK_PATHS {
-            get {
-                return ResourceManager.GetString("ENV_OSDDISK_PATHS", resourceCulture);
             }
         }
         

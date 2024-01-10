@@ -1,4 +1,4 @@
-package com.pspace.backend.libs.Data;
+package com.pspace.backend.libs.data;
 
 import java.util.List;
 

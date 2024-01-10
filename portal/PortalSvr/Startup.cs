@@ -182,6 +182,7 @@ namespace PortalSvr
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IS3LogProvider, S3LogProvider>();
+				Services.AddTransient<IS3Provider, S3Provider>();
 
 				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();

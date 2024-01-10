@@ -1,4 +1,4 @@
-package com.pspace.backend.libs.Data.Metering;
+package com.pspace.backend.libs.data.Metering;
 public class DateRange {
 	
 	public String start;

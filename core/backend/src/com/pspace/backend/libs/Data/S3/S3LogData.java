@@ -8,9 +8,8 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data.S3;
+package com.pspace.backend.libs.data.s3;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Data.BaseData;
+import com.pspace.backend.libs.data.BaseData;
 
 public class S3LogData implements BaseData {
 	@JsonProperty("UserName")
@@ -26,7 +25,7 @@ public class S3LogData implements BaseData {
 	@JsonProperty("BucketName")
 	public String bucketName;
 	@JsonProperty("Date")
-	public Timestamp date;
+	public long date;
 	@JsonProperty("RemoteHost")
 	public String remoteHost;
 	@JsonProperty("RequestUser")
@@ -74,7 +73,7 @@ public class S3LogData implements BaseData {
 		Init();
 	}
 
-	public S3LogData(String userName, String bucketName, Timestamp date, String remoteHost,
+	public S3LogData(String userName, String bucketName, long date, String remoteHost,
 			String requestUser, String requestId, String operation, String objectName, String requestURI,
 			int statusCode, String errorCode, long responseLength, long objectLength, long totalTime,
 			long requestLength, String referer, String userAgent, String versionId, String hostId, String sign,
@@ -108,7 +107,7 @@ public class S3LogData implements BaseData {
 	public void Init() {
 		userName = null;
 		bucketName = null;
-		date = new Timestamp(0);
+		date = 0L;
 		remoteHost = null;
 		requestUser = null;
 		requestId = null;
@@ -160,7 +159,7 @@ public class S3LogData implements BaseData {
 		var param = new ArrayList<Object>();
 		param.add(userName);
 		param.add(bucketName);
-		param.add(date.toString());
+		param.add(date);
 		param.add(remoteHost);
 		param.add(requestUser);
 		param.add(requestId);
