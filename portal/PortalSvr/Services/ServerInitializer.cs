@@ -25,6 +25,7 @@ using Microsoft.Extensions.Hosting;
 using System.Threading;
 using PortalData.Requests.Region;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace PortalSvr.Services
 {
@@ -170,7 +171,7 @@ namespace PortalSvr.Services
 						if (DiskPool.Data.Disks.Count == 0)
 						{
 							//환경변수에서 디스크 목록을 가져온다.
-							if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_OSDDISK_PATHS, out string StrDisks) || StrDisks.IsEmpty()) m_logger.LogInformation("Disk Path is Empty!");
+							if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_DISK_PATHS, out string StrDisks) || StrDisks.IsEmpty()) m_logger.LogInformation("Disk Path is Empty!");
 							else
 							{
 								var DiskPaths = StrDisks.Trim().Split(',');
@@ -246,99 +247,126 @@ namespace PortalSvr.Services
 					// All in one 일 경우
 					if (!InitType.Equals(Resource.ENV_INIT_TYPE_ALL_IN_ONE, StringComparison.OrdinalIgnoreCase)) return;
 
-					//gw 서비스가 등록되지 않은 경우 등록한다.
-					var GWName = "GW1";
-					var GW = await m_serviceProvider.Get(GWName);
-					if (GW == null || GW.Result != EnumResponseResult.Success)
+					//제외할 서비스 목록
+					if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_EXCLUDE_SERVICES, out string StrExcludeServices)) StrExcludeServices = string.Empty;
+					var ExcludeServices = new List<string>(StrExcludeServices.Trim().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+
+					// 모두 제외할 경우
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_ALL, StringComparison.OrdinalIgnoreCase))) return;
+
+					// 제외 서비스 목록에 GW가 있는지 확인한다.
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_GW, StringComparison.OrdinalIgnoreCase)))
 					{
-						var Request = new RequestService()
+						//gw 서비스가 등록되지 않은 경우 등록한다.
+						var GWName = "GW1";
+						var GW = await m_serviceProvider.Get(GWName);
+						if (GW == null || GW.Result != EnumResponseResult.Success)
 						{
-							Name = GWName,
-							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanGW,
-						};
+							var Request = new RequestService()
+							{
+								Name = GWName,
+								ServerId = ServerName,
+								ServiceType = EnumServiceType.ksanGW,
+							};
 
-						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-						// 서비스 등록에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
-						else m_logger.LogInformation($"{Request.Name} Add Success");
+							// 서비스 등록에 실패할 경우
+							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure. {Response.Message}");
+							else m_logger.LogInformation($"{Request.Name} Add Success");
+						}
 					}
 
-					//osd 서비스가 등록되지 않은 경우 등록한다.
-					var OSDName = "OSD1";
-					var OSD = await m_serviceProvider.Get(OSDName);
-					if (OSD == null || OSD.Result != EnumResponseResult.Success)
+					// 제외 서비스 목록에 OSD가 있는지 확인한다.
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_OSD, StringComparison.OrdinalIgnoreCase)))
 					{
-						var Request = new RequestService()
+						//osd 서비스가 등록되지 않은 경우 등록한다.
+						var OSDName = "OSD1";
+						var OSD = await m_serviceProvider.Get(OSDName);
+						if (OSD == null || OSD.Result != EnumResponseResult.Success)
 						{
-							Name = OSDName,
-							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanOSD,
-						};
+							var Request = new RequestService()
+							{
+								Name = OSDName,
+								ServerId = ServerName,
+								ServiceType = EnumServiceType.ksanOSD,
+							};
 
-						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-						// 서비스 등록에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
-						else m_logger.LogInformation($"{Request.Name} Add Success");
+							// 서비스 등록에 실패할 경우
+							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							else m_logger.LogInformation($"{Request.Name} Add Success");
+						}
 					}
 
-					//Lifecycle 서비스가 등록되지 않은 경우 등록한다.
-					var LifecycleName = "LifecycleManager1";
-					var Lifecycle = await m_serviceProvider.Get(LifecycleName);
-					if (Lifecycle == null || Lifecycle.Result != EnumResponseResult.Success)
+					// 제외 서비스 목록에 Lifecycle이 있는지 확인한다.
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LIFECYCLE_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
-						var Request = new RequestService()
+						//Lifecycle 서비스가 등록되지 않은 경우 등록한다.
+						var LifecycleName = "LifecycleManager1";
+						var Lifecycle = await m_serviceProvider.Get(LifecycleName);
+						if (Lifecycle == null || Lifecycle.Result != EnumResponseResult.Success)
 						{
-							Name = LifecycleName,
-							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanLifecycleManager,
-						};
+							var Request = new RequestService()
+							{
+								Name = LifecycleName,
+								ServerId = ServerName,
+								ServiceType = EnumServiceType.ksanLifecycleManager,
+							};
 
-						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-						// 서비스 등록에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
-						else m_logger.LogInformation($"{Request.Name} Add Success");
+							// 서비스 등록에 실패할 경우
+							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							else m_logger.LogInformation($"{Request.Name} Add Success");
+						}
 					}
 
-					//LogManager 서비스가 등록되지 않은 경우 등록한다.
-					var LogManagerName = "LogManager1";
-					var LogManager = await m_serviceProvider.Get(LogManagerName);
-					if (LogManager == null || LogManager.Result != EnumResponseResult.Success)
+					// 제외 서비스 목록에 LogManager가 있는지 확인한다.
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LOG_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
-						var Request = new RequestService()
+						//LogManager 서비스가 등록되지 않은 경우 등록한다.
+						var LogManagerName = "LogManager1";
+						var LogManager = await m_serviceProvider.Get(LogManagerName);
+						if (LogManager == null || LogManager.Result != EnumResponseResult.Success)
 						{
-							Name = LogManagerName,
-							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanLogManager,
-						};
+							var Request = new RequestService()
+							{
+								Name = LogManagerName,
+								ServerId = ServerName,
+								ServiceType = EnumServiceType.ksanLogManager,
+							};
 
-						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-						// 서비스 등록에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
-						else m_logger.LogInformation($"{Request.Name} Add Success");
+							// 서비스 등록에 실패할 경우
+							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							else m_logger.LogInformation($"{Request.Name} Add Success");
+						}
 					}
 
-					//Replication 서비스가 등록되지 않은 경우 등록한다.
-					var ReplicationName = "ReplicationManager1";
-					var Replication = await m_serviceProvider.Get(ReplicationName);
-					if (Replication == null || Replication.Result != EnumResponseResult.Success)
+					// 제외 서비스 목록에 Replication이 있는지 확인한다.
+					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
-						var Request = new RequestService()
+						//Replication 서비스가 등록되지 않은 경우 등록한다.
+						var ReplicationName = "ReplicationManager1";
+						var Replication = await m_serviceProvider.Get(ReplicationName);
+						if (Replication == null || Replication.Result != EnumResponseResult.Success)
 						{
-							Name = ReplicationName,
-							ServerId = ServerName,
-							ServiceType = EnumServiceType.ksanReplicationManager,
-						};
+							var Request = new RequestService()
+							{
+								Name = ReplicationName,
+								ServerId = ServerName,
+								ServiceType = EnumServiceType.ksanReplicationManager,
+							};
 
-						var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
+							var Response = await m_serviceProvider.Add(Request, UserGuid, ApiKey.UserName);
 
-						// 서비스 등록에 실패할 경우
-						if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
-						else m_logger.LogInformation($"{Request.Name} Add Success");
+							// 서비스 등록에 실패할 경우
+							if (Response == null || Response.Result != EnumResponseResult.Success) throw new Exception($"{Request.Name} Add Failure {Response.Message}");
+							else m_logger.LogInformation($"{Request.Name} Add Success");
+						}
 					}
 				}
 				m_timer.Change(Timeout.Infinite, 0);

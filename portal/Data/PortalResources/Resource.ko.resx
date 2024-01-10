@@ -1428,4 +1428,13 @@
   <data name="EM_S3_SUCH_BUCKET_NOT_FOUND" xml:space="preserve">
     <value>해당 버킷이 존재하지 않습니다.</value>
   </data>
+  <data name="EM_S3_ACCESS_IP_REQUIRE_BUCKET_NAME" xml:space="preserve">
+    <value>버킷명을 입력해주세요.</value>
+  </data>
+  <data name="EM_S3_ACCESS_IP_REQUIRE_IP_ADDRESS" xml:space="preserve">
+    <value>아이피 주소를 입력하여 주세요.</value>
+  </data>
+  <data name="EM_S3_ACCESS_IP_REQUIRE_USER_ID" xml:space="preserve">
+    <value>사용자 아이디를 입력하여 주세요.</value>
+  </data>
 </root>
