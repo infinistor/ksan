@@ -362,7 +362,7 @@ public class KsanUtils {
         StringBuilder sb = new StringBuilder();
         sb.append(path);
         sb.append(Constants.SLASH);
-        sb.append(Constants.TEMP_DIR);
+        sb.append(Constants.OBJ_DIR);
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);
@@ -473,7 +473,7 @@ public class KsanUtils {
         StringBuilder sb = new StringBuilder();
         sb.append(path);
         sb.append(Constants.SLASH);
-        sb.append(Constants.TEMP_DIR);
+        sb.append(Constants.OBJ_DIR);
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);

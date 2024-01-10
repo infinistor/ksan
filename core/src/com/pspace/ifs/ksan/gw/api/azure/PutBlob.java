@@ -24,9 +24,11 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.pspace.ifs.ksan.gw.exception.AzuErrorCode;
 import com.pspace.ifs.ksan.gw.exception.AzuException;
 import com.pspace.ifs.ksan.gw.identity.AzuParameter;
+import com.pspace.ifs.ksan.gw.identity.S3User;
 import com.pspace.ifs.ksan.gw.utils.AzuConfig;
 import com.pspace.ifs.ksan.gw.utils.AzuConstants;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.gw.utils.AzuUtils;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.identity.S3Metadata;
@@ -70,7 +72,13 @@ public class PutBlob extends AzuRequest {
 		String storageClass = GWConstants.AWS_TIER_STANTARD;
         String diskpoolId = "";
         try {
-            diskpoolId = azuParameter.getUser().getUserDefaultDiskpoolId();
+            S3User user = S3UserManager.getInstance().getUserByName(azuParameter.getUserName());
+            if (user != null) {
+                diskpoolId = user.getUserDefaultDiskpoolId();
+                azuParameter.setUser(user);
+            } else {
+                logger.info("user is null");
+            }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
         }
@@ -91,14 +99,24 @@ public class PutBlob extends AzuRequest {
             // reset error code
             azuParameter.setErrorCode(GWConstants.EMPTY_STRING);
             objMeta = createLocal(diskpoolId, containerName, blobName, GWConstants.VERSIONING_DISABLE_TAIL);
+            objMeta.setSize(blobLength);
             s3Metadata = new S3Metadata();
             s3Metadata.setCreationDate(new Date());
+            s3Metadata.setName(blobName);
+            s3Metadata.setContentLength(blobLength);
         }
+
+        AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, s3Metadata, azuParameter, GWConstants.VERSIONING_DISABLE_TAIL);
+        S3Object s3Object = azuObjectOperation.putObject();
+
+        s3Metadata.setLastModified(s3Object.getLastModified());
+        s3Metadata.setETag(s3Object.getEtag());
+        s3Metadata.setContentLength(s3Object.getFileSize());
 
         s3Metadata.setContentType(azuRequestData.getContentType());
         s3Metadata.setOwnerId(azuParameter.getUser().getUserId());
         s3Metadata.setOwnerName(azuParameter.getUser().getUserName());
-        s3Metadata.setContentLength(blobLength);
+        // s3Metadata.setContentLength(blobLength);
 
         s3Metadata.setTier(storageClass);
         s3Metadata.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL);
@@ -107,9 +125,10 @@ public class PutBlob extends AzuRequest {
 
         logger.debug(AzuConstants.LOG_CREATE_BLOB_PRIMARY_DISK_ID, objMeta.getPrimaryDisk().getId());
         try {
+            objMeta.set(s3Object.getEtag(), "", jsonmeta, "", s3Object.getFileSize());
             objMeta.setVersionId(GWConstants.VERSIONING_DISABLE_TAIL, GWConstants.OBJECT_TYPE_FILE, true);
-            objMeta.setMeta(jsonmeta);
             insertObject(containerName, blobName, objMeta);
+            logger.debug("container : {}, blob : {}, size : {}, etag : {}", containerName, blobName, s3Object.getFileSize(), s3Object.getEtag());
         } catch (AzuException e) {
             PrintStack.logging(logger, e);
             throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
