@@ -698,13 +698,13 @@ public class GWPortal {
 									}
 								}
 
-								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-								if (!file.exists()) {
-									if (!file.mkdirs()) {
-										logger.error("Failed to create temp dir : {}", file.getAbsolutePath());
-										throw new RuntimeException(new RuntimeException());
-									}
-								}
+								// file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+								// if (!file.exists()) {
+								// 	if (!file.mkdirs()) {
+								// 		logger.error("Failed to create temp dir : {}", file.getAbsolutePath());
+								// 		throw new RuntimeException(new RuntimeException());
+								// 	}
+								// }
 
 								file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 								if (!file.exists()) {
