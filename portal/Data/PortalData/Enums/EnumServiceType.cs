@@ -40,6 +40,8 @@ namespace PortalData.Enums
 		/// <summary>Replication Manager</summary>
 		ksanReplicationManager,
 		/// <summary>Log Manager</summary>
-		ksanLogManager
+		ksanLogManager,
+		/// <summary>Maria DB</summary>
+		MariaDB,
 	}
 }
