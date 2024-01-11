@@ -766,6 +766,8 @@ namespace PortalProvider.Providers.Services
 
 		/// <summary>서비스 목록을 가져온다.</summary>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
+		/// <param name="SearchState">검색 서비스 상태 (옵션)</param>
+		/// <param name="SearchType">검색 서비스 타입 (옵션)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, ServiceType)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
@@ -773,7 +775,7 @@ namespace PortalProvider.Providers.Services
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		public async Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			List<EnumServiceState> SearchStates = null, EnumServiceType ServiceType = EnumServiceType.Unknown,
+			EnumServiceState? SearchState = null, EnumServiceType? SearchType = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -792,20 +794,17 @@ namespace PortalProvider.Providers.Services
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref SearchFields);
 
-				if (SearchFields != null && SearchFields.Contains("ServiceType", StringComparer.OrdinalIgnoreCase))
-					Enum.TryParse(SearchKeyword, out ServiceType);
 
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Services.AsNoTracking()
 					.Where(i =>
-						(
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
-							|| (ServiceType != EnumServiceType.Unknown && i.ServiceType == (EnumDbServiceType)ServiceType)
+							|| (SearchType != null && i.ServiceType == (EnumDbServiceType)SearchType)
+							|| (SearchState != null && i.State == (EnumDbServiceState)SearchState)
 							|| (SearchFields.Contains("GroupName") && i.ServiceGroup != null && i.ServiceGroup.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("Name") && i.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("Description") && i.Description.Contains(SearchKeyword))
 							|| (SearchFields.Contains("IpAddress") && i.Vlans.Any(j => j.NetworkInterfaceVlan != null && j.NetworkInterfaceVlan.IpAddress.Contains(SearchKeyword)))
-						) && (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
 					.Include(i => i.ServiceGroup)

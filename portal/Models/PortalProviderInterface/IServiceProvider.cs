@@ -81,7 +81,8 @@ namespace PortalProviderInterface
 		Task<ResponseData> Remove(string Id);
 
 		/// <summary>서비스 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서비스 상태 목록</param>
+		/// <param name="SearchState">검색할 서비스 상태 목록</param>
+		/// <param name="SearchType">검색할 서비스 타입 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, ServiceType)</param>
@@ -90,7 +91,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서비스 목록 객체</returns>
 		Task<ResponseList<ResponseServiceWithGroup>> GetList(
-			List<EnumServiceState> SearchStates = null, EnumServiceType ServiceType = EnumServiceType.Unknown,
+			EnumServiceState? SearchState = null, EnumServiceType? SearchType = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -127,12 +128,12 @@ namespace PortalProviderInterface
 		/// <param name="Id">서비스 아이디 / 이름</param>
 		/// <returns>서비스 재시작 결과 객체</returns>
 		Task<ResponseData> Restart(string Id);
-		
+
 		/// <summary>서비스 이벤트를 추가한다.</summary>
 		/// <param name="Request">서비스 이벤트 요청 객체</param>
 		/// <returns>서버 이벤트 추가 결과 객체</returns>
 		Task<ResponseData> AddEvent(RequestServiceEvent Request);
-		
+
 		/// <summary>서비스 목록을 가져온다.</summary>
 		/// <param name="Id"> 서비스 아이디 / 이름</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>

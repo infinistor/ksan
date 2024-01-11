@@ -35,13 +35,13 @@ namespace PortalData.Responses.Networks
 		public string Gateway { get; set; }
 
 		/// <summary>네트워크 BandWidth</summary>
-		public decimal? BandWidth { get; set; }
+		public decimal BandWidth { get; set; }
 
 		/// <summary>수신 속도</summary>
-		public decimal? Rx { get; set; }
+		public decimal Rx { get; set; }
 
 		/// <summary>송신 속도</summary>
-		public decimal? Tx { get; set; }
+		public decimal Tx { get; set; }
 
 	}
 }

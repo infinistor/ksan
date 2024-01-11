@@ -96,8 +96,7 @@ namespace PortalSvr.Services
 					var Timeout = DateTime.Now.AddMilliseconds(-Threshold.Data);
 
 					//온라인 상태인 서버 목록을 가져온다.
-					var ServerStates = new List<EnumServerState>() { EnumServerState.Online };
-					var Servers = await m_serverProvider.GetList(SearchStates: ServerStates);
+					var Servers = await m_serverProvider.GetList(SearchState: EnumServerState.Online);
 
 					foreach (var Server in Servers.Data.Items)
 					{
@@ -107,8 +106,7 @@ namespace PortalSvr.Services
 					}
 
 					// 온라인 상태인 서비스 목록을 가져온다.
-					var ServiceStatus = new List<EnumServiceState>() { EnumServiceState.Online };
-					var Services = await m_serviceProvider.GetList(SearchStates: ServiceStatus);
+					var Services = await m_serviceProvider.GetList(SearchState: EnumServiceState.Online);
 
 					foreach (var Service in Services.Data.Items)
 					{

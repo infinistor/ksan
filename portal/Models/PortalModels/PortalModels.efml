@@ -502,11 +502,11 @@
       </Documentation>
       <column name="" />
     </property>
-    <property name="Clock" type="Int16" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
+    <property name="Clock" type="Int16" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
       <Documentation>
         <Summary>CPU 클럭</Summary>
       </Documentation>
-      <column name="" />
+      <column name="" default="0" />
     </property>
     <property name="State" type="PortalModels.EnumDbServerState" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="692fcb9d-c9a6-41e6-9f12-c84441c4a458">
       <Documentation>
@@ -2689,7 +2689,7 @@
       </end2>
     </association>
     <association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-      <end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+      <end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
         <property name="Id" />
       </end1>
       <end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">

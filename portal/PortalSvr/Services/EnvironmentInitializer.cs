@@ -85,22 +85,22 @@ namespace PortalSvr.Services
 
 		#region MariaDB
 		/// <summary> MariaDB DB Host </summary>
-		public static readonly string KEY_LOG_DB_HOST = "db_host";
+		public static readonly string KEY_MARIA_DB_HOST = "host";
 		/// <summary> MariaDB DB Port </summary>
-		public static readonly string KEY_LOG_DB_PORT = "db_port";
+		public static readonly string KEY_MARIA_DB_PORT = "port";
 		/// <summary> MariaDB DB Name </summary>
-		public static readonly string KEY_LOG_DB_NAME = "db_name";
+		public static readonly string KEY_MARIA_DB_NAME = "db_name";
 		/// <summary> MariaDB DB User </summary>
-		public static readonly string KEY_LOG_DB_USER = "db_user";
+		public static readonly string KEY_MARIA_DB_USER = "user";
 		/// <summary> MariaDB DB Password </summary>
-		public static readonly string KEY_LOG_DB_PASSWORD = "db_password";
+		public static readonly string KEY_MARIA_DB_PASSWORD = "password";
 		#endregion
 
 		#region FilePath
 		/// <summary> 포탈 설정 파일 경로 </summary>
 		public const string PORTAL_SETTINGS_FILE = "appsettings.json";
 		/// <summary> MariaDB 설정 파일 경로 </summary>
-		public const string MARIADB_SETTINGS_FILE = "Resources/mariadb.json";
+		public const string MARIADB_SETTINGS_FILE = "Resources/mariaDB.json";
 		/// <summary> Ksan ObjManager 설정 파일 경로 </summary>
 		public const string KSAN_OBJ_MANAGER_SETTINGS_FILE = "Resources/ksanObjManager.json";
 		/// <summary> Ksan GW 설정 파일 경로 </summary>
@@ -207,31 +207,31 @@ namespace PortalSvr.Services
 			{
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
-				MariaDB[KEY_LOG_DB_NAME] = DatabaseName;
+				MariaDB[KEY_MARIA_DB_NAME] = DatabaseName;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_HOST, out string MariaDBHost))
 			{
 				KsanApi[KEY_MARIADB][KEY_HOST] = MariaDBHost;
-				MariaDB[KEY_LOG_DB_HOST] = MariaDBHost;
+				MariaDB[KEY_MARIA_DB_HOST] = MariaDBHost;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out int MariaDBPort))
 			{
 				KsanApi[KEY_MARIADB][KEY_PORT] = MariaDBPort;
-				MariaDB[KEY_LOG_DB_PORT] = MariaDBPort;
+				MariaDB[KEY_MARIA_DB_PORT] = MariaDBPort;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_USER, out string MariaDBUser))
 			{
 				KsanApi[KEY_MARIADB][KEY_USER] = MariaDBUser;
-				MariaDB[KEY_LOG_DB_USER] = MariaDBUser;
+				MariaDB[KEY_MARIA_DB_USER] = MariaDBUser;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_PASSWORD, out string MariaDBPassword))
 			{
 				KsanApi[KEY_MARIADB][KEY_PASSWORD] = MariaDBPassword;
-				MariaDB[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
+				MariaDB[KEY_MARIA_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))

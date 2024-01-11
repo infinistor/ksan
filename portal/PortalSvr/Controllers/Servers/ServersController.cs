@@ -144,7 +144,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
@@ -155,14 +155,14 @@ namespace PortalSvr.Controllers.Servers
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServer>))]
 		[HttpGet]
 		public async Task<ActionResult> GetServers(
-			List<EnumServerState> SearchStates,
+			EnumServerState? SearchState,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetList(
-				SearchStates,
+				SearchState,
 				Skip, CountPerPage,
 				OrderFields, OrderDirections,
 				SearchFields, SearchKeyword
@@ -170,7 +170,7 @@ namespace PortalSvr.Controllers.Servers
 		}
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock)</param>
@@ -181,14 +181,14 @@ namespace PortalSvr.Controllers.Servers
 		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServerDetail>))]
 		[HttpGet("Details")]
 		public async Task<ActionResult> GetServerDetails(
-			List<EnumServerState> SearchStates,
+			EnumServerState? SearchState,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
 		)
 		{
 			return Json(await m_dataProvider.GetListDetails(
-				SearchStates,
+				SearchState,
 				Skip, CountPerPage,
 				OrderFields, OrderDirections,
 				SearchFields, SearchKeyword

@@ -136,7 +136,7 @@ namespace PortalSvr.Services
 
 					// 자기자신의 서비스를 등록한다.
 					var m_serviceProvider = ServiceScope.ServiceProvider.GetService<IServiceProvider>();
-					var KsanPortalApi = await m_serviceProvider.GetList(ServiceType: EnumServiceType.ksanApiPortal);
+					var KsanPortalApi = await m_serviceProvider.GetList(SearchType: EnumServiceType.ksanApiPortal);
 
 					// 서비스가 존재하지 않을 경우
 					if (KsanPortalApi.Data.Items.Count == 0)
@@ -249,7 +249,12 @@ namespace PortalSvr.Services
 
 					//제외할 서비스 목록
 					if (!EnvironmentInitializer.GetEnvValue(Resource.ENV_EXCLUDE_SERVICES, out string StrExcludeServices)) StrExcludeServices = string.Empty;
-					var ExcludeServices = new List<string>(StrExcludeServices.Trim().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+
+					List<string> ExcludeServices;
+
+					//제외할 서비스 목록이 존재할 경우
+					if (!StrExcludeServices.IsEmpty()) ExcludeServices = new List<string>(StrExcludeServices.Trim().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+					else ExcludeServices = new List<string>();
 
 					// 모두 제외할 경우
 					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_ALL, StringComparison.OrdinalIgnoreCase))) return;
@@ -370,12 +375,11 @@ namespace PortalSvr.Services
 					}
 				}
 				m_timer.Change(Timeout.Infinite, 0);
-				if (m_timer != null) m_timer.Dispose();
+				m_timer?.Dispose();
 			}
 			catch (Exception ex)
 			{
 				NNException.Log(ex);
-				m_logger.LogError(ex.Message);
 			}
 		}
 	}

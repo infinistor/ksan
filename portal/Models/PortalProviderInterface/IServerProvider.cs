@@ -72,7 +72,7 @@ namespace PortalProviderInterface
 		Task<ResponseData> Remove(string Id);
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
@@ -81,7 +81,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> SearchStates = null,
+			EnumServerState? SearchState = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -97,7 +97,7 @@ namespace PortalProviderInterface
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		Task<ResponseList<ResponseServerDetail>> GetListDetails(
-			List<EnumServerState> SearchStates = null,
+			EnumServerState? SearchStates = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""

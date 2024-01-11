@@ -401,7 +401,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.CpuModel).HasColumnName(@"CPU_MODEL").ValueGeneratedNever();
-			modelBuilder.Entity<Server>().Property(x => x.Clock).HasColumnName(@"CLOCK").ValueGeneratedNever();
+			modelBuilder.Entity<Server>().Property(x => x.Clock).HasColumnName(@"CLOCK").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Server>().Property(x => x.State).HasColumnName(@"STATE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"-2");
 			modelBuilder.Entity<Server>().Property(x => x.Rack).HasColumnName(@"RACK").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.LoadAverage1M).HasColumnName(@"LOAD_AVERAGE1M").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -1261,7 +1261,6 @@ namespace PortalModels
 
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
-			modelBuilder.Entity<DiskPool>().HasOne(x => x.EC).WithOne(op => op.DiskPool).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(false);
 
 			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
