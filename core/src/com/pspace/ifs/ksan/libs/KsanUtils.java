@@ -193,30 +193,19 @@ public class KsanUtils {
         sb.append(Constants.OBJ_DIR);
         sb.append(makeDirectorySub(objId.substring(0, 2)));
 
-        File objDir = new File(sb.toString());
-        logger.info("obj dir : {}", objDir.getAbsolutePath());
-        if (!objDir.exists()) {
-            if (!objDir.mkdir()) {
-                return null;
-            }
-        }
+        // File objDir = new File(sb.toString());
+        // logger.info("obj dir : {}", objDir.getAbsolutePath());
+        // if (!objDir.exists()) {
+        //     if (!objDir.mkdir()) {
+        //         return null;
+        //     }
+        // }
         sb.append(makeDirectorySub(objId.substring(2, 4)));
-        objDir = new File(sb.toString());
-        logger.info("obj dir : {}", objDir.getAbsolutePath());
-        if (!objDir.exists()) {
-            if (!objDir.mkdir()) {
-                return null;
-            }
-        }
-        // check index dir depth
-        // logger.debug("Checking index dir depth : {}", AgentConfig.getInstance().getObjIndexDirDepth());
-        // if (AgentConfig.getInstance().getObjIndexDirDepth() == Constants.OBJECT_INDEX_DIR_DEPTH_3) {
-        //     sb.append(makeDirectorySub(objId.substring(4, 6)));
-        //     objDir = new File(sb.toString());
-        //     if (!objDir.exists()) {
-        //         if (!objDir.mkdir()) {
-        //             return null;
-        //         }
+        // objDir = new File(sb.toString());
+        // logger.info("obj dir : {}", objDir.getAbsolutePath());
+        // if (!objDir.exists()) {
+        //     if (!objDir.mkdir()) {
+        //         return null;
         //     }
         // }
 
@@ -363,6 +352,24 @@ public class KsanUtils {
         sb.append(path);
         sb.append(Constants.SLASH);
         sb.append(Constants.OBJ_DIR);
+        sb.append(makeDirectorySub(objId.substring(0, 2)));
+
+        File objDir = new File(sb.toString());
+        logger.info("obj dir : {}", objDir.getAbsolutePath());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+        sb.append(makeDirectorySub(objId.substring(2, 4)));
+        objDir = new File(sb.toString());
+        logger.info("obj dir : {}", objDir.getAbsolutePath());
+        if (!objDir.exists()) {
+            if (!objDir.mkdir()) {
+                return null;
+            }
+        }
+
         sb.append(Constants.SLASH);
         sb.append(objId);
         sb.append(Constants.UNDERSCORE);

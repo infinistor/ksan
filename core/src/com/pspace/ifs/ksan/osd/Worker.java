@@ -374,97 +374,123 @@ public class Worker implements Runnable {
 
         logger.debug(OSDConstants.LOG_OSD_SERVER_PUT_INFO, path, objId, versionId, length, replication, mode);
 
-        boolean isNoDisk = false;
-        if (mode != null) {
-            if (mode.equals(OSDConstants.PERFORMANCE_MODE_NO_DISK)) {
-                isNoDisk = true;
+        try {
+            boolean isNoDisk = false;
+            if (mode != null) {
+                if (mode.equals(OSDConstants.PERFORMANCE_MODE_NO_DISK)) {
+                    isNoDisk = true;
+                }
             }
-        }
 
-        byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
-        File file = null;
-        File tmpFile = null;
-        File trashFile = null;
+            byte[] buffer = new byte[OSDConstants.MAXBUFSIZE];
+            File file = null;
+            File tmpFile = null;
+            File trashFile = null;
 
-        if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
-            key = null;
-        }
-        if (!Strings.isNullOrEmpty(key)) {
-            if (OSDConfig.getInstance().isCacheDiskpath()) {
-                file = new File(KsanUtils.makeObjPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
-                tmpFile = new File(KsanUtils.makeTempPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
-                trashFile = new File(KsanUtils.makeTrashPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+            if (key.equalsIgnoreCase(OSDConstants.STR_NULL)) {
+                key = null;
+            }
+            if (!Strings.isNullOrEmpty(key)) {
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
+                    tmpFile = new File(KsanUtils.makeTempPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+                    file = new File(KsanUtils.makeObjPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+                } else {
+                    tmpFile = new File(KsanUtils.makeTempPath(path, objId, versionId));
+                    file = new File(KsanUtils.makeObjPath(path, objId, versionId));
+                }
+
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                // try (FileOutputStream fos = new FileOutputStream(file, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.BUFSIZE ? length : OSDConstants.BUFSIZE);
+                    encryptOS = OSDUtils.initCtrEncrypt(fos, key);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
+                        remainLength -= readLength;
+                        if (!isNoDisk) {
+                            encryptOS.write(buffer, 0, readLength);
+                        }
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.BUFSIZE ? remainLength : OSDConstants.BUFSIZE);
+                    }
+                    // if (!isNoDisk) {
+                    //     encryptOS.flush();
+                    // }
+                }
             } else {
-                file = new File(KsanUtils.makeObjPath(path, objId, versionId));
-                tmpFile = new File(KsanUtils.makeTempPath(path, objId, versionId));
-                trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
+                    tmpFile = new File(KsanUtils.makeTempPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+                    file = new File(KsanUtils.makeObjPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+                } else {
+                    tmpFile = new File(KsanUtils.makeTempPath(path, objId, versionId));
+                    file = new File(KsanUtils.makeObjPath(path, objId, versionId));
+                }
+
+                try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
+                // try (FileOutputStream fos = new FileOutputStream(file, false)) {
+                    int readLength = 0;
+                    long remainLength = length;
+                    int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
+                    while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
+                        remainLength -= readLength;
+                        if (!isNoDisk) {
+                            fos.write(buffer, 0, readLength);
+                        }
+                        if (remainLength <= 0) {
+                            break;
+                        }
+                        readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+                    }
+                    // if (!isNoDisk) {
+                    //     fos.flush();
+                    // }
+                }
             }
 
-            try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                int readLength = 0;
-                long remainLength = length;
-                int readMax = (int) (length < OSDConstants.BUFSIZE ? length : OSDConstants.BUFSIZE);
-                encryptOS = OSDUtils.initCtrEncrypt(fos, key);
-                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
-                    remainLength -= readLength;
-                    if (!isNoDisk) {
-                        encryptOS.write(buffer, 0, readLength);
-                    }
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    readMax = (int) (remainLength < OSDConstants.BUFSIZE ? remainLength : OSDConstants.BUFSIZE);
+            if (file.exists()) {
+                File temp = new File(file.getAbsolutePath());
+                logger.info("file is already exists : {}", file.getAbsolutePath());
+                if (OSDConfig.getInstance().isCacheDiskpath()) {
+                    trashFile = new File(KsanUtils.makeTrashPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+                } else {
+                    trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
                 }
-                if (!isNoDisk) {
-                    encryptOS.flush();
-                }
+                retryRenameTo(temp, trashFile);
             }
-        } else {
-            if (OSDConfig.getInstance().isCacheDiskpath()) {
-                file = new File(KsanUtils.makeObjPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
-                tmpFile = new File(KsanUtils.makeTempPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
-                trashFile = new File(KsanUtils.makeTrashPath(OSDConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+
+            if (tmpFile != null) {
+                KsanUtils.setAttributeFileReplication(tmpFile, replication, replicaDiskID);
+                retryRenameTo(tmpFile, file);
             } else {
-                file = new File(KsanUtils.makeObjPath(path, objId, versionId));
-                tmpFile = new File(KsanUtils.makeTempPath(path, objId, versionId));
-                trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
+                logger.error("tmpFile is null");
             }
 
-            try (FileOutputStream fos = new FileOutputStream(tmpFile, false)) {
-                int readLength = 0;
-                long remainLength = length;
-                int readMax = (int) (length < OSDConstants.MAXBUFSIZE ? length : OSDConstants.MAXBUFSIZE);
-                while ((readLength = socket.getInputStream().read(buffer, 0, readMax)) != -1) {
-                    remainLength -= readLength;
-                    if (!isNoDisk) {
-                        fos.write(buffer, 0, readLength);
-                    }
-                    if (remainLength <= 0) {
-                        break;
-                    }
-                    readMax = (int) (remainLength < OSDConstants.MAXBUFSIZE ? remainLength : OSDConstants.MAXBUFSIZE);
+            // if (file != null && file.exists()) {
+            //     KsanUtils.setAttributeFileReplication(file, replication, replicaDiskID);
+            // } else {
+            //     logger.error("file is deleted");
+            // }
+            
+            if (OSDConfig.getInstance().isCacheDiskpath()) {
+                String linkPath = KsanUtils.makeObjPath(path, objId, versionId);
+                File oldFile = new File(linkPath);
+                if (oldFile.exists()) {
+                    oldFile.delete();
                 }
-                if (!isNoDisk) {
-                    fos.flush();
-                }
+                Files.createSymbolicLink(Paths.get(linkPath), Paths.get(file.getAbsolutePath()));
             }
-        }
-
-        if (file.exists()) {
-            File temp = new File(file.getAbsolutePath());
-            logger.info("file is already exists : {}", file.getAbsolutePath());
-            retryRenameTo(temp, trashFile);
-        }
-
-        KsanUtils.setAttributeFileReplication(tmpFile, replication, replicaDiskID);
-        retryRenameTo(tmpFile, file);
-        if (OSDConfig.getInstance().isCacheDiskpath()) {
-            String linkPath = KsanUtils.makeObjPath(path, objId, versionId);
-            File oldFile = new File(linkPath);
-            if (oldFile.exists()) {
-                oldFile.delete();
+        } catch (IOException e) {
+            PrintStack.logging(logger, e);
+            // socket.close();
+        } catch (Exception e) {
+            PrintStack.logging(logger, e);
+            // socket.close();
+        } finally {
+            if (encryptOS != null) {
+                encryptOS.close();
             }
-            Files.createSymbolicLink(Paths.get(linkPath), Paths.get(file.getAbsolutePath()));
         }
 
         logger.info(OSDConstants.LOG_OSD_SERVER_PUT_SUCCESS_INFO, path, objId, versionId, length);
@@ -1432,7 +1458,7 @@ public class Worker implements Runnable {
         //     }
         // }
     }
-
+ 
     private void completeMultipart(String[] headers) throws IOException, NoSuchAlgorithmException {
         logger.debug(OSDConstants.LOG_OSD_SERVER_COMPLETE_MULTIPART_START);
         // String path = headers[OsdData.PATH_INDEX];
