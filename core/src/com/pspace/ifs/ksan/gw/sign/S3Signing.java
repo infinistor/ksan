@@ -384,12 +384,12 @@ public class S3Signing {
 
 				List<String> subresources = Collections.list(s3Parameter.getRequest().getParameterNames());
 				Collections.sort(subresources);
-				for (String subresource : subresources) {
-					if ("tag-index".contains(subresource)) {
-						skip = 1;
-						break;
-					}
-				}
+				// for (String subresource : subresources) {
+				// 	if ("tag-index".contains(subresource)) {
+				// 		skip = 1;
+				// 		break;
+				// 	}
+				// }
 
 				if(skip == 0) {
 					try {
