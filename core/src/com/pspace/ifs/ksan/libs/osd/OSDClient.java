@@ -52,9 +52,9 @@ public class OSDClient {
 		this.isUsed = isUsed;
 	}
 
-	// public Socket getSocket() {
-	// 	return socket;
-	// }
+	public Socket getSocket() {
+		return socket;
+	}
 
 	public InputStream getInputStream() throws IOException {
 		return socket.getInputStream();
