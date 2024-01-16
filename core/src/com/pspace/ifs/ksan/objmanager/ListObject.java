@@ -205,10 +205,13 @@ public class ListObject{
             query1 = makeQueryWithDiskId(diskid, lastObjId, versionIdMarker);
         else{
             query1=makeQuery4ExpiredObject();
-            if (dbm instanceof MongoDataRepository)
+            if (dbm instanceof MongoDataRepository){
+                logger.debug(" >>mongo query : {}", query1.toString());
                 return dbm.getObjectList(bucketName, query1, maxKeys, 0);
-            else
+            } else {
+                logger.debug(" >>mariadb query : {}", query1.toString());
                 return this.bindExcuteExpiredObjectQuery();
+            }
         }
         
         if (query1 != null){
@@ -558,11 +561,12 @@ public class ListObject{
                return null;
            }
            
-           if (bBucketListParameterPrefix){    
-               prefixStr = prefix.replaceAll("\\%",  "\\\\/")
+           if (bBucketListParameterPrefix){  
+               prefixStr = escapeSpecialChars(prefix);
+               /*prefixStr = prefix.replaceAll("\\%",  "\\\\/")
                    .replaceAll("\\_",  "\\\\_")
                    .replaceAll("\\(", "\\\\(")
-                   .replaceAll("\\)", "\\\\)");
+                   .replaceAll("\\)", "\\\\)");*/
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr)));//.append("$options", "i")
            }
            
