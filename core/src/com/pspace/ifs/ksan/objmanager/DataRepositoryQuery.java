@@ -19,7 +19,7 @@ public final class DataRepositoryQuery {
             + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
             + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;;";  
     
-    public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  9223372036854775808 - ?, ?, ?, ?, ?, ?, true)";
+    public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, true)";
     public  static String objDeleteQuery = "DELETE FROM %s WHERE objid=? AND (versionid=? OR versionid is NULL)";
 
     public  static  String objSelectOneQuery = "SELECT bucket, objKey, size, objid, etag, tag, meta, acl, pdiskid, rdiskid, versionid, deleteMarker, lastversion FROM %s WHERE objid=? AND lastversion=true";
