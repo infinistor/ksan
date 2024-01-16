@@ -25,7 +25,7 @@ public class Constants {
 	public static final String COMMA = ",";
 
 	public static final String OBJ_DIR = "obj";
-	public static final String TEMP_DIR = "temp";
+	// public static final String TEMP_DIR = "temp";
 	public static final String TEMP_COMPLETE_DIR = "temp/complete";
 	public static final String TEMP_COPY_DIR = "temp/copy";
 	public static final String TRASH_DIR = "trash";

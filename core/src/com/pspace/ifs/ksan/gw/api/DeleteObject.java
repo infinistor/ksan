@@ -96,6 +96,7 @@ public class DeleteObject extends S3Request {
 				putDeleteMarker(bucket, object, GWConstants.VERSIONING_DISABLE_TAIL, s3Metadata, objMeta);
 			}
 			s3Parameter.getResponse().addHeader(GWConstants.X_AMZ_VERSION_ID, versionId);
+			logger.error("DeleteObject not find object : {}-{}-{}", bucket, object, versionId);
 			s3Parameter.getResponse().setStatus(HttpServletResponse.SC_NO_CONTENT);
 			return;
 		}
@@ -109,9 +110,10 @@ public class DeleteObject extends S3Request {
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_INFO, versionId, isLastVersion, deleteMarker);
 		logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING, versioningStatus);
 
+
 		if (Strings.isNullOrEmpty(versioningStatus)) {
 			logger.debug(GWConstants.LOG_DELETE_OBJECT_BUCKET_VERSIONING_DISABLED);
-            remove(bucket, object);
+			remove(bucket, object);
 			// objectOperation.deleteObject();
 			objectManager.deleteObject(s3Parameter, objMeta);
 		} else {

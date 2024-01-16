@@ -109,9 +109,39 @@ namespace PortalModels
 
 		public virtual DbSet<ServiceEventLog> ServiceEventLogs { get; set; }
 
-		public virtual DbSet<S3Logging> S3Loggings { get; set; }
-
 		public virtual DbSet<DiskPoolEC> DiskPoolECs { get; set; }
+
+		public virtual DbSet<BucketApiMeter> BucketApiMeters { get; set; }
+
+		public virtual DbSet<BucketErrorMeter> BucketErrorMeters { get; set; }
+
+		public virtual DbSet<BucketIoMeter> BucketIoMeters { get; set; }
+
+		public virtual DbSet<BucketApiAsset> BucketApiAssets { get; set; }
+
+		public virtual DbSet<BucketErrorAsset> BucketErrorAssets { get; set; }
+
+		public virtual DbSet<BucketIoAsset> BucketIoAssets { get; set; }
+
+		public virtual DbSet<BackendApiMeter> BackendApiMeters { get; set; }
+
+		public virtual DbSet<BackendErrorMeter> BackendErrorMeters { get; set; }
+
+		public virtual DbSet<BackendIoMeter> BackendIoMeters { get; set; }
+
+		public virtual DbSet<BackendApiAsset> BackendApiAssets { get; set; }
+
+		public virtual DbSet<BackendErrorAsset> BackendErrorAssets { get; set; }
+
+		public virtual DbSet<BackendIoAsset> BackendIoAssets { get; set; }
+
+		public virtual DbSet<BucketList> BucketLists { get; set; }
+
+		public virtual DbSet<BucketMeter> BucketMeters { get; set; }
+
+		public virtual DbSet<BucketAsset> BucketAssets { get; set; }
+
+		public virtual DbSet<S3AccessIp> S3AccessIps { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -204,11 +234,56 @@ namespace PortalModels
 			this.ServiceEventLogMapping(modelBuilder);
 			this.CustomizeServiceEventLogMapping(modelBuilder);
 
-			this.S3LoggingMapping(modelBuilder);
-			this.CustomizeS3LoggingMapping(modelBuilder);
-
 			this.DiskPoolECMapping(modelBuilder);
 			this.CustomizeDiskPoolECMapping(modelBuilder);
+
+			this.BucketApiMeterMapping(modelBuilder);
+			this.CustomizeBucketApiMeterMapping(modelBuilder);
+
+			this.BucketErrorMeterMapping(modelBuilder);
+			this.CustomizeBucketErrorMeterMapping(modelBuilder);
+
+			this.BucketIoMeterMapping(modelBuilder);
+			this.CustomizeBucketIoMeterMapping(modelBuilder);
+
+			this.BucketApiAssetMapping(modelBuilder);
+			this.CustomizeBucketApiAssetMapping(modelBuilder);
+
+			this.BucketErrorAssetMapping(modelBuilder);
+			this.CustomizeBucketErrorAssetMapping(modelBuilder);
+
+			this.BucketIoAssetMapping(modelBuilder);
+			this.CustomizeBucketIoAssetMapping(modelBuilder);
+
+			this.BackendApiMeterMapping(modelBuilder);
+			this.CustomizeBackendApiMeterMapping(modelBuilder);
+
+			this.BackendErrorMeterMapping(modelBuilder);
+			this.CustomizeBackendErrorMeterMapping(modelBuilder);
+
+			this.BackendIoMeterMapping(modelBuilder);
+			this.CustomizeBackendIoMeterMapping(modelBuilder);
+
+			this.BackendApiAssetMapping(modelBuilder);
+			this.CustomizeBackendApiAssetMapping(modelBuilder);
+
+			this.BackendErrorAssetMapping(modelBuilder);
+			this.CustomizeBackendErrorAssetMapping(modelBuilder);
+
+			this.BackendIoAssetMapping(modelBuilder);
+			this.CustomizeBackendIoAssetMapping(modelBuilder);
+
+			this.BucketListMapping(modelBuilder);
+			this.CustomizeBucketListMapping(modelBuilder);
+
+			this.BucketMeterMapping(modelBuilder);
+			this.CustomizeBucketMeterMapping(modelBuilder);
+
+			this.BucketAssetMapping(modelBuilder);
+			this.CustomizeBucketAssetMapping(modelBuilder);
+
+			this.S3AccessIpMapping(modelBuilder);
+			this.CustomizeS3AccessIpMapping(modelBuilder);
 
 			RelationshipsMapping(modelBuilder);
 			CustomizeMapping(ref modelBuilder);
@@ -326,7 +401,7 @@ namespace PortalModels
 			modelBuilder.Entity<Server>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.Description).HasColumnName(@"DESCRIPTION").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.CpuModel).HasColumnName(@"CPU_MODEL").ValueGeneratedNever();
-			modelBuilder.Entity<Server>().Property(x => x.Clock).HasColumnName(@"CLOCK").ValueGeneratedNever();
+			modelBuilder.Entity<Server>().Property(x => x.Clock).HasColumnName(@"CLOCK").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
 			modelBuilder.Entity<Server>().Property(x => x.State).HasColumnName(@"STATE").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"-2");
 			modelBuilder.Entity<Server>().Property(x => x.Rack).HasColumnName(@"RACK").ValueGeneratedNever();
 			modelBuilder.Entity<Server>().Property(x => x.LoadAverage1M).HasColumnName(@"LOAD_AVERAGE1M").ValueGeneratedNever().HasDefaultValueSql(@"0");
@@ -778,7 +853,7 @@ namespace PortalModels
 			modelBuilder.Entity<Region>().Property(x => x.Name).HasColumnName(@"NAME").IsRequired().ValueGeneratedNever().HasMaxLength(50);
 			modelBuilder.Entity<Region>().Property(x => x.Address).HasColumnName(@"ADDRESS").IsRequired().ValueGeneratedNever().HasMaxLength(15);
 			modelBuilder.Entity<Region>().Property(x => x.Port).HasColumnName(@"PORT").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<Region>().Property(x => x.SSLPort).HasColumnName(@"SSLPORT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<Region>().Property(x => x.SSLPort).HasColumnName(@"SSL_PORT").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Region>().Property(x => x.AccessKey).HasColumnName(@"ACCESS_KEY").HasColumnType(@"char(20)").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Region>().Property(x => x.SecretKey).HasColumnName(@"SECRET_KEY").HasColumnType(@"char(40)").IsRequired().ValueGeneratedNever();
 			modelBuilder.Entity<Region>().HasKey(@"Name");
@@ -804,43 +879,6 @@ namespace PortalModels
 
 		#endregion
 
-		#region S3Logging Mapping
-
-		private void S3LoggingMapping(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<S3Logging>().ToTable(@"S3LOGGING");
-			modelBuilder.Entity<S3Logging>().Property(x => x.Id).HasColumnName(@"ID").IsRequired().ValueGeneratedOnAdd();
-			modelBuilder.Entity<S3Logging>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.RemoteHost).HasColumnName(@"REMOTE_HOST").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.RequestUser).HasColumnName(@"REQUEST_USER").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.RequestId).HasColumnName(@"REQUEST_ID").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.Operation).HasColumnName(@"OPERATION").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.ObjectName).HasColumnName(@"OBJECT_NAME").HasColumnType(@"varchar(2048)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.RequestUri).HasColumnName(@"REQUEST_URI").HasColumnType(@"varchar(2048)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.StatusCode).HasColumnName(@"STATUS_CODE").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.ErrorCode).HasColumnName(@"ERROR_CODE").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.ResponseLength).HasColumnName(@"RESPONSE_LENGTH").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.ObjectLength).HasColumnName(@"OBJECT_LENGTH").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.TotalTime).HasColumnName(@"TOTAL_TIME").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.RequestLength).HasColumnName(@"REQUEST_LENGTH").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.Rererer).HasColumnName(@"RERERER").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.UserAgent).HasColumnName(@"USER_AGENT").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.VersionId).HasColumnName(@"VERSION_ID").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.HostId).HasColumnName(@"HOST_ID").HasColumnType(@"varchar(256)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.Sign).HasColumnName(@"SIGN").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.SslGroup).HasColumnName(@"SSL_GROUP").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.SignType).HasColumnName(@"SIGN_TYPE").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.Endpoint).HasColumnName(@"ENDPOINT").HasColumnType(@"varchar(64)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().Property(x => x.TlsVersion).HasColumnName(@"TLS_VERSION").HasColumnType(@"varchar(32)").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<S3Logging>().HasKey(@"Id");
-		}
-
-		partial void CustomizeS3LoggingMapping(ModelBuilder modelBuilder);
-
-		#endregion
-
 		#region DiskPoolEC Mapping
 
 		private void DiskPoolECMapping(ModelBuilder modelBuilder)
@@ -853,6 +891,300 @@ namespace PortalModels
 		}
 
 		partial void CustomizeDiskPoolECMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketApiMeter Mapping
+
+		private void BucketApiMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketApiMeter>().ToTable(@"BUCKET_API_METERS");
+			modelBuilder.Entity<BucketApiMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketApiMeter>().Property(x => x.Event).HasColumnName(@"EVENT").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketApiMeter>().Property(x => x.Count).HasColumnName(@"COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiMeter>().HasKey(@"InDate", @"UserName", @"BucketName", @"Event");
+		}
+
+		partial void CustomizeBucketApiMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketErrorMeter Mapping
+
+		private void BucketErrorMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketErrorMeter>().ToTable(@"BUCKET_ERROR_METERS");
+			modelBuilder.Entity<BucketErrorMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorMeter>().Property(x => x.ClientErrorCount).HasColumnName(@"CLIENT_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorMeter>().Property(x => x.ServerErrorCount).HasColumnName(@"SERVER_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorMeter>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketErrorMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketIoMeter Mapping
+
+		private void BucketIoMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketIoMeter>().ToTable(@"BUCKET_IO_METERS");
+			modelBuilder.Entity<BucketIoMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketIoMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketIoMeter>().Property(x => x.Upload).HasColumnName(@"UPLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoMeter>().Property(x => x.Download).HasColumnName(@"DOWNLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoMeter>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketIoMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketApiAsset Mapping
+
+		private void BucketApiAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketApiAsset>().ToTable(@"BUCKET_API_ASSETS");
+			modelBuilder.Entity<BucketApiAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketApiAsset>().Property(x => x.Event).HasColumnName(@"EVENT").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketApiAsset>().Property(x => x.Count).HasColumnName(@"COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketApiAsset>().HasKey(@"InDate", @"UserName", @"BucketName", @"Event");
+		}
+
+		partial void CustomizeBucketApiAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketErrorAsset Mapping
+
+		private void BucketErrorAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketErrorAsset>().ToTable(@"BUCKET_ERROR_ASSETS");
+			modelBuilder.Entity<BucketErrorAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorAsset>().Property(x => x.ClientErrorCount).HasColumnName(@"CLIENT_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorAsset>().Property(x => x.ServerErrorCount).HasColumnName(@"SERVER_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketErrorAsset>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketErrorAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketIoAsset Mapping
+
+		private void BucketIoAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketIoAsset>().ToTable(@"BUCKET_IO_ASSETS");
+			modelBuilder.Entity<BucketIoAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketIoAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketIoAsset>().Property(x => x.Upload).HasColumnName(@"UPLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoAsset>().Property(x => x.Download).HasColumnName(@"DOWNLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketIoAsset>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketIoAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendApiMeter Mapping
+
+		private void BackendApiMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendApiMeter>().ToTable(@"BACKEND_API_METERS");
+			modelBuilder.Entity<BackendApiMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendApiMeter>().Property(x => x.Event).HasColumnName(@"EVENT").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendApiMeter>().Property(x => x.Count).HasColumnName(@"COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiMeter>().HasKey(@"InDate", @"UserName", @"BucketName", @"Event");
+		}
+
+		partial void CustomizeBackendApiMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendErrorMeter Mapping
+
+		private void BackendErrorMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendErrorMeter>().ToTable(@"BACKEND_ERROR_METERS");
+			modelBuilder.Entity<BackendErrorMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorMeter>().Property(x => x.ClientErrorCount).HasColumnName(@"CLIENT_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorMeter>().Property(x => x.ServerErrorCount).HasColumnName(@"SERVER_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorMeter>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBackendErrorMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendIoMeter Mapping
+
+		private void BackendIoMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendIoMeter>().ToTable(@"BACKEND_IO_METERS");
+			modelBuilder.Entity<BackendIoMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendIoMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendIoMeter>().Property(x => x.Upload).HasColumnName(@"UPLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoMeter>().Property(x => x.Download).HasColumnName(@"DOWNLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoMeter>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBackendIoMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendApiAsset Mapping
+
+		private void BackendApiAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendApiAsset>().ToTable(@"BACKEND_API_ASSETS");
+			modelBuilder.Entity<BackendApiAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendApiAsset>().Property(x => x.Event).HasColumnName(@"EVENT").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendApiAsset>().Property(x => x.Count).HasColumnName(@"COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendApiAsset>().HasKey(@"InDate", @"UserName", @"BucketName", @"Event");
+		}
+
+		partial void CustomizeBackendApiAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendErrorAsset Mapping
+
+		private void BackendErrorAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendErrorAsset>().ToTable(@"BACKEND_ERROR_ASSETS");
+			modelBuilder.Entity<BackendErrorAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").HasColumnType(@"varchar(200)").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorAsset>().Property(x => x.ClientErrorCount).HasColumnName(@"CLIENT_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorAsset>().Property(x => x.ServerErrorCount).HasColumnName(@"SERVER_ERROR_COUNT").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendErrorAsset>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBackendErrorAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BackendIoAsset Mapping
+
+		private void BackendIoAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BackendIoAsset>().ToTable(@"BACKEND_IO_ASSETS");
+			modelBuilder.Entity<BackendIoAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendIoAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BackendIoAsset>().Property(x => x.Upload).HasColumnName(@"UPLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoAsset>().Property(x => x.Download).HasColumnName(@"DOWNLOAD").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BackendIoAsset>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBackendIoAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketList Mapping
+
+		private void BucketListMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketList>().ToTable(@"BUCKETS");
+			modelBuilder.Entity<BucketList>().Property(x => x.BucketName).HasColumnName(@"bucketName").IsRequired().ValueGeneratedNever().HasMaxLength(64);
+			modelBuilder.Entity<BucketList>().Property(x => x.DiskPoolId).HasColumnName(@"diskPoolId").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketList>().Property(x => x.UserId).HasColumnName(@"user").ValueGeneratedNever().HasMaxLength(200).HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.UserName).HasColumnName(@"userName").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.BucketId).HasColumnName(@"bucketId").ValueGeneratedNever().HasMaxLength(64).HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.FileCount).HasColumnName(@"fileCount").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<BucketList>().Property(x => x.UsedSize).HasColumnName(@"usedSpace").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<BucketList>().Property(x => x.ACL).HasColumnName(@"acl").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.WEB).HasColumnName(@"web").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.CORS).HasColumnName(@"cors").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Lifecycle).HasColumnName(@"lifecycle").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Versioning).HasColumnName(@"versioning").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Access).HasColumnName(@"access").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Tagging).HasColumnName(@"tagging").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Encryption).HasColumnName(@"encryption").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Replication).HasColumnName(@"replication").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Logging).HasColumnName(@"logging").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Notification).HasColumnName(@"notification").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.Policy).HasColumnName(@"policy").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.ObjectLock).HasColumnName(@"objectlock").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
+			modelBuilder.Entity<BucketList>().Property(x => x.CreateTime).HasColumnName(@"createTime").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"current_timestamp(3)");
+			modelBuilder.Entity<BucketList>().Property(x => x.MfaDelete).HasColumnName(@"MfaDelete").ValueGeneratedNever();
+			modelBuilder.Entity<BucketList>().Property(x => x.TagIndexing).HasColumnName(@"objTagIndexing").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketList>().HasKey(@"BucketName");
+		}
+
+		partial void CustomizeBucketListMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketMeter Mapping
+
+		private void BucketMeterMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketMeter>().ToTable(@"BUCKET_METERS");
+			modelBuilder.Entity<BucketMeter>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketMeter>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketMeter>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(64);
+			modelBuilder.Entity<BucketMeter>().Property(x => x.Used).HasColumnName(@"USED").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<BucketMeter>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketMeterMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region BucketAsset Mapping
+
+		private void BucketAssetMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<BucketAsset>().ToTable(@"BUCKET_ASSETS");
+			modelBuilder.Entity<BucketAsset>().Property(x => x.InDate).HasColumnName(@"IN_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketAsset>().Property(x => x.UserName).HasColumnName(@"USER_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(200);
+			modelBuilder.Entity<BucketAsset>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(64);
+			modelBuilder.Entity<BucketAsset>().Property(x => x.MaxUsed).HasColumnName(@"MAX_USED").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
+			modelBuilder.Entity<BucketAsset>().Property(x => x.MinUsed).HasColumnName(@"MIN_USED").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<BucketAsset>().Property(x => x.AvgUsed).HasColumnName(@"AVG_USED").ValueGeneratedNever();
+			modelBuilder.Entity<BucketAsset>().HasKey(@"InDate", @"UserName", @"BucketName");
+		}
+
+		partial void CustomizeBucketAssetMapping(ModelBuilder modelBuilder);
+
+		#endregion
+
+		#region S3AccessIp Mapping
+
+		private void S3AccessIpMapping(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<S3AccessIp>().ToTable(@"S3ACCESS_IPS");
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.AddressId).HasColumnName(@"ADDRESS_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.UserId).HasColumnName(@"USER_ID").IsRequired().ValueGeneratedNever().HasMaxLength(256);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.BucketName).HasColumnName(@"BUCKET_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(63);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.StartIpNo).HasColumnName(@"START_IP_NO").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.EndIpNo).HasColumnName(@"END_IP_NO").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.IpAddress).HasColumnName(@"IP_ADDRESS").IsRequired().ValueGeneratedNever().HasMaxLength(100);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegDate).HasColumnName(@"REG_DATE").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegName).HasColumnName(@"REG_NAME").IsRequired().ValueGeneratedNever().HasMaxLength(400);
+			modelBuilder.Entity<S3AccessIp>().Property(x => x.RegId).HasColumnName(@"REG_ID").IsRequired().ValueGeneratedNever();
+			modelBuilder.Entity<S3AccessIp>().HasKey(@"AddressId");
+		}
+
+		partial void CustomizeS3AccessIpMapping(ModelBuilder modelBuilder);
 
 		#endregion
 

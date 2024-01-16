@@ -8,113 +8,181 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data.S3;
+package com.pspace.backend.libs.data.s3;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pspace.backend.libs.data.BaseData;
 
-public class S3LogData {
-	public String UserName;
-	public String BucketName;
-	public String Date;
-	public String RemoteHost;
-	public String RequestUser;
-	public String RequestId;
-	public String Operation;
-	public String ObjectName;
-	public String RequestURI;
-	public int StatusCode;
-	public String ErrorCode;
-	public long ResponseLength;
-	public long ObjectLength;
-	public long TotalTime;
-	public long RequestLength;
-	public String Referer;
-	public String UserAgent;
-	public String VersionId;
-	public String HostId;
-	public String Sign;
-	public String SSLGroup;
-	public String SignType;
-	public String EndPoint;
-	public String TLSVersion;
+public class S3LogData implements BaseData {
+	@JsonProperty("UserName")
+	public String userName;
+	@JsonProperty("BucketName")
+	public String bucketName;
+	@JsonProperty("Date")
+	public long date;
+	@JsonProperty("RemoteHost")
+	public String remoteHost;
+	@JsonProperty("RequestUser")
+	public String requestUser;
+	@JsonProperty("RequestId")
+	public String requestId;
+	@JsonProperty("Operation")
+	public String operation;
+	@JsonProperty("ObjectName")
+	public String objectName;
+	@JsonProperty("RequestURI")
+	public String requestURI;
+	@JsonProperty("StatusCode")
+	public int statusCode;
+	@JsonProperty("ErrorCode")
+	public String errorCode;
+	@JsonProperty("ResponseLength")
+	public long responseLength;
+	@JsonProperty("ObjectLength")
+	public long objectLength;
+	@JsonProperty("TotalTime")
+	public long totalTime;
+	@JsonProperty("RequestLength")
+	public long requestLength;
+	@JsonProperty("Referer")
+	public String referer;
+	@JsonProperty("UserAgent")
+	public String userAgent;
+	@JsonProperty("VersionId")
+	public String versionId;
+	@JsonProperty("HostId")
+	public String hostId;
+	@JsonProperty("Sign")
+	public String sign;
+	@JsonProperty("SSLGroup")
+	public String sslGroup;
+	@JsonProperty("SignType")
+	public String signType;
+	@JsonProperty("EndPoint")
+	public String endPoint;
+	@JsonProperty("TLSVersion")
+	public String tlsVersion;
 
-	public S3LogData(){
+	public S3LogData() {
 		Init();
 	}
-	public S3LogData(String UserName, String BucketName, String Date, String Remote_host,
-			String RequestUser, String RequestId, String Operation, String ObjectName, String RequestURI,
-			int StatusCode, String ErrorCode, long ResponseLength, long ObjectLength, long TotalTime,
-			long RequestLength, String Referer, String UserAgent, String VersionId, String HostId, String Sign,
-			String SSLGroup, String SignType, String EndPoint, String TLSVersion) {
-		this.UserName = UserName;
-		this.BucketName = BucketName;
-		this.Date = Date;
-		this.RemoteHost = Remote_host;
-		this.RequestUser = RequestUser;
-		this.RequestId = RequestId;
-		this.Operation = Operation;
-		this.ObjectName = ObjectName;
-		this.RequestURI = RequestURI;
-		this.StatusCode = StatusCode;
-		this.ErrorCode = ErrorCode;
-		this.ResponseLength = ResponseLength;
-		this.ObjectLength = ObjectLength;
-		this.TotalTime = TotalTime;
-		this.RequestLength = RequestLength;
-		this.Referer = Referer;
-		this.UserAgent = UserAgent;
-		this.VersionId = VersionId;
-		this.HostId = HostId;
-		this.Sign = Sign;
-		this.SSLGroup = SSLGroup;
-		this.SignType = SignType;
-		this.EndPoint = EndPoint;
-		this.TLSVersion = TLSVersion;
+
+	public S3LogData(String userName, String bucketName, long date, String remoteHost,
+			String requestUser, String requestId, String operation, String objectName, String requestURI,
+			int statusCode, String errorCode, long responseLength, long objectLength, long totalTime,
+			long requestLength, String referer, String userAgent, String versionId, String hostId, String sign,
+			String sslGroup, String signType, String endPoint, String tlsVersion) {
+		this.userName = userName;
+		this.bucketName = bucketName;
+		this.date = date;
+		this.remoteHost = remoteHost;
+		this.requestUser = requestUser;
+		this.requestId = requestId;
+		this.operation = operation;
+		this.objectName = objectName;
+		this.requestURI = requestURI;
+		this.statusCode = statusCode;
+		this.errorCode = errorCode;
+		this.responseLength = responseLength;
+		this.objectLength = objectLength;
+		this.totalTime = totalTime;
+		this.requestLength = requestLength;
+		this.referer = referer;
+		this.userAgent = userAgent;
+		this.versionId = versionId;
+		this.hostId = hostId;
+		this.sign = sign;
+		this.sslGroup = sslGroup;
+		this.signType = signType;
+		this.endPoint = endPoint;
+		this.tlsVersion = tlsVersion;
 	}
 
 	public void Init() {
-		UserName = "";
-		BucketName = "";
-		Date = "";
-		RemoteHost = "";
-		RequestUser = "";
-		RequestId = "";
-		Operation = "";
-		ObjectName = "";
-		RequestURI = "";
-		StatusCode = 0;
-		ErrorCode = "";
-		ResponseLength = 0;
-		ObjectLength = 0;
-		TotalTime = 0;
-		RequestLength = 0;
-		Referer = "";
-		UserAgent = "";
-		VersionId = "";
-		HostId = "";
-		Sign = "";
-		SSLGroup = "";
-		SignType = "";
-		EndPoint = "";
-		TLSVersion = "";
+		userName = null;
+		bucketName = null;
+		date = 0L;
+		remoteHost = null;
+		requestUser = null;
+		requestId = null;
+		operation = null;
+		objectName = null;
+		requestURI = null;
+		statusCode = 0;
+		errorCode = null;
+		responseLength = 0;
+		objectLength = 0;
+		totalTime = 0;
+		requestLength = 0;
+		referer = null;
+		userAgent = null;
+		versionId = null;
+		hostId = null;
+		sign = null;
+		sslGroup = null;
+		signType = null;
+		endPoint = null;
+		tlsVersion = null;
 	}
 
+	@JsonIgnore
 	public boolean isOperationEmpty() {
-		return Operation.isEmpty() || Operation.equals("-");
-	}
-	public boolean isBucketNameEmpty() {
-		return BucketName.isEmpty() || BucketName.equals("-");
-	}
-	public boolean isError() {
-		return !ErrorCode.equals("-") && !ErrorCode.isBlank();
+		return operation.isEmpty() || operation.equals("-");
 	}
 
+	@JsonIgnore
+	public boolean isBucketNameEmpty() {
+		return bucketName.isEmpty() || bucketName.equals("-");
+	}
+
+	@JsonIgnore
+	public boolean isError() {
+		return !errorCode.equals("-") && !errorCode.isBlank();
+	}
+
+	@JsonIgnore
 	public String Print() {
 		return String.format("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
-				UserName, BucketName, Date, RemoteHost, RequestUser, RequestId, Operation, ObjectName,
-				RequestURI, StatusCode, ErrorCode, ResponseLength, ObjectLength, TotalTime, RequestLength, Referer,
-				UserAgent, VersionId, HostId, Sign, SSLGroup, SignType, EndPoint, TLSVersion);
+				userName, bucketName, date, remoteHost, requestUser, requestId, operation, objectName,
+				requestURI, statusCode, errorCode, responseLength, objectLength, totalTime, requestLength, referer,
+				userAgent, versionId, hostId, sign, sslGroup, signType, endPoint, tlsVersion);
+	}
+
+	@Override
+	public List<Object> getInsertDBParameters() {
+		var param = new ArrayList<Object>();
+		param.add(userName);
+		param.add(bucketName);
+		param.add(date);
+		param.add(remoteHost);
+		param.add(requestUser);
+		param.add(requestId);
+		param.add(operation);
+		param.add(objectName);
+		param.add(requestURI);
+		param.add(statusCode);
+		param.add(errorCode);
+		param.add(responseLength);
+		param.add(objectLength);
+		param.add(totalTime);
+		param.add(requestLength);
+		param.add(referer);
+		param.add(userAgent);
+		param.add(versionId);
+		param.add(hostId);
+		param.add(sign);
+		param.add(sslGroup);
+		param.add(signType);
+		param.add(endPoint);
+		param.add(tlsVersion);
+
+		return param;
 	}
 
 	@Override
@@ -123,7 +191,7 @@ public class S3LogData {
 		try {
 			return mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			return "";
+			return null;
 		}
 	}
 }

@@ -1,19 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<RootNamespace>PortalModels</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="PortalModels.S3Logging.cs" />
+	  <Compile Remove="PortalModels.UsageAsset.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="EntityFramework" Version="6.4.4" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-		<PackageReference Include="MTLib.Core" Version="5.0.1" />
-		<PackageReference Include="MySqlConnector" Version="2.1.1" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.14" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+		<PackageReference Include="MTLib.Core" Version="6.0.8" />
+		<PackageReference Include="MySqlConnector" Version="2.3.1" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -139,10 +144,6 @@
 		<Compile Update="PortalModels.RoleClaim.cs">
 			<AutoGen>True</AutoGen>
 			<DependentUpon>PortalModels.efml</DependentUpon>
-		</Compile>
-		<Compile Update="PortalModels.S3Logging.cs">
-		  <AutoGen>True</AutoGen>
-		  <DependentUpon>PortalModels.efml</DependentUpon>
 		</Compile>
 		<Compile Update="PortalModels.Server.cs">
 			<AutoGen>True</AutoGen>

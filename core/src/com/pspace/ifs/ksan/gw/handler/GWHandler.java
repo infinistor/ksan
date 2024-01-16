@@ -38,6 +38,7 @@ import com.pspace.ifs.ksan.gw.sign.S3Signing;
 import com.pspace.ifs.ksan.gw.utils.AsyncHandler;
 import com.pspace.ifs.ksan.gw.utils.GWConfig;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWLogging;
 import com.pspace.ifs.ksan.gw.utils.GWUtils;
 import com.pspace.ifs.ksan.gw.utils.S3UserManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -233,7 +234,8 @@ public class GWHandler {
 		s3Parameter.setStatusCode(response.getStatus());
 		
 		if (GWConfig.getInstance().isLogging()) {
-			AsyncHandler.s3logging(s3Parameter);
+			// AsyncHandler.s3logging(s3Parameter);
+			GWLogging.getInstance().sendLog(s3Parameter);
 		}
     }
 

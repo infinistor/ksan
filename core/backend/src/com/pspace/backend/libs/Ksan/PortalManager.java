@@ -30,16 +30,16 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.Config.LifecycleManagerConfig;
-import com.pspace.backend.libs.Config.LogManagerConfig;
-import com.pspace.backend.libs.Config.ReplicationManagerConfig;
-import com.pspace.backend.libs.Config.objManagerConfig;
-import com.pspace.backend.libs.Data.Constants;
 import com.pspace.backend.libs.Ksan.Data.ResponseConfig;
 import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
 import com.pspace.backend.libs.Ksan.Data.ResponseRegion;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.libs.config.LifecycleManagerConfig;
+import com.pspace.backend.libs.config.LogManagerConfig;
+import com.pspace.backend.libs.config.ObjManagerConfigBuilder;
+import com.pspace.backend.libs.config.ReplicationManagerConfig;
+import com.pspace.backend.libs.data.Constants;
 import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class PortalManager {
@@ -117,7 +117,7 @@ public class PortalManager {
 					return null;
 				}
 
-				var objManager = Mapper.readValue(Result.Data.Config, objManagerConfig.class);
+				var objManager = Mapper.readValue(Result.Data.Config, ObjManagerConfigBuilder.class);
 				return objManager.getObjManagerConfig();
 			}
 
@@ -299,7 +299,7 @@ public class PortalManager {
 	}
 
 	private String getURL() {
-		return String.format("https://%s:%s", Config.PortalHost, Config.PortalPort);
+		return String.format("https://%s:%s", Config.portalHost, Config.portalPort);
 	}
 
 	// private String getBackendConfigURL() {
@@ -336,7 +336,7 @@ public class PortalManager {
 
 	private HttpGet getRequest(String URL) {
 		var Request = new HttpGet(URL);
-		Request.addHeader("Authorization", Config.APIKey);
+		Request.addHeader("Authorization", Config.apiKey);
 		return Request;
 	}
 

@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.crypto.Mac;
@@ -380,6 +381,15 @@ public class S3Signing {
 				if (s3Parameter.getRequest().getMethod().equals(GWConstants.METHOD_PUT) && path.length > 2) {
 					skip = 1;
 				}
+
+				List<String> subresources = Collections.list(s3Parameter.getRequest().getParameterNames());
+				Collections.sort(subresources);
+				// for (String subresource : subresources) {
+				// 	if ("tag-index".contains(subresource)) {
+				// 		skip = 1;
+				// 		break;
+				// 	}
+				// }
 
 				if(skip == 0) {
 					try {

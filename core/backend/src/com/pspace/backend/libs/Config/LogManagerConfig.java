@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Config;
+package com.pspace.backend.libs.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,9 +37,6 @@ public class LogManagerConfig {
 	@JsonProperty("db_pool_size")
 	public int dbPoolSize;
 
-	@JsonProperty("db_expires")
-	public int dbExpires;
-
 	@JsonProperty("check_interval")
 	public int checkInterval;
 
@@ -64,15 +61,18 @@ public class LogManagerConfig {
 
 	public DBConfig getDBConfig() {
 		var config = new DBConfig();
-		config.Type = dbType;
-		config.Host = dbHost;
-		config.Port = dbPort;
-		config.DatabaseName = dbName;
-		config.User = dbUser;
-		config.Password = dbPassword;
-		config.PoolSize = dbPoolSize;
-		config.Expires = dbExpires;
+		config.type = dbType;
+		config.host = dbHost;
+		config.port = dbPort;
+		config.databaseName = dbName;
+		config.user = dbUser;
+		config.password = dbPassword;
+		config.poolSize = dbPoolSize;
 
 		return config;
+	}
+
+	public MeteringConfig getMeterConfig() {
+		return new MeteringConfig(assertHour, meterMinute);
 	}
 }

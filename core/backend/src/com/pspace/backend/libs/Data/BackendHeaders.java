@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Data;
+package com.pspace.backend.libs.data;
 
 public class BackendHeaders {
 	public static final String S3_NOT_ACTIVATED = "This S3 is not active.";
@@ -17,7 +17,7 @@ public class BackendHeaders {
 	public static final String HEADER_BACKEND = "x-ifs-admin";
 	
 	public static final String HEADER_REPLICATION = "x-ifs-replication";
-	public static final String HEADER_VERSIONID = "x-ifs-version-id";
+	public static final String HEADER_VERSION_ID = "x-ifs-version-id";
 
 	public static final String HEADER_LOGGING = "x-ifs-logging";
 	public static final String HEADER_LIFECYCLE = "x-ifs-lifecycle";

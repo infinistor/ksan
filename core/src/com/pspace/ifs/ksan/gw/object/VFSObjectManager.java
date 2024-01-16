@@ -157,12 +157,16 @@ public class VFSObjectManager implements IObjectManager {
         // check primary local
         String localPath = null;
         if (isAvailablePrimary && (localPath = DiskManager.getInstance().getLocalPath(meta.getPrimaryDisk().getId())) != null) {
-            File file = new File(KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId()));
+            String path = KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId());
+            logger.debug("localPath : *{}*", path);
+            File file = new File(path);
             actualSize = getObjectLocal(param, file, sourceRange, key);
         } 
         // check : replica local
         else if (isAvailableReplica && (localPath = DiskManager.getInstance().getLocalPath(replicaDISK.getId())) != null) {
-            File file = new File(KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId()));
+            String path = KsanUtils.makeObjPathForOpen(localPath, meta.getObjId(), meta.getVersionId());
+            logger.debug("localPath : *{}*", path);
+            File file = new File(path);
             actualSize = getObjectLocal(param, file, sourceRange, key);
         } else if (isAvailablePrimary) {
             actualSize = getObjectOSD(param, meta, meta.getPrimaryDisk(), sourceRange, key);
@@ -233,26 +237,23 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
                     String objPath = null;
                     String tempPath = null;
-                    String trashPath = null;
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
+                        tempPath = KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
-                        tempPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
-                        trashPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         isCachePrimary = true;
                     } else {
-                        objPath = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                         tempPath = KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        objPath = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
                     }
                     // check unmount disk path
-                    if (objPath == null || tempPath == null || trashPath == null) {
+                    if (objPath == null || tempPath == null) {
                         throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
                     }
                     filePrimary = new File(objPath);
                     fileTempPrimary = new File(tempPath);
-                    fileTrashPrimary = new File(trashPath);
                     fosPrimary = new FileOutputStream(fileTempPrimary, false);
+                    // fosPrimary = new FileOutputStream(filePrimary, false);
                 } else {
                     try {
                         // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
@@ -283,26 +284,23 @@ public class VFSObjectManager implements IObjectManager {
                 if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
                     String objPath = null;
                     String tempPath = null;
-                    String trashPath = null;
                     // check Cache
                     if (GWConfig.getInstance().isCacheDiskpath()) {
-                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         tempPath = KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         isCacheReplica = true;
                     } else {
-                        objPath = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                         tempPath = KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
-                        trashPath = KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        objPath = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
                     }
                     // check unmount disk path
-                    if (objPath == null || tempPath == null || trashPath == null) {
+                    if (objPath == null || tempPath == null) {
                         throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
                     }
                     fileReplica = new File(objPath);
                     fileTempReplica = new File(tempPath);
-                    fileTrashReplica = new File(trashPath);
                     fosReplica = new FileOutputStream(fileTempReplica, false);
+                    // fosReplica = new FileOutputStream(fileReplica, false);
                 } else {
                     try {
                         // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
@@ -324,7 +322,6 @@ public class VFSObjectManager implements IObjectManager {
                         PrintStack.logging(logger, e);
                         isAvailableReplica = false;
                     }
-                    
                 }
             }
 
@@ -412,24 +409,41 @@ public class VFSObjectManager implements IObjectManager {
                         osdClientPrimary.putFlush();
                     } else {
                         if (!Strings.isNullOrEmpty(key)) {
-                            ctrPrimary.flush();
+                            // ctrPrimary.flush();
                             ctrPrimary.close();
                         } 
                         if (fosPrimary != null) {
-                            fosPrimary.flush();
+                            // fosPrimary.flush();
                             fosPrimary.close();
                         }
 
                         if (filePrimary.exists()) {
                             File tmpFile = new File(filePrimary.getAbsolutePath());
+                            String trashPath;
+                            if (isCachePrimary) {
+                                trashPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            } else {
+                                trashPath = KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            }
+                            fileTrashPrimary = new File(trashPath);
                             retryRenameTo(tmpFile, fileTrashPrimary);
                         }
-                        if (meta.isReplicaExist()) {
-                            KsanUtils.setAttributeFileReplication(fileTempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
+                        
+                        if (fileTempPrimary != null && fileTempPrimary.exists()) {
+                            if (meta.isReplicaExist()) {
+                                KsanUtils.setAttributeFileReplication(fileTempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
+                            }
+                            retryRenameTo(fileTempPrimary, filePrimary);
+                        } else {
+                            logger.error("file temp primary is null : {}", filePrimary.getAbsolutePath());
                         }
-                        retryRenameTo(fileTempPrimary, filePrimary);
+
                         if (isCachePrimary) {
                             String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -444,22 +458,44 @@ public class VFSObjectManager implements IObjectManager {
                         osdClientReplica.putFlush();
                     } else {
                         if (!Strings.isNullOrEmpty(key)) {
-                            ctrReplica.flush();
+                            // ctrReplica.flush();
                             ctrReplica.close();
                         } 
                         if (fosReplica != null) {
-                            fosReplica.flush();
+                            // fosReplica.flush();
                             fosReplica.close();
                         }
 
                         if (fileReplica.exists()) {
                             File tmpFile = new File(fileReplica.getAbsolutePath());
+                            String trashPath;
+                            if (isCacheReplica) {
+                                trashPath = KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            } else {
+                                trashPath = KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            }
+                            fileTrashReplica = new File(trashPath);
                             retryRenameTo(tmpFile, fileTrashReplica);
                         }
-                        KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
-                        retryRenameTo(fileTempReplica, fileReplica);
+
+                        if (fileTempReplica != null && fileTempReplica.exists()) {
+                            KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+                            retryRenameTo(fileTempReplica, fileReplica);
+                        } else {
+                            logger.error("file temp replica is null : {}", fileTempReplica.getAbsolutePath());
+                        }
+                        // if (fileReplica != null && fileReplica.exists()) {
+                        //     KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+                        // } else {
+                        //     logger.error("file replica is deleted : {}", fileTempReplica.getAbsolutePath());
+                        // }
+                        
                         if (isCacheReplica) {
                             String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -861,6 +897,10 @@ public class VFSObjectManager implements IObjectManager {
                         retryRenameTo(fileTempPrimary, filePrimary);
                         if (isCachePrimary) {
                             String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -891,14 +931,18 @@ public class VFSObjectManager implements IObjectManager {
                             fosReplica.close();
                         }
 
-                        if (fileReplica.exists()) {
-                            File tmpFile = new File(fileReplica.getAbsolutePath());
-                            retryRenameTo(tmpFile, fileTrashReplica);
-                        }
+                        // if (fileReplica.exists()) {
+                        //     File tmpFile = new File(fileReplica.getAbsolutePath());
+                        //     retryRenameTo(tmpFile, fileTrashReplica);
+                        // }
                         KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         retryRenameTo(fileTempReplica, fileReplica);
                         if (isCacheReplica) {
                             String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -1005,6 +1049,7 @@ public class VFSObjectManager implements IObjectManager {
                     client.delete(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
                     // OSDClientManager.getInstance().returnOSDClient(client);
                     // client = null;
+                    client.close();
                 } 
                 
                 if (meta.isReplicaExist()) {
@@ -1016,6 +1061,7 @@ public class VFSObjectManager implements IObjectManager {
                         client.delete(meta.getReplicaDisk().getPath(), meta.getObjId(), meta.getVersionId());
                         // OSDClientManager.getInstance().returnOSDClient(client);
                         // client = null;
+                        client.close();
                     }
                 }
                 
@@ -1028,20 +1074,21 @@ public class VFSObjectManager implements IObjectManager {
                     client.delete(meta.getPrimaryDisk().getPath(), meta.getObjId(), meta.getVersionId());
                     // OSDClientManager.getInstance().returnOSDClient(client);
                     // client = null;
+                    client.close();
                 }
             }
         } catch (Exception e) {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
         } finally {
-            if (client != null) {
-                try {
-                    // OSDClientManager.getInstance().returnOSDClient(client);
-                } catch (Exception e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                }
-            }
+            // if (client != null) {
+            //     try {
+            //         // OSDClientManager.getInstance().returnOSDClient(client);
+            //     } catch (Exception e) {
+            //         PrintStack.logging(logger, e);
+            //         throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //     }
+            // }
         }
         logger.info(GWConstants.LOG_S3OBJECT_OPERATION_DELETE, meta.getBucket(), meta.getPath(), meta.getVersionId());
         return true;
@@ -1051,8 +1098,8 @@ public class VFSObjectManager implements IObjectManager {
         File file = null;
         File trashFile = null;
         if (GWConfig.getInstance().isCacheDiskpath()) {
-            file = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeObjPathForOpen(path, objId, versionId)));
-            trashFile = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makeTrashPath(path, objId, versionId)));
+            file = new File(KsanUtils.makeObjPathForOpen(GWConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
+            trashFile = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + path, objId, versionId));
         } else {
             file = new File(KsanUtils.makeObjPathForOpen(path, objId, versionId));
             trashFile = new File(KsanUtils.makeTrashPath(path, objId, versionId));
@@ -1227,6 +1274,10 @@ public class VFSObjectManager implements IObjectManager {
                         
                         if (isCachePrimary) {
                             String path = KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -1246,6 +1297,10 @@ public class VFSObjectManager implements IObjectManager {
                         KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         if (isCacheReplica) {
                             String path = KsanUtils.makePartPath(replicaDISK.getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -1728,6 +1783,10 @@ public class VFSObjectManager implements IObjectManager {
                         
                         if (isCachePrimary) {
                             String path = KsanUtils.makePartPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
@@ -1749,6 +1808,10 @@ public class VFSObjectManager implements IObjectManager {
                         KsanUtils.setAttributeFileReplication(fileReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
                         if (isCacheReplica) {
                             String path = KsanUtils.makePartPath(replicaDISK.getPath(), meta.getObjId(), param.getUploadId(), param.getPartNumber());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
                             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
@@ -1782,33 +1845,39 @@ public class VFSObjectManager implements IObjectManager {
             throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
         }
 
+        logger.debug("isAvailablePrimary : {}, isAvailableReplica : {}", isAvailablePrimary, isAvailableReplica);
+        logger.debug("objId : {}, versionId : {}, size : {}", meta.getObjId(), meta.getVersionId(), meta.getSize());
+
+        // check encryption
+        String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
+
+        long length = meta.getSize();
         S3Object s3Object = new S3Object();
-        // save file to local and rename, osd put
-        // osd에 put하기 위해서는 length를 알아야 함. 
 
-        // String localPath = DiskManager.getInstance().getLocalPath();
-        String localPath = DiskManager.getInstance().getLocalPath(meta.getPrimaryDisk().getId());
-        if (localPath == null) {
-            logger.error("local path is null");
-            return null;
-        }
-
-        OSDClient clientPartPrimary = null;
-        OSDClient clientPartReplica = null;
-        boolean isBorrowOsdPartPrimary = false;
-        boolean isBorrowOsdPartReplica = false;
+        File filePrimary = null;
+        File fileReplica = null;
+        File fileTempPrimary = null;
+        File fileTempReplica = null;
+        File fileTrashPrimary = null;
+        File fileTrashReplica = null;
+        FileOutputStream fosPrimary = null;
+        FileOutputStream fosReplica = null;
         OSDClient osdClientPrimary = null;
         OSDClient osdClientReplica = null;
         boolean isBorrowOsdPrimary = false;
         boolean isBorrowOsdReplica = false;
+        
+        OSDClient clientPart = null;
+        
+        boolean isBorrowOsdPartPrimary = false;
+        boolean isBorrowOsdPartReplica = false;
         boolean isCachePrimary = false;
         boolean isCacheReplica = false;
         File partPrimary = null;
         File partReplica = null;
         FileInputStream fisPrimary = null;
         FileInputStream fisReplica = null;
-        InputStream isPartPrimary = null;
-        InputStream isPartReplica = null;
+        InputStream isPartIS = null;
         BufferedWriter bwPrimary = null;
         BufferedWriter bwReplica = null;
         FileOutputStream tmpOutPrimary = null;
@@ -1816,8 +1885,8 @@ public class VFSObjectManager implements IObjectManager {
         long totalLength = 0L;
         String primaryDiskId = null;
         String replicaDiskId = null;
-        String primaryPartPath = null;
-        String replicaPartPath = null;
+        int partNumber = 0;
+        String partPath = null;
         byte[] buffer = new byte[GWConstants.MAXBUFSIZE];
 
         // check multipart upload method
@@ -1828,303 +1897,414 @@ public class VFSObjectManager implements IObjectManager {
         }
 
         try {
-            File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
-            File tempReplica = null;
-            logger.info("temp primary : {}", tempPrimary.getAbsolutePath());
-            tmpOutPrimary = new FileOutputStream(tempPrimary, false);
-            bwPrimary = new BufferedWriter(new FileWriter(tempPrimary, StandardCharsets.UTF_8));
-            
-            if (meta.isReplicaExist()) {
-                tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
-                logger.info("temp replica : {}", tempReplica.getAbsolutePath());
-                tmpOutReplica = new FileOutputStream(tempReplica, false);
-                bwReplica = new BufferedWriter(new FileWriter(tempReplica, StandardCharsets.UTF_8));
+            // check primary
+            if (isAvailablePrimary) {
+                if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+                    String objPath = null;
+                    String tempPath = null;
+                    String trashPath = null;
+                    // check Cache
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        isCachePrimary = true;
+                    } else {
+                        objPath = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                    }
+                    // check unmount disk path
+                    if (objPath == null || tempPath == null || trashPath == null) {
+                        throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
+                    }
+                    filePrimary = new File(objPath);
+                    fileTempPrimary = new File(tempPath);
+                    fileTrashPrimary = new File(trashPath);
+                    fosPrimary = new FileOutputStream(fileTempPrimary, false);
+                } else {
+                    try {
+                        // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
+                        osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // if (osdClientPrimary == null) {
+                        //     osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // } else {
+                        //     isBorrowOsdPrimary = true;
+                        // }
+                        osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
+                            meta.getObjId(),
+                            param.getVersionId(),
+                            length,
+                            Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
+                            replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+                            key,
+                            "");
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                    }
+                }
             }
+
+            // check replica
+            if (isAvailableReplica) {
+                logger.debug("replica osd ip : {}", replicaDISK.getOsdIp());
+                if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
+                    String objPath = null;
+                    String tempPath = null;
+                    String trashPath = null;
+                    // check Cache
+                    if (GWConfig.getInstance().isCacheDiskpath()) {
+                        objPath = KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        isCacheReplica = true;
+                    } else {
+                        objPath = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        tempPath = KsanUtils.makeTempPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        trashPath = KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                    }
+                    // check unmount disk path
+                    if (objPath == null || tempPath == null || trashPath == null) {
+                        throw new GWException(GWErrorCode.INTERNAL_SERVER_DISK_ERROR, param);
+                    }
+                    fileReplica = new File(objPath);
+                    fileTempReplica = new File(tempPath);
+                    fileTrashReplica = new File(trashPath);
+                    fosReplica = new FileOutputStream(fileTempReplica, false);
+                } else {
+                    try {
+                        // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
+                        osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // if (osdClientReplica == null) {
+                        //     osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+                        // } else {
+                        //     isBorrowOsdReplica = true;
+                        // }
+                        osdClientReplica.putInit(replicaDISK.getPath(),
+                            meta.getObjId(),
+                            param.getVersionId(),
+                            length,
+                            Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA,
+                            Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+                            key,
+                            "");
+                    } catch (Exception e) {
+                        PrintStack.logging(logger, e);
+                        isAvailableReplica = false;
+                    }
+                    
+                }
+            }
+
+            // File tempPrimary = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".primary");
+            // File tempReplica = null;
+            // logger.info("temp primary : {}", tempPrimary.getAbsolutePath());
+            // tmpOutPrimary = new FileOutputStream(tempPrimary, false);
+            // bwPrimary = new BufferedWriter(new FileWriter(tempPrimary, StandardCharsets.UTF_8));
             
-            // create temp file
-            StringBuilder sbPrimary = new StringBuilder();
-            StringBuilder sbReplica = new StringBuilder();
+            // if (meta.isReplicaExist()) {
+            //     tempReplica = new File(KsanUtils.makeTempPath(localPath, meta.getObjId(), param.getVersionId()) + ".replica");
+            //     logger.info("temp replica : {}", tempReplica.getAbsolutePath());
+            //     tmpOutReplica = new FileOutputStream(tempReplica, false);
+            //     bwReplica = new BufferedWriter(new FileWriter(tempReplica, StandardCharsets.UTF_8));
+            // }
+            
+            // // create temp file
+            // StringBuilder sbPrimary = new StringBuilder();
+            // StringBuilder sbReplica = new StringBuilder();
 
             for (Iterator<Map.Entry<Integer, Part>> it = listPart.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Integer, Part> entry = it.next();
                 totalLength += entry.getValue().getPartSize();
                 primaryDiskId = entry.getValue().getPrimaryDiskId();
                 replicaDiskId = entry.getValue().getReplicaDiskId();
-                if (primaryDiskId != null) {
-                    primaryPartPath = DiskManager.getInstance().getPath(primaryDiskId);
+                partNumber = entry.getValue().getPartNumber();
+                boolean isAvailablePartPrimary = primaryDiskId != null && isAvailableDiskForRead(primaryDiskId);
+                boolean isAvailablePartReplica = replicaDiskId != null && isAvailableDiskForRead(replicaDiskId);
+                InputStream fis = null;
+                int readLength = 0;
+                long totalReadLength = 0;
+
+                if (isAvailablePartPrimary && (partPath = DiskManager.getInstance().getLocalPath(primaryDiskId)) != null) {
+                    partPath = KsanUtils.makePartPath(partPath, meta.getObjId(), param.getUploadId(), String.valueOf(partNumber));
+                    logger.debug("partPath : {}", partPath);
+                    fis = new FileInputStream(partPath);
+                } else if (isAvailablePartReplica && (partPath = DiskManager.getInstance().getLocalPath(replicaDiskId)) != null) {
+                    partPath = KsanUtils.makePartPath(partPath, meta.getObjId(), param.getUploadId(), String.valueOf(partNumber));
+                    logger.debug("partPath : {}", partPath);
+                    fis = new FileInputStream(partPath);
+                } else if (isAvailablePartPrimary) {
+                    clientPart = new OSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId), (int)GWConfig.getInstance().getOsdPort());
+                    String path = KsanUtils.makePartPath(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(partNumber));
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    clientPart.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
+                    fis = clientPart.getInputStream();
+                    // fis = new ByteArrayInputStream(baos.toByteArray());
+                    logger.debug("partPath : {}:{}", DiskManager.getInstance().getOSDIP(primaryDiskId), path);
+                } else if (isAvailablePartReplica) {
+                    clientPart = new OSDClient(DiskManager.getInstance().getOSDIP(replicaDiskId), (int)GWConfig.getInstance().getOsdPort());
+                    String path = KsanUtils.makePartPath(DiskManager.getInstance().getPath(replicaDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(partNumber));
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    clientPart.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
+                    fis = clientPart.getInputStream();
+                    // fis = new ByteArrayInputStream(baos.toByteArray());
+                    logger.debug("partPath : {}:{}", DiskManager.getInstance().getOSDIP(replicaDiskId), path);
                 }
-                if (replicaDiskId != null) {
-                    replicaPartPath = DiskManager.getInstance().getPath(replicaDiskId);
-                }
-                logger.debug("primaryDiskId : {} - {}, replicaDiskId : {} - {}", primaryDiskId, DiskManager.getInstance().getOSDIP(primaryDiskId), replicaDiskId, DiskManager.getInstance().getOSDIP(replicaDiskId));
-                
+
                 // merge || link and part copy file
                 if (!isLink || (isLink && entry.getValue().getPartETag().equals(GWConstants.PARTCOPY_MD5))) {
-                    boolean isAvailablePartPrimary = primaryDiskId != null && isAvailableDiskForRead(primaryDiskId);
-                    boolean isAvailablePartReplica = replicaDiskId != null && isAvailableDiskForRead(replicaDiskId);
-                    
-                    if (isAvailablePartPrimary) {
-                        if ((localPath = DiskManager.getInstance().getLocalPath(primaryDiskId)) != null) {
-                            partPrimary = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
-                            logger.info("part primary : {}", partPrimary.getAbsolutePath());
-                            fisPrimary = new FileInputStream(partPrimary);
-                            isPartPrimary = fisPrimary;
-                        } else {
-                            // try {
-                            //     // clientPartPrimary = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId));
-                            // } catch (Exception e) {
-                            //     clientPartPrimary = null;
-                            // }
-                            clientPartPrimary = new OSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            // if (clientPartPrimary == null) {
-                            //     clientPartPrimary = new OSDClient(DiskManager.getInstance().getOSDIP(primaryDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            // } else {
-                            //     isBorrowOsdPartPrimary = true;
-                            // }
-                            // client.getPartInit(objPath, objSize, partRange, os);
-                            String path = KsanUtils.makePartPath(DiskManager.getInstance().getPath(primaryDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            clientPartPrimary.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
-                            isPartPrimary = new ByteArrayInputStream(baos.toByteArray());
-                        }
-
-                        if (!isLink) { // merge
-                            try {
-                                int readLength = 0;
-                                while ((readLength = isPartPrimary.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
-                                    // totalLength += readLength;
-                                    tmpOutPrimary.write(buffer, 0, readLength);
-                                    // md5er.update(buffer, 0, readLength);
-                                }
-                                tmpOutPrimary.flush();
-                            } catch (IOException e) {
-                                PrintStack.logging(logger, e);
-                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                    while ((readLength = fis.read(buffer, 0, GWConstants.BUFSIZE)) != -1) {
+                        totalReadLength += readLength;
+                        if (isAvailablePrimary) {
+                            if (filePrimary != null) {
+                                fosPrimary.write(buffer, 0, readLength);
+                            } else {
+                                osdClientPrimary.put(buffer, 0, readLength);
                             }
-                        } else {
-                            try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartPrimary, StandardCharsets.UTF_8))) {
-                                String line = null;
-                                while ((line = br.readLine()) != null) {
-                                    line += System.lineSeparator();
-                                    if (bwPrimary != null) {
-                                        bwPrimary.write(line);
-                                    }
-                                }
-                            } catch (IOException e) {
-                                PrintStack.logging(logger, e);
-                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
+                        }
+                        if (isAvailableReplica) {
+                            if (fileReplica != null) {
+                                fosReplica.write(buffer, 0, readLength);
+                            } else {
+                                osdClientReplica.put(buffer, 0, readLength);
                             }
                         }
                     }
-                    if (isAvailablePartReplica) {
-                        if ((localPath = DiskManager.getInstance().getLocalPath(replicaDiskId)) != null) {
-                            partReplica = new File(KsanUtils.makePartPath(localPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
-                            logger.info("part replica : {}", partReplica.getAbsolutePath());
-                            fisReplica = new FileInputStream(partReplica);
-                            isPartReplica = fisReplica;
-                        } else {
-                            // try {
-                            //     // clientPartReplica = OSDClientManager.getInstance().getOSDClient(DiskManager.getInstance().getOSDIP(replicaDiskId));
-                            // } catch (Exception e) {
-                            //     clientPartReplica = null;
-                            // }
-                            clientPartReplica = new OSDClient(DiskManager.getInstance().getOSDIP(replicaDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            // if (clientPartReplica == null) {
-                            //     clientPartReplica = new OSDClient(DiskManager.getInstance().getOSDIP(replicaDiskId), (int)GWConfig.getInstance().getOsdPort());
-                            // } else {
-                            //     isBorrowOsdPartReplica = true;
-                            // }
-                            String path = KsanUtils.makePartPath(DiskManager.getInstance().getPath(replicaDiskId), meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber()));
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            clientPartReplica.getPartInit(path, entry.getValue().getPartSize(), GWConstants.EMPTY_STRING, baos);
-                            isPartReplica = new ByteArrayInputStream(baos.toByteArray());
-                        }
-                        if (!isLink) {
-                            try {
-                                int readLength = 0;
-                                while ((readLength = isPartReplica.read(buffer, 0, GWConstants.MAXBUFSIZE)) != -1) {
-                                    // totalLength += readLength;
-                                    tmpOutReplica.write(buffer, 0, readLength);
-                                    // md5er.update(buffer, 0, readLength);
-                                }
-                                tmpOutReplica.flush();
-                            } catch (IOException e) {
-                                PrintStack.logging(logger, e);
-                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                            }
-                        } else {
-                            try (BufferedReader br = new BufferedReader(new InputStreamReader(isPartReplica, StandardCharsets.UTF_8))) {
-                                String line = null;
-                                while ((line = br.readLine()) != null) {
-                                    line += System.lineSeparator();
-                                    if (bwReplica != null) {
-                                        bwReplica.write(line);
-                                    }
-                                }
-                            } catch (IOException e) {
-                                PrintStack.logging(logger, e);
-                                throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                            }
-                        }
+                    if (clientPart != null) {
+                        clientPart.close();
                     }
+                    fis.close();
                 } else {
-                    if (primaryPartPath != null) {
-                        sbPrimary.setLength(0);
-                        sbPrimary.append(primaryDiskId);
-                        sbPrimary.append(GWConstants.COLON);
-                        sbPrimary.append(KsanUtils.makePartPath(primaryPartPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
-                        sbPrimary.append(GWConstants.COLON);
-                        sbPrimary.append(entry.getValue().getPartSize());
-                        sbPrimary.append(GWConstants.COLON);
-                        sbPrimary.append(System.lineSeparator());
-                        if (bwPrimary != null) {
-                            bwPrimary.write(sbPrimary.toString());
-                        }
-                    }
-                    if (replicaPartPath != null) {
-                        sbReplica.setLength(0);
-                        sbReplica.append(replicaDiskId);
-                        sbReplica.append(GWConstants.COLON);
-                        sbReplica.append(KsanUtils.makePartPath(replicaPartPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
-                        sbReplica.append(GWConstants.COLON);
-                        sbReplica.append(entry.getValue().getPartSize());
-                        sbReplica.append(GWConstants.COLON);
-                        sbReplica.append(System.lineSeparator());
-                        if (bwReplica != null) {
-                            bwReplica.write(sbReplica.toString());
-                        }
-                    }
+                    // if (primaryPartPath != null) {
+                    //     sbPrimary.setLength(0);
+                    //     sbPrimary.append(primaryDiskId);
+                    //     sbPrimary.append(GWConstants.COLON);
+                    //     sbPrimary.append(KsanUtils.makePartPath(primaryPartPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                    //     sbPrimary.append(GWConstants.COLON);
+                    //     sbPrimary.append(entry.getValue().getPartSize());
+                    //     sbPrimary.append(GWConstants.COLON);
+                    //     sbPrimary.append(System.lineSeparator());
+                    //     if (bwPrimary != null) {
+                    //         bwPrimary.write(sbPrimary.toString());
+                    //     }
+                    // }
+                    // if (replicaPartPath != null) {
+                    //     sbReplica.setLength(0);
+                    //     sbReplica.append(replicaDiskId);
+                    //     sbReplica.append(GWConstants.COLON);
+                    //     sbReplica.append(KsanUtils.makePartPath(replicaPartPath, meta.getObjId(), param.getUploadId(), String.valueOf(entry.getValue().getPartNumber())));
+                    //     sbReplica.append(GWConstants.COLON);
+                    //     sbReplica.append(entry.getValue().getPartSize());
+                    //     sbReplica.append(GWConstants.COLON);
+                    //     sbReplica.append(System.lineSeparator());
+                    //     if (bwReplica != null) {
+                    //         bwReplica.write(sbReplica.toString());
+                    //     }
+                    // }
                 }
             }
-                
-            // rename or osd put
-            // String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
-            String key = GWConstants.EMPTY_STRING;
-            File filePrimary = null;
-            File fileReplica = null;
-            File fileTrashPrimary = null;
-            File fileTrashReplica = null;
-
+            
             if (isAvailablePrimary) {
-                if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
-                    // check Cache
-                    if (GWConfig.getInstance().isCacheDiskpath()) {
-                        filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
-                        isCachePrimary = true;
+                try {
+                    if (filePrimary != null) {
+                        fosPrimary.flush();
+                        fosPrimary.close();
                     } else {
-                        filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
-                        fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+                        osdClientPrimary.putFlush();
+                        osdClientPrimary.close();
                     }
-                    // rename
-                    if (filePrimary.exists()) {
+                    if (filePrimary != null && filePrimary.exists()) {
                         File tmpFile = new File(filePrimary.getAbsolutePath());
                         retryRenameTo(tmpFile, fileTrashPrimary);
                     }
-                    if (meta.isReplicaExist()) {
-                        KsanUtils.setAttributeFileReplication(tempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
-                    }
-                    retryRenameTo(tempPrimary, filePrimary);
-                    if (isCachePrimary) {
-                        String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
-                        Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
-                    }
-                } else {
-                    // try {
-                    //     // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
-                    // } catch (Exception e) {
-                    //     osdClientPrimary = null;
-                    // }
-                    osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // if (osdClientPrimary == null) {
-                    //     osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // } else {
-                    //     isBorrowOsdPrimary = true;
-                    // }
-                    logger.debug("temp file length : {}", tempPrimary.length());
-                    osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
-                        meta.getObjId(),
-                        param.getVersionId(),
-                        tempPrimary.length(),
-                        Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
-                        replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
-                        key,
-                        "");
-                    try (FileInputStream fis = new FileInputStream(tempPrimary)) {
-                        int readLength = 0;
-                        while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
-                            osdClientPrimary.put(buffer, 0, readLength);
+                    if (fileTempPrimary != null) {
+                        if (meta.isReplicaExist()) {
+                            KsanUtils.setAttributeFileReplication(fileTempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
                         }
-                    } catch (IOException e) {
-                        PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                    } finally {
-                        if (!tempPrimary.delete()) {
-                            logger.error("temp file delete fail : {}", tempPrimary.getAbsolutePath());
+                        retryRenameTo(fileTempPrimary, filePrimary);
+                        if (isCachePrimary) {
+                            String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
                         }
                     }
+                } catch (IOException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
                 }
             }
             if (isAvailableReplica) {
-                if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
-                    // check Cache
-                    if (GWConfig.getInstance().isCacheDiskpath()) {
-                        fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
-                        isCacheReplica = true;
+                try {
+                    if (fileReplica != null) {
+                        fosReplica.flush();
+                        fosReplica.close();
                     } else {
-                        fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
-                        fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+                        osdClientReplica.putFlush();
+                        osdClientReplica.close();
                     }
-                    // rename
-                    if (fileReplica.exists()) {
+                    if (fileReplica != null && fileReplica.exists()) {
                         File tmpFile = new File(fileReplica.getAbsolutePath());
                         retryRenameTo(tmpFile, fileTrashReplica);
                     }
-                    if (meta.isReplicaExist()) {
-                        KsanUtils.setAttributeFileReplication(tempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
-                    }
-                    retryRenameTo(tempReplica, fileReplica);
-                    if (isCacheReplica) {
-                        String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
-                        Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
-                    }
-                } else {
-                    // try {
-                    //     // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
-                    // } catch (Exception e) {
-                    //     osdClientReplica = null;
-                    // }
-                    osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // if (osdClientReplica == null) {
-                    //     osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
-                    // } else {
-                    //     isBorrowOsdReplica = true;
-                    // }
-                    logger.debug("temp file length : {}", tempReplica.length());
-                    osdClientReplica.putInit(replicaDISK.getPath(),
-                        meta.getObjId(),
-                        param.getVersionId(),
-                        tempReplica.length(),
-                        Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
-                        Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
-                        key,
-                        "");
-                    try (FileInputStream fis = new FileInputStream(tempReplica)) {
-                        int readLength = 0;
-                        while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
-                            osdClientReplica.put(buffer, 0, readLength);
-                        }
-                    } catch (IOException e) {
-                        PrintStack.logging(logger, e);
-                        throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                    } finally {
-                        if (!tempReplica.delete()) {
-                            logger.error("tempReplica delete fail : {}", tempReplica.getAbsolutePath());
+                    if (fileTempReplica != null && fileTempReplica.exists()) {
+                        KsanUtils.setAttributeFileReplication(fileTempReplica, Constants.FILE_ATTRIBUTE_REPLICATION_REPLICA, Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL);
+                        retryRenameTo(fileTempReplica, fileReplica);
+
+                        if (isCacheReplica) {
+                            String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                            File oldFile = new File(path);
+                            if (oldFile.exists()) {
+                                oldFile.delete();
+                            }
+                            Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
                         }
                     }
+                } catch (IOException e) {
+                    PrintStack.logging(logger, e);
+                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
                 }
             }
+
+            // rename or osd put
+            // String key = encryption.isEnabledEncryption() ? encryption.getEncryptionKey() : GWConstants.EMPTY_STRING;
+            // String key = GWConstants.EMPTY_STRING;
+            // File filePrimary = null;
+            // File fileReplica = null;
+            // File fileTrashPrimary = null;
+            // File fileTrashReplica = null;
+
+            // if (isAvailablePrimary) {
+            //     if (GWUtils.getLocalIP().equals(meta.getPrimaryDisk().getOsdIp())) {
+            //         // check Cache
+            //         if (GWConfig.getInstance().isCacheDiskpath()) {
+            //             filePrimary = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            //             fileTrashPrimary = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            //             isCachePrimary = true;
+            //         } else {
+            //             filePrimary = new File(KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            //             fileTrashPrimary = new File(KsanUtils.makeTrashPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId()));
+            //         }
+            //         // rename
+            //         if (filePrimary.exists()) {
+            //             File tmpFile = new File(filePrimary.getAbsolutePath());
+            //             retryRenameTo(tmpFile, fileTrashPrimary);
+            //         }
+            //         if (meta.isReplicaExist()) {
+            //             KsanUtils.setAttributeFileReplication(tempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
+            //         }
+            //         retryRenameTo(tempPrimary, filePrimary);
+            //         if (isCachePrimary) {
+            //             String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+            //             File oldFile = new File(path);
+            //             if (oldFile.exists()) {
+            //                 oldFile.delete();
+            //             }
+            //             Files.createSymbolicLink(Paths.get(path), Paths.get(filePrimary.getAbsolutePath()));
+            //         }
+            //     } else {
+            //         // try {
+            //         //     // osdClientPrimary = OSDClientManager.getInstance().getOSDClient(meta.getPrimaryDisk().getOsdIp());
+            //         // } catch (Exception e) {
+            //         //     osdClientPrimary = null;
+            //         // }
+            //         osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            //         // if (osdClientPrimary == null) {
+            //         //     osdClientPrimary = new OSDClient(meta.getPrimaryDisk().getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            //         // } else {
+            //         //     isBorrowOsdPrimary = true;
+            //         // }
+            //         logger.debug("temp file length : {}", tempPrimary.length());
+            //         osdClientPrimary.putInit(meta.getPrimaryDisk().getPath(),
+            //             meta.getObjId(),
+            //             param.getVersionId(),
+            //             tempPrimary.length(),
+            //             Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
+            //             replicaDISK != null? replicaDISK.getId() : Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+            //             key,
+            //             "");
+            //         try (FileInputStream fis = new FileInputStream(tempPrimary)) {
+            //             int readLength = 0;
+            //             while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
+            //                 osdClientPrimary.put(buffer, 0, readLength);
+            //             }
+            //         } catch (IOException e) {
+            //             PrintStack.logging(logger, e);
+            //             throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //         } finally {
+            //             if (!tempPrimary.delete()) {
+            //                 logger.error("temp file delete fail : {}", tempPrimary.getAbsolutePath());
+            //             }
+            //         }
+            //     }
+            // }
+            // if (isAvailableReplica) {
+            //     if (GWUtils.getLocalIP().equals(replicaDISK.getOsdIp())) {
+            //         // check Cache
+            //         if (GWConfig.getInstance().isCacheDiskpath()) {
+            //             fileReplica = new File(KsanUtils.makeObjPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+            //             fileTrashReplica = new File(KsanUtils.makeTrashPath(GWConfig.getInstance().getCacheDiskpath() + replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+            //             isCacheReplica = true;
+            //         } else {
+            //             fileReplica = new File(KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+            //             fileTrashReplica = new File(KsanUtils.makeTrashPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId()));
+            //         }
+            //         // rename
+            //         if (fileReplica.exists()) {
+            //             File tmpFile = new File(fileReplica.getAbsolutePath());
+            //             retryRenameTo(tmpFile, fileTrashReplica);
+            //         }
+            //         if (meta.isReplicaExist()) {
+            //             KsanUtils.setAttributeFileReplication(tempPrimary, Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY, replicaDISK.getId());
+            //         }
+            //         retryRenameTo(tempReplica, fileReplica);
+            //         if (isCacheReplica) {
+            //             String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+            //             File oldFile = new File(path);
+            //             if (oldFile.exists()) {
+            //                 oldFile.delete();
+            //             }
+            //             Files.createSymbolicLink(Paths.get(path), Paths.get(fileReplica.getAbsolutePath()));
+            //         }
+            //     } else {
+            //         // try {
+            //         //     // osdClientReplica = OSDClientManager.getInstance().getOSDClient(replicaDISK.getOsdIp());
+            //         // } catch (Exception e) {
+            //         //     osdClientReplica = null;
+            //         // }
+            //         osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            //         // if (osdClientReplica == null) {
+            //         //     osdClientReplica = new OSDClient(replicaDISK.getOsdIp(), (int)GWConfig.getInstance().getOsdPort());
+            //         // } else {
+            //         //     isBorrowOsdReplica = true;
+            //         // }
+            //         logger.debug("temp file length : {}", tempReplica.length());
+            //         osdClientReplica.putInit(replicaDISK.getPath(),
+            //             meta.getObjId(),
+            //             param.getVersionId(),
+            //             tempReplica.length(),
+            //             Constants.FILE_ATTRUBUTE_REPLICATION_PRIMARY,
+            //             Constants.FILE_ATTRIBUTE_REPLICA_DISK_ID_NULL,
+            //             key,
+            //             "");
+            //         try (FileInputStream fis = new FileInputStream(tempReplica)) {
+            //             int readLength = 0;
+            //             while ((readLength = fis.read(buffer, 0, GWConstants.MAXBUFSIZE))!= -1) {
+            //                 osdClientReplica.put(buffer, 0, readLength);
+            //             }
+            //         } catch (IOException e) {
+            //             PrintStack.logging(logger, e);
+            //             throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //         } finally {
+            //             if (!tempReplica.delete()) {
+            //                 logger.error("tempReplica delete fail : {}", tempReplica.getAbsolutePath());
+            //             }
+            //         }
+            //     }
+            // }
 
             s3Object.setLastModified(new Date());
             s3Object.setFileSize(totalLength);
@@ -2133,87 +2313,87 @@ public class VFSObjectManager implements IObjectManager {
             PrintStack.logging(logger, e);
             throw new GWException(GWErrorCode.SERVER_ERROR, param);
         } finally {
-            if (tmpOutPrimary != null) {
-                try {
-                    tmpOutPrimary.flush();
-                    tmpOutPrimary.close();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                }
-            }
-            if (tmpOutReplica != null) {
-                try {
-                    tmpOutReplica.flush();
-                    tmpOutReplica.close();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                }
-            }
-            if (bwPrimary != null) {
-                try {
-                    bwPrimary.flush();
-                    bwPrimary.close();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                }
-            }
-            if (bwReplica != null) {
-                try {
-                    bwReplica.flush();
-                    bwReplica.close();
-                } catch (IOException e) {
-                    PrintStack.logging(logger, e);
-                    throw new GWException(GWErrorCode.SERVER_ERROR, param);
-                }
-            }
+            // if (tmpOutPrimary != null) {
+            //     try {
+            //         tmpOutPrimary.flush();
+            //         tmpOutPrimary.close();
+            //     } catch (IOException e) {
+            //         PrintStack.logging(logger, e);
+            //         throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //     }
+            // }
+            // if (tmpOutReplica != null) {
+            //     try {
+            //         tmpOutReplica.flush();
+            //         tmpOutReplica.close();
+            //     } catch (IOException e) {
+            //         PrintStack.logging(logger, e);
+            //         throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //     }
+            // }
+            // if (bwPrimary != null) {
+            //     try {
+            //         bwPrimary.flush();
+            //         bwPrimary.close();
+            //     } catch (IOException e) {
+            //         PrintStack.logging(logger, e);
+            //         throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //     }
+            // }
+            // if (bwReplica != null) {
+            //     try {
+            //         bwReplica.flush();
+            //         bwReplica.close();
+            //     } catch (IOException e) {
+            //         PrintStack.logging(logger, e);
+            //         throw new GWException(GWErrorCode.SERVER_ERROR, param);
+            //     }
+            // }
 
-            if (isBorrowOsdPartPrimary) {
-                try {
-                    // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
-                } catch (Exception e) {
-                    logger.error("release osdClientPartPrimary error : {}", e.getMessage());
-                }
-            } else {
-                if (clientPartPrimary != null) {
-                    clientPartPrimary.close();
-                }
-            }
-            if (isBorrowOsdPartReplica) {
-                try {
-                    // OSDClientManager.getInstance().releaseOSDClient(clientPartReplica);
-                } catch (Exception e) {
-                    logger.error("release osdClientPartReplica error : {}", e.getMessage());
-                }
-            } else {
-                if (clientPartReplica != null) {
-                    clientPartReplica.close();
-                }
-            }
-            if (isBorrowOsdPrimary) {
-                try {
-                    // OSDClientManager.getInstance().releaseOSDClient(osdClientPrimary);
-                } catch (Exception e) {
-                    logger.error("release osdClientPrimary error : {}", e.getMessage());
-                }
-            } else {
-                if (osdClientPrimary != null) {
-                    osdClientPrimary.close();
-                }
-            }
-            if (isBorrowOsdReplica) {
-                try {
-                    // OSDClientManager.getInstance().releaseOSDClient(osdClientReplica);
-                } catch (Exception e) {
-                    logger.error("release osdClientReplica error : {}", e.getMessage());
-                }
-            } else {
-                if (osdClientReplica != null) {
-                    osdClientReplica.close();
-                }
-            }
+            // if (isBorrowOsdPartPrimary) {
+            //     try {
+            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartPrimary);
+            //     } catch (Exception e) {
+            //         logger.error("release osdClientPartPrimary error : {}", e.getMessage());
+            //     }
+            // } else {
+            //     if (clientPartPrimary != null) {
+            //         clientPartPrimary.close();
+            //     }
+            // }
+            // if (isBorrowOsdPartReplica) {
+            //     try {
+            //         // OSDClientManager.getInstance().releaseOSDClient(clientPartReplica);
+            //     } catch (Exception e) {
+            //         logger.error("release osdClientPartReplica error : {}", e.getMessage());
+            //     }
+            // } else {
+            //     if (clientPartReplica != null) {
+            //         clientPartReplica.close();
+            //     }
+            // }
+            // if (isBorrowOsdPrimary) {
+            //     try {
+            //         // OSDClientManager.getInstance().releaseOSDClient(osdClientPrimary);
+            //     } catch (Exception e) {
+            //         logger.error("release osdClientPrimary error : {}", e.getMessage());
+            //     }
+            // } else {
+            //     if (osdClientPrimary != null) {
+            //         osdClientPrimary.close();
+            //     }
+            // }
+            // if (isBorrowOsdReplica) {
+            //     try {
+            //         // OSDClientManager.getInstance().releaseOSDClient(osdClientReplica);
+            //     } catch (Exception e) {
+            //         logger.error("release osdClientReplica error : {}", e.getMessage());
+            //     }
+            // } else {
+            //     if (osdClientReplica != null) {
+            //         osdClientReplica.close();
+            //     }
+            // }
         }
 
         return s3Object;
@@ -2433,6 +2613,9 @@ public class VFSObjectManager implements IObjectManager {
         int readLength = 0;
         int readBytes;
 
+        logger.debug("getObjectLocal path exist : {}", file.exists());
+        logger.debug("getObjectLocal path : *{}*, size : {}", file.getAbsolutePath(), file.length());
+
         try (FileInputStream fis = new FileInputStream(file);
             OutputStream outputStream = param.getResponse().getOutputStream();) {
             
@@ -2541,6 +2724,7 @@ public class VFSObjectManager implements IObjectManager {
         long actualSize = 0L;
         OSDClient client = null;
         boolean isBorrowOsd = false;
+        logger.info("getObjectOSD client : {} - {}:{}:{}", disk.getOsdIp(), meta.getObjId(), meta.getVersionId(), meta.getSize());
         try {
             // try {
             //     // client = OSDClientManager.getInstance().getOSDClient(disk.getOsdIp());
@@ -3327,6 +3511,10 @@ public class VFSObjectManager implements IObjectManager {
                     
                     if (isCachePrimary) {
                         String path = KsanUtils.makeObjPath(meta.getPrimaryDisk().getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }
@@ -3342,6 +3530,10 @@ public class VFSObjectManager implements IObjectManager {
                     
                     if (isCacheReplica) {
                         String path = KsanUtils.makeObjPath(replicaDISK.getPath(), meta.getObjId(), param.getVersionId());
+                        File oldFile = new File(path);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
                         Files.createSymbolicLink(Paths.get(path), Paths.get(file.getAbsolutePath()));
                     }
                 }

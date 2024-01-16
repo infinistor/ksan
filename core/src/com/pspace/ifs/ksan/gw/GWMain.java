@@ -23,6 +23,7 @@ import java.io.FileReader;
 import com.pspace.ifs.ksan.gw.handler.GW;
 import com.pspace.ifs.ksan.gw.handler.Azu;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.pspace.ifs.ksan.gw.utils.GWLogging;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -152,6 +153,7 @@ public class GWMain {
 			logger.warn(GWConstants.HOOK_THREAD_INFO);
 			try {
 				gw.stop();
+				GWLogging.getInstance().shutdown();
 				GWPortal.getInstance().postGWEvent(false);
 			} catch (Exception e) {
 				PrintStack.logging(logger, e);

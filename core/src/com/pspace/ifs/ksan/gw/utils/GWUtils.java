@@ -579,16 +579,16 @@ public class GWUtils {
 								}
 							}
 
-							StringBuilder sbTemp = sb.delete(length, sb.length());
-							sbTemp.append(Constants.TEMP_DIR);
-							file = new File(sbTemp.toString());
-							if (!file.exists()) {
-								if (!file.mkdirs()) {
-									logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
-								}
-							}
+							// StringBuilder sbTemp = sb.delete(length, sb.length());
+							// sbTemp.append(Constants.TEMP_DIR);
+							// file = new File(sbTemp.toString());
+							// if (!file.exists()) {
+							// 	if (!file.mkdirs()) {
+							// 		logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+							// 	}
+							// }
 
-							sbTemp = sb.delete(length, sb.length());
+							StringBuilder sbTemp = sb.delete(length, sb.length());
 							sbTemp.append(Constants.TRASH_DIR);
 							file = new File(sbTemp.toString());
 							if (!file.exists()) {
@@ -614,12 +614,12 @@ public class GWUtils {
 								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
 							}
 						}
-						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
-						if (!file.exists()) {
-							if (!file.mkdirs()) {
-								logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
-							}
-						}
+						// file = new File(disk.getPath() + GWConstants.SLASH + Constants.TEMP_DIR);
+						// if (!file.exists()) {
+						// 	if (!file.mkdirs()) {
+						// 		logger.error(GWConstants.LOG_UTILS_GW_DISK_MAKE_DIR_FAILED, file.getAbsolutePath());
+						// 	}
+						// }
 						file = new File(disk.getPath() + GWConstants.SLASH + Constants.TRASH_DIR);
 						if (!file.exists()) {
 							if (!file.mkdirs()) {

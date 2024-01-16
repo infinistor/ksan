@@ -29,9 +29,8 @@ namespace PortalModels
 			try
 			{
 				// 테이블 생성이 되지 않은 경우, 마이그레이션 수행
+				// if (!Database.EnsureCreated()) Database.EnsureCreated();
 				if (!Database.EnsureCreated()) Database.Migrate();
-
-				// Database.Migrate();
 			}
 			catch (Exception ex)
 			{

@@ -54,16 +54,16 @@ namespace PortalData.Responses.Networks
 		public string Dns2 { get; set; }
 
 		/// <summary>네트워크 BandWidth</summary>
-		public decimal? BandWidth { get; set; }
+		public decimal BandWidth { get; set; }
 
 		/// <summary>관리용 인터페이스인지 여부</summary>
 		public bool IsManagement { get; set; }
 
 		/// <summary>수신 속도</summary>
-		public decimal? Rx { get; set; }
+		public decimal Rx { get; set; }
 
 		/// <summary>송신 속도</summary>
-		public decimal? Tx { get; set; }
+		public decimal Tx { get; set; }
 
 		/// <summary>수정일시</summary>
 		public DateTime? ModDate { get; set; } = null;

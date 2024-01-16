@@ -10,7 +10,10 @@
 */
 package com.pspace.ifs.ksan.gw.utils;
 
+import java.sql.Timestamp;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.libs.PrintStack;
@@ -26,8 +29,8 @@ import com.google.common.base.Strings;
 
 public class GWLogging {
     private static final Logger logger = LoggerFactory.getLogger(GWLogging.class);
+    private ExecutorService executor;
     private MessageQueueSender MQS;
-    // private static MQSender mqSender;
 
     public static GWLogging getInstance() {
         return LazyHolder.INSTANCE;
@@ -52,157 +55,186 @@ public class GWLogging {
         }
     }
 
+    public void init(int threads) {
+        executor = Executors.newFixedThreadPool(threads);
+    }
+
     public void sendLog(S3Parameter s3Parameter) {
-        JSONObject object = new JSONObject();
+        executor.execute(new Worker(s3Parameter));
+    }
 
-        // bucket owner name
-        if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUserName())) {
-            object.put(GWConstants.GW_LOG_USER_NAME, s3Parameter.getBucket().getUserName());
-        } else {
-            object.put(GWConstants.GW_LOG_USER_NAME, GWConstants.EMPTY_STRING);
+    public void shutdown() {
+        executor.shutdownNow();
+    }
+
+    class Worker implements Runnable {
+        private S3Parameter s3Parameter;
+
+        public Worker(S3Parameter s3Parameter) {
+            this.s3Parameter = s3Parameter;
         }
 
-        // bucket name
-        if (s3Parameter.getBucketName() != null && !Strings.isNullOrEmpty(s3Parameter.getBucketName())) {
-            object.put(GWConstants.GW_LOG_BUCKET_NAME, s3Parameter.getBucketName());
-        } else {
-            object.put(GWConstants.GW_LOG_BUCKET_NAME, GWConstants.EMPTY_STRING);
-        }
+        @Override
+        public void run() {
+            JSONObject object = new JSONObject();
 
-        // date
-        Date date = new Date();
-        object.put(GWConstants.GW_LOG_DATE, date.toString());
+            // bucket owner name
+            if (s3Parameter.getBucket() != null && !Strings.isNullOrEmpty(s3Parameter.getBucket().getUserName())) {
+                object.put(GWConstants.GW_LOG_USER_NAME, s3Parameter.getBucket().getUserName());
+            } else {
+                object.put(GWConstants.GW_LOG_USER_NAME, GWConstants.EMPTY_STRING);
+            }
 
-        // remote host
-        if (!Strings.isNullOrEmpty(s3Parameter.getRemoteHost())) {
-            object.put(GWConstants.GW_LOG_REMOTE_HOST, s3Parameter.getRemoteHost());
-        } else {
-            object.put(GWConstants.GW_LOG_REMOTE_HOST, GWConstants.EMPTY_STRING);
-        }
+            // bucket name
+            if (s3Parameter.getBucketName() != null && !Strings.isNullOrEmpty(s3Parameter.getBucketName())) {
+                object.put(GWConstants.GW_LOG_BUCKET_NAME, s3Parameter.getBucketName());
+            } else {
+                object.put(GWConstants.GW_LOG_BUCKET_NAME, GWConstants.EMPTY_STRING);
+            }
 
-        // request user
-        if (s3Parameter.getUser() != null && !Strings.isNullOrEmpty(s3Parameter.getUser().getUserName())) {
-            object.put(GWConstants.GW_LOG_REQUEST_USER, s3Parameter.getUser().getUserName());
-        } else {
-            object.put(GWConstants.GW_LOG_REQUEST_USER, GWConstants.EMPTY_STRING);
-        }
+            // date
+            // Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            // map.put("date_time", timestamp.toString());
+            // Date date = new Date();
+            long time = System.currentTimeMillis();
+            object.put(GWConstants.GW_LOG_DATE, time);
 
-        // request id
-        if (!Strings.isNullOrEmpty(s3Parameter.getRequestID())) {
-            object.put(GWConstants.GW_LOG_REQUEST_ID, String.valueOf(s3Parameter.getRequestID()));
-        } else {
-            object.put(GWConstants.GW_LOG_REQUEST_ID, GWConstants.EMPTY_STRING);
-        }
+            // remote host
+            if (!Strings.isNullOrEmpty(s3Parameter.getRemoteHost())) {
+                object.put(GWConstants.GW_LOG_REMOTE_HOST, s3Parameter.getRemoteHost());
+            } else {
+                object.put(GWConstants.GW_LOG_REMOTE_HOST, GWConstants.EMPTY_STRING);
+            }
 
-        // operation
-        if (!Strings.isNullOrEmpty(s3Parameter.getOperation())) {
-            object.put(GWConstants.GW_LOG_OPERATION, s3Parameter.getOperation());
-        } else {
-            object.put(GWConstants.GW_LOG_OPERATION, GWConstants.EMPTY_STRING);
-        }
+            // request user
+            if (s3Parameter.getUser() != null && !Strings.isNullOrEmpty(s3Parameter.getUser().getUserName())) {
+                object.put(GWConstants.GW_LOG_REQUEST_USER, s3Parameter.getUser().getUserName());
+            } else {
+                object.put(GWConstants.GW_LOG_REQUEST_USER, GWConstants.EMPTY_STRING);
+            }
 
-        // object name
-        if (!Strings.isNullOrEmpty(s3Parameter.getObjectName())) {
-            object.put(GWConstants.GW_LOG_OBJECT_NAME, s3Parameter.getObjectName());
-        } else {
-            object.put(GWConstants.GW_LOG_OBJECT_NAME, GWConstants.EMPTY_STRING);
-        }
+            // request id
+            if (!Strings.isNullOrEmpty(s3Parameter.getRequestID())) {
+                object.put(GWConstants.GW_LOG_REQUEST_ID, String.valueOf(s3Parameter.getRequestID()));
+            } else {
+                object.put(GWConstants.GW_LOG_REQUEST_ID, GWConstants.EMPTY_STRING);
+            }
 
-        // request uri
-        if (!Strings.isNullOrEmpty(s3Parameter.getRequestURI())) {
-			object.put(GWConstants.GW_LOG_REQUEST_URI, s3Parameter.getRequestURI());
-        } else {
-            object.put(GWConstants.GW_LOG_REQUEST_URI, GWConstants.EMPTY_STRING);
-        }
+            // operation
+            if (!Strings.isNullOrEmpty(s3Parameter.getOperation())) {
+                object.put(GWConstants.GW_LOG_OPERATION, s3Parameter.getOperation());
+            } else {
+                object.put(GWConstants.GW_LOG_OPERATION, GWConstants.EMPTY_STRING);
+            }
 
-        // reponse status code
-        object.put(GWConstants.GW_LOG_STATUS_CODE, s3Parameter.getStatusCode());
+            // object name
+            if (!Strings.isNullOrEmpty(s3Parameter.getObjectName())) {
+                object.put(GWConstants.GW_LOG_OBJECT_NAME, s3Parameter.getObjectName());
+            } else {
+                object.put(GWConstants.GW_LOG_OBJECT_NAME, GWConstants.EMPTY_STRING);
+            }
 
-        // response error code
-        if (!Strings.isNullOrEmpty(s3Parameter.getErrorCode())) {
-			object.put(GWConstants.GW_LOG_ERROR_CODE, s3Parameter.getErrorCode());
-        } else {
-            object.put(GWConstants.GW_LOG_ERROR_CODE, GWConstants.EMPTY_STRING);
-        }
+            // request uri
+            if (!Strings.isNullOrEmpty(s3Parameter.getRequestURI())) {
+                object.put(GWConstants.GW_LOG_REQUEST_URI, s3Parameter.getRequestURI());
+            } else {
+                object.put(GWConstants.GW_LOG_REQUEST_URI, GWConstants.EMPTY_STRING);
+            }
 
-        // response length
-        object.put(GWConstants.GW_LOG_RESPONSE_LENGTH, s3Parameter.getResponseSize());
+            // reponse status code
+            object.put(GWConstants.GW_LOG_STATUS_CODE, s3Parameter.getStatusCode());
 
-		// object length
-		if (s3Parameter.getFileSize() > 0) {
-			object.put(GWConstants.GW_LOG_OBJECT_LENGTH, s3Parameter.getFileSize());
-		} else {
-			object.put(GWConstants.GW_LOG_OBJECT_LENGTH, 0L);
-		}
+            // response error code
+            if (!Strings.isNullOrEmpty(s3Parameter.getErrorCode())) {
+                object.put(GWConstants.GW_LOG_ERROR_CODE, s3Parameter.getErrorCode());
+            } else {
+                object.put(GWConstants.GW_LOG_ERROR_CODE, GWConstants.EMPTY_STRING);
+            }
 
-        // total time
-        object.put(GWConstants.GW_LOG_TOTAL_TIME, System.currentTimeMillis() - s3Parameter.getStartTime());
+            // response length
+            object.put(GWConstants.GW_LOG_RESPONSE_LENGTH, s3Parameter.getResponseSize());
 
-        // request length
-        object.put(GWConstants.GW_LOG_REQUEST_LENGTH, s3Parameter.getRequestSize());
+            // object length
+            if (s3Parameter.getFileSize() > 0) {
+                object.put(GWConstants.GW_LOG_OBJECT_LENGTH, s3Parameter.getFileSize());
+            } else {
+                object.put(GWConstants.GW_LOG_OBJECT_LENGTH, 0L);
+            }
 
-        // referer
-        if (!Strings.isNullOrEmpty(s3Parameter.getReferer())) {
-			object.put(GWConstants.GW_LOG_REFERER, s3Parameter.getReferer());
-        } else {
-            object.put(GWConstants.GW_LOG_REFERER, GWConstants.EMPTY_STRING);
-        }
+            // total time
+            object.put(GWConstants.GW_LOG_TOTAL_TIME, System.currentTimeMillis() - s3Parameter.getStartTime());
 
-        // User Agent
-        if (!Strings.isNullOrEmpty(s3Parameter.getUserAgent())) {
-			object.put(GWConstants.GW_LOG_USER_AGENT, s3Parameter.getUserAgent());
-        } else {
-            object.put(GWConstants.GW_LOG_USER_AGENT, GWConstants.EMPTY_STRING);
-        }
+            // request length
+            object.put(GWConstants.GW_LOG_REQUEST_LENGTH, s3Parameter.getRequestSize());
 
-        // Version id
-        if (!Strings.isNullOrEmpty(s3Parameter.getVersionId())) {
-			object.put(GWConstants.GW_LOG_VERSION_ID, s3Parameter.getVersionId());
-        } else {
-            object.put(GWConstants.GW_LOG_VERSION_ID, GWConstants.EMPTY_STRING);
-        }
+            // referer
+            if (!Strings.isNullOrEmpty(s3Parameter.getReferer())) {
+                object.put(GWConstants.GW_LOG_REFERER, s3Parameter.getReferer());
+            } else {
+                object.put(GWConstants.GW_LOG_REFERER, GWConstants.EMPTY_STRING);
+            }
 
-        // Host ID
-        if (!Strings.isNullOrEmpty(s3Parameter.getHostID())) {
-			object.put(GWConstants.GW_LOG_HOST_ID, s3Parameter.getHostID());
-        } else {
-            object.put(GWConstants.GW_LOG_HOST_ID, GWConstants.EMPTY_STRING);
-        }
+            // User Agent
+            if (!Strings.isNullOrEmpty(s3Parameter.getUserAgent())) {
+                object.put(GWConstants.GW_LOG_USER_AGENT, s3Parameter.getUserAgent());
+            } else {
+                object.put(GWConstants.GW_LOG_USER_AGENT, GWConstants.EMPTY_STRING);
+            }
 
-        // Sign Version
-        if (!Strings.isNullOrEmpty(s3Parameter.getSignVersion())) {
-			object.put(GWConstants.GW_LOG_SIGN, s3Parameter.getSignVersion());
-        } else {
-            object.put(GWConstants.GW_LOG_SIGN, GWConstants.EMPTY_STRING);
-        }
+            // Version id
+            if (!Strings.isNullOrEmpty(s3Parameter.getVersionId())) {
+                object.put(GWConstants.GW_LOG_VERSION_ID, s3Parameter.getVersionId());
+            } else {
+                object.put(GWConstants.GW_LOG_VERSION_ID, GWConstants.EMPTY_STRING);
+            }
 
-        // ssl_group
-        object.put(GWConstants.GW_LOG_SSL_GROUP, GWConstants.EMPTY_STRING);
+            // Host ID
+            if (!Strings.isNullOrEmpty(s3Parameter.getHostID())) {
+                object.put(GWConstants.GW_LOG_HOST_ID, s3Parameter.getHostID());
+            } else {
+                object.put(GWConstants.GW_LOG_HOST_ID, GWConstants.EMPTY_STRING);
+            }
 
-        // sign type
-        if (!Strings.isNullOrEmpty(s3Parameter.getAuthorization())) {
-			object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.AUTH_HEADER);
-        } else if (!Strings.isNullOrEmpty(s3Parameter.getxAmzAlgorithm())) {
-			object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.QUERY_STRING);
-		} else {
-            object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.EMPTY_STRING);
-        }
+            // Sign Version
+            if (!Strings.isNullOrEmpty(s3Parameter.getSignVersion())) {
+                object.put(GWConstants.GW_LOG_SIGN, s3Parameter.getSignVersion());
+            } else {
+                object.put(GWConstants.GW_LOG_SIGN, GWConstants.EMPTY_STRING);
+            }
 
-        // endpoint
-        if (!Strings.isNullOrEmpty(s3Parameter.getHostName())) {
-			object.put(GWConstants.GW_LOG_END_POINT, s3Parameter.getHostName());
-        } else {
-            object.put(GWConstants.GW_LOG_END_POINT, GWConstants.EMPTY_STRING);
-        }
+            // ssl_group
+            object.put(GWConstants.GW_LOG_SSL_GROUP, GWConstants.EMPTY_STRING);
 
-        // tls version
-        object.put(GWConstants.GW_LOG_TLS_VERSION, GWConstants.EMPTY_STRING);
+            // sign type
+            if (!Strings.isNullOrEmpty(s3Parameter.getAuthorization())) {
+                object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.AUTH_HEADER);
+            } else if (!Strings.isNullOrEmpty(s3Parameter.getxAmzAlgorithm())) {
+                object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.QUERY_STRING);
+            } else {
+                object.put(GWConstants.GW_LOG_SIGN_TYPE, GWConstants.EMPTY_STRING);
+            }
 
-        logger.debug("log - {}", object.toString());
-        try {
-            MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
-        } catch (Exception e) {
-            PrintStack.logging(logger, e);
+            // endpoint
+            if (!Strings.isNullOrEmpty(s3Parameter.getHostName())) {
+                object.put(GWConstants.GW_LOG_END_POINT, s3Parameter.getHostName());
+            } else {
+                object.put(GWConstants.GW_LOG_END_POINT, GWConstants.EMPTY_STRING);
+            }
+
+            // tls version
+            object.put(GWConstants.GW_LOG_TLS_VERSION, GWConstants.EMPTY_STRING);
+
+            logger.debug("log - {}", object.toString());
+            try {
+                if (s3Parameter.isAdmin()) {
+                    MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_BACKEND_LOG_ADD);
+                    logger.debug("Admin log : {}", GWConstants.MQUEUE_NAME_GW_BACKEND_LOG_ADD);
+                } else {
+                    MQS.send(object.toString(), GWConstants.MQUEUE_NAME_GW_LOG_ADD);
+                }
+            } catch (Exception e) {
+                PrintStack.logging(logger, e);
+            }
         }
     }
 }

@@ -83,24 +83,24 @@ namespace PortalSvr.Services
 		public static readonly string KEY_OBJ_DB_PASSWORD = "db_password";
 		#endregion
 
-		#region Ksan Log Manager
-		/// <summary> Ksan Log Manager Repository </summary>
-		public static readonly string KEY_LOG_DB_REPOSITORY = "db_repository";
-		/// <summary> Ksan Log Manager DB Host </summary>
-		public static readonly string KEY_LOG_DB_HOST = "db_host";
-		/// <summary> Ksan Log Manager DB Port </summary>
-		public static readonly string KEY_LOG_DB_PORT = "db_port";
-		/// <summary> Ksan Log Manager DB Name </summary>
-		public static readonly string KEY_LOG_DB_NAME = "db_name";
-		/// <summary> Ksan Log Manager DB User </summary>
-		public static readonly string KEY_LOG_DB_USER = "db_user";
-		/// <summary> Ksan Log Manager DB Password </summary>
-		public static readonly string KEY_LOG_DB_PASSWORD = "db_password";
+		#region MariaDB
+		/// <summary> MariaDB DB Host </summary>
+		public static readonly string KEY_MARIA_DB_HOST = "host";
+		/// <summary> MariaDB DB Port </summary>
+		public static readonly string KEY_MARIA_DB_PORT = "port";
+		/// <summary> MariaDB DB Name </summary>
+		public static readonly string KEY_MARIA_DB_NAME = "db_name";
+		/// <summary> MariaDB DB User </summary>
+		public static readonly string KEY_MARIA_DB_USER = "user";
+		/// <summary> MariaDB DB Password </summary>
+		public static readonly string KEY_MARIA_DB_PASSWORD = "password";
 		#endregion
 
 		#region FilePath
 		/// <summary> 포탈 설정 파일 경로 </summary>
 		public const string PORTAL_SETTINGS_FILE = "appsettings.json";
+		/// <summary> MariaDB 설정 파일 경로 </summary>
+		public const string MARIADB_SETTINGS_FILE = "Resources/mariaDB.json";
 		/// <summary> Ksan ObjManager 설정 파일 경로 </summary>
 		public const string KSAN_OBJ_MANAGER_SETTINGS_FILE = "Resources/ksanObjManager.json";
 		/// <summary> Ksan GW 설정 파일 경로 </summary>
@@ -127,6 +127,15 @@ namespace PortalSvr.Services
 				return;
 			}
 
+			// MariaDB의 기본 설정 정보를 읽어온다.
+			string StrMariaDB = File.ReadAllText(MARIADB_SETTINGS_FILE);
+			JObject MariaDB = JObject.Parse(StrMariaDB);
+			if (MariaDB == null)
+			{
+				Console.WriteLine($"{MARIADB_SETTINGS_FILE} is Empty");
+				return;
+			}
+
 			// KsanGW의 기본 설정 정보를 읽어온다.
 			string StrKsanGW = File.ReadAllText(KSAN_GW_SETTINGS_FILE);
 			JObject KsanGW = JObject.Parse(StrKsanGW);
@@ -136,15 +145,6 @@ namespace PortalSvr.Services
 				return;
 			}
 
-			// // KsanOSD의 기본 설정 정보를 읽어온다.
-			// string StrKsanOSD = File.ReadAllText(KSAN_OSD_SETTINGS_FILE);
-			// JObject KsanOSD = JObject.Parse(StrKsanOSD);
-			// if (KsanOSD == null)
-			// {
-			// 	Console.WriteLine($"{KSAN_OSD_SETTINGS_FILE} is Empty");
-			// 	return;
-			// }
-
 			// KsanObjManager의 기본 설정 정보를 읽어온다.
 			var StrKsanObjManager = File.ReadAllText(KSAN_OBJ_MANAGER_SETTINGS_FILE);
 			var KsanObjManager = JObject.Parse(StrKsanObjManager);
@@ -153,33 +153,6 @@ namespace PortalSvr.Services
 				Console.WriteLine($"{KSAN_OBJ_MANAGER_SETTINGS_FILE} is Empty");
 				return;
 			}
-
-			// // KsanLifecycleManager의 기본 설정 정보를 읽어온다.
-			// var StrKsanLifecycleManager = File.ReadAllText(KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE);
-			// var KsanLifecycleManager = JObject.Parse(StrKsanLifecycleManager);
-			// if (KsanLifecycleManager == null)
-			// {
-			// 	Console.WriteLine($"{KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE} is Empty");
-			// 	return;
-			// }
-
-			// KsanLogManager의 기본 설정 정보를 읽어온다.
-			var StrKsanLogManager = File.ReadAllText(KSAN_LOG_MANAGER_SETTINGS_FILE);
-			var KsanLogManager = JObject.Parse(StrKsanLogManager);
-			if (KsanLogManager == null)
-			{
-				Console.WriteLine($"{KSAN_LOG_MANAGER_SETTINGS_FILE} is Empty");
-				return;
-			}
-
-			// // KsanReplicationManager의 기본 설정 정보를 읽어온다.
-			// var StrKsanReplicationManager = File.ReadAllText(KSAN_REPLICATION_MANAGER_SETTINGS_FILE);
-			// var KsanReplicationManager = JObject.Parse(StrKsanReplicationManager);
-			// if (KsanReplicationManager == null)
-			// {
-			// 	Console.WriteLine($"{KSAN_REPLICATION_MANAGER_SETTINGS_FILE} is Empty");
-			// 	return;
-			// }
 
 			// 리전명
 			if (GetEnvValue(Resource.ENV_REGION_NAME, out string RegionName))
@@ -226,25 +199,40 @@ namespace PortalSvr.Services
 
 			// Database
 			if (GetEnvValue(Resource.ENV_DATABASE_TYPE, out string DatabaseType))
+			{
 				KsanApi[KEY_APP_SETTINGS][KEY_DATABASE_TYPE] = DatabaseType;
+			}
 
 			if (GetEnvValue(Resource.ENV_DATABASE, out string DatabaseName))
 			{
 				KsanApi[KEY_MARIADB][KEY_DB_NAME] = DatabaseName;
 				KsanApi[KEY_MONGODB][KEY_DB_NAME] = DatabaseName;
+				MariaDB[KEY_MARIA_DB_NAME] = DatabaseName;
 			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_HOST, out string MariaDBHost))
+			{
 				KsanApi[KEY_MARIADB][KEY_HOST] = MariaDBHost;
+				MariaDB[KEY_MARIA_DB_HOST] = MariaDBHost;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_PORT, out int MariaDBPort))
+			{
 				KsanApi[KEY_MARIADB][KEY_PORT] = MariaDBPort;
+				MariaDB[KEY_MARIA_DB_PORT] = MariaDBPort;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_USER, out string MariaDBUser))
+			{
 				KsanApi[KEY_MARIADB][KEY_USER] = MariaDBUser;
+				MariaDB[KEY_MARIA_DB_USER] = MariaDBUser;
+			}
 
 			if (GetEnvValue(Resource.ENV_MARIADB_ROOT_PASSWORD, out string MariaDBPassword))
+			{
 				KsanApi[KEY_MARIADB][KEY_PASSWORD] = MariaDBPassword;
+				MariaDB[KEY_MARIA_DB_PASSWORD] = MariaDBPassword;
+			}
 
 			if (GetEnvValue(Resource.ENV_MONGODB_HOST, out string MongoDBHost))
 				KsanApi[KEY_MONGODB][KEY_HOST] = MongoDBHost;
@@ -267,13 +255,6 @@ namespace PortalSvr.Services
 				KsanObjManager[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanObjManager[KEY_OBJ_DB_USER] = MongoDBUser;
 				KsanObjManager[KEY_OBJ_DB_PASSWORD] = MongoDBPassword;
-
-				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MONGO_DB;
-				KsanLogManager[KEY_LOG_DB_HOST] = MongoDBHost;
-				KsanLogManager[KEY_LOG_DB_PORT] = MongoDBPort;
-				KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
-				KsanLogManager[KEY_LOG_DB_USER] = MongoDBUser;
-				KsanLogManager[KEY_LOG_DB_PASSWORD] = MongoDBPassword;
 			}
 			else
 			{
@@ -283,13 +264,6 @@ namespace PortalSvr.Services
 				KsanObjManager[KEY_OBJ_DB_NAME] = DatabaseName;
 				KsanObjManager[KEY_OBJ_DB_USER] = MariaDBUser;
 				KsanObjManager[KEY_OBJ_DB_PASSWORD] = MariaDBPassword;
-
-				KsanLogManager[KEY_LOG_DB_REPOSITORY] = Resource.ENV_DATABASE_TYPE_MARIA_DB;
-				KsanLogManager[KEY_LOG_DB_HOST] = MariaDBHost;
-				KsanLogManager[KEY_LOG_DB_PORT] = MariaDBPort;
-				KsanLogManager[KEY_LOG_DB_NAME] = DatabaseName;
-				KsanLogManager[KEY_LOG_DB_USER] = MariaDBUser;
-				KsanLogManager[KEY_LOG_DB_PASSWORD] = MariaDBPassword;
 			}
 
 			//KsanGW KeyStone
@@ -299,12 +273,9 @@ namespace PortalSvr.Services
 				KsanGW[KEY_GW_KEYSTONE_PASSWORD] = GWKeystonePassword;
 
 			File.WriteAllText(PORTAL_SETTINGS_FILE, KsanApi.ToString());
+			File.WriteAllText(MARIADB_SETTINGS_FILE, MariaDB.ToString());
 			File.WriteAllText(KSAN_GW_SETTINGS_FILE, KsanGW.ToString());
-			// File.WriteAllText(KSAN_OSD_SETTINGS_FILE, KsanOSD.ToString());
 			File.WriteAllText(KSAN_OBJ_MANAGER_SETTINGS_FILE, KsanObjManager.ToString());
-			// File.WriteAllText(KSAN_LIFECYCLE_MANAGER_SETTINGS_FILE, KsanLifecycleManager.ToString());
-			File.WriteAllText(KSAN_LOG_MANAGER_SETTINGS_FILE, KsanLogManager.ToString());
-			// File.WriteAllText(KSAN_REPLICATION_MANAGER_SETTINGS_FILE, KsanReplicationManager.ToString());
 		}
 
 		/// <summary> 환경변수 값을 가져온다.</summary>

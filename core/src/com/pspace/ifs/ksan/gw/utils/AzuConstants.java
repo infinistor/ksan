@@ -64,6 +64,8 @@ public final class AzuConstants {
     public static final String HEADER_X_MS_LEASE_STATUS = "x-ms-lease-status";
     public static final String HEADER_ETAG = "etag";
     public static final String HEADER_CONTENT_MD5 = "content-md5";
+    public static final String HEADER_CONTENT_LENGTH = "content-length";
+    public static final String HEADER_CONTENT_RANGE = "content-range";
 
     public static final String BLOB_TYPE_BLOCKBLOB = "BlockBlob";
     public static final String LEASE_STATE_AVAILABLE = "available";

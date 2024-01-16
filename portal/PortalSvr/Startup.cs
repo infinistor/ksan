@@ -23,6 +23,7 @@ using PortalProvider.Providers.Networks;
 using PortalProvider.Providers.RabbitMQ;
 using PortalProvider.Providers.Servers;
 using PortalProvider.Providers.Services;
+using PortalProvider.Providers.S3;
 using PortalProviderInterface;
 using PortalResources;
 using PortalSvr.RabbitMQReceivers;
@@ -116,33 +117,16 @@ namespace PortalSvr
 		{
 			try
 			{
-				if (Configuration["AppSettings:DatabaseType"].Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
-				{
-					// TODO : Mongo 설정 지원시 변경
-					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
-					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
-					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
+				// MariaDB 설정
+				IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
+				MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+				var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
-					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
+				// 데이터베이스 연결 설정
+				Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
-					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-				}
-				else
-				{
-					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
-					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
-					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
-
-					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-
-					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-				}
+				// 사용자 인증 관련 데이터베이스 연결 설정
+				Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -180,6 +164,8 @@ namespace PortalSvr
 				Services.AddTransient<ILogProvider, LogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
+				Services.AddTransient<IS3LogProvider, S3LogProvider>();
+				Services.AddTransient<IS3Provider, S3Provider>();
 
 				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();
@@ -279,26 +265,6 @@ namespace PortalSvr
 					c.DocExpansion(DocExpansion.None);
 				});
 
-				// // Docker HealthCheck
-				// app.UseHealthChecks("/healthcheck", new HealthCheckOptions
-				// {
-				// 	ResponseWriter = async (context, report) =>
-				// 	{
-				// 		var result = JsonConvert.SerializeObject(new
-				// 		{
-				// 			status = report.Status.ToString(),
-				// 			checks = report.Entries.Select(c => new
-				// 			{
-				// 				check = c.Key,
-				// 				result = c.Value.Status.ToString()
-				// 			}),
-				// 		});
-
-				// 		context.Response.ContentType = MediaTypeNames.Application.Json;
-				// 		await context.Response.WriteAsync(result);
-				// 	}
-				// });
-
 				// 개발 환경인 경우
 				if (env.IsDevelopment())
 				{
@@ -327,8 +293,8 @@ namespace PortalSvr
 				// 마이그레이션 수행
 				dbContext.Migrate();
 
-				// 기본 설정을 처리한다. (요청에 대한 접근 아이피 검사 미들웨어 추가)
-				app.Configure(env, loggerFactory, Configuration, ConfigurationOptions, new List<Type>() { typeof(AllowConnectionIpCheckMiddleware) });
+				// 기본 설정을 처리한다. (요청에 대한 접근 아이피 검사 미들웨어 추가, Access Log 미들웨어 추가)
+				app.Configure(env, loggerFactory, Configuration, ConfigurationOptions, new List<Type>() { typeof(AllowConnectionIpCheckMiddleware), typeof(AccessLogMiddleware) });
 
 				// 업로드 설정을 가져온다.
 				uploadConfigLoader.GetConfig();

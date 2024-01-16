@@ -64,7 +64,7 @@ namespace PortalSvr
 									listenOptions.UseHttps(new HttpsConnectionAdapterOptions
 									{
 										ServerCertificate = new X509Certificate2(configuration["AppSettings:SharedAuthTicketKeyCertificateFilePath"], configuration["AppSettings:SharedAuthTicketKeyCertificatePassword"]),
-										SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
+										SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
 									});
 								});
 							}
