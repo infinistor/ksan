@@ -600,9 +600,9 @@ public class ListObject{
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
            else {
-               if (!versionIdMarker.equalsIgnoreCase("null"))
+               /*if (!versionIdMarker.equalsIgnoreCase("null"))
                    andObjQuery = new BasicDBObject("$or", and.toArray());
-               else
+               else*/
                    andObjQuery = new BasicDBObject("$and", and.toArray());  
            } 
            System.out.println( "andObjQuery >>" + andObjQuery);
