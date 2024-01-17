@@ -28,9 +28,11 @@ import com.pspace.ifs.ksan.objmanager.ObjMultipart;
 import com.pspace.ifs.ksan.objmanager.ObjManagerException.ResourceNotFoundException;
 
 public class ObjManagerHelper {
+	public static final int MAX_KEY_SIZE = 1000;
+
 	private final Logger logger = LoggerFactory.getLogger(ObjManagerHelper.class);
-	private static ObjManagerUtil objManager;
-	public static int MAX_KEY_SIZE = 1000;
+
+	private ObjManagerUtil objManager;
 
 	public static ObjManagerHelper getInstance() {
 		return LazyHolder.INSTANCE;
@@ -68,24 +70,22 @@ public class ObjManagerHelper {
 		return objManager.listObjects(bucketName, lastObjId, numObjects);
 	}
 
-	public List<Metadata> listObjects(String bucketName, String KeyMarker, String nextVersionId, long numObjects) {
-		return objManager.listObjectsVersion(bucketName, "", KeyMarker, nextVersionId, numObjects);
+	public List<Metadata> listObjects(String bucketName, String keyMarker, String nextVersionId, long numObjects) {
+		return objManager.listObjectsVersion(bucketName, "", keyMarker, nextVersionId, numObjects);
 	}
 
-	public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, long ExpiredTime) {
+	public List<Metadata> listExpiredObjects(String bucketName, String prefix, String nextMarker, long expiredTime) {
 		try {
-			return objManager.listExpiredObjects(bucketName, prefix, nextMarker, MAX_KEY_SIZE, ExpiredTime);
+			return objManager.listExpiredObjects(bucketName, prefix, nextMarker, MAX_KEY_SIZE, expiredTime);
 		} catch (Exception e) {
 			logger.error("", e);
 			return null;
 		}
 	}
 
-	public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker,
-			String nextVersionId, long ExpiredTime) {
+	public List<Metadata> listExpiredObjectVersions(String bucketName, String prefix, String nextMarker, String nextVersionId, long expiredTime) {
 		try {
-			return objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, MAX_KEY_SIZE,
-					ExpiredTime);
+			return objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, MAX_KEY_SIZE, expiredTime);
 		} catch (Exception e) {
 			logger.error("", e);
 			return null;
@@ -108,15 +108,6 @@ public class ObjManagerHelper {
 			return null;
 		}
 	}
-
-	// public int getObjectCount(String bucketName, String objectName) {
-	// try {
-	// return objManager.getObjectCount(bucketName, objectName);
-	// } catch (Exception e) {
-	// log.error("", e);
-	// return 0;
-	// }
-	// }
 
 	public S3ObjectData getObject(String bucketName, String objectName) throws ResourceNotFoundException {
 		return new S3ObjectData(objManager.getObject(bucketName, objectName));

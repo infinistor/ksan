@@ -14,14 +14,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResponseConfig {
 	@JsonProperty("Type")
-	public String Type;
+	public String type;
 
 	@JsonProperty("Version")
-	public int Version;
+	public int version;
 
 	@JsonProperty("Config")
-	public String Config;
+	public String config;
 
 	@JsonProperty("RegDate")
-	public String RegDate;
+	public String regDate;
 }

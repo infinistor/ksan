@@ -129,7 +129,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>com.pspace.backend.Lifecycle.Main</mainClass>
+									<mainClass>com.pspace.backend.lifecycle.Main</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>

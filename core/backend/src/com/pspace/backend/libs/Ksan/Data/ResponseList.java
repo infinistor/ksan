@@ -14,5 +14,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResponseList<T> extends Response {
 	@JsonProperty("Data")
-	public QueryResults<T> Data;
+	public QueryResults<T> data;
 }

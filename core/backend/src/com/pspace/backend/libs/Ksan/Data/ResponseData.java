@@ -12,7 +12,7 @@ package com.pspace.backend.libs.Ksan.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResponseData <T> extends Response{
+public class ResponseData<T> extends Response {
 	@JsonProperty("Data")
-	public T Data;
+	public T data;
 }

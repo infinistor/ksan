@@ -35,6 +35,7 @@ import com.pspace.backend.libs.Ksan.Data.ResponseData;
 import com.pspace.backend.libs.Ksan.Data.ResponseList;
 import com.pspace.backend.libs.Ksan.Data.ResponseRegion;
 import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.libs.config.DBConfig;
 import com.pspace.backend.libs.config.LifecycleManagerConfig;
 import com.pspace.backend.libs.config.LogManagerConfig;
 import com.pspace.backend.libs.config.ObjManagerConfigBuilder;
@@ -44,7 +45,7 @@ import com.pspace.ifs.ksan.objmanager.ObjManagerConfig;
 
 public class PortalManager {
 	static final Logger logger = LoggerFactory.getLogger(PortalManager.class);
-	private AgentConfig Config;
+	private AgentConfig config;
 
 	private List<S3RegionData> regions = null;
 
@@ -57,34 +58,67 @@ public class PortalManager {
 	}
 
 	private PortalManager() {
-		Config = AgentConfig.getInstance();
+		config = AgentConfig.getInstance();
 	}
-	
+
 	/**
 	 * 현재 시스템의 Region 정보를 가져온다.
 	 * 
 	 * @return Region 정보
 	 */
 	public S3RegionData getLocalRegion() {
-		try (var Client = getClient();) {
+		try (var client = getClient();) {
 
 			var get = getRequest(getLocalRegionURL());
-			var Response = Client.execute(get);
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
-				logger.debug("Body : {}", Body);
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseRegion>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseRegion>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("{}, {}", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
 					return null;
 				}
 
-				return new S3RegionData(Result.Data);
+				return new S3RegionData(result.data);
+			}
+
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * MariaDB 설정 정보를 가져온다.
+	 * 
+	 * @return
+	 */
+	public DBConfig getDBConfig() {
+		try (var client = getClient();) {
+
+			var get = getRequest(getMariaDBConfigURL());
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				ResponseHandler<String> handler = new BasicResponseHandler();
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
+
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseConfig>>() {
+				});
+
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
+					return null;
+				}
+
+				return mapper.readValue(result.data.config, DBConfig.class);
 			}
 
 		} catch (Exception e) {
@@ -99,25 +133,25 @@ public class PortalManager {
 	 * @return ObjectManager 설정 정보
 	 */
 	public ObjManagerConfig getObjManagerConfig() {
-		try (var Client = getClient();) {
+		try (var client = getClient();) {
 
 			var get = getRequest(getObjManagerConfigURL());
-			var Response = Client.execute(get);
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
-				logger.debug("Body : {}", Body);
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseConfig>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("{}, {}", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
 					return null;
 				}
 
-				var objManager = Mapper.readValue(Result.Data.Config, ObjManagerConfigBuilder.class);
+				var objManager = mapper.readValue(result.data.config, ObjManagerConfigBuilder.class);
 				return objManager.getObjManagerConfig();
 			}
 
@@ -133,25 +167,25 @@ public class PortalManager {
 	 * @return Replication 설정 정보
 	 */
 	public ReplicationManagerConfig getReplicationManagerConfig() {
-		try (var Client = getClient();) {
+		try (var client = getClient();) {
 
 			var get = getRequest(getReplicationConfigURL());
-			var Response = Client.execute(get);
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
-				logger.debug("Body : {}", Body);
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseConfig>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("{}, {}", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
 					return null;
 				}
 
-				return Mapper.readValue(Result.Data.Config, ReplicationManagerConfig.class);
+				return mapper.readValue(result.data.config, ReplicationManagerConfig.class);
 			}
 
 		} catch (Exception e) {
@@ -166,25 +200,25 @@ public class PortalManager {
 	 * @return LogManager 설정 정보
 	 */
 	public LogManagerConfig getLogManagerConfig() {
-		try (var Client = getClient();) {
+		try (var client = getClient();) {
 
 			var get = getRequest(getLogManagerConfigURL());
-			var Response = Client.execute(get);
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
-				logger.debug("Body : {}", Body);
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseConfig>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("{}, {}", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
 					return null;
 				}
 
-				return Mapper.readValue(Result.Data.Config, LogManagerConfig.class);
+				return mapper.readValue(result.data.config, LogManagerConfig.class);
 			}
 
 		} catch (Exception e) {
@@ -199,25 +233,25 @@ public class PortalManager {
 	 * @return LifecycleManager 설정 정보
 	 */
 	public LifecycleManagerConfig getLifecycleManagerConfig() {
-		try (var Client = getClient();) {
+		try (var client = getClient();) {
 
 			var get = getRequest(getLifecycleManagerConfigURL());
-			var Response = Client.execute(get);
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			var response = client.execute(get);
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
-				logger.debug("Body : {}", Body);
+				var body = handler.handleResponse(response);
+				logger.debug("Body : {}", body);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseData<ResponseConfig>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseData<ResponseConfig>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("{}, {}", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("{}, {}", result.code, result.message);
 					return null;
 				}
 
-				return Mapper.readValue(Result.Data.Config, LifecycleManagerConfig.class);
+				return mapper.readValue(result.data.config, LifecycleManagerConfig.class);
 			}
 
 		} catch (Exception e) {
@@ -231,32 +265,31 @@ public class PortalManager {
 	 * 
 	 * @return Region 정보
 	 */
-	public boolean RegionUpdate() {
-		try (var Client = getClient();) {
+	public boolean regionUpdate() {
+		try (var client = getClient();) {
 
 			var get = getRequest(getRegionsURL());
-			var Response = Client.execute(get);
+			var response = client.execute(get);
 
-			if (Response.getStatusLine().getStatusCode() == 200) {
+			if (response.getStatusLine().getStatusCode() == 200) {
 				ResponseHandler<String> handler = new BasicResponseHandler();
-				var Body = handler.handleResponse(Response);
+				var body = handler.handleResponse(response);
 
-				var Mapper = new ObjectMapper();
-				var Result = Mapper.readValue(Body, new TypeReference<ResponseList<ResponseRegion>>() {
+				var mapper = new ObjectMapper();
+				var result = mapper.readValue(body, new TypeReference<ResponseList<ResponseRegion>>() {
 				});
 
-				if (!Result.Code.isEmpty()) {
-					logger.error("region is empty. [{}, {}]", Result.Code, Result.Message);
+				if (!result.code.isEmpty()) {
+					logger.error("region is empty. [{}, {}]", result.code, result.message);
 					return false;
 				}
 
 				if (regions == null) {
-					regions = new ArrayList<S3RegionData>();
-					for (var Region : Result.Data.Items)
+					regions = new ArrayList<>();
+					for (var Region : result.data.Items)
 						regions.add(new S3RegionData(Region));
-				}
-				else{
-					for (var Region : Result.Data.Items) {
+				} else {
+					for (var Region : result.data.Items) {
 						var data = new S3RegionData(Region);
 						var find = regions.stream().filter(f -> f.name.equals(data.name)).findAny().orElse(null);
 						if (find == null) {
@@ -277,67 +310,65 @@ public class PortalManager {
 	/**
 	 * URL을 바탕으로 리전정보를 조회한다.
 	 * 
-	 * @param Address 찾을 리전 주소
+	 * @param address
+	 *            찾을 리전 주소
 	 * @return 리전 정보
 	 */
-	public S3RegionData get2Address(String Address) {
-		if (regions == null || regions.size() == 0 || StringUtils.isBlank(Address))
+	public S3RegionData get2Address(String address) {
+		if (regions == null || regions.isEmpty() || StringUtils.isBlank(address))
 			return null;
-		return regions.stream().filter(f -> Address.equals(f.address)).findAny().orElse(null);
+		return regions.stream().filter(f -> address.equals(f.address)).findAny().orElse(null);
 	}
 
 	/**
 	 * 리전명을 바탕으로 리전정보를 조회한다.
 	 * 
-	 * @param RegionName 찾을 리전 명
+	 * @param regionName
+	 *            찾을 리전 명
 	 * @return 리전 정보
 	 */
-	public S3RegionData getRegion(String RegionName) {
-		if (regions == null || regions.size() == 0 || StringUtils.isBlank(RegionName))
+	public S3RegionData getRegion(String regionName) {
+		if (regions == null || regions.isEmpty() || StringUtils.isBlank(regionName))
 			return null;
-		return regions.stream().filter(f -> RegionName.equals(f.name)).findAny().orElse(null);
+		return regions.stream().filter(f -> regionName.equals(f.name)).findAny().orElse(null);
 	}
 
 	private String getURL() {
-		return String.format("https://%s:%s", Config.portalHost, Config.portalPort);
+		return String.format("https://%s:%s", config.portalHost, config.portalPort);
 	}
 
-	// private String getBackendConfigURL() {
-	// return String.format("%s/api/v1/Config/KsanS3Backend", getURL());
-	// }
+	private String getMariaDBConfigURL() {
+		return getURL() + Constants.URL_MARIADB_CONFIG;
+	}
 
 	private String getObjManagerConfigURL() {
-		return getURL()+ Constants.URL_OBJ_MANAGER_CONFIG;
+		return getURL() + Constants.URL_OBJ_MANAGER_CONFIG;
 	}
 
 	private String getLifecycleManagerConfigURL() {
-		return getURL()+ Constants.URL_LIFECYCLE_MANAGER_CONFIG;
+		return getURL() + Constants.URL_LIFECYCLE_MANAGER_CONFIG;
 	}
 
 	private String getReplicationConfigURL() {
-		return getURL()+ Constants.URL_REPLICATION_MANAGER_CONFIG;
+		return getURL() + Constants.URL_REPLICATION_MANAGER_CONFIG;
 	}
 
 	private String getLogManagerConfigURL() {
-		return getURL()+ Constants.URL_LOG_MANAGER_CONFIG;
+		return getURL() + Constants.URL_LOG_MANAGER_CONFIG;
 	}
 
 	private String getLocalRegionURL() {
-		return getURL()+ Constants.URL_LOCAL_REGION;
+		return getURL() + Constants.URL_LOCAL_REGION;
 	}
 
 	private String getRegionsURL() {
-		return getURL()+ Constants.URL_REGION;
+		return getURL() + Constants.URL_REGION;
 	}
 
-	// private String getRegionURL(String RegionName) {
-	// return String.format("%s/api/v1/Regions/%s", getURL(), RegionName);
-	// }
-
-	private HttpGet getRequest(String URL) {
-		var Request = new HttpGet(URL);
-		Request.addHeader("Authorization", Config.apiKey);
-		return Request;
+	private HttpGet getRequest(String url) {
+		var request = new HttpGet(url);
+		request.addHeader("Authorization", config.apiKey);
+		return request;
 	}
 
 	private CloseableHttpClient getClient() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {

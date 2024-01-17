@@ -68,7 +68,6 @@ public class LifecycleSender implements MQCallback {
 			// 문자열을 ReplicationEventData 클래스로 변환
 			var event = mapper.readValue(body, new TypeReference<LifecycleEventData>() {
 			});
-			logger.info(event.toString());
 
 			// 결과값 초기화
 			String result = "";

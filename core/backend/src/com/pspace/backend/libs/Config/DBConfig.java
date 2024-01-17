@@ -10,39 +10,48 @@
 */
 package com.pspace.backend.libs.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DBConfig {
-	public String type;
+	static final int DEFAULT_POOL_SIZE = 20;
+
+	@JsonProperty("host")
 	public String host;
+	@JsonProperty("port")
 	public int port;
+	@JsonProperty("db_name")
 	public String databaseName;
+	@JsonProperty("user")
 	public String user;
+	@JsonProperty("password")
 	public String password;
+	@JsonProperty("pool_size")
 	public int poolSize;
 
 	public DBConfig() {
-		Init();
+		init();
 	}
 
-	public DBConfig(String Host, int Port, String DatabaseName, String User, String Password, int PoolSize) {
-		this.host = Host;
-		this.port = Port;
-		this.databaseName = DatabaseName;
-		this.user = User;
-		this.password = Password;
-		this.poolSize = PoolSize;
-		if (this.poolSize > 1) this.poolSize = 100;
+	public DBConfig(String host, int port, String databaseName, String user, String password, int poolSize) {
+		this.host = host;
+		this.port = port;
+		this.databaseName = databaseName;
+		this.user = user;
+		this.password = password;
+		this.poolSize = poolSize;
+		if (this.poolSize < 1)
+			this.poolSize = DEFAULT_POOL_SIZE;
 	}
 
-	public void Init() {
+	public void init() {
 		host = "";
 		port = 3306;
-		databaseName = "event_log";
+		databaseName = "ksan";
 		user = "root";
 		password = "qwe123";
-		poolSize = 100;
+		poolSize = DEFAULT_POOL_SIZE;
 	}
 
 	@Override

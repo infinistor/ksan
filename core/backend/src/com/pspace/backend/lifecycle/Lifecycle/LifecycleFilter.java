@@ -42,7 +42,7 @@ public class LifecycleFilter {
 	private final MQSender mq;
 
 	boolean todayIsRun = false;
-	List<LifecycleEventData> events = new ArrayList<LifecycleEventData>();
+	List<LifecycleEventData> events = new ArrayList<>();
 
 	public LifecycleFilter() throws Exception {
 		objManager = ObjManagerHelper.getInstance();
@@ -76,8 +76,8 @@ public class LifecycleFilter {
 				continue;
 
 			// 버킷의 수명주기 규칙이 비어있거나 재대로 불러오지 못할 경우 스킵
-			if (lifecycle.rules == null || lifecycle.rules.size() == 0) {
-				logger.error("[{}] invalid rules");
+			if (lifecycle.rules == null || lifecycle.rules.isEmpty()) {
+				logger.error("invalid rules");
 				continue;
 			}
 
@@ -106,14 +106,14 @@ public class LifecycleFilter {
 					}
 
 					// 수명주기 설정이 정상적일 경우
-					if (expired != 0) {
+					if (expired > 0) {
 
 						if (StringUtils.isBlank(rule.transition.StorageClass)) {
 							logger.error("[{}] invalid transition storage class", bucketName);
 							continue;
 						}
 
-						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, long2Date(expired));
+						logger.info("[{}] current object filtering. {}", bucketName, long2Date(expired));
 
 						// 해당 버킷의 모든 오브젝트에 대해 필터링
 						var nextMarker = "";
@@ -121,11 +121,10 @@ public class LifecycleFilter {
 						while (isTruncated) {
 
 							// 오브젝트 목록 가져오기
-							logger.info("[{}] Expired Current Object List Get. ({}, {}, {})", bucketName, prefix, nextMarker, expired);
 							var objects = objManager.listExpiredObjects(bucketName, prefix, nextMarker, expired);
 
 							// 오브젝트가 없을 경우 스킵
-							if (objects == null || objects.size() == 0)
+							if (objects == null || objects.isEmpty())
 								break;
 
 							logger.info("[{}] Expired Current Object List Get. ({}, {}, {}) : {}", bucketName, prefix, nextMarker, expired, objects.size());
@@ -154,7 +153,7 @@ public class LifecycleFilter {
 					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
 
 					// 수명주기 설정이 정상적일 경우
-					if (expired != 0) {
+					if (expired > 0) {
 						// 해당 버킷의 모든 오브젝트에 대해 필터링
 						var nextMarker = "";
 						var nextVersionId = "";
@@ -162,12 +161,10 @@ public class LifecycleFilter {
 						while (isTruncated) {
 
 							// 오브젝트 목록 가져오기
-							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {})", bucketName, nextMarker, nextVersionId, expired);
 							var objects = objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, expired);
-							if (objects == null || objects.size() == 0)
+							if (objects == null || objects.isEmpty())
 								break;
-							// logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}) : {}",
-							// bucketName, prefix, nextMarker, nextVersionId, expired, objects.size());
+							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}, {}) : {}", bucketName, prefix, nextMarker, nextVersionId, expired, objects.size());
 
 							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
 								isTruncated = false;
@@ -200,7 +197,7 @@ public class LifecycleFilter {
 					}
 
 					// 수명주기 설정이 정상적일 경우
-					if (expired != 0) {
+					if (expired > 0) {
 
 						logger.info("[{}] current object filtering. {}, {}", bucketName, expired, long2Date(expired));
 
@@ -210,16 +207,13 @@ public class LifecycleFilter {
 						while (isTruncated) {
 
 							// 오브젝트 목록 가져오기
-							logger.info("[{}] Expired Current Object List Get. ({}, {}, {})", bucketName, prefix,
-									nextMarker, expired);
 							var objects = objManager.listExpiredObjects(bucketName, prefix, nextMarker, expired);
 
 							// 오브젝트가 없을 경우 스킵
-							if (objects == null || objects.size() == 0)
+							if (objects == null || objects.isEmpty())
 								break;
 
-							logger.info("[{}] Expired Current Object List Get. ({}, {}, {}) : {}", bucketName, prefix,
-									nextMarker, expired, objects.size());
+							logger.info("[{}] Expired Current Object List Get. ({}, {}, {}) : {}", bucketName, prefix, nextMarker, expired, objects.size());
 
 							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
 								isTruncated = false;
@@ -248,7 +242,7 @@ public class LifecycleFilter {
 							var objects = objManager.listDeleteMarkers(bucketName, prefix, nextMarker);
 
 							// 오브젝트가 없을 경우 스킵
-							if (objects == null || objects.size() == 0)
+							if (objects == null || objects.isEmpty())
 								break;
 
 							logger.info("[{}] Expired DeleteMarker Object List Get. ({}, {}) : {}", bucketName, prefix,
@@ -285,7 +279,7 @@ public class LifecycleFilter {
 					logger.info("[{}] Noncurrent object filtering. {}, {}", bucketName, expired, long2Date(expired));
 
 					// 수명주기 설정이 정상적일 경우
-					if (expired != 0) {
+					if (expired > 0) {
 						// 해당 버킷의 모든 오브젝트에 대해 필터링
 						var nextMarker = "";
 						var nextVersionId = "";
@@ -293,14 +287,10 @@ public class LifecycleFilter {
 						while (isTruncated) {
 
 							// 오브젝트 목록 가져오기
-							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {})", bucketName, nextMarker,
-									nextVersionId, expired);
-							var objects = objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker,
-									nextVersionId, expired);
-							if (objects == null || objects.size() == 0)
+							var objects = objManager.listExpiredObjectVersions(bucketName, prefix, nextMarker, nextVersionId, expired);
+							if (objects == null || objects.isEmpty())
 								break;
-							// logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}) : {}",
-							// bucketName, prefix, nextMarker, nextVersionId, expired, objects.size());
+							logger.info("[{}] Expired Noncurrent Object List Get. ({}, {}, {}) : {}", bucketName, nextMarker, nextVersionId, expired, objects.size());
 
 							if (objects.size() < ObjManagerHelper.MAX_KEY_SIZE)
 								isTruncated = false;
@@ -374,16 +364,16 @@ public class LifecycleFilter {
 			// And 필터가 존재할 경우
 			if (rule.filter.and != null) {
 				// 태그 필터가 설정되어 있을 경우
-				if (rule.filter.and.tag.size() > 0) {
+				if (!rule.filter.and.tag.isEmpty()) {
 					// 오브젝트의 모든 태그를 비교
 					int tagCount = rule.filter.and.tag.size();
 					var tags = string2Tag(object.getTag());
 					// 태그가 없을 경우 스킵
-					if (tags == null)
+					if (tags == null || tags.isEmpty())
 						return true;
-					for (var FilterTag : rule.filter.and.tag) {
+					for (var filterTag : rule.filter.and.tag) {
 						for (var objectTag : tags) {
-							if (FilterTag.key == objectTag.key && FilterTag.value == objectTag.value)
+							if (filterTag.key.equals(objectTag.key) && filterTag.value.equals(objectTag.value))
 								tagCount--;
 						}
 					}
@@ -394,34 +384,34 @@ public class LifecycleFilter {
 			}
 			// 태그 필터가 설정 되어 있을 경우
 			else if (rule.filter.tag != null) {
-				var FilterTag = rule.filter.tag;
-				boolean Find = false;
+				var filterTag = rule.filter.tag;
+				boolean find = false;
 
 				var tags = string2Tag(object.getTag());
 				// 태그가 없을 경우 스킵
 				if (tags == null)
 					return true;
 				// 오브젝트의 모든 태그를 비교
-				for (var ObjectTag : tags)
-					if (FilterTag.key == ObjectTag.key && FilterTag.value == ObjectTag.value)
-						Find = true;
+				for (var objectTag : tags)
+					if (filterTag.key.equals(objectTag.key) && filterTag.value.equals(objectTag.value))
+						find = true;
 
 				// 필터에 설정된 태그가 오브젝트의 태그에 존재하지 않을경우 스킵
-				if (!Find)
+				if (!find)
 					return true;
 			}
 			// 최소 크기 필터가 설정되어 있을 경우
 			if (StringUtils.isNotBlank(rule.filter.objectSizeGreaterThan)) {
 				// 오브젝트가 최소크기보다 작을 경우 스킵
-				var MinFileSize = NumberUtils.toInt(rule.filter.objectSizeGreaterThan);
-				if (object.getSize() < MinFileSize)
+				var minFileSize = NumberUtils.toInt(rule.filter.objectSizeGreaterThan);
+				if (object.getSize() < minFileSize)
 					return true;
 			}
 			// 최대 크기 필터가 설정되어 있을 경우
 			else if (StringUtils.isNotBlank(rule.filter.objectSizeLessThan)) {
 				// 오브젝트가 최대크기보다 클 경우 스킵
-				var MaxFileSize = NumberUtils.toInt(rule.filter.objectSizeLessThan);
-				if (object.getSize() > MaxFileSize)
+				var maxFileSize = NumberUtils.toInt(rule.filter.objectSizeLessThan);
+				if (object.getSize() > maxFileSize)
 					return true;
 			}
 		}
@@ -449,18 +439,18 @@ public class LifecycleFilter {
 	/***************************************
 	 * Utility
 	 *******************************************/
-	private final String ENABLED = "Enabled";
+	static final String ENABLED = "Enabled";
 
-	private boolean isEnabled(String Status) {
-		return ENABLED.equalsIgnoreCase(Status);
+	private boolean isEnabled(String status) {
+		return ENABLED.equalsIgnoreCase(status);
 	}
 
-	private LifecycleConfiguration getLifecycleConfiguration(String StrLifecycle) {
-		if (StringUtils.isBlank(StrLifecycle))
+	private LifecycleConfiguration getLifecycleConfiguration(String strLifecycle) {
+		if (StringUtils.isBlank(strLifecycle))
 			return null;
 		try {
 			// 수명주기 설정 언마샬링
-			return new XmlMapper().readValue(StrLifecycle, LifecycleConfiguration.class);
+			return new XmlMapper().readValue(strLifecycle, LifecycleConfiguration.class);
 		} catch (Exception e) {
 			logger.error("Lifecycle read failed \n", e);
 			return null;
@@ -492,8 +482,8 @@ public class LifecycleFilter {
 
 	}
 
-	private long getExpiredTimeNoncurrentDays(String NoncurrentDays) {
-		var expired = NumberUtils.toInt(NoncurrentDays);
+	private long getExpiredTimeNoncurrentDays(String noncurrentDays) {
+		var expired = NumberUtils.toInt(noncurrentDays);
 		Instant instant = Instant.now().plus(-expired, ChronoUnit.DAYS);
 		return instant.getEpochSecond() * 1000000000L + instant.getNano();
 	}
@@ -508,14 +498,14 @@ public class LifecycleFilter {
 			return tagging.tags.tags;
 		} catch (Exception e) {
 			logger.error("", e);
-			return null;
+			return new ArrayList<>();
 		}
 	}
 
 	private void sendEvent(LifecycleEventData event) {
 		try {
 			mq.send(event.toString(), Constants.MQ_BINDING_LIFECYCLE_EVENT);
-			logger.info(event.toString());
+			logger.debug("Lifecycle Event Send : {}", event);
 		} catch (Exception e) {
 			logger.error("", e);
 		}

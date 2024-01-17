@@ -68,6 +68,7 @@ public class Constants {
 
 	/************************* Portal Manager *************************/
 	public static final String URL_CONFIG = "/api/v1/Config";
+	public static final String URL_MARIADB_CONFIG = URL_CONFIG + "/MariaDB";
 	public static final String URL_OBJ_MANAGER_CONFIG = URL_CONFIG + "/KsanObjManager";
 	public static final String URL_REPLICATION_MANAGER_CONFIG = URL_CONFIG + "/KsanReplicationManager";
 	public static final String URL_LIFECYCLE_MANAGER_CONFIG = URL_CONFIG + "/KsanLifecycleManager";
