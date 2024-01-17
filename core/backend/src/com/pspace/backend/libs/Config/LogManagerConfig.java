@@ -61,7 +61,6 @@ public class LogManagerConfig {
 
 	public DBConfig getDBConfig() {
 		var config = new DBConfig();
-		config.type = dbType;
 		config.host = dbHost;
 		config.port = dbPort;
 		config.databaseName = dbName;

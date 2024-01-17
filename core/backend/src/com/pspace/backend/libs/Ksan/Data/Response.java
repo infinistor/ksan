@@ -14,17 +14,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Response {
 	@JsonProperty("IsNeedLogin")
-	public boolean IsNeedLogin;
+	public boolean isNeedLogin;
 
 	@JsonProperty("AccessDenied")
-	public boolean AccessDenied;
+	public boolean accessDenied;
 
 	@JsonProperty("Result")
-	public String Result;
+	public String result;
 
 	@JsonProperty("Code")
-	public String Code;
+	public String code;
 
 	@JsonProperty("Message")
-	public String Message;
+	public String message;
 }

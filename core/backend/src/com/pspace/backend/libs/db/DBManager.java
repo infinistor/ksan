@@ -43,6 +43,7 @@ import com.pspace.backend.libs.db.table.metering.BucketApiMeteringQuery;
 import com.pspace.backend.libs.db.table.metering.BucketErrorMeteringQuery;
 import com.pspace.backend.libs.db.table.metering.BucketIoMeteringQuery;
 import com.pspace.backend.libs.db.table.metering.BucketUsageMeteringQuery;
+import com.pspace.backend.libs.db.table.replication.ReplicationEventQuery;
 import com.pspace.backend.libs.db.table.replication.ReplicationFailedQuery;
 import com.pspace.backend.libs.db.table.replication.ReplicationSuccessQuery;
 import com.zaxxer.hikari.HikariConfig;
@@ -98,14 +99,20 @@ public class DBManager {
 		return createLogTables();
 	}
 
-	/***************************** Select **********************************/
-
-	////////////////////// Logging //////////////////////
+	// region Select
+	/////////////////////////// Logging ///////////////////////////
 	public List<S3LogData> getLoggingEventList(String bucketName) {
 		var map = select(S3LogQuery.select(bucketName));
 		return S3LogQuery.getList(map);
 	}
 
+	/////////////////////////// Replication ///////////////////////////
+	public List<ReplicationEventData> getReplicationEvents(long index) {
+		var map = select(ReplicationEventQuery.select(index));
+		return ReplicationEventQuery.getList(map);
+	}
+
+	/////////////////////////// Metering ///////////////////////////
 	public List<ApiLogData> getBucketApiMeteringEvents(DateRange range) {
 		return BucketApiMeteringQuery.getMeterList(range, select(BucketApiMeteringQuery.selectMeter(range)));
 	}
@@ -129,9 +136,11 @@ public class DBManager {
 	public List<ErrorLogData> getBackendErrorMeteringEvents(DateRange range) {
 		return BackendErrorMeteringQuery.getMeterList(range, select(BackendErrorMeteringQuery.selectMeter(range)));
 	}
+	// endregion
 
-	/***************************** Insert *****************************/
+	// region Insert
 
+	/////////////////////////// Create Table ///////////////////////////
 	boolean createTables() {
 		// DB Create Table
 		return execute(ReplicationSuccessQuery.create()) &&
@@ -163,6 +172,7 @@ public class DBManager {
 				execute(BackendLogQuery.create());
 	}
 
+	/////////////////////////// Logging ///////////////////////////
 	public boolean insertS3Log(S3LogData data) {
 		return insert(S3LogQuery.insert(), data);
 	}
@@ -171,18 +181,28 @@ public class DBManager {
 		return insert(BackendLogQuery.insert(), data);
 	}
 
+	/////////////////////////// Replication ///////////////////////////
 	public boolean insertReplicationEvent(ReplicationEventData data) {
-		return insert(ReplicationSuccessQuery.insert(), data);
+		return insert(ReplicationEventQuery.insert(), data);
 	}
 
 	public boolean insertReplicationSuccess(ReplicationSuccessData data) {
 		return insert(ReplicationSuccessQuery.insert(), data);
 	}
 
+	public boolean insertReplicationSuccess(List<ReplicationSuccessData> events) {
+		return insertBulk(ReplicationEventQuery.insert(), events);
+	}
+
 	public boolean insertReplicationFailed(ReplicationFailedData data) {
 		return insert(ReplicationFailedQuery.insert(), data);
 	}
 
+	public boolean insertReplicationFailed(List<ReplicationFailedData> events) {
+		return insertBulk(ReplicationSuccessQuery.insert(), events);
+	}
+
+	/////////////////////////// Lifecycle ///////////////////////////
 	public boolean insertLifecycleLog(LifecycleLogData data) {
 		return insert(LifecycleLogQuery.insert(), data);
 	}
@@ -191,6 +211,7 @@ public class DBManager {
 		return insert(RestoreLogQuery.getInsert(), data);
 	}
 
+	/////////////////////////// Metering ///////////////////////////
 	public boolean insertUsageMeter(List<UsageLogData> events) {
 		return insertBulk(BucketUsageMeteringQuery.insertMeter(), events);
 	}
@@ -246,8 +267,15 @@ public class DBManager {
 	public boolean insertBackendErrorAsset(DateRange range) {
 		return executeUpdate(BackendErrorMeteringQuery.insertAsset(range));
 	}
+	// endregion
 
-	/***************************** Expiration *****************************/
+	// region Delete
+	/////////////////////////// Replication ///////////////////////////
+	public boolean deleteReplicationEvent(long index) {
+		return delete(ReplicationEventQuery.delete(index));
+	}
+
+	/////////////////////////// Expiration ////////////////////////////
 	public boolean expiredMeter() {
 		return delete(BucketApiMeteringQuery.expiredMeter()) &&
 				delete(BucketIoMeteringQuery.expiredMeter()) &&
@@ -258,6 +286,7 @@ public class DBManager {
 				delete(BackendErrorMeteringQuery.expiredMeter());
 	}
 
+	// endregion
 	/*********************** Utility ***********************/
 
 	/**
