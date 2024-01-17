@@ -575,11 +575,8 @@ public class ListObject{
            }
            
            if (bMarker && bVersionIdMarker)
-               if (bDelimiterMarker)
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
-               else
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
-           
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
+               
            if (bVersionIdMarker){
                if (!versionIdMarker.equalsIgnoreCase("null")){
                     objQuery = new BasicDBObject("objKey", marker);
@@ -597,6 +594,10 @@ public class ListObject{
                bDelForceGte = false;
            }
  
+           if (this.expiredTime > 0){
+               and.add(new BasicDBObject("lastModified", new BasicDBObject("$lt", this.expiredTime)));
+           }
+           
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
            else {
