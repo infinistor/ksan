@@ -776,7 +776,8 @@ public class MysqlDataRepository implements DataRepository{
         }
         return 0;
     }
-    
+    // 1bucketName, 2bucketId, 3diskPoolId, 4versioning, 5MfaDelete, 6userName, 7user, 8acl, 9web, 10cors, 11lifecycle, 12access, 13tagging, 
+    //14replication, 15encryption, 16objectlock, 17policy, 18createTime, 19replicaCount, 20usedSpace, 21fileCount, 22logging, 23objTagIndexing, 24accelerate, 25payment, 26notification
     private Bucket parseBucket(ResultSet rs) throws SQLException{
         String name = rs.getString(1);
         String id = rs.getString(2); 
@@ -804,6 +805,7 @@ public class MysqlDataRepository implements DataRepository{
         //String analytics = rs.getString(24);
         String accelerate = rs.getString(24);
         String payment = rs.getString(25);
+        String notification = rs.getString(26);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -825,6 +827,7 @@ public class MysqlDataRepository implements DataRepository{
         //bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
+        bt.setNotification(notification);
         return bt;
     }
     
@@ -1253,10 +1256,10 @@ public class MysqlDataRepository implements DataRepository{
     }
    
     private void updateBucketFileCount(String bucketName, long count) throws SQLException {
-        pstUpdateBucketFilecount.clearParameters();
+        /*pstUpdateBucketFilecount.clearParameters();
         pstUpdateBucketFilecount.setLong(1, count);
         pstUpdateBucketFilecount.setString(2, getBucketId(bucketName));
-        pstUpdateBucketFilecount.executeUpdate();
+        pstUpdateBucketFilecount.executeUpdate();*/
     }
 
     @Override
