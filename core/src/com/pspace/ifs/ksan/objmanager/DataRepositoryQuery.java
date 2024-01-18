@@ -43,10 +43,10 @@ public final class DataRepositoryQuery {
     
     // for bucket
     public  static String createBucketQuery = "CREATE TABLE IF NOT EXISTS BUCKETS("
-                    + "name VARCHAR(256) NOT NULL, "
-                    + "id VARCHAR(80) NOT NULL, "
-                    + "diskPoolId CHAR(36) NOT NULL, "
-                    + " userId CHAR(36), userName VARCHAR(200), "
+                    + "bucketName VARCHAR(256) NOT NULL, "
+                    + "bucketId VARCHAR(80) NOT NULL, "
+                    + "diskPoolId CHAR(200) NOT NULL, "
+                    + " user VARCHAR(200), userName VARCHAR(200), "
                     + "acl TEXT, web TEXT, cors TEXT, "
                     + "lifecycle TEXT, access TEXT, "
                     + "tagging TEXT, replication TEXT, logging TEXT, "
@@ -57,34 +57,34 @@ public final class DataRepositoryQuery {
                     + "createTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "
                     + "replicaCount INT DEFAULT 2, objTagIndexing BOOLEAN default false, "
                     + "usedSpace BIGINT  NOT NULL DEFAULT 0,  fileCount BIGINT  NOT NULL DEFAULT 0, "
-                    + "PRIMARY KEY(id)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+                    + "PRIMARY KEY(bucketId)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
     
-    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(name, id, diskPoolId, userName, userId, acl, encryption, objectlock, replicaCount, objTagIndexing, accelerate, payment, notification) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS WHERE id=?";
-    public  static String  selectAllBucketQuery = "SELECT name, id, diskPoolId, versioning, MfaDelete, userName, userId, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS";
-    public  static String  selectBucketAnalyticsQuery = "SELECT analytics FROM BUCKETS WHERE id=?";
-    public  static String  selectBucketInventoryQuery = "SELECT inventory FROM BUCKETS WHERE id=?";
-    public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE id=?";            
-    public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE id=?";
-    public  static String  updateBucketWebQuery = "UPDATE BUCKETS SET web=? WHERE id=?";
-    public  static String  updateBucketCorsQuery = "UPDATE BUCKETS SET cors=? WHERE id=?";
-    public  static String  updateBucketLifecycleQuery = "UPDATE BUCKETS SET lifecycle=? WHERE id=?";
-    public  static String  updateBucketAccessQuery = "UPDATE BUCKETS SET access=? WHERE id=?";
-    public  static String  updateBucketTaggingQuery = "UPDATE BUCKETS SET tagging=? WHERE id=?";
-    public  static String  updateBucketReplicationQuery = "UPDATE BUCK SET replication=? WHERE id=?";
-    public  static  String  updateBucketEncryptionQuery = "UPDATE BUCKETS SET encryption=? WHERE id=?";
-    public  static String  updateBucketObjectLockQuery = "UPDATE BUCKETS SET objectlock=? WHERE id=?";
-    public  static String  updateBucketPolicyQuery = "UPDATE BUCKETS SET policy=? WHERE id=?";
-    public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE id=?";
-    public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE id=?";
-    public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE id=?";
-    public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCK SET objTagIndexing=? WHERE id=?";
-    public  static String  updateBucketAnalyticsQuery = "UPDATE BUCK SET analytics=? WHERE id=?";
-    public  static String  updateBucketAccelerateQuery = "UPDATE BUCK SET accelerate=? WHERE id=?";
-    public  static String  updateBucketPaymentQuery = "UPDATE BUCK SET payment=? WHERE id=?";
-    public  static String  updateBucketNotificationQuery = "UPDATE BUCK SET notification=? WHERE id=?";
-    public  static String  updateBucketInventoryQuery = "UPDATE BUCK SET inventory=? WHERE id=?";
+    public  static String  insertBucketQuery = "INSERT INTO BUCKETS(bucketName, bucketId, diskPoolId, userName, user, acl, encryption, objectlock, replicaCount, objTagIndexing, accelerate, payment, notification) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE bucketId=?";
+    public  static String  selectBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS WHERE bucketId=?";
+    public  static String  selectAllBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS";
+    public  static String  selectBucketAnalyticsQuery = "SELECT analytics FROM BUCKETS WHERE bucketId=?";
+    public  static String  selectBucketInventoryQuery = "SELECT inventory FROM BUCKETS WHERE bucketId=?";
+    public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE bucketId=?";            
+    public  static String  updateBucketAclQuery = "UPDATE BUCKETS SET acl=? WHERE bucketId=?";
+    public  static String  updateBucketWebQuery = "UPDATE BUCKETS SET web=? WHERE bucketId=?";
+    public  static String  updateBucketCorsQuery = "UPDATE BUCKETS SET cors=? WHERE bucketId=?";
+    public  static String  updateBucketLifecycleQuery = "UPDATE BUCKETS SET lifecycle=? WHERE bucketId=?";
+    public  static String  updateBucketAccessQuery = "UPDATE BUCKETS SET access=? WHERE bucketId=?";
+    public  static String  updateBucketTaggingQuery = "UPDATE BUCKETS SET tagging=? WHERE bucketId=?";
+    public  static String  updateBucketReplicationQuery = "UPDATE BUCK SET replication=? WHERE bucketId=?";
+    public  static  String  updateBucketEncryptionQuery = "UPDATE BUCKETS SET encryption=? WHERE bucketId=?";
+    public  static String  updateBucketObjectLockQuery = "UPDATE BUCKETS SET objectlock=? WHERE bucketId=?";
+    public  static String  updateBucketPolicyQuery = "UPDATE BUCKETS SET policy=? WHERE bucketId=?";
+    public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE bucketId=?";
+    public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE bucketId=?";
+    public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE bucketId=?";
+    public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCK SET objTagIndexing=? WHERE bucketId=?";
+    public  static String  updateBucketAnalyticsQuery = "UPDATE BUCK SET analytics=? WHERE bucketId=?";
+    public  static String  updateBucketAccelerateQuery = "UPDATE BUCK SET accelerate=? WHERE bucketId=?";
+    public  static String  updateBucketPaymentQuery = "UPDATE BUCK SET payment=? WHERE bucketId=?";
+    public  static String  updateBucketNotificationQuery = "UPDATE BUCK SET notification=? WHERE bucketId=?";
+    public  static String  updateBucketInventoryQuery = "UPDATE BUCK SET inventory=? WHERE bucketId=?";
     
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("

@@ -225,6 +225,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int createTable() throws SQLException{
+        //System.out.format("[createTable] query : %s \n", pstCreateBucket.toString());
         this.pstCreateBucket.execute();
         this.pstCreateMultiPart.execute();
         pstCreateUJob.execute();
@@ -718,7 +719,8 @@ public class MysqlDataRepository implements DataRepository{
 
         return true;
     }
-    
+    //1 bucketName, 2 bucketId, 3 diskPoolId, 4 userName, 5 user, 6 acl, 7 encryption, 8 objectlock, 
+    //9 replicaCount, 10 objTagIndexing, 11 accelerate, 12 payment, 13 notification
     @Override
     public synchronized Bucket insertBucket(Bucket bt) 
             throws ResourceAlreadyExistException{
@@ -738,6 +740,8 @@ public class MysqlDataRepository implements DataRepository{
             //this.pstInsertBucket.setString(11, bt.getAnalytics());
             this.pstInsertBucket.setString(11, bt.getAccelerate());
             this.pstInsertBucket.setString(12, bt.getPayment());
+            this.pstInsertBucket.setString(13, bt.getNotification());
+            //System.out.println(">>QUERY >>" + pstInsertBucket.toString());
             this.pstInsertBucket.executeUpdate();
         } catch(SQLException ex){
             System.out.println("SQLException:>" + ex);
