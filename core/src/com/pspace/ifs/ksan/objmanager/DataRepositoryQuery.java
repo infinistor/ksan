@@ -17,7 +17,7 @@ public final class DataRepositoryQuery {
             + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
             + "acl TEXT NOT NULL, "
             + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;;";  
+            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";  
     
     public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, true)";
     public  static String objDeleteQuery = "DELETE FROM %s WHERE objid=? AND (versionid=? OR versionid is NULL)";
@@ -43,10 +43,10 @@ public final class DataRepositoryQuery {
     
     // for bucket
     public  static String createBucketQuery = "CREATE TABLE IF NOT EXISTS BUCKETS("
-                    + "bucketName VARCHAR(256) NOT NULL, "
+                    + "bucketName VARCHAR(64) NOT NULL, "
                     + "bucketId VARCHAR(80) NOT NULL, "
-                    + "diskPoolId CHAR(200) NOT NULL, "
-                    + " user VARCHAR(200), userName VARCHAR(200), "
+                    + "diskPoolId CHAR(36) NOT NULL, "
+                    + " user VARCHAR(36), userName VARCHAR(200), "
                     + "acl TEXT, web TEXT, cors TEXT, "
                     + "lifecycle TEXT, access TEXT, "
                     + "tagging TEXT, replication TEXT, logging TEXT, "
