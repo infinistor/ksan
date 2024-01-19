@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -111,7 +112,7 @@ public class MysqlDataRepository implements DataRepository{
         this.obmCache = obmCache;
         this.passwd = passwd;
         this.username = username;
-        this.url ="jdbc:mysql://"+ host+":3306/"+ dbname +"?useSSL=false&autoReconnect=true";
+        this.url ="jdbc:mysql://"+ host+":3306/"+ dbname +"?useSSL=false&autoReconnect=true"; // autoReconnect option is depreciated in latest maraidb
         try{
             this.createDB(host, dbname);
             this.connect();
@@ -209,7 +210,12 @@ public class MysqlDataRepository implements DataRepository{
     private int connect(){
         try{
            Class.forName("com.mysql.cj.jdbc.Driver");
-           this.con = DriverManager.getConnection(this.url, this.username, this.passwd); 
+           Properties conProp = new Properties();
+           conProp.setProperty("user", username);
+           conProp.setProperty("password", passwd);
+           conProp.setProperty("autoReconnectForPools", "true");
+           conProp.setProperty("maxReconnects", "30");
+           this.con = DriverManager.getConnection(this.url, conProp); 
         } catch(SQLException ex){
             this.ex_message(ex);
             return -1;
