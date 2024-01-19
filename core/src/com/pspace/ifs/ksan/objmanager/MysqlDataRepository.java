@@ -55,7 +55,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstSelectAnalyticsBucket;
     private PreparedStatement pstUpdateBucket;
     //private PreparedStatement pstSelectUsedBucket;
-    private PreparedStatement pstSelectUsedDisks;
+    //private PreparedStatement pstSelectUsedDisks;
     //private PreparedStatement pstSelectBucketByName;
     private PreparedStatement pstUpdateBucketAcl;
     private PreparedStatement pstUpdateBucketWeb;
@@ -64,7 +64,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketAccess;
     private PreparedStatement pstUpdateBucketTagging;
     private PreparedStatement pstUpdateBucketReplication;
-    private PreparedStatement pstIsDeleteBucket;
+    //private PreparedStatement pstIsDeleteBucket;
     private PreparedStatement pstUpdateBucketEncryption;
     private PreparedStatement pstUpdateBucketObjectLock;
     private PreparedStatement pstUpdateBucketPolicy;
@@ -75,7 +75,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateAccelerateBucket;
     private PreparedStatement pstUpdatePaymentBucket;
     private PreparedStatement pstUpdateNotificationBucket;
-    private PreparedStatement pstSelectInventoryBucket;
+    //private PreparedStatement pstSelectInventoryBucket;
     private PreparedStatement pstUpdateInventoryBucket;
     
 // for multipart upload
@@ -241,14 +241,15 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private void createLifeCycleEventTables() throws SQLException{
-        PreparedStatement pstCreateLifeCycle;
-        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleEventTableName, DataRepositoryQuery.createLifeCycleQuery);
-        pstCreateLifeCycle.execute();
-        pstCreateLifeCycle.close();
-        pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleFailedEventTableName, DataRepositoryQuery.createLifeCycleQuery);
-        pstCreateLifeCycle.execute();
-        pstCreateLifeCycle.close();
-    }
+        try (PreparedStatement pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleEventTableName, DataRepositoryQuery.createLifeCycleQuery)){
+            pstCreateLifeCycle.execute();
+            pstCreateLifeCycle.close();
+        }
+        
+        try (PreparedStatement pstCreateLifeCycle = getObjPreparedStmt(DataRepositoryQuery.lifeCycleFailedEventTableName, DataRepositoryQuery.createLifeCycleQuery)){
+            pstCreateLifeCycle.execute();
+            pstCreateLifeCycle.close();
+    }   }
     
     private PreparedStatement getObjPreparedStmt(String bucketName, String format) throws SQLException{
         String query = String.format(format, "`" + bucketName + "`");
@@ -281,43 +282,46 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private void createObjectTable(String bucketName) throws SQLException{
-        PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery);
-        pstStmt.execute();
+        try (PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objCreateQuery)){
+            pstStmt.execute();
+        }
     }
     
     private int updateVersion(String bucketName, String key) throws SQLException{ 
-        PreparedStatement pstupdateLastVersion = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionQuery);
-        pstupdateLastVersion.clearParameters();
-        pstupdateLastVersion.setString(1, key);
-        pstupdateLastVersion.execute();
+        try (PreparedStatement pstupdateLastVersion = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionQuery)){
+            pstupdateLastVersion.clearParameters();
+            pstupdateLastVersion.setString(1, key);
+            pstupdateLastVersion.execute();
+        }
         return 0;
     }
     
 
     private int updateMetadata(Metadata md){
         try {
-            PreparedStatement pstupdateMetadata = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateMetadataQuery);
-            pstupdateMetadata.clearParameters();
-            pstupdateMetadata.setString(1, md.getEtag());
-            pstupdateMetadata.setString(2, md.getMeta());
-            pstupdateMetadata.setString(3, md.getTag());
-            pstupdateMetadata.setString(4, md.getAcl());
-            pstupdateMetadata.setLong(5, md.getSize());
-            pstupdateMetadata.setLong(6, md.getLastModified());
-            pstupdateMetadata.setString(7, md.getPrimaryDisk().getId());
-            try{
-                if (md.isReplicaExist())
-                    pstupdateMetadata.setString(8, md.getReplicaDisk().getId());
-                else 
-                   pstupdateMetadata.setString(8,  ""); 
-            } catch(ResourceNotFoundException ex){
-               pstupdateMetadata.setString(8,  "");
+            try (PreparedStatement pstupdateMetadata = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateMetadataQuery)){
+                pstupdateMetadata.clearParameters();
+                pstupdateMetadata.setString(1, md.getEtag());
+                pstupdateMetadata.setString(2, md.getMeta());
+                pstupdateMetadata.setString(3, md.getTag());
+                pstupdateMetadata.setString(4, md.getAcl());
+                pstupdateMetadata.setLong(5, md.getSize());
+                pstupdateMetadata.setLong(6, md.getLastModified());
+                pstupdateMetadata.setString(7, md.getPrimaryDisk().getId());
+                try{
+                    if (md.isReplicaExist())
+                        pstupdateMetadata.setString(8, md.getReplicaDisk().getId());
+                    else 
+                       pstupdateMetadata.setString(8,  ""); 
+                } catch(ResourceNotFoundException ex){
+                   pstupdateMetadata.setString(8,  "");
+                }
+                pstupdateMetadata.setString(9, md.getVersionId());
+                pstupdateMetadata.setString(10, md.getDeleteMarker());
+                pstupdateMetadata.setBoolean(11, md.getLastVersion());
+                pstupdateMetadata.setString(12, md.getObjId());
+                pstupdateMetadata.execute();
             }
-            pstupdateMetadata.setString(9, md.getVersionId());
-            pstupdateMetadata.setString(10, md.getDeleteMarker());
-            pstupdateMetadata.setBoolean(11, md.getLastVersion());
-            pstupdateMetadata.setString(12, md.getObjId());
-            pstupdateMetadata.execute();
         } catch (SQLException ex) {
             ex_message( ex);
             return -1;
@@ -385,32 +389,32 @@ public class MysqlDataRepository implements DataRepository{
     public synchronized int insertObject(Metadata md) throws ResourceNotFoundException{
         try{
             logger.debug("[insertObject] Start bucketName : {} key : {}  versionId : {} ", md.getBucket(), md.getPath(), md.getVersionId());
-            PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objInsertQuery);
-            pstStmt.clearParameters();
-            pstStmt.setString(1, md.getBucket());
-            pstStmt.setString(2, md.getPath());
-            pstStmt.setString(3, md.getEtag());
-            pstStmt.setString(4, md.getMeta());
-            pstStmt.setString(5, md.getTag());
-            pstStmt.setString(6, md.getAcl());
-            pstStmt.setLong(7, md.getSize());
-            pstStmt.setLong(8, md.getLastModified());
-            pstStmt.setString(9, md.getPrimaryDisk().getId());
-            if (md.isReplicaExist()){
-                pstStmt.setString(10, md.getReplicaDisk().getId());
-            } else {
-                pstStmt.setString(10, "");
+            try (PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objInsertQuery)){
+                pstStmt.clearParameters();
+                pstStmt.setString(1, md.getBucket());
+                pstStmt.setString(2, md.getPath());
+                pstStmt.setString(3, md.getEtag());
+                pstStmt.setString(4, md.getMeta());
+                pstStmt.setString(5, md.getTag());
+                pstStmt.setString(6, md.getAcl());
+                pstStmt.setLong(7, md.getSize());
+                pstStmt.setLong(8, md.getLastModified());
+                pstStmt.setString(9, md.getPrimaryDisk().getId());
+                if (md.isReplicaExist()){
+                    pstStmt.setString(10, md.getReplicaDisk().getId());
+                } else {
+                    pstStmt.setString(10, "");
+                }
+                pstStmt.setString(11, md.getObjId());
+                pstStmt.setString(12, md.getVersionId());
+                pstStmt.setString(13, md.getDeleteMarker());
+
+                // If the same object exists, change lastversion to false.
+                updateVersion(md.getBucket(), md.getObjId());
+
+                if (pstStmt.executeUpdate() > 0)
+                    updateBucketFileCount(md.getBucket(), 1);
             }
-            pstStmt.setString(11, md.getObjId());
-            pstStmt.setString(12, md.getVersionId());
-            pstStmt.setString(13, md.getDeleteMarker());
-            
-            // If the same object exists, change lastversion to false.
-            updateVersion(md.getBucket(), md.getObjId());
-                     
-            if (pstStmt.executeUpdate() > 0)
-                updateBucketFileCount(md.getBucket(), 1);
-            
         } catch(SQLException ex){
             if (ex.getErrorCode() == 1062)
                 return updateMetadata(md);
@@ -426,24 +430,24 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         try {
-            PreparedStatement pstupdatePDisks;
-            PreparedStatement pstupdateRDisks;
             if (updatePrimary){
-                pstupdatePDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdatePDisksQuery);
-                pstupdatePDisks.clearParameters();
-                pstupdatePDisks.setString(1, newDisk.getId());
-                pstupdatePDisks.setString(2, md.getObjId());
-                pstupdatePDisks.setString(3, md.getVersionId());
-                //pstupdatePDisks.setString(4, md.getPrimaryDisk().getId());
-                return pstupdatePDisks.executeUpdate();
+                try (PreparedStatement pstupdatePDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdatePDisksQuery)){
+                    pstupdatePDisks.clearParameters();
+                    pstupdatePDisks.setString(1, newDisk.getId());
+                    pstupdatePDisks.setString(2, md.getObjId());
+                    pstupdatePDisks.setString(3, md.getVersionId());
+                    //pstupdatePDisks.setString(4, md.getPrimaryDisk().getId());
+                    return pstupdatePDisks.executeUpdate();
+                }
             }
             else{
-                pstupdateRDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateRDisksQuery);
-                pstupdateRDisks.clearParameters();
-                pstupdateRDisks.setString(1, newDisk.getId());
-                pstupdateRDisks.setString(2, md.getObjId());
-                pstupdateRDisks.setString(3, md.getVersionId());
-                return pstupdateRDisks.executeUpdate();
+                try (PreparedStatement pstupdateRDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateRDisksQuery)){
+                    pstupdateRDisks.clearParameters();
+                    pstupdateRDisks.setString(1, newDisk.getId());
+                    pstupdateRDisks.setString(2, md.getObjId());
+                    pstupdateRDisks.setString(3, md.getVersionId());
+                    return pstupdateRDisks.executeUpdate();
+                }
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage());
@@ -454,12 +458,13 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateSizeTime(Metadata md) {
         try {
-            PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateSizeTimeQuery);
-            pstupdateSizeTime.clearParameters();
-            pstupdateSizeTime.setLong(1, md.getSize());
-            pstupdateSizeTime.setLong(2, md.getLastModified());
-            pstupdateSizeTime.setString(3, md.getObjId());
-            return pstupdateSizeTime.executeUpdate();
+            try (PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateSizeTimeQuery)){
+                pstupdateSizeTime.clearParameters();
+                pstupdateSizeTime.setLong(1, md.getSize());
+                pstupdateSizeTime.setLong(2, md.getLastModified());
+                pstupdateSizeTime.setString(3, md.getObjId());
+                return pstupdateSizeTime.executeUpdate();
+            }
         } catch (SQLException ex) {
             logger.error(ex.getMessage());
             //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -469,11 +474,12 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectEtag(Metadata md, String etag) throws SQLException{
-        PreparedStatement pstupdateEtag = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateEtagQuery);
-        pstupdateEtag.clearParameters();
-        pstupdateEtag.setString(1, etag);
-        pstupdateEtag.setString(2, md.getObjId());
-        pstupdateEtag.setString(3, md.getVersionId());
+        try (PreparedStatement pstupdateEtag = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateEtagQuery)){
+            pstupdateEtag.clearParameters();
+            pstupdateEtag.setString(1, etag);
+            pstupdateEtag.setString(2, md.getObjId());
+            pstupdateEtag.setString(3, md.getVersionId());
+        }
     }
     
     private Metadata getSelectObjectResult(String bucketName, String objId, ResultSet rs) throws SQLException, ResourceNotFoundException{
@@ -517,12 +523,14 @@ public class MysqlDataRepository implements DataRepository{
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId) throws ResourceNotFoundException {
         try{
             logger.debug("[selectSingleObjectInternal] Start bucketName : {} objId : {} ", bucketName, objId);
-            PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery);
-            pstStmt.clearParameters();
-            pstStmt.setString(1, objId);
-            ResultSet rs = pstStmt.executeQuery();
-            logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} rowc: {}", bucketName, objId, rs.getRow());
-            return getSelectObjectResult(bucketName, objId, rs);
+            try (PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery)){
+                pstStmt.clearParameters();
+                pstStmt.setString(1, objId);
+                ResultSet rs = pstStmt.executeQuery();
+                logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} rowc: {}", bucketName, objId, rs.getRow());
+                Metadata mt = getSelectObjectResult(bucketName, objId, rs);
+                return mt; 
+            }
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -533,13 +541,14 @@ public class MysqlDataRepository implements DataRepository{
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         try{
             logger.debug("[selectSingleObjectInternal] Start bucketName : {} objId : {}  versionId : {} ", bucketName, objId, versionId);
-            PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery);
-            pstSelectOneWithVersionId.clearParameters();
-            pstSelectOneWithVersionId.setString(1, objId);
-            pstSelectOneWithVersionId.setString(2, versionId);
-            ResultSet rs = pstSelectOneWithVersionId.executeQuery();
-            logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} versionId {} rowc: {}", bucketName, objId, versionId, rs.getRow());
-            return getSelectObjectResult(bucketName, objId, rs);      
+            try (PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery)){
+                pstSelectOneWithVersionId.clearParameters();
+                pstSelectOneWithVersionId.setString(1, objId);
+                pstSelectOneWithVersionId.setString(2, versionId);
+                ResultSet rs = pstSelectOneWithVersionId.executeQuery();
+                logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} versionId {} rowc: {}", bucketName, objId, versionId, rs.getRow());
+                return getSelectObjectResult(bucketName, objId, rs);
+            }
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
             this.ex_message(ex);
@@ -608,20 +617,21 @@ public class MysqlDataRepository implements DataRepository{
         for (String bucketName : bList){
             lastObjId = "";
             while(true){
-                pstSelectUsedDisks = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery);
-                pstSelectUsedDisks.setString(1, lastObjId);
-                pstSelectUsedDisks.setLong(2, 1000);
-                ResultSet rs = pstSelectUsedDisks.executeQuery();
+                try (PreparedStatement pstSelectUsedDisks1 = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectUsedDisksQuery)){
+                    pstSelectUsedDisks1.setString(1, lastObjId);
+                    pstSelectUsedDisks1.setLong(2, 1000);
+                    ResultSet rs = pstSelectUsedDisks1.executeQuery();
 
-                thereIsMore = false;
-                while(rs.next()){
-                     thereIsMore = true;
-                    if (!dList.contains(rs.getString(1)))
-                        dList.add(rs.getString(1));
+                    thereIsMore = false;
+                    while(rs.next()){
+                         thereIsMore = true;
+                        if (!dList.contains(rs.getString(1)))
+                            dList.add(rs.getString(1));
 
-                    if (!dList.contains(rs.getString(2)))
-                        dList.add(rs.getString(2));
-                    lastObjId = rs.getString(3);
+                        if (!dList.contains(rs.getString(2)))
+                            dList.add(rs.getString(2));
+                        lastObjId = rs.getString(3);
+                    }
                 }
             
                 if (!thereIsMore)
@@ -634,55 +644,59 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery);
-        pstUpdateTagging.clearParameters();
-        pstUpdateTagging.setString(1, mt.getTag());
-        pstUpdateTagging.setString(2, mt.getMeta());
-        pstUpdateTagging.setString(3, mt.getObjId());
-        pstUpdateTagging.setString(4, mt.getVersionId());
-        pstUpdateTagging.executeUpdate();
-        insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getTag());
+        try (PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery)){
+            pstUpdateTagging.clearParameters();
+            pstUpdateTagging.setString(1, mt.getTag());
+            pstUpdateTagging.setString(2, mt.getMeta());
+            pstUpdateTagging.setString(3, mt.getObjId());
+            pstUpdateTagging.setString(4, mt.getVersionId());
+            pstUpdateTagging.executeUpdate();
+            insertObjTag(mt.getBucket(), mt.getObjId(), mt.getVersionId(), mt.getTag());
+        }
     }
     
     @Override
     public void updateObjectAcl(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateAclQuery);
-        pstUpdateAcl.clearParameters();
-        pstUpdateAcl.setString(1, mt.getAcl());
-        pstUpdateAcl.setString(2, mt.getObjId());
-        pstUpdateAcl.setString(3, mt.getVersionId());
-        pstUpdateAcl.executeUpdate();
+        try (PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateAclQuery)){
+            pstUpdateAcl.clearParameters();
+            pstUpdateAcl.setString(1, mt.getAcl());
+            pstUpdateAcl.setString(2, mt.getObjId());
+            pstUpdateAcl.setString(3, mt.getVersionId());
+            pstUpdateAcl.executeUpdate();
+        }
     }
     
     @Override
     public void updateObjectMeta(Metadata mt) throws SQLException {
-        PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateObjectMetaQuery);
-        pstUpdateObjectMeta.clearParameters();
-        pstUpdateObjectMeta.setString(1, mt.getMeta());
-        pstUpdateObjectMeta.setString(2, mt.getObjId());
-        pstUpdateObjectMeta.setString(3, mt.getVersionId());
-        pstUpdateObjectMeta.executeUpdate();
+        try (PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateObjectMetaQuery)){
+            pstUpdateObjectMeta.clearParameters();
+            pstUpdateObjectMeta.setString(1, mt.getMeta());
+            pstUpdateObjectMeta.setString(2, mt.getObjId());
+            pstUpdateObjectMeta.setString(3, mt.getVersionId());
+            pstUpdateObjectMeta.executeUpdate();
+        }
     }
     
     private int updateVersionDelete(String bucketName, String objId) throws SQLException{ 
-        PreparedStatement pstupdateLastVersionDelete = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionDeleteQuery);
-        pstupdateLastVersionDelete.clearParameters();
-        pstupdateLastVersionDelete.setString(1, objId);
-        pstupdateLastVersionDelete.execute();
-        return 0;
+        try (PreparedStatement pstupdateLastVersionDelete = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateLastVersionDeleteQuery)){
+            pstupdateLastVersionDelete.clearParameters();
+            pstupdateLastVersionDelete.setString(1, objId);
+            pstupdateLastVersionDelete.execute();
+            return 0;
+        }
     }
 
     @Override
     public int deleteObject(String bucketName, String path, String versionId) {
         try{
             String objId = new Metadata(bucketName, path).getObjId();
-            PreparedStatement pststmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objDeleteQuery);
-            pststmt.clearParameters();
-            pststmt.setString(1, objId);
-            pststmt.setString(2, versionId);
-            if (pststmt.executeUpdate()> 0)
-                updateBucketFileCount(bucketName, -1);
-            
+            try (PreparedStatement pststmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objDeleteQuery)){
+                pststmt.clearParameters();
+                pststmt.setString(1, objId);
+                pststmt.setString(2, versionId);
+                if (pststmt.executeUpdate()> 0)
+                    updateBucketFileCount(bucketName, -1);
+            }
             if (versionId != null){
                 if (!versionId.isEmpty())
                     updateVersionDelete(bucketName, objId);
@@ -699,13 +713,14 @@ public class MysqlDataRepository implements DataRepository{
     public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
         int ret;
         String objId = new Metadata(bucketName, path).getObjId();
-        PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateDeleteMarkerQuery);
-        pstUpdateDeleteMarker.clearParameters();
-        pstUpdateDeleteMarker.setString(1, markDelete);
-        pstUpdateDeleteMarker.setBoolean(2, false);
-        pstUpdateDeleteMarker.setString(3, objId);
-        pstUpdateDeleteMarker.setString(4, versionId);
-        ret= pstUpdateDeleteMarker.executeUpdate();
+        try (PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateDeleteMarkerQuery)){
+            pstUpdateDeleteMarker.clearParameters();
+            pstUpdateDeleteMarker.setString(1, markDelete);
+            pstUpdateDeleteMarker.setBoolean(2, false);
+            pstUpdateDeleteMarker.setString(3, objId);
+            pstUpdateDeleteMarker.setString(4, versionId);
+            ret= pstUpdateDeleteMarker.executeUpdate();
+        }
         if (ret  > 0){
             if (versionId != null){
                 if (!versionId.isEmpty())
@@ -717,19 +732,19 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public boolean isBucketDeleted(String bucket) throws SQLException {
-        pstIsDeleteBucket = getObjPreparedStmt(bucket, DataRepositoryQuery.objIsDeleteBucketQuery);
-        pstIsDeleteBucket.clearParameters();
-        //pstIsDeleteBucket.setString(1, bucket);
-        ResultSet rs = pstIsDeleteBucket.executeQuery();
+        try (PreparedStatement pstIsDeleteBucket1 = getObjPreparedStmt(bucket, DataRepositoryQuery.objIsDeleteBucketQuery)){
+            pstIsDeleteBucket1.clearParameters();
+            //pstIsDeleteBucket1.setString(1, bucket);
+            ResultSet rs = pstIsDeleteBucket1.executeQuery();
         
-        if (rs == null) {
-            return true;
-        }
+            if (rs == null) {
+                return true;
+            }
 
-        if (rs.next()) {
-            return false;
+            if (rs.next()) {
+                return false;
+            }
         }
-
         return true;
     }
     //1 bucketName, 2 bucketId, 3 diskPoolId, 4 userName, 5 user, 6 acl, 7 encryption, 8 objectlock, 
@@ -1654,16 +1669,17 @@ public class MysqlDataRepository implements DataRepository{
     }
 
     private void insertLifeCycle(String eventName, LifeCycle lc) throws SQLException{
-        PreparedStatement pstInsertLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.insertLifeCycleQuery);
-        pstInsertLifeCycle.clearParameters();
-        pstInsertLifeCycle.setLong(  1, lc.getIndex());
-        pstInsertLifeCycle.setString(2, lc.getBucketName());
-        pstInsertLifeCycle.setString(3, lc.getKey());
-        pstInsertLifeCycle.setString(4, lc.getObjId());
-        pstInsertLifeCycle.setString(5, lc.getVersionId());
-        pstInsertLifeCycle.setString(6, lc.getUploadId());
-        pstInsertLifeCycle.setString(7, lc.getLog());
-        pstInsertLifeCycle.execute();
+        try (PreparedStatement pstInsertLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.insertLifeCycleQuery)){
+            pstInsertLifeCycle.clearParameters();
+            pstInsertLifeCycle.setLong(  1, lc.getIndex());
+            pstInsertLifeCycle.setString(2, lc.getBucketName());
+            pstInsertLifeCycle.setString(3, lc.getKey());
+            pstInsertLifeCycle.setString(4, lc.getObjId());
+            pstInsertLifeCycle.setString(5, lc.getVersionId());
+            pstInsertLifeCycle.setString(6, lc.getUploadId());
+            pstInsertLifeCycle.setString(7, lc.getLog());
+            pstInsertLifeCycle.execute();
+        }
     }
     
  
@@ -1688,40 +1704,43 @@ public class MysqlDataRepository implements DataRepository{
     
     
     private LifeCycle selectLifeCycle(String eventName, LifeCycle lc) throws SQLException{
-        PreparedStatement pstSelectLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectLifeCycleQuery);
-        pstSelectLifeCycle.setString(1, lc.getObjId());
-        pstSelectLifeCycle.setString(2, lc.getVersionId());
-        ResultSet rs = pstSelectLifeCycle.executeQuery();
-        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
-        if (list.isEmpty())
-            return null;
-        
-        return list.get(0);
-        
+        try (PreparedStatement pstSelectLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectLifeCycleQuery)){
+            pstSelectLifeCycle.setString(1, lc.getObjId());
+            pstSelectLifeCycle.setString(2, lc.getVersionId());
+            ResultSet rs = pstSelectLifeCycle.executeQuery();
+            List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+            if (list.isEmpty())
+                return null;
+
+            return list.get(0);
+        }
     }
     
     private LifeCycle selectByUploadIdLifeCycle(String eventName, String uploadId) throws SQLException{
-        PreparedStatement pstSelectByUploadIdLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectByUploadIdLifeCycleQuery);
-        pstSelectByUploadIdLifeCycle.setString(1, uploadId);
-        ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
-        List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
-        if (list.isEmpty())
-            return null;
-        
-        return list.get(0);
+        try (PreparedStatement pstSelectByUploadIdLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectByUploadIdLifeCycleQuery)){
+            pstSelectByUploadIdLifeCycle.setString(1, uploadId);
+            ResultSet rs = pstSelectByUploadIdLifeCycle.executeQuery();
+            List<LifeCycle> list = parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+            if (list.isEmpty())
+                return null;
+
+            return list.get(0);
+        }
     }
    
     private List<LifeCycle> selectAllLifeCycle(String eventName) throws SQLException{
-        PreparedStatement pstSelectAllLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectAllLifeCycleQuery);
-        ResultSet rs = pstSelectAllLifeCycle.executeQuery();
-        return parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        try (PreparedStatement pstSelectAllLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.selectAllLifeCycleQuery)){
+            ResultSet rs = pstSelectAllLifeCycle.executeQuery();
+            return parseSelectLifeCycle(rs, eventName.equals(DataRepositoryQuery.lifeCycleFailedEventTableName));
+        }
     }
     
     private int deleteLifeCycle(String eventName, LifeCycle lc) throws SQLException{
-        PreparedStatement pstDeleteLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.deleteLifeCycleQuery);
-        pstDeleteLifeCycle.setString(1, lc.getObjId());
-        pstDeleteLifeCycle.setString(2, lc.getVersionId());
-        return pstDeleteLifeCycle.executeUpdate();
+        try (PreparedStatement pstDeleteLifeCycle = this.getObjPreparedStmt(eventName, DataRepositoryQuery.deleteLifeCycleQuery)){
+            pstDeleteLifeCycle.setString(1, lc.getObjId());
+            pstDeleteLifeCycle.setString(2, lc.getVersionId());
+            return pstDeleteLifeCycle.executeUpdate();
+        }
     }
     
     @Override
@@ -1775,8 +1794,9 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private void createObjectTagIndexingTable(String bucketName) throws SQLException{
-        PreparedStatement pstStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.createTagIndexingQuery);
-        pstStmt.execute();
+        try (PreparedStatement pstStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.createTagIndexingQuery)){
+            pstStmt.execute();
+        }
     }
     
     private int insertObjTag(String bucketName, String objId, String versionId, String tags) {
@@ -1803,22 +1823,23 @@ public class MysqlDataRepository implements DataRepository{
             }
             
             //removeObjTag(bucketName, objId, versionId, tags);
-            PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.insertTagIndexingQuery);
+            try (PreparedStatement pstInsertStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.insertTagIndexingQuery)){
             
-            pstInsertStmt.clearParameters();
-            pstInsertStmt.setString(1, objId);
-            pstInsertStmt.setString(2, versionId);
-            Document tagDoc = Document.parse(tagsJson);
-            Iterator it = tagDoc.keySet().iterator();
-            while(it.hasNext()){
-                tkey = (String)it.next();
-                tvalue = tagDoc.getString(tkey);
-                pstInsertStmt.setString(3, tkey);
-                pstInsertStmt.setString(4, tvalue);
-                if (pstInsertStmt.execute())
-                    ret++;
+                pstInsertStmt.clearParameters();
+                pstInsertStmt.setString(1, objId);
+                pstInsertStmt.setString(2, versionId);
+                Document tagDoc = Document.parse(tagsJson);
+                Iterator it = tagDoc.keySet().iterator();
+                while(it.hasNext()){
+                    tkey = (String)it.next();
+                    tvalue = tagDoc.getString(tkey);
+                    pstInsertStmt.setString(3, tkey);
+                    pstInsertStmt.setString(4, tvalue);
+                    if (pstInsertStmt.execute())
+                        ret++;
+                }
+                return ret;
             }
-            return ret;
         } catch (SQLException  ex) {
             logger.error(ex.getMessage());
             //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -1827,11 +1848,12 @@ public class MysqlDataRepository implements DataRepository{
     }
     
     private int removeObjTag(String bucketName, String objId, String versionId) throws SQLException{
-        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery1);
-        pstdeleteStmt.clearParameters();
-        pstdeleteStmt.setString(1, objId);
-        pstdeleteStmt.setString(2, versionId);
-        return pstdeleteStmt.executeUpdate();
+        try (PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery1)){
+            pstdeleteStmt.clearParameters();
+            pstdeleteStmt.setString(1, objId);
+            pstdeleteStmt.setString(2, versionId);
+            return pstdeleteStmt.executeUpdate();
+        }
     }
     
     private int removeObjTag(String bucketName, String objId, String versionId, String tags) throws SQLException{
@@ -1843,19 +1865,20 @@ public class MysqlDataRepository implements DataRepository{
         if (tagsJson.isEmpty())
             return 0;
         
-        PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery2);
-        pstdeleteStmt.clearParameters();
-        pstdeleteStmt.setString(1, objId);
-        pstdeleteStmt.setString(2, versionId);
-        Document doc = Document.parse(tagsJson);
-        Iterator it = doc.keySet().iterator();
-        if (it.hasNext()){
-            while(it.hasNext()){
-                key = (String)it.next();
-                pstdeleteStmt.setString(3, key);
+        try (PreparedStatement pstdeleteStmt = getObjPreparedStmt(bucketName + DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.deleteTagIndexingQuery2)){
+            pstdeleteStmt.clearParameters();
+            pstdeleteStmt.setString(1, objId);
+            pstdeleteStmt.setString(2, versionId);
+            Document doc = Document.parse(tagsJson);
+            Iterator it = doc.keySet().iterator();
+            if (it.hasNext()){
+                while(it.hasNext()){
+                    key = (String)it.next();
+                    pstdeleteStmt.setString(3, key);
+                }
             }
+            return pstdeleteStmt.executeUpdate();
         }
-        return pstdeleteStmt.executeUpdate();
     }
     
     private List<Metadata> parseSelectListObjectwithTags(String bucketName, ResultSet rs) throws SQLException{
@@ -1874,9 +1897,10 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException{
-        PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName+ DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.selectTagIndexingQuery + (String)query);  
-        ResultSet rs = pstselectStmt.executeQuery();
-        return parseSelectListObjectwithTags(bucketName, rs);
+        try (PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName+ DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.selectTagIndexingQuery + (String)query)){  
+            ResultSet rs = pstselectStmt.executeQuery();
+            return parseSelectListObjectwithTags(bucketName, rs);
+        }
     }
 
     private void createRestoreObjectTable() throws SQLException{
