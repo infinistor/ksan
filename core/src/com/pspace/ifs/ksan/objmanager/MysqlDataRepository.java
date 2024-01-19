@@ -26,15 +26,14 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * @author legesse
@@ -46,7 +45,7 @@ public class MysqlDataRepository implements DataRepository{
     private String passwd;
     private Connection con;
     private ObjManagerCache  obmCache;
-    
+    private static Logger logger;
     // for buckets
     private PreparedStatement pstCreateBucket;
     private PreparedStatement pstInsertBucket;
@@ -109,6 +108,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstDeleteRestoreObjects;
             
     public MysqlDataRepository(ObjManagerCache  obmCache, String host, String username, String passwd, String dbname) throws SQLException{
+        logger = LoggerFactory.getLogger(MysqlDataRepository.class);
         this.obmCache = obmCache;
         this.passwd = passwd;
         this.username = username;
@@ -193,7 +193,7 @@ public class MysqlDataRepository implements DataRepository{
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS "+ dbname+ ";");
             return 0;
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
         }finally{
             try {
                 if (stmt != null)
@@ -201,7 +201,7 @@ public class MysqlDataRepository implements DataRepository{
                 if (connC != null)
                     connC.close();
             } catch (SQLException ex) {
-                Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+                logger.error(ex.getMessage());
             }
         }
         return -1;
@@ -220,14 +220,13 @@ public class MysqlDataRepository implements DataRepository{
             this.ex_message(ex);
             return -1;
         } catch (ClassNotFoundException ex) { 
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
         }
         return 0;
     }
     
     private void ex_message(SQLException ex){
-        Logger lgr = Logger.getLogger(MysqlDataRepository.class.getName());
-        lgr.log(Level.SEVERE, ex.getMessage(), ex);
+        logger.error(ex.getMessage());
     }
     
     private int createTable() throws SQLException{
@@ -385,6 +384,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int insertObject(Metadata md) throws ResourceNotFoundException{
         try{
+            logger.debug("[insertObject] Start bucketName : {} key : {}  versionId : {} ", md.getBucket(), md.getPath(), md.getVersionId());
             PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objInsertQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, md.getBucket());
@@ -416,8 +416,10 @@ public class MysqlDataRepository implements DataRepository{
                 return updateMetadata(md);
             
             this.ex_message(ex);
+            logger.debug("[insertObject] End bucketName : {} key : {}  versionId : {} ret : {}", md.getBucket(), md.getPath(), md.getVersionId(), -1);
             return -1;
         }
+        logger.debug("[insertObject] End bucketName : {} key : {}  versionId : {} ret : {}", md.getBucket(), md.getPath(), md.getVersionId(), 0);
         return 0;
     }
     
@@ -444,7 +446,7 @@ public class MysqlDataRepository implements DataRepository{
                 return pstupdateRDisks.executeUpdate();
             }
         } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
         }
         return -1;
     }
@@ -459,7 +461,8 @@ public class MysqlDataRepository implements DataRepository{
             pstupdateSizeTime.setString(3, md.getObjId());
             return pstupdateSizeTime.executeUpdate();
         } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
+            //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
         return -1;
     }
@@ -513,10 +516,12 @@ public class MysqlDataRepository implements DataRepository{
     
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId) throws ResourceNotFoundException {
         try{
+            logger.debug("[selectSingleObjectInternal] Start bucketName : {} objId : {} ", bucketName, objId);
             PreparedStatement pstStmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneQuery);
             pstStmt.clearParameters();
             pstStmt.setString(1, objId);
             ResultSet rs = pstStmt.executeQuery();
+            logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} rowc: {}", bucketName, objId, rs.getRow());
             return getSelectObjectResult(bucketName, objId, rs);
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
@@ -527,11 +532,13 @@ public class MysqlDataRepository implements DataRepository{
 
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         try{
+            logger.debug("[selectSingleObjectInternal] Start bucketName : {} objId : {}  versionId : {} ", bucketName, objId, versionId);
             PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery);
             pstSelectOneWithVersionId.clearParameters();
             pstSelectOneWithVersionId.setString(1, objId);
             pstSelectOneWithVersionId.setString(2, versionId);
             ResultSet rs = pstSelectOneWithVersionId.executeQuery();
+            logger.debug("[selectSingleObjectInternal] End bucketName : {} objId : {} versionId {} rowc: {}", bucketName, objId, versionId, rs.getRow());
             return getSelectObjectResult(bucketName, objId, rs);      
         } catch(SQLException ex){
             //System.out.println(" error : " + ex.getMessage());
@@ -758,7 +765,7 @@ public class MysqlDataRepository implements DataRepository{
         try {
             createObjectTagIndexingTable(bt.getName());
         } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+           logger.error(ex.getMessage());
         }
         return bt;
     }
@@ -839,14 +846,16 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public synchronized Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException{
-        
+        logger.debug("[selectBucket] Begin bucketName : {} ", bucketName);
         this.pstSelectBucket.clearParameters();
         this.pstSelectBucket.setString(1, getBucketId(bucketName));
         ResultSet rs = this.pstSelectBucket.executeQuery();
 
-        while(rs.next()){
+        if(rs.next()){
+           logger.debug("[selectBucket] End bucketName : {} ret :  0", bucketName);
            return parseBucket(rs);
         }
+        logger.debug("[selectBucket] End bucketName : {} ret :  -2", bucketName);
         throw new ResourceNotFoundException("Bucket("+bucketName+") is not found in the db");
     }
     
@@ -870,7 +879,7 @@ public class MysqlDataRepository implements DataRepository{
             try { 
                 _loadBucketList(); // to fix connection reset by peer
             } catch (SQLException ex) {
-                Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
+                logger.error(ex.getMessage());
             }
         }
     }
@@ -889,7 +898,8 @@ public class MysqlDataRepository implements DataRepository{
             return btList;
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
+            logger.error(ex.getMessage());
+            //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, "failed to loadBucketList due to sql error!", ex);
         }
         return null;
     }
@@ -902,7 +912,8 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucket.setString(2, getBucketId(bt.getName()));
             return pstUpdateBucket.executeUpdate();
         } catch (SQLException ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
+            //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
         return -1;
     }
@@ -1809,7 +1820,8 @@ public class MysqlDataRepository implements DataRepository{
             }
             return ret;
         } catch (SQLException  ex) {
-            Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex.getMessage());
+            //Logger.getLogger(MysqlDataRepository.class.getName()).log(Level.SEVERE, null, ex);
             return 0;
         }
     }

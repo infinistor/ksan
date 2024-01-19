@@ -195,8 +195,9 @@ public class Objects {
         }
         
         mt.updateLastmodified(); // to update last modified time to now
-        logger.debug("[_close] End bucketName : {} key : {}  versionId : {} ", bucketName, key, mt.getVersionId());
-        return dbm.insertObject(mt); 
+        int ret = dbm.insertObject(mt);
+        logger.debug("[_close] End bucketName : {} key : {}  versionId : {} ret : {}", bucketName, key, mt.getVersionId(), ret);
+        return ret; 
     }
     
     private HashMap<String, String> getTagsKeyValue(String tagsList){
