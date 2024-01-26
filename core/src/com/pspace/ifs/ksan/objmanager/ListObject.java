@@ -331,7 +331,7 @@ public class ListObject{
         String sql;
         if (!diskid.isEmpty()){
             sql = "SELECT count(*) FROM `" + bucketName + "`"
-                        + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
+                        + "WHERE (pdiskid like '" + diskid 
                         + "' OR rdiskid like '" + diskid + "')";
         }
         else {
@@ -342,7 +342,7 @@ public class ListObject{
     
     private void makeQueryV1(){
         
-        query = "SELECT * FROM `" + bucketName + "` WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+        query = "SELECT * FROM `" + bucketName + "` WHERE lastversion=true AND deleteMarker <> 'mark' ";
 
         if (bBucketListParameterPrefix)
             query += " AND objKey LIKE ?";
@@ -364,7 +364,7 @@ public class ListObject{
     
     private void makeQueryV2(){
         
-       query = "SELECT * FROM `"+ bucketName +"` WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+       query = "SELECT * FROM `"+ bucketName +"` WHERE lastversion=true AND deleteMarker <> 'mark' ";
        
        if (bBucketListParameterPrefix)
            query += " AND objKey LIKE ?";
@@ -393,7 +393,7 @@ public class ListObject{
     
     private void makeQueryWithVersion(){
         
-        query = "SELECT * FROM `"+ bucketName +"` WHERE bucket='" + bucketName + "' ";
+        query = "SELECT * FROM `"+ bucketName +"` WHERE ";
 
 	if (bBucketListParameterPrefix)
             query += " AND objKey LIKE ?";
@@ -563,10 +563,6 @@ public class ListObject{
            
            if (bBucketListParameterPrefix){  
                prefixStr = escapeSpecialChars(prefix);
-               /*prefixStr = prefix.replaceAll("\\%",  "\\\\/")
-                   .replaceAll("\\_",  "\\\\_")
-                   .replaceAll("\\(", "\\\\(")
-                   .replaceAll("\\)", "\\\\)");*/
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr)));//.append("$options", "i")
            }
            
@@ -646,8 +642,8 @@ public class ListObject{
         mongoQuery = makeMongoQuery();
         if (mongoQuery != null){
             logger.debug(" >>mongo query : {}", mongoQuery.toString());
-            if (listType.equalsIgnoreCase("listObjectVersion")) 
-                logger.error(" >>mongo query : {}", mongoQuery.toString());
+            //if (listType.equalsIgnoreCase("listObjectVersion")) 
+            //    logger.error(" >>mongo query : {}", mongoQuery.toString());
             return;
         }
         
@@ -657,6 +653,8 @@ public class ListObject{
             makeQueryV2();
         else if (listType.equalsIgnoreCase("listObjectVersion")) 
             makeQueryWithVersion();
+        
+        logger.error(" >>mariadb({}) query : {}", listType, query);
     }
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{

@@ -12,12 +12,12 @@ package com.pspace.ifs.ksan.objmanager;
 public final class DataRepositoryQuery {
     // for objects
     public static String objCreateQuery = "CREATE TABLE IF NOT EXISTS %s("
-            + "bucket VARCHAR(256) NOT NULL, objKey VARBINARY(2048) NOT NULL, size BIGINT NOT NULL default 0,"
+            + "bucket VARCHAR(64) NOT NULL, objKey VARBINARY(2048) NOT NULL, size BIGINT NOT NULL default 0,"
             + "etag TEXT NOT NULL, meta TEXT NOT NULL, tag TEXT NOT NULL, "
             + "pdiskid VARCHAR(80) NOT NULL, rdiskid VARCHAR(80) NOT NULL, objid VARCHAR(50) NOT NULL, "
             + "acl TEXT NOT NULL, "
             + "lastModified BIGINT DEFAULT 0, versionid VARCHAR(50) NOT NULL DEFAULT 'nil', deleteMarker VARCHAR(32) NOT NULL, lastversion BOOLEAN default true, "
-            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";  
+            + "PRIMARY KEY(objid, versionid, deleteMarker), INDEX index_objkey_lastversion_lastModified(objkey, lastversion, lastModified), INDEX index_diskid(pdiskid, rdiskid)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";  
     
     public  static String objInsertQuery = "INSERT INTO %s(bucket, objKey, etag, meta, tag, acl, size, lastModified, pdiskid, rdiskid, objid, versionid, deleteMarker, lastversion) VALUES(?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, true)";
     public  static String objDeleteQuery = "DELETE FROM %s WHERE objid=? AND (versionid=? OR versionid is NULL)";
@@ -88,7 +88,7 @@ public final class DataRepositoryQuery {
     
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("
-                    + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+                    + " bucket VARCHAR(64) NOT NULL DEFAULT '' COMMENT 'bucket name',"
                     + " objKey VARBINARY(2048) COMMENT 'Object key'," 
                     + " changeTime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'time upload started',"
                     + " completed BOOLEAN DEFAULT false COMMENT 'job completed or in-progress',"
@@ -101,7 +101,7 @@ public final class DataRepositoryQuery {
                     + " partNo INT NOT NULL COMMENT 'part sequence number',"
                     + " pdiskid VARCHAR(80) NOT NULL, "
                     + " rdiskid VARCHAR(80) , "
-                    + " PRIMARY KEY(uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
+                    + " PRIMARY KEY(bucket, uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
      public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, rdiskid, changeTime, partRef) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?)";
      public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now(), meta=?, etag=?, size=? WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";
@@ -120,7 +120,7 @@ public final class DataRepositoryQuery {
      public  static String  createUJobQuery = "CREATE TABLE IF NOT EXISTS UTILJOBS(Id VARCHAR(15) NOT NULL PRIMARY KEY, "
                     + "status VARCHAR(20) NOT NULL, TotalNumObject BIGINT NOT NULL default 0, "
                     + "NumJobDone BIGINT NOT NULL default 0, checkOnly BOOLEAN DEFAULT false, "
-                    + "utilName VARCHAR(256) NOT NULL, startTime DATETIME )";
+                    + "utilName VARCHAR(256) NOT NULL, startTime DATETIME ) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
      public  static String  insertUJobQuery = "INSERT INTO UTILJOBS(Id, status, TotalNumObject, checkOnly, utilName, startTime) VALUES(?, ?, ?, ?, ?, now())";
      public  static String  updateUJob1Query = "UPDATE UTILJOBS SET status=? WHERE Id=?";
      public  static String  updateUJob2Query = "UPDATE UTILJOBS SET TotalNumObject=?, NumJobDone=? WHERE Id=?";
@@ -131,7 +131,7 @@ public final class DataRepositoryQuery {
     public static String lifeCycleFailedEventTableName="LIFECYCLESFAILEDEVENTS";
     public  static String createLifeCycleQuery= "CREATE TABLE IF NOT EXISTS %s("
                     + " idx bigint(20),"
-                    + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+                    + " bucket VARCHAR(64) NOT NULL DEFAULT '' COMMENT 'bucket name',"
                     + " objKey VARBINARY(2048) COMMENT 'Object key'," 
                     + " objid VARCHAR(50) NOT NULL COMMENT 'md5 of bucket/objkey',"
                     + " versionid VARCHAR(50) NOT NULL DEFAULT 'null',"
@@ -143,7 +143,7 @@ public final class DataRepositoryQuery {
     public static String selectByUploadIdLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE uploadid=?";
     public static String selectLifeCycleQuery = "SELECT idx, bucket, objKey, objid, versionid, uploadid, inDate, log FROM %s WHERE objid=? AND AND versionid=?";
     public static String selectAllLifeCycleQuery = "SELECT idx, bucket, objKey, versionid, uploadid, inDate, log FROM %s";
-    public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE objKey=? AND versionid=?";
+    public static String deleteLifeCycleQuery = "DELETE FROM %s WHERE objid=? AND versionid=?";
 
     // for tags indexing
     public static String tagIndexingTablePrefexi = "_ObjTagIndex";
@@ -161,7 +161,7 @@ public final class DataRepositoryQuery {
     
     // for restore objects
     public  static String createRestoreObjectsQuery= "CREATE TABLE IF NOT EXISTS RESTOREOBJECTS("
-            + " bucket VARCHAR(256) NOT NULL DEFAULT '' COMMENT 'bucket name',"
+            + " bucket VARCHAR(64) NOT NULL DEFAULT '' COMMENT 'bucket name',"
             + " objKey VARBINARY(2048) COMMENT 'Object key',"
             + " objid VARCHAR(50) NOT NULL, "
             + " versionid VARCHAR(50) NOT NULL DEFAULT 'nil',"
