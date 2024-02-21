@@ -33,6 +33,7 @@ import com.pspace.ifs.ksan.libs.identity.S3BucketSimpleInfo;
 import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
+import com.google.common.base.Strings;
 
 import org.slf4j.LoggerFactory;
 
@@ -48,16 +49,18 @@ public class ListBucketInventory extends S3Request {
         logger.info(GWConstants.LOG_LIST_BUCEKT_INVENTORY_START);
         String bucket = s3Parameter.getBucketName();
 		initBucketInfo(bucket);
-        
+
         String inventoryList = getBucketInfo().getInventory();
         
         String inventoryInfo = GWConstants.XML_VERSION_FULL;
         inventoryInfo += "<ListInventoryConfigurationsResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
         inventoryInfo += "<IsTruncated>false</IsTruncated>";
         
-        String[] inventoryIds = inventoryList.split("\\n");
-        for (String inventoryId : inventoryIds) {
-            inventoryInfo += inventoryId;
+        if (!Strings.isNullOrEmpty(inventoryList)) {
+            String[] inventoryIds = inventoryList.split("\\n");
+            for (String inventoryId : inventoryIds) {
+                inventoryInfo += inventoryId;
+            }
         }
 
         inventoryInfo += "</ListInventoryConfigurationsResult>";
