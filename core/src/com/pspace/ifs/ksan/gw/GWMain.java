@@ -26,6 +26,7 @@ import com.pspace.ifs.ksan.gw.utils.GWConstants;
 import com.pspace.ifs.ksan.gw.utils.GWLogging;
 import com.pspace.ifs.ksan.libs.Constants;
 import com.pspace.ifs.ksan.libs.HeartbeatManager;
+import com.pspace.ifs.ksan.libs.KsanUtils;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.libs.config.AgentConfig;
 import com.pspace.ifs.ksan.gw.utils.GWPortal;
@@ -57,7 +58,7 @@ public class GWMain {
 
 		Runtime.getRuntime().addShutdownHook(new HookThread());
 		setSystemConfiguration();
-		writePID();
+		KsanUtils.writePID(System.getProperty(Constants.GW_PID_KEY) + File.separator + Constants.GW_PID_FILE);
 
 		// setting timezone, locale 
 		// TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
@@ -160,31 +161,6 @@ public class GWMain {
 			}
 		}
 	}
-
-	public static void writePID() {
-        // File file = new File(GWConstants.PID_PATH);
-		File file = new File(System.getProperty(Constants.GW_PID_KEY) + File.separator + Constants.GW_PID_FILE);
-        try {
-            if (!file.exists()) {
-                if (!file.createNewFile()) {
-					logger.error(GWConstants.LOG_PID_FILE_CREATE_FAILED);
-				}
-            }
-            try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
-				Long pid = ProcessHandle.current().pid();
-
-				logger.debug(GWConstants.LOG_GW_PID, pid);
-				fw.write(String.valueOf(pid));
-				fw.flush();
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-				System.exit(-1);
-			}
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            System.exit(-1);
-        }
-    }
 
 	private static void setSystemConfiguration() {
 		System.setProperty(Constants.GW_SERVICEID_KEY, Constants.GW_SERVICEID_DIR);
