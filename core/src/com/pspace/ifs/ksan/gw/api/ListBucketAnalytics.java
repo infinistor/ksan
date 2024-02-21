@@ -34,6 +34,8 @@ import com.pspace.ifs.ksan.gw.identity.S3Parameter;
 import com.pspace.ifs.ksan.libs.PrintStack;
 import com.pspace.ifs.ksan.gw.utils.GWConstants;
 
+import com.google.common.base.Strings;
+
 import org.slf4j.LoggerFactory;
 
 public class ListBucketAnalytics extends S3Request {
@@ -56,11 +58,13 @@ public class ListBucketAnalytics extends S3Request {
         analyticsInfo += "<ListBucketAnalyticsConfigurationsResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
         analyticsInfo += "<IsTruncated>false</IsTruncated>";
 
-        String[] analyticsIds = analyticsList.split("\\n");
-        for (String analyticsId : analyticsIds) {
-            analyticsInfo += analyticsId;
+        if (!Strings.isNullOrEmpty(analyticsList)) {
+            String[] analyticsIds = analyticsList.split("\\n");
+            for (String analyticsId : analyticsIds) {
+                analyticsInfo += analyticsId;
+            }
         }
-
+        
         analyticsInfo += "</ListBucketAnalyticsConfigurationsResult>";
         logger.debug("analyticsInfo: " + analyticsInfo);
 

@@ -32,7 +32,7 @@ public final class DataRepositoryQuery {
     public  static String objUpdateRDisksQuery = "UPDATE %s SET rdiskid=? WHERE objid=? AND versionid=?";
     public  static  String objUpdateSizeTimeQuery = "UPDATE %s SET size=?, lastModified=? WHERE objid=?";
     public  static  String objUpdateLastVersionQuery = "UPDATE %s SET lastversion=false WHERE objid=? AND lastversion=true";
-    public  static String objUpdateLastVersionDeleteQuery = "UPDATE %s SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified asc limit 1";
+    public  static String objUpdateLastVersionDeleteQuery = "UPDATE %s SET lastversion=true WHERE objid=? AND deleteMarker <> 'mark' ORDER BY lastModified DESC limit 1";
     //public  static String objSelectUsedDisksQuery = "SELECT pdiskid as diskid FROM %s UNION DISTINCT SELECT rdiskid FROM %s;";
     public  static String objSelectUsedDisksQuery = "SELECT pdiskid, rdiskid, objKey FROM %s WHERE objId > ? ORDER BY objKey LIMIT ?;";
     public  static String objIsDeleteBucketQuery = "SELECT objKey FROM %s LIMIT 1";

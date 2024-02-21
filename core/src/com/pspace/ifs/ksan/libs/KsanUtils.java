@@ -69,20 +69,18 @@ public class KsanUtils {
             boolean created = false;
             if (!file.exists()) {
                 created = file.createNewFile();
-            }
-
-            if (!created) {
-                try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
-                    Long pid = ProcessHandle.current().pid();
-    
-                    fw.write(String.valueOf(pid));
-                    fw.flush();
-                } catch (IOException e) {
-                    logger.error(e.getMessage());
+                if (!created) {
+                    logger.error("failed to create pid file : {}", path);
                     System.exit(-1);
                 }
-            } else {
-                logger.error("failed to create pid file");
+            }
+
+            try(FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8)) {
+                Long pid = ProcessHandle.current().pid();
+                fw.write(String.valueOf(pid));
+                fw.flush();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
                 System.exit(-1);
             }
         } catch (IOException e) {

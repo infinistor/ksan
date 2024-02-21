@@ -10,6 +10,7 @@
 */
 package com.pspace.ifs.ksan.objmanager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.mongodb.BasicDBObject;
 import com.pspace.ifs.ksan.libs.identity.ObjectListParameter;
@@ -392,40 +393,42 @@ public class ListObject{
     
     private void makeQueryWithVersion(){
         boolean whereAdded=false;
-        
+
         query = "SELECT * FROM `"+ bucketName +"` ";
 
 	if (bBucketListParameterPrefix){
             query += " WHERE objKey LIKE ?";
-            whereAdded = true;
-        }
+	    whereAdded = true;
+	}
 
 	if (bMarker && !bVersionIdMarker){
-            if (whereAdded)
-                query += " AND objKey > ?";
-            else{
-                query += " WHERE objKey > ?";
-                whereAdded = true;
-            }
-        }
+	    if (whereAdded)
+	        query += " AND objKey > ?";
+	    else {
+		query += " WHERE objKey > ?";
+		whereAdded = true;
+            }		    
+	}
 
 	if (bVersionIdMarker){
-            if (whereAdded)
-                query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
-            else{
-                query += " WHERE ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
-                whereAdded = true;
-            }
-        } 
-	if (bDelForceGte) {
-            if (whereAdded)
-	       query += " AND objKey >= ?";
-            else {
-                query += " WHERE objKey >= ?";
+	    if (whereAdded){
+	        query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+	    }
+	    else {
+		query += " WHERE ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+		whereAdded = true;
             }
 	}
 
-        query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
+	if (bDelForceGte) {
+	    if (whereAdded)
+	        query += " AND objKey >= ?";
+	    else{
+		query += " WHERE objKey >= ?";
+	    }	    
+	}
+
+        query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1); 
     }
     
     private static String escapeSpecialChars(String source) {
