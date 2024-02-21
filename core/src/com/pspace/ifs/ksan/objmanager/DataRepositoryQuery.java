@@ -61,8 +61,8 @@ public final class DataRepositoryQuery {
     
     public  static String  insertBucketQuery = "INSERT INTO BUCKETS(bucketName, bucketId, diskPoolId, userName, user, acl, encryption, objectlock, replicaCount, objTagIndexing, accelerate, payment, notification) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public  static String  deleteBucketQuery = "DELETE FROM BUCKETS WHERE bucketId=?";
-    public  static String  selectBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS WHERE bucketId=?";
-    public  static String  selectAllBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification FROM BUCKETS";
+    public  static String  selectBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification, analytics, inventory FROM BUCKETS WHERE bucketId=?";
+    public  static String  selectAllBucketQuery = "SELECT bucketName, bucketId, diskPoolId, versioning, MfaDelete, userName, user, acl, web, cors, lifecycle, access, tagging, replication, encryption, objectlock, policy, createTime, replicaCount, usedSpace, fileCount, logging, objTagIndexing, accelerate, payment, notification, analytics, inventory FROM BUCKETS";
     public  static String  selectBucketAnalyticsQuery = "SELECT analytics FROM BUCKETS WHERE bucketId=?";
     public  static String  selectBucketInventoryQuery = "SELECT inventory FROM BUCKETS WHERE bucketId=?";
     public  static String  updateBucketQuery = "UPDATE BUCKETS SET versioning=? WHERE bucketId=?";            
@@ -72,19 +72,19 @@ public final class DataRepositoryQuery {
     public  static String  updateBucketLifecycleQuery = "UPDATE BUCKETS SET lifecycle=? WHERE bucketId=?";
     public  static String  updateBucketAccessQuery = "UPDATE BUCKETS SET access=? WHERE bucketId=?";
     public  static String  updateBucketTaggingQuery = "UPDATE BUCKETS SET tagging=? WHERE bucketId=?";
-    public  static String  updateBucketReplicationQuery = "UPDATE BUCK SET replication=? WHERE bucketId=?";
+    public  static String  updateBucketReplicationQuery = "UPDATE BUCKETS SET replication=? WHERE bucketId=?";
     public  static  String  updateBucketEncryptionQuery = "UPDATE BUCKETS SET encryption=? WHERE bucketId=?";
     public  static String  updateBucketObjectLockQuery = "UPDATE BUCKETS SET objectlock=? WHERE bucketId=?";
     public  static String  updateBucketPolicyQuery = "UPDATE BUCKETS SET policy=? WHERE bucketId=?";
     public  static String  updateBucketFilecountQuery = "UPDATE BUCKETS SET fileCount = fileCount + ? WHERE bucketId=?";
     public  static String  updateBucketUsedSpaceQuery = "UPDATE BUCKETS SET usedSpace = usedSpace + ? WHERE bucketId=?";
-    public  static String  updateBucketLoggingQuery = "UPDATE BUCK SET logging=? WHERE bucketId=?";
-    public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCK SET objTagIndexing=? WHERE bucketId=?";
-    public  static String  updateBucketAnalyticsQuery = "UPDATE BUCK SET analytics=? WHERE bucketId=?";
-    public  static String  updateBucketAccelerateQuery = "UPDATE BUCK SET accelerate=? WHERE bucketId=?";
-    public  static String  updateBucketPaymentQuery = "UPDATE BUCK SET payment=? WHERE bucketId=?";
-    public  static String  updateBucketNotificationQuery = "UPDATE BUCK SET notification=? WHERE bucketId=?";
-    public  static String  updateBucketInventoryQuery = "UPDATE BUCK SET inventory=? WHERE bucketId=?";
+    public  static String  updateBucketLoggingQuery = "UPDATE BUCKETS SET logging=? WHERE bucketId=?";
+    public  static String  updateBucketObjTagIndexingQuery = "UPDATE BUCKETS SET objTagIndexing=? WHERE bucketId=?";
+    public  static String  updateBucketAnalyticsQuery = "UPDATE BUCKETS SET analytics=? WHERE bucketId=?";
+    public  static String  updateBucketAccelerateQuery = "UPDATE BUCKETS SET accelerate=? WHERE bucketId=?";
+    public  static String  updateBucketPaymentQuery = "UPDATE BUCKETS SET payment=? WHERE bucketId=?";
+    public  static String  updateBucketNotificationQuery = "UPDATE BUCKETS SET notification=? WHERE bucketId=?";
+    public  static String  updateBucketInventoryQuery = "UPDATE BUCKETS SET inventory=? WHERE bucketId=?";
     
             // for multipart
      public  static String createMultiPartQuery= "CREATE TABLE IF NOT EXISTS MULTIPARTS("
@@ -102,14 +102,14 @@ public final class DataRepositoryQuery {
                     + " pdiskid VARCHAR(80) NOT NULL, "
                     + " rdiskid VARCHAR(80) , "
                     + " PRIMARY KEY(bucket, uploadid, partNo), INDEX index_objkey(objkey)) ENGINE=INNODB DEFAULT CHARSET=UTF8mb4 COLLATE=utf8mb4_unicode_ci;";
-     public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, rdiskid, changeTime, partRef) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?)";
+     public  static String  insertMultiPartQuery = "INSERT INTO MULTIPARTS(bucket, objKey, uploadid, partNo, acl, meta, etag, size, pdiskid, rdiskid, partRef, changeTime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
      public  static String  updateMultiPartQuery = "UPDATE MULTIPARTS SET completed=?, changeTime=now(), meta=?, etag=?, size=? WHERE uploadid=? and partNo=?";
      public  static String  deleteMultiPartQuery = "DELETE FROM MULTIPARTS WHERE uploadid=?";
      public  static String  selectMultiPartQuery = "SELECT bucket, objKey, uploadid, partNo FROM MULTIPARTS WHERE uploadid=? AND  partNo > ? ORDER BY partNo LIMIT ? ";
 
      public  static String  getMultiPartQuery = "SELECT bucket, objKey, changeTime, uploadid, acl, meta, pdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo = 0";
      public  static String  getPartsQuery = "SELECT changeTime, etag, size, partNo, pdiskid, rdiskid FROM MULTIPARTS WHERE uploadid=? AND  partNo != 0";
-     public  static String  getPartsMaxQuery = "SELECT changeTime, etag, size, partNo, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?";
+     public  static String  getPartsMaxQuery = "SELECT changeTime, etag, size, partNo, pdiskid, rdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo > ? ORDER BY partNo LIMIT ?";
      public  static String  getUploadsQuery = "SELECT objKey, changeTime, uploadid, meta FROM MULTIPARTS WHERE bucket=? AND partNo = 0 AND completed=false ORDER BY partNo LIMIT ? ";
      public  static String  isUploadQuery = "SELECT bucket FROM MULTIPARTS WHERE uploadid=?";
      public  static String  isUploadPartNoQuery ="SELECT bucket, objKey, acl, meta, etag, size, pdiskid FROM MULTIPARTS WHERE uploadid=? AND partNo=?";

@@ -66,6 +66,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketReplication;
     //private PreparedStatement pstIsDeleteBucket;
     private PreparedStatement pstUpdateBucketEncryption;
+    private PreparedStatement pstUpdateBucketLogging;
     private PreparedStatement pstUpdateBucketObjectLock;
     private PreparedStatement pstUpdateBucketPolicy;
     private PreparedStatement pstUpdateBucketFilecount;
@@ -134,6 +135,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketTagging = con.prepareStatement(DataRepositoryQuery.updateBucketTaggingQuery);
             pstUpdateBucketReplication = con.prepareStatement(DataRepositoryQuery.updateBucketReplicationQuery);
             pstUpdateBucketEncryption = con.prepareStatement(DataRepositoryQuery.updateBucketEncryptionQuery);
+            pstUpdateBucketLogging = con.prepareStatement(DataRepositoryQuery.updateBucketLoggingQuery);
             pstUpdateBucketObjectLock = con.prepareStatement(DataRepositoryQuery.updateBucketObjectLockQuery);
             pstUpdateBucketPolicy = con.prepareStatement(DataRepositoryQuery.updateBucketPolicyQuery);
             pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
@@ -830,10 +832,11 @@ public class MysqlDataRepository implements DataRepository{
         long fileCount = rs.getLong(21);
         String logging = rs.getString(22);
         boolean isObjTagIndexing = rs.getBoolean(23);
-        //String analytics = rs.getString(24);
         String accelerate = rs.getString(24);
         String payment = rs.getString(25);
         String notification = rs.getString(26);
+        String analytics = rs.getString(27);
+        String inventory = rs.getString(28);
         
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
@@ -852,10 +855,11 @@ public class MysqlDataRepository implements DataRepository{
         bt.setFileCount(fileCount);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(isObjTagIndexing);
-        //bt.setAnalytics(analytics);
+        bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
         bt.setNotification(notification);
+        bt.setInventory(inventory);
         return bt;
     }
     
@@ -957,7 +961,7 @@ public class MysqlDataRepository implements DataRepository{
         } catch (ResourceNotFoundException ex) {
             pstInsertMultiPart.setString(10, "");
         }
-        pstInsertMultiPart.setString(12, ""); // for partRef
+        pstInsertMultiPart.setString(11, ""); // for partRef
         pstInsertMultiPart.execute();
         return 0;
     }
@@ -966,11 +970,11 @@ public class MysqlDataRepository implements DataRepository{
     public synchronized int updateMultipartUpload(Metadata mt,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
         pstUpdateMultiPart.clearParameters();
         pstUpdateMultiPart.setBoolean(1, iscompleted);
-        pstUpdateMultiPart.setString(2, uploadid);
-        pstUpdateMultiPart.setInt(3, partNo);
-        pstUpdateMultiPart.setString( 4, mt.getMeta());
-        pstUpdateMultiPart.setString( 5, mt.getEtag());
-        pstUpdateMultiPart.setLong(   6, mt.getSize());
+        pstUpdateMultiPart.setString( 2, mt.getMeta());
+        pstUpdateMultiPart.setString( 3, mt.getEtag());
+        pstUpdateMultiPart.setLong(   4, mt.getSize());
+        pstUpdateMultiPart.setString(5, uploadid);
+        pstUpdateMultiPart.setInt(6, partNo);
         pstUpdateMultiPart.execute();
         return 0;
     }
@@ -1304,10 +1308,10 @@ public class MysqlDataRepository implements DataRepository{
  
     @Override
     public void updateBucketLogging(Bucket bt) throws SQLException {
-        pstUpdateBucketEncryption.clearParameters();
-        pstUpdateBucketEncryption.setString(1, bt.getLogging());
-        pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
-        pstUpdateBucketEncryption.executeUpdate();
+        pstUpdateBucketLogging.clearParameters();
+        pstUpdateBucketLogging.setString(1, bt.getLogging());
+        pstUpdateBucketLogging.setString(2, getBucketId(bt.getName()));
+        pstUpdateBucketLogging.executeUpdate();
     }
     
     /*private String getBucketAnalyticsConfigurationsAsString(String bucketName) throws SQLException{
