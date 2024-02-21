@@ -66,6 +66,7 @@ public class MysqlDataRepository implements DataRepository{
     private PreparedStatement pstUpdateBucketReplication;
     //private PreparedStatement pstIsDeleteBucket;
     private PreparedStatement pstUpdateBucketEncryption;
+    private PreparedStatement pstUpdateBucketLogging;
     private PreparedStatement pstUpdateBucketObjectLock;
     private PreparedStatement pstUpdateBucketPolicy;
     private PreparedStatement pstUpdateBucketFilecount;
@@ -116,7 +117,16 @@ public class MysqlDataRepository implements DataRepository{
         try{
             this.createDB(host, dbname);
             this.connect();
-           
+	    createPreparedStatements();
+                        
+        } catch(SQLException ex){
+            this.ex_message(ex);
+        }
+        
+        this.createTable();
+    }
+
+    private void createPreparedStatements() throws SQLException{
             // for bucket
             pstCreateBucket = con.prepareStatement(DataRepositoryQuery.createBucketQuery);
             pstInsertBucket = con.prepareStatement(DataRepositoryQuery.insertBucketQuery);
@@ -134,6 +144,7 @@ public class MysqlDataRepository implements DataRepository{
             pstUpdateBucketTagging = con.prepareStatement(DataRepositoryQuery.updateBucketTaggingQuery);
             pstUpdateBucketReplication = con.prepareStatement(DataRepositoryQuery.updateBucketReplicationQuery);
             pstUpdateBucketEncryption = con.prepareStatement(DataRepositoryQuery.updateBucketEncryptionQuery);
+	    pstUpdateBucketLogging = con.prepareStatement(DataRepositoryQuery.updateBucketLoggingQuery);
             pstUpdateBucketObjectLock = con.prepareStatement(DataRepositoryQuery.updateBucketObjectLockQuery);
             pstUpdateBucketPolicy = con.prepareStatement(DataRepositoryQuery.updateBucketPolicyQuery);
             pstUpdateBucketFilecount = con.prepareStatement(DataRepositoryQuery.updateBucketFilecountQuery);
@@ -175,14 +186,9 @@ public class MysqlDataRepository implements DataRepository{
             pstInsertRestoreObjects = con.prepareStatement(DataRepositoryQuery.insertRestoreObjectsQuery);
             pstSelectRestoreObjects = con.prepareStatement(DataRepositoryQuery.selectRestoreObjectsQuery);
             pstDeleteRestoreObjects = con.prepareStatement(DataRepositoryQuery.deleteRestoreObjectsQuery);
-            
-        } catch(SQLException ex){
-            this.ex_message(ex);
-        }
-        
-        this.createTable();
+
     }
-    
+
     private int createDB(String host, String dbname){
         Connection connC = null;
         Statement stmt = null;
@@ -224,7 +230,15 @@ public class MysqlDataRepository implements DataRepository{
         }
         return 0;
     }
-    
+   
+    private void checkAndReconnect()throws SQLException{
+	 if (this.con != null && !this.con.isClosed())
+             return;
+
+         this.connect();
+         createPreparedStatements();
+    } 
+
     private void ex_message(SQLException ex){
         logger.error(ex.getMessage());
     }
@@ -389,6 +403,8 @@ public class MysqlDataRepository implements DataRepository{
     public synchronized int insertObject(Metadata md) throws ResourceNotFoundException{
         try{
             logger.debug("[insertObject] Start bucketName : {} key : {}  versionId : {} ", md.getBucket(), md.getPath(), md.getVersionId());
+	    checkAndReconnect();
+
             try (PreparedStatement pstStmt = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objInsertQuery)){
                 pstStmt.clearParameters();
                 pstStmt.setString(1, md.getBucket());
@@ -430,6 +446,8 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateDisks(Metadata md, boolean updatePrimary, DISK newDisk) {
         try {
+	    checkAndReconnect();
+
             if (updatePrimary){
                 try (PreparedStatement pstupdatePDisks = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdatePDisksQuery)){
                     pstupdatePDisks.clearParameters();
@@ -458,6 +476,8 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateSizeTime(Metadata md) {
         try {
+	    checkAndReconnect();
+
             try (PreparedStatement pstupdateSizeTime = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateSizeTimeQuery)){
                 pstupdateSizeTime.clearParameters();
                 pstupdateSizeTime.setLong(1, md.getSize());
@@ -474,6 +494,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectEtag(Metadata md, String etag) throws SQLException{
+	checkAndReconnect();
         try (PreparedStatement pstupdateEtag = getObjPreparedStmt(md.getBucket(), DataRepositoryQuery.objUpdateEtagQuery)){
             pstupdateEtag.clearParameters();
             pstupdateEtag.setString(1, etag);
@@ -541,6 +562,7 @@ public class MysqlDataRepository implements DataRepository{
     private synchronized Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         try{
             logger.debug("[selectSingleObjectInternal] Start bucketName : {} objId : {}  versionId : {} ", bucketName, objId, versionId);
+	    checkAndReconnect();
             try (PreparedStatement pstSelectOneWithVersionId = getObjPreparedStmt(bucketName, DataRepositoryQuery.objSelectOneWithVersionIdQuery)){
                 pstSelectOneWithVersionId.clearParameters();
                 pstSelectOneWithVersionId.setString(1, objId);
@@ -612,7 +634,8 @@ public class MysqlDataRepository implements DataRepository{
         List<String> dList = new ArrayList();
         String lastObjId;
         boolean thereIsMore;
-        
+       
+        checkAndReconnect();	
         String[] bList= obmCache.getBucketNameList();
         for (String bucketName : bList){
             lastObjId = "";
@@ -644,6 +667,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectTagging(Metadata mt) throws SQLException {
+	checkAndReconnect();
         try (PreparedStatement pstUpdateTagging = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateTaggingQuery)){
             pstUpdateTagging.clearParameters();
             pstUpdateTagging.setString(1, mt.getTag());
@@ -657,6 +681,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectAcl(Metadata mt) throws SQLException {
+	checkAndReconnect();
         try (PreparedStatement pstUpdateAcl = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateAclQuery)){
             pstUpdateAcl.clearParameters();
             pstUpdateAcl.setString(1, mt.getAcl());
@@ -668,6 +693,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateObjectMeta(Metadata mt) throws SQLException {
+	checkAndReconnect();
         try (PreparedStatement pstUpdateObjectMeta = getObjPreparedStmt(mt.getBucket(), DataRepositoryQuery.objUpdateObjectMetaQuery)){
             pstUpdateObjectMeta.clearParameters();
             pstUpdateObjectMeta.setString(1, mt.getMeta());
@@ -690,6 +716,7 @@ public class MysqlDataRepository implements DataRepository{
     public int deleteObject(String bucketName, String path, String versionId) {
         try{
             String objId = new Metadata(bucketName, path).getObjId();
+	    checkAndReconnect();
             try (PreparedStatement pststmt = getObjPreparedStmt(bucketName, DataRepositoryQuery.objDeleteQuery)){
                 pststmt.clearParameters();
                 pststmt.setString(1, objId);
@@ -713,6 +740,7 @@ public class MysqlDataRepository implements DataRepository{
     public int markDeletedObject(String bucketName, String path, String versionId, String markDelete) throws SQLException{
         int ret;
         String objId = new Metadata(bucketName, path).getObjId();
+	checkAndReconnect();
         try (PreparedStatement pstUpdateDeleteMarker = getObjPreparedStmt(bucketName, DataRepositoryQuery.objUpdateDeleteMarkerQuery)){
             pstUpdateDeleteMarker.clearParameters();
             pstUpdateDeleteMarker.setString(1, markDelete);
@@ -732,6 +760,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public boolean isBucketDeleted(String bucket) throws SQLException {
+	checkAndReconnect();
         try (PreparedStatement pstIsDeleteBucket1 = getObjPreparedStmt(bucket, DataRepositoryQuery.objIsDeleteBucketQuery)){
             pstIsDeleteBucket1.clearParameters();
             //pstIsDeleteBucket1.setString(1, bucket);
@@ -753,6 +782,7 @@ public class MysqlDataRepository implements DataRepository{
     public synchronized Bucket insertBucket(Bucket bt) 
             throws ResourceAlreadyExistException{
         try{
+            checkAndReconnect();
             createObjectTable(bt.getName());
             this.pstInsertBucket.clearParameters();
             this.pstInsertBucket.setString(1, bt.getName());
@@ -795,6 +825,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int deleteBucket(String bucketName){
         try{
+            checkAndReconnect();
             this.pstDeleteBucket.clearParameters();
             this.pstDeleteBucket.setString(1, getBucketId(bucketName));
             this.pstDeleteBucket.executeUpdate();
@@ -830,11 +861,12 @@ public class MysqlDataRepository implements DataRepository{
         long fileCount = rs.getLong(21);
         String logging = rs.getString(22);
         boolean isObjTagIndexing = rs.getBoolean(23);
-        //String analytics = rs.getString(24);
         String accelerate = rs.getString(24);
         String payment = rs.getString(25);
         String notification = rs.getString(26);
-        
+        String analytics = rs.getString(27);
+        String inventory = rs.getString(28);
+
         Bucket bt = new Bucket(name, id, diskPoolId, versioning, mfaDelete, userId, acl, createTime);
         bt.setUserName(userName);
         bt.setWeb(web);
@@ -852,16 +884,18 @@ public class MysqlDataRepository implements DataRepository{
         bt.setFileCount(fileCount);
         bt.setLogging(logging);
         bt.setObjectTagIndexEnabled(isObjTagIndexing);
-        //bt.setAnalytics(analytics);
+        bt.setAnalytics(analytics);
         bt.setAccelerate(accelerate);
         bt.setPayment(payment);
         bt.setNotification(notification);
+	bt.setInventory(inventory);
         return bt;
     }
     
     @Override
     public synchronized Bucket selectBucket(String bucketName) throws ResourceNotFoundException, SQLException{
         logger.debug("[selectBucket] Begin bucketName : {} ", bucketName);
+	checkAndReconnect();
         this.pstSelectBucket.clearParameters();
         this.pstSelectBucket.setString(1, getBucketId(bucketName));
         ResultSet rs = this.pstSelectBucket.executeQuery();
@@ -889,6 +923,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized void loadBucketList() {
         try {
+	   checkAndReconnect();
            _loadBucketList(); 
         } catch (SQLException ex1) {
             try { 
@@ -903,7 +938,7 @@ public class MysqlDataRepository implements DataRepository{
     public synchronized List<Bucket> getBucketList() {
         try {
             List<Bucket> btList = new ArrayList();
-            
+            checkAndReconnect(); 
             ResultSet rs = this.pstSelectAllBucket.executeQuery();
             
             while(rs.next()){
@@ -922,6 +957,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized int updateBucketVersioning(Bucket bt) {
         try {
+	    checkAndReconnect();
             this.pstUpdateBucket.clearParameters();
             pstUpdateBucket.setString(1, bt.getVersioning());
             pstUpdateBucket.setString(2, getBucketId(bt.getName()));
@@ -934,6 +970,7 @@ public class MysqlDataRepository implements DataRepository{
     }
     @Override
     public synchronized void updateBucketObjTagIndexing(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateObjTagIndexBucket.clearParameters();
         pstUpdateObjTagIndexBucket.setBoolean(1, bt.isObjectTagIndexEnabled());
         pstUpdateObjTagIndexBucket.setString(2, getBucketId(bt.getName()));
@@ -942,6 +979,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public  synchronized int insertMultipartUpload(Metadata mt, String uploadid, int partNo) throws SQLException{
+	checkAndReconnect();
         pstInsertMultiPart.clearParameters();
         pstInsertMultiPart.setString(1, mt.getBucket());
         pstInsertMultiPart.setString(2, mt.getPath());
@@ -957,26 +995,30 @@ public class MysqlDataRepository implements DataRepository{
         } catch (ResourceNotFoundException ex) {
             pstInsertMultiPart.setString(10, "");
         }
-        pstInsertMultiPart.setString(12, ""); // for partRef
+        pstInsertMultiPart.setString(11, ""); // for partRef
         pstInsertMultiPart.execute();
+	logger.debug("[insertMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, false, mt.getEtag());
         return 0;
     }
   
     @Override
     public synchronized int updateMultipartUpload(Metadata mt,  String uploadid, int partNo, boolean iscompleted) throws SQLException{
+	checkAndReconnect();
         pstUpdateMultiPart.clearParameters();
         pstUpdateMultiPart.setBoolean(1, iscompleted);
-        pstUpdateMultiPart.setString(2, uploadid);
-        pstUpdateMultiPart.setInt(3, partNo);
-        pstUpdateMultiPart.setString( 4, mt.getMeta());
-        pstUpdateMultiPart.setString( 5, mt.getEtag());
-        pstUpdateMultiPart.setLong(   6, mt.getSize());
+        pstUpdateMultiPart.setString( 2, mt.getMeta());
+        pstUpdateMultiPart.setString( 3, mt.getEtag());
+        pstUpdateMultiPart.setLong(   4, mt.getSize());
+        pstUpdateMultiPart.setString(5, uploadid);
+        pstUpdateMultiPart.setInt(6, partNo);
         pstUpdateMultiPart.execute();
+	logger.debug("[updateMultipartUpload] bucketName : {} uploadid :{} partNo :{}  iscompleted :{} etag :{}", mt.getBucket(), uploadid, partNo, false, mt.getEtag());
         return 0;
     }
     
     @Override
     public synchronized int deleteMultipartUpload(String bucket,  String uploadid) throws SQLException{
+	checkAndReconnect();
         pstDeleteMultiPart.clearParameters();
         pstDeleteMultiPart.setString(1, uploadid);
         pstDeleteMultiPart.execute();
@@ -986,6 +1028,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public synchronized List<Integer> selectMultipart(String bucket, String uploadid, int maxParts, int partNoMarker) throws SQLException{
         List<Integer> list=new ArrayList<>();
+	checkAndReconnect();
         pstSelectMultiPart.clearParameters();
         pstSelectMultiPart.setString(1, uploadid);
         pstSelectMultiPart.setInt(2, partNoMarker);
@@ -1007,6 +1050,7 @@ public class MysqlDataRepository implements DataRepository{
         Date lastModified;
         boolean isTrancated =false;
         
+        checkAndReconnect();	
         PreparedStatement stmt = this.con.prepareStatement(query.toString());
    
         ResultSet rs = stmt.executeQuery();
@@ -1025,6 +1069,7 @@ public class MysqlDataRepository implements DataRepository{
         
     @Override
     public Metadata getObjectWithUploadIdPart(String diskPoolId, String uploadId, int partNo) throws SQLException{
+        checkAndReconnect();	
         pstIsUploadPartNo.clearParameters();
         pstIsUploadPartNo.setString(1, uploadId);
         pstIsUploadPartNo.setInt(2, partNo);
@@ -1071,6 +1116,7 @@ public class MysqlDataRepository implements DataRepository{
         Multipart multipart = null;
         String pdiskid;
 
+        checkAndReconnect();
         this.pstGetMultiPart.clearParameters();
         this.pstGetMultiPart.setString(1, uploadid);
         ResultSet rs = this.pstGetMultiPart.executeQuery();
@@ -1092,6 +1138,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public SortedMap<Integer, Part> getParts(String uploadId) throws SQLException {
         SortedMap<Integer, Part> listPart = new TreeMap<>();
+	checkAndReconnect();
         this.pstGetParts.clearParameters();
         this.pstGetParts.setString(1, uploadId);
         ResultSet rs = this.pstGetParts.executeQuery();
@@ -1113,6 +1160,7 @@ public class MysqlDataRepository implements DataRepository{
     // TO BE
     @Override
     public ResultParts getParts(String uploadId, int partNumberMarker, int maxParts) throws SQLException {
+	checkAndReconnect();
         ResultParts resultParts = new ResultParts(uploadId, maxParts);
         resultParts.setListPart(new TreeMap<Integer, Part>());
         
@@ -1147,6 +1195,7 @@ public class MysqlDataRepository implements DataRepository{
     // TO BE
     @Override
     public ResultUploads getUploads(String bucket, String delimiter, String prefix, String keyMarker, String uploadIdMarker, int maxUploads) throws SQLException {
+	checkAndReconnect();
         ResultUploads resultUploads = new ResultUploads();
         resultUploads.setList(new ArrayList<>());
 
@@ -1175,6 +1224,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public String getPartRef(String uploadId, int partNo) throws SQLException, ResourceNotFoundException {
         String partRef = " ";
+	checkAndReconnect();
         pstGetPartRef.clearParameters();
         pstGetPartRef.setString(1, uploadId);
         pstGetPartRef.setInt(2, partNo);
@@ -1189,7 +1239,8 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public int setPartRef(String uploadId, int partNo, String partRef) throws SQLException, ResourceNotFoundException {
-        pstSetPartRef.clearParameters();
+        checkAndReconnect();
+	pstSetPartRef.clearParameters();
         pstSetPartRef.setString(1, uploadId);
         pstSetPartRef.setInt(2, partNo);
         pstSetPartRef.setString(3, partRef);
@@ -1202,7 +1253,8 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketAcl(Bucket bt) throws SQLException {
-        pstUpdateBucketAcl.clearParameters();
+        checkAndReconnect();
+	pstUpdateBucketAcl.clearParameters();
         pstUpdateBucketAcl.setString(1, bt.getAcl());
         pstUpdateBucketAcl.setString(2, getBucketId(bt.getName()));
         pstUpdateBucketAcl.executeUpdate();
@@ -1211,6 +1263,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketCors(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketCors.clearParameters();
         pstUpdateBucketCors.setString(1, bt.getCors());
         pstUpdateBucketCors.setString(2, getBucketId(bt.getName()));
@@ -1219,6 +1272,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketWeb(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketWeb.clearParameters();
         pstUpdateBucketWeb.setString(1, bt.getWeb());
         pstUpdateBucketWeb.setString(2, getBucketId(bt.getName()));
@@ -1228,6 +1282,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketLifecycle(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketLifecycle.clearParameters();
         pstUpdateBucketLifecycle.setString(1, bt.getLifecycle());
         pstUpdateBucketLifecycle.setString(2, getBucketId(bt.getName()));
@@ -1237,6 +1292,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketAccess(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketAccess.clearParameters();
         pstUpdateBucketAccess.setString(1, bt.getAccess());
         pstUpdateBucketAccess.setString(2, getBucketId(bt.getName()));
@@ -1246,6 +1302,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketTagging(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketTagging.clearParameters();
         pstUpdateBucketTagging.setString(1, bt.getTagging());
         pstUpdateBucketTagging.setString(2, getBucketId(bt.getName()));
@@ -1255,6 +1312,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketReplication(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketReplication.clearParameters();
         pstUpdateBucketReplication.setString(1, bt.getReplication());
         pstUpdateBucketReplication.setString(2, getBucketId(bt.getName()));
@@ -1264,6 +1322,7 @@ public class MysqlDataRepository implements DataRepository{
  
     @Override
     public void updateBucketEncryption(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketEncryption.clearParameters();
         pstUpdateBucketEncryption.setString(1, bt.getEncryption());
         pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
@@ -1272,6 +1331,7 @@ public class MysqlDataRepository implements DataRepository{
 
     @Override
     public void updateBucketObjectLock(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketObjectLock.clearParameters();
         pstUpdateBucketObjectLock.setString(1, bt.getObjectLock());
         pstUpdateBucketObjectLock.setString(2, getBucketId(bt.getName()));
@@ -1281,6 +1341,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateBucketPolicy(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateBucketPolicy.clearParameters();
         pstUpdateBucketPolicy.setString(1, bt.getPolicy());
         pstUpdateBucketPolicy.setString(2, getBucketId(bt.getName()));
@@ -1304,10 +1365,11 @@ public class MysqlDataRepository implements DataRepository{
  
     @Override
     public void updateBucketLogging(Bucket bt) throws SQLException {
-        pstUpdateBucketEncryption.clearParameters();
-        pstUpdateBucketEncryption.setString(1, bt.getLogging());
-        pstUpdateBucketEncryption.setString(2, getBucketId(bt.getName()));
-        pstUpdateBucketEncryption.executeUpdate();
+	checkAndReconnect();
+        pstUpdateBucketLogging.clearParameters();
+        pstUpdateBucketLogging.setString(1, bt.getLogging());
+        pstUpdateBucketLogging.setString(2, getBucketId(bt.getName()));
+        pstUpdateBucketLogging.executeUpdate();
     }
     
     /*private String getBucketAnalyticsConfigurationsAsString(String bucketName) throws SQLException{
@@ -1324,6 +1386,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateBucketAnalyticsConfiguration(Bucket bt ) throws SQLException {
+	checkAndReconnect();
         pstUpdateAnalyticsBucket.clearParameters();
         pstUpdateAnalyticsBucket.setString(1, bt.getAnalytics());
         pstUpdateAnalyticsBucket.setString(2, getBucketId(bt.getName()));
@@ -1412,6 +1475,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateBucketAccelerate(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateAccelerateBucket.clearParameters();
         pstUpdateAccelerateBucket.setString(1, bt.getAccelerate());
         pstUpdateAccelerateBucket.setString(2, getBucketId(bt.getName()));
@@ -1420,6 +1484,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateBucketPayment(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdatePaymentBucket.clearParameters();
         pstUpdatePaymentBucket.setString(1, bt.getPayment());
         pstUpdatePaymentBucket.setString(2, getBucketId(bt.getName()));
@@ -1428,6 +1493,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void updateBucketNotification(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateNotificationBucket.clearParameters();
         pstUpdateNotificationBucket.setString(1, bt.getNotification());
         pstUpdateNotificationBucket.setString(2, getBucketId(bt.getName()));
@@ -1448,6 +1514,7 @@ public class MysqlDataRepository implements DataRepository{
    
     @Override
     public void updateBucketInventoryConfiguration(Bucket bt) throws SQLException {
+	checkAndReconnect();
         pstUpdateInventoryBucket.clearParameters();
         pstUpdateInventoryBucket.setString(1, bt.getInventory());
         pstUpdateInventoryBucket.setString(2, getBucketId(bt.getName()));
@@ -1537,6 +1604,7 @@ public class MysqlDataRepository implements DataRepository{
     @Override
     public boolean isUploadId(String uploadid) throws SQLException {
         boolean success = false;
+	checkAndReconnect();
         this.pstIsUpload.clearParameters();
         this.pstIsUpload.setString(1, uploadid);
         ResultSet rs = this.pstIsUpload.executeQuery();
@@ -1558,6 +1626,7 @@ public class MysqlDataRepository implements DataRepository{
         String Id = in.get(0).toString();
         
         try{
+           checkAndReconnect();
            // System.out.format("Operation : %s check : %s \n", operation, operation.equalsIgnoreCase("addJob"));
             if (operation.equalsIgnoreCase("addJob")){
                 //System.out.format("Operation : %s \n", operation);
@@ -1587,7 +1656,8 @@ public class MysqlDataRepository implements DataRepository{
     }
         
     @Override
-    public PreparedStatement getStatement(String query) throws SQLException{	
+    public PreparedStatement getStatement(String query) throws SQLException{
+        checkAndReconnect();	    
         return this.con.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
     }
     
@@ -1745,51 +1815,61 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public void insertLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         insertLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
     }
     
     @Override
     public void insertFailedLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         insertLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
     
     @Override
     public LifeCycle selectLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         return selectLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
     }
     
     @Override
     public LifeCycle selectFailedLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         return selectLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
     
     @Override
     public LifeCycle selectByUploadIdLifeCycle(String uploadId) throws SQLException{
+	checkAndReconnect();
         return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, uploadId);
     }
     
     @Override
     public LifeCycle selectByUploadIdFailedLifeCycle(String uploadId) throws SQLException{
+	checkAndReconnect();
         return selectByUploadIdLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, uploadId);
     }
     
     @Override
     public List<LifeCycle> selectAllLifeCycle() throws SQLException{
+	checkAndReconnect();
         return selectAllLifeCycle(DataRepositoryQuery.lifeCycleEventTableName);
     }
     
     @Override
     public List<LifeCycle> selectAllFailedLifeCycle() throws SQLException{
+	checkAndReconnect();
         return selectAllLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName);
     }
     
     @Override
     public int deleteLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         return deleteLifeCycle(DataRepositoryQuery.lifeCycleEventTableName, lc);
     }
     
     @Override
     public int deleteFailedLifeCycle(LifeCycle lc) throws SQLException{
+	checkAndReconnect();
         return deleteLifeCycle(DataRepositoryQuery.lifeCycleFailedEventTableName, lc);
     }
     
@@ -1897,6 +1977,7 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public List<Metadata> listObjectWithTags(String bucketName, Object query, int maxKeys) throws SQLException{
+	checkAndReconnect();
         try (PreparedStatement pstselectStmt = getObjPreparedStmt(bucketName+ DataRepositoryQuery.tagIndexingTablePrefexi, DataRepositoryQuery.selectTagIndexingQuery + (String)query)){  
             ResultSet rs = pstselectStmt.executeQuery();
             return parseSelectListObjectwithTags(bucketName, rs);
@@ -1946,16 +2027,19 @@ public class MysqlDataRepository implements DataRepository{
     
     @Override
     public int insertRestoreObjectRequest(String bucketName, String key, String objId, String versionId, String request) throws SQLException {
+	checkAndReconnect();
         return insertRestoreObject(bucketName, key, objId, versionId, request);
     }
 
     @Override
     public String getRestoreObjectRequest(String bucketName, String objId, String versionId)  throws SQLException{
+	 checkAndReconnect();
          return selectRestoreObject(bucketName, objId, versionId);
     }
 
     @Override
     public void deleteRestoreObjectRequest(String bucketName, String objId, String versionId)  throws SQLException{
+	 checkAndReconnect();
          removeRestoreObject(bucketName, objId, versionId);
     }
     

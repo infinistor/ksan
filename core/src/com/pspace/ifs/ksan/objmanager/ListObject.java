@@ -392,23 +392,43 @@ public class ListObject{
     }
     
     private void makeQueryWithVersion(){
-        
-        query = "SELECT * FROM `"+ bucketName +"` WHERE ";
+        boolean whereAdded=false;
 
-	if (bBucketListParameterPrefix)
-            query += " AND objKey LIKE ?";
+        query = "SELECT * FROM `"+ bucketName +"` ";
 
-	if (bMarker && !bVersionIdMarker)
-	    query += " AND objKey > ?";
-
-	if (bVersionIdMarker)
-	    query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
-
-	if (bDelForceGte) {
-	    query += " AND objKey >= ?";
+	if (bBucketListParameterPrefix){
+            query += " WHERE objKey LIKE ?";
+	    whereAdded = true;
 	}
 
-        query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
+	if (bMarker && !bVersionIdMarker){
+	    if (whereAdded)
+	        query += " AND objKey > ?";
+	    else {
+		query += " WHERE objKey > ?";
+		whereAdded = true;
+            }		    
+	}
+
+	if (bVersionIdMarker){
+	    if (whereAdded){
+	        query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+	    }
+	    else {
+		query += " WHERE ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+		whereAdded = true;
+            }
+	}
+
+	if (bDelForceGte) {
+	    if (whereAdded)
+	        query += " AND objKey >= ?";
+	    else{
+		query += " WHERE objKey >= ?";
+	    }	    
+	}
+
+        query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1); 
     }
     
     private static String escapeSpecialChars(String source) {
