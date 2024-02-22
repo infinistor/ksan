@@ -24,4 +24,4 @@ RUN mkdir -p /usr/local/ksan/etc/
 COPY ./core/backend/src/com/pspace/backend/replication/ksanReplicationManager_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanReplicationManager.jar /usr/local/ksan/sbin/
 COPY ./core/backend/src/com/pspace/backend/replication/docker/start.sh /app
-CMD ["/app/start.sh"]
+CMD ["sh", "/app/start.sh"]

@@ -15,4 +15,4 @@ WORKDIR /app
 # COPY ./core/src/com/pspace/ifs/ksan/osd/ksanOSD_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanOSD.jar /usr/local/ksan/sbin/
 COPY ./core/src/com/pspace/ifs/ksan/osd/docker/ksanOSD.sh /app
-CMD ["/app/ksanOSD.sh"]
+CMD ["sh", "/app/ksanOSD.sh"]
