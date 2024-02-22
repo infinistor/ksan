@@ -58,7 +58,7 @@ public class Main {
 
 		// 리전 설정
 		var portal = PortalManager.getInstance();
-		if (!portal.RegionUpdate()) {
+		if (!portal.regionUpdate()) {
 			logger.error("Portal Manager Init Failed!");
 			return;
 		}
