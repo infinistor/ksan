@@ -16,8 +16,6 @@ RUN  --mount=type=cache,target=/root/.m2 mvn -f /src/pom.xml package
 ########################################################################
 FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
-# RUN mkdir -p /usr/local/ksan/etc/
-# COPY ./core/src/com/pspace/ifs/ksan/gw/ksanGW_log_conf.xml /usr/local/ksan/etc/
 COPY --from=build /src/target/ksanGW.jar /usr/local/ksan/sbin/
 COPY ./core/src/com/pspace/ifs/ksan/gw/docker/ksanGW.sh /app
 CMD ["sh", "/app/ksanGW.sh"]
