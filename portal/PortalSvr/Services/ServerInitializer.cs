@@ -93,10 +93,7 @@ namespace PortalSvr.Services
 					m_logger.LogInformation("Server Initialize Start");
 
 					// 내부 서비스용 API 키를 가져온다.
-					var ApiKey = await ServiceScope.ServiceProvider.GetService<IApiKeyProvider>().GetMainApiKey();
-
-					if (ApiKey == null)
-						throw new Exception("Internal Service ApiKey is null");
+					var ApiKey = await ServiceScope.ServiceProvider.GetService<IApiKeyProvider>().GetMainApiKey() ?? throw new Exception("Internal Service ApiKey is null");
 
 					if (!Guid.TryParse(ApiKey.UserId, out Guid UserGuid))
 						throw new Exception("Internal Service ApiKey UserGuid is Empty");
@@ -260,7 +257,7 @@ namespace PortalSvr.Services
 					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_ALL, StringComparison.OrdinalIgnoreCase))) return;
 
 					// 제외 서비스 목록에 GW가 있는지 확인한다.
-					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_GW, StringComparison.OrdinalIgnoreCase)))
+					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_GW, StringComparison.OrdinalIgnoreCase)))
 					{
 						//gw 서비스가 등록되지 않은 경우 등록한다.
 						var GWName = "GW1";
@@ -283,7 +280,7 @@ namespace PortalSvr.Services
 					}
 
 					// 제외 서비스 목록에 OSD가 있는지 확인한다.
-					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_OSD, StringComparison.OrdinalIgnoreCase)))
+					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_OSD, StringComparison.OrdinalIgnoreCase)))
 					{
 						//osd 서비스가 등록되지 않은 경우 등록한다.
 						var OSDName = "OSD1";
@@ -306,7 +303,7 @@ namespace PortalSvr.Services
 					}
 
 					// 제외 서비스 목록에 Lifecycle이 있는지 확인한다.
-					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LIFECYCLE_MANAGER, StringComparison.OrdinalIgnoreCase)))
+					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LIFECYCLE_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
 						//Lifecycle 서비스가 등록되지 않은 경우 등록한다.
 						var LifecycleName = "LifecycleManager1";
@@ -329,7 +326,7 @@ namespace PortalSvr.Services
 					}
 
 					// 제외 서비스 목록에 LogManager가 있는지 확인한다.
-					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LOG_MANAGER, StringComparison.OrdinalIgnoreCase)))
+					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_LOG_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
 						//LogManager 서비스가 등록되지 않은 경우 등록한다.
 						var LogManagerName = "LogManager1";
@@ -352,7 +349,7 @@ namespace PortalSvr.Services
 					}
 
 					// 제외 서비스 목록에 Replication이 있는지 확인한다.
-					if (ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER, StringComparison.OrdinalIgnoreCase)))
+					if (!ExcludeServices.Exists(x => x.Equals(Resource.ENV_EXCLUDE_SERVICES_KSAN_REPLICATION_MANAGER, StringComparison.OrdinalIgnoreCase)))
 					{
 						//Replication 서비스가 등록되지 않은 경우 등록한다.
 						var ReplicationName = "ReplicationManager1";
