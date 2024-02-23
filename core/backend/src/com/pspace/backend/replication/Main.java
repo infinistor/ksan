@@ -15,13 +15,13 @@ import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pspace.backend.replication.replicator.MainReplicator;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Heartbeat.Heartbeat;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
-import com.pspace.backend.libs.Ksan.PortalManager;
-import com.pspace.backend.replication.Replicator.MainReplicator;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.heartbeat.Heartbeat;
+import com.pspace.backend.libs.ksan.AgentConfig;
+import com.pspace.backend.libs.ksan.ObjManagerHelper;
+import com.pspace.backend.libs.ksan.PortalManager;
 
 public class Main {
 	static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -39,8 +39,8 @@ public class Main {
 		logger.info("ksanAgent Read end");
 
 		// Get Service Id
-		var ServiceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
-		if (ServiceId == null) {
+		var serviceId = Utility.getServiceId(Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
+		if (serviceId == null) {
 			logger.error("Service Id is Empty. path : {}", Constants.REPLICATION_MANAGER_SERVICE_ID_PATH);
 			return;
 		}
@@ -48,8 +48,8 @@ public class Main {
 		Thread HBThread;
 		Heartbeat HB;
 		try {
-			HB = new Heartbeat(ServiceId, ksanConfig.MQHost, ksanConfig.MQPort, ksanConfig.MQUser, ksanConfig.MQPassword);
-			HBThread = new Thread(() -> HB.Start(ksanConfig.ServiceMonitorInterval));
+			HB = new Heartbeat(serviceId, ksanConfig.mqHost, ksanConfig.mqPort, ksanConfig.mqUser, ksanConfig.mqPassword);
+			HBThread = new Thread(() -> HB.start(ksanConfig.ServiceMonitorInterval));
 			HBThread.start();
 		} catch (Exception e) {
 			logger.error("", e);
@@ -58,7 +58,7 @@ public class Main {
 
 		// 리전 설정
 		var portal = PortalManager.getInstance();
-		if (!portal.RegionUpdate()) {
+		if (!portal.regionUpdate()) {
 			logger.error("Portal Manager Init Failed!");
 			return;
 		}
@@ -69,17 +69,17 @@ public class Main {
 		logger.info(config.toString());
 
 		// ObjManager 초기화
-		var ObjManager = ObjManagerHelper.getInstance();
+		var objManager = ObjManagerHelper.getInstance();
 		try {
-			ObjManager.init(portal.getObjManagerConfig());
+			objManager.init(portal.getObjManagerConfig());
 		} catch (Exception e) {
 			logger.error("", e);
 			return;
 		}
 
 		// Replication Initialization
-		var Replicator = new MainReplicator();
-		if (!Replicator.start(config.threadCount)) {
+		var replicator = new MainReplicator();
+		if (!replicator.start(config.threadCount)) {
 			logger.error("MainReplicator is not started!");
 			return;
 		}

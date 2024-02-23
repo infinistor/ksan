@@ -49,6 +49,9 @@ public class HeadBlob extends AzuRequest {
         logger.info(AzuConstants.LOG_HEAD_BLOB_START);
 
 		Metadata objMeta = open(azuParameter.getContainerName(), azuParameter.getBlobName());
+        
+        logger.info("objMeta: {}", objMeta.getMeta());
+
         S3Metadata s3Metadata = S3Metadata.getS3Metadata(objMeta.getMeta());
 
         azuParameter.getResponse().setCharacterEncoding(AzuConstants.CHARSET_UTF_8);

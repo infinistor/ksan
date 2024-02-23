@@ -1,16 +1,16 @@
-package com.pspace.backend.lifecycle.Lifecycle;
+package com.pspace.backend.lifecycle.lifecycle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pspace.backend.libs.AdminClient.KsanClient;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Lifecycle.RestoreEventData;
-import com.pspace.backend.libs.Data.Lifecycle.RestoreLogData;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
+import com.pspace.backend.libs.client.KsanClient;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.data.lifecycle.RestoreEventData;
+import com.pspace.backend.libs.data.lifecycle.RestoreLogData;
+import com.pspace.backend.libs.ksan.AgentConfig;
+import com.pspace.backend.libs.ksan.data.S3RegionData;
 import com.pspace.ifs.ksan.libs.mq.MQCallback;
 import com.pspace.ifs.ksan.libs.mq.MQResponse;
 import com.pspace.ifs.ksan.libs.mq.MQResponseCode;
@@ -18,20 +18,20 @@ import com.pspace.ifs.ksan.libs.mq.MQResponseType;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class RestoreSender implements MQCallback {
-	private final Logger logger = LoggerFactory.getLogger(LifecycleSender.class);
+	private final Logger logger = LoggerFactory.getLogger(RestoreSender.class);
 	private final KsanClient ksanClient;
 	private final AgentConfig ksanConfig;
-	private final ObjectMapper Mapper = new ObjectMapper();
+	private final ObjectMapper mapper = new ObjectMapper();
 	private final MQSender mq;
 
 	public RestoreSender(S3RegionData region) throws Exception {
 		ksanClient = new KsanClient(region.address, region.port, region.accessKey, region.secretKey);
 		this.ksanConfig = AgentConfig.getInstance();
 		mq = new MQSender(
-				ksanConfig.MQHost,
-				ksanConfig.MQPort,
-				ksanConfig.MQUser,
-				ksanConfig.MQPassword,
+				ksanConfig.mqHost,
+				ksanConfig.mqPort,
+				ksanConfig.mqUser,
+				ksanConfig.mqPassword,
 				Constants.MQ_KSAN_LOG_EXCHANGE,
 				Constants.MQ_EXCHANGE_OPTION_TOPIC,
 				Constants.MQ_BINDING_RESTORE_LOG);
@@ -46,34 +46,23 @@ public class RestoreSender implements MQCallback {
 			logger.debug("{} : {}", routingKey, body);
 
 			// 문자열을 ReplicationEventData 클래스로 변환
-			var event = Mapper.readValue(body, new TypeReference<RestoreEventData>() {
-			});
-			logger.info(event.toString());
+			var event = mapper.readValue(body, new TypeReference<RestoreEventData>() {});
 
 			// 결과값 초기화
-			String Result = "";
+			String result = "";
 			// 3회 시도
 			for (int i = 0; i < 3; i++) {
-				Result = RestoreObject(event.BucketName, event.ObjectName, "STANDARD", event.VersionId);
+				result = restoreObject(event.bucketName, event.objectName, "STANDARD", event.versionId);
 				// 성공했을 경우 종료
-				if (Result.equals(""))
+				if (result.equals(""))
 					break;
 			}
 			// 에러가 발생할 경우
-			if (!Result.isBlank()) {
-				// 이벤트 저장
-				try {
-					var item = new RestoreLogData(event, Result);
-					mq.send(item.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
-
-				} catch (Exception e) {
-					logger.error("", e);
-				}
-			}
+			if (!result.isBlank())
+				mq.send(new RestoreLogData(event, result).toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
 			// 성공할 경우
-			else {
+			else
 				mq.send(event.toString(), Constants.MQ_BINDING_LIFECYCLE_LOG);
-			}
 
 			return new MQResponse(MQResponseType.SUCCESS, MQResponseCode.MQ_SUCCESS, "", 0);
 		} catch (Exception e) {
@@ -82,16 +71,16 @@ public class RestoreSender implements MQCallback {
 		}
 	}
 
-	protected String RestoreObject(String bucketName, String objectName, String storageClass, String versionId) {
+	protected String restoreObject(String bucketName, String objectName, String storageClass, String versionId) {
 
-		var Result = "";
+		var result = "";
 		try {
-			ksanClient.StorageMove(bucketName, objectName, storageClass, versionId);
+			ksanClient.storageMove(bucketName, objectName, storageClass, versionId);
 		} catch (Exception e) {
 			logger.error("", e);
-			Result = e.getMessage();
+			result = e.getMessage();
 		}
-		return Result;
+		return result;
 	}
 
 }

@@ -8,23 +8,23 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Ksan.Data;
+package com.pspace.backend.libs.ksan.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Response {
 	@JsonProperty("IsNeedLogin")
-	public boolean IsNeedLogin;
+	public boolean isNeedLogin;
 
 	@JsonProperty("AccessDenied")
-	public boolean AccessDenied;
+	public boolean accessDenied;
 
 	@JsonProperty("Result")
-	public String Result;
+	public String result;
 
 	@JsonProperty("Code")
-	public String Code;
+	public String code;
 
 	@JsonProperty("Message")
-	public String Message;
+	public String message;
 }

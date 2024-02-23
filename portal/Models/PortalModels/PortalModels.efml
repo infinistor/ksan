@@ -14,7 +14,7 @@
         <Summary>예/아니오</Summary>
       </Documentation>
       <Member Name="No" p1:Guid="dbff09a4-99e1-4a6e-aa18-ec40db5eca35" />
-      <Member Name="Yes" p1:Guid="9fbd93c0-0ae0-4648-9f88-881a1fac513b" />
+      <Member Name="Yes" p1:Guid="9fbd93c0-0ae0-4648-9f88-8BucketErrorAssets81a1fac513b" />
     </EnumType>
     <EnumType Name="EnumDbOnOff" class="EnumDbOnOff" p1:Guid="fe64a3c9-abc2-4683-b20b-b8bcdaad3aa5">
       <Documentation>
@@ -132,133 +132,133 @@
     <Documentation>
       <Summary>네트워크 인터페이스 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="d21fa384-eb16-4d5d-9801-1b652e24199d">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="d21fa384-eb16-4d5d-9801-1b652e24199d">
       <Documentation>
         <Summary>네트워크 인터페이스 아이디</Summary>
       </Documentation>
       <column name="" length="36" p1:fixed-length="True" />
     </id>
-    <property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="116ee260-b9d7-4325-bd45-6e74b9cb2726">
+    <property name="ServerId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="116ee260-b9d7-4325-bd45-6e74b9cb2726">
       <Documentation>
         <Summary>서버 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Name" type="String" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="28ef35b4-4db5-499c-94a6-11c9a07816ca">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="28ef35b4-4db5-499c-94a6-11c9a07816ca">
       <Documentation>
         <Summary>인터페이스명</Summary>
       </Documentation>
       <column name="" length="100" />
     </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateMaxLength="4000" p1:ValidateRequired="false" p1:Guid="f44befbf-46d8-4141-8e89-56077287fc75">
+    <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="4000" p1:ValidateRequired="false" p1:Guid="f44befbf-46d8-4141-8e89-56077287fc75">
       <Documentation>
         <Summary>설명</Summary>
       </Documentation>
       <column name="" length="4000" />
     </property>
-    <property name="Dhcp" type="PortalModels.EnumDbYesNo" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6cb1771f-3638-4c2b-84d2-7b6e4f3e5987">
+    <property name="Dhcp" type="PortalModels.EnumDbYesNo" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6cb1771f-3638-4c2b-84d2-7b6e4f3e5987">
       <Documentation>
         <Summary>DHCP 사용 여부</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MacAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
+    <property name="MacAddress" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="92078f03-3853-48ae-be49-84c208449115">
       <Documentation>
         <Summary>맥주소</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="LinkState" type="PortalModels.EnumDbNetworkLinkState" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="96fd6bed-304e-453f-bfa8-2a6ee78a30bc">
+    <property name="LinkState" type="PortalModels.EnumDbNetworkLinkState" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="96fd6bed-304e-453f-bfa8-2a6ee78a30bc">
       <Documentation>
         <Summary>네트워크 연결 상태</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="IpAddress" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="af6f5760-2161-42f9-8545-e55de356b439">
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="af6f5760-2161-42f9-8545-e55de356b439">
       <Documentation>
         <Summary>아이피 주소</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="a92fa543-6e75-40e4-a36e-896cb44e0a19">
+    <property name="SubnetMask" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="a92fa543-6e75-40e4-a36e-896cb44e0a19">
       <Documentation>
         <Summary>서브넷 마스크</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="Gateway" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="ee2eaecf-db82-4ea8-8e3a-fec5c3d32ed2">
+    <property name="Gateway" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="ee2eaecf-db82-4ea8-8e3a-fec5c3d32ed2">
       <Documentation>
         <Summary>게이트웨이</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="Dns1" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="e037942d-1a69-4118-a200-58e2ecebfcd6">
+    <property name="Dns1" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="e037942d-1a69-4118-a200-58e2ecebfcd6">
       <Documentation>
         <Summary>DNS #1</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="Dns2" type="String" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="04f58a2d-89f5-4ad1-9866-f83ed57228c1">
+    <property name="Dns2" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="20" p1:ValidateRequired="false" p1:Guid="04f58a2d-89f5-4ad1-9866-f83ed57228c1">
       <Documentation>
         <Summary>DNS #2</Summary>
       </Documentation>
       <column name="" length="20" />
     </property>
-    <property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8a60916b-4cc7-450b-b19e-3102e1559ae7">
+    <property name="BandWidth" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8a60916b-4cc7-450b-b19e-3102e1559ae7">
       <Documentation>
         <Summary>네트워크 BandWidth</Summary>
       </Documentation>
       <column name="" default="0" length="12" />
     </property>
-    <property name="IsManagement" type="Boolean" p1:ValidateRequired="true" p1:Guid="eae88172-37ca-4806-981e-ba0ed8435f6f">
+    <property name="IsManagement" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="eae88172-37ca-4806-981e-ba0ed8435f6f">
       <Documentation>
         <Summary>관리용 인터페이스인지 여부</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4f6df853-ed24-4911-ac0a-42e3584b6be4">
+    <property name="Rx" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4f6df853-ed24-4911-ac0a-42e3584b6be4">
       <Documentation>
         <Summary>수신 속도</Summary>
       </Documentation>
       <column name="" default="0" length="12" />
     </property>
-    <property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="d174b830-9bcd-4ce2-abd7-fa4ab1a4a32a">
+    <property name="Tx" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="d174b830-9bcd-4ce2-abd7-fa4ab1a4a32a">
       <Documentation>
         <Summary>송신 속도</Summary>
       </Documentation>
       <column name="" default="0" length="12" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1b830739-9af8-4549-8fcf-46d1d4a7b3cb">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1b830739-9af8-4549-8fcf-46d1d4a7b3cb">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9560a47d-557b-43ec-9a03-538f24513d64">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9560a47d-557b-43ec-9a03-538f24513d64">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8ad516ee-e460-4793-b3ce-f9354a268c6c">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8ad516ee-e460-4793-b3ce-f9354a268c6c">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1c977d3e-d84a-456a-9154-f0911854dc28">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1c977d3e-d84a-456a-9154-f0911854dc28">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8de3eb81-6470-476d-8c82-9f77095c672a">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8de3eb81-6470-476d-8c82-9f77095c672a">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5d8945be-9508-4aad-b6f1-429bc5a07789">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
@@ -269,73 +269,73 @@
     <Documentation>
       <Summary>네트워크 인터페이스 VLAN 설정</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="c0c0d1ee-a504-41d8-b9a2-8fb9d960fb41">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c0c0d1ee-a504-41d8-b9a2-8fb9d960fb41">
       <Documentation>
         <Summary>네트워크 인터페이스 VLAN 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="InterfaceId" type="Guid" p1:ValidateRequired="true" p1:Guid="ad379f5b-f5e8-490d-a2f7-76ba32069aef">
+    <property name="InterfaceId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ad379f5b-f5e8-490d-a2f7-76ba32069aef">
       <Documentation>
         <Summary>네트워크 인터페이스 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Tag" type="Int32" p1:ValidateRequired="true" p1:Guid="abd10bd6-894b-4b46-add3-e4543d68ce63">
+    <property name="Tag" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="abd10bd6-894b-4b46-add3-e4543d68ce63">
       <Documentation>
         <Summary>VLAN 태그</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="IpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ffb0325a-addd-4fb5-889d-5b2f4d861ec0">
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ffb0325a-addd-4fb5-889d-5b2f4d861ec0">
       <Documentation>
         <Summary>아이피 주소</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="SubnetMask" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="75222423-b6c9-4cb1-9b14-4b210bc165ed">
+    <property name="SubnetMask" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="75222423-b6c9-4cb1-9b14-4b210bc165ed">
       <Documentation>
         <Summary>서브넷 마스크</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Gateway" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="cf106266-fcdc-4741-b411-0df42f2d4d1f">
+    <property name="Gateway" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="cf106266-fcdc-4741-b411-0df42f2d4d1f">
       <Documentation>
         <Summary>게이트웨이</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="fcb0d894-6e9d-4bc3-9068-256c2f2b33c9">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="fcb0d894-6e9d-4bc3-9068-256c2f2b33c9">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b3eefb1f-27d2-4485-a971-4672c3041716">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b3eefb1f-27d2-4485-a971-4672c3041716">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f4368581-d50e-478b-a30d-53ffdd9c433f">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f4368581-d50e-478b-a30d-53ffdd9c433f">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="037e1266-8ed6-40a3-a028-8a97cfdea7f5">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="037e1266-8ed6-40a3-a028-8a97cfdea7f5">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="dca9afd0-bf4e-4452-a219-b0b8360ad65b">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="dca9afd0-bf4e-4452-a219-b0b8360ad65b">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="149b0d37-fbd6-49a4-8f64-aef55692eee4">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
@@ -346,109 +346,109 @@
     <Documentation>
       <Summary>서비스 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b25c6555-1f7d-4085-9bd1-c634686f6f94">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b25c6555-1f7d-4085-9bd1-c634686f6f94">
       <Documentation>
         <Summary>서비스 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="498c5d8f-4fbd-41b9-884d-e712bb35da59">
+    <property name="ServerId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="498c5d8f-4fbd-41b9-884d-e712bb35da59">
       <Documentation>
         <Summary>서버 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="GroupId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7384f57d-6cf0-4af2-a077-4a7452b293db">
+    <property name="GroupId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7384f57d-6cf0-4af2-a077-4a7452b293db">
       <Documentation>
         <Summary>서비스 그룹 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="14ee003a-a8cc-4a2d-b793-810d3d9a4ddb">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="14ee003a-a8cc-4a2d-b793-810d3d9a4ddb">
       <Documentation>
         <Summary>서비스명</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dd6944d1-0590-4128-bbdb-7e99a47b57db">
+    <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dd6944d1-0590-4128-bbdb-7e99a47b57db">
       <Documentation>
         <Summary>설명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="f2f8f0c0-747f-4232-93ac-defd10b1f985">
+    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="f2f8f0c0-747f-4232-93ac-defd10b1f985">
       <Documentation>
         <Summary>서비스 타입</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="HaAction" type="PortalModels.EnumDbHaAction" p1:ValidateRequired="true" p1:Guid="cc5ec635-8aff-47c4-adde-a912f44994a2">
+    <property name="HaAction" type="PortalModels.EnumDbHaAction" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="cc5ec635-8aff-47c4-adde-a912f44994a2">
       <Documentation>
         <Summary>HA 작업</Summary>
       </Documentation>
       <column name="" default="-1" />
     </property>
-    <property name="State" type="PortalModels.EnumDbServiceState" p1:ValidateRequired="true" p1:Guid="9c3600fc-cd36-4fc4-ad79-50b47fd750ce">
+    <property name="State" type="PortalModels.EnumDbServiceState" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9c3600fc-cd36-4fc4-ad79-50b47fd750ce">
       <Documentation>
         <Summary>서비스 상태</Summary>
       </Documentation>
       <column name="" default="-2" />
     </property>
-    <property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="04b73d58-d043-4cda-a699-d451b6d1944d">
+    <property name="CpuUsage" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="04b73d58-d043-4cda-a699-d451b6d1944d">
       <Documentation>
         <Summary>CPU 사용률</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4d16eca3-8e5b-4c68-8d34-c348a99c78a8">
+    <property name="MemoryTotal" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4d16eca3-8e5b-4c68-8d34-c348a99c78a8">
       <Documentation>
         <Summary>전체 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c08615ab-d3c0-4c5c-8847-906de69078fc">
+    <property name="MemoryUsed" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c08615ab-d3c0-4c5c-8847-906de69078fc">
       <Documentation>
         <Summary>사용 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="059bd7af-6238-45c0-9f60-75a35b3b8242">
+    <property name="ThreadCount" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="059bd7af-6238-45c0-9f60-75a35b3b8242">
       <Documentation>
         <Summary>스레드수</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="456c4974-fc4e-4de3-a532-5bac2e457e73">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="456c4974-fc4e-4de3-a532-5bac2e457e73">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="2d50e6ba-49c9-4c6b-8b81-952a5f1066fb">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="2d50e6ba-49c9-4c6b-8b81-952a5f1066fb">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfac6811-ffb5-4e12-b217-52df3a1ea780">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfac6811-ffb5-4e12-b217-52df3a1ea780">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e2f1323b-275e-45a1-863a-2d017dc6ca1d">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e2f1323b-275e-45a1-863a-2d017dc6ca1d">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="132c62e1-18ad-4829-b200-d718030e599f">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="132c62e1-18ad-4829-b200-d718030e599f">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5a931cf9-dae5-4a3a-a824-5056a661bc88">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
@@ -460,13 +460,13 @@
       <Summary>서비스 사용 네트워크 인터페이스 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="ServiceId" type="Guid" p1:ValidateRequired="true" p1:Guid="401a743e-7403-4e3a-8964-acdf53d48710">
+      <key-property name="ServiceId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="401a743e-7403-4e3a-8964-acdf53d48710">
         <Documentation>
           <Summary>서비스 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="VlanId" type="Guid" p1:ValidateRequired="true" p1:Guid="15778b0b-225f-4387-a5b5-51f9b01e0744">
+      <key-property name="VlanId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="15778b0b-225f-4387-a5b5-51f9b01e0744">
         <Documentation>
           <Summary>네트워크 인터페이스 VLAN 아이디</Summary>
         </Documentation>
@@ -478,91 +478,91 @@
     <Documentation>
       <Summary>서버 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="26ec250d-d888-4a4a-a3f6-5ceb610e0b87">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="26ec250d-d888-4a4a-a3f6-5ceb610e0b87">
       <Documentation>
         <Summary>서버 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="ec1f3b0a-d41b-464e-9451-15a218467a58">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ec1f3b0a-d41b-464e-9451-15a218467a58">
       <Documentation>
         <Summary>서버명</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
+    <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="39c29bb7-97ea-4ac2-a3dc-0fa4d3deb471">
       <Documentation>
         <Summary>설명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="CpuModel" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="539bf8e6-bd81-4df0-8f05-63fdfef37748">
+    <property name="CpuModel" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="539bf8e6-bd81-4df0-8f05-63fdfef37748">
       <Documentation>
         <Summary>CPU 모델</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Clock" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
+    <property name="Clock" type="Int16" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ef930468-158c-4a2c-aad4-79725e6e0c10">
       <Documentation>
         <Summary>CPU 클럭</Summary>
       </Documentation>
-      <column name="" />
+      <column name="" default="0" />
     </property>
-    <property name="State" type="PortalModels.EnumDbServerState" p1:ValidateRequired="true" p1:Guid="692fcb9d-c9a6-41e6-9f12-c84441c4a458">
+    <property name="State" type="PortalModels.EnumDbServerState" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="692fcb9d-c9a6-41e6-9f12-c84441c4a458">
       <Documentation>
         <Summary>서버 상태</Summary>
       </Documentation>
       <column name="" default="-2" />
     </property>
-    <property name="Rack" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="bd177d40-403f-4b09-a57f-ef276abec1da">
+    <property name="Rack" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="bd177d40-403f-4b09-a57f-ef276abec1da">
       <Documentation>
         <Summary>Rack 정보</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4fbb7e8a-803e-4387-8165-8055326e99a7">
+    <property name="LoadAverage1M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="4fbb7e8a-803e-4387-8165-8055326e99a7">
       <Documentation>
         <Summary>1분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="99b6a280-781c-4097-bb8f-61c753cb2598">
+    <property name="LoadAverage5M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="99b6a280-781c-4097-bb8f-61c753cb2598">
       <Documentation>
         <Summary>5분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="efcff39d-a5bb-44f3-8e15-ff796a604ce8">
+    <property name="LoadAverage15M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="efcff39d-a5bb-44f3-8e15-ff796a604ce8">
       <Documentation>
         <Summary>15분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5ff657be-9cec-4665-b857-72d121fcbc62">
+    <property name="MemoryTotal" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5ff657be-9cec-4665-b857-72d121fcbc62">
       <Documentation>
         <Summary>전체 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="25b10afb-c246-4357-86fa-672a97608b53">
+    <property name="MemoryUsed" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="25b10afb-c246-4357-86fa-672a97608b53">
       <Documentation>
         <Summary>사용 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfd7af48-d9e8-47dc-b103-577a1a8879f6">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dfd7af48-d9e8-47dc-b103-577a1a8879f6">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="716c34ba-5707-4fcf-8cf8-ca05e76cae71">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="716c34ba-5707-4fcf-8cf8-ca05e76cae71">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="c0fe49bd-3811-4bdf-8f24-76846e1c382d">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
@@ -573,67 +573,67 @@
     <Documentation>
       <Summary>서비스 그룹</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="55e0902c-88e5-4f1d-8706-d35018b14415">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="55e0902c-88e5-4f1d-8706-d35018b14415">
       <Documentation>
         <Summary>서비스 그룹 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e7242d9c-985a-4d47-82c6-5b909e993c75">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e7242d9c-985a-4d47-82c6-5b909e993c75">
       <Documentation>
         <Summary>서비스 그룹명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a276786e-8aa1-4844-8840-7190a6467737">
+    <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a276786e-8aa1-4844-8840-7190a6467737">
       <Documentation>
         <Summary>설명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="c326c13e-8b72-4056-be47-22b8538fedb1">
+    <property name="ServiceType" type="PortalModels.EnumDbServiceType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c326c13e-8b72-4056-be47-22b8538fedb1">
       <Documentation>
         <Summary>서비스 타입</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ServiceIpAddress" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8d2a8821-8ac6-4281-b572-8bb974644006">
+    <property name="ServiceIpAddress" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="8d2a8821-8ac6-4281-b572-8bb974644006">
       <Documentation>
         <Summary>서비스 아이피 주소</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="2dedf590-6a7f-42d6-b65b-5bd60e54630d">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="2dedf590-6a7f-42d6-b65b-5bd60e54630d">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="4bcdb2d7-2d3e-4079-aa30-dd5e1a64f2be">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="4bcdb2d7-2d3e-4079-aa30-dd5e1a64f2be">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5e9db057-a8a6-4122-bf38-910ffa48feb7">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5e9db057-a8a6-4122-bf38-910ffa48feb7">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e93f9e55-3aa2-4376-aaf2-bb4546001b25">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e93f9e55-3aa2-4376-aaf2-bb4546001b25">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="474b573b-0d81-4b7a-afab-0bb7b8c995cc">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="474b573b-0d81-4b7a-afab-0bb7b8c995cc">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7e85b98b-df68-4db6-810b-f04bcbcf6199">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
@@ -644,31 +644,31 @@
     <Documentation>
       <Summary>API 키 정보</Summary>
     </Documentation>
-    <id name="KeyId" type="Guid" p1:ValidateRequired="true" p1:Guid="d91be1ee-6cf5-480a-989a-43ab2b93912a">
+    <id name="KeyId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="d91be1ee-6cf5-480a-989a-43ab2b93912a">
       <Documentation>
         <Summary>API 키 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="c65ce74b-9b0b-4f8d-83af-f81bd227306c">
+    <property name="UserId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c65ce74b-9b0b-4f8d-83af-f81bd227306c">
       <Documentation>
         <Summary>사용자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="KeyName" type="String" p1:ValidateRequired="true" p1:Guid="819d1e71-2b49-4fb1-8797-97a001c5f5e3">
+    <property name="KeyName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="819d1e71-2b49-4fb1-8797-97a001c5f5e3">
       <Documentation>
         <Summary>키명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ExpireDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="503d2561-0585-4112-b3fa-ea5a5e1aeeed">
+    <property name="ExpireDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="503d2561-0585-4112-b3fa-ea5a5e1aeeed">
       <Documentation>
         <Summary>만료일</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="KeyValue" type="String" p1:ValidateRequired="true" p1:Guid="9320f63b-31c0-483a-b764-de0d0b9e03a5">
+    <property name="KeyValue" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9320f63b-31c0-483a-b764-de0d0b9e03a5">
       <Documentation>
         <Summary>키 값</Summary>
       </Documentation>
@@ -679,13 +679,13 @@
     <Documentation>
       <Summary>설정 정보 테이블</Summary>
     </Documentation>
-    <id name="Key" type="String" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="c082124a-dd34-4e89-8129-25f8330bb151">
+    <id name="Key" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="c082124a-dd34-4e89-8129-25f8330bb151">
       <Documentation>
         <Summary>설정 키</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </id>
-    <property name="Value" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="1092bb99-8c77-4f93-a10f-076b5b29cc4b">
+    <property name="Value" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="1092bb99-8c77-4f93-a10f-076b5b29cc4b">
       <Documentation>
         <Summary>설정 값</Summary>
       </Documentation>
@@ -696,25 +696,25 @@
     <Documentation>
       <Summary>시스템 로그</Summary>
     </Documentation>
-    <id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ab84ebf6-ba1c-4443-b731-e821a62c8f18">
+    <id name="LogId" type="Int64" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ab84ebf6-ba1c-4443-b731-e821a62c8f18">
       <Documentation>
         <Summary>로그 아이디</Summary>
       </Documentation>
       <column name="" precision="20" scale="0" unique="True" p1:unicode="False" />
     </id>
-    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="67430571-742f-4751-a781-ef4acc2b84c3">
+    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="67430571-742f-4751-a781-ef4acc2b84c3">
       <Documentation>
         <Summary>로그 레벨</Summary>
       </Documentation>
       <column name="" precision="6" scale="0" p1:unicode="False" />
     </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="df9d52a6-35af-408c-8c14-78ed79aebcc6">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="42005bf6-06cd-4cab-9568-850fd48b52e9">
+    <property name="Message" type="Clob" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="42005bf6-06cd-4cab-9568-850fd48b52e9">
       <Documentation>
         <Summary>메세지</Summary>
       </Documentation>
@@ -725,49 +725,49 @@
     <Documentation>
       <Summary>접속이 허용된 아이피</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="f6d09c66-6afc-41fa-90de-94aad8ffbd40">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="f6d09c66-6afc-41fa-90de-94aad8ffbd40">
       <Documentation>
         <Summary>접속 허용 아이피 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="RoleId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="de92668d-06a5-4e0d-8304-715df360d6d6">
+    <property name="RoleId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="de92668d-06a5-4e0d-8304-715df360d6d6">
       <Documentation>
         <Summary>역할(권한그룹) 아이디</Summary>
       </Documentation>
       <column name="" p1:unicode="True" />
     </property>
-    <property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="9ce5191a-3e8d-48a6-ae80-0459a8f1b9c9">
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="9ce5191a-3e8d-48a6-ae80-0459a8f1b9c9">
       <Documentation>
         <Summary>아이피 주소 문자열</Summary>
       </Documentation>
       <column name="" length="50" />
     </property>
-    <property name="StartAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="d9d7de94-c788-47c6-969f-e91244ff3f4d">
+    <property name="StartAddress" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="d9d7de94-c788-47c6-969f-e91244ff3f4d">
       <Documentation>
         <Summary>아이피 범위 시작 숫자값</Summary>
       </Documentation>
       <column name="" precision="20" scale="0" p1:unicode="False" />
     </property>
-    <property name="EndAddress" type="Int64" p1:ValidateRequired="true" p1:Guid="3514781f-7169-4329-a0d3-923871857f21">
+    <property name="EndAddress" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3514781f-7169-4329-a0d3-923871857f21">
       <Documentation>
         <Summary>아이피 범위 종료 숫자값</Summary>
       </Documentation>
       <column name="" precision="20" scale="0" p1:unicode="False" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1861822e-617c-45c6-9fce-4009665dffb5">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="1861822e-617c-45c6-9fce-4009665dffb5">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" p1:unicode="True" />
     </property>
-    <property name="RegName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="cf4c0bdf-7e19-4067-b77e-a77e80be691c">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="cf4c0bdf-7e19-4067-b77e-a77e80be691c">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="1000" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="a843e365-d6f0-4890-a23d-818a3ec1adc6">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
@@ -779,13 +779,13 @@
       <Summary>사용자 로그인 기록</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b6fd68dd-da63-4bcb-9243-12ce9102dad9">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b6fd68dd-da63-4bcb-9243-12ce9102dad9">
         <Documentation>
           <Summary>사용자 아이디</Summary>
         </Documentation>
         <column name="" p1:unicode="True" />
       </key-property>
-      <key-property name="LoginDate" type="DateTime" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="35fc010b-488b-45ee-a43a-8b567f4fa088">
+      <key-property name="LoginDate" type="DateTime" p1:inheritance-modifier="Virtual" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="35fc010b-488b-45ee-a43a-8b567f4fa088">
         <Documentation>
           <Summary>로그인 일시</Summary>
         </Documentation>
@@ -797,25 +797,25 @@
     <Documentation>
       <Summary>사용자 권한</Summary>
     </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="3693629b-6b2b-437d-b13f-2d131b28299e">
+    <id name="Id" type="Int32" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="3693629b-6b2b-437d-b13f-2d131b28299e">
       <Documentation>
         <Summary>권한 아이디</Summary>
       </Documentation>
       <column name="Id" precision="11" scale="0" unique="True" />
     </id>
-    <property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="419fd237-aa1b-46cc-9767-e9437363ab73">
+    <property name="ClaimType" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="419fd237-aa1b-46cc-9767-e9437363ab73">
       <Documentation>
         <Summary>권한 타입</Summary>
       </Documentation>
       <column name="ClaimType" length="255" p1:unicode="True" />
     </property>
-    <property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0555e1ad-df99-4648-8f49-0098ac483ab7">
+    <property name="ClaimValue" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0555e1ad-df99-4648-8f49-0098ac483ab7">
       <Documentation>
         <Summary>권한 값</Summary>
       </Documentation>
       <column name="ClaimValue" length="255" p1:unicode="True" />
     </property>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="79ac33b6-f420-4adf-bc7d-c07154a0dd19">
+    <property name="UserId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="79ac33b6-f420-4adf-bc7d-c07154a0dd19">
       <Documentation>
         <Summary>사용자 아이디</Summary>
       </Documentation>
@@ -826,25 +826,25 @@
     <Documentation>
       <Summary>역할(권한 그룹)</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1f9ce801-99d0-4a8a-af6e-e6c5cd53cd51">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="1f9ce801-99d0-4a8a-af6e-e6c5cd53cd51">
       <Documentation>
         <Summary>역할(권한그룹) 아이디</Summary>
       </Documentation>
       <column name="Id" sql-type="char(36)" p1:unicode="True" />
     </id>
-    <property name="ConcurrencyStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8382bc4e-cc5d-4ce1-bb85-e5e5a6a3c48a">
+    <property name="ConcurrencyStamp" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8382bc4e-cc5d-4ce1-bb85-e5e5a6a3c48a">
       <Documentation>
         <Summary>병행지문</Summary>
       </Documentation>
       <column name="ConcurrencyStamp" length="255" sql-type="varchar" />
     </property>
-    <property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="cd0ee09d-9c67-4564-9883-e6724536fc85">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="cd0ee09d-9c67-4564-9883-e6724536fc85">
       <Documentation>
         <Summary>역할(권한 그룹)명</Summary>
       </Documentation>
       <column name="Name" length="255" p1:unicode="True" />
     </property>
-    <property name="NormalizedName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b136d6bb-7884-4698-abd6-358ecbacdbdb">
+    <property name="NormalizedName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="b136d6bb-7884-4698-abd6-358ecbacdbdb">
       <Documentation>
         <Summary>표준화 된 역할(권한 그룹)명</Summary>
       </Documentation>
@@ -855,25 +855,25 @@
     <Documentation>
       <Summary>역할(권한그룹) 권한</Summary>
     </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="f7ac25e0-4b6f-451b-9963-e972f025d8ed">
+    <id name="Id" type="Int32" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="f7ac25e0-4b6f-451b-9963-e972f025d8ed">
       <Documentation>
         <Summary>권한 아이디</Summary>
       </Documentation>
       <column name="Id" precision="11" scale="0" unique="True" p1:unicode="False" />
     </id>
-    <property name="ClaimType" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0524010f-762a-4df6-a378-3d70c84045d7">
+    <property name="ClaimType" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="0524010f-762a-4df6-a378-3d70c84045d7">
       <Documentation>
         <Summary>권한 타입</Summary>
       </Documentation>
       <column name="ClaimType" length="255" p1:unicode="True" />
     </property>
-    <property name="ClaimValue" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="59318e33-5c0c-4c8e-8fcf-fa30fc74b43a">
+    <property name="ClaimValue" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="59318e33-5c0c-4c8e-8fcf-fa30fc74b43a">
       <Documentation>
         <Summary>권한 값</Summary>
       </Documentation>
       <column name="ClaimValue" length="255" p1:unicode="True" />
     </property>
-    <property name="RoleId" type="Guid" p1:ValidateRequired="true" p1:Guid="9494b656-03ce-4e14-b97f-fe7dd66bf5e0">
+    <property name="RoleId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9494b656-03ce-4e14-b97f-fe7dd66bf5e0">
       <Documentation>
         <Summary>역할(권한그룹) 아이디</Summary>
       </Documentation>
@@ -884,37 +884,37 @@
     <Documentation>
       <Summary>권한명</Summary>
     </Documentation>
-    <id name="Id" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="730acb2b-b7fe-4460-b1f7-9cf52e59a736">
+    <id name="Id" type="Int32" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="730acb2b-b7fe-4460-b1f7-9cf52e59a736">
       <Documentation>
         <Summary>권한명 아이디</Summary>
       </Documentation>
       <column name="Id" precision="11" scale="0" unique="True" p1:unicode="False" />
     </id>
-    <property name="ClaimTitle" type="String" p1:ValidateMaxLength="2000" p1:ValidateRequired="true" p1:Guid="e4dbf958-0766-43d9-8f27-080bd1d31f62">
+    <property name="ClaimTitle" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="2000" p1:ValidateRequired="true" p1:Guid="e4dbf958-0766-43d9-8f27-080bd1d31f62">
       <Documentation>
         <Summary>권한 제목</Summary>
       </Documentation>
       <column name="ClaimTitle" length="2000" p1:unicode="True" />
     </property>
-    <property name="ClaimType" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="4f345480-a4df-4bcc-a2c2-1902c60208d8">
+    <property name="ClaimType" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="4f345480-a4df-4bcc-a2c2-1902c60208d8">
       <Documentation>
         <Summary>권한 타입</Summary>
       </Documentation>
       <column name="ClaimType" length="200" unique-key="KEY1" p1:unicode="True" />
     </property>
-    <property name="ClaimValue" type="String" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="629dffbd-1164-4f89-9316-b5b765543718">
+    <property name="ClaimValue" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="629dffbd-1164-4f89-9316-b5b765543718">
       <Documentation>
         <Summary>권한 값</Summary>
       </Documentation>
       <column name="ClaimValue" length="200" unique-key="KEY1" p1:unicode="True" />
     </property>
-    <property name="Depth" type="Int16" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="9242b586-2588-4899-9b38-4c0e0d78e8ac">
+    <property name="Depth" type="Int16" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="9242b586-2588-4899-9b38-4c0e0d78e8ac">
       <Documentation>
         <Summary>뎁스</Summary>
       </Documentation>
       <column name="Depth" />
     </property>
-    <property name="OrderNo" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7fd84af3-b483-4aa2-996d-c0e9f26d4e2d">
+    <property name="OrderNo" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="7fd84af3-b483-4aa2-996d-c0e9f26d4e2d">
       <Documentation>
         <Summary>순서</Summary>
       </Documentation>
@@ -926,13 +926,13 @@
       <Summary>역할(권한그룹) 내 사용자</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="3ff09bca-8206-492d-a9a1-7248fdc9480d">
+      <key-property name="UserId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3ff09bca-8206-492d-a9a1-7248fdc9480d">
         <Documentation>
           <Summary>사용자 아이디</Summary>
         </Documentation>
         <column name="UserId" p1:unicode="True" />
       </key-property>
-      <key-property name="RoleId" type="Guid" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="4e6d7f40-193a-491e-aeb2-a74098a18eea">
+      <key-property name="RoleId" type="Guid" p1:inheritance-modifier="Virtual" primary-key-index="1" p1:ValidateRequired="true" p1:Guid="4e6d7f40-193a-491e-aeb2-a74098a18eea">
         <Documentation>
           <Summary>역할(권한그룹) 아이디</Summary>
         </Documentation>
@@ -944,109 +944,109 @@
     <Documentation>
       <Summary>사용자 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="9e38e0af-a9f3-4383-8c6f-738401c1bc1d">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9e38e0af-a9f3-4383-8c6f-738401c1bc1d">
       <Documentation>
         <Summary>사용자 아이디</Summary>
       </Documentation>
       <column name="Id" />
     </id>
-    <property name="AccessFailedCount" type="Int32" p1:ValidateRequired="true" p1:Guid="578e9234-d409-4e9d-8616-03bd04c95473">
+    <property name="AccessFailedCount" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="578e9234-d409-4e9d-8616-03bd04c95473">
       <column name="AccessFailedCount" />
     </property>
-    <property name="Code" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8c8a61c3-2f43-4d6e-911d-742c677cf072">
+    <property name="Code" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="8c8a61c3-2f43-4d6e-911d-742c677cf072">
       <Documentation>
         <Summary>사번 등 식별 코드</Summary>
       </Documentation>
       <column name="Code" length="255" p1:unicode="True" />
     </property>
-    <property name="ConcurrencyStamp" type="String" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="adc46e96-f77c-4b12-a1b9-e9d274dc5342">
+    <property name="ConcurrencyStamp" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="255" p1:ValidateRequired="true" p1:Guid="adc46e96-f77c-4b12-a1b9-e9d274dc5342">
       <column name="ConcurrencyStamp" length="255" />
     </property>
-    <property name="Email" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="c25b2d04-46f3-4c24-add6-18f172ee0a8d">
+    <property name="Email" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="c25b2d04-46f3-4c24-add6-18f172ee0a8d">
       <Documentation>
         <Summary>이메일</Summary>
       </Documentation>
       <column name="Email" length="255" p1:unicode="True" />
     </property>
-    <property name="EmailConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="bd3a3b5f-157b-43ae-a244-5017768f4f9b">
+    <property name="EmailConfirmed" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="bd3a3b5f-157b-43ae-a244-5017768f4f9b">
       <Documentation>
         <Summary>이메일 승인여부</Summary>
       </Documentation>
       <column name="EmailConfirmed" precision="1" p1:unicode="False" />
     </property>
-    <property name="LockoutEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="5694b41f-411b-4287-ac02-95ae8a499179">
+    <property name="LockoutEnabled" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="5694b41f-411b-4287-ac02-95ae8a499179">
       <Documentation>
         <Summary>잠금 활성화 여부</Summary>
       </Documentation>
       <column name="LockoutEnabled" precision="1" p1:unicode="False" />
     </property>
-    <property name="LockoutEnd" type="DateTime" p1:nullable="True" value-generated="OnAdd" p1:ValidateRequired="false" p1:Guid="0bba1730-7f17-4764-8121-b328b3ecfad1">
+    <property name="LockoutEnd" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateRequired="false" p1:Guid="0bba1730-7f17-4764-8121-b328b3ecfad1">
       <Documentation>
         <Summary>잠금 만료 시간</Summary>
       </Documentation>
       <column name="LockoutEnd" p1:unicode="False" />
     </property>
-    <property name="Name" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="421b0ce8-75ef-45e2-a836-33194be07914">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="421b0ce8-75ef-45e2-a836-33194be07914">
       <Documentation>
         <Summary>사용자명</Summary>
       </Documentation>
       <column name="Name" length="255" p1:unicode="True" />
     </property>
-    <property name="NormalizedEmail" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="46bee43d-2e1e-466a-bfbe-244a3911c109">
+    <property name="NormalizedEmail" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="46bee43d-2e1e-466a-bfbe-244a3911c109">
       <Documentation>
         <Summary>표준화 된 이메일</Summary>
       </Documentation>
       <column name="NormalizedEmail" length="255" p1:unicode="True" />
     </property>
-    <property name="NormalizedUserName" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="e3c859b0-2219-4dcc-81b3-32b3b2ce1d8c">
+    <property name="NormalizedUserName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="e3c859b0-2219-4dcc-81b3-32b3b2ce1d8c">
       <Documentation>
         <Summary>표준화 된 로그인 아이디</Summary>
       </Documentation>
       <column name="NormalizedUserName" length="255" unique="True" p1:unicode="True" />
     </property>
-    <property name="PasswordHash" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="5f4a55b0-ae2a-49b7-8932-f91ded9095d8">
+    <property name="PasswordHash" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="5f4a55b0-ae2a-49b7-8932-f91ded9095d8">
       <Documentation>
         <Summary>비밀번호 해쉬</Summary>
       </Documentation>
       <column name="PasswordHash" length="255" p1:unicode="True" />
     </property>
-    <property name="PhoneNumber" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="89fa30d1-4276-4980-9f25-a7c135ad03a9">
+    <property name="PhoneNumber" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="89fa30d1-4276-4980-9f25-a7c135ad03a9">
       <Documentation>
         <Summary>전화번호</Summary>
       </Documentation>
       <column name="PhoneNumber" length="255" p1:unicode="True" />
     </property>
-    <property name="PhoneNumberConfirmed" type="Boolean" p1:ValidateRequired="true" p1:Guid="5afe02a6-6a9a-4eae-8658-06f1bad99933">
+    <property name="PhoneNumberConfirmed" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="5afe02a6-6a9a-4eae-8658-06f1bad99933">
       <Documentation>
         <Summary>전화번호 확인 여부</Summary>
       </Documentation>
       <column name="PhoneNumberConfirmed" precision="1" p1:unicode="False" />
     </property>
-    <property name="SecurityStamp" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="54713b98-9407-4d4f-90f4-81993b60bd74">
+    <property name="SecurityStamp" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="54713b98-9407-4d4f-90f4-81993b60bd74">
       <Documentation>
         <Summary>보안 지문</Summary>
       </Documentation>
       <column name="SecurityStamp" length="255" p1:unicode="True" />
     </property>
-    <property name="TwoFactorEnabled" type="Boolean" p1:ValidateRequired="true" p1:Guid="24e11c04-011b-4cc2-827a-5f5cc4da298d">
+    <property name="TwoFactorEnabled" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="24e11c04-011b-4cc2-827a-5f5cc4da298d">
       <Documentation>
         <Summary>2차 인증 활성화 여부</Summary>
       </Documentation>
       <column name="TwoFactorEnabled" precision="1" p1:unicode="False" />
     </property>
-    <property name="LoginId" type="String" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6f19ea20-95d1-4908-8c75-edbb1db2d67f">
+    <property name="LoginId" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6f19ea20-95d1-4908-8c75-edbb1db2d67f">
       <Documentation>
         <Summary>로그인 아이디</Summary>
       </Documentation>
       <column name="LoginId" length="255" p1:unicode="True" />
     </property>
-    <property name="IsDeleted" type="Boolean" p1:ValidateRequired="true" p1:Guid="fc8c56c6-d1ab-4823-bb66-ae8b5554cd85">
+    <property name="IsDeleted" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="fc8c56c6-d1ab-4823-bb66-ae8b5554cd85">
       <Documentation>
         <Summary>삭제 여부</Summary>
       </Documentation>
       <column name="IsDeleted" default="0" precision="1" scale="0" p1:unicode="False" />
     </property>
-    <property name="PasswordChangeDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eddb0418-8cd7-4628-a969-dac29eb6fa32">
+    <property name="PasswordChangeDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eddb0418-8cd7-4628-a969-dac29eb6fa32">
       <Documentation>
         <Summary>비밀번호 변경 일시</Summary>
       </Documentation>
@@ -1057,43 +1057,43 @@
     <Documentation>
       <Summary>사용자 행동 로그</Summary>
     </Documentation>
-    <id name="LogId" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ee22087c-3aa0-44d3-bb29-249b3ad55fd5">
+    <id name="LogId" type="Int64" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ee22087c-3aa0-44d3-bb29-249b3ad55fd5">
       <Documentation>
         <Summary>로그 아이디</Summary>
       </Documentation>
       <column name="" precision="20" scale="0" unique="True" p1:unicode="False" />
     </id>
-    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:ValidateRequired="true" p1:Guid="722a6812-0f59-455e-90b4-f9d2bcef3d66">
+    <property name="LogLevel" type="PortalModels.EnumDbLogLevel" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="722a6812-0f59-455e-90b4-f9d2bcef3d66">
       <Documentation>
         <Summary>로그 레벨</Summary>
       </Documentation>
       <column name="" precision="6" scale="0" p1:unicode="False" />
     </property>
-    <property name="IpAddress" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14d6c052-2864-49c5-ab18-868d4fd06bda">
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14d6c052-2864-49c5-ab18-868d4fd06bda">
       <Documentation>
         <Summary>접속아이피</Summary>
       </Documentation>
       <column name="" length="50" p1:unicode="True" />
     </property>
-    <property name="Message" type="Clob" p1:ValidateRequired="true" p1:Guid="fa88437d-54e9-432d-950c-e681ac66cf8f">
+    <property name="Message" type="Clob" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="fa88437d-54e9-432d-950c-e681ac66cf8f">
       <Documentation>
         <Summary>메세지</Summary>
       </Documentation>
       <column name="" p1:unicode="True" />
     </property>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="8f046ed7-7996-41f0-93c4-8626f0684a80">
+    <property name="UserId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="8f046ed7-7996-41f0-93c4-8626f0684a80">
       <Documentation>
         <Summary>사용자 아이디</Summary>
       </Documentation>
       <column name="" p1:unicode="True" />
     </property>
-    <property name="UserName" type="String" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="78a024ad-f137-4d00-9a0a-a83ad760364c">
+    <property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="1000" p1:ValidateRequired="true" p1:Guid="78a024ad-f137-4d00-9a0a-a83ad760364c">
       <Documentation>
         <Summary>사용자명</Summary>
       </Documentation>
       <column name="" length="1000" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="61310c7a-9aa1-40cd-8473-f0457b7f5fad">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
@@ -1104,127 +1104,127 @@
     <Documentation>
       <Summary>디스크 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="be060a5d-43fa-47d3-a1d7-8da0e8de1c9f">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="be060a5d-43fa-47d3-a1d7-8da0e8de1c9f">
       <Documentation>
         <Summary>디스크 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="ServerId" type="Guid" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
+    <property name="ServerId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="092f3ed4-9c02-4c42-8f06-1ad0810e0aff">
       <Documentation>
         <Summary>서버 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="DiskPoolId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="385f2a84-c2ee-48e4-be77-213b63d98cfe">
+    <property name="DiskPoolId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="385f2a84-c2ee-48e4-be77-213b63d98cfe">
       <Documentation>
         <Summary>디스크 Pool 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e0399861-b917-479b-9637-a95a901f71f1">
       <Documentation>
         <Summary>디스크 이름</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="488d3ec3-12ba-4205-9be8-57d4ada49a8f">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="488d3ec3-12ba-4205-9be8-57d4ada49a8f">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="ba9bb789-0511-4605-8dfe-086d311c1dc5">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="ba9bb789-0511-4605-8dfe-086d311c1dc5">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="38240694-93f2-47e0-ae76-8888c468e14e">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="38240694-93f2-47e0-ae76-8888c468e14e">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23b520cd-1eff-4bf6-9fae-35f4dd02683f">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23b520cd-1eff-4bf6-9fae-35f4dd02683f">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="145af3cc-569d-47bb-bc8d-54920c985b40">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="145af3cc-569d-47bb-bc8d-54920c985b40">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="3f7b615f-b6c3-4759-a749-28abf9430a5b">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="3f7b615f-b6c3-4759-a749-28abf9430a5b">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="Path" type="String" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
+    <property name="Path" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ae78659f-da4f-4679-acb7-a4a6c258c537">
       <Documentation>
         <Summary>마운트 경로</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="State" type="PortalModels.EnumDbDiskState" p1:ValidateRequired="true" p1:Guid="e471acd6-993f-4576-8f60-a4f9d6ec31c2">
+    <property name="State" type="PortalModels.EnumDbDiskState" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e471acd6-993f-4576-8f60-a4f9d6ec31c2">
       <Documentation>
         <Summary>서비스 상태</Summary>
       </Documentation>
       <column name="" default="-2" />
     </property>
-    <property name="TotalInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="b477c167-bcd1-4bec-b6c8-dc3e888a50e9">
+    <property name="TotalInode" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b477c167-bcd1-4bec-b6c8-dc3e888a50e9">
       <Documentation>
         <Summary>전체 inode 수</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ReservedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="387eda8e-4a17-45c7-83d3-59b1c78b8b7f">
+    <property name="ReservedInode" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="387eda8e-4a17-45c7-83d3-59b1c78b8b7f">
       <Documentation>
         <Summary>예약/시스템 inode 수</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="UsedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="4c522b2a-4e67-491f-8280-74b1ed84af95">
+    <property name="UsedInode" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="4c522b2a-4e67-491f-8280-74b1ed84af95">
       <Documentation>
         <Summary>사용된 inode 수</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="TotalSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="472f44a9-f1bf-43d1-8987-5ad67f9ff080">
+    <property name="TotalSize" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="472f44a9-f1bf-43d1-8987-5ad67f9ff080">
       <Documentation>
         <Summary>전체 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ReservedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="4f158913-4db9-4ce8-930f-71d440a33a6e">
+    <property name="ReservedSize" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="4f158913-4db9-4ce8-930f-71d440a33a6e">
       <Documentation>
         <Summary>예약/시스템 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="UsedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="0c560220-c09e-4925-8da3-bb05e119e7fe">
+    <property name="UsedSize" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="0c560220-c09e-4925-8da3-bb05e119e7fe">
       <Documentation>
         <Summary>사용된 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="761e860d-48b8-47e2-9a48-9311b61b5773">
+    <property name="Read" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="761e860d-48b8-47e2-9a48-9311b61b5773">
       <Documentation>
         <Summary>디스크 읽기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="bc6cc914-5704-4263-8279-c09f88d1c1da">
+    <property name="Write" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="bc6cc914-5704-4263-8279-c09f88d1c1da">
       <Documentation>
         <Summary>디스크 쓰기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
+    <property name="RwMode" type="PortalModels.EnumDbDiskRwMode" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="df075b73-b462-4405-8dee-0b9a12dd65bb">
       <Documentation>
         <Summary>디스크 읽기/쓰기 모드</Summary>
       </Documentation>
@@ -1235,70 +1235,70 @@
     <Documentation>
       <Summary>디스크 Pool 정보</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="083df896-ac81-4566-833f-7986a994ca32">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="083df896-ac81-4566-833f-7986a994ca32">
       <Documentation>
         <Summary>디스크 Pool 아이디</Summary>
       </Documentation>
       <column name="" />
     </id>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="63656ce8-9cb6-428b-884d-13789eb9f458">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="63656ce8-9cb6-428b-884d-13789eb9f458">
       <Documentation>
         <Summary>디스크 Pool 명</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="Description" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a8f71709-ee54-4da7-8725-23fb3a63d00a">
+    <property name="Description" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a8f71709-ee54-4da7-8725-23fb3a63d00a">
       <Documentation>
         <Summary>디스크 Pool 설명</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="549b5140-d6b0-4f01-aee4-a2b197a151de">
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="549b5140-d6b0-4f01-aee4-a2b197a151de">
       <Documentation>
         <Summary>등록자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9e471714-c9b3-4f91-ad5a-e37a9418cd99">
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="9e471714-c9b3-4f91-ad5a-e37a9418cd99">
       <Documentation>
         <Summary>등록자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="RegDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="243157e8-5245-45bf-90cf-b85c78297d4e">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="243157e8-5245-45bf-90cf-b85c78297d4e">
       <Documentation>
         <Summary>등록일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="ModId" type="Guid" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ed399653-79c6-4a94-9be4-10101f733d77">
+    <property name="ModId" type="Guid" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ed399653-79c6-4a94-9be4-10101f733d77">
       <Documentation>
         <Summary>수정자 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="ModName" type="String" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6bd66f36-403c-4ef4-8994-150013c13333">
+    <property name="ModName" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" value-generated="OnAdd" p1:ValidateMaxLength="255" p1:ValidateRequired="false" p1:Guid="6bd66f36-403c-4ef4-8994-150013c13333">
       <Documentation>
         <Summary>수정자명</Summary>
       </Documentation>
       <column name="" length="255" p1:unicode="True" />
     </property>
-    <property name="ModDate" type="DateTime" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
+    <property name="ModDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="f88e1154-0b2a-434b-8c21-c1941621fc07">
       <Documentation>
         <Summary>수정일시</Summary>
       </Documentation>
       <column name="" p1:unicode="False" />
     </property>
-    <property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
+    <property name="DiskPoolType" type="PortalModels.EnumDbDiskPoolType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="69d5ad5d-f261-4716-9998-982945659988">
       <Documentation>
         <Summary>디스크풀 타입</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ReplicationType" type="PortalModels.EnumDbDiskPoolReplicaType" p1:ValidateRequired="true" p1:Guid="e7ae1a03-18f3-4246-8b6e-73ed8dd85891">
+    <property name="ReplicationType" type="PortalModels.EnumDbDiskPoolReplicaType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e7ae1a03-18f3-4246-8b6e-73ed8dd85891">
       <column name="" default="1" />
     </property>
-    <property name="DefaultDiskPool" type="Boolean" p1:ValidateRequired="true" p1:Guid="6d126b8d-b25c-4a0f-83f9-7ddcd2c9137c">
+    <property name="DefaultDiskPool" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6d126b8d-b25c-4a0f-83f9-7ddcd2c9137c">
       <Documentation>
         <Summary>기본 디스크풀 여부</Summary>
       </Documentation>
@@ -1310,44 +1310,44 @@
       <Summary>서버 사용 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="a20bc4e8-02b3-41da-8e2e-b4867d19d5bc">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="a20bc4e8-02b3-41da-8e2e-b4867d19d5bc">
         <Documentation>
           <Summary>서버 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="90429425-b9b7-4d5d-8968-5b0fa4d564b9">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
         <column name="" p1:unicode="False" />
       </key-property>
     </composite-id>
-    <property name="LoadAverage1M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e6ff2054-004f-458c-93e7-7032c47fbb2b">
+    <property name="LoadAverage1M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="e6ff2054-004f-458c-93e7-7032c47fbb2b">
       <Documentation>
         <Summary>1분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="LoadAverage5M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="90775705-f5c2-4cbc-86aa-53e3e609f76b">
+    <property name="LoadAverage5M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="90775705-f5c2-4cbc-86aa-53e3e609f76b">
       <Documentation>
         <Summary>5분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="LoadAverage15M" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6d0cba36-07d2-4a29-aa53-89649e5a88e6">
+    <property name="LoadAverage15M" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="6d0cba36-07d2-4a29-aa53-89649e5a88e6">
       <Documentation>
         <Summary>15분 Load Average</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="df17a0e1-97b1-43f3-ba53-9dc97c776579">
+    <property name="MemoryTotal" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="df17a0e1-97b1-43f3-ba53-9dc97c776579">
       <Documentation>
         <Summary>전체 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eb691589-17f3-456c-bdbb-8d10ed03e248">
+    <property name="MemoryUsed" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eb691589-17f3-456c-bdbb-8d10ed03e248">
       <Documentation>
         <Summary>사용 메모리 크기</Summary>
       </Documentation>
@@ -1359,32 +1359,32 @@
       <Summary>네트워크 인터페이스 사용 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="15aaec8c-2fe5-45a3-bbed-c0647cbf71d5">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="15aaec8c-2fe5-45a3-bbed-c0647cbf71d5">
         <Documentation>
           <Summary>네트워크 인터페이스 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c1b19f80-ee81-4640-9bf0-f6024de73c79">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
         <column name="" p1:unicode="False" />
       </key-property>
     </composite-id>
-    <property name="BandWidth" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ac739e4f-b305-4b8c-a161-0a486fbc9eec">
+    <property name="BandWidth" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ac739e4f-b305-4b8c-a161-0a486fbc9eec">
       <Documentation>
         <Summary>네트워크 BandWidth</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Rx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dda996e0-5bed-4cda-93d5-f2199a4f3606">
+    <property name="Rx" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="dda996e0-5bed-4cda-93d5-f2199a4f3606">
       <Documentation>
         <Summary>수신 속도</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Tx" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5f52f407-5688-458b-9ac5-f9c16aeefd15">
+    <property name="Tx" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="5f52f407-5688-458b-9ac5-f9c16aeefd15">
       <Documentation>
         <Summary>송신 속도</Summary>
       </Documentation>
@@ -1396,38 +1396,38 @@
       <Summary>서비스 사용 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="becc9a14-3748-4863-8e33-73aa0a4bffed">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="becc9a14-3748-4863-8e33-73aa0a4bffed">
         <Documentation>
           <Summary>서비스 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="655b5914-cdb9-41db-ac46-6ec9c7860b21">
         <Documentation>
           <Summary>등록일시</Summary>
         </Documentation>
         <column name="" p1:unicode="False" />
       </key-property>
     </composite-id>
-    <property name="CpuUsage" type="Single" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a161a18b-3d52-4f67-b97f-cfd7316fef55">
+    <property name="CpuUsage" type="Single" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="a161a18b-3d52-4f67-b97f-cfd7316fef55">
       <Documentation>
         <Summary>CPU 사용률</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryTotal" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ce8eab24-adde-4c02-a4af-7c79031ce72e">
+    <property name="MemoryTotal" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="ce8eab24-adde-4c02-a4af-7c79031ce72e">
       <Documentation>
         <Summary>전체 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="MemoryUsed" type="Decimal" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eabcef83-0c2c-41c5-87a3-01af7a40c9e1">
+    <property name="MemoryUsed" type="Decimal" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="eabcef83-0c2c-41c5-87a3-01af7a40c9e1">
       <Documentation>
         <Summary>사용 메모리 크기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="ThreadCount" type="Int32" p1:ValidateRequired="true" p1:Guid="f7b5cad1-df78-48bc-8b1e-61a8ec6e4cc0">
+    <property name="ThreadCount" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="f7b5cad1-df78-48bc-8b1e-61a8ec6e4cc0">
       <Documentation>
         <Summary>스레드수</Summary>
       </Documentation>
@@ -1439,32 +1439,32 @@
       <Summary>서비스 설정 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Type" type="PortalModels.EnumDbServiceType" p1:ValidateRequired="true" p1:Guid="b78e7380-57b5-4704-b813-cd3bab343318">
+      <key-property name="Type" type="PortalModels.EnumDbServiceType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b78e7380-57b5-4704-b813-cd3bab343318">
         <Documentation>
           <Summary>서비스 종류</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="Version" type="Int32" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="e961d958-2dae-4299-8679-dc28a8cc989a">
+      <key-property name="Version" type="Int32" p1:inheritance-modifier="Virtual" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="e961d958-2dae-4299-8679-dc28a8cc989a">
         <Documentation>
           <Summary>설정 버전</Summary>
         </Documentation>
         <column name="" />
       </key-property>
     </composite-id>
-    <property name="Config" type="String" p1:ValidateRequired="true" p1:Guid="ae7f0dc0-ff6f-4107-9663-eeb8cc5e7139">
+    <property name="Config" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ae7f0dc0-ff6f-4107-9663-eeb8cc5e7139">
       <Documentation>
         <Summary>설정 정보</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="9e9c88b4-ace6-4341-a52f-2ff45fb3c7c0">
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9e9c88b4-ace6-4341-a52f-2ff45fb3c7c0">
       <Documentation>
         <Summary>추가 일자</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="LastVersion" type="Boolean" p1:ValidateRequired="true" p1:Guid="464500ad-d539-4521-a579-205fca3bb42d">
+    <property name="LastVersion" type="Boolean" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="464500ad-d539-4521-a579-205fca3bb42d">
       <Documentation>
         <Summary>최신 버전 여부</Summary>
       </Documentation>
@@ -1476,32 +1476,32 @@
       <Summary>유저 정보</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="AccessKey" type="String" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
+      <key-property name="AccessKey" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="20" p1:ValidateRequired="true" p1:Guid="f26e1c64-ad16-46ed-b27a-0ce40ce9c61d">
         <Documentation>
           <Summary>엑세스 키</Summary>
         </Documentation>
         <column name="" length="20" p1:fixed-length="True" />
       </key-property>
-      <key-property name="SecretKey" type="String" p1:ValidateMaxLength="40" p1:ValidateRequired="true" p1:Guid="cea1bd36-ad49-4b4d-a8cd-307ca8d3d598">
+      <key-property name="SecretKey" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="40" p1:ValidateRequired="true" p1:Guid="cea1bd36-ad49-4b4d-a8cd-307ca8d3d598">
         <Documentation>
           <Summary>비밀 키</Summary>
         </Documentation>
         <column name="" length="40" p1:fixed-length="True" />
       </key-property>
     </composite-id>
-    <property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
+    <property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="1810b3c6-3a74-4191-9073-56b1e994cd9b">
       <Documentation>
         <Summary>유저 아이디</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="Name" type="String" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
+    <property name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="02fe9c95-8b53-45f7-8d0f-7ce13ca1a841">
       <Documentation>
         <Summary>유저명</Summary>
       </Documentation>
       <column name="" unique="True" />
     </property>
-    <property name="Email" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
+    <property name="Email" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="23cae951-cd1a-4a01-9c2f-a562bc29a7a0">
       <Documentation>
         <Summary>이메일</Summary>
       </Documentation>
@@ -1512,22 +1512,22 @@
     <Documentation>
       <Summary>유저 디스크풀 목록</Summary>
     </Documentation>
-    <id name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="7a2a2cb2-f355-45a0-b4f2-4c363927d7e7">
+    <id name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="7a2a2cb2-f355-45a0-b4f2-4c363927d7e7">
       <column name="" />
     </id>
-    <property name="UserId" type="Guid" p1:ValidateRequired="true" p1:Guid="67b2f29b-0d4d-4cb4-b15d-364b4be07a32">
+    <property name="UserId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="67b2f29b-0d4d-4cb4-b15d-364b4be07a32">
       <Documentation>
         <Summary>유저 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="97480699-57c9-4e5c-a6fa-73451591af0e">
+    <property name="DiskPoolId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="97480699-57c9-4e5c-a6fa-73451591af0e">
       <Documentation>
         <Summary>디스크풀 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="StorageClass" type="String" p1:ValidateRequired="true" p1:Guid="b358d8c1-23f7-4db6-b864-d43fed21fbb6">
+    <property name="StorageClass" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b358d8c1-23f7-4db6-b864-d43fed21fbb6">
       <Documentation>
         <Summary>스토리지 클래스 이름</Summary>
       </Documentation>
@@ -1539,38 +1539,38 @@
       <Summary>디스크 사용량</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="b11303ff-02a4-4fc5-9049-847030a975eb">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b11303ff-02a4-4fc5-9049-847030a975eb">
         <Documentation>
           <Summary>디스크 유세이지 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="398726f6-cb2f-4410-a152-51821910520f">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="398726f6-cb2f-4410-a152-51821910520f">
         <Documentation>
           <Summary>생성시간</Summary>
         </Documentation>
         <column name="" />
       </key-property>
     </composite-id>
-    <property name="UsedInode" type="Decimal" p1:ValidateRequired="true" p1:Guid="6ab10ce7-be5b-4342-a461-e876e0cd4aa1">
+    <property name="UsedInode" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6ab10ce7-be5b-4342-a461-e876e0cd4aa1">
       <Documentation>
         <Summary>Inode사용량</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="UsedSize" type="Decimal" p1:ValidateRequired="true" p1:Guid="54ff65b9-9f02-48e7-b878-390936affc77">
+    <property name="UsedSize" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="54ff65b9-9f02-48e7-b878-390936affc77">
       <Documentation>
         <Summary>현재 사용량</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Read" type="Decimal" p1:ValidateRequired="true" p1:Guid="3f0b6c4d-79d7-4e44-81a7-24a9982c9696">
+    <property name="Read" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3f0b6c4d-79d7-4e44-81a7-24a9982c9696">
       <Documentation>
         <Summary>디스크 읽기</Summary>
       </Documentation>
       <column name="" default="0" />
     </property>
-    <property name="Write" type="Decimal" p1:ValidateRequired="true" p1:Guid="3ba6ba0d-1c40-4d2e-a60e-c29a50eb1feb">
+    <property name="Write" type="Decimal" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3ba6ba0d-1c40-4d2e-a60e-c29a50eb1feb">
       <Documentation>
         <Summary>디스크 쓰기</Summary>
       </Documentation>
@@ -1581,37 +1581,37 @@
     <Documentation>
       <Summary>리전 정보</Summary>
     </Documentation>
-    <id name="Name" type="String" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14a0f850-fa16-4a7e-bb45-23e9e8b3182f">
+    <id name="Name" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="50" p1:ValidateRequired="true" p1:Guid="14a0f850-fa16-4a7e-bb45-23e9e8b3182f">
       <Documentation>
         <Summary>리전명</Summary>
       </Documentation>
       <column name="" length="50" />
     </id>
-    <property name="Address" type="String" p1:ValidateMaxLength="15" p1:ValidateRequired="true" p1:Guid="3e62bb3b-10c6-4f9d-aa29-a6af84ab2bdb">
+    <property name="Address" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="15" p1:ValidateRequired="true" p1:Guid="3e62bb3b-10c6-4f9d-aa29-a6af84ab2bdb">
       <Documentation>
         <Summary>리전 주소</Summary>
       </Documentation>
       <column name="" length="15" />
     </property>
-    <property name="Port" type="Int32" p1:ValidateRequired="true" p1:Guid="c8c48ae0-9341-434a-a1f8-7c7e1c6e5f2b">
+    <property name="Port" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c8c48ae0-9341-434a-a1f8-7c7e1c6e5f2b">
       <Documentation>
         <Summary>포트</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="SSLPort" type="Int32" p1:ValidateRequired="true" p1:Guid="32f9fb60-6738-4082-9837-dbd0e038ebbc">
+    <property name="SSLPort" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="32f9fb60-6738-4082-9837-dbd0e038ebbc">
       <Documentation>
         <Summary>SSL포트</Summary>
       </Documentation>
-      <column name="" />
+      <column name="SSL_PORT" />
     </property>
-    <property name="AccessKey" type="String" p1:ValidateRequired="true" p1:Guid="350a66d7-4e01-4b2e-988e-fd72d372676d">
+    <property name="AccessKey" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="350a66d7-4e01-4b2e-988e-fd72d372676d">
       <Documentation>
         <Summary>엑세스키</Summary>
       </Documentation>
       <column name="" sql-type="char(20)" />
     </property>
-    <property name="SecretKey" type="String" p1:ValidateRequired="true" p1:Guid="7ccc2d65-a746-45f6-a563-d38e2a8ccb3d">
+    <property name="SecretKey" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="7ccc2d65-a746-45f6-a563-d38e2a8ccb3d">
       <Documentation>
         <Summary>시크릿키</Summary>
       </Documentation>
@@ -1623,197 +1623,544 @@
       <Summary>서비스 이벤트 로그</Summary>
     </Documentation>
     <composite-id>
-      <key-property name="Id" type="Guid" p1:ValidateRequired="true" p1:Guid="89fd707b-96aa-4969-87cc-f48b4c8cbdeb">
+      <key-property name="Id" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="89fd707b-96aa-4969-87cc-f48b4c8cbdeb">
         <Documentation>
           <Summary>서비스 아이디</Summary>
         </Documentation>
         <column name="" />
       </key-property>
-      <key-property name="RegDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="5fe7a5d1-d75d-497d-b8ab-0fe37b2cdd49">
+      <key-property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="5fe7a5d1-d75d-497d-b8ab-0fe37b2cdd49">
         <Documentation>
           <Summary>등록 시간</Summary>
         </Documentation>
         <column name="" />
       </key-property>
     </composite-id>
-    <property name="EventType" type="PortalModels.EnumDbServiceEventType" p1:ValidateRequired="true" p1:Guid="65eed8fc-041d-41fa-80b3-7654e1832e0f">
+    <property name="EventType" type="PortalModels.EnumDbServiceEventType" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="65eed8fc-041d-41fa-80b3-7654e1832e0f">
       <Documentation>
         <Summary>이벤트 종류</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="Message" type="String" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="0a6bc8f8-df94-43e3-bd3c-86b10c511b9a">
+    <property name="Message" type="String" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="0a6bc8f8-df94-43e3-bd3c-86b10c511b9a">
       <column name="" />
-    </property>
-  </class>
-  <class name="S3Logging" entity-set="S3Loggings" table="S3LOGGING" p1:Guid="52fc09c5-6d3e-4fa6-974e-7a3ab3851447">
-    <Documentation>
-      <Summary>ksanGW 로그</Summary>
-    </Documentation>
-    <id name="Id" type="Int64" value-generated="OnAdd" p1:ValidateRequired="true" p1:Guid="ce6a58ad-2095-47f5-ac06-5f5c55d7ebb1">
-      <Documentation>
-        <Summary>아이디</Summary>
-      </Documentation>
-      <column name="" />
-    </id>
-    <property name="UserName" type="String" p1:ValidateRequired="true" p1:Guid="a1f90e45-64c0-4ee5-ab94-f831b9e4ae9e">
-      <Documentation>
-        <Summary>유저명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="BucketName" type="String" p1:ValidateRequired="true" p1:Guid="c4720e26-9370-4cf5-b8dd-c6d00f083246">
-      <Documentation>
-        <Summary>버킷명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="InDate" type="DateTime" p1:ValidateRequired="true" p1:Guid="7f065b6b-dff0-4be4-ab05-343620674201">
-      <Documentation>
-        <Summary>발생시각</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RemoteHost" type="String" p1:ValidateRequired="true" p1:Guid="8a7cfae9-ab2a-4297-bdc8-ba2c1ee15840">
-      <Documentation>
-        <Summary>원격 호스트</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(256)" />
-    </property>
-    <property name="RequestUser" type="String" p1:ValidateRequired="true" p1:Guid="d795b0b3-ab7f-41ea-be07-e95a09b28343">
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="RequestId" type="String" p1:ValidateRequired="true" p1:Guid="1eb00eb9-62d4-49ca-adb2-ac170043eb51">
-      <Documentation>
-        <Summary>요청 아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="Operation" type="String" p1:ValidateRequired="true" p1:Guid="b8a2868e-02e8-4468-b669-de6ec9ff8614">
-      <Documentation>
-        <Summary>API 명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="ObjectName" type="String" p1:ValidateRequired="true" p1:Guid="57b672f8-a1d9-4799-b9ce-4480138b117a">
-      <Documentation>
-        <Summary>오브젝트명</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(2048)" />
-    </property>
-    <property name="RequestUri" type="String" p1:ValidateRequired="true" p1:Guid="e1c8e1da-b824-49f6-a26e-b0ebc6415f60">
-      <Documentation>
-        <Summary>요청URI</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(2048)" />
-    </property>
-    <property name="StatusCode" type="Int32" p1:ValidateRequired="true" p1:Guid="a64efb5e-bd92-48c4-b5ef-e49422f8ddc7">
-      <Documentation>
-        <Summary>상태코드</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="ErrorCode" type="String" p1:ValidateRequired="true" p1:Guid="69ecd0c9-9c78-4a0c-85df-a38e57478f32">
-      <Documentation>
-        <Summary>에러코드</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(256)" />
-    </property>
-    <property name="ResponseLength" type="Int64" p1:ValidateRequired="true" p1:Guid="f2347512-3b7c-4664-8a87-1ffcea5d8c0a">
-      <Documentation>
-        <Summary>응답 크기</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="ObjectLength" type="Int64" p1:ValidateRequired="true" p1:Guid="459c10c4-d761-4ffb-ae22-3a69bde90d94">
-      <Documentation>
-        <Summary>오브젝트 크기</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="TotalTime" type="Int64" p1:ValidateRequired="true" p1:Guid="0ad8a140-96f7-4fe8-a394-5d8f1f9db894">
-      <Documentation>
-        <Summary>총 소요시간</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="RequestLength" type="Int64" p1:ValidateRequired="true" p1:Guid="452a458c-6dcf-4106-8e89-786075b756e9">
-      <Documentation>
-        <Summary>요청 크기</Summary>
-      </Documentation>
-      <column name="" />
-    </property>
-    <property name="Rererer" type="String" p1:ValidateRequired="true" p1:Guid="5aadfa75-ba8d-45dd-83d3-fbb0b8972786">
-      <Documentation>
-        <Summary>참조</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="UserAgent" type="String" p1:ValidateRequired="true" p1:Guid="390c6866-2510-4c6c-9248-0c0bcb3fefce">
-      <Documentation>
-        <Summary>대리인</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(256)" />
-    </property>
-    <property name="VersionId" type="String" p1:ValidateRequired="true" p1:Guid="931ab459-7383-4ca7-8493-04ae3a61e510">
-      <Documentation>
-        <Summary>버전아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="HostId" type="String" p1:ValidateRequired="true" p1:Guid="7e83dc14-0bc7-40f9-b54b-9af281ec2e15">
-      <Documentation>
-        <Summary>호스트아이디</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(256)" />
-    </property>
-    <property name="Sign" type="String" p1:ValidateRequired="true" p1:Guid="bc365d04-f299-47bd-afa4-a4e6ba83fb9e">
-      <Documentation>
-        <Summary>사인</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(32)" />
-    </property>
-    <property name="SslGroup" type="String" p1:ValidateRequired="true" p1:Guid="af16885c-98e1-46f3-b82f-90a149140c7b">
-      <Documentation>
-        <Summary>SSL 그륩</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="SignType" type="String" p1:ValidateRequired="true" p1:Guid="8b278a50-d284-44b9-8070-631c777bdcfa">
-      <Documentation>
-        <Summary>사인 종류</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(32)" />
-    </property>
-    <property name="Endpoint" type="String" p1:ValidateRequired="true" p1:Guid="0e2a6c34-bd01-4940-a0fd-4ee9afbc3da0">
-      <Documentation>
-        <Summary>엔드포인트</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(64)" />
-    </property>
-    <property name="TlsVersion" type="String" p1:ValidateRequired="true" p1:Guid="9634a617-3aff-4a49-a681-1b38c96bed04">
-      <Documentation>
-        <Summary>TLS 버전</Summary>
-      </Documentation>
-      <column name="" sql-type="varchar(32)" />
     </property>
   </class>
   <class name="DiskPoolEC" entity-set="DiskPoolECs" p1:Guid="5d574bbd-0f8f-47d8-a04b-8ec1b3b49c71">
     <Documentation>
       <Summary>디스크풀 EC 설정</Summary>
     </Documentation>
-    <id name="DiskPoolId" type="Guid" p1:ValidateRequired="true" p1:Guid="aaebf213-5120-4a80-8ac7-ed32816606a7">
+    <id name="DiskPoolId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="aaebf213-5120-4a80-8ac7-ed32816606a7">
       <column name="" />
     </id>
-    <property name="M" type="Int32" p1:ValidateRequired="true" p1:Guid="ca7cb144-b1d4-46cf-ada0-95eb7415c1c7">
+    <property name="M" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ca7cb144-b1d4-46cf-ada0-95eb7415c1c7">
       <Documentation>
         <Summary>원본 파일 등분 갯수</Summary>
       </Documentation>
       <column name="" />
     </property>
-    <property name="K" type="Int32" p1:ValidateRequired="true" p1:Guid="8f45acfe-8983-47e4-9ee9-5477026cb1cf">
+    <property name="K" type="Int32" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="8f45acfe-8983-47e4-9ee9-5477026cb1cf">
       <Documentation>
         <Summary>인코딩 갯수</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketApiMeter" entity-set="BucketApiMeters" p1:Guid="f0887357-e355-4ed8-b9f7-470576b04fd6">
+    <Documentation>
+      <Summary>버킷 API 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6fd9d34c-84a7-4e82-9f92-9201e9b2e1e9">
+        <Documentation>
+          <Summary>생성 날짜</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="8234bc83-4771-4198-9aba-81bc6de31693">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="2bfc9eb0-8037-4892-9884-b04a434f2527">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="Event" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="2b6077f7-6294-45b0-9b10-86e77a45d9b6">
+        <Documentation>
+          <Summary>이벤트 타입</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Count" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="96408cc1-70a8-4df7-9234-75fd0f91e35d">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketErrorMeter" entity-set="BucketErrorMeters" p1:Guid="ad013455-0d4d-4b19-a2f4-21fa6ff779b9">
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="adb2f869-8e46-4f72-bf4c-11a559338ab4">
+        <Documentation>
+          <Summary>저장시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="af17723b-32e3-4b36-aaba-d9075c965626">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="0191d3ad-e50f-454e-9424-c64241c238e2">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+    </composite-id>
+    <property name="ClientErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9a0a84df-2397-4146-8bd0-3b1de7afdc4b">
+      <column name="" />
+    </property>
+    <property name="ServerErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6982b990-9b62-46a1-b758-be5ff82dc7fd">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketIoMeter" entity-set="BucketIoMeters" p1:Guid="b2b389e5-da0a-405b-a2bf-5c7e976b1385">
+    <Documentation>
+      <Summary>버킷 IO 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b27df228-e705-4bf0-ba04-3ac590fca6dc">
+        <Documentation>
+          <Summary>생성일자</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="28c3180a-304e-4685-9998-022cb7f928d5">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="19208c1a-d5ac-45f8-8642-a7d3415c7a71">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Upload" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="cb222cef-e396-4de8-8f6d-6f7219a7f51b">
+      <Documentation>
+        <Summary>업로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="Download" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c32ca323-3f11-4795-93cb-dfe41b99855f">
+      <Documentation>
+        <Summary>다운로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketApiAsset" entity-set="BucketApiAssets" p1:Guid="94598679-99b6-4392-9cc6-20af024aea14">
+    <Documentation>
+      <Summary>버킷 API 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6703f25a-cc41-4242-825f-c6992daed5f6">
+        <Documentation>
+          <Summary>생성 날짜</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="ddd5e6d4-d105-484f-b109-ab7ce530e188">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="76d7d4f9-9689-4e55-8a7c-b0cd155c1f71">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="Event" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="2fbd92ad-98c0-4ff8-a008-51cc19051b08">
+        <Documentation>
+          <Summary>이벤트 타입</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Count" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="a3f198fa-f594-4218-a36f-511d29bb0863">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketErrorAsset" entity-set="BucketErrorAssets" p1:Guid="f25911ff-2b2b-4dab-ab8d-a742fd1e4d7d">
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="dd78a2c7-5059-4635-99f5-979e9b509a96">
+        <Documentation>
+          <Summary>저장시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="178a96e4-900f-4f57-8eae-c17112fc1842">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="10ab5007-3778-4fba-a1e9-cf06e0ecdd1e">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+    </composite-id>
+    <property name="ClientErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="05adcde0-40f0-4f5a-83e5-3eae0925c3e8">
+      <column name="" />
+    </property>
+    <property name="ServerErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="7503daf3-a8c3-4173-b488-715f33280d26">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketIoAsset" entity-set="BucketIoAssets" p1:Guid="ff9ac9e0-b54f-495f-b620-173cd26b7201">
+    <Documentation>
+      <Summary>버킷 IO 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="4c5c970c-f977-4556-8e0a-5bbe0909ebb4">
+        <Documentation>
+          <Summary>생성일자</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="9727375b-2dde-471e-b898-02728e9918ff">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="5940eb5d-dca8-4e46-b124-fa94b6f2a45a">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Upload" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e1a54360-4d74-4076-b663-1f1dd4e1a6c2">
+      <Documentation>
+        <Summary>업로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="Download" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3510ee47-d80d-4935-8473-b4a66ab5ef89">
+      <Documentation>
+        <Summary>다운로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendApiMeter" entity-set="BackendApiMeters" p1:Guid="b5a12080-06cf-4ad4-bcdf-9742d35ca216">
+    <Documentation>
+      <Summary>버킷 API 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="74077c57-c899-450b-86cf-1d8e0c6857c6">
+        <Documentation>
+          <Summary>생성 날짜</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="9c9b5177-dc54-4d30-87cd-c354a6bdf47c">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="41f4f44e-3b6c-4391-909f-9995ebad82f7">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="Event" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="555a739c-e13c-4e92-bfd4-9100f67fe166">
+        <Documentation>
+          <Summary>이벤트 타입</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Count" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3047f414-d7bd-481d-823d-8ebffd40eb34">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendErrorMeter" entity-set="BackendErrorMeters" p1:Guid="5612b1fb-7c75-47a6-92b5-47fb90a002d8">
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="614ca7b3-dc47-4979-85e0-123c940e24f4">
+        <Documentation>
+          <Summary>저장시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="327f4984-ff1b-4147-aac7-6bc3a0bc5c9b">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="2146fa4b-f9e5-43f2-a690-349459205fb4">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+    </composite-id>
+    <property name="ClientErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="d92935f7-9ce4-4cf2-87fb-c886a6e4eff2">
+      <column name="" />
+    </property>
+    <property name="ServerErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="24c438b3-a11f-45f7-b06d-5b3aa2634d4f">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendIoMeter" entity-set="BackendIoMeters" p1:Guid="2f1df19b-996a-45a9-8f3b-81fb96a2c244">
+    <Documentation>
+      <Summary>버킷 IO 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="e772d485-160d-43b1-abec-d700d57d0a29">
+        <Documentation>
+          <Summary>생성일자</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="df689383-6b8c-4c8c-b34d-93d70c13bbf2">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="15a098da-68e9-4d4f-96bc-73f4ba2e41dd">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Upload" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="12144f57-6c9a-4271-a010-fc5fed55236f">
+      <Documentation>
+        <Summary>업로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="Download" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="43ed5ac2-564f-4e1d-bbad-24cf947dd8ee">
+      <Documentation>
+        <Summary>다운로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendApiAsset" entity-set="BackendApiAssets" p1:Guid="dd0932ed-84d6-401e-a5e9-5492be174389">
+    <Documentation>
+      <Summary>버킷 API 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="17a390ef-f619-4bad-9086-c750865b21f4">
+        <Documentation>
+          <Summary>생성 날짜</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="431b4405-63ff-4719-b703-3afae1da0172">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="79b47aa4-b149-480d-b550-c3cdbe3a5166">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="Event" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="afc67bb0-da5b-409d-af77-38aa94ef441b">
+        <Documentation>
+          <Summary>이벤트 타입</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Count" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b3d39081-3f29-403a-afe1-7aacf4b5d45f">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendErrorAsset" entity-set="BackendErrorAssets" p1:Guid="ec940cf6-c95e-47e2-b1fe-03bf5c855c24">
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="4e61d677-1dd4-41b1-9808-6359587ae52a">
+        <Documentation>
+          <Summary>저장시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="23ab1607-2f33-4a7a-b9ca-98ff59df9504">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="8b4cb42f-967f-4660-991a-7623809969e0">
+        <column name="" sql-type="varchar(200)" />
+      </key-property>
+    </composite-id>
+    <property name="ClientErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="3f9ad01e-f152-4827-ae63-43e9dabefd28">
+      <column name="" />
+    </property>
+    <property name="ServerErrorCount" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="1c45f359-e419-45b7-ab62-e84fccfa68d3">
+      <column name="" />
+    </property>
+  </class>
+  <class name="BackendIoAsset" entity-set="BackendIoAssets" p1:Guid="1f9f4371-69c5-45d3-9485-958c3865a01d">
+    <Documentation>
+      <Summary>버킷 IO 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="434801f0-dd53-49e6-bc41-14f7c640f433">
+        <Documentation>
+          <Summary>생성일자</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="7b11a5b3-3276-4e55-8f60-b480695b804a">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="4e52404d-1ac8-4279-a55b-4df001f44d5e">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+    </composite-id>
+    <property name="Upload" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="6afc3147-ac0f-4468-9b2d-08af9a3cd7c9">
+      <Documentation>
+        <Summary>업로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="Download" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="40672bf5-2680-4f57-ae93-85c8680ae097">
+      <Documentation>
+        <Summary>다운로드 용량</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+  </class>
+  <class name="BucketMeter" entity-set="BucketMeters" p1:Guid="11eb72c6-7973-4d2f-917a-a661ba8a5d91">
+    <Documentation>
+      <Summary>버킷 사용량 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b2756abf-f08f-4d6b-8f0a-be317b7a4d3a">
+        <Documentation>
+          <Summary>생성 시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="fb923b5a-5b68-4c4a-b2e5-3b6870ddbc53">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="64" p1:ValidateRequired="true" p1:Guid="1829e6c4-1034-4d72-a05a-f8bae10d8745">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="64" />
+      </key-property>
+    </composite-id>
+    <property name="Used" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="d5c60480-75af-42bf-82d8-69e47e6f5d92">
+      <Documentation>
+        <Summary>버킷 사용량</Summary>
+      </Documentation>
+      <column name="" default="0" />
+    </property>
+  </class>
+  <class name="BucketAsset" entity-set="BucketAssets" p1:Guid="10c7d010-6365-459f-9eeb-2cdd71c6d96b">
+    <Documentation>
+      <Summary>버킷 사용량 로그</Summary>
+    </Documentation>
+    <composite-id>
+      <key-property name="InDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b077029f-5ec0-4dbc-bee4-4a6033177beb">
+        <Documentation>
+          <Summary>생성 시간</Summary>
+        </Documentation>
+        <column name="" />
+      </key-property>
+      <key-property name="UserName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="200" p1:ValidateRequired="true" p1:Guid="d1f6c5b9-cab1-47ba-994e-b8045f8029a9">
+        <Documentation>
+          <Summary>유저명</Summary>
+        </Documentation>
+        <column name="" length="200" />
+      </key-property>
+      <key-property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="64" p1:ValidateRequired="true" p1:Guid="aeb6de7f-0a0a-4851-8750-d803a30795c5">
+        <Documentation>
+          <Summary>버킷명</Summary>
+        </Documentation>
+        <column name="" length="64" />
+      </key-property>
+    </composite-id>
+    <property name="MaxUsed" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="12da75a5-cc5f-4cb8-8fc2-cae659caded1">
+      <Documentation>
+        <Summary>버킷 사용량</Summary>
+      </Documentation>
+      <column name="" default="0" />
+    </property>
+    <property name="MinUsed" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="50904394-7e35-4c42-bb8f-cbd940e5ba1c">
+      <column name="" />
+    </property>
+    <property name="AvgUsed" type="Int64" p1:inheritance-modifier="Virtual" p1:nullable="True" p1:ValidateRequired="false" p1:Guid="342ddf31-bc25-4bcf-91ed-724463f20db6">
+      <column name="" />
+    </property>
+  </class>
+  <class name="S3AccessIp" entity-set="S3AccessIps" p1:Guid="56ce0763-f032-4242-8f37-4f5b81571a02">
+    <Documentation>
+      <Summary>S3 접근 아이피</Summary>
+    </Documentation>
+    <id name="AddressId" type="String" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c65fc477-b8d4-4c0c-a8d5-bc7b4f592790">
+      <Documentation>
+        <Summary>허용주소 아이디</Summary>
+      </Documentation>
+      <column name="" />
+    </id>
+    <property name="UserId" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="256" p1:ValidateRequired="true" p1:Guid="5b1f8e65-e858-440f-bb55-f809b1c6eaac">
+      <Documentation>
+        <Summary>사용자 아이디</Summary>
+      </Documentation>
+      <column name="" length="256" />
+    </property>
+    <property name="BucketName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="63" p1:ValidateRequired="true" p1:Guid="74737be9-902e-4f02-81e1-8362fa34992b">
+      <Documentation>
+        <Summary>버킷명</Summary>
+      </Documentation>
+      <column name="" length="63" />
+    </property>
+    <property name="StartIpNo" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="2c040fc9-862a-421d-98dc-3a152f98b00d">
+      <Documentation>
+        <Summary>허용 시작 아이피 값</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="EndIpNo" type="Int64" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="c0bedd61-5212-4c00-999f-29ab47ca0c78">
+      <Documentation>
+        <Summary>허용 종료 아이피 값</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="IpAddress" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="100" p1:ValidateRequired="true" p1:Guid="7385ca6d-57b4-4ef9-87e5-a4b8762c3ab7">
+      <Documentation>
+        <Summary>입력 아이피 주소</Summary>
+      </Documentation>
+      <column name="" length="100" />
+    </property>
+    <property name="RegDate" type="DateTime" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="b6c53812-b37b-4fe3-8d71-edce474d39ba">
+      <Documentation>
+        <Summary>등록일시</Summary>
+      </Documentation>
+      <column name="" />
+    </property>
+    <property name="RegName" type="String" p1:inheritance-modifier="Virtual" p1:ValidateMaxLength="400" p1:ValidateRequired="true" p1:Guid="042e44a9-4298-4891-9564-c0fa9cdd3503">
+      <Documentation>
+        <Summary>등록자명</Summary>
+      </Documentation>
+      <column name="" length="400" />
+    </property>
+    <property name="RegId" type="Guid" p1:inheritance-modifier="Virtual" p1:ValidateRequired="true" p1:Guid="0e0ef78c-6ca7-4af4-b9d8-a1f6acd26469">
+      <Documentation>
+        <Summary>등록 아이디</Summary>
       </Documentation>
       <column name="" />
     </property>
@@ -2205,7 +2552,7 @@
       </end2>
     </association>
     <association name="DiskPool_DiskpoolEC" cardinality="OneToOne" on-delete="Cascade" p1:Guid="1f0f623c-b9df-4f60-9654-704a3505e298">
-      <end1 multiplicity="ZeroOrOne" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
+      <end1 multiplicity="One" name="DiskPool" class="DiskPoolEC" relation-class="DiskPool" constrained="True" lazy="False" p1:Guid="297e6d52-841c-4edc-821c-b3da1641fb10">
         <property name="Id" />
       </end1>
       <end2 multiplicity="One" name="EC" class="DiskPool" relation-class="DiskPoolEC" constrained="False" lazy="False" p1:Guid="47428c9b-1cf2-45f6-94fb-c6c942d073e0">

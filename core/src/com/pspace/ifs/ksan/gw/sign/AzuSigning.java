@@ -67,7 +67,7 @@ public class AzuSigning {
         ifUnmodifiedSince = "";
         range = "";
 
-        this.parameter = new AzuParameter(parameter);
+        this.parameter = parameter;
         String authentication = parameter.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
         if (authentication == null) {
             logger.info("does not have Authorization header ...");

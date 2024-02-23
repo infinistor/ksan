@@ -8,26 +8,24 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.replication.Replicator;
+package com.pspace.backend.replication.replicator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Config.ReplicationManagerConfig;
-import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
-import com.pspace.backend.libs.Ksan.AgentConfig;
-import com.pspace.backend.libs.Ksan.PortalManager;
-import com.pspace.backend.libs.Ksan.Data.S3RegionData;
-import com.pspace.ifs.ksan.libs.mq.MQCallback;
+import com.pspace.backend.libs.config.ReplicationManagerConfig;
+import com.pspace.backend.libs.data.replication.ReplicationEventData;
+import com.pspace.backend.libs.ksan.AgentConfig;
+import com.pspace.backend.libs.ksan.PortalManager;
+import com.pspace.backend.libs.ksan.data.S3RegionData;
 
-public abstract class BaseReplicator implements MQCallback {
+public class BaseReplicator {
 	final Logger logger;
 
 	public enum OperationList {
-		OP_PUT_OBJECT, OP_PUT_OBJECT_ACL, OP_PUT_OBJECT_RETENTION, OP_PUT_OBJECT_TAGGING, OP_DELETE_OBJECT,
-		OP_DELETE_OBJECT_TAGGING
+		OP_PUT_OBJECT, OP_PUT_OBJECT_ACL, OP_PUT_OBJECT_RETENTION, OP_PUT_OBJECT_TAGGING, OP_DELETE_OBJECT, OP_DELETE_OBJECT_TAGGING
 	}
 
 	protected AmazonS3 sourceClient;
@@ -49,32 +47,50 @@ public abstract class BaseReplicator implements MQCallback {
 		this.sourceClient = sourceRegion.client;
 	}
 
-	/******************************************
-	 * Utility
-	 *************************************************/
-
+	/**
+	 * Region이 존재하는지 확인한다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
 	protected boolean checkRegion(String regionName) {
-		if (StringUtils.isBlank(regionName) || sourceRegion.name == regionName) return true;
+		if (StringUtils.isBlank(regionName) || sourceRegion.name.equals(regionName))
+			return true;
 
-		var Region = portal.getRegion(regionName);
-		if (Region == null) {
+		var region = portal.getRegion(regionName);
+		if (region == null) {
 			logger.error("Region Name({}) is not exists!", regionName);
 			return false;
 		}
-		return Utility.checkAlive(Region.getHttpURL());
+		return Utility.checkAlive(region.getHttpURL());
 	}
 
-	protected AmazonS3 CreateClient(ReplicationEventData Data) throws Exception {
-		return getRegionClient(Data.TargetRegion);
+	/**
+	 * Region Manager에서 사용할 Client를 가져온다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
+	protected AmazonS3 getClient(ReplicationEventData data) throws Exception {
+		return getRegionClient(data.targetRegion);
 	}
 
-	protected AmazonS3 getRegionClient(String RegionName) throws Exception {
-		if (StringUtils.isBlank(RegionName))
+	/**
+	 * Region Manager에서 사용할 Client를 가져온다.
+	 * 
+	 * @param regionName
+	 *            확인할 Region 이름
+	 * @return 존재하면 true, 아니면 false
+	 */
+	protected AmazonS3 getRegionClient(String regionName) throws Exception {
+		if (StringUtils.isBlank(regionName))
 			return sourceClient;
 
-		var region = portal.getRegion(RegionName);
+		var region = portal.getRegion(regionName);
 		if (region == null)
-			throw new Exception(RegionName + " Region is not exists.");
+			throw new Exception(regionName + " Region is not exists.");
 		return region.client;
 	}
 }

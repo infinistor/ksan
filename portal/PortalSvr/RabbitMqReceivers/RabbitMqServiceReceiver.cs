@@ -55,14 +55,6 @@ namespace PortalSvr.RabbitMQReceivers
 			logger,
 			serviceScopeFactory)
 		{
-			try
-			{
-			}
-			catch (Exception ex)
-			{
-				NNException.Log(ex);
-				throw;
-			}
 		}
 
 		/// <summary>메시지 처리</summary>
@@ -76,73 +68,70 @@ namespace PortalSvr.RabbitMQReceivers
 			{
 				// 수신된 데이터를 문자열로 변환
 				string json = Body.GetString();
-				m_logger.LogInformation(json);
 
-				using (var Scope = m_serviceScopeFactory.CreateScope())
+				using var Scope = m_serviceScopeFactory.CreateScope();
+				// API 키 프로바이더를 가져온다.
+				var ApiKeyProvider = Scope.ServiceProvider.GetService<IApiKeyProvider>();
+				if (ApiKeyProvider == null)
+					return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+
+				// 내부 시스템 API 키 정보를 가져온다.
+				var ApiKey = await ApiKeyProvider.GetMainApiKey();
+
+				// API 키를 가져오는데 실패한 경우
+				if (ApiKey == null)
+					return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+
+				// 서비스 상태 관련인 경우
+				if (RoutingKey.EndsWith("services.state"))
 				{
-					// API 키 프로바이더를 가져온다.
-					var ApiKeyProvider = Scope.ServiceProvider.GetService<IApiKeyProvider>();
-					if (ApiKeyProvider == null)
+					// 처리할 프로바이더를 가져온다.
+					var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
+					if (DataProvider == null)
 						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
-					// 내부 시스템 API 키 정보를 가져온다.
-					var ApiKey = await ApiKeyProvider.GetMainApiKey();
+					// json을 객체로 변환
+					var Request = JsonConvert.DeserializeObject<RequestServiceState>(json);
 
-					// API 키를 가져오는데 실패한 경우
-					if (ApiKey == null)
-						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__NOT_FOUND, Resource.EM_COMMON__NOT_FOUND);
+					// 서버 상태 수정
+					var Response = await DataProvider.UpdateState(Request, ApiKey.UserId, ApiKey.UserName);
 
-					// 서비스 상태 관련인 경우
-					if (RoutingKey.EndsWith("services.state"))
-					{
-						// 처리할 프로바이더를 가져온다.
-						var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
-						if (DataProvider == null)
-							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+					Result.CopyValueFrom(Response);
+					Result.IsProcessed = true;
+				}
+				// 서비스 HA Action 관련인 경우
+				else if (RoutingKey.EndsWith("services.haaction"))
+				{
+					// 처리할 프로바이더를 가져온다.
+					var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
+					if (DataProvider == null)
+						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
-						// json을 객체로 변환
-						var Request = JsonConvert.DeserializeObject<RequestServiceState>(json);
+					// json을 객체로 변환
+					var Request = JsonConvert.DeserializeObject<RequestServiceHaAction>(json);
 
-						// 서버 상태 수정
-						var Response = await DataProvider.UpdateState(Request, ApiKey.UserId, ApiKey.UserName);
+					// 서비스 HA 상태 수정
+					var Response = await DataProvider.UpdateHaAction(Request, ApiKey.UserId, ApiKey.UserName);
 
-						Result.CopyValueFrom(Response);
-						Result.IsProcessed = true;
-					}
-					// 서비스 HA Action 관련인 경우
-					else if (RoutingKey.EndsWith("services.haaction"))
-					{
-						// 처리할 프로바이더를 가져온다.
-						var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
-						if (DataProvider == null)
-							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
+					Result.CopyValueFrom(Response);
+					Result.IsProcessed = true;
+				}
+				// 서비스 사용 정보 관련인 경우
+				else if (RoutingKey.EndsWith("services.usage"))
+				{
+					// 처리할 프로바이더를 가져온다.
+					var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
+					if (DataProvider == null)
+						return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
 
-						// json을 객체로 변환
-						var Request = JsonConvert.DeserializeObject<RequestServiceHaAction>(json);
+					// json을 객체로 변환
+					var Request = JsonConvert.DeserializeObject<RequestServiceUsage>(json);
 
-						// 서비스 HA 상태 수정
-						var Response = await DataProvider.UpdateHaAction(Request, ApiKey.UserId, ApiKey.UserName);
+					// 서비스 사용 정보 수정
+					var Response = await DataProvider.UpdateUsage(Request);
 
-						Result.CopyValueFrom(Response);
-						Result.IsProcessed = true;
-					}
-					// 서비스 사용 정보 관련인 경우
-					else if (RoutingKey.EndsWith("services.usage"))
-					{
-						// 처리할 프로바이더를 가져온다.
-						var DataProvider = Scope.ServiceProvider.GetService<IServiceProvider>();
-						if (DataProvider == null)
-							return new ResponseMqData(EnumResponseResult.Error, Resource.EC_COMMON__CANNOT_CREATE_INSTANCE, Resource.EM_COMMON__CANNOT_CREATE_INSTANCE);
-
-						// json을 객체로 변환
-						var Request = JsonConvert.DeserializeObject<RequestServiceUsage>(json);
-
-						// 서비스 사용 정보 수정
-						var Response = await DataProvider.UpdateUsage(Request);
-
-						Result.CopyValueFrom(Response);
-						Result.IsProcessed = true;
-					}
+					Result.CopyValueFrom(Response);
+					Result.IsProcessed = true;
 				}
 			}
 			catch (Exception ex)

@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -468,6 +469,19 @@ public class MongoDataRepository implements DataRepository{
         return 0;
     }
  
+    private Bucket getBucketFromCache(String bucketName) throws ResourceNotFoundException{
+        Bucket bt;
+        if (obmCache != null)
+            bt = obmCache.getBucketFromCache(bucketName);
+        else
+            try {
+                bt= this.selectBucket(bucketName);
+        } catch (SQLException ex) {
+            return null;
+        }
+        return bt;
+    } 
+    
     private Metadata selectSingleObjectInternal(String bucketName, String objId, String versionId) throws ResourceNotFoundException {
         MongoCollection<Document> objects;
         FindIterable fit;
@@ -480,7 +494,8 @@ public class MongoDataRepository implements DataRepository{
         else
             fit = objects.find(Filters.and(eq(OBJID, objId), eq(VERSIONID, versionId)));
         
-        Bucket bt  = obmCache.getBucketFromCache(bucketName);
+        //Bucket bt  = obmCache.getBucketFromCache(bucketName);
+        Bucket bt  = getBucketFromCache(bucketName);
         if (bt == null)
             throw new   ResourceNotFoundException("There is not bucket with a bucket name " + bucketName + " and contain object with objid " + objId);
         

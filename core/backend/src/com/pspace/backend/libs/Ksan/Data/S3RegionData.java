@@ -8,7 +8,7 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Ksan.Data;
+package com.pspace.backend.libs.ksan.data;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,32 +38,32 @@ public class S3RegionData {
 		client = Utility.createClient(this);
 	}
 
-	public S3RegionData(String Name, String Address, int Port, int SSLPort, String AccessKey, String SecretKey) {
-		this.name = Name;
-		this.address = Address;
-		this.port = Port;
-		this.sslPort = SSLPort;
-		this.accessKey = AccessKey;
-		this.secretKey = SecretKey;
+	public S3RegionData(String name, String address, int port, int sslPort, String accessKey, String secretKey) {
+		this.name = name;
+		this.address = address;
+		this.port = port;
+		this.sslPort = sslPort;
+		this.accessKey = accessKey;
+		this.secretKey = secretKey;
 		setClient();
 	}
-	public S3RegionData(ResponseRegion Data) {
-		this.name = Data.Name;
-		this.address = Data.Address;
-		this.port = Data.Port;
-		this.sslPort = Data.SSLPort;
-		this.accessKey = Data.AccessKey;
-		this.secretKey = Data.SecretKey;
+	public S3RegionData(ResponseRegion data) {
+		this.name = data.Name;
+		this.address = data.Address;
+		this.port = data.Port;
+		this.sslPort = data.SSLPort;
+		this.accessKey = data.AccessKey;
+		this.secretKey = data.SecretKey;
 		setClient();
 	}
 
-	public void update(S3RegionData Data) {
-		name = Data.name;
-		address = Data.address;
-		port = Data.port;
-		sslPort = Data.sslPort;
-		accessKey = Data.accessKey;
-		secretKey = Data.secretKey;
+	public void update(S3RegionData data) {
+		name = data.name;
+		address = data.address;
+		port = data.port;
+		sslPort = data.sslPort;
+		accessKey = data.accessKey;
+		secretKey = data.secretKey;
 		setClient();
 	}
 

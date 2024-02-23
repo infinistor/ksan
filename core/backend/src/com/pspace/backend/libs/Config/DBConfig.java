@@ -8,47 +8,50 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Config;
+package com.pspace.backend.libs.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DBConfig {
-	public String Type;
-	public String Host;
-	public int Port;
-	public String DatabaseName;
-	public String MeteringDBName;
-	public String User;
-	public String Password;
-	public int PoolSize;
-	public int Expires;
+	static final int DEFAULT_POOL_SIZE = 20;
+
+	@JsonProperty("host")
+	public String host;
+	@JsonProperty("port")
+	public int port;
+	@JsonProperty("db_name")
+	public String databaseName;
+	@JsonProperty("user")
+	public String user;
+	@JsonProperty("password")
+	public String password;
+	@JsonProperty("pool_size")
+	public int poolSize;
 
 	public DBConfig() {
-		Init();
+		init();
 	}
 
-	public DBConfig(String Host, int Port, String DatabaseName, String MeteringDBName, String User, String Password, int PoolSize, int Expires) {
-		this.Host = Host;
-		this.Port = Port;
-		this.DatabaseName = DatabaseName;
-		this.MeteringDBName = MeteringDBName;
-		this.User = User;
-		this.Password = Password;
-		this.PoolSize = PoolSize;
-		if (this.PoolSize > 1) this.PoolSize = 100;
-		this.Expires = Expires;
+	public DBConfig(String host, int port, String databaseName, String user, String password, int poolSize) {
+		this.host = host;
+		this.port = port;
+		this.databaseName = databaseName;
+		this.user = user;
+		this.password = password;
+		this.poolSize = poolSize;
+		if (this.poolSize < 1)
+			this.poolSize = DEFAULT_POOL_SIZE;
 	}
 
-	public void Init() {
-		Host = "";
-		Port = 3306;
-		DatabaseName = "event_log";
-		MeteringDBName = "event_log";
-		User = "root";
-		Password = "qwe123";
-		PoolSize = 100;
-		Expires = 0;
+	public void init() {
+		host = "";
+		port = 3306;
+		databaseName = "ksan";
+		user = "root";
+		password = "qwe123";
+		poolSize = DEFAULT_POOL_SIZE;
 	}
 
 	@Override

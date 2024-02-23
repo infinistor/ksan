@@ -58,6 +58,7 @@ public final class GWConstants {
 	public static final String MQUEUE_NAME_GW_SERVICE_UPDATED_ROUTING_KEY = "*.services.updated";
 	public static final String MQUEUE_NAME_GW_SERVICE_REMOVED_ROUTING_KEY = "*.services.removed";
 	public static final String MQUEUE_NAME_GW_LOG_ADD = "*.services.gw.log.add";
+	public static final String MQUEUE_NAME_GW_BACKEND_LOG_ADD = "*.services.backend.log.add";
 	public static final String MQUEUE_NAME_GW_RESTORE_ROUTING_KEY = "*.services.restore.event.add";
 	public static final String MQUEUE_NAME_UTILITY_RECOVERD = "services.recoverd.report.fail_of_replication";
 
@@ -111,6 +112,7 @@ public final class GWConstants {
 	public static final int DEFAULT_OSD_PORT = 8000;
 	public static final int DEFAULT_OSD_CLIENT_SIZE = 10;
 	public static final int DEFAULT_OBJMANAGER_SIZE = 10;
+	public static final int LOGGER_MAX_THREADS = 20;
 	public static final String OR = " or ";
 
 	public static final String AWS_XMLNS = "http://s3.amazonaws.com/doc/2006-03-01/";

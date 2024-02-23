@@ -30,7 +30,7 @@ namespace PortalData.Responses.Servers
 		public string CpuModel { get; set; }
 
 		/// <summary>CPU 클럭</summary>
-		public short? Clock { get; set; }
+		public short Clock { get; set; }
 
 		/// <summary>서버 상태</summary>
 		public EnumServerState State { get; set; }

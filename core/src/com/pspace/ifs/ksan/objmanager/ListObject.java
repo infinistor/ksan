@@ -205,10 +205,13 @@ public class ListObject{
             query1 = makeQueryWithDiskId(diskid, lastObjId, versionIdMarker);
         else{
             query1=makeQuery4ExpiredObject();
-            if (dbm instanceof MongoDataRepository)
+            if (dbm instanceof MongoDataRepository){
+                logger.debug(" >>mongo query : {}", query1.toString());
                 return dbm.getObjectList(bucketName, query1, maxKeys, 0);
-            else
+            } else {
+                logger.debug(" >>mariadb query : {}", query1.toString());
                 return this.bindExcuteExpiredObjectQuery();
+            }
         }
         
         if (query1 != null){
@@ -328,7 +331,7 @@ public class ListObject{
         String sql;
         if (!diskid.isEmpty()){
             sql = "SELECT count(*) FROM `" + bucketName + "`"
-                        + "WHERE bucket='" + bucketName + "' AND (pdiskid like '" + diskid 
+                        + "WHERE (pdiskid like '" + diskid 
                         + "' OR rdiskid like '" + diskid + "')";
         }
         else {
@@ -339,7 +342,7 @@ public class ListObject{
     
     private void makeQueryV1(){
         
-        query = "SELECT * FROM `" + bucketName + "` WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+        query = "SELECT * FROM `" + bucketName + "` WHERE lastversion=true AND deleteMarker <> 'mark' ";
 
         if (bBucketListParameterPrefix)
             query += " AND objKey LIKE ?";
@@ -361,7 +364,7 @@ public class ListObject{
     
     private void makeQueryV2(){
         
-       query = "SELECT * FROM `"+ bucketName +"` WHERE bucket='" + bucketName + "' AND lastversion=true AND deleteMarker <> 'mark' ";
+       query = "SELECT * FROM `"+ bucketName +"` WHERE lastversion=true AND deleteMarker <> 'mark' ";
        
        if (bBucketListParameterPrefix)
            query += " AND objKey LIKE ?";
@@ -389,23 +392,43 @@ public class ListObject{
     }
     
     private void makeQueryWithVersion(){
-        
-        query = "SELECT * FROM `"+ bucketName +"` WHERE bucket='" + bucketName + "' ";
+        boolean whereAdded=false;
 
-	if (bBucketListParameterPrefix)
-            query += " AND objKey LIKE ?";
+        query = "SELECT * FROM `"+ bucketName +"` ";
 
-	if (bMarker && !bVersionIdMarker)
-	    query += " AND objKey > ?";
-
-	if (bVersionIdMarker)
-	    query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
-
-	if (bDelForceGte) {
-	    query += " AND objKey >= ?";
+	if (bBucketListParameterPrefix){
+            query += " WHERE objKey LIKE ?";
+	    whereAdded = true;
 	}
 
-        query  += " ORDER BY objKey ASC, lastModified ASC LIMIT " + (maxKeys + 1); 
+	if (bMarker && !bVersionIdMarker){
+	    if (whereAdded)
+	        query += " AND objKey > ?";
+	    else {
+		query += " WHERE objKey > ?";
+		whereAdded = true;
+            }		    
+	}
+
+	if (bVersionIdMarker){
+	    if (whereAdded){
+	        query += " AND ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+	    }
+	    else {
+		query += " WHERE ( objKey > ? OR (objKey = ? AND versionid > ?)) ";
+		whereAdded = true;
+            }
+	}
+
+	if (bDelForceGte) {
+	    if (whereAdded)
+	        query += " AND objKey >= ?";
+	    else{
+		query += " WHERE objKey >= ?";
+	    }	    
+	}
+
+        query  += " ORDER BY objKey ASC, lastModified DESC LIMIT " + (maxKeys + 1); 
     }
     
     private static String escapeSpecialChars(String source) {
@@ -558,11 +581,8 @@ public class ListObject{
                return null;
            }
            
-           if (bBucketListParameterPrefix){    
-               prefixStr = prefix.replaceAll("\\%",  "\\\\/")
-                   .replaceAll("\\_",  "\\\\_")
-                   .replaceAll("\\(", "\\\\(")
-                   .replaceAll("\\)", "\\\\)");
+           if (bBucketListParameterPrefix){  
+               prefixStr = escapeSpecialChars(prefix);
                and.add(new BasicDBObject("objKey", new BasicDBObject("$regex", "^" + prefixStr)));//.append("$options", "i")
            }
            
@@ -571,11 +591,8 @@ public class ListObject{
            }
            
            if (bMarker && bVersionIdMarker)
-               if (bDelimiterMarker)
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
-               else
-                   and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker)));//objkey
-           
+               and.add(new BasicDBObject("objKey", new BasicDBObject("$gt", marker))); //objkey
+               
            if (bVersionIdMarker){
                if (!versionIdMarker.equalsIgnoreCase("null")){
                     objQuery = new BasicDBObject("objKey", marker);
@@ -593,12 +610,16 @@ public class ListObject{
                bDelForceGte = false;
            }
  
+           if (this.expiredTime > 0){
+               and.add(new BasicDBObject("lastModified", new BasicDBObject("$lt", this.expiredTime)));
+           }
+           
            if (and.isEmpty())
                andObjQuery = new BasicDBObject();
            else {
-               if (!versionIdMarker.equalsIgnoreCase("null"))
+               /*if (!versionIdMarker.equalsIgnoreCase("null"))
                    andObjQuery = new BasicDBObject("$or", and.toArray());
-               else
+               else*/
                    andObjQuery = new BasicDBObject("$and", and.toArray());  
            } 
            System.out.println( "andObjQuery >>" + andObjQuery);
@@ -641,8 +662,8 @@ public class ListObject{
         mongoQuery = makeMongoQuery();
         if (mongoQuery != null){
             logger.debug(" >>mongo query : {}", mongoQuery.toString());
-            if (listType.equalsIgnoreCase("listObjectVersion")) 
-                logger.error(" >>mongo query : {}", mongoQuery.toString());
+            //if (listType.equalsIgnoreCase("listObjectVersion")) 
+            //    logger.error(" >>mongo query : {}", mongoQuery.toString());
             return;
         }
         
@@ -652,6 +673,8 @@ public class ListObject{
             makeQueryV2();
         else if (listType.equalsIgnoreCase("listObjectVersion")) 
             makeQueryWithVersion();
+        
+        logger.error(" >>mariadb({}) query : {}", listType, query);
     }
     
     private int setObject(String objKey, Metadata mt, int offset) throws Exception{

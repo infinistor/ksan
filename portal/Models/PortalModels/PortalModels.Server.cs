@@ -24,6 +24,7 @@ namespace PortalModels
 
 		public Server()
 		{
+			this.Clock = 0;
 			this.State = (PortalModels.EnumDbServerState)Enum.Parse(typeof(PortalModels.EnumDbServerState), "-2");
 			this.LoadAverage1M = 0f;
 			this.LoadAverage5M = 0f;
@@ -50,7 +51,7 @@ namespace PortalModels
 		public virtual string CpuModel { get; set; }
 
 		/// <summary> CPU 클럭 </summary>
-		public virtual short? Clock { get; set; }
+		public virtual short Clock { get; set; }
 
 		/// <summary> 서버 상태 </summary>
 		public virtual EnumDbServerState State { get; set; }

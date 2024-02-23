@@ -117,33 +117,16 @@ namespace PortalSvr
 		{
 			try
 			{
-				if (Configuration["AppSettings:DatabaseType"].Equals(Resource.ENV_DATABASE_TYPE_MONGO_DB, StringComparison.OrdinalIgnoreCase))
-				{
-					// TODO : Mongo 설정 지원시 변경
-					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
-					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
-					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
+				// MariaDB 설정
+				IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
+				MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
+				var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
 
-					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
+				// 데이터베이스 연결 설정
+				Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
-					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-				}
-				else
-				{
-					// MariaDB 설정
-					IConfigurationSection configurationSectionMariaDB = Configuration.GetSection(Resource.ENV_DATABASE_TYPE_MARIA_DB);
-					MariaDBConfiguration mariaDBConfiguration = configurationSectionMariaDB.Get<MariaDBConfiguration>();
-					var ConnectionMariaDBString = mariaDBConfiguration.GetConnectionMariaDBString();
-
-					// 데이터베이스 연결 설정
-					Services.AddDbContext<PortalModel>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-
-					// 사용자 인증 관련 데이터베이스 연결 설정
-					Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
-				}
+				// 사용자 인증 관련 데이터베이스 연결 설정
+				Services.AddDbContext<ApplicationIdentityDbContext>(Options => Options.UseMySql(ConnectionMariaDBString, MySqlServerVersion.LatestSupportedServerVersion));
 
 				// 컨테이너에 기본 서비스들을 추가한다.
 				Services.ConfigureServices(true, ConfigurationOptions);
@@ -163,7 +146,7 @@ namespace PortalSvr
 				Services.AddTransient<IRoleProvider, RoleProvider>();
 				Services.AddTransient<IUserProvider, UserProvider>();
 				Services.AddTransient<IAccountProvider, AccountProvider>();
-				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
+				Services.AddTransient<LogProvider, LogProvider>();
 				Services.AddTransient<IUserActionLogProvider, UserActionLogProvider>();
 				Services.AddTransient<IApiKeyProvider, ApiKeyProvider>();
 				Services.AddTransient<IRabbitMQSender, RabbitMQSender>();
@@ -178,10 +161,11 @@ namespace PortalSvr
 				Services.AddTransient<IServiceGroupProvider, ServiceGroupProvider>();
 				Services.AddTransient<IKsanUserProvider, KsanUserProvider>();
 				Services.AddTransient<IRegionProvider, RegionProvider>();
-				Services.AddTransient<ILogProvider, LogProvider>();
+				Services.AddTransient<ISystemLogProvider, SystemLogProvider>();
 				Services.AddTransient<IServerWatcher, ServerWatcher>();
 				Services.AddTransient<IServerInitializer, ServerInitializer>();
 				Services.AddTransient<IS3LogProvider, S3LogProvider>();
+				Services.AddTransient<IS3Provider, S3Provider>();
 
 				// 서버 감시
 				Services.AddHostedService<ServerWatcher>();

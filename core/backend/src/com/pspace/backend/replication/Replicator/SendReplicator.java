@@ -8,8 +8,9 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.replication.Replicator;
+package com.pspace.backend.replication.replicator;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
@@ -42,11 +43,12 @@ import com.amazonaws.services.s3.model.SetObjectRetentionRequest;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Data.BackendHeaders;
-import com.pspace.backend.libs.Data.Constants;
-import com.pspace.backend.libs.Data.Replication.ReplicationEventData;
-import com.pspace.backend.libs.Data.Replication.ReplicationLogData;
-import com.pspace.backend.libs.s3format.S3Parameters;
+import com.pspace.backend.libs.data.BackendHeaders;
+import com.pspace.backend.libs.data.Constants;
+import com.pspace.backend.libs.data.replication.ReplicationEventData;
+import com.pspace.backend.libs.data.replication.ReplicationFailedData;
+import com.pspace.backend.libs.data.replication.ReplicationSuccessData;
+import com.pspace.backend.libs.s3.S3Parameters;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class SendReplicator {
@@ -57,8 +59,7 @@ public class SendReplicator {
 	private final MQSender mq;
 	private final long partSize;
 
-	public SendReplicator(AmazonS3 sourceClient, AmazonS3 targetClient, MQSender mq, ReplicationEventData event,
-			long partSize) {
+	public SendReplicator(AmazonS3 sourceClient, AmazonS3 targetClient, MQSender mq, ReplicationEventData event, long partSize) {
 		this.sourceClient = sourceClient;
 		this.targetClient = targetClient;
 		this.event = event;
@@ -72,9 +73,15 @@ public class SendReplicator {
 			String result = send();
 
 			// 복제 결과 로그를 저장한다.
-			var data = new ReplicationLogData(event, result);
-			mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG);
-			logger.info("Save Log : {}", data.toString());
+			if (result.isEmpty()) {
+				var data = new ReplicationSuccessData(event);
+				mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG_SUCCESS);
+				logger.info("Save Log : {}", data);
+				return;
+			}
+			var data = new ReplicationFailedData(event, result);
+			mq.send(data.toString(), Constants.MQ_BINDING_REPLICATION_LOG_FAILED);
+			logger.info("Save Log : {}", data);
 
 		} catch (Exception e) {
 			logger.error("", e);
@@ -82,17 +89,20 @@ public class SendReplicator {
 	}
 
 	private String send() {
-		logger.debug(event.toString());
+		logger.debug("send : {}", event);
 		if (sourceClient == null)
 			throw new IllegalStateException("Source Client is NULL");
 		if (targetClient == null)
 			throw new IllegalStateException("Target Client is NULL");
 
-		var Result = "";
-		var RetryCount = 3;
-		while (RetryCount > 0) {
+		// 시작 시간 설정
+		event.setStartTime();
+
+		var result = "";
+		var retryCount = 3;
+		while (retryCount > 0) {
 			try {
-				switch (event.Operation) {
+				switch (event.operation) {
 					case S3Parameters.OP_PUT_OBJECT:
 						putObject();
 						break;
@@ -112,26 +122,33 @@ public class SendReplicator {
 						putObjectTagging();
 						break;
 					case S3Parameters.OP_DELETE_OBJECT_TAGGING:
-						DeleteObjectTagging();
+						deleteObjectTagging();
 						break;
 					case S3Parameters.OP_DELETE_OBJECT:
-						DeleteObject();
+						deleteObject();
 						break;
 					default:
 						return "Operation Unknown";
 				}
 				return "";
 			} catch (AmazonServiceException e) {
-				Result = String.format("%s(%d) - %s", e.getErrorCode(), e.getStatusCode(), e.getMessage());
-				logger.warn("", e);
-				RetryCount--;
+				var statusCode = e.getStatusCode();
+				result = String.format("%s(%d)", e.getErrorCode(), statusCode);
+				if (statusCode < 500) {
+					logger.error("[{}/{}({})] {}", event.sourceBucketName, event.objectName, event.versionId, result);
+					// 복제도중 Client에러로 실패할 경우 재시도 하지 않는다.
+					break;
+				} else {
+					logger.warn("", e);
+					retryCount--;
+				}
 			} catch (Exception e) {
-				Result = e.getMessage();
+				result = e.getMessage();
 				logger.warn("", e);
-				RetryCount--;
+				retryCount--;
 			}
 		}
-		return Result;
+		return result;
 	}
 
 	/**
@@ -143,21 +160,21 @@ public class SendReplicator {
 	 * @return Object Metadata
 	 * @throws Exception
 	 */
-	protected ObjectMetadata getObjectMetadata() throws Exception {
-		var Request = new GetObjectMetadataRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
-		Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var Metadata = sourceClient.getObjectMetadata(Request);
+	protected ObjectMetadata getObjectMetadata() {
+		var request = new GetObjectMetadataRequest(event.sourceBucketName, event.objectName, event.versionId);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var metadata = sourceClient.getObjectMetadata(request);
 
 		// 메타 정보가 비어있을 경우
-		if (Metadata == null) {
+		if (metadata == null) {
 			logger.error("Metadata is Null!");
-			throw new Exception("Metadata is Null");
+			metadata = new ObjectMetadata();
 		}
 
 		// UTF-8 sign 에러를 배제하기 위해 대문자로 변경
-		if (Metadata.getContentType() != null)
-			Metadata.setContentType(Metadata.getContentType().replaceAll("UTF-8", "utf-8"));
-		return Metadata;
+		if (metadata.getContentType() != null)
+			metadata.setContentType(metadata.getContentType().replace("UTF-8", "utf-8"));
+		return metadata;
 	}
 
 	/**
@@ -166,14 +183,14 @@ public class SendReplicator {
 	 * @return Object Tagging
 	 * @throws Exception
 	 */
-	protected ObjectTagging getObjectTagging() throws Exception {
-		var Request = new GetObjectTaggingRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
-		Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var TagSet = sourceClient.getObjectTagging(Request);
+	protected ObjectTagging getObjectTagging() {
+		var request = new GetObjectTaggingRequest(event.sourceBucketName, event.objectName, event.versionId);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var tagSet = sourceClient.getObjectTagging(request);
 		// 태그가 비어있을 경우
-		if (TagSet == null)
+		if (tagSet == null)
 			return null;
-		return new ObjectTagging(TagSet.getTagSet());
+		return new ObjectTagging(tagSet.getTagSet());
 	}
 
 	/**
@@ -182,25 +199,25 @@ public class SendReplicator {
 	 * @return Object ACL
 	 * @throws Exception
 	 */
-	protected AccessControlList getObjectACL() throws Exception {
+	protected AccessControlList getObjectACL() {
 		// 원본 권한 정보 가져오기
-		var SourceRequest = new GetObjectAclRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
-		SourceRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var SourceACL = sourceClient.getObjectAcl(SourceRequest);
+		var sourceRequest = new GetObjectAclRequest(event.sourceBucketName, event.objectName, event.versionId);
+		sourceRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var sourceACL = sourceClient.getObjectAcl(sourceRequest);
 
 		// 타겟 버킷 권한 정보 가져오기
-		var TargetRequest = new GetBucketAclRequest(event.TargetBucketName);
-		TargetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var TargetACL = targetClient.getBucketAcl(TargetRequest);
-		var TargetOwner = TargetACL.getOwner();
+		var targetRequest = new GetBucketAclRequest(event.targetBucketName);
+		targetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var targetACL = targetClient.getBucketAcl(targetRequest);
+		var targetOwner = targetACL.getOwner();
 
-		var User = new CanonicalGrantee(TargetOwner.getId());
-		User.setDisplayName(TargetOwner.getDisplayName());
+		var user = new CanonicalGrantee(targetOwner.getId());
+		user.setDisplayName(targetOwner.getDisplayName());
 
-		SourceACL.setOwner(TargetACL.getOwner());
-		SourceACL.grantPermission(User, Permission.FullControl);
+		sourceACL.setOwner(targetACL.getOwner());
+		sourceACL.grantPermission(user, Permission.FullControl);
 
-		return SourceACL;
+		return sourceACL;
 	}
 
 	/**
@@ -208,7 +225,7 @@ public class SendReplicator {
 	 * 
 	 * @throws Exception
 	 */
-	protected void putObject() throws Exception {
+	protected void putObject() throws IOException {
 		// 메타 정보 가져오기
 		var metadata = getObjectMetadata();
 		// 태그 정보 받아오기
@@ -219,18 +236,18 @@ public class SendReplicator {
 		// 폴더일 경우 오브젝트의 메타데이터만 전송
 		InputStream body = null;
 		S3Object s3Object = null;
-		if (FolderCheck(event.ObjectName))
+		if (folderCheck(event.objectName))
 			body = Utility.createBody("");
 		// 일반적인 오브젝트일 경우 버전 정보를 포함하여 오브젝트를 다운로드
 		else {
-			var Request = new GetObjectRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-			s3Object = sourceClient.getObject(Request);
+			var request = new GetObjectRequest(event.sourceBucketName, event.objectName, event.versionId);
+			request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+			s3Object = sourceClient.getObject(request);
 			body = s3Object.getObjectContent();
 		}
 
 		// 리퀘스트 생성
-		var putRequest = new PutObjectRequest(event.TargetBucketName, event.ObjectName, body, metadata);
+		var putRequest = new PutObjectRequest(event.targetBucketName, event.objectName, body, metadata);
 		putRequest.getRequestClientOptions().setReadLimit(100000);
 
 		// 오브젝트의 태그 정보 등록
@@ -241,7 +258,7 @@ public class SendReplicator {
 		// 오브젝트 Replication
 		putRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
 		putRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		putRequest.putCustomRequestHeader(BackendHeaders.HEADER_VERSION_ID, event.VersionId);
+		putRequest.putCustomRequestHeader(BackendHeaders.HEADER_VERSION_ID, event.versionId);
 		targetClient.putObject(putRequest);
 		// 전송 완료 후 Stream을 닫는다.
 		if (body != null)
@@ -253,19 +270,18 @@ public class SendReplicator {
 	/**
 	 * 오브젝트를 CopyObject로 복제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void copyObject() throws Exception {
+	protected void copyObject() throws IllegalStateException {
 
 		// 같은 시스템일 경우 복사
 		if (sourceClient == targetClient) {
-			var Request = new CopyObjectRequest(event.SourceBucketName, event.ObjectName, event.TargetBucketName, event.ObjectName)
-					.withSourceVersionId(event.VersionId);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+			var request = new CopyObjectRequest(event.sourceBucketName, event.objectName, event.targetBucketName, event.objectName)
+					.withSourceVersionId(event.versionId);
+			request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+			request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
 
 			// 복제
-			sourceClient.copyObject(Request);
+			sourceClient.copyObject(request);
 			return;
 		}
 		throw new IllegalStateException("Anther System CopyObject is not supported.");
@@ -275,74 +291,73 @@ public class SendReplicator {
 	/**
 	 * 오브젝트를 Multipart로 복제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void multiPartUpload() throws Exception {
+	protected void multiPartUpload() throws IOException{
 		// 메타 정보 가져오기
-		ObjectMetadata Metadata = getObjectMetadata();
+		ObjectMetadata metadata = getObjectMetadata();
 		// 태그 정보 받아오기
-		ObjectTagging Tagging = getObjectTagging();
+		ObjectTagging tagging = getObjectTagging();
 		// 권한 정보 받아오기
-		AccessControlList ACL = getObjectACL();
+		AccessControlList acl = getObjectACL();
 
-		var InitRequest = new InitiateMultipartUploadRequest(event.TargetBucketName, event.ObjectName, Metadata);
+		var initRequest = new InitiateMultipartUploadRequest(event.targetBucketName, event.objectName, metadata);
 		// 오브젝트의 태그 정보 등록
-		InitRequest.setTagging(Tagging);
+		initRequest.setTagging(tagging);
 		// 오브젝트의 ACL 정보 등록
-		InitRequest.setAccessControlList(ACL);
+		initRequest.setAccessControlList(acl);
 		// 헤더추가
-		InitRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		initRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
 		// Multipart 등록
-		var InitResponse = targetClient.initiateMultipartUpload(InitRequest);
-		var UploadId = InitResponse.getUploadId();
+		var initResponse = targetClient.initiateMultipartUpload(initRequest);
+		var uploadId = initResponse.getUploadId();
 
 		// 오브젝트의 사이즈 확인
-		var Size = Metadata.getContentLength();
+		var size = metadata.getContentLength();
 
 		// 업로드 시작
 		var partList = new ArrayList<PartETag>();
-		int PartNumber = 1;
-		long StartPosition = 0;
+		int partNumber = 1;
+		long startPosition = 0;
 
-		while (StartPosition < Size) {
-			long EndPosition = StartPosition + partSize;
-			if (EndPosition > Size)
-				EndPosition = Size;
+		while (startPosition < size) {
+			long endPosition = startPosition + partSize;
+			if (endPosition > size)
+				endPosition = size;
 
 			// 업로드할 내용 가져오기
-			var Request = new GetObjectRequest(event.SourceBucketName, event.ObjectName)
-					.withRange(StartPosition, EndPosition - 1);
-			Request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, "");
-			var s3Object = sourceClient.getObject(Request);
+			var request = new GetObjectRequest(event.sourceBucketName, event.objectName)
+					.withRange(startPosition, endPosition - 1);
+			request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, "");
+			var s3Object = sourceClient.getObject(request);
 
 			// 업로드 파츠 생성
-			var PartRequest = new UploadPartRequest()
-					.withBucketName(event.TargetBucketName)
-					.withKey(event.ObjectName)
-					.withUploadId(UploadId)
-					.withPartNumber(PartNumber++)
+			var partRequest = new UploadPartRequest()
+					.withBucketName(event.targetBucketName)
+					.withKey(event.objectName)
+					.withUploadId(uploadId)
+					.withPartNumber(partNumber++)
 					.withInputStream(s3Object.getObjectContent())
 					.withPartSize(s3Object.getObjectMetadata().getContentLength());
 
 			// 헤더 추가
-			PartRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-			PartRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-			PartRequest.putCustomRequestHeader(BackendHeaders.S3PROXY_HEADER_NO_DR, BackendHeaders.HEADER_DATA);
+			partRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+			partRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+			partRequest.putCustomRequestHeader(BackendHeaders.S3PROXY_HEADER_NO_DR, BackendHeaders.HEADER_DATA);
 
-			var PartResPonse = targetClient.uploadPart(PartRequest);
-			partList.add(PartResPonse.getPartETag());
+			var partResPonse = targetClient.uploadPart(partRequest);
+			partList.add(partResPonse.getPartETag());
 
-			StartPosition += partSize;
+			startPosition += partSize;
 			s3Object.close();
 		}
 
 		// 멀티파트 업로드 종료
-		var compRequest = new CompleteMultipartUploadRequest(event.TargetBucketName, event.ObjectName, UploadId, partList);
+		var compRequest = new CompleteMultipartUploadRequest(event.targetBucketName, event.objectName, uploadId, partList);
 
 		// 헤더추가
 		compRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
 		compRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		compRequest.putCustomRequestHeader(BackendHeaders.HEADER_VERSION_ID, event.VersionId);
+		compRequest.putCustomRequestHeader(BackendHeaders.HEADER_VERSION_ID, event.versionId);
 
 		targetClient.completeMultipartUpload(compRequest);
 	}
@@ -350,92 +365,87 @@ public class SendReplicator {
 	/**
 	 * 오브젝트의 ACL 정보를 복제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void putObjectACL() throws Exception {
+	protected void putObjectACL() {
 		// 권한 정보 받아오기
-		var ACL = getObjectACL();
+		var acl = getObjectACL();
 
 		// ACL 정보 설정
-		var SetRequest = new SetObjectAclRequest(event.TargetBucketName, event.ObjectName, ACL);
+		var request = new SetObjectAclRequest(event.targetBucketName, event.objectName, acl);
 		// 헤더추가
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		targetClient.setObjectAcl(SetRequest);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+		targetClient.setObjectAcl(request);
 	}
 
 	/**
 	 * 오브젝트의 Retention 정보를 복제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void putObjectRetention() throws Exception {
+	protected void putObjectRetention() {
 		// Retention 가져오기
-		var GetRequest = new GetObjectRetentionRequest().withBucketName(event.SourceBucketName)
-				.withKey(event.ObjectName).withVersionId(event.VersionId);
-		GetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var ObjectRetention = sourceClient.getObjectRetention(GetRequest);
+		var getRequest = new GetObjectRetentionRequest().withBucketName(event.sourceBucketName)
+				.withKey(event.objectName).withVersionId(event.versionId);
+		getRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var objectRetention = sourceClient.getObjectRetention(getRequest);
 
 		// Retention 설정
-		var SetRequest = new SetObjectRetentionRequest().withBucketName(event.TargetBucketName)
-				.withKey(event.ObjectName).withRetention(ObjectRetention.getRetention());
+		var setRequest = new SetObjectRetentionRequest().withBucketName(event.targetBucketName)
+				.withKey(event.objectName).withRetention(objectRetention.getRetention());
 		// 헤더추가
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		targetClient.setObjectRetention(SetRequest);
+		setRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		setRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+		targetClient.setObjectRetention(setRequest);
 	}
 
 	/**
 	 * 오브젝트의 Tagging 정보를 복제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void putObjectTagging() throws Exception {
+	protected void putObjectTagging() {
 		// Tagging 가져오기
-		var GetRequest = new GetObjectTaggingRequest(event.SourceBucketName, event.ObjectName, event.VersionId);
-		GetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		var Tagging = sourceClient.getObjectTagging(GetRequest);
+		var getRequest = new GetObjectTaggingRequest(event.sourceBucketName, event.objectName, event.versionId);
+		getRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		var tagging = sourceClient.getObjectTagging(getRequest);
 
 		// Tagging 설정
-		ObjectTagging ObjectTagging = new ObjectTagging(Tagging.getTagSet());
-		var SetRequest = new SetObjectTaggingRequest(event.TargetBucketName, event.ObjectName, ObjectTagging);
+		ObjectTagging objectTagging = new ObjectTagging(tagging.getTagSet());
+		var request = new SetObjectTaggingRequest(event.targetBucketName, event.objectName, objectTagging);
 		// 헤더추가
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		SetRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		targetClient.setObjectTagging(SetRequest);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+		targetClient.setObjectTagging(request);
 	}
 
 	/**
 	 * 오브젝트를 삭제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void DeleteObject() throws Exception {
-		var DelRequest = new DeleteObjectRequest(event.TargetBucketName, event.ObjectName);
+	protected void deleteObject() {
+		var request = new DeleteObjectRequest(event.targetBucketName, event.objectName);
 		// 헤더추가
-		DelRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		DelRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		targetClient.deleteObject(DelRequest);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+		targetClient.deleteObject(request);
 	}
 
 	/**
 	 * 오브젝트의 Tagging 정보를 삭제한다.
 	 * 
-	 * @throws Exception
 	 */
-	protected void DeleteObjectTagging() throws Exception {
-		var DelRequest = new DeleteObjectTaggingRequest(event.TargetBucketName, event.ObjectName);
+	protected void deleteObjectTagging() {
+		var request = new DeleteObjectTaggingRequest(event.targetBucketName, event.objectName);
 		// 헤더추가
-		DelRequest.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
-		DelRequest.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
-		targetClient.deleteObjectTagging(DelRequest);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_BACKEND, BackendHeaders.HEADER_DATA);
+		request.putCustomRequestHeader(BackendHeaders.HEADER_REPLICATION, BackendHeaders.HEADER_DATA);
+		targetClient.deleteObjectTagging(request);
 	}
 
 	/******************************************
 	 * Utility
 	 *************************************************/
 
-	protected boolean FolderCheck(String ObjectName) {
-		return ObjectName.endsWith("/");
+	protected boolean folderCheck(String objectName) {
+		return objectName.endsWith("/");
 	}
 }

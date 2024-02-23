@@ -505,5 +505,65 @@ namespace PortalSvr.Controllers.Config
 			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.ksanLogManager, Version));
 		}
 		#endregion
+
+		#region MariaDB
+		/// <summary>MariaDB 설정 목록을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseList<ResponseServiceConfig>))]
+		[HttpGet("List/MariaDB")]
+		public async Task<ActionResult> GetConfigListForMariaDB()
+		{
+			return Json(await m_dataProvider.GetConfigList(EnumServiceType.MariaDB));
+		}
+
+		/// <summary>MariaDB 설정을 가져온다.</summary>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("MariaDB")]
+		public async Task<ActionResult> GetConfigForMariaDB()
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.MariaDB));
+		}
+
+		/// <summary>특정 버전의 MariaDB 설정을 가져온다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData<ResponseServiceConfig>))]
+		[HttpGet("MariaDB/{Version}")]
+		public async Task<ActionResult> GetConfigForMariaDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.GetConfig(EnumServiceType.MariaDB, Version));
+		}
+
+		/// <summary>MariaDB 설정을 저장한다.</summary>
+		/// <param name="Config">서비스 설정 정보</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPost("MariaDB")]
+		public async Task<ActionResult> SetConfigForMariaDB([FromBody] string Config)
+		{
+			return Json(await m_dataProvider.SetConfig(new RequestServiceConfig() { Type = EnumServiceType.MariaDB, Config = Config }));
+		}
+
+		/// <summary>MariaDB 설정의 버전을 변경한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpPut("MariaDB/{Version}")]
+		public async Task<ActionResult> SetConfigLastVersionForMariaDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.SetConfigLastVersion(EnumServiceType.MariaDB, Version));
+		}
+
+		/// <summary>MariaDB 설정의 버전을 삭제한다.</summary>
+		/// <param name="Version">서비스 버전</param>
+		/// <returns>결과 JSON 문자열</returns>
+		[SwaggerResponse((int)HttpStatusCode.OK, null, typeof(ResponseData))]
+		[HttpDelete("MariaDB/{Version}")]
+		public async Task<ActionResult> RemoveConfigForMariaDB([FromRoute] int Version)
+		{
+			return Json(await m_dataProvider.RemoveConfig(EnumServiceType.MariaDB, Version));
+		}
+		#endregion
 	}
 }

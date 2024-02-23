@@ -78,6 +78,8 @@ public class PutBlock extends AzuRequest {
         if (Strings.isNullOrEmpty(blockId)) {
             throw new AzuException(AzuErrorCode.BAD_REQUEST, azuParameter);
         }
+        blockId = blockId.replace('/', '_');
+        logger.info("blockId : {}", blockId);
 
         String contentsLength = azuRequestData.getContentLength();
         long blockLength = Long.parseLong(contentsLength);
@@ -104,9 +106,9 @@ public class PutBlock extends AzuRequest {
             }
         }
 
-        // AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
-        // S3Object s3Object = azuObjectOperation.uploadBlock(blockId, blockLength);
-        // logger.info("blockId : {}, etag : {}", blockId, s3Object.getEtag());
+        AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
+        S3Object s3Object = azuObjectOperation.uploadBlock(blockId, blockLength);
+        logger.info("blockId : {}, etag : {}", blockId, s3Object.getEtag());
         
         azuParameter.getResponse().setStatus(HttpServletResponse.SC_CREATED);
     }

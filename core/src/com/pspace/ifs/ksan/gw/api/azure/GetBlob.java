@@ -27,6 +27,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,16 +65,16 @@ public class GetBlob extends AzuRequest {
         String range = azuParameter.getRequest().getHeader(AzuConstants.X_MS_RANGE);
         logger.debug("range : {}", range);
 
-		// AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
-		// try {
-		// 	azuObjectOperation.getObject(range);
-		// } catch (Exception e) {
-		// 	PrintStack.logging(logger, e);
-		// 	throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
-		// }
+		AzuObjectOperation azuObjectOperation = new AzuObjectOperation(objMeta, null, azuParameter, versionId);
+		try {
+			azuObjectOperation.getObject(range);
+		} catch (Exception e) {
+			PrintStack.logging(logger, e);
+			throw new AzuException(AzuErrorCode.SERVER_ERROR, azuParameter);
+		}
 
         azuParameter.getResponse().setCharacterEncoding(AzuConstants.CHARSET_UTF_8);
-        azuParameter.getResponse().setContentLength(s3Metadata.getContentLength().intValue());
+        
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_LASTMODIFIED, formatDate(s3Metadata.getLastModified()));
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_X_MS_CREATION_TIME, formatDate(s3Metadata.getCreationDate()));
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_X_MS_BLOB_TYPE, AzuConstants.BLOB_TYPE_BLOCKBLOB);
@@ -80,6 +82,20 @@ public class GetBlob extends AzuRequest {
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_X_MS_LEASE_STATUS, AzuConstants.LEASE_STATUS_UNLOCKED);
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_ETAG, AzuConstants.ETAG_DEFAULT);
         azuParameter.getResponse().addHeader(AzuConstants.HEADER_CONTENT_MD5, s3Metadata.getContentMD5());
+        
+
+        if (Strings.isNullOrEmpty(range)) {
+            azuParameter.getResponse().addHeader(AzuConstants.HEADER_CONTENT_LENGTH, String.valueOf(azuParameter.getResponseSize()));
+            azuParameter.getResponse().setStatus(HttpServletResponse.SC_OK);
+        } else {
+            String[] infos = range.split(GWConstants.EQUAL);
+            String[] ranges = infos[1].split(GWConstants.DASH);
+            long offset = Longs.tryParse(ranges[0]);
+            long length = Longs.tryParse(ranges[1]);
+            String responseRange = "bytes " + offset + "-" + length + "/" + azuParameter.getResponseSize();
+            azuParameter.getResponse().addHeader(AzuConstants.HEADER_CONTENT_RANGE, responseRange);
+            azuParameter.getResponse().setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        }
     }
 }
 

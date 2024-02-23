@@ -138,6 +138,7 @@ public class CompleteMultipartUpload extends S3Request {
 			logger.debug("part number : {}, etag : {}, size : {}", entry.getValue().getPartNumber(), entry.getValue().getPartETag(), entry.getValue().getPartSize());
 		}
 
+		long contentsLength = 0L;
 		for (Iterator<Map.Entry<Integer, Part>> it = xmlListPart.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<Integer, Part> entry = it.next();
 			String eTag = entry.getValue().getPartETag().replace(GWConstants.DOUBLE_QUOTE, "");
@@ -148,6 +149,7 @@ public class CompleteMultipartUpload extends S3Request {
 			if (listPart.containsKey(entry.getKey())) {
 				Part part = listPart.get(entry.getKey());
 				if (eTag.compareTo(part.getPartETag()) == 0 ) {
+					contentsLength += part.getPartSize();
 					logger.debug("part : {}, size : {}", entry.getKey(), part.getPartSize());
 					if (part.getPartSize() < GWConstants.PARTS_MIN_SIZE && entry.getKey() < listPart.size()) {
 						logger.error(GWErrorCode.ENTITY_TOO_SMALL.getMessage());
@@ -211,6 +213,7 @@ public class CompleteMultipartUpload extends S3Request {
 			}
 		}
 		s3Parameter.setVersionId(versionId);
+		objMeta.setSize(contentsLength);
 
 		if (GWConstants.VERSIONING_ENABLED.equalsIgnoreCase(versioningStatus)) {
 			logger.info(GWConstants.LOG_COMPLETE_MULTIPART_VERSION_ID, versionId);

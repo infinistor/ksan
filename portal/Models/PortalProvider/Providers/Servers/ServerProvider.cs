@@ -646,16 +646,16 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
 		/// <param name="OrderDirections">정렬방향목록 (asc, desc)</param>
-		/// <param name="SearchFields">검색필드 목록 (Name, Description, CpuModel, Clock)</param>
+		/// <param name="SearchFields">검색필드 목록 (Name, CpuModel)</param>
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		public async Task<ResponseList<ResponseServer>> GetList(
-			List<EnumServerState> SearchStates = null,
+			EnumServerState? SearchState = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -674,27 +674,17 @@ namespace PortalProvider.Providers.Servers
 				// 검색 필드를  초기화한다.
 				InitSearchFields(ref SearchFields);
 
-				short Clock = -1;
-				if (SearchFields != null && SearchFields.Contains("clock"))
-				{
-					if (!short.TryParse(SearchKeyword, out Clock))
-						Clock = -1;
-				}
-
 				// 목록을 가져온다.
 				Result.Data = await m_dbContext.Servers.AsNoTracking()
 					.Where(i =>
-						(
 							SearchFields == null || SearchFields.Count == 0 || SearchKeyword.IsEmpty()
 							|| (SearchFields.Contains("name") && i.Name.Contains(SearchKeyword))
 							|| (SearchFields.Contains("description") && i.Description.Contains(SearchKeyword))
 							|| (SearchFields.Contains("cpumodel") && i.CpuModel.Contains(SearchKeyword))
-							|| (SearchFields.Contains("clock") && i.Clock == Clock)
-						)
-						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
+							|| (SearchState != null && i.State == (EnumDbServerState)SearchState)
 					)
 					.OrderByWithDirection(OrderFields, OrderDirections)
-					.CreateListAsync<dynamic, ResponseServer>(Skip, CountPerPage);
+					.CreateListAsync<Server, ResponseServer>(Skip, CountPerPage);
 
 				Result.Result = EnumResponseResult.Success;
 
@@ -711,7 +701,7 @@ namespace PortalProvider.Providers.Servers
 		}
 
 		/// <summary>서버 목록을 가져온다.</summary>
-		/// <param name="SearchStates">검색할 서버 상태 목록</param>
+		/// <param name="SearchState">검색할 서버 상태 목록</param>
 		/// <param name="Skip">건너뛸 레코드 수 (옵션, 기본 0)</param>
 		/// <param name="CountPerPage">페이지 당 레코드 수 (옵션, 기본 100)</param>
 		/// <param name="OrderFields">정렬필드목록 (Name, Description, CpuModel, Clock, State, Rack, LoadAverage1M, LoadAverage5M, LoadAverage15M, MemoryTotal, MemoryUsed, MemoryFree)</param>
@@ -720,7 +710,7 @@ namespace PortalProvider.Providers.Servers
 		/// <param name="SearchKeyword">검색어</param>
 		/// <returns>서버 목록 객체</returns>
 		public async Task<ResponseList<ResponseServerDetail>> GetListDetails(
-			List<EnumServerState> SearchStates = null,
+			EnumServerState? SearchState = null,
 			int Skip = 0, int CountPerPage = 100,
 			List<string> OrderFields = null, List<string> OrderDirections = null,
 			List<string> SearchFields = null, string SearchKeyword = ""
@@ -756,7 +746,7 @@ namespace PortalProvider.Providers.Servers
 							|| (SearchFields.Contains("cpumodel") && i.CpuModel.Contains(SearchKeyword))
 							|| (SearchFields.Contains("clock") && i.Clock == Clock)
 						)
-						&& (SearchStates == null || SearchStates.Count == 0 || SearchStates.Select(j => (int)j).Contains((int)i.State))
+						&& (SearchState == null || i.State == (EnumDbServerState)SearchState)
 					)
 					.Include(i => i.Disks)
 					.Include(i => i.Services)

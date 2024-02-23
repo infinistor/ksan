@@ -54,6 +54,7 @@ public class DeleteBucketInventory extends S3Request {
         String id = s3RequestData.getId();
         String inventoryXmls = getBucketInfo().getInventory();
         if (Strings.isNullOrEmpty(inventoryXmls)) {
+            logger.error("not found bucket inventory, bucket : {}", bucket);
             throw new GWException(GWErrorCode.NO_SUCH_CONFIGURATION, s3Parameter);
         }
 

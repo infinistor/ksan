@@ -74,7 +74,6 @@ public class AzuObjectOperation {
     private ObjManager objManager;
     private static final Logger logger = LoggerFactory.getLogger(AzuObjectOperation.class);
 
-    /* 
     public AzuObjectOperation(Metadata objMeta, S3Metadata s3Meta, AzuParameter azuParameter, String versionId) {
         this.objMeta = objMeta;
         this.s3Meta = s3Meta;
@@ -102,7 +101,7 @@ public class AzuObjectOperation {
                     logger.debug("replica disk id : {}, osd ip : {}", objMeta.getReplicaDisk().getId(), objMeta.getReplicaDisk().getOsdIp());
                 }
 
-                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                if (KsanUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     logger.debug("get local - objid : {}, primary get - path : {}", objMeta.getObjId(), objMeta.getPrimaryDisk().getPath());
                     actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), range, objMeta.getObjId());
                     azuParameter.addResponseSize(actualSize);
@@ -161,7 +160,7 @@ public class AzuObjectOperation {
                     }
                 }
             } else {
-                if (GWUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
+                if (KsanUtils.getLocalIP().equals(objMeta.getPrimaryDisk().getOsdIp())) {
                     actualSize = getObjectLocal(azuParameter.getResponse().getOutputStream(), objMeta.getPrimaryDisk().getPath(), range, objMeta.getObjId());
                     azuParameter.addResponseSize(actualSize);
                 } else {
@@ -282,7 +281,7 @@ public class AzuObjectOperation {
         File trashReplica = null;
         OSDClient clientPrimary = null;
         OSDClient clientReplica = null;
-        long length = s3Meta.getContentLength();
+        long length = objMeta.getSize();
         long totalReads = 0L;
         long existFileSize = 0L;
         long putSize = 0L;
@@ -299,9 +298,7 @@ public class AzuObjectOperation {
             boolean isPrimaryCache = false;
             boolean isReplicaCache = false;
 
-            logger.debug("performance mode : {}", GWConfig.getInstance().getPerformanceMode());
-            logger.debug("objMeta - replicaCount : {}", objMeta.getReplicaCount());
-
+            logger.debug("contents length : {}", length);
 
             if (objMeta.getReplicaCount() > 1) {
                 existFileSize *= objMeta.getReplicaCount();
@@ -699,6 +696,7 @@ public class AzuObjectOperation {
                     clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
                                            objMeta.getObjId(), 
                                            blockId, 
+                                           blockId,
                                            length,
                                            GWConstants.EMPTY_STRING);
                 }
@@ -723,6 +721,7 @@ public class AzuObjectOperation {
                         clientReplica.partInit(objMeta.getReplicaDisk().getPath(), 
                                            objMeta.getObjId(), 
                                            blockId, 
+                                           blockId,
                                            length,
                                            GWConstants.EMPTY_STRING);
                     }
@@ -787,6 +786,7 @@ public class AzuObjectOperation {
                     clientPrimary.partInit(objMeta.getPrimaryDisk().getPath(), 
                                            objMeta.getObjId(), 
                                            blockId, 
+                                           blockId,
                                            length,
                                            GWConstants.EMPTY_STRING);
                 }
@@ -863,6 +863,7 @@ public class AzuObjectOperation {
             md5er = MessageDigest.getInstance(GWConstants.MD5);
 
             for (String blockId: blockList) {
+                blockId = blockId.replace("/", "_");
                 if (GWConfig.getInstance().isCacheDiskpath()) {
                     block = new File(GWConfig.getInstance().getCacheDiskpath() + (KsanUtils.makePartPath(objMeta.getPrimaryDisk().getPath(), objMeta.getObjId(), blockId, blockId)));
                 } else {
@@ -927,5 +928,5 @@ public class AzuObjectOperation {
             }
             logger.error(GWConstants.LOG_S3OBJECT_OPERATION_FAILED_FILE_RENAME, srcFile.getAbsolutePath(), destFile.getAbsolutePath());
         }
-    } */
+    } 
 }

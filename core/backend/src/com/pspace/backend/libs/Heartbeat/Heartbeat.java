@@ -8,13 +8,13 @@
 * KSAN 프로젝트의 개발자 및 개발사는 이 프로그램을 사용한 결과에 따른 어떠한 책임도 지지 않습니다.
 * KSAN 개발팀은 사전 공지, 허락, 동의 없이 KSAN 개발에 관련된 모든 결과물에 대한 LICENSE 방식을 변경 할 권리가 있습니다.
 */
-package com.pspace.backend.libs.Heartbeat;
+package com.pspace.backend.libs.heartbeat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Data.Constants;
+import com.pspace.backend.libs.data.Constants;
 import com.pspace.ifs.ksan.libs.mq.MQSender;
 
 public class Heartbeat {
@@ -22,28 +22,32 @@ public class Heartbeat {
 
 	private static final String ONLINE = "Online";
 
-	private final String ServiceId;
-	private final MQSender Sender;
+	private final String serviceId;
+	private final MQSender sender;
 
-	public boolean Stop = false;
+	public boolean _stop = false;
 
-	public Heartbeat(String ServiceId, String Host, int Port, String User, String Password)
+	public Heartbeat(String serviceId, String host, int port, String user, String password)
 			throws Exception {
-		this.ServiceId = ServiceId;
-		Sender = new MQSender(Host, Port, User, Password, Constants.MQ_KSAN_SYSTEM_EXCHANGE, "direct", "");
+		this.serviceId = serviceId;
+		sender = new MQSender(host, port, user, password, Constants.MQ_KSAN_SYSTEM_EXCHANGE, "direct", "");
 	}
 
-	public void Start(int Delay) {
-		var Request = new RequestServiceState(ServiceId, ONLINE);
+	public void start(int delay) {
+		var request = new RequestServiceState(serviceId, ONLINE);
 
-		while (!Stop) {
+		while (!_stop) {
 			try {
-				Utility.delay(Delay);
-				Sender.send(Request.toString(), Constants.MQ_HEARTBEAT_BINDING_KEY);
+				Utility.delay(delay);
+				sender.send(request.toString(), Constants.MQ_HEARTBEAT_BINDING_KEY);
 			} catch (Exception e) {
 				logger.error("", e);
 				
 			}
 		}
+	}
+
+	public void stop() {
+		_stop = true;
 	}
 }
