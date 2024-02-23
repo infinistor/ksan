@@ -69,7 +69,7 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
 					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
@@ -81,49 +81,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3StorageUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3StorageUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3StorageUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3StorageUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3StorageUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3StorageUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3StorageUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
@@ -159,11 +117,11 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketApiAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
-						UserName = Key.UserName,
-						BucketName = Key.BucketName,
+						Key.UserName,
+						Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("REST.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("REST.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("REST.DELETE") ? j.Count : 0),
@@ -173,50 +131,9 @@ namespace PortalProvider.Providers.S3
 					})
 					.CreateListAsync<dynamic, ResponseS3RequestUsage>(Skip, CountPerPage);
 
-
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3RequestUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3RequestUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
+				Result.Data ??= new QueryResults<ResponseS3RequestUsage>();
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
 			{
@@ -251,8 +168,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketIoAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -262,49 +179,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3TransferUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3TransferUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3TransferUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3TransferUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
@@ -341,8 +216,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BucketErrorAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -352,49 +227,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3ErrorUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3ErrorUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3ErrorUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3ErrorUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
@@ -418,51 +251,8 @@ namespace PortalProvider.Providers.S3
 
 			try
 			{
-				Result.Data = await m_dbContext.BucketLists.AsNoTracking()
-				.Where(i => (UserName != null ? i.UserId == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-				.Select(i => new { UserName = i.UserId, i.BucketName, i.UsedSize, i.FileCount })
-				.CreateListAsync<dynamic, ResponseS3BucketUsage>(Skip, CountPerPage);
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3BucketUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3BucketUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3BucketUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3BucketUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				// 결과가 없을 경우 빈 데이터 생성
+				Result.Data ??= new QueryResults<ResponseS3BucketUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -506,11 +296,11 @@ namespace PortalProvider.Providers.S3
 
 				// 요청 횟수를 조회한다.
 				Result.Data = await m_dbContext.BucketApiMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
-						UserName = Key.UserName,
-						BucketName = Key.BucketName,
+						Key.UserName,
+						Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("REST.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("REST.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("REST.DELETE") ? j.Count : 0),
@@ -521,49 +311,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3RequestUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3RequestUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3RequestUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3RequestUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -608,8 +356,8 @@ namespace PortalProvider.Providers.S3
 
 				// 전송량을 조회한다.
 				Result.Data = await m_dbContext.BucketIoMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -619,49 +367,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3TransferUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3TransferUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3TransferUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3TransferUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -706,8 +412,8 @@ namespace PortalProvider.Providers.S3
 
 				// 에러 횟수를 조회한다.
 				Result.Data = await m_dbContext.BucketErrorMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -717,49 +423,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3ErrorUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3ErrorUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3ErrorUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3ErrorUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -799,11 +463,11 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendApiAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
-						UserName = Key.UserName,
-						BucketName = Key.BucketName,
+						Key.UserName,
+						Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("BACKEND.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("BACKEND.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("BACKEND.DELETE") ? j.Count : 0),
@@ -815,48 +479,8 @@ namespace PortalProvider.Providers.S3
 
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3RequestUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3RequestUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
+				Result.Data ??= new QueryResults<ResponseS3RequestUsage>();
+				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
 			{
@@ -891,8 +515,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendIoAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -902,49 +526,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3TransferUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3TransferUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3TransferUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3TransferUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
@@ -981,8 +563,8 @@ namespace PortalProvider.Providers.S3
 				var SearchEndDate = SearchStartDate.AddDays(Days);
 
 				Result.Data = await m_dbContext.BackendErrorAssets.AsNoTracking()
-					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName != null ? i.UserName == UserName : i.UserName != "-") && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => (SearchStartDate <= i.InDate) && (SearchEndDate >= i.InDate) && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -992,49 +574,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3ErrorUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3ErrorUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3ErrorUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3ErrorUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception e)
@@ -1077,11 +617,11 @@ namespace PortalProvider.Providers.S3
 
 				// 요청 횟수를 조회한다.
 				Result.Data = await m_dbContext.BackendApiMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
-						UserName = Key.UserName,
-						BucketName = Key.BucketName,
+						Key.UserName,
+						Key.BucketName,
 						Get = Items.Sum(j => j.Event.StartsWith("REST.GET") ? j.Count : 0),
 						Put = Items.Sum(j => j.Event.StartsWith("REST.PUT") ? j.Count : 0),
 						Delete = Items.Sum(j => j.Event.StartsWith("REST.DELETE") ? j.Count : 0),
@@ -1092,49 +632,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3RequestUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3RequestUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3RequestUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3RequestUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3RequestUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -1179,8 +677,8 @@ namespace PortalProvider.Providers.S3
 
 				// 전송량을 조회한다.
 				Result.Data = await m_dbContext.BackendIoMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -1190,49 +688,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3TransferUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3TransferUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3TransferUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3TransferUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3TransferUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -1277,8 +733,8 @@ namespace PortalProvider.Providers.S3
 
 				// 에러 횟수를 조회한다.
 				Result.Data = await m_dbContext.BackendErrorMeters.AsNoTracking()
-					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName != null ? i.UserName == UserName : true) && (BucketName != null ? i.BucketName == BucketName : true))
-					.GroupBy(i => new { UserName = i.UserName, BucketName = i.BucketName }, (Key, Items) => new
+					.Where(i => i.InDate <= SearchEndTime && i.InDate >= SearchStartTime && i.UserName != "-" && (UserName == null || i.UserName == UserName) && (BucketName == null || i.BucketName == BucketName))
+					.GroupBy(i => new { i.UserName, i.BucketName }, (Key, Items) => new
 					{
 						Key.UserName,
 						Key.BucketName,
@@ -1288,49 +744,7 @@ namespace PortalProvider.Providers.S3
 					.CreateListAsync<dynamic, ResponseS3ErrorUsage>(Skip, CountPerPage);
 
 				// 결과가 없을 경우 빈 데이터 생성
-				if (Result.Data == null)
-					Result.Data = new QueryResults<ResponseS3ErrorUsage>();
-
-				// 버킷이름을 입력한 경우
-				if (BucketName != null)
-				{
-					if (Result.Data.Items.Count == 0)
-					{
-						// 버킷이름이 존재하는지 확인
-						var Bucket = await m_dbContext.BucketLists.AsNoTracking().Where(i => (i.BucketName == BucketName) && (UserName != null ? i.UserId == UserName : true)).FirstOrDefaultAsync();
-						// 버킷이 존재하지 않는 경우
-						if (Bucket == null)
-							return new ResponseList<ResponseS3ErrorUsage>() { Code = Resource.EC_S3_SUCH_BUCKET_NOT_FOUND, Message = Resource.EM_S3_SUCH_BUCKET_NOT_FOUND };
-						// 버킷이 존재하는 경우
-						else
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = BucketName, UserName = Bucket.UserId });
-					}
-				}
-				// 유저명을 입력한 경우
-				else if (UserName != null)
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking()
-						.Where(i => i.UserId == UserName)
-						.ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = UserName });
-					}
-				}
-				// 버킷명과 유저명을 입력하지 않은 경우
-				else
-				{
-					var Buckets = await m_dbContext.BucketLists.AsNoTracking().ToListAsync();
-
-					foreach (var Bucket in Buckets)
-					{
-						if (Result.Data.Items.Where(i => i.BucketName == Bucket.BucketName).Count() == 0)
-							Result.Data.Items.Add(new ResponseS3ErrorUsage() { BucketName = Bucket.BucketName, UserName = Bucket.UserId });
-					}
-				}
-
+				Result.Data ??= new QueryResults<ResponseS3ErrorUsage>();
 				Result.Result = EnumResponseResult.Success;
 			}
 			catch (Exception ex)
@@ -1360,7 +774,7 @@ namespace PortalProvider.Providers.S3
 				var value = 0L;
 				if (long.TryParse(StrDate, out value))
 				{
-					DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+					DateTime dt = DateTime.UnixEpoch;
 					Result = dt.AddSeconds(value).ToLocalTime();
 					return true;
 				}
@@ -1370,7 +784,7 @@ namespace PortalProvider.Providers.S3
 				var value = 0L;
 				if (long.TryParse(StrDate, out value))
 				{
-					DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+					DateTime dt = DateTime.UnixEpoch;
 					Result = dt.AddMilliseconds(value).ToLocalTime();
 					return true;
 				}

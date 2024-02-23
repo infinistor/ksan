@@ -47,7 +47,6 @@
         <File Name="PortalModels.BackendApiAsset.cs" />
         <File Name="PortalModels.BackendErrorAsset.cs" />
         <File Name="PortalModels.BackendIoAsset.cs" />
-        <File Name="PortalModels.BucketList.cs" />
         <File Name="PortalModels.BucketMeter.cs" />
         <File Name="PortalModels.BucketAsset.cs" />
         <File Name="PortalModels.S3AccessIp.cs" />
@@ -83,7 +82,7 @@
       <Diagram Name="PortalModelDiagram" DefaultDiagram="True" />
     </Diagrams>
     <Templates>
-      <Template Name="EFCoreTemplate" Enabled="True" File="..\..\..\..\..\template\EFCoreTemplate.tmpl">
+      <Template Name="MyEFCore" Enabled="True" File="E:\Code\template\MyEFCore.tmpl">
         <ed:Property Name="ValidationFramework" Type="EntityDeveloper.TemplateEngine.ValidationFramework, EntityDeveloper.Common, Version=7.1.151.0, Culture=neutral, PublicKeyToken=09af7300eec23701">
           <ValidationFramework>None</ValidationFramework>
         </ed:Property>

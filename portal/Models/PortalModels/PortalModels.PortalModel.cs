@@ -135,8 +135,6 @@ namespace PortalModels
 
 		public virtual DbSet<BackendIoAsset> BackendIoAssets { get; set; }
 
-		public virtual DbSet<BucketList> BucketLists { get; set; }
-
 		public virtual DbSet<BucketMeter> BucketMeters { get; set; }
 
 		public virtual DbSet<BucketAsset> BucketAssets { get; set; }
@@ -272,9 +270,6 @@ namespace PortalModels
 
 			this.BackendIoAssetMapping(modelBuilder);
 			this.CustomizeBackendIoAssetMapping(modelBuilder);
-
-			this.BucketListMapping(modelBuilder);
-			this.CustomizeBucketListMapping(modelBuilder);
 
 			this.BucketMeterMapping(modelBuilder);
 			this.CustomizeBucketMeterMapping(modelBuilder);
@@ -1098,41 +1093,6 @@ namespace PortalModels
 
 		#endregion
 
-		#region BucketList Mapping
-
-		private void BucketListMapping(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<BucketList>().ToTable(@"BUCKETS");
-			modelBuilder.Entity<BucketList>().Property(x => x.BucketName).HasColumnName(@"bucketName").IsRequired().ValueGeneratedNever().HasMaxLength(64);
-			modelBuilder.Entity<BucketList>().Property(x => x.DiskPoolId).HasColumnName(@"diskPoolId").IsRequired().ValueGeneratedNever().HasMaxLength(200);
-			modelBuilder.Entity<BucketList>().Property(x => x.UserId).HasColumnName(@"user").ValueGeneratedNever().HasMaxLength(200).HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.UserName).HasColumnName(@"userName").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.BucketId).HasColumnName(@"bucketId").ValueGeneratedNever().HasMaxLength(64).HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.FileCount).HasColumnName(@"fileCount").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
-			modelBuilder.Entity<BucketList>().Property(x => x.UsedSize).HasColumnName(@"usedSpace").IsRequired().ValueGeneratedNever().HasDefaultValueSql(@"0");
-			modelBuilder.Entity<BucketList>().Property(x => x.ACL).HasColumnName(@"acl").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.WEB).HasColumnName(@"web").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.CORS).HasColumnName(@"cors").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Lifecycle).HasColumnName(@"lifecycle").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Versioning).HasColumnName(@"versioning").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Access).HasColumnName(@"access").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Tagging).HasColumnName(@"tagging").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Encryption).HasColumnName(@"encryption").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Replication).HasColumnName(@"replication").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Logging).HasColumnName(@"logging").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Notification).HasColumnName(@"notification").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.Policy).HasColumnName(@"policy").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.ObjectLock).HasColumnName(@"objectlock").ValueGeneratedNever().HasDefaultValueSql(@"NULL");
-			modelBuilder.Entity<BucketList>().Property(x => x.CreateTime).HasColumnName(@"createTime").IsRequired().ValueGeneratedOnAdd().HasDefaultValueSql(@"current_timestamp(3)");
-			modelBuilder.Entity<BucketList>().Property(x => x.MfaDelete).HasColumnName(@"MfaDelete").ValueGeneratedNever();
-			modelBuilder.Entity<BucketList>().Property(x => x.TagIndexing).HasColumnName(@"objTagIndexing").IsRequired().ValueGeneratedNever();
-			modelBuilder.Entity<BucketList>().HasKey(@"BucketName");
-		}
-
-		partial void CustomizeBucketListMapping(ModelBuilder modelBuilder);
-
-		#endregion
-
 		#region BucketMeter Mapping
 
 		private void BucketMeterMapping(ModelBuilder modelBuilder)
@@ -1261,6 +1221,7 @@ namespace PortalModels
 
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.Disks).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(false);
 			modelBuilder.Entity<DiskPool>().HasMany(x => x.UserDiskPools).WithOne(op => op.DiskPool).HasForeignKey(@"DiskPoolId").IsRequired(true);
+			modelBuilder.Entity<DiskPool>().HasOne(x => x.EC).WithOne(op => op.DiskPool).OnDelete(DeleteBehavior.Cascade).HasForeignKey(typeof(DiskPoolEC), @"DiskPoolId").IsRequired(false);
 
 			modelBuilder.Entity<ServerUsage>().HasOne(x => x.Server).WithMany(op => op.ServerUsages).OnDelete(DeleteBehavior.Cascade).HasForeignKey(@"Id").IsRequired(true);
 
