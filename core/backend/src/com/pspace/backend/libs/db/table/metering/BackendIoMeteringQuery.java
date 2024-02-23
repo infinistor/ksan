@@ -1,7 +1,6 @@
 package com.pspace.backend.libs.db.table.metering;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -77,7 +76,7 @@ public class BackendIoMeteringQuery extends BaseMeteringQuery {
 
 	public static List<IoLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {
 		if (results == null || results.isEmpty())
-			return Collections.emptyList();
+			return new ArrayList<>();
 
 		try {
 			var items = new ArrayList<IoLogData>();
@@ -92,7 +91,7 @@ public class BackendIoMeteringQuery extends BaseMeteringQuery {
 			return items;
 		} catch (Exception e) {
 			log.error("getMeterList error: ", e);
-			return Collections.emptyList();
+			return new ArrayList<>();
 		} finally {
 			results.clear();
 			results = null;

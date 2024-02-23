@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.data.Metering.DateRange;
 import com.pspace.backend.libs.data.Metering.UsageLogData;
-import java.util.Collections;
+
+import java.util.ArrayList;
 
 public class BucketUsageMeteringQuery extends BaseMeteringQuery {
 	static final Logger log = LoggerFactory.getLogger(BucketUsageMeteringQuery.class);
@@ -67,9 +68,9 @@ public class BucketUsageMeteringQuery extends BaseMeteringQuery {
 
 	public static List<UsageLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {
 		if (results == null || results.isEmpty())
-			return Collections.emptyList();
+			return new ArrayList<>();
 
-		var items = new java.util.ArrayList<UsageLogData>();
+		var items = new ArrayList<UsageLogData>();
 		try {
 			for (var result : results) {
 				var user = (String) result.get(DB_USER_NAME);
@@ -80,7 +81,7 @@ public class BucketUsageMeteringQuery extends BaseMeteringQuery {
 			return items;
 		} catch (Exception e) {
 			log.error("getMeterList error: ", e);
-			return Collections.emptyList();
+			return new ArrayList<>();
 		} finally {
 			results.clear();
 			results = null;

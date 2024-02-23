@@ -1,7 +1,6 @@
 package com.pspace.backend.libs.db.table.metering;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,7 +72,7 @@ public class BackendApiMeteringQuery extends BaseMeteringQuery {
 
 	public static List<ApiLogData> getMeterList(DateRange range, List<HashMap<String, Object>> results) {
 		if (results == null || results.isEmpty())
-			return Collections.emptyList();
+			return new ArrayList<>();
 		try {
 			var items = new ArrayList<ApiLogData>();
 			for (var result : results) {
@@ -87,7 +86,7 @@ public class BackendApiMeteringQuery extends BaseMeteringQuery {
 			return items;
 		} catch (Exception e) {
 			log.error("getMeterList error: ", e);
-			return Collections.emptyList();
+			return new ArrayList<>();
 		} finally {
 			results.clear();
 			results = null;

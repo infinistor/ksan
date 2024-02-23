@@ -16,12 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pspace.backend.libs.Utility;
-import com.pspace.backend.libs.Ksan.ObjManagerHelper;
 import com.pspace.backend.libs.config.MeteringConfig;
 import com.pspace.backend.libs.data.Metering.ApiLogData;
 import com.pspace.backend.libs.data.Metering.ErrorLogData;
 import com.pspace.backend.libs.data.Metering.IoLogData;
 import com.pspace.backend.libs.db.DBManager;
+import com.pspace.backend.libs.ksan.ObjManagerHelper;
 
 public class SendMetering {
 	private final Logger logger = LoggerFactory.getLogger(SendMetering.class);
@@ -103,7 +103,7 @@ public class SendMetering {
 
 					// Backend IO Metering 목록에서 Bucket이 존재하지 않을 경우
 					if (backendIoEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
-						bucketIoEvents.add(new IoLogData(bucket.inDate, bucket.user, bucket.bucket));
+						backendIoEvents.add(new IoLogData(bucket.inDate, bucket.user, bucket.bucket));
 
 					// Backend Error Metering 목록에서 Bucket이 존재하지 않을 경우
 					if (backendErrorEvents.stream().noneMatch(x -> x.bucket.equals(bucket.bucket)))
